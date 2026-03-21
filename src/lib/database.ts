@@ -1,0 +1,808 @@
+import { supabase } from './supabase';
+import { User, Shift, HolidayRequest, PunchRecord, PunchAuditEntry } from '../types';
+import { sanitizeUiSectionOverrides } from '../utils/uiScreenWidgets';
+
+/** Evita 400 su jsonb / tipi non validi. */
+function sanitizeUserUpdatePayload(payload: Record<string, unknown>): Record<string, unknown> {
+  const out = { ...payload };
+  if ('enabled_modules' in out) {
+    const m = out.enabled_modules;
+    if (Array.isArray(m)) {
+      out.enabled_modules = [...new Set(m.filter((x): x is string => typeof x === 'string'))];
+    } else {
+      delete out.enabled_modules;
+    }
+  }
+  if (
+    'enabled_features' in out &&
+    out.enabled_features &&
+    typeof out.enabled_features === 'object' &&
+    !Array.isArray(out.enabled_features)
+  ) {
+    const o = out.enabled_features as Record<string, unknown>;
+    const clean: Record<string, boolean> = {};
+    for (const [k, v] of Object.entries(o)) {
+      if (typeof v === 'boolean') clean[k] = v;
+    }
+    out.enabled_features = clean;
+  }
+  if (
+    'hourly_rate_eur' in out &&
+    typeof out.hourly_rate_eur === 'number' &&
+    (!Number.isFinite(out.hourly_rate_eur) || out.hourly_rate_eur < 0)
+  ) {
+    delete out.hourly_rate_eur;
+  }
+  if ('ui_section_overrides' in out) {
+    const cleaned = sanitizeUiSectionOverrides(out.ui_section_overrides);
+    out.ui_section_overrides = cleaned && Object.keys(cleaned).length > 0 ? cleaned : {};
+  }
+  return out;
+}
+
+function isMissingColumnError(error: unknown): boolean {
+  const e = error as { message?: string; details?: string; code?: string };
+  const t = `${e.message || ''} ${e.details || ''}`.toLowerCase();
+  return (
+    e.code === '42703' ||
+    /column .* does not exist|could not find the .* column|schema cache|unknown column/i.test(t)
+  );
+}
+
+/** Rimuove dal body la colonna citata nell’errore PostgREST (DB senza migrazione). */
+function stripMissingUserColumns(payload: Record<string, unknown>, error: unknown): Record<string, unknown> | null {
+  const msg = `${(error as { message?: string }).message || ''} ${(error as { details?: string }).details || ''}`;
+  const out = { ...payload };
+  const theColumn = msg.match(/the\s+['"]([a-z_][a-z0-9_]*)['"]\s+column/i);
+  const quoted = msg.match(/['"]([a-z_][a-z0-9_]*)['"]\s+column/i);
+  const backtick = msg.match(/`([a-z_][a-z0-9_]*)`/i);
+  const name = theColumn?.[1] || quoted?.[1] || backtick?.[1];
+  if (name && name in out) {
+    delete out[name];
+    return Object.keys(out).length ? out : null;
+  }
+  return null;
+}
+
+export const database = {
+  users: {
+    async getAll() {
+      if (!supabase) return [];
+      const { data, error } = await supabase!
+        .from('users')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async insert(user: Omit<User, 'id'>) {
+      if (!supabase) return null;
+      const { data, error } = await supabase!
+        .from('users')
+        .insert(user)
+        .select()
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+
+    async update(id: string, updates: Partial<User>) {
+      const safeKeys: (keyof User)[] = [
+        'first_name', 'last_name', 'email', 'phone', 'role', 'pin', 'status', 'sort_order',
+        'language', 'theme', 'department', 'hourly_rate_eur', 'monthly_confirmed', 'enabled_modules', 'enabled_features', 'ui_section_overrides',
+        'can_create_shifts', 'can_approve_shifts', 'can_view_total_hours',
+        'can_edit_staff_pins', 'can_manage_drafts',
+        'can_request_holidays', 'can_punch_from_app',
+        'hide_from_team_schedule',
+      ];
+      const rawPayload: Record<string, unknown> = {};
+      for (const key of safeKeys) {
+        if (key in updates && updates[key as keyof User] !== undefined) {
+          rawPayload[key] = updates[key as keyof User];
+        }
+      }
+      if (Object.keys(rawPayload).length === 0) return null;
+
+      const payload = sanitizeUserUpdatePayload(rawPayload);
+
+      const permKeys = ['can_request_holidays', 'can_punch_from_app', 'can_edit_staff_pins', 'can_create_shifts', 'can_approve_shifts', 'can_view_total_hours', 'can_manage_drafts'];
+      const optionalCols = ['enabled_modules', 'enabled_features', 'ui_section_overrides', 'monthly_confirmed', 'hourly_rate_eur', 'hide_from_team_schedule'];
+
+      const onlyOptionalCols = (keys: string[]) =>
+        keys.every((k) => permKeys.includes(k) || optionalCols.includes(k));
+
+      const tryUpdate = async (body: Record<string, unknown>) =>
+        supabase!.from('users').update(body).eq('id', id).select().maybeSingle();
+
+      let { data, error } = await tryUpdate(payload);
+
+      // DB senza migrazione: colonna sconosciuta → 400 (PostgREST). Riprova senza la colonna citata o senza `phone`.
+      if (error && isMissingColumnError(error)) {
+        let stripped = stripMissingUserColumns(payload, error);
+        if (!stripped && 'phone' in payload) {
+          const { phone, ...rest } = payload;
+          void phone;
+          stripped = Object.keys(rest).length ? rest : null;
+        }
+        if (stripped && Object.keys(stripped).length > 0 && Object.keys(stripped).length < Object.keys(payload).length) {
+          const second = await tryUpdate(stripped);
+          data = second.data;
+          error = second.error;
+        }
+      }
+
+      // Fallback: se 400 o colonna mancante e aggiorniamo solo colonne opzionali, merge locale (senza persistenza)
+      if (error && onlyOptionalCols(Object.keys(payload))) {
+        const { data: current } = await supabase!.from('users').select('*').eq('id', id).maybeSingle();
+        if (current) {
+          data = { ...current, ...payload } as User;
+          error = null;
+        }
+      }
+
+      if (error) {
+        console.warn('[database.users.update]', id, (error as { message?: string; code?: string }).message ?? error);
+        throw error;
+      }
+      return data;
+    },
+
+    async delete(id: string) {
+      if (!supabase) return;
+      const { error } = await supabase!
+        .from('users')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+
+    async bulkUpdate(users: User[]) {
+      if (!supabase) return;
+      const { error } = await supabase!
+        .from('users')
+        .upsert(users);
+      if (error) throw error;
+    },
+  },
+
+  shifts: {
+    async getAll() {
+      if (!supabase) return [];
+      const { data, error } = await supabase!
+        .from('shifts')
+        .select('*')
+        .order('date', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async getByUserId(userId: string) {
+      if (!supabase) return [];
+      const { data, error } = await supabase!
+        .from('shifts')
+        .select('*')
+        .eq('user_id', userId)
+        .order('date', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async insert(shift: Omit<Shift, 'id'>) {
+      const { data, error } = await supabase!
+        .from('shifts')
+        .insert(shift)
+        .select()
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+
+    async insertMany(shifts: Omit<Shift, 'id'>[]) {
+      if (!supabase || shifts.length === 0) return [];
+      const { data, error } = await supabase!
+        .from('shifts')
+        .insert(shifts)
+        .select();
+      if (error) throw error;
+      return (data || []) as Shift[];
+    },
+
+    async update(id: string, updates: Partial<Shift>) {
+      // approved_at / approved_by sono colonne opzionali: incluse ma con fallback graceful
+      const allowedKeys: (keyof Shift)[] = [
+        'user_id', 'date', 'start_time', 'end_time', 'type', 'approval_status',
+        'notes', 'deduct_break', 'break_minutes', 'is_auto_break', 'admin_note', 'skills', 'approved_at', 'approved_by',
+      ];
+      const payload: Record<string, unknown> = {};
+      for (const key of allowedKeys) {
+        // null è incluso esplicitamente (svuota campi come approved_at/approved_by)
+        if (key in updates && updates[key] !== undefined) payload[key] = updates[key];
+      }
+      let { data, error } = await supabase!
+        .from('shifts')
+        .update(payload)
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+      // Fallback progressivo: rimuove le colonne opzionali finché il server accetta
+      if (error) {
+        const optionalKeys = ['approved_at', 'approved_by', 'deduct_break', 'break_minutes', 'is_auto_break', 'notes', 'admin_note', 'skills'] as const;
+        for (const key of optionalKeys) {
+          if (!error || payload[key] === undefined) continue;
+          const fallback = { ...payload };
+          delete fallback[key];
+          if (Object.keys(fallback).length > 0) {
+            const res = await supabase!.from('shifts').update(fallback).eq('id', id).select().maybeSingle();
+            if (!res.error) { data = res.data; error = null; break; }
+          }
+        }
+        // Ultimo tentativo: solo campi core garantiti nello schema base
+        if (error && Object.keys(payload).length > 0) {
+          const core: Record<string, unknown> = {};
+          for (const k of ['user_id', 'date', 'start_time', 'end_time', 'type', 'approval_status'] as const) {
+            if (payload[k] !== undefined) core[k] = payload[k];
+          }
+          if (Object.keys(core).length > 0) {
+            const res = await supabase!.from('shifts').update(core).eq('id', id).select().maybeSingle();
+            if (!res.error) { data = res.data; error = null; }
+          }
+        }
+      }
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase!
+        .from('shifts')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+
+    async deleteMany(ids: string[]) {
+      if (ids.length === 0) return;
+      // Pulizia cascade: elimina prima i punch_records collegati per evitare FK violations
+      const { data: punches } = await supabase!
+        .from('punch_records')
+        .select('id')
+        .in('shift_id', ids);
+      if (punches && punches.length > 0) {
+        await supabase!
+          .from('punch_records')
+          .delete()
+          .in('id', (punches as { id: string }[]).map(r => r.id));
+      }
+      const { error } = await supabase!
+        .from('shifts')
+        .delete()
+        .in('id', ids);
+      if (error) throw error;
+    },
+
+    async deleteByDateRange(startDate: string, endDate: string) {
+      if (!supabase) return;
+      const { data, error } = await supabase!
+        .from('shifts')
+        .select('id')
+        .gte('date', startDate)
+        .lte('date', endDate);
+      if (error) throw error;
+      const ids = (data || []).map((s: { id: string }) => s.id);
+      if (ids.length > 0) {
+        // Cascade: elimina prima i punch_records collegati per evitare FK violations
+        await supabase!.from('punch_records').delete().in('shift_id', ids);
+        const { error: delError } = await supabase!.from('shifts').delete().in('id', ids);
+        if (delError) throw delError;
+      }
+      return ids.length;
+    },
+
+    /** Eliminazione diretta con filtro date (con cascade punch_records) */
+    async deleteByDateRangeDirect(startDate: string, endDate: string) {
+      if (!supabase) return;
+      // Fetch IDs per cascade su punch_records
+      const { data } = await supabase!.from('shifts').select('id').gte('date', startDate).lte('date', endDate);
+      const ids = (data || []).map((s: { id: string }) => s.id);
+      if (ids.length > 0) {
+        await supabase!.from('punch_records').delete().in('shift_id', ids);
+        const { error } = await supabase!.from('shifts').delete().in('id', ids);
+        if (error) throw error;
+      }
+    },
+
+    /** Restituisce gli id dei turni nel range date (per pulizia a cascata) */
+    async getIdsByDateRange(startDate: string, endDate: string): Promise<string[]> {
+      if (!supabase) return [];
+      const { data, error } = await supabase!
+        .from('shifts')
+        .select('id')
+        .gte('date', startDate)
+        .lte('date', endDate);
+      if (error) throw error;
+      return (data || []).map((s: { id: string }) => s.id);
+    },
+  },
+
+  punchRecords: {
+    async getAll() {
+      if (!supabase) return [];
+      const { data, error } = await supabase!
+        .from('punch_records')
+        .select('*')
+        .order('timestamp', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async getByUserId(userId: string) {
+      if (!supabase) return [];
+      const { data, error } = await supabase!
+        .from('punch_records')
+        .select('*')
+        .eq('user_id', userId)
+        .order('timestamp', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async insert(record: Omit<PunchRecord, 'id'>) {
+      const { data, error } = await supabase!
+        .from('punch_records')
+        .insert(record)
+        .select()
+        .maybeSingle();
+      if (error) {
+        // Fallback: se la colonna calculated_time o clock_out_time non esiste ancora
+        // (migration non ancora eseguita), riprova senza quei campi
+        const msg = (error as { message?: string }).message ?? '';
+        if (msg.includes('calculated_time') || msg.includes('clock_out_time')) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { calculated_time, clock_out_time, ...safeRecord } = record as any;
+          void calculated_time;
+          void clock_out_time;
+          const { data: d2, error: e2 } = await supabase!
+            .from('punch_records')
+            .insert(safeRecord)
+            .select()
+            .maybeSingle();
+          if (!e2) return d2;
+        }
+        console.error('ERRORE SUPABASE:', error.message, (error as { details?: string }).details);
+        throw error;
+      }
+      return data;
+    },
+
+    async update(id: string, updates: { timestamp?: string; calculated_time?: string; clock_out_time?: string | null }) {
+      if (!supabase) return null;
+      /** Normalizza a ISO completo per timestamptz (es. 2025-03-10T10:00:00 → 2025-03-10T10:00:00.000Z) */
+      const toIso = (s: string): string => {
+        const t = s.trim();
+        if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(t)) return '';
+        if (/Z$|\.\d{3}Z?$/.test(t)) return t;
+        return t.replace(/(:\d{2})(?:\.[\d.]+)?$/, '$1.000Z');
+      };
+      const payload: Record<string, string | null> = {};
+      if (updates.timestamp != null && updates.timestamp !== '') {
+        const ts = toIso(String(updates.timestamp));
+        if (ts) payload.timestamp = ts;
+      }
+      if (updates.calculated_time != null && updates.calculated_time !== '') {
+        const ct = toIso(String(updates.calculated_time));
+        if (ct) payload.calculated_time = ct;
+      }
+      if ('clock_out_time' in updates) {
+        payload.clock_out_time = updates.clock_out_time != null
+          ? toIso(String(updates.clock_out_time)) || updates.clock_out_time
+          : null;
+      }
+      if (Object.keys(payload).length === 0) return null;
+      let { data, error } = await supabase!
+        .from('punch_records')
+        .update(payload)
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+      // Fallback progressivo: rimuove colonne opzionali una alla volta fino a successo
+      if (error) {
+        const msg = (error as { message?: string }).message ?? '';
+        const optionalCols = ['clock_out_time', 'calculated_time'] as const;
+        for (const col of optionalCols) {
+          if (!error) break;
+          if (payload[col] === undefined) continue;
+          if (!msg.includes(col) && !msg.includes('schema cache') && !msg.includes('column')) continue;
+          const fallback = { ...payload };
+          delete fallback[col];
+          if (Object.keys(fallback).length === 0) { error = null; break; }
+          const res = await supabase!.from('punch_records').update(fallback).eq('id', id).select().maybeSingle();
+          if (!res.error) { data = res.data; error = null; }
+          else error = res.error;
+        }
+        // Ultimo tentativo: solo timestamp (campo garantito)
+        if (error && payload.timestamp) {
+          const res = await supabase!.from('punch_records').update({ timestamp: payload.timestamp }).eq('id', id).select().maybeSingle();
+          if (!res.error) { data = res.data; error = null; }
+        }
+      }
+      if (error) {
+        console.error('punch_records.update error:', (error as { message?: string }).message, (error as { details?: string }).details);
+        throw error;
+      }
+      return data;
+    },
+
+    async deleteForDate(dateStr: string) {
+      if (!supabase) return;
+      const dayStart = `${dateStr}T00:00:00.000Z`;
+      const nextDay = new Date(dayStart);
+      nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+      const dayEnd = nextDay.toISOString();
+      const { data } = await supabase!
+        .from('punch_records')
+        .select('id')
+        .gte('timestamp', dayStart)
+        .lt('timestamp', dayEnd);
+      if (data && data.length > 0) {
+        const ids = (data as { id: string }[]).map((r) => r.id);
+        await supabase!.from('punch_records').delete().in('id', ids);
+      }
+    },
+
+    async deleteForUserAndDate(userId: string, dateStr: string) {
+      if (!supabase) return;
+      const dayStart = `${dateStr}T00:00:00.000Z`;
+      const nextDay = new Date(dayStart);
+      nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+      const dayEnd = nextDay.toISOString();
+      const { data } = await supabase!
+        .from('punch_records')
+        .select('id')
+        .eq('user_id', userId)
+        .gte('timestamp', dayStart)
+        .lt('timestamp', dayEnd);
+      if (data && data.length > 0) {
+        const ids = (data as { id: string }[]).map((r) => r.id);
+        await supabase!.from('punch_records').delete().in('id', ids);
+      }
+    },
+
+    async deleteByShiftId(shiftId: string) {
+      if (!supabase) return;
+      const { data } = await supabase!.from('punch_records').select('id').eq('shift_id', shiftId);
+      if (data && data.length > 0) {
+        await supabase!.from('punch_records').delete().in('id', data.map((r: { id: string }) => r.id));
+      }
+    },
+
+    /** Elimina tutti i punch_records che hanno shift_id in una lista */
+    async deleteByShiftIds(shiftIds: string[]) {
+      if (!supabase || shiftIds.length === 0) return;
+      const { data, error } = await supabase!
+        .from('punch_records')
+        .select('id')
+        .in('shift_id', shiftIds);
+      if (error) throw error;
+      const ids = (data || []).map((r: { id: string }) => r.id);
+      if (ids.length > 0) {
+        const { error: delError } = await supabase!.from('punch_records').delete().in('id', ids);
+        if (delError) throw delError;
+      }
+    },
+  },
+
+  /**
+   * Audit log persistente per le modifiche manuali ai punch_records.
+   * Richiede la tabella `punch_audit_log` su Supabase (vedere piano regola-inviolabile).
+   * Tutte le funzioni gestiscono gracefully l'assenza della tabella (catch silenzioso).
+   */
+  punchAuditLog: {
+    async insert(entry: Omit<PunchAuditEntry, 'id' | 'changed_at'>) {
+      if (!supabase) return null;
+      try {
+        const { data, error } = await supabase!
+          .from('punch_audit_log')
+          .insert(entry)
+          .select()
+          .maybeSingle();
+        if (error) {
+          console.warn('punch_audit_log.insert error (tabella assente?):', error.message);
+          return null;
+        }
+        return data as PunchAuditEntry | null;
+      } catch {
+        return null;
+      }
+    },
+
+    async getByPunchId(punchRecordId: string): Promise<PunchAuditEntry[]> {
+      if (!supabase) return [];
+      try {
+        const { data, error } = await supabase!
+          .from('punch_audit_log')
+          .select('*')
+          .eq('punch_record_id', punchRecordId)
+          .order('changed_at', { ascending: true });
+        if (error) { console.warn('punch_audit_log.getByPunchId error:', error.message); return []; }
+        return (data || []) as PunchAuditEntry[];
+      } catch { return []; }
+    },
+
+    /** Carica in batch tutti gli audit entries per una lista di punch_record_id. */
+    async getByPunchIds(punchRecordIds: string[]): Promise<PunchAuditEntry[]> {
+      if (!supabase || punchRecordIds.length === 0) return [];
+      try {
+        const { data, error } = await supabase!
+          .from('punch_audit_log')
+          .select('*')
+          .in('punch_record_id', punchRecordIds)
+          .order('changed_at', { ascending: true });
+        if (error) { console.warn('punch_audit_log.getByPunchIds error:', error.message); return []; }
+        return (data || []) as PunchAuditEntry[];
+      } catch { return []; }
+    },
+  },
+
+  holidays: {
+    async getAll() {
+      if (!supabase) return [];
+      const { data, error } = await supabase!
+        .from('holiday_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async getByUserId(userId: string) {
+      if (!supabase) return [];
+      const { data, error } = await supabase!
+        .from('holiday_requests')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async insert(request: Omit<HolidayRequest, 'id' | 'created_at'>) {
+      // requester_email is a frontend-only field; strip it before sending to DB
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { requester_email: _ignored, ...dbPayload } = request as typeof request & { requester_email?: string };
+      const { data, error } = await supabase!
+        .from('holiday_requests')
+        .insert(dbPayload)
+        .select()
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+
+    async update(id: string, updates: Partial<HolidayRequest>) {
+      const { data, error } = await supabase!
+        .from('holiday_requests')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(id: string) {
+      if (!supabase) return;
+      const { error } = await supabase!
+        .from('holiday_requests')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+  },
+
+  /** Disponibilità: alias di holiday_requests con type='indisponibilita'. */
+  availability: {
+    async getAll() {
+      if (!supabase) return [];
+      const { data, error } = await supabase!
+        .from('holiday_requests')
+        .select('*')
+        .eq('type', 'indisponibilita')
+        .order('start_date', { ascending: true });
+      if (error) throw error;
+      return (data || []) as HolidayRequest[];
+    },
+
+    async getByUserId(userId: string) {
+      if (!supabase) return [];
+      const { data, error } = await supabase!
+        .from('holiday_requests')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('type', 'indisponibilita')
+        .order('start_date', { ascending: true });
+      if (error) throw error;
+      return (data || []) as HolidayRequest[];
+    },
+
+    async toggle(userId: string, date: string, existing?: HolidayRequest): Promise<HolidayRequest | null> {
+      if (!supabase) return null;
+      // Se esiste già un record per questo giorno, eliminalo (toggle off)
+      if (existing) {
+        await supabase!.from('holiday_requests').delete().eq('id', existing.id);
+        return null;
+      }
+      // Altrimenti crealo
+      const { data, error } = await supabase!
+        .from('holiday_requests')
+        .insert({
+          user_id: userId,
+          start_date: date,
+          end_date: date,
+          type: 'indisponibilita',
+          status: 'approved',
+        })
+        .select()
+        .maybeSingle();
+      if (error) throw error;
+      return data as HolidayRequest;
+    },
+  },
+
+  /**
+   * Svuota turni, richieste ferie/indisponibilità, timbrature e notifiche (tutto il dataset operativo collegato).
+   * NON tocca: users, shift_templates, ruoli o impostazioni app.
+   * Ordine: prima punch_records (FK su shifts), poi shifts, holiday_requests, eventuale notifications.
+   */
+  async hardResetTestData(): Promise<{ shifts: number; holidays: number; punchRecords: number; notifications?: number }> {
+    if (!supabase) {
+      return { shifts: 0, holidays: 0, punchRecords: 0 };
+    }
+    const neverMatch = '00000000-0000-0000-0000-000000000000'; // nessun id reale è uguale → match tutti
+
+    // 1. Attendance (Presenze) — prima per FK su shifts
+    const { error: punchErr } = await supabase!.from('punch_records').delete().neq('id', neverMatch);
+    if (punchErr) throw punchErr;
+
+    // 2. Shifts (Turni)
+    const { error: shiftErr } = await supabase!.from('shifts').delete().neq('id', neverMatch);
+    if (shiftErr) throw shiftErr;
+
+    // 3. HolidayRequests (Ferie)
+    const { error: holidayErr } = await supabase!.from('holiday_requests').delete().neq('id', neverMatch);
+    if (holidayErr) throw holidayErr;
+
+    // 4. Notifications (se la tabella esiste)
+    try {
+      await supabase!.from('notifications').delete().neq('id', neverMatch);
+    } catch {
+      // Tabella assente o altro: ignoro
+    }
+
+    return { shifts: 0, holidays: 0, punchRecords: 0 };
+  },
+
+  shiftTemplates: {
+    async save(name: string, entries: Array<{ day_of_week: number; user_id: string; start_time: string; end_time: string; type: string }>) {
+      if (!supabase) throw new Error('Supabase non configurato');
+      const { data, error } = await supabase!
+        .from('shift_templates')
+        .upsert({ name, data: entries }, { onConflict: 'name' })
+        .select()
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+
+    async load(name: string) {
+      if (!supabase) return null;
+      const { data, error } = await supabase!
+        .from('shift_templates')
+        .select('data')
+        .eq('name', name)
+        .maybeSingle();
+      if (error) throw error;
+      type TemplateRow = { data: Array<{ day_of_week: number; user_id: string; start_time: string; end_time: string; type: string }> };
+      return data ? (data as TemplateRow).data : null;
+    },
+
+    async listAll(): Promise<string[]> {
+      if (!supabase) return [];
+      const { data, error } = await supabase!
+        .from('shift_templates')
+        .select('name')
+        .order('name', { ascending: true });
+      if (error) throw error;
+      return (data || []).map((r: { name: string }) => r.name);
+    },
+
+    async delete(name: string) {
+      if (!supabase) return;
+      const { error } = await supabase!
+        .from('shift_templates')
+        .delete()
+        .eq('name', name);
+      if (error) throw error;
+    },
+  },
+
+  realtime: {
+    subscribeToShifts(userId: string | null, callback: (shifts: Shift[]) => void) {
+      if (!supabase) return () => {};
+      let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+      const topic = `shifts:${userId ?? 'all'}:${crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`}`;
+      const channel = supabase!.channel(topic).on('postgres_changes', { event: '*', schema: 'public', table: 'shifts' }, () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+          const data = userId ? await database.shifts.getByUserId(userId) : await database.shifts.getAll();
+          callback(data);
+        }, 300);
+      }).subscribe();
+      return () => { if (debounceTimer) clearTimeout(debounceTimer); supabase!.removeChannel(channel); };
+    },
+    subscribeToHolidays(userId: string | null, callback: (holidays: HolidayRequest[]) => void) {
+      if (!supabase) return () => {};
+      let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+      const topic = `holidays:${userId ?? 'all'}:${crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`}`;
+      const channel = supabase!.channel(topic).on('postgres_changes', { event: '*', schema: 'public', table: 'holiday_requests' }, () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+          const data = userId ? await database.holidays.getByUserId(userId) : await database.holidays.getAll();
+          callback(data);
+        }, 300);
+      }).subscribe();
+      return () => { if (debounceTimer) clearTimeout(debounceTimer); supabase!.removeChannel(channel); };
+    },
+    subscribeToPunchRecords(userId: string | null, callback: (records: PunchRecord[]) => void) {
+      if (!supabase) return () => {};
+      let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+      /** Nome univoco: due iscrizioni (AppProvider + StaffPersonalDashboard) non devono condividere lo stesso channel. */
+      const topic = `punch-records:${userId ?? 'all'}:${crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`}`;
+      const channel = supabase!.channel(topic).on('postgres_changes', { event: '*', schema: 'public', table: 'punch_records' }, () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+          const data = userId ? await database.punchRecords.getByUserId(userId) : await database.punchRecords.getAll();
+          callback(data);
+        }, 300);
+      }).subscribe();
+      return () => { if (debounceTimer) clearTimeout(debounceTimer); supabase!.removeChannel(channel); };
+    },
+    subscribeToUsers(callback: (users: User[]) => void) {
+      if (!supabase) return () => {};
+      let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+      const topic = `users:${crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`}`;
+      const channel = supabase!.channel(topic).on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+          const data = await database.users.getAll();
+          callback(data);
+        }, 300);
+      }).subscribe();
+      return () => { if (debounceTimer) clearTimeout(debounceTimer); supabase!.removeChannel(channel); };
+    },
+    /** Sincronizza holidays e availability quando holiday_requests cambia (web/mobile/app). */
+    subscribeToHolidaysAndAvailability(
+      onHolidays: (holidays: HolidayRequest[]) => void,
+      onAvailability: (availability: HolidayRequest[]) => void
+    ) {
+      if (!supabase) return () => {};
+      let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+      const topic = `holidays-avail:${crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`}`;
+      const channel = supabase!.channel(topic).on('postgres_changes', { event: '*', schema: 'public', table: 'holiday_requests' }, () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+          const [holidays, avail] = await Promise.all([
+            database.holidays.getAll(),
+            database.availability.getAll(),
+          ]);
+          onHolidays(holidays);
+          onAvailability(avail);
+        }, 300);
+      }).subscribe();
+      return () => { if (debounceTimer) clearTimeout(debounceTimer); supabase!.removeChannel(channel); };
+    },
+  },
+
+  // Feature flags are now stored in Supabase Storage (app-config/features.json)
+  // via src/utils/featureFlags.ts — no DB table needed.
+};

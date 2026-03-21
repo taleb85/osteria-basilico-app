@@ -1,0 +1,14 @@
+---
+description: Invio (Enter) esegue le azioni principali
+alwaysApply: false
+---
+
+# Osteria Basilico — Tastiera Enter
+
+**Regola: qualsiasi azione principale deve essere eseguibile premendo Invio (Enter) sulla tastiera.**
+
+## Implementazione
+- Modali: Enter conferma/salva, Escape chiude
+- Form: Enter in un input invia il form
+- Input orari: Enter salva o applica (Raggruppa tutto)
+- Pulsanti: comportamento nativo (Enter = click quando focalizzati)

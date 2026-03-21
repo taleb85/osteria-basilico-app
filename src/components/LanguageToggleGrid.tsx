@@ -1,0 +1,71 @@
+import type { Language } from '../types';
+
+const LANGS: Language[] = ['it', 'en', 'es', 'fr'];
+
+const FLAGS: Record<Language, string> = { it: '🇮🇹', en: '🇬🇧', es: '🇪🇸', fr: '🇫🇷' };
+const LABELS: Record<Language, string> = {
+  it: 'Italiano',
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+};
+
+/** Etichette ultra-brevi sotto la bandiera (PWA compatto) */
+const LABELS_SHORT: Record<Language, string> = {
+  it: 'ITA',
+  en: 'EN',
+  es: 'ES',
+  fr: 'FR',
+};
+
+interface LanguageToggleGridProps {
+  effectiveLanguage: Language;
+  setLanguage: (lang: Language) => void;
+  /** Layout più compatto per PWA / header mobile */
+  dense?: boolean;
+}
+
+/** Stessa griglia lingue della scheda Profilo staff — riutilizzabile nell’header gestionale. */
+export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, dense = false }: LanguageToggleGridProps) {
+  if (dense) {
+    return (
+      <div className="grid grid-cols-4 gap-1.5">
+        {LANGS.map((lang) => (
+          <button
+            key={lang}
+            type="button"
+            onClick={() => setLanguage(lang)}
+            title={LABELS[lang]}
+            aria-label={LABELS[lang]}
+            className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-0.5 rounded-lg font-semibold transition-colors min-h-[44px] min-w-0 ${
+              effectiveLanguage === lang ? 'bg-accent text-white' : 'bg-slate-100 text-slate-600 active:bg-slate-200'
+            }`}
+          >
+            <span className="text-[15px] leading-none" aria-hidden>
+              {FLAGS[lang]}
+            </span>
+            <span className="text-[9px] leading-tight text-center truncate w-full tracking-tight">{LABELS_SHORT[lang]}</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex gap-2">
+      {LANGS.map((lang) => (
+        <button
+          key={lang}
+          type="button"
+          onClick={() => setLanguage(lang)}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-colors min-h-[44px] ${
+            effectiveLanguage === lang ? 'bg-accent text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          <span>{FLAGS[lang]}</span>
+          <span className="text-xs">{LABELS[lang]}</span>
+        </button>
+      ))}
+    </div>
+  );
+}

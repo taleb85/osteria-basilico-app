@@ -1,0 +1,1906 @@
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { format, startOfWeek, addDays, addWeeks, parseISO, isToday } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight, Plus, X, Check, Save, Undo2, Clock, Loader2, ChevronDown, Pencil } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { Shift } from '../types';
+import { calculateShiftMinutesSafe, getActualShiftTime, getPunchDelayMinutes, formatMinutesToHoursAndMinutes, getBreakLabels } from '../utils/timeCalculations';
+import { translateRole } from '../utils/roles';
+import { getTranslations, getDateLocale } from '../utils/translations';
+import { motion, AnimatePresence } from 'framer-motion';
+
+/** Pulsante testo fisso, senza icone, stile barra comandi */
+function ActionTextButton({
+  label,
+  onClick,
+  disabled,
+  variant = 'neutral',
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  variant?: 'emerald' | 'yellow' | 'neutral' | 'red';
+}) {
+  const variantClass = {
+    emerald: 'text-emerald-400',
+    yellow: 'text-yellow-500/80',
+    neutral: 'text-white',
+    red: 'text-red-400',
+  }[variant];
+
+  return (
+    <button
+      type="button"
+      onClick={disabled ? undefined : onClick}
+      className={`h-6 px-2 flex items-center justify-center cursor-pointer font-bold text-[11px] uppercase tracking-wider ${variantClass} ${
+        disabled ? 'cursor-not-allowed opacity-60' : 'hover:opacity-90 transition-opacity'
+      }`}
+      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif', fontWeight: 700 }}
+    >
+      {label}
+    </button>
+  );
+}
+
+const Separator = () => <div className="w-[1px] h-4 bg-white/20 mx-1.5 flex-shrink-0" />;
+
+/** Opzioni orario fine turno: cambio 16:00, pranzo, cena fino a 00:00 */
+const END_TIME_OPTIONS = ['16:00', '16:30', '17:00', '17:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30', '00:00'];
+/** Estese per modale giorno: include superamento mezzanotte (es. 18:00-01:00) */
+const END_TIME_OPTIONS_EXTENDED = [...END_TIME_OPTIONS, '00:30', '01:00', '01:30', '02:00'];
+
+/** Normalizza a HH:mm. Non usa new Date(). */
+function toHHmm(val: string): string {
+  const trimmed = (val || '').trim().slice(0, 5);
+  if (/^\d{1,2}:\d{2}$/.test(trimmed)) return trimmed;
+  if (trimmed.length >= 4) return `${trimmed.slice(0, 2).padStart(2, '0')}:${trimmed.slice(-2)}`;
+  return trimmed || '';
+}
+
+/**
+ * Ordine fisso visualizzazione dipendenti nella modale giorno.
+ * Immune ai valori sort_order del database.
+ * Ordine: Gustavo(1) → Alexis(2) → Taleb(3) → Mauricio(4) → Freddy(5) → Dany/Danny(6)
+ */
+const MODAL_STAFF_ORDER: Record<string, number> = {
+  Gustavo: 1,
+  Alexis:  2,
+  Taleb:   3,
+  Mauricio: 4,
+  Freddy:  5,
+  Dany:    6,
+  Danny:   6,
+};
+
+interface WeeklyShiftsTableProps {
+  filterUserId?: string;
+}
+
+export default function WeeklyShiftsTable({ filterUserId }: WeeklyShiftsTableProps = {}) {
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [selectedShiftIds, setSelectedShiftIds] = useState<string[]>([]);
+  const anchorShiftIdRef = useRef<string | null>(null);
+  const [dragSelect, setDragSelect] = useState<{ userIdx: number; dayIdx: number; slotIdx: number } | null>(null);
+  const dragStartRef = useRef<{ userIdx: number; dayIdx: number; slotIdx: number } | null>(null);
+  const dragSelectRef = useRef(dragSelect);
+  dragSelectRef.current = dragSelect;
+  const [creatingShift, setCreatingShift] = useState<{ userId: string; date: string; defaultTime: string } | null>(null);
+  const [deletedShifts, setDeletedShifts] = useState<Shift[]>([]);
+  const [showUndoNotification, setShowUndoNotification] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const { users, shifts, deleteShifts, updateShift, currentUser, punchRecords, publishWeekShifts, copyShift, addShift, showError, importWeek20260302, hasImported0208 } = useApp();
+  const t = getTranslations(currentUser?.language);
+  if (!currentUser) return null;
+
+  const weekStart = startOfWeek(addWeeks(new Date(), weekOffset), { weekStartsOn: 1 });
+  const allWeekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
+
+  const isManagement = currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'assistant_manager';
+  const canApprove = currentUser.can_approve_shifts;
+  const canCreateShifts = currentUser.can_create_shifts;
+  const canEditShifts = isManagement;
+  const canManageDrafts = currentUser.can_manage_drafts;
+  const canViewTotalHours = currentUser.can_view_total_hours;
+  const isStaff = currentUser.role === 'waiter' || currentUser.role === 'bartender';
+
+  // Staff vede SOLO turni approvati o confermati (non bozze). Admin/Manager vedono tutto.
+  // Admin, Manager, Assistente vedono anche dipendenti sospesi; Staff solo attivi.
+  const canViewSuspended = isManagement;
+  const visibleUserIds = useMemo(
+    () => new Set(
+      users
+        .filter((u) => u.role !== 'admin' && (u.status === 'active' || (canViewSuspended && (u.status === 'suspended' || u.status === 'inactive'))))
+        .map((u) => u.id)
+    ),
+    [users, canViewSuspended]
+  );
+  const visibleShifts = useMemo(() => {
+    let list = shifts.filter(s => visibleUserIds.has(s.user_id));
+    if (isStaff) list = list.filter(s => s.approval_status === 'approved' || s.approval_status === 'confirmed' || s.approval_status === 'standby');
+    if (filterUserId) list = list.filter(s => s.user_id === filterUserId);
+    return list;
+  }, [shifts, visibleUserIds, isStaff, filterUserId]);
+
+  const activeUsers = useMemo(() => {
+    let list = users
+      .filter((u) => u.role !== 'admin' && (u.status === 'active' || (canViewSuspended && (u.status === 'suspended' || u.status === 'inactive'))))
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    if (filterUserId) list = list.filter((u) => u.id === filterUserId);
+    return list;
+  }, [users, canViewSuspended, filterUserId]);
+
+  const shiftToPos = useMemo(() => {
+    const m = new Map<string, { userIdx: number; dayIdx: number; slotIdx: number }>();
+    activeUsers.forEach((u, ui) => {
+      allWeekDays.forEach((day, di) => {
+        const dayStr = format(day, 'yyyy-MM-dd');
+        const dayShifts = visibleShifts.filter((s) => s.user_id === u.id && s.date === dayStr);
+        const dayShift = dayShifts.find((s) => parseInt(s.start_time.split(':')[0], 10) < 16);
+        const eveningShift = dayShifts.find((s) => parseInt(s.start_time.split(':')[0], 10) >= 16);
+        if (dayShift) m.set(dayShift.id, { userIdx: ui, dayIdx: di, slotIdx: 0 });
+        if (eveningShift) m.set(eveningShift.id, { userIdx: ui, dayIdx: di, slotIdx: 1 });
+      });
+    });
+    return m;
+  }, [activeUsers, allWeekDays, visibleShifts]);
+
+  useEffect(() => {
+    setSelectedShiftIds([]);
+    anchorShiftIdRef.current = null;
+  }, []);
+
+  const validShiftIds = useMemo(() => new Set(shiftToPos.keys()), [shiftToPos]);
+  useEffect(() => {
+    setSelectedShiftIds((prev) => {
+      const next = prev.filter((id) => validShiftIds.has(id));
+      if (next.length === prev.length && next.every((id, i) => prev[i] === id)) return prev;
+      return next;
+    });
+  }, [validShiftIds]);
+
+  const getShiftsInRect = useCallback((r1: number, c1: number, s1: number, r2: number, c2: number, s2: number) => {
+    const ids: string[] = [];
+    const [ruMin, ruMax] = Math.min(r1, r2) <= Math.max(r1, r2) ? [Math.min(r1, r2), Math.max(r1, r2)] : [r1, r1];
+    const [rdMin, rdMax] = Math.min(c1, c2) <= Math.max(c1, c2) ? [Math.min(c1, c2), Math.max(c1, c2)] : [c1, c1];
+    const [rsMin, rsMax] = Math.min(s1, s2) <= Math.max(s1, s2) ? [Math.min(s1, s2), Math.max(s1, s2)] : [s1, s1];
+    shiftToPos.forEach((pos, id) => {
+      if (pos.userIdx >= ruMin && pos.userIdx <= ruMax && pos.dayIdx >= rdMin && pos.dayIdx <= rdMax && pos.slotIdx >= rsMin && pos.slotIdx <= rsMax) {
+        ids.push(id);
+      }
+    });
+    return ids;
+  }, [shiftToPos]);
+
+  const handleShiftClick = (shift: Shift, e: React.MouseEvent) => {
+    if (isStaff) return;
+    const shiftKey = e.shiftKey;
+    const metaKey = e.metaKey || e.ctrlKey;
+    if (shiftKey) {
+      const anchor = anchorShiftIdRef.current;
+      if (!anchor) {
+        anchorShiftIdRef.current = shift.id;
+        setSelectedShiftIds([shift.id]);
+        return;
+      }
+      const p1 = shiftToPos.get(anchor);
+      const p2 = shiftToPos.get(shift.id);
+      if (!p1 || !p2) {
+        setSelectedShiftIds([shift.id]);
+        return;
+      }
+      const ids = getShiftsInRect(p1.userIdx, p1.dayIdx, p1.slotIdx, p2.userIdx, p2.dayIdx, p2.slotIdx);
+      setSelectedShiftIds(ids);
+    } else if (metaKey) {
+      setSelectedShiftIds((prev) =>
+        prev.includes(shift.id) ? prev.filter((id) => id !== shift.id) : [...prev, shift.id]
+      );
+    } else {
+      anchorShiftIdRef.current = shift.id;
+      setSelectedShiftIds((prev) =>
+        prev.includes(shift.id) ? prev.filter((id) => id !== shift.id) : [shift.id]
+      );
+    }
+  };
+
+  const handleCellMouseDown = (_e: React.MouseEvent, _userIdx: number, _dayIdx: number, _slotIdx: number, _shift: Shift | null) => {
+    /* Selezione solo tramite flag: nessun drag selection */
+  };
+
+  const handleCellMouseEnter = (userIdx: number, dayIdx: number, slotIdx: number) => {
+    if (!dragStartRef.current) return;
+    setDragSelect({ userIdx, dayIdx, slotIdx });
+  };
+
+  const handleCellMouseUp = useCallback(() => {
+    dragStartRef.current = null;
+    setDragSelect(null);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('mouseup', handleCellMouseUp);
+    return () => window.removeEventListener('mouseup', handleCellMouseUp);
+  }, [handleCellMouseUp]);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const onScroll = () => setIsScrolled(el.scrollLeft > 0);
+    onScroll();
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedShiftIds([]);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tableContainerRef.current && !tableContainerRef.current.contains(e.target as Node)) {
+        setSelectedShiftIds([]);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const daysMissingResponsible = useMemo(() => {
+    const weekStr = format(weekStart, 'yyyy-MM-dd');
+    const weekEnd = format(addDays(weekStart, 7), 'yyyy-MM-dd');
+    const weekShifts = shifts.filter((s) => s.date >= weekStr && s.date < weekEnd);
+    const responsibleRoles = ['manager', 'assistant_manager'];
+    return allWeekDays.map((day) => {
+      const dayStr = format(day, 'yyyy-MM-dd');
+      const dayShifts = weekShifts.filter((s) => {
+        const u = users.find((u) => u.id === s.user_id);
+        return s.date === dayStr && u && u.status === 'active';
+      });
+      const hasResponsible = dayShifts.some((s) => {
+        const u = users.find((u) => u.id === s.user_id);
+        return u && responsibleRoles.includes(u.role);
+      });
+      return !hasResponsible && dayShifts.length > 0;
+    });
+  }, [shifts, users, weekStart, allWeekDays]);
+
+  const needsCambioWarning = (shift: Shift) => {
+    const endParts = (shift.end_time ?? '').split(':');
+    const endHour = parseInt(endParts[0] ?? '0', 10);
+    const endMin = parseInt(endParts[1] ?? '0', 10);
+    if (endHour !== 16 || endMin !== 0) return false;
+    const dayShifts = visibleShifts.filter((s) => s.date === shift.date && s.id !== shift.id);
+    const hasCambio = dayShifts.some((s) => {
+      const startHour = parseInt(s.start_time.split(':')[0], 10);
+      return startHour <= 16;
+    });
+    return !hasCambio;
+  };
+
+  const getCellStyle = (shift: Shift, isSelected: boolean, hasAnySelected: boolean) => {
+    if (shift.approval_status === 'standby') {
+      let base = 'relative group flex flex-col items-center justify-center backdrop-blur-sm bg-blue-500/30 text-white border-2 border-blue-400/50';
+      const selectedStyle = isSelected ? ' border-2 border-solid border-[#00A86B] ring-2 ring-[#00A86B]/30 ring-offset-1 ring-offset-[#2d572c]' : '';
+      const dimmedStyle = hasAnySelected && !isSelected ? ' opacity-60' : '';
+      return `${base} rounded-xl px-2 py-1.5 my-1 mx-0.5 cursor-pointer hover:opacity-90 transition-all duration-200${selectedStyle}${dimmedStyle}`;
+    }
+    const actual = getActualShiftTime(shift, punchRecords);
+    const hasPunch = actual.isCompleted;
+    const startNorm = (shift.start_time || '').slice(0, 5);
+    const endNorm = (shift.end_time || '').trim().slice(0, 5);
+    const hasEnd = !!endNorm && endNorm !== startNorm;
+    let base = 'relative group flex flex-col items-center justify-center backdrop-blur-sm ';
+    if (hasEnd) {
+      base += 'bg-emerald-500/20 text-white border-2 border-emerald-500/50';
+    } else if (hasPunch) {
+      base += 'bg-yellow-500 text-white border-2 border-yellow-500/80';
+    } else {
+      base += 'bg-gray-600/25 text-white border-2 border-gray-500/40';
+    }
+    if (shift.approval_status === 'pending') {
+      base += ' ring-2 ring-red-400/60 ring-inset';
+    }
+    const selectedStyle = isSelected
+      ? ' border-2 border-solid border-[#00A86B] ring-2 ring-[#00A86B]/30 ring-offset-1 ring-offset-[#2d572c] shadow-[0_0_0_2px_rgba(0,168,107,0.25)]'
+      : needsCambioWarning(shift)
+        ? ' ring-2 ring-amber-400 ring-inset'
+        : '';
+    const dimmedStyle = hasAnySelected && !isSelected ? ' opacity-60' : '';
+    return `${base} rounded-xl px-2 py-1.5 my-1 mx-0.5 cursor-pointer hover:opacity-90 transition-all duration-200${selectedStyle}${dimmedStyle}`;
+  };
+
+
+  const handleBulkCopy = () => {
+    if (selectedShiftIds.length === 0) return;
+
+    const shiftsToCopy = shifts.filter(s => selectedShiftIds.includes(s.id));
+    const nextDay = prompt('Inserisci il numero di giorni da aggiungere (es: 1 per il giorno dopo, 7 per la settimana dopo):', '1');
+
+    if (nextDay && !isNaN(parseInt(nextDay))) {
+      shiftsToCopy.forEach(shift => {
+        const newDate = format(addDays(parseISO(shift.date), parseInt(nextDay)), 'yyyy-MM-dd');
+        copyShift(shift, newDate);
+      });
+      setSelectedShiftIds([]);
+    }
+  };
+
+  const checkCambioViolation = useCallback(() => {
+    const selShifts = shifts.filter((s) => selectedShiftIds.includes(s.id));
+    for (const s of selShifts) {
+      const endParts = (s.end_time ?? '').split(':');
+      if (parseInt(endParts[0] ?? '0', 10) === 16 && parseInt(endParts[1] ?? '0', 10) === 0) {
+        const dayShifts = shifts.filter((x) => x.date === s.date && x.user_id === s.user_id);
+        const hasCambio = dayShifts.some((x) => parseInt(x.start_time.split(':')[0], 10) <= 16);
+        if (!hasCambio) {
+          showError('Manca il cambio delle 16:00 per questo giorno.');
+          return true;
+        }
+      }
+    }
+    return false;
+  }, [shifts, selectedShiftIds, showError]);
+
+  const handleBulkApprove = () => {
+    if (checkCambioViolation()) return;
+    selectedShiftIds.forEach((id) => updateShift(id, { approval_status: 'approved' }));
+    setSelectedShiftIds([]);
+  };
+
+  const handleUndoDelete = async () => {
+    // Ripristina i turni eliminati reinserendoli
+    for (const shift of deletedShifts) {
+      const { id: _id, ...shiftData } = shift;
+      await addShift(shiftData);
+    }
+    setDeletedShifts([]);
+    setShowUndoNotification(false);
+  };
+
+  const GHOST_END = '23:00';
+
+  /** Restituisce end_time effettivo: reale, 16:00 per 10:00, o 23:00 fantasma per draft serali senza fine. */
+  const getEffectiveEnd = useCallback((shift: Shift): string | null => {
+    const startNorm = (shift.start_time || '').trim().slice(0, 5);
+    let endNorm = (shift.end_time || '').trim().slice(0, 5);
+    if (startNorm === '10:00' && (!endNorm || endNorm === startNorm)) return '16:00';
+    if (endNorm && endNorm !== startNorm) return endNorm;
+    const startHour = parseInt(startNorm.split(':')[0], 10) || 0;
+    if (shift.approval_status === 'draft' && startHour >= 16) return GHOST_END;
+    return null;
+  }, []);
+
+  /** Ore confermate: solo turni confirmed con end_time reale (o 10:00->16:00). */
+  const weeklyMinutesConfirmedByUser = useMemo(() => {
+    const weekStr = format(weekStart, 'yyyy-MM-dd');
+    const weekEnd = format(addDays(weekStart, 7), 'yyyy-MM-dd');
+    const weekShifts = shifts.filter(
+      (s) => s && s.date >= weekStr && s.date < weekEnd && s.approval_status === 'confirmed'
+    );
+    const byUser: Record<string, number> = {};
+    for (const shift of weekShifts) {
+      const end = getEffectiveEnd(shift);
+      if (!end) continue;
+      try {
+        const startNorm = (shift.start_time || '').trim().slice(0, 5);
+        const mins = calculateShiftMinutesSafe(startNorm, end);
+        byUser[shift.user_id] = (byUser[shift.user_id] ?? 0) + mins;
+      } catch {
+        /* skip */
+      }
+    }
+    return byUser;
+  }, [shifts, weekStart, getEffectiveEnd]);
+
+  /** Ore totali con stime fantasma: confermati + draft con 23:00 o 10:00->16:00. */
+  const { weeklyMinutesTotalWithGhostByUser, hasGhostByUser } = useMemo(() => {
+    const weekStr = format(weekStart, 'yyyy-MM-dd');
+    const weekEnd = format(addDays(weekStart, 7), 'yyyy-MM-dd');
+    const weekShifts = shifts.filter((s) => s && s.date >= weekStr && s.date < weekEnd);
+    const byUser: Record<string, number> = {};
+    const ghostByUser: Record<string, boolean> = {};
+    for (const shift of weekShifts) {
+      const end = getEffectiveEnd(shift);
+      if (!end) continue;
+      try {
+        const startNorm = (shift.start_time || '').trim().slice(0, 5);
+        const mins = calculateShiftMinutesSafe(startNorm, end);
+        byUser[shift.user_id] = (byUser[shift.user_id] ?? 0) + mins;
+        const isGhost = shift.approval_status === 'draft' && end === GHOST_END;
+        if (isGhost) ghostByUser[shift.user_id] = true;
+      } catch {
+        /* skip */
+      }
+    }
+    return { weeklyMinutesTotalWithGhostByUser: byUser, hasGhostByUser: ghostByUser };
+  }, [shifts, weekStart, getEffectiveEnd]);
+
+  const weekStr = format(weekStart, 'yyyy-MM-dd');
+  const weekEnd = format(addDays(weekStart, 7), 'yyyy-MM-dd');
+
+  const weekStats = useMemo(() => {
+    const confirmed = Object.values(weeklyMinutesConfirmedByUser).reduce((a, b) => a + b, 0);
+    const totalExpected = Object.values(weeklyMinutesTotalWithGhostByUser).reduce((a, b) => a + b, 0);
+    return { confirmed, totalExpected, hasGhost: Object.keys(hasGhostByUser).some((k) => hasGhostByUser[k]) };
+  }, [weeklyMinutesConfirmedByUser, weeklyMinutesTotalWithGhostByUser, hasGhostByUser]);
+
+  const hasDraftShiftsInWeek = useMemo(() => {
+    return shifts.some((s) => s.date >= weekStr && s.date < weekEnd && s.approval_status === 'draft');
+  }, [shifts, weekStr, weekEnd]);
+
+  const selectedShiftsData = useMemo(() => {
+    return shifts.filter((s) => selectedShiftIds.includes(s.id));
+  }, [shifts, selectedShiftIds]);
+
+  const allSelectedApproved = selectedShiftsData.length > 0 && selectedShiftsData.every(
+    (s) => s.approval_status === 'approved' || s.approval_status === 'confirmed'
+  );
+
+  const allSelectedPunched = selectedShiftsData.length > 0 && selectedShiftsData.every(
+    (s) => getActualShiftTime(s, punchRecords).isCompleted
+  );
+
+  const selectedShiftCanClose = selectedShiftIds.length === 1 && (() => {
+    const s = selectedShiftsData[0];
+    if (!s) return false;
+    const actual = getActualShiftTime(s, punchRecords);
+    const startNorm = (s.start_time || '').slice(0, 5);
+    const endNorm = (s.end_time || '').trim().slice(0, 5);
+    const hasEnd = !!endNorm && endNorm !== startNorm;
+    return actual.isCompleted && !hasEnd;
+  })();
+
+  const selectedShiftIsClosed = selectedShiftIds.length === 1 && (() => {
+    const s = selectedShiftsData[0];
+    if (!s) return false;
+    const actual = getActualShiftTime(s, punchRecords);
+    const startNorm = (s.start_time || '').slice(0, 5);
+    const endNorm = (s.end_time || '').trim().slice(0, 5);
+    const hasEnd = !!endNorm && endNorm !== startNorm;
+    return actual.isCompleted && hasEnd;
+  })();
+
+  const selectedCell = selectedShiftIds.length > 0 && canEditShifts;
+
+  const [showCloseShiftModal, setShowCloseShiftModal] = useState(false);
+  const [showDayModal, setShowDayModal] = useState(false);
+  const [showPublishWeekConfirm, setShowPublishWeekConfirm] = useState(false);
+  const [isImporting0208, setIsImporting0208] = useState(false);
+  const [editingEndTimeShiftId, setEditingEndTimeShiftId] = useState<string | null>(null);
+  const [selectedDayForModal, setSelectedDayForModal] = useState<string | null>(null);
+  const [isSavingModifications, setIsSavingModifications] = useState(false);
+  const [editStartTime, setEditStartTime] = useState('');
+  const [editEndTime, setEditEndTime] = useState('');
+  // Edit mode: inline time editing + drag & drop
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [draggedShiftId, setDraggedShiftId] = useState<string | null>(null);
+  const [dropTargetKey, setDropTargetKey] = useState<string | null>(null); // "userId_date_slot"
+  // Enhanced inline editor for both times in edit mode
+  const [inlineEdit, setInlineEdit] = useState<{ shiftId: string; start: string; end: string } | null>(null);
+
+  useEffect(() => {
+    if (selectedShiftIds.length === 1 && selectedShiftsData[0]) {
+      const s = selectedShiftsData[0];
+      setEditStartTime((s.start_time || '').slice(0, 5));
+      setEditEndTime((s.end_time || '').trim().slice(0, 5) || '');
+    }
+  }, [selectedShiftIds, selectedShiftsData]);
+
+  const handleSaveModifications = useCallback(async () => {
+    const shift = selectedShiftsData[0];
+    if (!shift || isSavingModifications) return;
+    const startNorm = toHHmm(editStartTime);
+    const endNorm = toHHmm(editEndTime);
+    if (!startNorm) return;
+    setIsSavingModifications(true);
+    try {
+      await updateShift(shift.id, { start_time: startNorm, end_time: endNorm });
+    } catch (err) {
+      showError('Errore nel salvataggio. Riprova.');
+    } finally {
+      setIsSavingModifications(false);
+    }
+  }, [selectedShiftsData, editStartTime, editEndTime, isSavingModifications, updateShift, showError]);
+
+  const handlePublishWeekClick = useCallback(() => {
+    if (!hasDraftShiftsInWeek) return;
+    setShowPublishWeekConfirm(true);
+  }, [hasDraftShiftsInWeek]);
+
+  const handlePublishWeekConfirm = useCallback(async () => {
+    await publishWeekShifts(weekStart);
+    setShowPublishWeekConfirm(false);
+    setSelectedShiftIds([]);
+  }, [publishWeekShifts, weekStart]);
+
+  const handleCloseShiftClick = useCallback(() => {
+    const shift = selectedShiftsData[0];
+    if (!shift) return;
+    setShowCloseShiftModal(true);
+  }, [selectedShiftsData]);
+
+  const handleDropShift = useCallback(async (shiftId: string, targetUserId: string, targetDate: string) => {
+    const shift = shifts.find((s) => s.id === shiftId);
+    if (!shift || (shift.user_id === targetUserId && shift.date === targetDate)) return;
+    try {
+      await updateShift(shiftId, { user_id: targetUserId, date: targetDate });
+    } catch {
+      showError('Errore nello spostamento turno. Riprova.');
+    }
+  }, [shifts, updateShift, showError]);
+
+  const handleSaveInlineEdit = useCallback(async () => {
+    if (!inlineEdit) return;
+    const startNorm = toHHmm(inlineEdit.start);
+    if (!startNorm) return;
+    const endNorm = toHHmm(inlineEdit.end);
+    try {
+      await updateShift(inlineEdit.shiftId, { start_time: startNorm, end_time: endNorm });
+    } catch {
+      showError('Errore nel salvataggio. Riprova.');
+    } finally {
+      setInlineEdit(null);
+      setEditingEndTimeShiftId(null);
+    }
+  }, [inlineEdit, updateShift, showError]);
+
+  return (
+    <div ref={tableContainerRef} className="pb-content pt-6">
+      <div className="px-4 mb-4">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={() => setWeekOffset(weekOffset - 1)}
+              className="w-10 h-10 rounded-full bg-black/15 backdrop-blur-xl border-2 border-white/30 flex items-center justify-center hover:bg-black/25 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-white" />
+            </button>
+            <div className="px-4">
+              <p className="text-white font-bold text-sm">
+                {format(weekStart, 'd MMM', { locale: getDateLocale(currentUser?.language) ?? it })} -{' '}
+                {format(addDays(weekStart, 6), 'd MMM yyyy', { locale: getDateLocale(currentUser?.language) ?? it })}
+              </p>
+              <p className="text-white/80 text-xs uppercase tracking-wider">
+                {t.week_label} {weekOffset === 0 ? t.current_week : weekOffset > 0 ? `+${weekOffset}` : weekOffset}
+              </p>
+            </div>
+            <button
+              onClick={() => setWeekOffset(weekOffset + 1)}
+              className="w-10 h-10 rounded-full bg-black/15 backdrop-blur-xl border-2 border-white/30 flex items-center justify-center hover:bg-black/25 transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 text-white" />
+            </button>
+            {isManagement && (
+              <button
+                type="button"
+                onClick={() => { setIsEditMode((v) => !v); setInlineEdit(null); setEditingEndTimeShiftId(null); }}
+                title={isEditMode ? 'Esci da Modalità Modifica' : 'Attiva Modalità Modifica'}
+                className={`flex items-center gap-1.5 h-9 px-3 rounded-xl border-2 font-bold text-xs uppercase tracking-wider transition-all duration-200 ${
+                  isEditMode
+                    ? 'bg-amber-500/30 border-amber-400/70 text-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.25)]'
+                    : 'bg-black/20 border-white/25 text-white/70 hover:border-white/50 hover:text-white'
+                }`}
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                {isEditMode ? 'Modifica ON' : 'Modifica'}
+              </button>
+            )}
+            {isManagement && !hasImported0208 && !shifts.some((s) => s.date >= '2026-03-02' && s.date <= '2026-03-08') && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (isImporting0208) return;
+                  setIsImporting0208(true);
+                  try {
+                    await importWeek20260302();
+                    alert('Settimana 02-08 Marzo importata con successo!');
+                  } catch (err) {
+                    alert((err as Error).message || 'Errore durante l\'importazione.');
+                  } finally {
+                    setIsImporting0208(false);
+                  }
+                }}
+                disabled={isImporting0208}
+                className="ml-4 px-3 py-1.5 rounded-lg bg-amber-600/80 hover:bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              >
+                {isImporting0208 ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                Importa 02-08 Mar
+              </button>
+            )}
+            {canViewTotalHours && (
+              <div className="ml-4 px-3 py-1.5 rounded-xl bg-black/20 border border-white/20 flex items-center gap-4" title={weekStats.hasGhost ? t.ghost_tooltip : undefined}>
+                <span className="text-white/90 text-xs font-sans flex items-center gap-1.5">
+                  <span className="text-emerald-400" aria-hidden>🟢</span>
+                  <span className="text-white/60 font-medium">{t.hours_confirmed_week}:</span>{' '}
+                  <span className="font-bold text-emerald-400">{formatMinutesToHoursAndMinutes(weekStats.confirmed)}</span>
+                </span>
+                <span className="text-white/40">|</span>
+                <span className="text-white/90 text-xs font-sans flex items-center gap-1.5">
+                  <span className="text-sky-400" aria-hidden>🔵</span>
+                  <span className="text-white/60 font-medium">{t.hours_total_expected}:</span>{' '}
+                  <span className={`font-bold ${weekStats.hasGhost ? 'text-sky-400/90 italic' : 'text-sky-400'}`}>
+                    {weekStats.hasGhost ? '*' : ''}
+                    {formatMinutesToHoursAndMinutes(weekStats.totalExpected)}
+                    {weekStats.hasGhost ? '*' : ''}
+                  </span>
+                </span>
+              </div>
+            )}
+          </div>
+
+          {(canManageDrafts && hasDraftShiftsInWeek) || selectedCell ? (
+            <div className="flex flex-shrink-0 min-w-0 w-max flex-wrap items-center gap-3">
+              {canManageDrafts && hasDraftShiftsInWeek && (
+                <div className="flex items-center gap-0 px-1.5 py-1 rounded-full bg-black/25 backdrop-blur-xl border-[1px] border-white/30">
+                  <ActionTextButton
+                    label={t.publish_week}
+                    onClick={handlePublishWeekClick}
+                    variant="emerald"
+                  />
+                </div>
+              )}
+              {selectedCell && (
+              <>
+              <div className="flex items-center gap-0 px-1.5 py-1 rounded-full bg-black/25 backdrop-blur-xl border-[1px] border-white/30">
+                {selectedShiftCanClose && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleCloseShiftClick}
+                      className="h-7 px-3 rounded-lg bg-emerald-600 text-white font-semibold text-[11px] uppercase tracking-wider hover:bg-emerald-500 transition-colors flex items-center justify-center gap-1.5"
+                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif' }}
+                    >
+                      {t.close_shift}
+                    </button>
+                    <Separator />
+                  </>
+                )}
+                {selectedShiftIsClosed && (
+                  <>
+                    <span className="h-6 px-2 flex items-center justify-center font-bold text-[11px] uppercase tracking-wider text-emerald-400">
+                      {t.shift_completed}
+                    </span>
+                    <Separator />
+                  </>
+                )}
+                {selectedShiftIds.length > 0 && canEditShifts && (
+                  <>
+                    {canApprove && !allSelectedPunched && (
+                      <>
+                        <ActionTextButton
+                          label={t.approve}
+                          onClick={handleBulkApprove}
+                          disabled={allSelectedApproved}
+                          variant="emerald"
+                        />
+                        <Separator />
+                        <ActionTextButton
+                          label={t.suspend}
+                          onClick={() => {}}
+                          disabled
+                          variant="yellow"
+                        />
+                        <Separator />
+                      </>
+                    )}
+                    <ActionTextButton
+                      label={t.copy}
+                      onClick={handleBulkCopy}
+                      variant="neutral"
+                    />
+                    <Separator />
+                    <ActionTextButton
+                      label={t.delete_action}
+                      onClick={() => setShowDeleteConfirm(true)}
+                      variant="red"
+                    />
+                  </>
+                )}
+              </div>
+              {selectedShiftIds.length === 1 && selectedShiftsData[0] && (
+                <div className="flex flex-col gap-1.5 px-3 py-2 rounded-xl bg-black/25 backdrop-blur-xl border border-white/20">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-white/90 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">{t.edit_times}</span>
+                    <input
+                      type="time"
+                      value={editStartTime}
+                      onChange={(e) => setEditStartTime(e.target.value)}
+                      className="w-20 h-7 px-2 rounded-lg bg-black/20 border border-white/30 text-white text-xs font-medium"
+                    />
+                    <span className="text-white/60">–</span>
+                    <input
+                      type="time"
+                      value={editEndTime}
+                      onChange={(e) => setEditEndTime(e.target.value)}
+                      className="w-20 h-7 px-2 rounded-lg bg-black/20 border border-white/30 text-white text-xs font-medium"
+                    />
+                    <button
+                    type="button"
+                    onClick={handleSaveModifications}
+                    disabled={isSavingModifications}
+                    className="h-7 px-3 rounded-lg bg-emerald-600 text-white font-semibold text-[10px] uppercase tracking-wider hover:bg-emerald-500 disabled:opacity-70 flex items-center gap-1.5 transition-colors"
+                  >
+                    {isSavingModifications ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                    {t.save_changes}
+                  </button>
+                  </div>
+                  {(() => {
+                    const s = selectedShiftsData[0];
+                    if (!s) return null;
+                    const actual = getActualShiftTime(s, punchRecords);
+                    if (!actual.isCompleted || !actual.isActual || !actual.startTimeRounded || actual.startTimeRounded === actual.startTime) return null;
+                    return (
+                      <div className="text-[9px] text-white/60 font-sans">
+                        {t.punch_real}: {actual.startTime.slice(0, 5)} → {t.punch_rounded}: {actual.startTimeRounded.slice(0, 5)}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+              </>
+              )}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="px-4 mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-white/90 text-xs font-sans">
+        <span>⚪ Pianificato</span>
+        <span>🔴 Ritardo Ingresso</span>
+        <span>🟡 In Corso (Timbrato)</span>
+        <span>🟢 Chiuso (Fine inserita)</span>
+      </div>
+      <div ref={scrollContainerRef} className="overflow-auto scrollbar-hide snap-x snap-mandatory smooth-scroll max-h-[75vh]">
+        <div className="inline-block min-w-full">
+          <table className="w-full border-collapse bg-black/15 backdrop-blur-xl border-2 border-white/30 rounded-xl overflow-hidden">
+            <thead className="sticky top-0 z-30 bg-black/20 backdrop-blur-md border-b-2 border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+              <tr className="bg-black/20">
+                <th className={`sticky top-0 left-0 z-40 bg-black/20 backdrop-blur-md px-2 py-3 border-b-2 border-r-2 border-white/10 w-[70px] min-w-[70px] transition-shadow duration-200 ${isScrolled ? 'shadow-[2px_0_8px_rgba(0,0,0,0.15)]' : 'shadow-none'}`}>
+                </th>
+                {allWeekDays.map((day, dayIdx) => {
+                  const isTodayDate = isToday(day);
+                  const dayStr = format(day, 'yyyy-MM-dd');
+                  return (
+                    <th
+                      key={day.toString()}
+                      onClick={() => {
+                        if (isManagement) {
+                          setSelectedDayForModal(dayStr);
+                          setShowDayModal(true);
+                        }
+                      }}
+                      className={`px-3 py-3 text-center align-middle border-b-2 border-x-2 border-white/10 snap-center w-[calc((100vw-70px-80px)/7)] min-w-[70px] ${
+                        daysMissingResponsible[dayIdx] ? 'bg-amber-500/20 border-amber-400/50' : 'bg-black/20'
+                      } ${isManagement ? 'cursor-pointer hover:bg-white/10 transition-colors' : ''}`}
+                    >
+                      <div className={`text-[9px] uppercase font-light tracking-widest font-sans text-white`}>
+                        {format(day, 'EEE', { locale: getDateLocale(currentUser?.language) ?? it })}
+                      </div>
+                      <div className="flex flex-col items-center mt-0.5">
+                        <span className={`inline-flex items-center justify-center min-w-[1.5rem] h-7 px-2 rounded-full font-sans text-lg font-bold ${
+                          isTodayDate
+                            ? 'bg-white text-[#2d572c] ring-2 ring-black/40'
+                            : 'text-white'
+                        }`}>
+                          {format(day, 'd')}
+                        </span>
+                      </div>
+                      {daysMissingResponsible[dayIdx] && (
+                        <div className="font-medium text-amber-300 text-[9px] mt-1 px-2 py-0.5 rounded-lg bg-amber-500/20 border border-amber-400/40" title={`${t.missing_responsible} ${format(day, 'EEEE', { locale: getDateLocale(currentUser?.language) ?? it })}`}>
+                          ⚠ {t.role_manager}
+                        </div>
+                      )}
+                    </th>
+                  );
+                })}
+                <th className="px-4 py-3 text-center border-b-2 border-l-2 border-white/10 w-[80px] min-w-[80px] bg-black/20">
+                  <span className="text-white text-[10px] uppercase font-semibold tracking-widest font-sans">
+                    {t.total_hours}
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {activeUsers.map((user, userIdx) => {
+                const confMins = weeklyMinutesConfirmedByUser[user.id] ?? 0;
+                const prevMins = weeklyMinutesTotalWithGhostByUser[user.id] ?? 0;
+                const hasGhost = hasGhostByUser[user.id];
+
+                const canManageThisUser = isManagement && user.role !== 'admin' && canCreateShifts;
+
+                return (
+                    <tr key={user.id} className="bg-black/15 border-b-2 border-white/10 h-[65px]">
+                      <td
+                        className={`sticky left-0 z-20 bg-black/20 backdrop-blur-md pl-2 py-3 border-r-2 border-white/10 align-middle w-[70px] min-w-[70px] transition-shadow duration-200 ${isScrolled ? 'shadow-[2px_0_8px_rgba(0,0,0,0.15)]' : 'shadow-none'} ${user.status === 'suspended' || user.status === 'inactive' ? 'opacity-70' : ''}`}
+                      >
+                        <span className={`font-bold text-[10px] uppercase truncate block text-left font-sans ${user.status === 'suspended' || user.status === 'inactive' ? 'text-white/80 line-through' : 'text-white'}`} style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
+                          {user.first_name}
+                        </span>
+                      </td>
+                      {allWeekDays.map((day, dayIdx) => {
+                        const dayStr = format(day, 'yyyy-MM-dd');
+                        const dayShifts = visibleShifts.filter(
+                          (s) => s.user_id === user.id && s.date === dayStr
+                        );
+
+                        const dayShift = dayShifts.find((s) => parseInt(s.start_time.split(':')[0]) < 16);
+                        const eveningShift = dayShifts.find((s) => parseInt(s.start_time.split(':')[0]) >= 16);
+
+                        const isInDragRect = (slotIdx: number) => {
+                          if (!dragStartRef.current || !dragSelect) return false;
+                          const s = dragStartRef.current;
+                          const [ruMin, ruMax] = [Math.min(s.userIdx, dragSelect.userIdx), Math.max(s.userIdx, dragSelect.userIdx)];
+                          const [rdMin, rdMax] = [Math.min(s.dayIdx, dragSelect.dayIdx), Math.max(s.dayIdx, dragSelect.dayIdx)];
+                          const [rsMin, rsMax] = [Math.min(s.slotIdx, dragSelect.slotIdx), Math.max(s.slotIdx, dragSelect.slotIdx)];
+                          return userIdx >= ruMin && userIdx <= ruMax && dayIdx >= rdMin && dayIdx <= rdMax && slotIdx >= rsMin && slotIdx <= rsMax;
+                        };
+
+                        return (
+                          <td
+                            key={dayStr}
+                            className="px-0 py-0 snap-center w-[calc((100vw-70px-80px)/7)] min-w-[70px] bg-black/15 group border-r-2 border-white/10"
+                          >
+                            <div className="grid grid-rows-2 h-[65px]">
+                              {/* Slot Superiore - Turno Diurno */}
+                              <div
+                                onClick={(e) => {
+                                  if (isEditMode && dayShift) { setEditingEndTimeShiftId(dayShift.id); setInlineEdit({ shiftId: dayShift.id, start: (dayShift.start_time || '').slice(0, 5), end: (dayShift.end_time || '').slice(0, 5) }); return; }
+                                  if (dayShift) handleShiftClick(dayShift, e);
+                                  else if (canManageThisUser) setCreatingShift({ userId: user.id, date: dayStr, defaultTime: '10:00' });
+                                }}
+                                onDoubleClick={(e) => {
+                                  e.stopPropagation();
+                                  if (dayShift && canEditShifts) {
+                                    const next = dayShift.approval_status === 'confirmed' ? 'draft' : 'confirmed';
+                                    updateShift(dayShift.id, { approval_status: next });
+                                  }
+                                }}
+                                onMouseDown={(e) => handleCellMouseDown(e, userIdx, dayIdx, 0, dayShift ?? null)}
+                                onMouseEnter={() => handleCellMouseEnter(userIdx, dayIdx, 0)}
+                                onDragOver={(e) => { if (isEditMode && draggedShiftId) { e.preventDefault(); setDropTargetKey(`${user.id}_${dayStr}_0`); } }}
+                                onDragLeave={() => setDropTargetKey(null)}
+                                onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { handleDropShift(draggedShiftId, user.id, dayStr); setDraggedShiftId(null); setDropTargetKey(null); } }}
+                                title={dayShift && needsCambioWarning(dayShift) ? t.no_change_at_16 : undefined}
+                                className={`flex items-center justify-center border-b-2 border-white/10 relative transition-all duration-300 select-none ${dropTargetKey === `${user.id}_${dayStr}_0` ? 'bg-amber-500/25 border-amber-400/60' : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0) : isInDragRect(0) ? 'bg-blue-500/20 border-2 border-blue-400/50' : 'border-transparent'} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-black/25' : !dayShift ? 'cursor-crosshair' : ''}`}
+                              >
+                                {dayShift ? (() => {
+                                  const actualTimes = getActualShiftTime(dayShift, punchRecords);
+                                  const delayMin = getPunchDelayMinutes(dayShift, punchRecords);
+                                  const isDelayed = delayMin !== null && delayMin > 15;
+                                  const isSelected = selectedShiftIds.includes(dayShift.id) || isInDragRect(0);
+                                  const startNormCell = (dayShift.start_time || '').slice(0, 5);
+                                  const endNormCell = (dayShift.end_time || '').trim().slice(0, 5);
+                                  const hasValidEnd = !!endNormCell && endNormCell !== startNormCell;
+                                  const isInProgress = actualTimes.isCompleted && !hasValidEnd;
+                                  const isClosed = actualTimes.isCompleted && hasValidEnd;
+                                  const roleLabel = translateRole(user.role ?? '', (currentUser?.language ?? 'it') as 'it' | 'en' | 'es');
+                                  const timeClass = 'text-xs font-semibold';
+                                  const timeColor = isDelayed ? 'text-red-600 font-bold' : 'text-slate-50';
+                                  const clockPulseClass = isInProgress ? 'animate-pulse-slow' : '';
+                                  return (
+                                    <>
+                                      {isDelayed && (
+                                        <span className="absolute top-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-red-500 z-10" title={`Ritardo ${delayMin} min`} />
+                                      )}
+                                      {actualTimes.isCompleted && (
+                                        <span className={`absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#00A86B]/90 flex items-center justify-center flex-shrink-0 z-10 shadow-md border border-white/30 ${clockPulseClass}`} title={isClosed ? 'Chiuso' : 'Timbrato'} style={{ filter: 'drop-shadow(0 0 3px rgba(52,211,153,0.5))' }}>
+                                          <Clock className="w-2.5 h-2.5 text-emerald-400" strokeWidth={2.5} />
+                                        </span>
+                                      )}
+                                      {isSelected && !actualTimes.isCompleted && (
+                                        <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0 z-10 shadow-md border border-white/20">
+                                          <Check className="w-2.5 h-2.5 text-[#2d572c]" strokeWidth={3} />
+                                        </span>
+                                      )}
+                                      <span className="text-[8px] font-bold font-sans uppercase tracking-wider text-white truncate w-full text-center" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
+                                        {roleLabel}
+                                      </span>
+                                      {canEditShifts ? (
+                                        <button
+                                          type="button"
+                                          draggable={isEditMode}
+                                          onDragStart={(e) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', dayShift.id); setDraggedShiftId(dayShift.id); }}
+                                          onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); }}
+                                          onClick={(e) => { e.stopPropagation(); if (!isEditMode) setEditingEndTimeShiftId(dayShift.id); }}
+                                          className={`font-sans tracking-wide ${timeClass} ${timeColor} cursor-pointer hover:underline underline-offset-1 ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                          style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', opacity: draggedShiftId === dayShift.id ? 0.4 : 1 }}
+                                          title={isEditMode ? 'Trascina per spostare · Click per modificare' : t.insert_end_time}
+                                        >
+                                          {isEditMode ? '✏ ' : ''}{actualTimes.startTime.slice(0, 5)} – {(actualTimes.endTime || (startNormCell === '10:00' ? '16:00' : null))?.slice(0, 5) || '___'}
+                                        </button>
+                                      ) : (
+                                        <span className={`font-sans tracking-wide ${timeClass} ${timeColor}`} style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
+                                          {actualTimes.startTime.slice(0, 5)} – {(actualTimes.endTime || (startNormCell === '10:00' ? '16:00' : null))?.slice(0, 5) || '___'}
+                                        </span>
+                                      )}
+                                    </>
+                                  );
+                                })() : canManageThisUser && (
+                                  <Plus className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" strokeWidth={2} />
+                                )}
+                              </div>
+
+                              {/* Slot Inferiore - Turno Serale */}
+                              <div
+                                onClick={(e) => {
+                                  if (isEditMode && eveningShift) { setEditingEndTimeShiftId(eveningShift.id); setInlineEdit({ shiftId: eveningShift.id, start: (eveningShift.start_time || '').slice(0, 5), end: (eveningShift.end_time || '').slice(0, 5) }); return; }
+                                  if (eveningShift) handleShiftClick(eveningShift, e);
+                                  else if (canManageThisUser) setCreatingShift({ userId: user.id, date: dayStr, defaultTime: '19:00' });
+                                }}
+                                onDoubleClick={(e) => {
+                                  e.stopPropagation();
+                                  if (eveningShift && canEditShifts) {
+                                    const next = eveningShift.approval_status === 'confirmed' ? 'draft' : 'confirmed';
+                                    updateShift(eveningShift.id, { approval_status: next });
+                                  }
+                                }}
+                                onMouseDown={(e) => handleCellMouseDown(e, userIdx, dayIdx, 1, eveningShift ?? null)}
+                                onMouseEnter={() => handleCellMouseEnter(userIdx, dayIdx, 1)}
+                                onDragOver={(e) => { if (isEditMode && draggedShiftId) { e.preventDefault(); setDropTargetKey(`${user.id}_${dayStr}_1`); } }}
+                                onDragLeave={() => setDropTargetKey(null)}
+                                onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { handleDropShift(draggedShiftId, user.id, dayStr); setDraggedShiftId(null); setDropTargetKey(null); } }}
+                                title={eveningShift && needsCambioWarning(eveningShift) ? t.no_change_at_16 : undefined}
+                                className={`flex items-center justify-center relative transition-all duration-300 select-none ${dropTargetKey === `${user.id}_${dayStr}_1` ? 'bg-amber-500/25 border-amber-400/60' : eveningShift ? getCellStyle(eveningShift, selectedShiftIds.includes(eveningShift.id) || isInDragRect(1), selectedShiftIds.length > 0) : isInDragRect(1) ? 'bg-blue-500/20 border-2 border-blue-400/50' : 'border-transparent'} ${!eveningShift && canManageThisUser ? 'cursor-pointer hover:bg-black/25' : !eveningShift ? 'cursor-crosshair' : ''}`}
+                              >
+                                {eveningShift ? (() => {
+                                  const isStandby = eveningShift.approval_status === 'standby';
+                                  if (isStandby) {
+                                    return (
+                                      <>
+                                        <span className="text-[8px] font-bold font-sans uppercase tracking-wider text-white truncate w-full text-center" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
+                                          {translateRole(user.role ?? '', (currentUser?.language ?? 'it') as 'it' | 'en' | 'es')}
+                                        </span>
+                                        <span className="text-[14px] font-bold text-blue-400" title="Reperibilità">?</span>
+                                      </>
+                                    );
+                                  }
+                                  const actualTimes = getActualShiftTime(eveningShift, punchRecords);
+                                  const delayMin = getPunchDelayMinutes(eveningShift, punchRecords);
+                                  const isDelayed = delayMin !== null && delayMin > 15;
+                                  const isSelected = selectedShiftIds.includes(eveningShift.id) || isInDragRect(1);
+                                  const startNormCell = (eveningShift.start_time || '').slice(0, 5);
+                                  const endNormCell = (eveningShift.end_time || '').trim().slice(0, 5);
+                                  const hasValidEnd = !!endNormCell && endNormCell !== startNormCell;
+                                  const isInProgress = actualTimes.isCompleted && !hasValidEnd;
+                                  const isClosed = actualTimes.isCompleted && hasValidEnd;
+                                  const roleLabel = translateRole(user.role ?? '', (currentUser?.language ?? 'it') as 'it' | 'en' | 'es');
+                                  const timeClass = 'text-xs font-semibold';
+                                  const timeColor = isDelayed ? 'text-red-600 font-bold' : 'text-slate-50';
+                                  const clockPulseClass = isInProgress ? 'animate-pulse-slow' : '';
+                                  return (
+                                    <>
+                                      {isDelayed && (
+                                        <span className="absolute top-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-red-500 z-10" title={`Ritardo ${delayMin} min`} />
+                                      )}
+                                      {actualTimes.isCompleted && (
+                                        <span className={`absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#00A86B]/90 flex items-center justify-center flex-shrink-0 z-10 shadow-md border border-white/30 ${clockPulseClass}`} title={isClosed ? 'Chiuso' : 'Timbrato'} style={{ filter: 'drop-shadow(0 0 3px rgba(52,211,153,0.5))' }}>
+                                          <Clock className="w-2.5 h-2.5 text-emerald-400" strokeWidth={2.5} />
+                                        </span>
+                                      )}
+                                      {isSelected && !actualTimes.isCompleted && (
+                                        <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0 z-10 shadow-md border border-white/20">
+                                          <Check className="w-2.5 h-2.5 text-[#2d572c]" strokeWidth={3} />
+                                        </span>
+                                      )}
+                                      <span className="text-[8px] font-bold font-sans uppercase tracking-wider text-white truncate w-full text-center" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
+                                        {roleLabel}
+                                      </span>
+                                      {canEditShifts ? (
+                                        <button
+                                          type="button"
+                                          draggable={isEditMode}
+                                          onDragStart={(e) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', eveningShift.id); setDraggedShiftId(eveningShift.id); }}
+                                          onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); }}
+                                          onClick={(e) => { e.stopPropagation(); if (!isEditMode) setEditingEndTimeShiftId(eveningShift.id); }}
+                                          className={`font-sans tracking-wide ${timeClass} ${timeColor} cursor-pointer hover:underline underline-offset-1 ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                          style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', opacity: draggedShiftId === eveningShift.id ? 0.4 : 1 }}
+                                          title={isEditMode ? 'Trascina per spostare · Click per modificare' : t.insert_end_time}
+                                        >
+                                          {isEditMode ? '✏ ' : ''}{actualTimes.startTime.slice(0, 5)} – {actualTimes.endTime ? actualTimes.endTime.slice(0, 5) : '___'}
+                                        </button>
+                                      ) : (
+                                        <span className={`font-sans tracking-wide ${timeClass} ${timeColor}`} style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
+                                          {actualTimes.startTime.slice(0, 5)} – {actualTimes.endTime ? actualTimes.endTime.slice(0, 5) : '___'}
+                                        </span>
+                                      )}
+                                    </>
+                                  );
+                                })() : canManageThisUser && (
+                                  <Plus className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" strokeWidth={2} />
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        );
+                      })}
+                      <td className="px-4 py-4 text-center border-l-2 border-white/10 w-[80px] min-w-[80px] bg-black/15">
+                        <div className="flex flex-col items-center justify-center" title={hasGhost ? t.ghost_tooltip : undefined}>
+                          <span
+                            className={`text-xs font-bold font-sans ${
+                              confMins === 0 && prevMins === 0 ? 'text-gray-400' : 'text-white'
+                            }`}
+                            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}
+                          >
+                            {confMins === prevMins ? (
+                              <>
+                                {hasGhost && prevMins > 0 ? '*' : ''}
+                                {formatMinutesToHoursAndMinutes(prevMins)}
+                                {hasGhost && prevMins > 0 ? '*' : ''}
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-emerald-400">{formatMinutesToHoursAndMinutes(confMins)}</span>
+                                <span className="text-white/60 mx-0.5">/</span>
+                                <span className={hasGhost ? 'text-sky-400/90 italic' : 'text-sky-400/90'}>
+                                  {hasGhost && prevMins > 0 ? '*' : ''}
+                                  {formatMinutesToHoursAndMinutes(prevMins)}
+                                  {hasGhost && prevMins > 0 ? '*' : ''}
+                                </span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Notifica Undo */}
+      <AnimatePresence>
+        {showUndoNotification && (
+          <motion.div
+            initial={{ x: 300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 300, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed top-20 right-4 bg-black/15 backdrop-blur-xl text-white rounded-[20px] p-4 border-2 border-white/30 z-50 max-w-sm"
+          >
+            <div className="flex items-center justify-between space-x-4">
+              <div>
+                <p className="font-bold text-sm text-white font-sans">{t.shifts_deleted}</p>
+                <p className="text-xs text-white/80 mt-1 font-sans">{t.undo_seconds}</p>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleUndoDelete}
+                className="px-4 py-2 rounded-xl bg-[#00A86B] text-white font-bold hover:bg-[#00b877] transition-colors flex items-center space-x-2"
+              >
+                <Undo2 className="w-4 h-4" />
+                <span>{t.undo}</span>
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showPublishWeekConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4"
+            onClick={() => setShowPublishWeekConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-black/15 backdrop-blur-xl rounded-2xl w-full max-w-sm p-6 border-2 border-white/30 shadow-2xl font-sans"
+            >
+              <p className="text-white text-sm font-medium uppercase tracking-wider mb-6 text-center font-sans">
+                {t.publish_week_confirm}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handlePublishWeekConfirm}
+                  className="flex-1 py-3 rounded-xl bg-emerald-600 text-white text-xs font-medium uppercase tracking-wider hover:bg-emerald-500"
+                >
+                  {t.publish}
+                </button>
+                <button
+                  onClick={() => setShowPublishWeekConfirm(false)}
+                  className="flex-1 py-3 rounded-xl bg-black/15 text-white text-xs font-medium uppercase tracking-wider font-sans border-2 border-white/30"
+                >
+                  {t.cancel}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4"
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-black/15 backdrop-blur-xl rounded-2xl w-full max-w-sm p-6 border-2 border-white/30 shadow-2xl font-sans"
+            >
+              <p className="text-white text-sm font-medium uppercase tracking-wider mb-6 text-center font-sans">
+                {t.delete_shifts_confirm.replace('{n}', String(selectedShiftIds.length))}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={async () => {
+                    const shiftsToDelete = shifts.filter(s => selectedShiftIds.includes(s.id));
+                    setDeletedShifts(shiftsToDelete);
+                    await deleteShifts(selectedShiftIds);
+                    setSelectedShiftIds([]);
+                    setShowDeleteConfirm(false);
+                    setShowUndoNotification(true);
+                    setTimeout(() => setShowUndoNotification(false), 5000);
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-red-500 text-white text-xs font-medium uppercase tracking-wider hover:bg-red-600"
+                >
+                  {t.delete_action}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 py-3 rounded-xl bg-black/15 text-white text-xs font-medium uppercase tracking-wider font-sans border-2 border-white/30"
+                >
+                  {t.cancel}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {creatingShift && (
+        <CreateShiftModal
+          userId={creatingShift.userId}
+          date={creatingShift.date}
+          defaultTime={creatingShift.defaultTime}
+          onClose={() => setCreatingShift(null)}
+        />
+      )}
+
+      <AnimatePresence>
+      {editingEndTimeShiftId && (() => {
+        const shift = shifts.find((s) => s.id === editingEndTimeShiftId);
+        if (!shift) return null;
+        const liveStart = inlineEdit?.shiftId === shift.id ? inlineEdit.start : (shift.start_time || '').slice(0, 5);
+        const liveEnd = inlineEdit?.shiftId === shift.id ? inlineEdit.end : (shift.end_time || '').slice(0, 5);
+        const liveBreaks = liveStart && liveEnd ? getBreakLabels(liveStart, liveEnd) : [];
+        const liveNet = liveStart && liveEnd ? calculateShiftMinutesSafe(liveStart, liveEnd) : 0;
+
+        return (
+          <motion.div
+            key="end-time-picker"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4"
+            onClick={() => { setEditingEndTimeShiftId(null); setInlineEdit(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#1a2e1a]/95 backdrop-blur-xl rounded-2xl w-full max-w-xs p-5 border-2 border-emerald-700/50 shadow-2xl font-sans"
+            >
+              {isEditMode ? (
+                /* ── Edit Mode: full start+end input editor ── */
+                <>
+                  <p className="text-amber-300 text-xs font-bold uppercase tracking-wider mb-4 text-center flex items-center justify-center gap-1.5">
+                    <Pencil className="w-3.5 h-3.5" /> Modifica Orari
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Inizio</label>
+                      <input
+                        type="time"
+                        value={liveStart}
+                        onChange={(e) => {
+                          const v = e.target.value.slice(0, 5);
+                          setInlineEdit((prev) => {
+                            const base = prev ?? { shiftId: shift.id, start: liveStart, end: liveEnd };
+                            const autoEnd = v === '10:00' && !base.end ? '16:00' : base.end;
+                            return { ...base, start: v, end: autoEnd };
+                          });
+                        }}
+                        autoFocus
+                        className="h-10 px-3 rounded-xl bg-black/40 border border-white/30 text-white font-bold text-sm focus:outline-none focus:border-amber-400/60"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Fine</label>
+                      <input
+                        type="time"
+                        value={liveEnd}
+                        onChange={(e) => {
+                          const v = e.target.value.slice(0, 5);
+                          setInlineEdit((prev) => ({ ...(prev ?? { shiftId: shift.id, start: liveStart, end: liveEnd }), end: v }));
+                        }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSaveInlineEdit(); }}
+                        className="h-10 px-3 rounded-xl bg-black/40 border border-white/30 text-white font-bold text-sm focus:outline-none focus:border-amber-400/60"
+                      />
+                    </div>
+                  </div>
+                  {liveStart && liveEnd && (
+                    <p className="text-center text-emerald-300 text-xs font-medium mb-3">
+                      {formatMinutesToHoursAndMinutes(liveNet)}
+                      {liveBreaks.length > 0 && <span className="ml-1 text-white/60">({liveBreaks.map((l) => (l === 'lunch' ? 'Pranzo' : 'Cena')).join(', ')})</span>}
+                    </p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleSaveInlineEdit}
+                      className="flex-1 h-9 rounded-xl bg-emerald-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-emerald-500 flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <Save className="w-3.5 h-3.5" /> Salva
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setEditingEndTimeShiftId(null); setInlineEdit(null); }}
+                      className="h-9 px-4 rounded-xl bg-black/30 text-white/70 text-xs font-semibold hover:bg-black/50 transition-colors"
+                    >
+                      {t.cancel}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                /* ── Normal mode: quick end-time grid ── */
+                <>
+                  <p className="text-white text-xs font-medium uppercase tracking-wider mb-3 text-center font-sans">
+                    {t.insert_end_time}
+                  </p>
+                  <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                    {END_TIME_OPTIONS.map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => {
+                          updateShift(shift.id, { end_time: opt });
+                          setEditingEndTimeShiftId(null);
+                        }}
+                        className="py-2 px-2 rounded-lg bg-white/10 hover:bg-emerald-500/30 text-white text-xs font-medium border border-white/20"
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingEndTimeShiftId(null)}
+                    className="mt-3 w-full py-2 rounded-lg bg-black/15 text-white/80 text-xs font-medium border border-white/30"
+                  >
+                    {t.cancel}
+                  </button>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        );
+      })()}
+      </AnimatePresence>
+
+      {showCloseShiftModal && selectedShiftIds.length === 1 && selectedShiftsData[0] && (
+        <CloseShiftModal
+          shift={selectedShiftsData[0]}
+          onClose={() => {
+            setShowCloseShiftModal(false);
+          }}
+          onSaved={() => {
+            setShowCloseShiftModal(false);
+            setSelectedShiftIds([]);
+          }}
+        />
+      )}
+
+      {showDayModal && selectedDayForModal && (
+        <DayShiftsModal
+          dateStr={selectedDayForModal}
+          onClose={() => {
+            setShowDayModal(false);
+            setSelectedDayForModal(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+interface DayShiftsModalProps {
+  dateStr: string;
+  onClose: () => void;
+}
+
+type ModalRowState = {
+  user_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  approval_status: 'draft' | 'confirmed';
+};
+
+function DayShiftsModal({ dateStr, onClose }: DayShiftsModalProps) {
+  const { users, shifts, punchRecords, updateShift, addShift, addPunchRecord, publishDayShifts, currentUser, showError } = useApp();
+  const t = getTranslations(currentUser?.language ?? 'it');
+  const [confirmingShiftId, setConfirmingShiftId] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const [savingAll, setSavingAll] = useState(false);
+  const [localRows, setLocalRows] = useState<Map<string, ModalRowState>>(new Map());
+  const canManageDrafts = currentUser?.can_manage_drafts ?? false;
+  const canEdit = currentUser?.can_create_shifts ?? false;
+
+  const orderedUsers = useMemo(
+    () =>
+      users
+        .filter((u) => u.status === 'active')
+        .sort((a, b) => {
+          const pa = MODAL_STAFF_ORDER[a.first_name] ?? (a.sort_order ?? 99) + 100;
+          const pb = MODAL_STAFF_ORDER[b.first_name] ?? (b.sort_order ?? 99) + 100;
+          return pa - pb;
+        }),
+    [users]
+  );
+
+  const dayShiftsOrdered = useMemo(() => {
+    const dayShifts = shifts.filter((s) => s.date === dateStr);
+    const rows: Shift[] = [];
+    for (const user of orderedUsers) {
+      const userShifts = dayShifts.filter((s) => s.user_id === user.id).sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+      rows.push(...userShifts);
+    }
+    return rows;
+  }, [shifts, dateStr, orderedUsers]);
+
+  const hasDraftInDay = useMemo(() => dayShiftsOrdered.some((s) => s.approval_status === 'draft'), [dayShiftsOrdered]);
+
+  // Initialise local rows once on mount
+  useEffect(() => {
+    const map = new Map<string, ModalRowState>();
+    dayShiftsOrdered.forEach((s) => {
+      map.set(s.id, {
+        user_id: s.user_id,
+        date: s.date,
+        start_time: (s.start_time || '').trim().slice(0, 5),
+        end_time: (s.end_time || '').trim().slice(0, 5),
+        approval_status: s.approval_status === 'confirmed' ? 'confirmed' : 'draft',
+      });
+    });
+    setLocalRows(map);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // mount only — user types don't trigger this
+
+  const updateLocalRow = (shiftId: string, patch: Partial<ModalRowState>) => {
+    setLocalRows((prev) => {
+      const map = new Map(prev);
+      const row = map.get(shiftId);
+      if (row) map.set(shiftId, { ...row, ...patch });
+      return map;
+    });
+  };
+
+  const rowHasChanges = (shift: Shift): boolean => {
+    const row = localRows.get(shift.id);
+    if (!row) return false;
+    return (
+      toHHmm(row.start_time) !== (shift.start_time || '').trim().slice(0, 5) ||
+      toHHmm(row.end_time)   !== (shift.end_time   || '').trim().slice(0, 5) ||
+      row.approval_status    !== (shift.approval_status === 'confirmed' ? 'confirmed' : 'draft') ||
+      row.user_id            !== shift.user_id ||
+      row.date               !== shift.date
+    );
+  };
+
+  const hasAnyChanges = dayShiftsOrdered.some(rowHasChanges);
+
+  const handleConfirmEntry = async (shift: Shift) => {
+    setConfirmingShiftId(shift.id);
+    try {
+      await addPunchRecord(shift.user_id, 'in', { shift_id: shift.id });
+    } catch (err) {
+      showError('Errore durante la conferma entrata. Riprova.');
+    } finally {
+      setConfirmingShiftId(null);
+    }
+  };
+
+  const handleSaveAll = async () => {
+    setSavingAll(true);
+    try {
+      const changed = dayShiftsOrdered.filter(rowHasChanges);
+      await Promise.all(changed.map((shift) => {
+        const row = localRows.get(shift.id)!;
+        return updateShift(shift.id, {
+          user_id: row.user_id,
+          date: row.date,
+          start_time: toHHmm(row.start_time) || shift.start_time,
+          end_time: toHHmm(row.end_time),
+          approval_status: row.approval_status,
+        });
+      }));
+      onClose();
+    } catch (err) {
+      showError('Errore nel salvataggio. Riprova.');
+    } finally {
+      setSavingAll(false);
+    }
+  };
+
+  const handlePublishDay = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPublishing(true);
+    try {
+      if (hasAnyChanges) {
+        const changed = dayShiftsOrdered.filter(rowHasChanges);
+        await Promise.all(changed.map((shift) => {
+          const row = localRows.get(shift.id)!;
+          return updateShift(shift.id, {
+            start_time: toHHmm(row.start_time) || shift.start_time,
+            end_time: toHHmm(row.end_time),
+            approval_status: row.approval_status,
+          });
+        }));
+      }
+      const auto16 = dayShiftsOrdered.filter(
+        (s) => (s.start_time || '').slice(0, 5) === '10:00' && !(s.end_time || '').trim()
+      );
+      if (auto16.length > 0) {
+        await Promise.all(auto16.map((s) => updateShift(s.id, { end_time: '16:00' })));
+      }
+      await publishDayShifts(dateStr);
+      onClose();
+    } catch (err) {
+      showError('Errore durante la pubblicazione. Riprova.');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/70 backdrop-blur-md z-[200] flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-[#1a2e1a]/95 backdrop-blur-xl rounded-[24px] w-full max-w-lg max-h-[85vh] border-2 border-emerald-900/50 shadow-[0_0_40px_rgba(0,168,107,0.15)] overflow-hidden font-sans flex flex-col"
+        >
+          <div className="border-b border-white/20 p-6 flex items-center justify-between flex-shrink-0">
+            <div>
+              <h2 className="text-white text-xl font-black uppercase tracking-wider font-sans">
+                {t.day_shifts_management}
+              </h2>
+              <p className="text-white/80 text-sm mt-1 font-sans">
+                {format(parseISO(dateStr), 'EEEE d MMM yyyy', { locale: getDateLocale(currentUser?.language) ?? it })}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }}
+              className="w-10 h-10 rounded-full bg-black/30 hover:bg-black/25 flex items-center justify-center transition-colors border-2 border-white/30"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </div>
+
+          <div className="p-4 overflow-y-auto flex-1 min-h-0">
+            {dayShiftsOrdered.length === 0 ? (
+              <p className="text-white/70 text-sm font-sans text-center py-8">{t.no_shifts_scheduled}</p>
+            ) : (
+              <div className="space-y-2">
+                {dayShiftsOrdered.map((shift) => {
+                  const user = users.find((u) => u.id === shift.user_id);
+                  const row = localRows.get(shift.id) ?? {
+                    user_id: shift.user_id, date: shift.date,
+                    start_time: (shift.start_time || '').slice(0, 5),
+                    end_time: (shift.end_time || '').slice(0, 5),
+                    approval_status: shift.approval_status === 'confirmed' ? 'confirmed' as const : 'draft' as const,
+                  };
+                  const isDirty = rowHasChanges(shift);
+                  const isConfirming = confirmingShiftId === shift.id;
+                  const actual = getActualShiftTime(shift, punchRecords);
+                  const canConfirmEntry = !actual.isCompleted;
+
+                  // Live net hours from local row values
+                  const lStart = toHHmm(row.start_time) || '';
+                  const lEnd = toHHmm(row.end_time) || (lStart === '10:00' && !row.end_time ? '16:00' : '');
+                  const lBreaks = lStart && lEnd ? getBreakLabels(lStart, lEnd) : [];
+                  const lNet = lStart && lEnd ? calculateShiftMinutesSafe(lStart, lEnd) : 0;
+
+                  return (
+                    <div
+                      key={shift.id}
+                      className={`rounded-xl border transition-all duration-150 ${isDirty ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/15 bg-[#1a2e1a]/60'}`}
+                    >
+                      <div className="flex flex-wrap items-center gap-2 p-3">
+                        {/* Dirty indicator */}
+                        {isDirty && <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" title="Modifiche non salvate" />}
+
+                        {/* Employee */}
+                        {canEdit ? (
+                          <div className="relative flex-shrink-0">
+                            <select
+                              value={row.user_id}
+                              onChange={(e) => updateLocalRow(shift.id, { user_id: e.target.value })}
+                              className="h-8 pl-2 pr-7 rounded-lg bg-black/30 border border-white/20 text-white text-xs font-bold appearance-none cursor-pointer min-w-[72px]"
+                            >
+                              {orderedUsers.map((u) => <option key={u.id} value={u.id}>{u.first_name}</option>)}
+                            </select>
+                            <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-white/60 pointer-events-none" />
+                          </div>
+                        ) : (
+                          <span className="font-bold text-white text-sm flex-shrink-0 min-w-[70px]">{user?.first_name ?? '-'}</span>
+                        )}
+
+                        {/* Times */}
+                        {canEdit ? (
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <input
+                              type="time"
+                              value={row.start_time}
+                              onChange={(e) => {
+                                const v = e.target.value.slice(0, 5);
+                                updateLocalRow(shift.id, { start_time: v, end_time: v === '10:00' && !row.end_time ? '16:00' : row.end_time });
+                              }}
+                              className="h-8 w-[88px] px-2 rounded-lg bg-black/30 border border-white/20 text-white text-xs font-bold focus:outline-none focus:border-emerald-400/60"
+                            />
+                            <span className="text-white/40 text-xs">–</span>
+                            <input
+                              type="time"
+                              value={row.end_time}
+                              onChange={(e) => updateLocalRow(shift.id, { end_time: e.target.value.slice(0, 5) })}
+                              className="h-8 w-[88px] px-2 rounded-lg bg-black/30 border border-white/20 text-white text-xs font-bold focus:outline-none focus:border-emerald-400/60"
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-white text-sm font-semibold flex-shrink-0">
+                            {(row.start_time || '--:--')} – {(row.end_time || '___')}
+                          </span>
+                        )}
+
+                        {/* Status toggle */}
+                        {canEdit ? (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateLocalRow(shift.id, { approval_status: row.approval_status === 'draft' ? 'confirmed' : 'draft' }); }}
+                            className={`h-6 px-2 rounded-md text-[9px] font-bold uppercase border flex-shrink-0 transition-colors ${
+                              row.approval_status === 'confirmed'
+                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                                : 'bg-gray-500/20 text-gray-400 border-gray-500/40'
+                            }`}
+                          >
+                            {row.approval_status === 'confirmed' ? '✓ Conf.' : '○ Draft'}
+                          </button>
+                        ) : (
+                          <span className={`h-6 px-2 rounded-md text-[9px] font-bold uppercase border flex-shrink-0 flex items-center ${row.approval_status === 'confirmed' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-gray-500/20 text-gray-400 border-gray-500/40'}`}>
+                            {row.approval_status === 'confirmed' ? '✓ Conf.' : '○ Draft'}
+                          </span>
+                        )}
+
+                        {/* Live net hours */}
+                        {lStart && lEnd && (
+                          <span className="text-[10px] text-emerald-300/90 font-medium flex-shrink-0">
+                            {formatMinutesToHoursAndMinutes(lNet)}
+                            {lBreaks.length > 0 && (
+                              <span className="ml-1 text-white/60">
+                                ({lBreaks.map((l) => (l === 'lunch' ? t.break_lunch_applied : t.break_dinner_applied)).join(', ')})
+                              </span>
+                            )}
+                          </span>
+                        )}
+
+                        {/* Confirm entry */}
+                        {canConfirmEntry && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleConfirmEntry(shift); }}
+                            disabled={isConfirming}
+                            className="ml-auto h-7 px-2.5 rounded-lg bg-emerald-600/80 text-white text-[10px] font-semibold uppercase hover:bg-emerald-600 disabled:opacity-70 flex items-center gap-1 transition-colors flex-shrink-0"
+                          >
+                            {isConfirming ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                            {t.confirm_entry}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Footer: Salva Tutto + Pubblica Giorno */}
+          {(hasAnyChanges || (canManageDrafts && hasDraftInDay)) && (
+            <div className="p-4 border-t border-white/20 flex gap-2 flex-shrink-0">
+              {hasAnyChanges && (
+                <button
+                  type="button"
+                  onClick={handleSaveAll}
+                  disabled={savingAll || publishing}
+                  className="flex-1 py-2.5 rounded-xl bg-amber-500 text-white font-bold text-sm uppercase tracking-wider hover:bg-amber-400 disabled:opacity-70 transition-colors flex items-center justify-center gap-2"
+                >
+                  {savingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Salva Tutto
+                </button>
+              )}
+              {canManageDrafts && hasDraftInDay && (
+                <button
+                  type="button"
+                  onClick={handlePublishDay}
+                  disabled={publishing || savingAll}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-sm uppercase tracking-wider hover:bg-emerald-500 disabled:opacity-70 transition-colors flex items-center justify-center gap-2"
+                >
+                  {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  {t.publish_day}
+                </button>
+              )}
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+interface CreateShiftModalProps {
+  userId: string;
+  date: string;
+  defaultTime: string;
+  onClose: () => void;
+}
+
+function CreateShiftModal({ userId, date, defaultTime, onClose }: CreateShiftModalProps) {
+  const { users, addShift, currentUser } = useApp();
+  const t = getTranslations(currentUser?.language ?? 'it');
+  const [tempShifts, setTempShifts] = useState({
+    start_time: (defaultTime || '').trim().slice(0, 5) || '10:00',
+    end_time: '',
+  });
+
+  const user = users.find((u) => u.id === userId);
+
+  const startHour = parseInt(tempShifts.start_time.split(':')[0], 10);
+  /** Turni serali (>= 16:00): nessun end_time di default, chiusura manuale */
+  const isOpenEndShift = startHour >= 16;
+  const is10Shift = startHour === 10;
+
+  useEffect(() => {
+    if (is10Shift) setTempShifts((s) => ({ ...s, end_time: '16:00' }));
+    else if (isOpenEndShift) setTempShifts((s) => ({ ...s, end_time: '' }));
+  }, [tempShifts.start_time, is10Shift, isOpenEndShift]);
+
+  const handleSave = async () => {
+    const startNorm = toHHmm(tempShifts.start_time);
+    if (!startNorm) return;
+    const effectiveEnd = is10Shift ? '16:00' : (isOpenEndShift ? '' : toHHmm(tempShifts.end_time));
+    if (!isOpenEndShift && !is10Shift && !effectiveEnd) return;
+    const shiftType: 'lunch' | 'dinner' = startHour < 17 ? 'lunch' : 'dinner';
+    const res = await addShift({
+      user_id: userId,
+      date,
+      start_time: startNorm,
+      end_time: effectiveEnd,
+      type: shiftType,
+      approval_status: 'draft',
+    });
+    if (res) onClose();
+  };
+
+  const inputClass = 'w-full px-4 py-3 rounded-2xl bg-black/15 border border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:outline-none transition-colors font-sans font-bold';
+  const labelClass = 'block text-sm font-bold text-white mb-2 font-sans';
+  const btnClass = 'px-6 py-4 rounded-2xl font-bold text-white border border-white/20 hover:bg-black/25 transition-colors font-sans';
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-[#2d572c]/80 backdrop-blur-xl rounded-[32px] w-full max-w-md border-2 border-white/40 overflow-hidden font-sans"
+        >
+          <div className="border-b border-white/20 p-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-white text-2xl font-black uppercase tracking-wider font-sans">
+                {t.new_shift}
+              </h2>
+              <p className="text-white/80 text-sm mt-1 font-sans">
+                <span className="uppercase">{user?.first_name}</span> • {format(parseISO(date), 'd MMM yyyy', { locale: getDateLocale(currentUser?.language) ?? it })}
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-full bg-black/30 hover:bg-black/25 flex items-center justify-center transition-colors border-2 border-white/30"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div>
+              <label className={labelClass}>
+                {t.start_time}
+              </label>
+              <input
+                type="time"
+                value={tempShifts.start_time}
+                onChange={(e) => setTempShifts((s) => ({ ...s, start_time: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+
+            {!isOpenEndShift && (
+              <div>
+                <label className={labelClass}>
+                  {t.end_time}
+                </label>
+                <input
+                  type="time"
+                  value={tempShifts.end_time}
+                  onChange={(e) => setTempShifts((s) => ({ ...s, end_time: e.target.value }))}
+                  className={inputClass}
+                />
+              </div>
+            )}
+            {isOpenEndShift && (
+              <div>
+                <label className={labelClass}>
+                  {t.end_time}
+                </label>
+                <p className="text-white/70 text-sm font-sans">
+                  Chiusura manuale (Update Shift)
+                </p>
+              </div>
+            )}
+
+            <div className="flex space-x-3 pt-4">
+              <button
+                onClick={handleSave}
+                className={`flex-1 ${btnClass} flex items-center justify-center space-x-2`}
+              >
+                <Save className="w-5 h-5 text-white" />
+                <span>{t.create_shift}</span>
+              </button>
+              <button
+                onClick={onClose}
+                className={btnClass}
+              >
+                {t.cancel}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+interface CloseShiftModalProps {
+  shift: Shift;
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+function CloseShiftModal({ shift, onClose, onSaved }: CloseShiftModalProps) {
+  const { users, updateShift, currentUser } = useApp();
+  const t = getTranslations(currentUser?.language ?? 'it');
+  const [endTime, setEndTime] = useState('');
+
+  const user = users.find((u) => u.id === shift.user_id);
+
+  const handleSave = () => {
+    const effectiveEnd = (endTime === 'CURRENT' || !endTime || endTime.trim() === '') ? '23:00' : endTime.trim().slice(0, 5);
+    if (!effectiveEnd) return;
+    updateShift(shift.id, { end_time: effectiveEnd, approval_status: 'confirmed' });
+    onSaved();
+  };
+
+  const labelClass = 'block text-sm font-bold text-white mb-2 font-sans';
+  const btnClass = 'px-6 py-4 rounded-2xl font-bold text-white border border-white/20 hover:bg-black/25 transition-colors font-sans';
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-[#2d572c]/80 backdrop-blur-xl rounded-[32px] w-full max-w-md border-2 border-white/40 overflow-hidden font-sans"
+        >
+          <div className="border-b border-white/20 p-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-white text-2xl font-black uppercase tracking-wider font-sans">
+                {t.close_shift}
+              </h2>
+              <p className="text-white/80 text-sm mt-1 font-sans">
+                <span className="uppercase">{user?.first_name}</span> • {format(parseISO(shift.date), 'd MMM yyyy', { locale: getDateLocale(currentUser?.language) ?? it })} • {shift.start_time.slice(0, 5)}
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-full bg-black/30 hover:bg-black/25 flex items-center justify-center transition-colors border-2 border-white/30"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div>
+              <label className={labelClass}>{t.end_time}</label>
+              <div className="relative">
+                <select
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full px-4 py-3 rounded-2xl bg-black/15 border border-white/20 text-white focus:border-white/40 focus:outline-none transition-colors font-sans font-bold appearance-none cursor-pointer pr-10"
+                >
+                  <option value="" className="bg-[#2d572c] text-white">{t.end_time}</option>
+                  {END_TIME_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt} className="bg-[#2d572c] text-white">{opt}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 pointer-events-none" />
+              </div>
+            </div>
+
+            <div className="flex space-x-3 pt-4">
+              <button
+                onClick={handleSave}
+                disabled={!endTime}
+                className={`flex-1 ${btnClass} flex items-center justify-center space-x-2 bg-emerald-600/80 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <Save className="w-5 h-5 text-white" />
+                <span>{t.save}</span>
+              </button>
+              <button onClick={onClose} className={btnClass}>
+                {t.cancel}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}

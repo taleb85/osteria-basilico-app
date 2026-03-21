@@ -1,0 +1,647 @@
+import { useMemo, useState, useCallback, useEffect } from 'react';
+import {
+  Search,
+  Home,
+  Calendar,
+  ClipboardList,
+  BarChart3,
+  ShieldCheck,
+  LayoutList,
+  Sparkles,
+  RotateCcw,
+  X,
+  Palmtree,
+  ChevronDown,
+} from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import type { User } from '../types';
+import { getTranslations } from '../utils/translations';
+import { translateRole } from '../utils/roles';
+import { isAdminOnly, isManagementRole, isPurelyManagementRole } from '../utils/permissions';
+import { FEATURE_LABELS, type EnabledFeatureKey } from '../utils/enabledFeatures';
+import {
+  getEnabledModules,
+  ENABLED_MODULES,
+  type AppNavTab,
+  type EnabledModule,
+} from '../utils/enabledModules';
+import ProfileTabRichPreview from './profilePreview/ProfileTabRichPreview';
+import {
+  PROFILE_VISIBILITY_FEATURE_KEYS,
+  getEffectiveFeaturesForUser,
+  getTemplateBaselineFeatures,
+  isFeatureExplicitlyOverridden,
+  computeNextEnabledFeaturesOverride,
+  toggleStaffModule,
+  getModuleLabel,
+  getProfileHubTabs,
+  screenGroupToPreviewTab,
+  featureKeyToPreviewTab,
+  staffModuleToPreviewTab,
+} from '../utils/profileVisibilityHub';
+import {
+  computeNextUiSectionOverrides,
+  uiWidgetsByGroup,
+  widgetAppliesToUser,
+  type UiScreenWidgetDef,
+} from '../utils/uiScreenWidgets';
+
+const ACCENT = '#2D5A27';
+
+const PREVIEW_TAB_ICONS: Record<AppNavTab, typeof Home> = {
+  home: Home,
+  turni: Calendar,
+  ferie: Palmtree,
+  timesheet: ClipboardList,
+  reports: BarChart3,
+  settings: ShieldCheck,
+};
+
+function NavPreviewBar({
+  tabs,
+  labels,
+  size = 'compact',
+  activeTab,
+  onSelectTab,
+}: {
+  tabs: AppNavTab[];
+  labels: Record<AppNavTab, string>;
+  size?: 'compact' | 'fullscreen';
+  activeTab?: AppNavTab | null;
+  onSelectTab?: (id: AppNavTab) => void;
+}) {
+  const fs = size === 'fullscreen';
+  const interactive = !!onSelectTab && activeTab != null;
+  return (
+    <div
+      className={`rounded-[1.25rem] border border-white/15 shadow-inner ${fs ? 'py-4 px-3 sm:px-5' : 'py-2 px-2'}`}
+      style={{ backgroundColor: ACCENT }}
+    >
+      <div className={`flex justify-between items-stretch gap-1 sm:gap-2 ${fs ? 'min-h-[72px] sm:min-h-[88px]' : 'min-h-[44px]'}`}>
+        {tabs.map((id) => {
+          const Icon = PREVIEW_TAB_ICONS[id];
+          const selected = interactive && activeTab === id;
+          const cls = `flex-1 min-w-0 flex flex-col items-center justify-center text-white/90 ${fs ? 'gap-1.5 px-1' : 'gap-0.5 px-1'} rounded-xl transition-all ${
+            selected ? 'bg-white/20 ring-2 ring-white/80 shadow-inner' : ''
+          }`;
+          const label = (
+            <>
+              <Icon className={`${fs ? 'w-7 h-7 sm:w-8 sm:h-8' : 'w-4 h-4'} opacity-95`} strokeWidth={1.5} aria-hidden />
+              <span
+                className={`font-semibold leading-tight text-center truncate w-full ${fs ? 'text-[11px] sm:text-xs' : 'text-[8px]'}`}
+              >
+                {labels[id]}
+              </span>
+            </>
+          );
+          if (interactive) {
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => onSelectTab!(id)}
+                className={`${cls} cursor-pointer hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white`}
+                aria-pressed={selected}
+                aria-label={labels[id]}
+              >
+                {label}
+              </button>
+            );
+          }
+          return (
+            <div key={id} className={cls}>
+              {label}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function ProfileVisibilityHub() {
+  const { users, currentUser, updateUser, featureFlags, showSuccess, effectiveLanguage } = useApp();
+  const t = getTranslations(effectiveLanguage);
+  const tv = t as Record<string, string>;
+
+  const canUseHub = currentUser && isAdminOnly(currentUser);
+
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'staff' | 'management'>('all');
+  const [showSuspended, setShowSuspended] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [activeHubTab, setActiveHubTab] = useState<AppNavTab>('home');
+
+  const sortedUsers = useMemo(() => {
+    return [...users].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  }, [users]);
+
+  const filteredList = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return sortedUsers.filter((u) => {
+      if (!showSuspended && u.status !== 'active') return false;
+      if (roleFilter === 'staff' && isManagementRole(u.role)) return false;
+      if (roleFilter === 'management' && !isManagementRole(u.role)) return false;
+      if (!q) return true;
+      const name = `${u.first_name ?? ''} ${u.last_name ?? ''} ${u.email ?? ''}`.toLowerCase();
+      return name.includes(q);
+    });
+  }, [sortedUsers, search, roleFilter, showSuspended]);
+
+  const selected = selectedId ? users.find((u) => u.id === selectedId) ?? null : null;
+
+  const isSelectedAdmin = selected?.role === 'admin';
+  const isMgmt = selected ? isManagementRole(selected.role) : false;
+
+  const hubTabs = useMemo(() => {
+    if (!selected) return [] as AppNavTab[];
+    return getProfileHubTabs(selected, isMgmt, featureFlags);
+  }, [selected, isMgmt, featureFlags]);
+
+  useEffect(() => {
+    if (!selected || hubTabs.length === 0) return;
+    setActiveHubTab((prev) => (hubTabs.includes(prev) ? prev : hubTabs[0]!));
+  }, [selected?.id, hubTabs]);
+
+  const navLabels: Record<AppNavTab, string> = {
+    home: t.sidebar_dashboard,
+    turni: t.sidebar_shifts,
+    ferie: t.sidebar_holidays,
+    timesheet: t.sidebar_attendance,
+    reports: t.sidebar_statistics,
+    settings: (t as { bottom_nav_settings_short?: string }).bottom_nav_settings_short || t.sidebar_admin,
+  };
+
+  const handleFeatureToggle = useCallback(
+    (u: User, key: EnabledFeatureKey, on: boolean) => {
+      if (isSelectedAdmin) return;
+      const next = computeNextEnabledFeaturesOverride(u, key, on);
+      updateUser(u.id, { enabled_features: next ?? {} });
+      showSuccess?.(tv.profile_visibility_saved_hint ?? 'Salvato.');
+    },
+    [isSelectedAdmin, updateUser, showSuccess, tv.profile_visibility_saved_hint]
+  );
+
+  const handleModuleToggle = useCallback(
+    (u: User, mod: EnabledModule, on: boolean) => {
+      if (isSelectedAdmin || isManagementRole(u.role)) return;
+      const next = toggleStaffModule(u, mod, on);
+      updateUser(u.id, { enabled_modules: next });
+      showSuccess?.(tv.profile_visibility_saved_hint ?? 'Salvato.');
+    },
+    [isSelectedAdmin, updateUser, showSuccess, tv.profile_visibility_saved_hint]
+  );
+
+  const handleResetOverrides = useCallback(() => {
+    if (!selected || isSelectedAdmin) return;
+    updateUser(selected.id, { enabled_features: {} });
+    showSuccess?.(tv.profile_visibility_reset_done ?? 'Eccezioni rimosse: vale il template di ruolo.');
+  }, [selected, isSelectedAdmin, updateUser, showSuccess, tv.profile_visibility_reset_done]);
+
+  const uiGroups = useMemo(() => uiWidgetsByGroup(), []);
+
+  const featuresForActiveTab = useMemo(() => {
+    if (!selected) return [] as EnabledFeatureKey[];
+    return PROFILE_VISIBILITY_FEATURE_KEYS.filter((key) => {
+      if (featureKeyToPreviewTab(key) !== activeHubTab) return false;
+      return true;
+    });
+  }, [selected, activeHubTab]);
+
+  const layoutGroupsForActiveTab = useMemo((): { groupKey: string; widgets: UiScreenWidgetDef[] }[] => {
+    if (!selected) return [];
+    const out: { groupKey: string; widgets: UiScreenWidgetDef[] }[] = [];
+    for (const [groupKey, widgets] of uiGroups.entries()) {
+      if (screenGroupToPreviewTab(groupKey) !== activeHubTab) continue;
+      const applicable = widgets.filter((w) => widgetAppliesToUser(w, selected.role));
+      if (applicable.length) out.push({ groupKey, widgets: applicable });
+    }
+    return out;
+  }, [selected, activeHubTab, uiGroups]);
+
+  const staffModulesForActiveTab = useMemo(() => {
+    if (!selected || isManagementRole(selected.role)) return [] as EnabledModule[];
+    return ENABLED_MODULES.filter((m) => staffModuleToPreviewTab(m, false) === activeHubTab);
+  }, [selected, activeHubTab]);
+
+  const activeTabPanelEmpty =
+    featuresForActiveTab.length === 0 &&
+    layoutGroupsForActiveTab.length === 0 &&
+    staffModulesForActiveTab.length === 0;
+
+  const showScreenMock =
+    layoutGroupsForActiveTab.length > 0 || staffModulesForActiveTab.length > 0;
+
+  const handleUiWidgetToggle = useCallback(
+    (u: User, key: string, visible: boolean) => {
+      if (isSelectedAdmin) return;
+      const next = computeNextUiSectionOverrides(u, key, visible);
+      updateUser(u.id, { ui_section_overrides: next ?? {} });
+      showSuccess?.(tv.profile_visibility_saved_hint ?? 'Salvato.');
+    },
+    [isSelectedAdmin, updateUser, showSuccess, tv.profile_visibility_saved_hint]
+  );
+
+  const handleResetUiSections = useCallback(() => {
+    if (!selected || isSelectedAdmin) return;
+    updateUser(selected.id, { ui_section_overrides: {} });
+    showSuccess?.(tv.profile_visibility_saved_hint ?? 'Salvato.');
+  }, [selected, isSelectedAdmin, updateUser, showSuccess, tv.profile_visibility_saved_hint]);
+
+  const closePreview = useCallback(() => setSelectedId(null), []);
+
+  useEffect(() => {
+    if (!selected) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closePreview();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [selected, closePreview]);
+
+  if (!currentUser) return null;
+
+  if (!canUseHub) {
+    return (
+      <div className="pb-content pt-6 px-4 sm:px-6">
+        <p className="text-sm text-slate-600">
+          {tv.profile_visibility_forbidden ?? 'Non hai permesso di accedere a questa sezione.'}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+    <div className="pb-content pt-6 w-full px-4 sm:px-6 font-sans min-h-full max-w-6xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-slate-900 text-xl font-bold tracking-tight">
+          {tv.profile_visibility_title ?? 'Cosa vede chi'}
+        </h1>
+        <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+          {tv.profile_visibility_subtitle ??
+            'Template di ruolo (tab Permessi ruoli) + eccezioni per singolo profilo. Scegli un utente, controlla l’anteprima della barra e attiva o disattiva i widget.'}
+        </p>
+      </div>
+
+      <div className={`grid grid-cols-1 gap-6 lg:gap-8 ${selected ? '' : 'lg:grid-cols-12'}`}>
+        {/* Lista profili */}
+        <div className={`space-y-3 ${selected ? 'lg:max-w-2xl' : 'lg:col-span-4'}`}>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={tv.profile_visibility_search_ph ?? 'Cerca nome o email…'}
+              className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-accent/25 focus:border-accent outline-none"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(['all', 'staff', 'management'] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setRoleFilter(k)}
+                className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                  roleFilter === k
+                    ? 'bg-accent text-white border-accent'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                {k === 'all'
+                  ? tv.profile_visibility_filter_all ?? 'Tutti'
+                  : k === 'staff'
+                    ? tv.profile_visibility_filter_staff ?? 'Staff'
+                    : tv.profile_visibility_filter_mgmt ?? 'Gestione'}
+              </button>
+            ))}
+          </div>
+          <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={showSuspended}
+              onChange={(e) => setShowSuspended(e.target.checked)}
+              className="rounded border-slate-300 text-accent focus:ring-accent/30"
+            />
+            {tv.profile_visibility_show_suspended ?? 'Mostra sospesi / inattivi'}
+          </label>
+
+          <ul className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 max-h-[min(52vh,28rem)] overflow-y-auto shadow-sm">
+            {filteredList.length === 0 && (
+              <li className="px-4 py-8 text-center text-sm text-slate-400">
+                {tv.profile_visibility_empty_list ?? 'Nessun profilo corrisponde ai filtri.'}
+              </li>
+            )}
+            {filteredList.map((u) => {
+              const active = u.id === selectedId;
+              return (
+                <li key={u.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(u.id)}
+                    className={`w-full text-left px-4 py-3 transition-colors flex items-start gap-3 ${
+                      active ? 'bg-accent/8' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 text-sm font-bold shrink-0">
+                      {(u.first_name?.[0] ?? '?').toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-900 truncate">
+                        {u.first_name} {u.last_name ?? ''}
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate">{translateRole(u.role, currentUser.language)}</p>
+                      {u.status !== 'active' && (
+                        <span className="inline-block mt-1 text-[10px] font-bold uppercase text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">
+                          {u.status}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {!selected && (
+        <div className="lg:col-span-8 space-y-6">
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-16 text-center">
+              <LayoutList className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-600 font-medium text-sm">
+                {tv.profile_visibility_pick_user ?? 'Seleziona un profilo dall’elenco.'}
+              </p>
+            </div>
+        </div>
+        )}
+      </div>
+    </div>
+
+    {selected && (
+        <div
+          className="fixed inset-0 z-[200] flex flex-col bg-slate-100 touch-manipulation overscroll-contain"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="profile-visibility-fs-title"
+        >
+          <header className="shrink-0 flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-slate-200 bg-white shadow-sm safe-area-pad pt-[max(12px,env(safe-area-inset-top,0px))]">
+            <button
+              type="button"
+              onClick={closePreview}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors"
+              aria-label={tv.profile_visibility_close_preview ?? 'Chiudi anteprima'}
+            >
+              <X className="w-5 h-5" strokeWidth={2} />
+            </button>
+            <div className="min-w-0 flex-1">
+              <p
+                id="profile-visibility-fs-title"
+                className="text-[10px] font-bold text-slate-500 uppercase tracking-wider"
+              >
+                {tv.profile_visibility_fullscreen_title ?? 'Anteprima profilo'}
+              </p>
+              <p className="text-base font-bold text-slate-900 truncate">
+                {selected.first_name} {selected.last_name ?? ''}
+              </p>
+              <p className="text-[11px] text-slate-500 truncate">{translateRole(selected.role, currentUser.language)}</p>
+            </div>
+            <span className="hidden sm:inline-flex text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-1 rounded-lg shrink-0">
+              {tv.profile_visibility_readonly_preview ?? 'Solo lettura'}
+            </span>
+          </header>
+
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
+            <div className="max-w-6xl xl:max-w-7xl mx-auto space-y-6">
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    {tv.profile_visibility_preview_banner ?? 'Anteprima navigazione'}
+                  </p>
+                </div>
+                <div className="p-4 sm:p-6 space-y-4">
+                  {isSelectedAdmin && (
+                    <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                      {tv.profile_visibility_admin_note ??
+                        'Profilo Amministratore: tutte le funzioni restano attive; non si applicano eccezioni qui.'}
+                    </p>
+                  )}
+                  <p className="text-sm text-slate-600">
+                    {tv.profile_visibility_pick_tab_hint ??
+                      'Tocca una scheda nella barra: qui sotto compaiono solo i permessi e i blocchi di interfaccia collegati a quella schermata.'}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {tv.profile_visibility_ferie_hint ??
+                      'La scheda Ferie può non essere in barra: resta raggiungibile da Home quando è attiva.'}
+                  </p>
+                  <div className="max-w-2xl mx-auto w-full">
+                    <NavPreviewBar
+                      tabs={hubTabs}
+                      labels={navLabels}
+                      size="fullscreen"
+                      activeTab={activeHubTab}
+                      onSelectTab={setActiveHubTab}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {!isSelectedAdmin && (
+                <div className="flex flex-wrap justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetUiSections}
+                    className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    {tv.profile_visibility_reset_ui_sections ?? 'Ripristina tutte le sezioni'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResetOverrides}
+                    className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    {tv.profile_visibility_reset_features ?? 'Rimuovi eccezioni permessi (eredita template)'}
+                  </button>
+                </div>
+              )}
+
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-accent shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      {navLabels[activeHubTab]}
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {tv.profile_visibility_tab_subtitle ??
+                        'Anteprima a colonna come in app; i permessi di accesso sono nel pannello pieghevole sotto.'}
+                    </p>
+                  </div>
+                </div>
+                <div className="p-4 sm:p-6 space-y-8">
+                  {activeTabPanelEmpty && (
+                    <p className="text-sm text-slate-500 text-center py-6">
+                      {tv.profile_visibility_tab_empty ??
+                        'Nessun permesso o blocco configurabile per questa scheda. Scegli un’altra scheda o attiva prima il permesso della scheda (es. Tabellone team).'}
+                    </p>
+                  )}
+
+                  {!activeTabPanelEmpty && (
+                    <>
+                      {showScreenMock && (
+                        <ProfileTabRichPreview
+                          activeHubTab={activeHubTab}
+                          isMgmt={isMgmt}
+                          layoutGroups={layoutGroupsForActiveTab}
+                          previewUser={selected}
+                          language={effectiveLanguage}
+                          isSelectedAdmin={isSelectedAdmin}
+                          featureFlags={featureFlags}
+                          onUiToggle={(key, vis) => handleUiWidgetToggle(selected, key, vis)}
+                          navLabel={navLabels[activeHubTab]}
+                        >
+                          {!isManagementRole(selected.role) &&
+                            !isPurelyManagementRole(selected.role) &&
+                            staffModulesForActiveTab.length > 0 && (
+                              <div className="space-y-1.5 border-t border-slate-300/80 pt-2">
+                                <p className="px-1 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                                  {tv.profile_visibility_tab_staff_modules ?? 'Moduli area personale'}
+                                </p>
+                                {staffModulesForActiveTab.map((mod) => {
+                                  const enabled = getEnabledModules(selected).includes(mod);
+                                  return (
+                                    <div
+                                      key={mod}
+                                      className={`flex min-h-[48px] items-stretch gap-0 overflow-hidden rounded-xl border-2 ${
+                                        enabled
+                                          ? 'border-slate-200 bg-white shadow-sm'
+                                          : 'border-dashed border-slate-400/70 bg-slate-300/40'
+                                      }`}
+                                    >
+                                      <div className={`w-[3px] shrink-0 ${enabled ? 'bg-violet-500' : 'bg-slate-400'}`} aria-hidden />
+                                      <div className="flex min-w-0 flex-1 items-center justify-between gap-2 py-2 pl-2.5 pr-2">
+                                        <p
+                                          className={`text-[13px] font-semibold ${
+                                            enabled ? 'text-slate-900' : 'text-slate-500 line-through'
+                                          }`}
+                                        >
+                                          {getModuleLabel(mod, effectiveLanguage)}
+                                        </p>
+                                        {!isSelectedAdmin && (
+                                          <button
+                                            type="button"
+                                            role="switch"
+                                            aria-checked={enabled}
+                                            onClick={() => handleModuleToggle(selected, mod, !enabled)}
+                                            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                                              enabled ? 'bg-accent' : 'bg-slate-300'
+                                            }`}
+                                          >
+                                            <span
+                                              className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                                                enabled ? 'translate-x-5' : 'translate-x-0'
+                                              }`}
+                                            />
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                        </ProfileTabRichPreview>
+                      )}
+
+                      {!showScreenMock && featuresForActiveTab.length > 0 && (
+                        <p className="text-center text-xs text-slate-500">
+                          {tv.profile_visibility_mock_no_blocks ??
+                            'Su questa scheda non ci sono blocchi layout da mostrare: solo i permessi di accesso (apri sotto).'}
+                        </p>
+                      )}
+
+                      {featuresForActiveTab.length > 0 && (
+                        <details
+                          key={`perm-${selected.id}-${activeHubTab}`}
+                          className="group rounded-xl border border-slate-200 bg-slate-50/90 open:border-slate-300 open:bg-white"
+                          {...({ defaultOpen: !showScreenMock } as object)}
+                        >
+                          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-bold text-slate-800 [&::-webkit-details-marker]:hidden">
+                            <span>
+                              {(tv.profile_visibility_perm_expand ?? 'Permessi di accesso ({n})').replace(
+                                '{n}',
+                                String(featuresForActiveTab.length)
+                              )}
+                            </span>
+                            <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
+                          </summary>
+                          <p className="border-t border-slate-100 px-4 pt-2 text-[11px] text-slate-500">
+                            {tv.profile_visibility_tab_permissions_hint ??
+                              'Attivano o disattivano funzioni e spesso la presenza della scheda in app.'}
+                          </p>
+                          <div className="flex flex-col gap-2 px-4 pb-4 pt-2">
+                            {featuresForActiveTab.map((key) => {
+                              const eff = getEffectiveFeaturesForUser(selected)[key] === true;
+                              const overridden = isFeatureExplicitlyOverridden(selected, key);
+                              const base = getTemplateBaselineFeatures(selected)[key] === true;
+                              return (
+                                <div
+                                  key={key}
+                                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <p
+                                      className={`text-sm font-semibold leading-snug ${
+                                        key === 'view_estimated_cost' ? 'border-l-2 border-violet-200 pl-2' : ''
+                                      } text-slate-800`}
+                                    >
+                                      {FEATURE_LABELS[key]}
+                                    </p>
+                                    <p className="mt-0.5 text-[10px] text-slate-400">
+                                      {overridden
+                                        ? tv.profile_visibility_badge_custom ?? 'Personalizzato'
+                                        : tv.profile_visibility_badge_template ?? 'Dal template ruolo'}
+                                      {!overridden &&
+                                        ` · ${base ? (tv.profile_visibility_on ?? 'On') : (tv.profile_visibility_off ?? 'Off')} ${tv.profile_visibility_in_template ?? 'nel template'}`}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={eff}
+                                    disabled={isSelectedAdmin}
+                                    onClick={() => handleFeatureToggle(selected, key, !eff)}
+                                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-40 ${
+                                      eff ? 'bg-accent' : 'bg-slate-200'
+                                    }`}
+                                  >
+                                    <span
+                                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                                        eff ? 'translate-x-5' : 'translate-x-0'
+                                      }`}
+                                    />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </details>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    )}
+    </>
+  );
+}

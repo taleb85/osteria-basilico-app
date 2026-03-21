@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <script>
+      (function(){
+        var t=localStorage.getItem('userTheme')||localStorage.getItem('theme');
+        document.documentElement.classList.toggle('dark',t==='dark');
+        if(location.search.includes('nocache=1')){
+          Promise.all([
+            navigator.serviceWorker?.getRegistrations?.().then(function(r){ return Promise.all(r.map(function(s){return s.unregister();})); })||Promise.resolve(),
+            caches.keys().then(function(keys){ return Promise.all(keys.map(function(k){return caches.delete(k);})); })
+          ]).then(function(){ location.replace(location.pathname+(location.hash||'')||'/'); });
+          return;
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- PWA Manifest (iniettato da vite-plugin-pwa) -->
+
+    <!-- Theme basilico: stesso verde su light/dark → barra di sistema uniforme con il brand -->
+    <meta name="theme-color" content="#2D5A27" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#2D5A27" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Osteria Basilico" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Meta -->
+    <title>Osteria Basilico</title>
+    <meta name="description" content="Sistema di gestione turni per Osteria Basilico" />
+
+    <!-- Splash avvio (simula schermata nativa finché React non monta) -->
+    <style>
+      #pwa-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483646;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.25rem;
+        background: #ffffff;
+        padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+        transition: opacity 0.38s ease, visibility 0.38s ease;
+      }
+      #pwa-splash.pwa-splash--hide {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      #pwa-splash img {
+        width: min(42vw, 168px);
+        height: min(42vw, 168px);
+        object-fit: contain;
+        filter: drop-shadow(0 8px 24px rgba(45, 90, 39, 0.14), 0 2px 10px rgba(15, 23, 42, 0.06));
+      }
+      #pwa-splash .pwa-splash__title {
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-weight: 600;
+        font-size: clamp(0.95rem, 4.2vw, 1.1rem);
+        color: #2d5a27;
+        letter-spacing: 0.02em;
+        line-height: 1.3;
+        text-align: center;
+        max-width: 18rem;
+        padding: 0 0.75rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="pwa-splash" aria-hidden="true">
+      <img src="/logo-ob.svg" width="512" height="512" alt="" decoding="async" fetchpriority="high" />
+      <div class="pwa-splash__title">Osteria Basilico</div>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

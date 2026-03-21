@@ -1,0 +1,391 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --gray-dark: #1e3d1a;
+    --gray-medium: #475569;
+    --gray-light: #64748b;
+    --gray-lighter: #f1f5f9;
+    /* Verde oliva scuro — basilico-primary Osteria Basilico (#2D5A27) */
+    --basilico-primary: #2D5A27;
+    --accent: #2D5A27;
+    --accent-hover: #264d21;
+    --accent-dark: #1e3d1a;
+    --accent-light: #d0dece;
+    /** Ombra “soft” unificata per card / superfici elevate (allineata a .card-factorial) */
+    --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-card-accent: 0 4px 16px -4px rgba(45, 90, 39, 0.14), 0 2px 8px -4px rgba(15, 23, 42, 0.08);
+    --text-dark: #1a1a1a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --bg: #f8fafc;
+    --color-bg: #f8fafc;
+    --color-text: #1a1a1a;
+    --color-text-secondary: #475569;
+    --color-accent: #2D5A27;
+    --surface: #f8fafc;
+    --surface-card: #ffffff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  html {
+    background: #f8fafc !important;
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+    transition: background-color 0.3s ease;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    touch-action: manipulation; /* blocca double-tap zoom */
+  }
+
+  * {
+    scrollbar-width: none; /* Firefox — nasconde tutte le scrollbar */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera — nasconde tutte le scrollbar */
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f8fafc !important;
+    color: #1a1a1a;
+    width: 100%;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    -webkit-overflow-scrolling: touch; /* iOS scroll fluido */
+    touch-action: manipulation; /* blocca double-tap zoom */
+  }
+
+  /** Tutta l’app React: stessa stack Inter del tema Tailwind (`font-sans`). */
+  #root {
+    @apply min-h-0 font-sans antialiased text-[#1a1a1a];
+  }
+}
+
+/* Card / Panel — Clean Minimal: bianco solido, niente vetro */
+@layer components {
+  .panel {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid rgb(226 232 240);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    color: #1a1a1a;
+  }
+
+  .panel h1,
+  .panel h2,
+  .panel h3 {
+    color: #1a1a1a;
+  }
+
+  /* Nessun `.panel span`: altrimenti sovrascrive utility tipo `text-white` sui badge (specificità .panel span > .text-white). */
+  .panel p,
+  .panel label,
+  .panel td,
+  .panel th {
+    color: #1a1a1a;
+  }
+
+  .panel input,
+  .panel textarea,
+  .panel select {
+    background: #ffffff;
+    border: 1px solid rgb(226 232 240);
+    color: #1a1a1a;
+  }
+
+  .panel input::placeholder,
+  .panel textarea::placeholder {
+    color: #64748b;
+  }
+
+  nav {
+    border: none;
+  }
+
+  button {
+    border-radius: 12px;
+    touch-action: manipulation;
+  }
+
+  nav a {
+    border-radius: 12px;
+  }
+
+  /* Card Factorial — Clean Minimal: bianco, rounded-2xl (16px), ombra soft unificata */
+  .card-factorial {
+    @apply bg-white rounded-2xl border border-slate-100 p-5 sm:p-6 transition-all duration-200 shadow-card-soft;
+  }
+
+  /**
+   * Toolbar management — gruppi tipo “segmented control”:
+   * niente gap tra celle; solo linee divide-x; angoli dal contenitore (overflow-hidden + rounded-lg).
+   */
+  .ui-toolbar-group {
+    @apply flex h-[22px] items-center gap-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm;
+    @apply divide-x divide-slate-200;
+  }
+
+  /** Fascia grigia periodo Presenze: stesso schema segmenti; scroll orizzontale se serve */
+  .ui-toolbar-group-muted {
+    @apply flex h-[22px] max-h-[22px] w-max max-w-full shrink-0 flex-nowrap items-center gap-0 overflow-x-auto-safe rounded-lg border border-slate-200 bg-slate-50 shadow-sm;
+    @apply divide-x divide-slate-200;
+  }
+
+  /** Tab affiancati: niente arrotondamento proprio (resta il clip del gruppo) */
+  .ui-toolbar-tab {
+    @apply flex h-[20px] min-h-[20px] items-center justify-center rounded-none px-2.5 text-center text-[13px] font-semibold leading-none transition-colors;
+  }
+
+  /** Icona in segmento: cella quadrata 20px (allineata all’altezza tab) */
+  .ui-toolbar-icon-btn {
+    @apply box-border flex h-[20px] min-h-[20px] w-5 min-w-5 max-w-5 shrink-0 items-center justify-center rounded-none transition-colors;
+  }
+
+  /** Testo statico tra icone (es. 1 / 5) nello stesso gruppo segmentato */
+  .ui-toolbar-segment-static {
+    @apply flex h-[20px] min-h-[20px] shrink-0 items-center justify-center px-1.5 text-center text-[13px] font-semibold tabular-nums leading-none text-slate-600;
+  }
+
+  /** Sotto-segmento (es. 4 sett. | 5 sett.) dentro fascia muted */
+  .ui-toolbar-segment-pair {
+    @apply flex h-[20px] shrink-0 items-stretch divide-x divide-slate-200;
+  }
+
+  /** Pulsante compatto dentro fascia muted (preset settimane, Salva) */
+  .ui-toolbar-muted-btn {
+    @apply flex h-full items-center justify-center rounded-none px-2 text-[13px] font-semibold leading-none transition-colors;
+  }
+
+  /** Pill singola (preset statistiche) */
+  .ui-toolbar-pill {
+    @apply flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 px-2.5 text-center text-[13px] font-medium leading-none shadow-sm transition-colors;
+  }
+
+  /** Chip toolbar (filtri turni, ecc.) */
+  .ui-toolbar-chip {
+    @apply inline-flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 px-2 text-center text-[13px] font-medium leading-none shadow-sm transition-colors;
+  }
+
+  /** «Oggi» / outline accent */
+  .ui-toolbar-ghost-accent {
+    @apply inline-flex h-[22px] items-center justify-center rounded-lg border border-accent/30 px-2 text-center text-[13px] font-semibold leading-none text-accent shadow-sm transition-colors hover:bg-accent/10;
+  }
+
+  /** Pulsante primario compatto in toolbar (accent) */
+  .ui-toolbar-accent {
+    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg bg-accent px-2.5 text-center text-[13px] font-semibold leading-none text-white shadow-sm transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  /** Pulsante secondario bordo (CSV, outline) */
+  .ui-toolbar-outline {
+    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-center text-[13px] font-semibold leading-none text-slate-600 shadow-sm transition-colors hover:bg-slate-50;
+  }
+
+  /**
+   * Riga toolbar: su sm+ altezza fissa 22px; gap un po’ più arioso tra i blocchi.
+   */
+  .ui-toolbar-row {
+    @apply box-border flex min-h-[22px] max-w-full items-center gap-2;
+    @apply max-sm:flex-wrap max-sm:gap-y-2.5;
+    @apply sm:h-[22px] sm:max-h-[22px] sm:flex-nowrap sm:overflow-x-auto-safe;
+  }
+
+  /** Gruppo compatto (sinistra/destra Turni, preset affiancati) */
+  .ui-toolbar-row-tight {
+    @apply box-border flex min-h-[22px] items-center gap-1.5;
+    @apply max-sm:flex-wrap max-sm:gap-y-2.5;
+    @apply sm:h-[22px] sm:max-h-[22px] sm:flex-nowrap;
+  }
+
+  /** Intestazione pagina (Presenze, Statistiche mgmt) — gap ridotto per evitare “buchi” laterali tra blocchi */
+  .ui-toolbar-page-band {
+    @apply mb-5 box-border flex w-full min-h-[22px] max-w-full flex-col flex-wrap gap-2;
+    @apply sm:h-[22px] sm:max-h-[22px] sm:flex-row sm:flex-nowrap sm:items-center sm:gap-2 sm:overflow-x-auto-safe;
+  }
+
+  /** Colonna interna preset + date */
+  .ui-toolbar-page-band-inner {
+    @apply flex min-h-[22px] min-w-0 flex-1 flex-col gap-2;
+    @apply sm:h-[22px] sm:max-h-[22px] sm:flex-row sm:flex-nowrap sm:items-center sm:gap-2 sm:overflow-x-auto-safe;
+  }
+
+  /**
+   * Trigger dropdown nella toolbar (Filtri / Legenda / Reparto / Azioni):
+   * `relative` da solo è block e può stirare ~1–3px oltre i 22px del chip — allinea esattamente la fascia.
+   */
+  .ui-toolbar-dropdown-root {
+    @apply relative inline-flex h-[22px] max-h-[22px] min-h-[22px] shrink-0 items-center;
+  }
+}
+
+@layer utilities {
+  /** Seleziona testo in blocchi espliciti (es. messaggi lunghi) */
+  .select-text {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /** Ombra soft riutilizzabile (multipli di 4px nel blur/spread) */
+  .shadow-card-soft {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-card-brand {
+    box-shadow: var(--shadow-card-accent);
+  }
+
+  /**
+   * Scroll orizzontale senza overflow-y: auto implicito (spec CSS quando overflow-x ≠ visible).
+   * Evita scrollbar verticale fantasma su righe a altezza fissa (toolbar, strip compatte).
+   */
+  .overflow-x-auto-safe {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .smooth-scroll {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Altezza BottomNav ~56px + margine piccolo; safe-area per home indicator / notch */
+  .pb-content {
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Touch target minimo ~44px per accessibilità mobile */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .smooth-touch {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .safe-area-pad {
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+  }
+
+  /* Barra in alto: sotto la status bar (PWA). Spazio garantito anche se env() è 0. */
+  .safe-area-top {
+    padding-top: max(48px, env(safe-area-inset-top, 0px));
+  }
+
+  /* Barra in basso: sopra la home indicator */
+  .safe-area-bottom {
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Titoli secondari — stessa famiglia sans per coerenza brand */
+  .font-brand-serif {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 600;
+  }
+
+  /* Logo Osteria Basilico - Snell Roundhand Bold (sistema) */
+  .font-logo-snell {
+    font-family: 'Snell Roundhand', 'Snell Roundhand Bold', 'Brush Script MT', 'Apple Chancery', 'Segoe Script', cursive;
+    font-weight: bold;
+  }
+
+  /* Alias storico: stessa stack dell’app (Inter + system UI) */
+  .font-sf {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* Stile Corporate Osteria Basilico — animazione shake per avviso conflitti turno */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    15%       { transform: translateX(-5px) rotate(-1deg); }
+    30%       { transform: translateX(5px) rotate(1deg); }
+    45%       { transform: translateX(-4px); }
+    60%       { transform: translateX(4px); }
+    75%       { transform: translateX(-2px); }
+    90%       { transform: translateX(2px); }
+  }
+  .animate-shake {
+    animation: shake 0.32s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  /* Hover actions solo su dispositivi con pointer (desktop/mouse) — mai su touch */
+  @media (hover: hover) {
+    .shift-card-hover-group:hover .shift-card-hover-actions {
+      display: flex !important;
+      opacity: 1;
+    }
+    .shift-card-hover-group {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .shift-card-hover-group:hover {
+      transform: scale(1.01);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+  }
+}
+
+/* react-day-picker — calendario custom (accent Osteria Basilico) */
+.rdp-modern.rdp-root {
+  --rdp-accent-color: #2d5a27;
+  --rdp-accent-background-color: rgba(45, 90, 39, 0.14);
+  --rdp-day_button-border-radius: 0.5rem;
+  --rdp-day-height: 2rem;
+  --rdp-day-width: 2rem;
+  --rdp-day_button-height: 1.875rem;
+  --rdp-day_button-width: 1.875rem;
+  --rdp-nav-height: 2.125rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  color: #1e293b;
+}
+
+.rdp-modern.rdp-root .rdp-dropdown_root select {
+  border-radius: 0.5rem;
+  border: 1px solid rgb(226 232 240);
+  background: rgb(248 250 252);
+  padding: 0.1rem 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgb(30 41 59);
+}
+
+.rdp-modern.rdp-root .rdp-button_previous,
+.rdp-modern.rdp-root .rdp-button_next {
+  border-radius: 0.5rem;
+  border: 1px solid rgb(226 232 240);
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.rdp-modern.rdp-root .rdp-weekday {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgb(100 116 139);
+  opacity: 1;
+}

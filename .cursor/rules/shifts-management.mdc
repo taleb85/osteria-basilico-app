@@ -1,0 +1,32 @@
+---
+description: Regola permessi modifica turni — Admin, Manager, Assistant Manager hanno libertà totale
+alwaysApply: false
+---
+
+# Osteria Basilico — Modifica turni (Management)
+
+**Regola: Admin, Manager e Assistant Manager hanno libertà totale di modificare qualsiasi turno.**
+
+## Ruoli con accesso completo
+- `admin`
+- `manager`
+- `assistant_manager`
+
+## Regola conflitti (stesso dipendente, stesso giorno)
+- L'orario di inizio di ogni turno deve essere **sempre dopo** l'orario di uscita del turno precedente
+- Non creare turni sovrapposti: nessun conflitto di orari per lo stesso dipendente nella stessa giornata
+
+## Permessi
+- Modificare orari (inizio/fine) di qualsiasi turno
+- Modificare pausa (deduct_break)
+- Confermare entrata
+- Modificare orario timbratura
+- Nessun limite su stato del turno (draft, confirmed, approved)
+- Nessun limite su quantità di turni selezionabili
+
+## Menu funzioni
+- Visibile **solo quando c'è almeno un turno selezionato**
+- Nessun limite sulla quantità di turni selezionati (1, 2, 3, ... N)
+- **1 turno**: form completo (orari, pausa, conferma entrata, salva) + Deseleziona tutto
+- **Più turni**: form completo (stesso del singolo) + Raggruppa tutto (applica orari/pausa a tutti i turni selezionati)
+- Mostra solo una di: Deseleziona tutto (1 turno) | Raggruppa tutto (più turni)

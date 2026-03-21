@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Osteria Basilico">
+  <defs>
+    <linearGradient id="ibg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3d6b36"/>
+      <stop offset="42%" stop-color="#2D5A27"/>
+      <stop offset="100%" stop-color="#234a1f"/>
+    </linearGradient>
+    <linearGradient id="ish" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+      <stop offset="18%" stop-color="rgba(255,255,255,0.05)"/>
+      <stop offset="48%" stop-color="rgba(255,255,255,0)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.12)"/>
+    </linearGradient>
+    <linearGradient id="itx" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a8b8a3"/>
+      <stop offset="35%" stop-color="#eef2ec"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="113" ry="113" fill="url(#ibg)"/>
+  <rect width="512" height="512" rx="113" ry="113" fill="url(#ish)"/>
+  <g font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="800" font-size="184" letter-spacing="-0.06em" text-anchor="middle">
+    <text x="256" y="256" fill="rgba(12,28,10,0.42)" dominant-baseline="central" transform="translate(0, 2.5)">OB</text>
+    <text x="256" y="256" fill="rgba(255,255,255,0.28)" dominant-baseline="central" transform="translate(0, -1.5)">OB</text>
+    <text x="256" y="256" fill="url(#itx)" dominant-baseline="central">OB</text>
+  </g>
+</svg>
