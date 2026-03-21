@@ -23,7 +23,13 @@ Su GitHub puoi usare l’email **noreply** (Impostazioni → Email): così non e
 ## 2. Repository remoto (GitHub o altro)
 
 1. Crea un repository **vuoto** sul provider (senza README/licenza se hai già commit locali).
-2. Collega e invia `main`:
+2. Collega `origin` e invia `main` — **in un comando** (dalla root del progetto):
+
+```bash
+bash scripts/git-remote-push.sh https://github.com/TUO_UTENTE/TUO_REPO.git
+```
+
+Equivalente manuale:
 
 ```bash
 git remote add origin https://github.com/TUO_UTENTE/TUO_REPO.git

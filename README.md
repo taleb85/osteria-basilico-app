@@ -26,11 +26,10 @@ npm run dev
 
 Istruzioni passo-passo (identità Git, `remote`, push, variabili Vercel, Supabase): **[docs/CONNESSIONE_GIT_VERCEL.md](./docs/CONNESSIONE_GIT_VERCEL.md)**.
 
-Sintesi se il remoto non è ancora collegato:
+Sintesi se il remoto non è ancora collegato (dopo aver creato il repo vuoto su GitHub):
 
 ```bash
-git remote add origin <URL-del-tuo-repo>
-git push -u origin main
+bash scripts/git-remote-push.sh https://github.com/TUO_UTENTE/TUO_REPO.git
 ```
 
 Su Vercel: importa lo stesso repository; **Build Command** `npm run build`, **Output Directory** `dist`. Su ogni push su `main`, la **CI** su GitHub esegue typecheck, lint e build (vedi `.github/workflows/ci.yml`).
@@ -43,4 +42,4 @@ Su Vercel: importa lo stesso repository; **Build Command** `npm run build`, **Ou
 | `npm run lint` | ESLint |
 | `npm run deploy` | Build + deploy produzione Vercel (richiede CLI / progetto collegato) |
 
-Documentazione aggiuntiva: cartella `docs/` e file markdown in root (sicurezza, RLS, mail, ecc.).
+Documentazione aggiuntiva: cartella `docs/` e file markdown in root (sicurezza, RLS, mail, ecc.). Riepilogo cosa è fatto / cosa resta: **[docs/STATO_PROGETTO.md](./docs/STATO_PROGETTO.md)**.
