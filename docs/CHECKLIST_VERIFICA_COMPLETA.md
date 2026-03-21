@@ -67,6 +67,9 @@ Usala **in ordine**. Non incollare mai in chat **chiavi, token o `.env`**: se se
 5. **Storage** (se usi `app-config` / geofence in Storage)  
    - [ ] Bucket e policy come in `docs/SUPABASE_STORAGE_APP_CONFIG.md`.
 
+6. **Realtime (aggiornamenti tra dispositivi senza refresh)**  
+   L’app si iscrive ai cambiamenti sulla tabella `public.users`. In Supabase: **Database → Replication** (o *Publication*, a seconda della versione) → assicurati che la tabella **`users`** sia inclusa nella publication usata da Realtime (spesso `supabase_realtime`). Se manca, un tablet può non vedere subito le modifiche al profilo fatte da un altro dispositivo finché non torni in primo piano o non fai pull-to-refresh.
+
 ---
 
 ## C — App live (browser, dati reali o di test)

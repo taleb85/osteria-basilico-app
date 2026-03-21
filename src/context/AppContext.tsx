@@ -892,7 +892,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         'hourly_rate_eur' in updates ||
         'monthly_confirmed' in updates;
       const needsSilentRefresh = updatesRemoteConfig || updatesProfileOrIdentity;
-      if (res && needsSilentRefresh) {
+      // Sempre refresh dopo salvataggio profilo/permessi: se PostgREST restituisce `res` null (es. RLS su SELECT dopo UPDATE),
+      // senza questo gli altri dispositivi e la lista utenti non si allineano al DB.
+      if (needsSilentRefresh) {
         await silentRefreshDataRef.current(updatesRemoteConfig ? { pullRemoteConfig: true } : undefined);
       }
     } catch (err) {
