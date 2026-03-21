@@ -33,6 +33,7 @@ npm install
 npm run build
 ```
 
+- **Config Vite:** ufficiale in `scripts/vite.config.mjs`. Gli script `npm run dev` / `build` / `preview` la passano già; **non** usare `npx vite` senza `--config scripts/vite.config.mjs` (evita errori su timestamp/cache in root in alcuni ambienti).
 - Se il build va a buon fine, l’app è pronta per il deploy.
 - Controlla che non ci siano errori in console (TypeScript, ESLint).
 
@@ -124,6 +125,7 @@ Stessi comandi di build; in `dist` è incluso `public/_redirects` per le route S
 
 ## 5. Checklist finale
 
+- [ ] Repository Git con `main` e remoto (GitHub/GitLab) collegato a Vercel se usi deploy da push
 - [ ] Progetto Supabase creato e migrazioni eseguite
 - [ ] Variabili `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` impostate in produzione
 - [ ] `npm run build` eseguito senza errori
