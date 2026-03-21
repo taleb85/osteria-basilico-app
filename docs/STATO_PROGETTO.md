@@ -1,11 +1,13 @@
 # Stato progetto (riferimento rapido)
 
+Repository pubblico: **[github.com/taleb85/osteria-basilico-app](https://github.com/taleb85/osteria-basilico-app)** · Produzione: **https://osteria-basilico-app.vercel.app**
+
 | Voce | Stato |
 |------|--------|
-| Codice sorgente e commit su `main` | OK (repo Git **locale**) |
-| `origin` / push su GitHub | OK se `origin` punta al repo remoto e `main` è allineato |
-| Deploy produzione Vercel | OK — alias tipico **https://osteria-basilico-app.vercel.app** (`npm run deploy` o deploy da Git se collegato) |
-| Vercel ↔ GitHub (deploy automatici) | **Da completare in dashboard** se serve: Account/Team → connessione GitHub, poi Project → Settings → Git → Connect repository (vedi [CONNESSIONE_GIT_VERCEL.md §3](./CONNESSIONE_GIT_VERCEL.md)) |
-| CI (typecheck, lint, build) | Workflow `.github/workflows/ci.yml` su ogni push/PR su `main` — controlla il tab **Actions** su GitHub |
-| Variabili `VITE_*` su Vercel | Verifica in dashboard progetto → Settings → Environment Variables |
-| Supabase URL produzione | Verifica Site URL / Redirect in Authentication → [DEPLOY.md](../DEPLOY.md) |
+| Codice su `main` + `origin` | OK — `main` allineato con GitHub |
+| Lint / TypeScript / build locale | OK (`npm run lint`, `typecheck`, `build`) |
+| CI GitHub Actions | OK su ogni push/PR — workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) |
+| Deploy Vercel | OK — deploy da CLI (`npm run deploy`) o da Git se il progetto è collegato al repo |
+| Vercel ↔ GitHub | Collegamento configurato (repo connesso al progetto); dettagli in [CONNESSIONE_GIT_VERCEL.md §3](./CONNESSIONE_GIT_VERCEL.md) |
+| Variabili `VITE_*` su Vercel | Da verificare in dashboard → Settings → Environment Variables (non controllabile da qui) |
+| Supabase (URL produzione, RLS) | Checklist in [DEPLOY.md](../DEPLOY.md) — verifica manuale in dashboard Supabase |
