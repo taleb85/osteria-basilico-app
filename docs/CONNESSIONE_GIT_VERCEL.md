@@ -45,15 +45,40 @@ git push -u origin main
 
 ## 3. Vercel collegato al repo
 
-1. [Vercel](https://vercel.com) → **Add New** → **Project** → importa il repository.
-2. **Build Command:** `npm run build`  
+### 3.0 Collegare GitHub all’account Vercel (obbligatorio una volta)
+
+Se `vercel git connect` risponde con *«You need to add a Login Connection to your GitHub account first»*:
+
+1. Vai su [Vercel Dashboard](https://vercel.com/dashboard) → **Account Settings** (o impostazioni del team) → sezione **Login Connections** / integrazioni GitHub.
+2. Collega **GitHub** e autorizza Vercel ad accedere ai repository (come da [documentazione Vercel sulle connessioni](https://vercel.com/docs/accounts/create-an-account#login-methods-and-connections)).
+
+Senza questo passo, Vercel non può importare né collegare il repo.
+
+### 3.1 Collegare il progetto al repository
+
+**Da dashboard (consigliato se il progetto esiste già):**
+
+1. Apri il progetto (es. **osteria-basilico-app**) → **Settings** → **Git**.
+2. **Connect Git Repository** → scegli il repo (es. `TUO_UTENTE/osteria-basilico-app`).
+3. Conferma branch di produzione (**main**) e deploy.
+
+**Da terminale** (dopo il passo 3.0, dalla root del progetto collegata con `vercel link`):
+
+```bash
+npx vercel git connect https://github.com/TUO_UTENTE/TUO_REPO.git
+```
+
+### 3.2 Build e variabili
+
+1. **Build Command:** `npm run build`  
    **Output Directory:** `dist`  
    (di solito coincide con `vercel.json`.)
-3. **Environment Variables** (Production, e Preview se serve):
+2. **Environment Variables** (Production, e Preview se serve):
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY` (o `VITE_SUPABASE_PUBLISHABLE_KEY` se usi quella nel progetto)
    - opzionale: `VITE_GEMINI_API_KEY`
-4. Deploy. Il progetto già esistente **`osteria-basilico-app`** può essere **ricollegato** al nuovo Git da Project → Settings → Git (in alternativa a creare un progetto nuovo).
+
+Se importi come **nuovo** progetto da **Add New → Project**, Vercel crea il collegamento Git in un solo flusso (dopo aver autorizzato GitHub).
 
 ## 4. Supabase URL di produzione
 
