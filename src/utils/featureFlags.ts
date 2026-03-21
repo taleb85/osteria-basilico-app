@@ -25,7 +25,6 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
 export type FeatureFlags = Record<string, boolean>;
 
 const STORAGE_KEY = 'osteria_app_features_v2';
-const STORAGE_DISABLED_KEY = 'osteria_features_storage_disabled';
 const BUCKET = 'app-config';
 const FILE_PATH = 'features.json';
 
@@ -68,20 +67,15 @@ export function writeFeatureFlagsToStorage(flags: FeatureFlags): void {
 export async function loadFeatureFlagsFromSupabase(): Promise<FeatureFlags | null> {
   if (!supabase) return null;
   if (import.meta.env.VITE_FEATURE_FLAGS_STORAGE_ENABLED === 'false') return null;
-  if (typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_DISABLED_KEY) === '1') return null;
   try {
     const { data, error } = await supabase.storage.from(BUCKET).download(FILE_PATH);
-    if (error || !data) {
-      const status = (error as { status?: number })?.status;
-      if (status === 400 || status === 404) localStorage.setItem(STORAGE_DISABLED_KEY, '1');
-      return null;
-    }
+    // 404 = file non ancora creato su un altro dispositivo: non disattivare mai i retry (localStorage non è condiviso tra PWA/telefono e PC).
+    if (error || !data) return null;
     const text = await data.text();
     const parsed = JSON.parse(text) as FeatureFlags;
     const defaults = buildDefaults();
     return { ...defaults, ...parsed };
   } catch {
-    localStorage.setItem(STORAGE_DISABLED_KEY, '1');
     return null;
   }
 }

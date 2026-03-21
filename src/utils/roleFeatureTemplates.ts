@@ -3,8 +3,6 @@ import { supabase } from '../lib/supabase';
 const BUCKET = 'app-config';
 const FILE_PATH = 'role_feature_templates.json';
 const STORAGE_KEY = 'osteria_role_feature_templates_v1';
-const STORAGE_SKIP_KEY = 'osteria_role_templates_storage_skip';
-
 /** Template per gruppo (admin escluso — sempre pieno). */
 export type RoleTemplateGroup = 'proprietario' | 'management' | 'staff';
 
@@ -72,19 +70,13 @@ function mergeDiskLayers(
 export async function loadRoleFeatureTemplatesFromSupabase(): Promise<RoleFeatureTemplatesOnDisk | null> {
   if (!supabase) return null;
   if (import.meta.env.VITE_FEATURE_FLAGS_STORAGE_ENABLED === 'false') return null;
-  if (typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_SKIP_KEY) === '1') return null;
   try {
     const { data, error } = await supabase.storage.from(BUCKET).download(FILE_PATH);
-    if (error || !data) {
-      const status = (error as { status?: number })?.status;
-      if (status === 400 || status === 404) localStorage.setItem(STORAGE_SKIP_KEY, '1');
-      return null;
-    }
+    if (error || !data) return null;
     const text = await data.text();
     const parsed = JSON.parse(text) as unknown;
     return parseRoleTemplatesFile(parsed);
   } catch {
-    localStorage.setItem(STORAGE_SKIP_KEY, '1');
     return null;
   }
 }
@@ -103,7 +95,6 @@ export async function saveRoleFeatureTemplatesToSupabase(data: RoleFeatureTempla
         'Upload su Storage fallito (bucket app-config o policy mancanti: vedi docs/SUPABASE_STORAGE_APP_CONFIG.md).'
     );
   }
-  localStorage.removeItem(STORAGE_SKIP_KEY);
 }
 
 export function loadAndMergeRoleTemplates(

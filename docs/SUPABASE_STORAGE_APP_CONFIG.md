@@ -45,7 +45,7 @@ Le regole restano in **localStorage** sul browser. Per **non** chiamare mai Stor
 VITE_APP_CONFIG_STORAGE_ENABLED=false
 ```
 
-Dopo un tentativo fallito, l’app imposta un flag in `localStorage` (`osteria_*_storage_skip`) e non ripete il download finché non salvi di nuovo con successo (upload).
+I download da Storage vengono **ripetuti** a ogni avvio / sync (404 = file non ancora presente è normale su un dispositivo nuovo). La PWA sul telefono e il browser sul PC **non** condividono `localStorage`: la fonte condivisa è **Supabase Storage** (`app-config/*.json`).
 
 ## Setup rapido bucket
 

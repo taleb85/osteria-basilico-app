@@ -12,8 +12,6 @@ const MODULE_KEYS = [
 const BUCKET = 'app-config';
 const FILE_PATH = 'admin_sheet_modules.json';
 const STORAGE_KEY = 'osteria_admin_sheet_modules_v1';
-const STORAGE_SKIP_KEY = 'osteria_admin_modules_storage_skip';
-
 export type AdminModuleKeyGlobal = (typeof MODULE_KEYS)[number];
 export type AdminModulesGlobalOnDisk = Partial<Record<AdminModuleKeyGlobal, boolean>>;
 
@@ -68,18 +66,12 @@ function mergeLayers(
 export async function loadAdminModulesGlobalFromSupabase(): Promise<AdminModulesGlobalOnDisk | null> {
   if (!supabase) return null;
   if (import.meta.env.VITE_FEATURE_FLAGS_STORAGE_ENABLED === 'false') return null;
-  if (typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_SKIP_KEY) === '1') return null;
   try {
     const { data, error } = await supabase.storage.from(BUCKET).download(FILE_PATH);
-    if (error || !data) {
-      const status = (error as { status?: number })?.status;
-      if (status === 400 || status === 404) localStorage.setItem(STORAGE_SKIP_KEY, '1');
-      return null;
-    }
+    if (error || !data) return null;
     const text = await data.text();
     return parseAdminModulesFile(JSON.parse(text) as unknown);
   } catch {
-    localStorage.setItem(STORAGE_SKIP_KEY, '1');
     return null;
   }
 }
@@ -98,7 +90,6 @@ export async function saveAdminModulesGlobalToSupabase(data: AdminModulesGlobalO
         'Upload su Storage fallito (bucket app-config o policy mancanti: vedi docs/SUPABASE_STORAGE_APP_CONFIG.md).'
     );
   }
-  localStorage.removeItem(STORAGE_SKIP_KEY);
 }
 
 export function loadAndMergeAdminModulesGlobal(

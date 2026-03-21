@@ -392,6 +392,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setPunchRecords(loadedPunchRecords);
         setAvailability(loadedAvailability);
 
+        // Rimuove flag legacy: versioni precedenti disattivavano per sempre i GET Storage dopo 404/rete, e il telefono non allineava mai al PC (localStorage non è condiviso tra dispositivi).
+        try {
+          localStorage.removeItem('osteria_features_storage_disabled');
+          localStorage.removeItem('osteria_role_templates_storage_skip');
+          localStorage.removeItem('osteria_admin_modules_storage_skip');
+        } catch {
+          /* ignore */
+        }
+
         // Feature flags: se Storage risponde, il remoto vince sul local (stesso criterio dei template ruoli — multi-dispositivo).
         const sbFlags = await loadFeatureFlagsFromSupabase().catch(() => null);
         if (sbFlags) {
