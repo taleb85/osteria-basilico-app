@@ -44,4 +44,4 @@ Su Vercel: importa lo stesso repository; **Build Command** `npm run build`, **Ou
 | `npm run lint` | ESLint |
 | `npm run deploy` | Build + deploy produzione Vercel (richiede CLI / progetto collegato) |
 
-Documentazione aggiuntiva: cartella `docs/` e file markdown in root (sicurezza, RLS, mail, ecc.). Riepilogo cosa è fatto / cosa resta: **[docs/STATO_PROGETTO.md](./docs/STATO_PROGETTO.md)**.
+Documentazione aggiuntiva: cartella `docs/` e file markdown in root (sicurezza, RLS, mail, ecc.). Riepilogo: **[docs/STATO_PROGETTO.md](./docs/STATO_PROGETTO.md)**. Checklist completa Vercel + Supabase + test browser: **[docs/CHECKLIST_VERIFICA_COMPLETA.md](./docs/CHECKLIST_VERIFICA_COMPLETA.md)**.

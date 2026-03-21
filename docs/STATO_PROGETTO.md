@@ -11,3 +11,4 @@ Repository pubblico: **[github.com/taleb85/osteria-basilico-app](https://github.
 | Vercel ↔ GitHub | Collegamento configurato (repo connesso al progetto); dettagli in [CONNESSIONE_GIT_VERCEL.md §3](./CONNESSIONE_GIT_VERCEL.md) |
 | Variabili `VITE_*` su Vercel | Da verificare in dashboard → Settings → Environment Variables (non controllabile da qui) |
 | Supabase (URL produzione, RLS) | Checklist in [DEPLOY.md](../DEPLOY.md) — verifica manuale in dashboard Supabase |
+| Verifica “tutto” passo-passo | [CHECKLIST_VERIFICA_COMPLETA.md](./CHECKLIST_VERIFICA_COMPLETA.md) |
