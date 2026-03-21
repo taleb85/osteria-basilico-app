@@ -22,16 +22,18 @@ npm run dev
 - Anteprima locale: `npm run preview`
 - Pubblicazione su Vercel e checklist: **[DEPLOY.md](./DEPLOY.md)**
 
-## Repository Git (primo push)
+## Repository Git e Vercel
 
-Se il remoto non è ancora collegato:
+Istruzioni passo-passo (identità Git, `remote`, push, variabili Vercel, Supabase): **[docs/CONNESSIONE_GIT_VERCEL.md](./docs/CONNESSIONE_GIT_VERCEL.md)**.
+
+Sintesi se il remoto non è ancora collegato:
 
 ```bash
 git remote add origin <URL-del-tuo-repo>
 git push -u origin main
 ```
 
-Su Vercel, collega lo stesso repository: **Build Command** `npm run build`, **Output Directory** `dist`.
+Su Vercel: importa lo stesso repository; **Build Command** `npm run build`, **Output Directory** `dist`. Su ogni push su `main`, la **CI** su GitHub esegue typecheck, lint e build (vedi `.github/workflows/ci.yml`).
 
 ## Altri comandi
 
