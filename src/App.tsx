@@ -112,8 +112,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     isGlobalRefreshing,
     postRefreshLocked,
     silentRefreshData,
-    roleTemplatesRevision,
-    adminModulesRevision,
     featureFlags,
   } = useApp();
 
@@ -122,7 +120,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const visibleNavTabs = useMemo((): AppNavTab[] => {
     if (!currentUser) return ['home'];
     return getUnifiedNavTabs(currentUser, isManagement, featureFlags);
-  }, [currentUser, isManagement, featureFlags, roleTemplatesRevision, adminModulesRevision]);
+  }, [currentUser, isManagement, featureFlags]);
 
   const [activeTab, setActiveTab] = useState<AppNavTab>('home');
 
@@ -153,7 +151,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     if (!visibleNavTabs.includes(activeTab)) {
       setActiveTab(visibleNavTabs[0] ?? 'home');
     }
-  }, [currentUser, isManagement, featureFlags, visibleNavTabs, activeTab, roleTemplatesRevision, adminModulesRevision]);
+  }, [currentUser, isManagement, featureFlags, visibleNavTabs, activeTab]);
 
   const renderManagementContent = () => {
     switch (activeTab) {

@@ -468,7 +468,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         showSuccess?.(t.open_shift_request_sent);
       } catch { showError?.(t.open_shift_request_send_error); }
     });
-  }, [currentUser, shifts, updateShift, trackSave, showSuccess, showError]);
+  }, [currentUser, shifts, updateShift, trackSave, showSuccess, showError, t]);
 
   /** Manager: approva la richiesta → assegna turno al richiedente. */
   const handleApproveOpenShift = useCallback(async (shiftId: string) => {
@@ -483,7 +483,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         showSuccess?.(formatTrans(t.shift_assigned_to, { name: requester.name }));
       } catch { showError?.(t.open_shift_approve_error); }
     });
-  }, [shifts, updateShift, trackSave, showSuccess, showError]);
+  }, [shifts, updateShift, trackSave, showSuccess, showError, t]);
 
   /** Manager: rifiuta la richiesta → turno torna disponibile come aperto. */
   const handleRejectOpenShift = useCallback(async (shiftId: string) => {
@@ -497,7 +497,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         showSuccess?.(t.open_shift_reject_success);
       } catch { showError?.(t.open_shift_reject_error); }
     });
-  }, [shifts, updateShift, trackSave, showSuccess, showError]);
+  }, [shifts, updateShift, trackSave, showSuccess, showError, t]);
 
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const canCreateShifts = currentUser?.can_create_shifts ?? false;
@@ -539,7 +539,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     if (localFilterStatus === 'confirmed') list = list.filter(s => s.approval_status === 'confirmed');
     if (localFilterStatus === 'draft') list = list.filter(s => s.approval_status === 'draft');
     return list;
-  }, [shifts, visibleUserIds, isStaff, filterUserId, localFilterUserId, localFilterStatus]);
+  }, [shifts, visibleUserIds, isStaff, filterUserId, localFilterUserId, localFilterStatus, hiddenDates]);
 
   /** Traccia il giorno del turno selezionato (per apertura sidebar esplicita).
    *  NON apre la sidebar in automatico: la barra azione gestisce tutti i casi. */
@@ -946,7 +946,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     } finally {
       setSidebarSaving(false);
     }
-  }, [sidebarDay, sidebarEdits, visibleShifts, shifts, punchRecords, updateShift, updatePunchRecord, addPunchRecord, showError, trackSave, t.shift_conflict_same_day]);
+  }, [sidebarDay, sidebarEdits, visibleShifts, shifts, punchRecords, updateShift, updatePunchRecord, addPunchRecord, showError, showSuccess, trackSave, t]);
 
   /** Save orari + timbrature manuale dal drawer singolo. */
   const handleDrawerSave = useCallback(async (shiftId: string) => {
@@ -1007,7 +1007,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     } finally {
       setDrawerSaving(false);
     }
-  }, [shifts, sidebarEdits, drawerPunchEdits, punchRecords, updateShift, updatePunchRecord, addPunchRecord, showError, showSuccess, t.shift_conflict_same_day]);
+  }, [shifts, sidebarEdits, drawerPunchEdits, punchRecords, updateShift, updatePunchRecord, addPunchRecord, showError, showSuccess, t]);
 
   const handleUnlockShift = async (shiftId: string, pin: string) => {
     if (!currentUser) return;
@@ -1064,7 +1064,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         showError(t.shift_move_error);
       }
     });
-  }, [shifts, updateShift, showError, showSuccess, trackSave, shiftsOverlap]);
+  }, [shifts, updateShift, showError, showSuccess, trackSave, shiftsOverlap, t]);
 
   /** Salva l'editing inline della cella: parsifica "10-16" o "10:00-16:00", aggiorna shift e (se esiste) la timbratura entrata.
    * Se il turno è blu (in corso = confirmed), la modifica approva anche il turno (→ approved). */
@@ -1096,7 +1096,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         showError(t.save_error_retry);
       }
     });
-  }, [shifts, updateShift, punchRecords, updatePunchRecord, showError, showSuccess, trackSave, t.shift_conflict_same_day]);
+  }, [shifts, updateShift, punchRecords, updatePunchRecord, showError, showSuccess, trackSave, t]);
 
   if (!currentUser) return null;
 

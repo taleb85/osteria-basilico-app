@@ -1,10 +1,7 @@
 import type { ReactNode } from 'react';
 import type { User } from '../../types';
-import { isUiWidgetVisible, UI_SCREEN_WIDGETS } from '../../utils/uiScreenWidgets';
-
-export function previewWidgetLabel(widgetKey: string): string {
-  return UI_SCREEN_WIDGETS.find((w) => w.key === widgetKey)?.label ?? widgetKey;
-}
+import { isUiWidgetVisible } from '../../utils/uiScreenWidgets';
+import { previewWidgetLabel } from './previewWidgetLabel';
 
 export function WidgetChrome({
   widgetKey,

@@ -538,7 +538,7 @@ export default function Timesheets() {
       });
     }
     return result;
-  }, [weekIndex, weekShifts, todayStr, visibleUsers, punchRecords, breakRules, breakComputeOpts]);
+  }, [weekShifts, todayStr, visibleUsers, punchRecords, breakRules, breakComputeOpts, weekStr, weekEnd]);
 
   // ── Turni pronti per l'approvazione (confirmed + IN + OUT) ──────────────
   const readyForApproval = useMemo(() => {
@@ -612,7 +612,7 @@ export default function Timesheets() {
     }
     // Sort: oldest first (data crescente)
     return result.sort((a, b) => a.dateStr.localeCompare(b.dateStr));
-  }, [weekShifts, visibleUsers, punchRecords, punchAudits, breakRules, breakComputeOpts]);
+  }, [weekShifts, visibleUsers, punchRecords, punchAudits, breakRules, breakComputeOpts, todayStr]);
 
   const scrollToTimesheetAnchor = useCallback((elementId: string) => {
     requestAnimationFrame(() => {

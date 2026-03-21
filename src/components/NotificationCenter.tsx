@@ -62,7 +62,7 @@ export default function NotificationCenter({ denseTrigger = false }: Notificatio
 
   useEffect(() => {
     if (currentUser) setSeenIds(getSeenIds(currentUser.id));
-  }, [currentUser?.id]);
+  }, [currentUser]);
 
   useLayoutEffect(() => {
     if (!open) return;

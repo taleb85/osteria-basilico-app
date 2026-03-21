@@ -327,6 +327,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('userTheme');
     localStorage.removeItem('theme');
     loadInitialData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once; loadInitialData omitted intentionally
   }, []);
 
   useEffect(() => {
@@ -906,7 +907,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : 'Errore durante il salvataggio. Riprova o verifica le migrazioni Supabase (colonne users).'
       );
     }
-  }, [currentUser, users, showError, showSuccess]);
+  }, [currentUser, users, showError]);
 
   const deleteUser = useCallback(async (id: string) => {
     await database.users.delete(id);
@@ -1246,6 +1247,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const pinUnlockDeviceRegistered = useMemo(
     () => (currentUser ? hasPinUnlockCredential(currentUser.id) : false),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pinUnlockDeviceTick busts memo dopo registrazione WebAuthn
     [currentUser, pinUnlockDeviceTick]
   );
 

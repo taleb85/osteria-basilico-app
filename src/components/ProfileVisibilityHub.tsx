@@ -161,7 +161,7 @@ export default function ProfileVisibilityHub() {
   useEffect(() => {
     if (!selected || hubTabs.length === 0) return;
     setActiveHubTab((prev) => (hubTabs.includes(prev) ? prev : hubTabs[0]!));
-  }, [selected?.id, hubTabs]);
+  }, [selected, hubTabs]);
 
   const navLabels: Record<AppNavTab, string> = {
     home: t.sidebar_dashboard,
