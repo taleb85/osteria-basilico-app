@@ -1,10 +1,11 @@
-import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import {
   Clock, Calendar, TrendingUp, Palmtree, Megaphone, X, Pencil, Check,
   Users, AlertCircle, UserCheck, Moon, Sun, LogOut as LogOutIcon,
   ArrowRight, ChevronRight,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format, isToday, isTomorrow, parseISO, addDays, startOfWeek } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
@@ -66,11 +67,7 @@ interface HomePageProps {
 export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onNavigateToReports }: HomePageProps) {
   const { currentUser, shifts, holidays, users, punchRecords, updatePunchRecord, approveShift, effectiveLanguage, showSuccess, showError, breakRules, featureFlags } = useApp();
   const shiftsListRef = useRef<HTMLDivElement>(null);
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
-  }, []);
+  const now = useWallAlignedMinuteClock();
 
   const [boardNote, setBoardNoteState] = useState(() => getBoardNote());
   const [editingBoard, setEditingBoard] = useState(false);

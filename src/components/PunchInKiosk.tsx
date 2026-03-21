@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import type { User as UserType, Shift } from '../types';
 import { format } from 'date-fns';
 import { getTranslations, getDateLocale } from '../utils/translations';
@@ -97,8 +98,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   const t = getTranslations(effectiveLanguage);
   const dateLocale = getDateLocale(effectiveLanguage);
 
-  const [displayTime, setDisplayTime] = useState(() => new Date());
-  const now = displayTime;
+  const now = useWallAlignedMinuteClock();
   const todayStr = format(now, 'yyyy-MM-dd');
 
   const todayShifts = useMemo(
@@ -224,11 +224,6 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
       setPunchMode(isLunchAwaitingOut ? 'out' : 'in');
     }
   }, [selectedUser, obviousShift, userWantsShiftList, isPunched, isPunchedOut]);
-
-  useEffect(() => {
-    const t = setInterval(() => setDisplayTime(new Date()), 60000);
-    return () => clearInterval(t);
-  }, []);
 
   const suggestedShift = useMemo(() => {
     if (unpunchedShifts.length === 0) return null;

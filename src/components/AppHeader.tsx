@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { LogOut, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { getDateLocale, getTranslations } from '../utils/translations';
 import UserAvatarMenu from './UserAvatarMenu';
 import NotificationCenter from './NotificationCenter';
@@ -13,14 +14,9 @@ interface AppHeaderProps {
 
 export default function AppHeader({ onLogout }: AppHeaderProps) {
   const { currentUser, effectiveLanguage, setLanguage } = useApp();
-  const [now, setNow] = useState(() => new Date());
+  const now = useWallAlignedMinuteClock();
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
-  }, []);
 
   useEffect(() => {
     if (!langOpen) return;

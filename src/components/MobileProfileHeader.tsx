@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useApp } from '../context/AppContext';
@@ -32,12 +32,7 @@ export default function MobileProfileHeader({
   const { currentUser, effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
   const locale = getDateLocale(effectiveLanguage) ?? it;
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
-  }, []);
+  const now = useWallAlignedMinuteClock();
 
   if (!currentUser) return null;
 
