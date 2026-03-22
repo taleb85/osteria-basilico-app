@@ -48,7 +48,7 @@ const DEFAULT_ADMIN: EnabledModule[] = [...ENABLED_MODULES];
 const DEFAULT_STAFF: EnabledModule[] = ['my_shifts'];
 
 export function getDefaultEnabledModules(role: string): EnabledModule[] {
-  if (role === 'admin' || role === 'manager' || role === 'assistant_manager') {
+  if (role === 'admin' || role === 'manager' || role === 'assistant_manager' || role === 'capo') {
     return DEFAULT_ADMIN;
   }
   return DEFAULT_STAFF;

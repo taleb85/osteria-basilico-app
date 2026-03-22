@@ -4,8 +4,8 @@ import { getTemplateDefaultTeamScheduleVisible } from './enabledFeatures';
 /** Ruoli puramente gestionali: non compaiono nelle liste operative (turni, presenze, PDF). Solo Admin. */
 export const PURELY_MANAGEMENT_ROLES = ['admin'] as const;
 
-/** Ruoli con accesso gestionale: admin, manager, assistant_manager. */
-export const MANAGEMENT_ROLES = ['admin', 'manager', 'assistant_manager'] as const;
+/** Ruoli con accesso gestionale: admin, manager, assistant_manager, capo (stessa app gestionale; template permessi `capo` separato). */
+export const MANAGEMENT_ROLES = ['admin', 'manager', 'assistant_manager', 'capo'] as const;
 
 /** Restituisce true se il ruolo ha accesso gestionale (dashboard completa, modifica turni, ecc.). */
 export function isManagementRole(role: string): boolean {
@@ -23,7 +23,7 @@ export function isPurelyManagementRole(role: string): boolean {
 
 /**
  * Restituisce true se l'utente può modificare turni, ferie e dati anagrafici dei dipendenti.
- * Include: admin, manager, assistant_manager.
+ * Include: admin, manager, assistant_manager, capo.
  */
 export function canUserEdit(user: User | null): boolean {
   if (!user) return false;

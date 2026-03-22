@@ -317,6 +317,16 @@ const baseIt = {
   admin_role: 'Amministratore',
   pin_4_digits: 'PIN (4 cifre)',
   account_status: 'Stato account',
+  admin_employee_access_link_btn: 'Copia link accesso (login + PIN)',
+  admin_employee_access_link_hint:
+    'Il link include nome e PIN così come nei campi qui sotto (anche prima di salvare). Contiene il PIN nell’URL: invialo solo in modo privato (mai in gruppi pubblici). Salva in anagrafica per allineare il server.',
+  admin_employee_access_link_preview: 'Nel link: nome «{name}» e PIN a 4 cifre (se completo).',
+  admin_employee_access_link_pin_incomplete: 'Aggiungi 4 cifre nel campo PIN per includerle nel link.',
+  admin_employee_access_link_copied: 'Link copiato negli appunti.',
+  admin_employee_access_link_inactive: 'Account non attivo: il login funziona solo con stato «Attivo».',
+  login_invite_banner: 'Link invito: nome e PIN possono essere già compilati; controlla e premi Accedi.',
+  login_invite_user_unknown: 'Profilo non trovato in elenco. Controlla il link o aggiorna la pagina.',
+  copy_failed: 'Impossibile copiare negli appunti. Copia manualmente.',
   permissions_granular: 'Permessi',
   permission_create_shifts: 'Crea turni',
   permission_create_shifts_desc: 'Può creare e modificare turni',
@@ -452,7 +462,7 @@ const baseIt = {
     'Solo Amministratore o Proprietario possono modificare questa configurazione.',
   role_group_proprietario: 'Proprietario',
   role_group_management: 'Manager e Assistant Manager',
-  role_group_capo: 'Capo',
+  role_group_capo: 'Capo (stessa app di Manager; permessi in scheda dedicata)',
   role_group_staff: 'Staff (sala, bar, cucina, …)',
   role_templates_admin_modules_heading: 'Moduli scheda Impostazioni (globali)',
   role_templates_admin_modules_hint:
@@ -1369,6 +1379,16 @@ const baseEn: Record<string, string> = {
   filter_status: 'Status',
   pin_4_digits: 'PIN (4 digits)',
   account_status: 'Account status',
+  admin_employee_access_link_btn: 'Copy access link (login + PIN)',
+  admin_employee_access_link_hint:
+    'The link carries the name and PIN as shown in the fields below (even before you save). The PIN is in the URL—share only privately (never in public chats). Save the profile to sync the server.',
+  admin_employee_access_link_preview: 'In the link: name «{name}» and 4-digit PIN (when complete).',
+  admin_employee_access_link_pin_incomplete: 'Enter 4 PIN digits to include them in the link.',
+  admin_employee_access_link_copied: 'Link copied to clipboard.',
+  admin_employee_access_link_inactive: 'Account not active: login only works when status is Active.',
+  login_invite_banner: 'Invite link: name and PIN may be filled in; check and tap Sign in.',
+  login_invite_user_unknown: 'Profile not found. Check the link or refresh the page.',
+  copy_failed: 'Could not copy to clipboard. Copy manually.',
   permissions_granular: 'Permissions',
   permission_create_shifts: 'Create shifts',
   permission_create_shifts_desc: 'Can create and edit shifts',
@@ -1475,7 +1495,7 @@ const baseEn: Record<string, string> = {
   role_templates_forbidden_body: 'Only Administrator or Owner can edit this configuration.',
   role_group_proprietario: 'Owner',
   role_group_management: 'Manager & Assistant Manager',
-  role_group_capo: 'Capo',
+  role_group_capo: 'Capo (same app as managers; dedicated permission sheet)',
   role_group_staff: 'Staff (floor, bar, kitchen, …)',
   role_templates_admin_modules_heading: 'Settings sheet modules (global)',
   role_templates_admin_modules_hint:
@@ -2403,6 +2423,16 @@ const baseEs: Record<string, string> = {
   load_error: 'Error al cargar.',
   pin_4_digits: 'PIN (4 dígitos)',
   account_status: 'Estado cuenta',
+  admin_employee_access_link_btn: 'Copiar enlace de acceso (login + PIN)',
+  admin_employee_access_link_hint:
+    'El enlace lleva nombre y PIN como en los campos (incluso antes de guardar). El PIN va en la URL: compártelo solo en privado. Guarda el perfil para sincronizar el servidor.',
+  admin_employee_access_link_preview: 'En el enlace: nombre «{name}» y PIN de 4 cifras (si está completo).',
+  admin_employee_access_link_pin_incomplete: 'Introduce 4 dígitos de PIN para incluirlos en el enlace.',
+  admin_employee_access_link_copied: 'Enlace copiado al portapapeles.',
+  admin_employee_access_link_inactive: 'Cuenta no activa: el login solo funciona con estado «Activo».',
+  login_invite_banner: 'Enlace de invitación: el nombre y el PIN pueden estar rellenos; revisa y pulsa Entrar.',
+  login_invite_user_unknown: 'Perfil no encontrado. Revisa el enlace o actualiza la página.',
+  copy_failed: 'No se pudo copiar. Copia manualmente.',
   permissions_granular: 'Permisos',
   permission_create_shifts: 'Crear turnos',
   permission_create_shifts_desc: 'Puede crear y editar turnos',
@@ -2509,7 +2539,7 @@ const baseEs: Record<string, string> = {
   role_templates_forbidden_body: 'Solo Administrador o Propietario pueden modificar esta configuración.',
   role_group_proprietario: 'Propietario',
   role_group_management: 'Manager y Assistant Manager',
-  role_group_capo: 'Capo',
+  role_group_capo: 'Capo (misma app que managers; permisos en ficha propia)',
   role_group_staff: 'Staff (sala, bar, cocina, …)',
   role_templates_admin_modules_heading: 'Módulos de la hoja Ajustes (globales)',
   role_templates_admin_modules_hint:
@@ -3302,7 +3332,7 @@ const baseFr: Record<string, string> = {
   role_templates_forbidden_body: 'Seuls l’administrateur ou le propriétaire peuvent modifier cette configuration.',
   role_group_proprietario: 'Propriétaire',
   role_group_management: 'Manager et assistant manager',
-  role_group_capo: 'Capo',
+  role_group_capo: 'Capo (même app que les managers ; fiche permissions dédiée)',
   role_group_staff: 'Staff (salle, bar, cuisine, …)',
   role_templates_admin_modules_heading: 'Modules de la feuille Paramètres (globaux)',
   role_templates_admin_modules_hint:
@@ -3771,6 +3801,17 @@ const baseFr: Record<string, string> = {
 
   capo_role: 'Chef d’équipe',
   role_capo: 'Chef d’équipe',
+
+  admin_employee_access_link_btn: 'Copier le lien d’accès (connexion + PIN)',
+  admin_employee_access_link_hint:
+    'Le lien contient le nom et le PIN tels que dans les champs (même avant enregistrement). Le PIN figure dans l’URL : partagez-le uniquement en privé. Enregistrez le profil pour synchroniser le serveur.',
+  admin_employee_access_link_preview: 'Dans le lien : nom « {name} » et PIN à 4 chiffres (si complet).',
+  admin_employee_access_link_pin_incomplete: 'Saisissez 4 chiffres de PIN pour les inclure dans le lien.',
+  admin_employee_access_link_copied: 'Lien copié dans le presse-papiers.',
+  admin_employee_access_link_inactive: 'Compte inactif : la connexion n’est possible qu’avec le statut « Actif ».',
+  login_invite_banner: 'Lien d’invitation : le nom et le PIN peuvent être préremplis ; vérifiez et appuyez sur Connexion.',
+  login_invite_user_unknown: 'Profil introuvable. Vérifiez le lien ou actualisez la page.',
+  copy_failed: 'Copie impossible. Copiez manuellement.',
 };
 
 export const translations: Record<Language, Record<string, string>> = {

@@ -150,7 +150,7 @@ const DEFAULT_STAFF_FEATURES: EnabledFeatures = {
 
 export function getDefaultEnabledFeatures(role: string): EnabledFeatures {
   if (role === 'admin') return { ...DEFAULT_ADMIN_FEATURES };
-  if (role === 'manager' || role === 'assistant_manager') return { ...DEFAULT_MANAGER_FEATURES };
+  if (role === 'manager' || role === 'assistant_manager' || role === 'capo') return { ...DEFAULT_MANAGER_FEATURES };
   return { ...DEFAULT_STAFF_FEATURES };
 }
 
@@ -327,7 +327,9 @@ export function getAdminModuleEnabled(user: { role: string; enabled_features?: u
     return base;
   }
   const defaultForRole =
-    user.role === 'manager' || user.role === 'assistant_manager' ? { ...DEFAULT_ADMIN_MODULES } : {};
+    user.role === 'manager' || user.role === 'assistant_manager' || user.role === 'capo'
+      ? { ...DEFAULT_ADMIN_MODULES }
+      : {};
   const global = getAdminModulesGlobalCache();
   if (!global || Object.keys(global).length === 0) {
     return defaultForRole;

@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo, type CSSProperties } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback, useMemo, useRef, type CSSProperties } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User as UserIcon, Lock, Loader2, Eye, EyeOff, Clock, Fingerprint } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -26,6 +26,23 @@ interface LoginPageProps {
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const { users, setCurrentUser, setLanguage } = useApp();
+  const [searchParams] = useSearchParams();
+  const inviteUserId = searchParams.get('u')?.trim() ?? '';
+  const inviteNameFromUrl = (searchParams.get('n') ?? '').trim();
+  const invitePinFromUrl = useMemo(() => {
+    const raw = searchParams.get('p') ?? '';
+    const d = raw.replace(/\D/g, '').slice(0, 4);
+    return d.length === 4 ? d : '';
+  }, [searchParams]);
+  const linkedUser = useMemo(
+    () => (inviteUserId ? users.find((u) => u.id === inviteUserId) : undefined),
+    [inviteUserId, users]
+  );
+  const isInviteLink = Boolean(inviteUserId || inviteNameFromUrl || invitePinFromUrl);
+  const pinInputRef = useRef<HTMLInputElement>(null);
+  const staffNameInputRef = useRef<HTMLInputElement>(null);
+  const loginBtnRef = useRef<HTMLButtonElement>(null);
+  const lastFocusedInviteRef = useRef<string | null>(null);
   /** /profilo: lingua da browser/OS (navigator.languages), non ultimo profilo in localStorage */
   const [loginLang, setLoginLang] = useState<LangType>(() => getDeviceUiLanguage());
   const t = getTranslations(loginLang);
@@ -53,6 +70,40 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   useEffect(() => {
     forceLightTheme();
   }, []);
+
+  useEffect(() => {
+    if (!inviteUserId && !inviteNameFromUrl && !invitePinFromUrl) {
+      return;
+    }
+    if (inviteNameFromUrl) setStaffName(inviteNameFromUrl);
+    else if (inviteUserId && linkedUser) {
+      const nameForLogin = `${linkedUser.first_name} ${linkedUser.last_name ?? ''}`.trim();
+      if (nameForLogin) setStaffName(nameForLogin);
+    }
+    if (invitePinFromUrl) setPassword(invitePinFromUrl);
+  }, [inviteUserId, inviteNameFromUrl, invitePinFromUrl, linkedUser]);
+
+  useEffect(() => {
+    if (!inviteUserId && !inviteNameFromUrl && !invitePinFromUrl) {
+      lastFocusedInviteRef.current = null;
+      return;
+    }
+    const hasNameHint =
+      Boolean(inviteNameFromUrl) ||
+      Boolean(
+        inviteUserId &&
+          linkedUser &&
+          `${linkedUser.first_name} ${linkedUser.last_name ?? ''}`.trim()
+      );
+    const sig = `${inviteUserId}|${invitePinFromUrl}|${inviteNameFromUrl}|${linkedUser?.id ?? ''}`;
+    if (lastFocusedInviteRef.current === sig) return;
+    lastFocusedInviteRef.current = sig;
+    requestAnimationFrame(() => {
+      if (invitePinFromUrl && hasNameHint) loginBtnRef.current?.focus();
+      else if (invitePinFromUrl) pinInputRef.current?.focus();
+      else staffNameInputRef.current?.focus();
+    });
+  }, [inviteUserId, inviteNameFromUrl, invitePinFromUrl, linkedUser]);
 
   useEffect(() => {
     const sync = () => setLoginLang(getDeviceUiLanguage());
@@ -194,6 +245,22 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </p>
           </div>
 
+          {isInviteLink && (
+            <div className="rounded-xl border border-accent/25 bg-accent/5 px-3 py-2.5 text-sm text-slate-700 space-y-1">
+              <p className="font-semibold text-slate-800">{t.login_invite_banner}</p>
+              {inviteUserId && !linkedUser && users.length > 0 && (
+                <p className="text-xs text-amber-800">
+                  {(t as { login_invite_user_unknown?: string }).login_invite_user_unknown}
+                </p>
+              )}
+              {linkedUser && linkedUser.status !== 'active' && (
+                <p className="text-xs text-amber-800">
+                  {(t as { admin_employee_access_link_inactive?: string }).admin_employee_access_link_inactive}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Nome */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
@@ -202,6 +269,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <div className="relative">
               <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden />
               <input
+                ref={staffNameInputRef}
                 type="text"
                 inputMode="text"
                 autoCapitalize="words"
@@ -210,7 +278,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 onKeyDown={handleKeyDown}
                 placeholder={t.login_name_ph}
                 autoComplete="name"
-                autoFocus
+                autoFocus={!isInviteLink}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/60 transition-all"
               />
             </div>
@@ -238,6 +306,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   setError('');
                 }}
                 onKeyDown={handleKeyDown}
+                ref={pinInputRef}
                 placeholder="••••"
                 style={!showPassword ? ({ WebkitTextSecurity: 'disc' } as CSSProperties) : undefined}
                 className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/60 transition-all"
@@ -276,6 +345,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
           {/* Login button */}
           <button
+            ref={loginBtnRef}
             type="button"
             onClick={handleLogin}
             disabled={!staffName.trim() || !password.trim() || isLoading || deviceLoading || linkDeviceLoading}

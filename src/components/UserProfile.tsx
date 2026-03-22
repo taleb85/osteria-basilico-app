@@ -5,10 +5,12 @@
  * Layout: Reparto sopra Stato account (in admin). Tutte le etichette via t('chiave') per IT/EN/ES.
  * Persistenza: updateUser -> database.users.update (tabella `users`), campo `department` incluso.
  */
+import { useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro } from 'lucide-react';
+import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { getTranslations } from '../utils/translations';
+import { getTranslations, formatTrans } from '../utils/translations';
+import { buildProfiloAccessLink } from '../config/appPaths';
 import type { User as UserType, Language, Department } from '../types';
 import { isPurelyManagementRole, isAdminOnly } from '../utils/permissions';
 import { getDepartments } from '../utils/departments';
@@ -190,9 +192,29 @@ export function ProfileFormAdmin({
   onClose: () => void;
   isSaving: boolean;
 }) {
-  const { effectiveLanguage } = useApp();
+  const { effectiveLanguage, showSuccess, showError } = useApp();
   const t = getTranslations(effectiveLanguage);
+  const tv = t as Record<string, string>;
   const isSuspended = user.status === 'suspended' || user.status === 'inactive';
+  const invitePinComplete = formData.pin.replace(/\D/g, '').length === 4;
+
+  const accessLink = useMemo(
+    () =>
+      buildProfiloAccessLink(user.id, undefined, {
+        displayName: `${formData.first_name} ${formData.last_name ?? ''}`.trim(),
+        pin: formData.pin,
+      }),
+    [user.id, formData.first_name, formData.last_name, formData.pin]
+  );
+
+  const handleCopyAccessLink = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(accessLink);
+      showSuccess?.(tv.admin_employee_access_link_copied ?? 'Link copiato.');
+    } catch {
+      showError?.(tv.copy_failed ?? 'Copia non riuscita. Seleziona il link manualmente.');
+    }
+  }, [accessLink, showSuccess, showError, tv.admin_employee_access_link_copied, tv.copy_failed]);
 
   return (
     <>
@@ -350,6 +372,37 @@ export function ProfileFormAdmin({
             <option value="suspended">{t.status_suspended}</option>
             <option value="inactive">{t.status_inactive}</option>
           </select>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-3 space-y-2">
+          <button
+            type="button"
+            onClick={() => void handleCopyAccessLink()}
+            className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-800 hover:bg-slate-50 transition-colors font-sans"
+          >
+            <Copy className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+            {tv.admin_employee_access_link_btn ?? 'Copia link accesso'}
+          </button>
+          <p className="text-[11px] text-slate-600 leading-snug font-sans flex gap-1.5">
+            <Link2 className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" aria-hidden />
+            <span>{tv.admin_employee_access_link_hint ?? ''}</span>
+          </p>
+          <p className="text-[11px] font-medium text-slate-800 font-sans pl-5">
+            {formatTrans(tv.admin_employee_access_link_preview ?? 'Nome al login: {name}', {
+              name: `${formData.first_name} ${formData.last_name ?? ''}`.trim() || '—',
+            })}
+          </p>
+          {formData.status !== 'active' && (
+            <p className="text-[11px] text-amber-800 font-medium font-sans pl-5">
+              {tv.admin_employee_access_link_inactive ?? ''}
+            </p>
+          )}
+          {!invitePinComplete && (
+            <p className="text-[11px] text-amber-800 font-medium font-sans pl-5">
+              {tv.admin_employee_access_link_pin_incomplete ?? ''}
+            </p>
+          )}
+          <p className="text-[10px] text-slate-400 font-mono break-all pl-5">{accessLink}</p>
         </div>
 
         <p className="text-[11px] text-slate-500 mt-2">
