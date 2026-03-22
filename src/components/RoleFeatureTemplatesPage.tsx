@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, RotateCcw, Save, Loader2, Users, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -93,6 +93,15 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   );
   const [mods, setMods] = useState<Record<AdminModuleKey, boolean>>(() => buildMergedAdminModulesForAdminEditor());
   const [saving, setSaving] = useState(false);
+  /**
+   * Evita che `roleTemplatesRevision` / `adminModulesRevision` (sync Storage, pull-to-refresh, altro device)
+   * sovrascrivano i toggle non ancora salvati con `Salva tutto`.
+   */
+  const templatePanelDirtyRef = useRef(false);
+  const markTemplatePanelDirty = useCallback(() => {
+    templatePanelDirtyRef.current = true;
+  }, []);
+
   /** Prima visita: compresso (meno scroll). Dopo, ricorda espanso (`0`) / compresso (`1`). */
   const [embeddedExpanded, setEmbeddedExpanded] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -136,57 +145,83 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   }, []);
 
   useEffect(() => {
+    if (templatePanelDirtyRef.current) return;
     const disk = getRoleFeatureTemplatesCache();
     setMgmt(buildMergedTemplateForAdminEditor('management', disk));
+    setCapo(buildMergedTemplateForAdminEditor('capo', disk));
     setStaff(buildMergedTemplateForAdminEditor('staff', disk));
     setTeamScheduleMgmt(getTemplateGroupTeamScheduleVisible('management', disk));
+    setTeamScheduleCapo(getTemplateGroupTeamScheduleVisible('capo', disk));
     setTeamScheduleStaff(getTemplateGroupTeamScheduleVisible('staff', disk));
     setOpMgmt(buildMergedOperationalTemplateForGroup('management', disk));
+    setOpCapo(buildMergedOperationalTemplateForGroup('capo', disk));
     setOpStaff(buildMergedOperationalTemplateForGroup('staff', disk));
   }, [roleTemplatesRevision]);
 
   useEffect(() => {
+    if (templatePanelDirtyRef.current) return;
     setMods(buildMergedAdminModulesForAdminEditor());
   }, [adminModulesRevision]);
 
-  const toggleRole = useCallback((group: RoleTemplateGroup, key: EnabledFeatureKey) => {
-    const upd = (prev: EnabledFeatures) => ({ ...prev, [key]: !(prev[key] === true) });
-    if (group === 'management') setMgmt(upd);
-    else if (group === 'capo') setCapo(upd);
-    else setStaff(upd);
-  }, []);
+  const toggleRole = useCallback(
+    (group: RoleTemplateGroup, key: EnabledFeatureKey) => {
+      markTemplatePanelDirty();
+      const upd = (prev: EnabledFeatures) => ({ ...prev, [key]: !(prev[key] === true) });
+      if (group === 'management') setMgmt(upd);
+      else if (group === 'capo') setCapo(upd);
+      else setStaff(upd);
+    },
+    [markTemplatePanelDirty]
+  );
 
-  const toggleOperational = useCallback((group: RoleTemplateGroup, key: SettingsOperationalPermKey) => {
-    const apply = (prev: Record<SettingsOperationalPermKey, boolean>) => ({
-      ...prev,
-      [key]: !prev[key],
-    });
-    if (group === 'management') setOpMgmt(apply);
-    else if (group === 'capo') setOpCapo(apply);
-    else setOpStaff(apply);
-  }, []);
+  const toggleOperational = useCallback(
+    (group: RoleTemplateGroup, key: SettingsOperationalPermKey) => {
+      markTemplatePanelDirty();
+      const apply = (prev: Record<SettingsOperationalPermKey, boolean>) => ({
+        ...prev,
+        [key]: !prev[key],
+      });
+      if (group === 'management') setOpMgmt(apply);
+      else if (group === 'capo') setOpCapo(apply);
+      else setOpStaff(apply);
+    },
+    [markTemplatePanelDirty]
+  );
 
-  const resetGroupAllOn = useCallback((group: RoleTemplateGroup) => {
-    const allOn = Object.fromEntries(ENABLED_FEATURE_KEYS.map((k) => [k, true])) as EnabledFeatures;
-    const allOp = allOperationalTrue();
-    if (group === 'management') {
-      setMgmt(allOn);
-      setTeamScheduleMgmt(true);
-      setOpMgmt(allOp);
-    } else {
-      setStaff(allOn);
-      setTeamScheduleStaff(true);
-      setOpStaff(allOp);
-    }
-  }, []);
+  const resetGroupAllOn = useCallback(
+    (group: RoleTemplateGroup) => {
+      markTemplatePanelDirty();
+      const allOn = Object.fromEntries(ENABLED_FEATURE_KEYS.map((k) => [k, true])) as EnabledFeatures;
+      const allOp = allOperationalTrue();
+      if (group === 'management') {
+        setMgmt(allOn);
+        setTeamScheduleMgmt(true);
+        setOpMgmt(allOp);
+      } else if (group === 'capo') {
+        setCapo(allOn);
+        setTeamScheduleCapo(true);
+        setOpCapo(allOp);
+      } else {
+        setStaff(allOn);
+        setTeamScheduleStaff(true);
+        setOpStaff(allOp);
+      }
+    },
+    [markTemplatePanelDirty]
+  );
 
-  const toggleMod = useCallback((key: AdminModuleKey) => {
-    setMods((m) => ({ ...m, [key]: !m[key] }));
-  }, []);
+  const toggleMod = useCallback(
+    (key: AdminModuleKey) => {
+      markTemplatePanelDirty();
+      setMods((m) => ({ ...m, [key]: !m[key] }));
+    },
+    [markTemplatePanelDirty]
+  );
 
   const resetMods = useCallback(() => {
+    markTemplatePanelDirty();
     setMods(Object.fromEntries(ADMIN_MODULE_KEYS.map((k) => [k, true])) as Record<AdminModuleKey, boolean>);
-  }, []);
+  }, [markTemplatePanelDirty]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -207,6 +242,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
         }
       }
 
+      templatePanelDirtyRef.current = false;
       showSuccess?.(t.role_templates_save_success);
     } catch (e) {
       console.error(e);
@@ -232,6 +268,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     return teamScheduleStaff;
   };
   const setTeamScheduleVisible = (g: RoleTemplateGroup, v: boolean) => {
+    markTemplatePanelDirty();
     if (g === 'management') setTeamScheduleMgmt(v);
     else if (g === 'capo') setTeamScheduleCapo(v);
     else setTeamScheduleStaff(v);
