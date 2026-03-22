@@ -264,6 +264,7 @@ export function ProfileFormAdmin({
               <option value="cook">{t.cook_role}</option>
               <option value="bartender">{t.bartender_role}</option>
               <option value="dishwasher">{t.dishwasher_role}</option>
+              <option value="capo">{t.capo_role}</option>
               <option value="assistant_manager">{t.assistant_manager_role}</option>
               {(currentUser.role === 'admin' || currentUser.role === 'manager') && (
                 <option value="manager">{t.manager_role}</option>

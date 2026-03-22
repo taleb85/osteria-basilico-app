@@ -17,7 +17,7 @@ export default function StaffHomePreview({
   const t = getTranslations(language);
   const tv = t as Record<string, string>;
   const hiddenBadge = tv.profile_visibility_ui_hidden_badge ?? 'Nascosto';
-  const name = previewUser.first_name?.trim() || 'Alex';
+  const name = previewUser.first_name?.trim() || t.profile_visibility_filter_staff;
 
   return (
     <div className="flex flex-col gap-4 font-sans">

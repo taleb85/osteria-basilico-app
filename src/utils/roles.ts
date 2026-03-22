@@ -18,6 +18,8 @@ export function translateRole(role: string, lang: Language = 'it'): string {
       return t.role_manager;
     case 'assistant_manager':
       return t.role_assistant_manager;
+    case 'capo':
+      return t.role_capo;
     case 'waiter':
     case 'server':
       return t.role_waiter;

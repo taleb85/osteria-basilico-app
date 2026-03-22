@@ -311,6 +311,7 @@ const baseIt = {
   cook_role: 'Cuoco',
   bartender_role: 'Barista',
   dishwasher_role: 'Lavastoviglie',
+  capo_role: 'Capo',
   assistant_manager_role: 'Vice responsabile',
   manager_role: 'Responsabile',
   admin_role: 'Amministratore',
@@ -1086,6 +1087,7 @@ const baseIt = {
   role_cook: 'Cuoco',
   role_bartender: 'Barista',
   role_dishwasher: 'Lavastoviglie',
+  role_capo: 'Capo',
 };
 
 const baseEn: Record<string, string> = {
@@ -1348,6 +1350,7 @@ const baseEn: Record<string, string> = {
   cook_role: 'Cook',
   bartender_role: 'Bartender',
   dishwasher_role: 'Dishwasher',
+  capo_role: 'Head / lead',
   assistant_manager_role: 'Assistant manager',
   manager_role: 'Manager',
   admin_role: 'Administrator',
@@ -2117,6 +2120,7 @@ const baseEn: Record<string, string> = {
   role_cook: 'Cook',
   role_bartender: 'Bartender',
   role_dishwasher: 'Dishwasher',
+  role_capo: 'Head / lead',
 };
 
 const baseEs: Record<string, string> = {
@@ -2381,6 +2385,7 @@ const baseEs: Record<string, string> = {
   cook_role: 'Cocinero',
   bartender_role: 'Camarero de barra',
   dishwasher_role: 'Lavavajillas',
+  capo_role: 'Jefe de equipo',
   assistant_manager_role: 'Subencargado',
   manager_role: 'Encargado',
   admin_role: 'Administrador',
@@ -3142,6 +3147,7 @@ const baseEs: Record<string, string> = {
   role_cook: 'Cocinero',
   role_bartender: 'Camarero de barra',
   role_dishwasher: 'Lavavajillas',
+  role_capo: 'Jefe de equipo',
 };
 
 /** Francese: le chiavi non elencate usano l’inglese (`baseEn`), non l’italiano. */
@@ -3758,6 +3764,9 @@ const baseFr: Record<string, string> = {
   settings_geofence_active_summary:
     'Centre actif pour les pointages : {lat}, {lng} · rayon {radius} m (les autres appareils se mettent à jour au prochain sync).',
   settings_geofence_invalid: 'Saisissez une latitude et une longitude numériques valides.',
+
+  capo_role: 'Chef d’équipe',
+  role_capo: 'Chef d’équipe',
 };
 
 export const translations: Record<Language, Record<string, string>> = {

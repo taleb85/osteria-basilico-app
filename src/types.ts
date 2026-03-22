@@ -1,4 +1,14 @@
-export type UserRole = 'admin' | 'manager' | 'assistant_manager' | 'waiter' | 'server' | 'bartender' | 'cook' | 'chef' | 'dishwasher';
+export type UserRole =
+  | 'admin'
+  | 'manager'
+  | 'assistant_manager'
+  | 'capo'
+  | 'waiter'
+  | 'server'
+  | 'bartender'
+  | 'cook'
+  | 'chef'
+  | 'dishwasher';
 
 export type UserStatus = 'active' | 'suspended' | 'inactive';
 

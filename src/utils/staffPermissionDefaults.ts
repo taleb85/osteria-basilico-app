@@ -4,6 +4,7 @@ const ALLOWED_ROLES: UserRole[] = [
   'admin',
   'manager',
   'assistant_manager',
+  'capo',
   'waiter',
   'server',
   'bartender',

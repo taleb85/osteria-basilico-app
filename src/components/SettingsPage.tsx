@@ -1395,7 +1395,7 @@ export default function SettingsPage() {
 
 // ── BreakRuleModal ─────────────────────────────────────────────────────────────
 
-const BREAK_MODAL_ROLE_VALUES: UserRole[] = ['waiter', 'server', 'bartender', 'cook', 'chef', 'dishwasher'];
+const BREAK_MODAL_ROLE_VALUES: UserRole[] = ['waiter', 'server', 'capo', 'bartender', 'cook', 'chef', 'dishwasher'];
 
 function makeId() {
   return Math.random().toString(36).slice(2, 11);

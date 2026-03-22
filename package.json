@@ -17,6 +17,7 @@
     "db:migrate-enabled-modules": "node scripts/run-migration-enabled-modules.js",
     "db:ensure-users": "node scripts/run-migration-users-all-columns.js",
     "db:check-ui-overrides": "node scripts/db-check-ui-section-overrides.js",
+    "db:delete-users-alex": "node scripts/run-delete-users-named-alex.js",
     "icons:pwa": "node scripts/generate-pwa-icons.mjs"
   },
   "dependencies": {
