@@ -9,7 +9,7 @@ import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
 import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
 import { getTranslations, getDateLocale } from '../utils/translations';
-import { getVisibleStaffTabs, isStaffRequestsFeatureEnabled, type AppNavTab } from '../utils/enabledModules';
+import { getVisibleStaffTabs, getUnifiedNavTabs, isStaffRequestsFeatureEnabled, type AppNavTab } from '../utils/enabledModules';
 import { isPurelyManagementRole } from '../utils/permissions';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { userRowToSessionUser } from '../utils/staffPermissionDefaults';
@@ -31,8 +31,22 @@ interface StaffPersonalDashboardProps {
   onTabChange: (tab: AppNavTab) => void;
 }
 
-export default function StaffPersonalDashboard({ user, onLogout, activeTab }: StaffPersonalDashboardProps) {
-  const { setCurrentUser, users, effectiveLanguage, setLanguage, breakRules, featureFlags, roleTemplatesRevision } = useApp();
+const showProfileDemoSeed =
+  import.meta.env.DEV || import.meta.env.VITE_ENABLE_PROFILE_DEMO_SEED === 'true';
+
+export default function StaffPersonalDashboard({ user, onLogout, activeTab, onTabChange }: StaffPersonalDashboardProps) {
+  const {
+    setCurrentUser,
+    users,
+    effectiveLanguage,
+    setLanguage,
+    breakRules,
+    featureFlags,
+    roleTemplatesRevision,
+    seedDemoProfileForUser,
+    showSuccess,
+    showError,
+  } = useApp();
   const latestUser = users.find((u) => u.id === user.id) ?? user;
   // Usa latestUser (da users) per permessi: quando l'admin disabilita can_request_holidays,
   // currentUser non viene aggiornato (è un altro utente), ma users sì.
@@ -43,6 +57,7 @@ export default function StaffPersonalDashboard({ user, onLogout, activeTab }: St
   const [punchRecords, setPunchRecords] = useState<PunchRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
+  const [seedingDemoProfile, setSeedingDemoProfile] = useState(false);
   const t = getTranslations(effectiveLanguage);
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
@@ -203,6 +218,14 @@ export default function StaffPersonalDashboard({ user, onLogout, activeTab }: St
     [displayUser, featureFlags, roleTemplatesRevision]
   );
 
+  const staffUnifiedTabs = useMemo(
+    () => getUnifiedNavTabs(displayUser, false, featureFlags),
+    [displayUser, featureFlags, roleTemplatesRevision]
+  );
+
+  const showHomeKpiStrip =
+    totalApprovedMinutes > 0 || todayShifts.length + upcomingShifts.length > 0;
+
   const renderHome = () => {
     const grouped: Record<string, typeof upcomingShifts> = {};
     upcomingShifts.slice(0, 10).forEach(s => {
@@ -311,7 +334,10 @@ export default function StaffPersonalDashboard({ user, onLogout, activeTab }: St
         </div>
         )}
 
-        {uiW('staff_home.holidays_button') && visibleStaffTabs.includes('holidays') && isStaffRequestsFeatureEnabled(featureFlags) && (
+        {uiW('staff_home.holidays_button') &&
+          visibleStaffTabs.includes('holidays') &&
+          isStaffRequestsFeatureEnabled(featureFlags) &&
+          !staffUnifiedTabs.includes('ferie') && (
           <button
             type="button"
             onClick={() => setHolidaysFocus(true)}
@@ -329,6 +355,7 @@ export default function StaffPersonalDashboard({ user, onLogout, activeTab }: St
             <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
           </button>
         )}
+
       </div>
     );
   };
@@ -346,7 +373,9 @@ export default function StaffPersonalDashboard({ user, onLogout, activeTab }: St
         </div>
       </div>
       )}
-      {uiW('staff_shifts.table') && <WeeklyShiftsTable stickyDateBarInScrollPane />}
+      {uiW('staff_shifts.table') && (
+        <WeeklyShiftsTable filterUserId={user.id} stickyDateBarInScrollPane />
+      )}
     </div>
   );
 
@@ -396,6 +425,31 @@ export default function StaffPersonalDashboard({ user, onLogout, activeTab }: St
               </div>
             }
           />
+          {showProfileDemoSeed && (
+            <div className="border-t border-slate-100 px-5 py-4 space-y-2">
+              <button
+                type="button"
+                disabled={seedingDemoProfile}
+                onClick={async () => {
+                  if (!window.confirm(t.settings_seed_demo_profile_confirm)) return;
+                  setSeedingDemoProfile(true);
+                  try {
+                    await seedDemoProfileForUser(user.id);
+                    await loadUserData();
+                    showSuccess(t.settings_seed_demo_profile_done);
+                  } catch (e) {
+                    showError(e instanceof Error ? e.message : t.settings_seed_demo_profile_error);
+                  } finally {
+                    setSeedingDemoProfile(false);
+                  }
+                }}
+                className="w-full py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-60 transition-colors"
+              >
+                {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
+              </button>
+              <p className="text-[10px] text-slate-400 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
+            </div>
+          )}
           <button
             type="button"
             onClick={onLogout}
@@ -505,7 +559,7 @@ export default function StaffPersonalDashboard({ user, onLogout, activeTab }: St
         </div>
       )}
 
-      {activeTab === 'home' && !holidaysFocus && uiW('staff_home.header_kpi') && (
+      {activeTab === 'home' && !holidaysFocus && uiW('staff_home.header_kpi') && showHomeKpiStrip && (
         <div className="pb-4 pt-1">
           <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
             <div className="grid grid-cols-2 gap-3">

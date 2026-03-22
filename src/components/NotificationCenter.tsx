@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Bell, X, CheckCheck, Calendar, Clock, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { Bell, CheckCheck, Calendar, Clock, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { getTranslations } from '../utils/translations';
 import { generateNotifications, getSeenIds, markAllSeen, AppNotification, NotifSeverity } from '../utils/notifications';
+import { isStandalonePwa, requestNotificationPermissionForBadgeOnUserGesture } from '../utils/appIconBadge';
 
 const TS_FILTER_KEY = 'osteria_timesheet_filter';
 
@@ -20,7 +21,6 @@ function openTimesheetWithConfirmedFilter() {
     })
   );
 }
-import { isStandalonePwa, requestNotificationPermissionForBadgeOnUserGesture } from '../utils/appIconBadge';
 
 // ── Icon + colour helpers ─────────────────────────────────────────────────────
 
@@ -48,59 +48,48 @@ interface NotificationCenterProps {
   denseTrigger?: boolean;
 }
 
+/** Stesso pattern di portal di `UserAvatarMenu`: overlay centrato, blur, card max-w-sm. */
 export default function NotificationCenter({ denseTrigger = false }: NotificationCenterProps) {
   const { currentUser, shifts, holidays, users, effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
+  const tv = t as Record<string, string>;
   const [open, setOpen] = useState(false);
+  const [showPortal, setShowPortal] = useState(false);
   const [seenIds, setSeenIds] = useState<Set<string>>(() =>
     currentUser ? getSeenIds(currentUser.id) : new Set()
   );
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const [panelBox, setPanelBox] = useState({ top: 0, left: 0, width: 320 });
+  const menuRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  const updatePanelPosition = useCallback(() => {
-    const btn = buttonRef.current;
-    if (!btn) return;
-    const rect = btn.getBoundingClientRect();
-    const margin = 16;
-    const width = Math.min(320, window.innerWidth - 2 * margin);
-    let left = rect.right - width;
-    left = Math.max(margin, Math.min(left, window.innerWidth - margin - width));
-    let top = rect.bottom + 8;
-    const estH = 340;
-    if (top + estH > window.innerHeight - margin) {
-      top = Math.max(margin, rect.top - estH - 8);
-    }
-    setPanelBox({ top, left, width });
-  }, []);
+  useEffect(() => {
+    if (open) setShowPortal(true);
+  }, [open]);
 
   useEffect(() => {
     if (currentUser) setSeenIds(getSeenIds(currentUser.id));
   }, [currentUser]);
 
-  useLayoutEffect(() => {
-    if (!open) return;
-    updatePanelPosition();
-    window.addEventListener('scroll', updatePanelPosition, true);
-    window.addEventListener('resize', updatePanelPosition);
-    return () => {
-      window.removeEventListener('scroll', updatePanelPosition, true);
-      window.removeEventListener('resize', updatePanelPosition);
+  useEffect(() => {
+    const handleClickOutside = (e: PointerEvent) => {
+      const target = e.target as Node;
+      if (modalRef.current?.contains(target)) return;
+      if (menuRef.current && !menuRef.current.contains(target)) {
+        setOpen(false);
+      }
     };
-  }, [open, updatePanelPosition]);
+    if (open) {
+      document.addEventListener('pointerdown', handleClickOutside);
+    }
+    return () => document.removeEventListener('pointerdown', handleClickOutside);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
-    const onPointerDown = (e: PointerEvent) => {
-      const node = e.target as Node;
-      if (wrapRef.current?.contains(node)) return;
-      if (panelRef.current?.contains(node)) return;
-      setOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
     };
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => document.removeEventListener('pointerdown', onPointerDown);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
   const allNotifs = useMemo(() => {
@@ -112,6 +101,8 @@ export default function NotificationCenter({ denseTrigger = false }: Notificatio
     () => allNotifs.filter((n) => !seenIds.has(n.id)),
     [allNotifs, seenIds]
   );
+
+  const closeModal = useCallback(() => setOpen(false), []);
 
   const handleBellClick = () => {
     if (!open) {
@@ -133,133 +124,9 @@ export default function NotificationCenter({ denseTrigger = false }: Notificatio
 
   if (!currentUser) return null;
 
-  const panel = (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          ref={panelRef}
-          role="dialog"
-          aria-label={t.profile_notifications}
-          initial={{ opacity: 0, scale: 0.96, y: -6 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: -6 }}
-          transition={{ duration: 0.15 }}
-          style={{
-            position: 'fixed',
-            top: panelBox.top,
-            left: panelBox.left,
-            width: panelBox.width,
-            zIndex: 200,
-          }}
-          className="max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden"
-        >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-            <span className="text-sm font-semibold text-slate-800">{t.profile_notifications}</span>
-            <div className="flex items-center gap-2">
-              {unread.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleMarkAll}
-                  title={t.notif_mark_all_title}
-                  className="flex items-center gap-1 text-xs text-slate-500 hover:text-accent transition-colors"
-                >
-                  <CheckCheck size={14} />
-                  <span className="hidden sm:inline">{t.notif_mark_all_short}</span>
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="text-slate-400 hover:text-slate-700 transition-colors"
-              >
-                <X size={15} />
-              </button>
-            </div>
-          </div>
-
-          <div className="max-h-80 overflow-y-auto overscroll-contain">
-            {allNotifs.length === 0 ? (
-              <div className="py-10 text-center">
-                <Bell size={28} className="mx-auto mb-2 text-slate-200" />
-                <p className="text-sm text-slate-400">{t.notif_empty}</p>
-              </div>
-            ) : (
-              <ul className="divide-y divide-slate-50">
-                {allNotifs.map((n) => {
-                  const isNew = !seenIds.has(n.id);
-                  const isApprovalNav = n.type === 'approval_needed';
-                  const Row = (
-                    <>
-                      <div
-                        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${severityRing(n.severity)}`}
-                      >
-                        <SeverityIcon s={n.severity} />
-                      </div>
-                      <div className="min-w-0 flex-1 text-left">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className={`text-xs font-semibold text-slate-800 ${isNew ? '' : 'opacity-70'}`}>
-                            {n.title}
-                          </p>
-                          {isNew && <span className="shrink-0 h-1.5 w-1.5 rounded-full bg-accent" />}
-                        </div>
-                        <p className="text-xs text-slate-500 mt-0.5 flex items-start gap-1 break-words">
-                          <TypeIcon type={n.type} />
-                          <span>{n.body}</span>
-                        </p>
-                        {isApprovalNav && (
-                          <p className="text-[10px] font-semibold text-accent mt-1">{t.notif_tap_open_timesheet}</p>
-                        )}
-                      </div>
-                    </>
-                  );
-                  if (isApprovalNav) {
-                    return (
-                      <li key={n.id} className={`p-0 ${isNew ? 'bg-slate-50/80' : 'bg-white'}`}>
-                        <button
-                          type="button"
-                          className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-100/90"
-                          onClick={() => {
-                            if (currentUser) markAllSeen(currentUser.id, [n.id]);
-                            setSeenIds((prev) => new Set([...prev, n.id]));
-                            openTimesheetWithConfirmedFilter();
-                            setOpen(false);
-                            window.dispatchEvent(new CustomEvent('notifications-seen'));
-                          }}
-                        >
-                          {Row}
-                        </button>
-                      </li>
-                    );
-                  }
-                  return (
-                    <li
-                      key={n.id}
-                      className={`flex items-start gap-3 px-4 py-3 transition-colors ${
-                        isNew ? 'bg-slate-50/80' : 'bg-white'
-                      }`}
-                    >
-                      {Row}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-
-          {allNotifs.length > 0 && unread.length === 0 && (
-            <div className="px-4 py-2.5 border-t border-slate-50 text-center">
-              <p className="text-xs text-slate-400">{t.notif_all_caught_up}</p>
-            </div>
-          )}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-
   return (
-    <div ref={wrapRef} className="relative flex-shrink-0">
+    <div ref={menuRef} className="relative flex-shrink-0">
       <button
-        ref={buttonRef}
         type="button"
         onClick={handleBellClick}
         aria-expanded={open}
@@ -281,7 +148,141 @@ export default function NotificationCenter({ denseTrigger = false }: Notificatio
         )}
       </button>
 
-      {typeof document !== 'undefined' && createPortal(panel, document.body)}
+      {showPortal &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence onExitComplete={() => setShowPortal(false)}>
+            {open && (
+              <motion.div
+                key="notifications-modal"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[9999] flex items-center justify-center font-sans"
+                role="presentation"
+              >
+                <div
+                  onClick={closeModal}
+                  className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm"
+                  aria-hidden
+                />
+                <motion.div
+                  ref={modalRef}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={t.profile_notifications}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative z-[9999] mx-4 flex max-h-[min(90dvh,640px)] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl"
+                >
+                  <div className="flex shrink-0 items-start justify-between gap-2 border-b border-slate-100 px-5 pb-3 pt-5">
+                    <h3 className="text-base font-bold text-slate-900">{t.profile_notifications}</h3>
+                    <div className="flex shrink-0 items-center gap-1">
+                      {unread.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleMarkAll}
+                          title={t.notif_mark_all_title}
+                          className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-semibold text-accent transition-colors hover:bg-accent/10"
+                        >
+                          <CheckCheck size={16} />
+                          <span className="hidden min-[360px]:inline">{t.notif_mark_all_short}</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                        aria-label={tv.close ?? 'Chiudi'}
+                      >
+                        <span className="text-xl leading-none">×</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-0">
+                    {allNotifs.length === 0 ? (
+                      <div className="flex flex-col items-center px-5 py-12 text-center">
+                        <Bell size={32} className="mb-2 text-slate-200" aria-hidden />
+                        <p className="text-sm text-slate-500">{t.notif_empty}</p>
+                      </div>
+                    ) : (
+                      <ul className="divide-y divide-slate-100">
+                        {allNotifs.map((n) => {
+                          const isNew = !seenIds.has(n.id);
+                          const isApprovalNav = n.type === 'approval_needed';
+                          const Row = (
+                            <>
+                              <div
+                                className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${severityRing(n.severity)}`}
+                              >
+                                <SeverityIcon s={n.severity} />
+                              </div>
+                              <div className="min-w-0 flex-1 text-left">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className={`text-xs font-semibold text-slate-800 ${isNew ? '' : 'opacity-70'}`}>
+                                    {n.title}
+                                  </p>
+                                  {isNew && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />}
+                                </div>
+                                <p className="mt-0.5 flex items-start gap-1 break-words text-xs text-slate-500">
+                                  <TypeIcon type={n.type} />
+                                  <span>{n.body}</span>
+                                </p>
+                                {isApprovalNav && (
+                                  <p className="mt-1 text-[10px] font-semibold text-accent">{t.notif_tap_open_timesheet}</p>
+                                )}
+                              </div>
+                            </>
+                          );
+                          if (isApprovalNav) {
+                            return (
+                              <li key={n.id} className={`p-0 ${isNew ? 'bg-slate-50/80' : 'bg-white'}`}>
+                                <button
+                                  type="button"
+                                  className="flex w-full items-start gap-3 px-5 py-3.5 text-left transition-colors hover:bg-slate-100/90 active:bg-slate-100"
+                                  onClick={() => {
+                                    if (currentUser) markAllSeen(currentUser.id, [n.id]);
+                                    setSeenIds((prev) => new Set([...prev, n.id]));
+                                    openTimesheetWithConfirmedFilter();
+                                    setOpen(false);
+                                    window.dispatchEvent(new CustomEvent('notifications-seen'));
+                                  }}
+                                >
+                                  {Row}
+                                </button>
+                              </li>
+                            );
+                          }
+                          return (
+                            <li
+                              key={n.id}
+                              className={`flex items-start gap-3 px-5 py-3.5 transition-colors ${
+                                isNew ? 'bg-slate-50/80' : 'bg-white'
+                              }`}
+                            >
+                              {Row}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+
+                  {allNotifs.length > 0 && unread.length === 0 && (
+                    <div className="shrink-0 border-t border-slate-100 px-5 py-3 text-center">
+                      <p className="text-xs text-slate-400">{t.notif_all_caught_up}</p>
+                    </div>
+                  )}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
     </div>
   );
 }

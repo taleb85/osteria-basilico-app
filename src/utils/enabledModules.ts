@@ -1,5 +1,10 @@
-import { getEnabledFeatures } from './enabledFeatures';
+import { getEnabledFeatures, getRolePermissionGroup } from './enabledFeatures';
 import type { FeatureFlags } from './featureFlags';
+import type { User } from '../types';
+import { isUserPermissionEffective } from './staffPermissionDefaults';
+
+/** Dati minimi per barra tab + coerenza Presenze / timbratura. */
+export type UnifiedNavUser = Pick<User, 'role' | 'enabled_modules' | 'enabled_features' | 'can_punch_from_app'>;
 
 /** Richieste ferie/permessi: disattivabile dal Master Control (`staff_requests`). */
 export function isStaffRequestsFeatureEnabled(featureFlags?: FeatureFlags | null): boolean {
@@ -78,8 +83,17 @@ export function isModuleEnabled(user: { role: string; enabled_modules?: unknown 
  * Tab management: matrice permessi (`getEnabledFeatures`) + flag globali (stessi su web, mobile, PWA).
  * `featureFlags` da `useApp()`; se omesso, i gate globali non si applicano (solo test).
  */
+function isTimesheetNavTabEnabled(user: UnifiedNavUser, feat: ReturnType<typeof getEnabledFeatures>): boolean {
+  if (feat.timesheet_tab === true) return true;
+  /** Staff sala/cucina/bar: se può timbrare dall’app, mostra Presenze anche senza scheda abilitata nel template. */
+  if (getRolePermissionGroup(user.role) === 'staff') {
+    return isUserPermissionEffective(user as User, 'can_punch_from_app');
+  }
+  return false;
+}
+
 export function getVisibleManagementTabs(
-  user: { role: string; enabled_modules?: unknown; enabled_features?: unknown },
+  user: UnifiedNavUser,
   featureFlags?: FeatureFlags | null
 ): string[] {
   const tabs = new Set<string>();
@@ -87,7 +101,7 @@ export function getVisibleManagementTabs(
   if (merged.home_tab) tabs.add('home');
   if (merged.team_view) tabs.add('turni');
   if (merged.view_stats) tabs.add('reports');
-  if (merged.export_pdf) tabs.add('timesheet');
+  if (isTimesheetNavTabEnabled(user, merged)) tabs.add('timesheet');
   if (merged.ferie_tab && isStaffRequestsFeatureEnabled(featureFlags)) tabs.add('ferie');
   if (merged.admin_tab) tabs.add('settings');
   return Array.from(tabs);
@@ -132,32 +146,50 @@ export function getAppNavTabTitle(t: Record<string, string>, tab: AppNavTab): st
 const UNIFIED_NAV_ORDER: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'settings'];
 
 /**
+ * Staff mobile: ferie prima dei turni; Statistiche in barra se `view_stats` (stesso set di tab di `getUnifiedNavTabs`, solo ordine diverso).
+ */
+const STAFF_BOTTOM_NAV_ORDER: AppNavTab[] = ['home', 'ferie', 'turni', 'timesheet', 'reports', 'settings'];
+
+/**
  * Voci bottom bar: stessa struttura per tutti i profili (come PWA).
  * Ogni voce dipende da `enabled_features` (template + eccezioni utente), tranne admin cablato.
  */
 export function getUnifiedNavTabs(
-  user: { role: string; enabled_modules?: unknown; enabled_features?: unknown },
+  user: UnifiedNavUser,
   _isManagement: boolean,
   featureFlags?: FeatureFlags | null
 ): AppNavTab[] {
   const feat = getEnabledFeatures(user);
   const ferieOk = feat.ferie_tab === true && isStaffRequestsFeatureEnabled(featureFlags);
+  const timesheetOk = isTimesheetNavTabEnabled(user, feat);
   const out: AppNavTab[] = [];
   for (const id of UNIFIED_NAV_ORDER) {
     if (id === 'home' && feat.home_tab) out.push('home');
     else if (id === 'turni' && feat.team_view) out.push('turni');
     else if (id === 'ferie' && ferieOk) out.push('ferie');
-    else if (id === 'timesheet' && feat.export_pdf) out.push('timesheet');
+    else if (id === 'timesheet' && timesheetOk) out.push('timesheet');
     else if (id === 'reports' && feat.view_stats) out.push('reports');
     else if (id === 'settings' && feat.admin_tab) out.push('settings');
   }
   return out;
 }
 
+/** Bottom bar effettiva in MainApp: staff con ordine `STAFF_BOTTOM_NAV_ORDER`, stesse voci abilitate di `getUnifiedNavTabs`. */
+export function getBottomNavTabsForMainApp(
+  user: UnifiedNavUser,
+  isManagement: boolean,
+  featureFlags?: FeatureFlags | null
+): AppNavTab[] {
+  const all = getUnifiedNavTabs(user, isManagement, featureFlags);
+  if (isManagement) return all;
+  const set = new Set(all);
+  return STAFF_BOTTOM_NAV_ORDER.filter((id) => set.has(id));
+}
+
 const APP_NAV_TAB_IDS: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'settings'];
 
 export function isTabEnabledForUser(
-  user: { role: string; enabled_modules?: unknown; enabled_features?: unknown },
+  user: UnifiedNavUser,
   tabId: string,
   isManagement: boolean,
   featureFlags?: FeatureFlags | null

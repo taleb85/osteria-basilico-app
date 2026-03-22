@@ -25,7 +25,7 @@ export const PERMISSION_MATRIX_KEYS = [
 export type PermissionMatrixKey = (typeof PERMISSION_MATRIX_KEYS)[number];
 
 /** Schede aggiuntive in dashboard (oltre alla matrice da 6). */
-export const DASHBOARD_TAB_FEATURE_KEYS = ['home_tab', 'ferie_tab', 'admin_tab'] as const;
+export const DASHBOARD_TAB_FEATURE_KEYS = ['home_tab', 'ferie_tab', 'admin_tab', 'timesheet_tab'] as const;
 export type DashboardTabFeatureKey = (typeof DASHBOARD_TAB_FEATURE_KEYS)[number];
 
 export const ENABLED_FEATURE_KEYS = [
@@ -44,13 +44,14 @@ export const FEATURE_LABELS: Record<EnabledFeatureKey, string> = {
   team_view: 'Visualizza Tabellone Team',
   edit_shifts: 'Modifica Operativa Turni',
   approve_shifts: 'Approvazione Finale (Verde)',
-  export_pdf: 'Esportazione Report PDF',
+  export_pdf: 'Esportazione PDF tabellone turni',
   view_stats: 'Visualizzazione Statistiche',
   view_estimated_cost: 'Costo stimato del lavoro (Statistiche)',
   desktop_access: 'Accesso Browser Desktop (deprecato — il gate PWA è unificato)',
   home_tab: 'Visualizza scheda Dashboard',
   ferie_tab: 'Visualizza scheda Ferie',
   admin_tab: 'Visualizza scheda Admin (Impostazioni)',
+  timesheet_tab: 'Visualizza scheda Presenze (foglio ore)',
 };
 
 /** Etichette orientate alle tab (stessi permessi; testo più chiaro nella sezione “Schede”). */
@@ -58,7 +59,8 @@ export const FEATURE_LABELS_TAB_FIRST: Record<EnabledFeatureKey, string> = {
   ...FEATURE_LABELS,
   home_tab: 'Scheda Dashboard — riepilogo',
   team_view: 'Scheda Turni — tabellone team',
-  export_pdf: 'Scheda Presenze — foglio e PDF',
+  timesheet_tab: 'Scheda Presenze — foglio ore',
+  export_pdf: 'Download PDF — tabellone turni',
   view_stats: 'Scheda Statistiche',
   ferie_tab: 'Scheda Ferie',
   admin_tab: 'Scheda Admin — impostazioni e profili',
@@ -84,6 +86,7 @@ export const ROLE_TEMPLATE_FEATURE_SECTIONS: readonly RoleTemplateSection[] = [
       { kind: 'feature', key: 'home_tab' },
       { kind: 'feature', key: 'team_view' },
       { kind: 'feature', key: 'ferie_tab' },
+      { kind: 'feature', key: 'timesheet_tab' },
       { kind: 'feature', key: 'export_pdf' },
       { kind: 'feature', key: 'view_stats' },
     ],
@@ -134,6 +137,7 @@ const DEFAULT_MANAGER_FEATURES: EnabledFeatures = {
   team_view: true,
   edit_shifts: true,
   approve_shifts: true,
+  timesheet_tab: true,
   export_pdf: true,
   view_stats: true,
   view_estimated_cost: true,
@@ -265,13 +269,44 @@ export function getEnabledFeatures(user: { role: string; enabled_features?: unkn
     result.home_tab = true;
     result.admin_tab = true;
     result.ferie_tab = true;
+    result.timesheet_tab = true;
     return result;
   }
   const grp = getRolePermissionGroup(user.role);
   if (grp === 'admin') return base;
   const merged = mergeUserFeatureOverrides(applyDiskTemplateToBase(base, grp), user.enabled_features);
   merged.admin_tab = false;
+  applyLegacyTimesheetTabWhenUnset(merged, grp, user.enabled_features);
   return merged;
+}
+
+/**
+ * Template/DB creati prima della chiave `timesheet_tab`: la barra Presenze seguiva `export_pdf`.
+ * Finché `timesheet_tab` non è esplicito su disco o su `users.enabled_features`, si mantiene quel comportamento.
+ */
+function userJsonHasExplicitTimesheetTab(raw: unknown): boolean {
+  return !!(
+    raw &&
+    typeof raw === 'object' &&
+    !Array.isArray(raw) &&
+    typeof (raw as Record<string, unknown>).timesheet_tab === 'boolean'
+  );
+}
+
+function diskTemplateHasExplicitTimesheetTab(group: RoleTemplateGroup): boolean {
+  const partial = getRoleFeatureTemplatesCache()?.[group];
+  return !!(partial && typeof (partial as Record<string, unknown>).timesheet_tab === 'boolean');
+}
+
+function applyLegacyTimesheetTabWhenUnset(
+  merged: EnabledFeatures,
+  group: RoleTemplateGroup,
+  rawUser: unknown
+): void {
+  if (userJsonHasExplicitTimesheetTab(rawUser) || diskTemplateHasExplicitTimesheetTab(group)) {
+    return;
+  }
+  merged.timesheet_tab = merged.export_pdf === true;
 }
 
 /** Override per-utente da colonna `users.enabled_features` (JSONB), se presente. */

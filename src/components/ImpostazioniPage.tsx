@@ -2,7 +2,7 @@
  * Scheda Impostazioni — attiva/disattiva le funzioni disponibili per i profili.
  * Solo Admin. Le modifiche sono immediate e salvate in DB o localStorage.
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid,
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getFeatureStrings, formatTrans } from '../utils/translations';
-import { isAdminOnly } from '../utils/permissions';
+import { isAdminOnly, isPurelyManagementRole } from '../utils/permissions';
 import { FEATURE_DEFINITIONS } from '../utils/featureFlags';
 
 const IMPOSTAZIONI_GROUPS: readonly {
@@ -43,16 +43,22 @@ type ImpostazioniPageProps = {
   onOpenProfilesTab?: () => void;
 };
 
+const demoProfileSelectClass =
+  'w-full max-w-md px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent';
+
 export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPageProps) {
   const {
     currentUser,
+    users,
     featureFlags,
     setFeatureFlag,
     effectiveLanguage,
     showSuccess,
+    showError,
     silentRefreshData,
     hardReloadFromDatabase,
     isGlobalRefreshing,
+    seedDemoProfileForUser,
   } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [howOpen, setHowOpen] = useState(false);
@@ -64,6 +70,25 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
   const toggleDetail = useCallback((slug: string) => {
     setDetailOpen((prev) => ({ ...prev, [slug]: !prev[slug] }));
   }, []);
+
+  const demoProfileCandidates = useMemo(
+    () =>
+      users
+        .filter((u) => u.status === 'active' && !isPurelyManagementRole(u.role))
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
+    [users]
+  );
+
+  const [demoProfileTargetUserId, setDemoProfileTargetUserId] = useState('');
+  const [seedingDemoProfile, setSeedingDemoProfile] = useState(false);
+
+  useEffect(() => {
+    const valid =
+      demoProfileTargetUserId &&
+      demoProfileCandidates.some((u) => u.id === demoProfileTargetUserId);
+    if (valid) return;
+    setDemoProfileTargetUserId(demoProfileCandidates[0]?.id ?? '');
+  }, [demoProfileCandidates, demoProfileTargetUserId]);
 
   if (!currentUser) return null;
   if (!isAdminOnly(currentUser)) {
@@ -267,6 +292,65 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             </section>
           ))}
         </div>
+
+        <section
+          className="mt-8 rounded-xl border-2 border-emerald-400/90 bg-emerald-50/90 p-4 sm:p-5 space-y-3 shadow-sm"
+          aria-label={t.impostazioni_demo_profile_title}
+        >
+          <h2 className="text-sm font-bold text-emerald-950 uppercase tracking-wide">
+            {t.impostazioni_demo_profile_title}
+          </h2>
+          <p className="text-xs text-emerald-900/85 leading-relaxed max-w-2xl">{t.impostazioni_demo_profile_lead}</p>
+          <div className="space-y-2 max-w-md">
+            <label
+              htmlFor="osteria-demo-profile-user-impostazioni"
+              className="block text-[10px] font-bold uppercase tracking-wider text-emerald-900/80"
+            >
+              {t.settings_seed_demo_profile_pick_user}
+            </label>
+            {demoProfileCandidates.length === 0 ? (
+              <p className="text-xs text-amber-900 bg-amber-100 border border-amber-300/80 rounded-lg px-3 py-2">
+                {t.settings_seed_demo_profile_no_staff}
+              </p>
+            ) : (
+              <select
+                id="osteria-demo-profile-user-impostazioni"
+                value={demoProfileTargetUserId}
+                onChange={(e) => setDemoProfileTargetUserId(e.target.value)}
+                className={demoProfileSelectClass}
+              >
+                {demoProfileCandidates.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {[u.first_name, u.last_name].filter(Boolean).join(' ').trim() || u.email}
+                  </option>
+                ))}
+              </select>
+            )}
+            <button
+              type="button"
+              disabled={
+                seedingDemoProfile ||
+                !demoProfileTargetUserId ||
+                demoProfileCandidates.length === 0
+              }
+              onClick={async () => {
+                if (!window.confirm(t.settings_seed_demo_profile_confirm)) return;
+                setSeedingDemoProfile(true);
+                try {
+                  await seedDemoProfileForUser(demoProfileTargetUserId);
+                  showSuccess?.(t.settings_seed_demo_profile_done);
+                } catch (e) {
+                  showError?.(e instanceof Error ? e.message : t.settings_seed_demo_profile_error);
+                } finally {
+                  setSeedingDemoProfile(false);
+                }
+              }}
+              className="w-full px-3 py-3 rounded-xl bg-emerald-600 border border-emerald-700 text-white text-xs font-bold uppercase tracking-wider hover:bg-emerald-700 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
+            </button>
+          </div>
+        </section>
       </motion.div>
     </div>
   );

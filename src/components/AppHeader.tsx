@@ -7,6 +7,7 @@ import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { getDateLocale, getTranslations } from '../utils/translations';
 import UserAvatarMenu from './UserAvatarMenu';
 import NotificationCenter from './NotificationCenter';
+import { CenteredModalPortal } from './ui/CenteredModalPortal';
 
 interface AppHeaderProps {
   onLogout?: () => void;
@@ -17,11 +18,15 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
   const now = useWallAlignedMinuteClock();
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
+  const langModalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!langOpen) return;
     const handler = (e: PointerEvent) => {
-      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+      const tgt = e.target as Node;
+      if (langModalRef.current?.contains(tgt)) return;
+      if (langRef.current?.contains(tgt)) return;
+      setLangOpen(false);
     };
     document.addEventListener('pointerdown', handler);
     return () => document.removeEventListener('pointerdown', handler);
@@ -68,15 +73,27 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
               <ChevronDown className="w-3 h-3 text-slate-400" />
             </button>
             {langOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-28 rounded-xl bg-white border border-slate-100 shadow-lg py-1 z-50">
+              <CenteredModalPortal
+                open
+                onClose={() => setLangOpen(false)}
+                panelRef={langModalRef}
+                backdropAriaLabel={t.close}
+                ariaLabel={t.language}
+                maxWidthClass="max-w-xs"
+                panelClassName="py-1"
+              >
+                <p className="border-b border-slate-100 px-4 py-3 text-sm font-bold text-slate-900">{t.language}</p>
                 {(['it', 'en', 'es', 'fr'] as const).map((lang) => (
                   <button
                     key={lang}
                     type="button"
-                    onClick={() => { setLanguage(lang); setLangOpen(false); }}
-                    className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
+                    onClick={() => {
+                      setLanguage(lang);
+                      setLangOpen(false);
+                    }}
+                    className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors ${
                       effectiveLanguage === lang
-                        ? 'bg-accent/10 text-accent font-semibold'
+                        ? 'bg-accent/10 font-semibold text-accent'
                         : 'text-slate-700 hover:bg-slate-50'
                     }`}
                   >
@@ -84,7 +101,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
                     <span className="text-xs font-medium">{langLabels[lang]}</span>
                   </button>
                 ))}
-              </div>
+              </CenteredModalPortal>
             )}
           </div>
 

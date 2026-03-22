@@ -5,7 +5,7 @@ import { it } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
-import { useClampedFixedDropdown } from '../hooks/useClampedFixedDropdown';
+import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { Shift, type ApprovalStatus } from '../types';
 import { calculateShiftMinutesGross, getActualShiftTime, formatMinutesToHoursAndMinutes, roundToNext5Minutes, hasShiftConflictSameDay } from '../utils/timeCalculations';
 import { getPunchPairForShift, getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
@@ -208,7 +208,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [saveTemplateName, setSaveTemplateName] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
   const wstToolbarDrawerRef = useRef<HTMLDivElement | null>(null);
-  const wstToolbarDrawerStyle = useClampedFixedDropdown(wstToolbarDrawerOpen, wstToolbarDrawerRef, 320);
+  const wstToolbarModalRef = useRef<HTMLDivElement | null>(null);
   const closeWstToolbarDrawer = useCallback(() => {
     setWstToolbarDrawerOpen(false);
     setWstToolbarDrawerSection(null);
@@ -613,13 +613,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         setSidebarMenuShiftId(null);
         setSidebarStatusSubmenuShiftId(null);
       }
-      if (
-        wstToolbarDrawerRef.current &&
-        !wstToolbarDrawerRef.current.contains(e.target as Node) &&
-        !isDatePickerPortalClick(e.target)
-      ) {
-        setWstToolbarDrawerOpen(false);
-        setWstToolbarDrawerSection(null);
+      if (wstToolbarDrawerOpen) {
+        const tgt = e.target as Node;
+        if (
+          !wstToolbarModalRef.current?.contains(tgt) &&
+          !wstToolbarDrawerRef.current?.contains(tgt) &&
+          !isDatePickerPortalClick(e.target)
+        ) {
+          setWstToolbarDrawerOpen(false);
+          setWstToolbarDrawerSection(null);
+        }
       }
     };
     if (sidebarMenuShiftId || sidebarStatusSubmenuShiftId || wstToolbarDrawerOpen) {
@@ -1231,6 +1234,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         {/* ── Destra: menu hamburger (filtri, legenda, reparto, azioni) ── */}
         <div className="ui-toolbar-row-tight shrink-0">
           {!isStaff && (
+          <>
           <div className="ui-toolbar-dropdown-root shrink-0" ref={wstToolbarDrawerRef}>
             <button
               type="button"
@@ -1261,14 +1265,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 />
               )}
             </button>
-            {wstToolbarDrawerOpen && wstToolbarDrawerStyle && (
-              <div
-                className="fixed rounded-xl border border-slate-200 bg-white py-1 shadow-xl z-[60] max-h-[min(85vh,calc(100dvh-5rem))] overflow-y-auto overscroll-contain"
-                style={{
-                  top: wstToolbarDrawerStyle.top,
-                  left: wstToolbarDrawerStyle.left,
-                  width: wstToolbarDrawerStyle.width,
-                }}
+          </div>
+            {wstToolbarDrawerOpen && (
+              <CenteredModalPortal
+                open
+                onClose={closeWstToolbarDrawer}
+                panelRef={wstToolbarModalRef}
+                backdropAriaLabel={(t as Record<string, string>).close ?? 'Chiudi'}
+                ariaLabel={(t as Record<string, string>).wst_toolbar_hamburger_aria ?? 'Menu'}
+                maxWidthClass="max-w-md"
+                maxHeightClass="max-h-[min(90dvh,720px)]"
+                panelClassName="py-1"
               >
                 <button
                   type="button"
@@ -1795,9 +1802,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
                   </div>
                 )}
-              </div>
+              </CenteredModalPortal>
             )}
-          </div>
+          </>
           )}
         </div>
       </div>
