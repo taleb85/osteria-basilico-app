@@ -12,6 +12,7 @@ import { buildSettingsPermissionRows } from '../utils/settingsPermissionRows';
 import { exportToJSON, exportToCSV } from '../utils/exportData';
 import { importDataToSupabase, clearAllData } from '../utils/importData';
 import EditStaffModal from './EditStaffModal';
+import CreateStaffModal from './CreateStaffModal';
 import { BreakRule, DayOfWeek } from '../utils/breakRules';
 import {
   getDepartments,
