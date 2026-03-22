@@ -1,6 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" rx="96" fill="#2D5A27"/>
-  <circle cx="256" cy="256" r="120" fill="rgba(255,255,255,0.12)"/>
-  <path fill="#fff" d="M256 176c-44 0-80 36-80 80s36 80 80 80 80-36 80-80-36-80-80-80zm0 32c26.5 0 48 21.5 48 48s-21.5 48-48 48-48-21.5-48-48 21.5-48 48-48z"/>
-  <text x="256" y="420" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="Georgia, serif" font-size="28" font-style="italic">Osteria Basilico</text>
+  <rect width="512" height="512" fill="#FFFFFF"/>
+  <rect x="96" y="96" width="320" height="320" rx="70" fill="#2D5A27"/>
+  <text
+    x="256"
+    y="278"
+    text-anchor="middle"
+    fill="#FFFFFF"
+    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    font-weight="800"
+    font-size="156"
+    letter-spacing="22"
+  >OB</text>
 </svg>

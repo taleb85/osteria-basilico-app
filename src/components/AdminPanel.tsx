@@ -11,7 +11,7 @@ import { getTranslations } from '../utils/translations';
 import EditStaffModal from './EditStaffModal';
 
 export default function AdminPanel() {
-  const { users, shifts, punchRecords, holidays, currentUser, updateUser, deleteUser, deleteShifts, reorderUsers, effectiveLanguage } = useApp();
+  const { users, shifts, punchRecords, holidays, currentUser, updateUser, deleteUser, reorderUsers, effectiveLanguage } = useApp();
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -95,27 +95,6 @@ export default function AdminPanel() {
     }
   };
 
-  const testUser = users.find(
-    (u) => u.first_name.toUpperCase() === 'TEST' && (u.last_name?.toUpperCase() === 'USER' || !u.last_name)
-  );
-
-  const handleRemoveTestUser = async () => {
-    if (!testUser || !adminOnly) return;
-    if (!confirm(t.remove_test_user_confirm)) return;
-    setImportStatus(null);
-    try {
-      const testUserShiftIds = shifts.filter((s) => s.user_id === testUser.id).map((s) => s.id);
-      if (testUserShiftIds.length > 0) {
-        await deleteShifts(testUserShiftIds);
-      }
-      await deleteUser(testUser.id);
-      setImportStatus({ type: 'success', message: t.remove_test_user_success });
-      setTimeout(() => window.location.reload(), 1500);
-    } catch {
-      setImportStatus({ type: 'error', message: t.load_error });
-    }
-  };
-
   return (
     <div className="pb-32 px-4 pt-6 max-w-7xl mx-auto text-white min-h-screen">
       <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileSelect} className="hidden" />
@@ -136,12 +115,6 @@ export default function AdminPanel() {
         <div className={`grid gap-4 mb-8 ${adminOnly ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1'}`}>
           {adminOnly && (
             <>
-              {testUser && (
-                <button onClick={handleRemoveTestUser} className="bg-red-100 dark:bg-red-900/20 rounded-[24px] p-5 border border-red-200 dark:border-red-500/30 hover:bg-red-200 dark:hover:bg-red-900/30 transition-all">
-                  <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400 mx-auto mb-2" />
-                  <span className="text-red-700 dark:text-red-400 text-[10px] font-medium uppercase tracking-widest block">{t.remove_test_user}</span>
-                </button>
-              )}
               <button onClick={handleImportClick} className="bg-black/15 backdrop-blur-xl rounded-[24px] p-5 border-2 border-white/30 hover:bg-black/25 transition-all">
                 <Upload className="w-6 h-6 text-white mx-auto mb-2" />
                 <span className="text-white text-[10px] font-medium uppercase tracking-widest block font-sans">{t.restore}</span>

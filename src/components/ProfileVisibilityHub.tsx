@@ -7,7 +7,6 @@ import {
   BarChart3,
   ShieldCheck,
   LayoutList,
-  Sparkles,
   RotateCcw,
   X,
   Palmtree,
@@ -45,6 +44,7 @@ import {
   widgetAppliesToUser,
   type UiScreenWidgetDef,
 } from '../utils/uiScreenWidgets';
+import AdminRow from './ui/AdminRow';
 
 const ACCENT = '#2D5A27';
 
@@ -66,32 +66,32 @@ function NavPreviewBar({
 }: {
   tabs: AppNavTab[];
   labels: Record<AppNavTab, string>;
-  size?: 'compact' | 'fullscreen';
+  /** `hub` = overlay Permessi profilo: più compatto di fullscreen, più leggibile di compact. */
+  size?: 'compact' | 'hub' | 'fullscreen';
   activeTab?: AppNavTab | null;
   onSelectTab?: (id: AppNavTab) => void;
 }) {
   const fs = size === 'fullscreen';
+  const hub = size === 'hub';
   const interactive = !!onSelectTab && activeTab != null;
+  const pad = fs ? 'py-4 px-3 sm:px-5' : hub ? 'py-2 px-2 sm:px-3' : 'py-2 px-2';
+  const rowMin = fs ? 'min-h-[72px] sm:min-h-[88px]' : hub ? 'min-h-[48px] sm:min-h-[52px]' : 'min-h-[44px]';
+  const gap = fs ? 'gap-1.5 px-1' : hub ? 'gap-1 px-0.5' : 'gap-0.5 px-1';
+  const iconSz = fs ? 'w-7 h-7 sm:w-8 sm:h-8' : hub ? 'w-[18px] h-[18px] sm:w-5 sm:h-5' : 'w-4 h-4';
+  const labelSz = fs ? 'text-[11px] sm:text-xs' : hub ? 'text-[8px] sm:text-[10px]' : 'text-[8px]';
   return (
-    <div
-      className={`rounded-[1.25rem] border border-white/15 shadow-inner ${fs ? 'py-4 px-3 sm:px-5' : 'py-2 px-2'}`}
-      style={{ backgroundColor: ACCENT }}
-    >
-      <div className={`flex justify-between items-stretch gap-1 sm:gap-2 ${fs ? 'min-h-[72px] sm:min-h-[88px]' : 'min-h-[44px]'}`}>
+    <div className={`rounded-[1.25rem] border border-white/15 shadow-inner ${pad}`} style={{ backgroundColor: ACCENT }}>
+      <div className={`flex justify-between items-stretch gap-1 sm:gap-2 ${rowMin}`}>
         {tabs.map((id) => {
           const Icon = PREVIEW_TAB_ICONS[id];
           const selected = interactive && activeTab === id;
-          const cls = `flex-1 min-w-0 flex flex-col items-center justify-center text-white/90 ${fs ? 'gap-1.5 px-1' : 'gap-0.5 px-1'} rounded-xl transition-all ${
+          const cls = `flex-1 min-w-0 flex flex-col items-center justify-center text-white/90 ${gap} rounded-xl transition-all ${
             selected ? 'bg-white/20 ring-2 ring-white/80 shadow-inner' : ''
           }`;
           const label = (
             <>
-              <Icon className={`${fs ? 'w-7 h-7 sm:w-8 sm:h-8' : 'w-4 h-4'} opacity-95`} strokeWidth={1.5} aria-hidden />
-              <span
-                className={`font-semibold leading-tight text-center truncate w-full ${fs ? 'text-[11px] sm:text-xs' : 'text-[8px]'}`}
-              >
-                {labels[id]}
-              </span>
+              <Icon className={`${iconSz} opacity-95`} strokeWidth={1.5} aria-hidden />
+              <span className={`font-semibold leading-tight text-center truncate w-full ${labelSz}`}>{labels[id]}</span>
             </>
           );
           if (interactive) {
@@ -162,6 +162,12 @@ export default function ProfileVisibilityHub() {
     if (!selected || hubTabs.length === 0) return;
     setActiveHubTab((prev) => (hubTabs.includes(prev) ? prev : hubTabs[0]!));
   }, [selected, hubTabs]);
+
+  /** Pannello permessi: aperto di default così l’anteprima e i toggle sono visibili insieme. */
+  const [permDetailsOpen, setPermDetailsOpen] = useState(true);
+  useEffect(() => {
+    setPermDetailsOpen(true);
+  }, [selected?.id, activeHubTab]);
 
   const navLabels: Record<AppNavTab, string> = {
     home: t.sidebar_dashboard,
@@ -416,34 +422,34 @@ export default function ProfileVisibilityHub() {
             </span>
           </header>
 
-          <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
-            <div className="max-w-6xl xl:max-w-7xl mx-auto space-y-6">
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
+            <div className="mx-auto w-full max-w-6xl xl:max-w-7xl space-y-4">
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="px-3 py-2 bg-slate-50 border-b border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                     {tv.profile_visibility_preview_banner ?? 'Anteprima navigazione'}
                   </p>
                 </div>
-                <div className="p-4 sm:p-6 space-y-4">
+                <div className="p-3 sm:p-4 space-y-2">
                   {isSelectedAdmin && (
-                    <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                    <p className="text-[11px] leading-snug text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5">
                       {tv.profile_visibility_admin_note ??
                         'Profilo Amministratore: tutte le funzioni restano attive; non si applicano eccezioni qui.'}
                     </p>
                   )}
-                  <p className="text-sm text-slate-600">
+                  <p className="text-xs leading-snug text-slate-600">
                     {tv.profile_visibility_pick_tab_hint ??
-                      'Tocca una scheda nella barra: qui sotto compaiono solo i permessi e i blocchi di interfaccia collegati a quella schermata.'}
+                      'Tocca una scheda nella barra: qui sotto compaiono solo i permessi e i blocchi di interfaccia collegati a quella schermata.'}{' '}
+                    <span className="text-slate-500">
+                      {tv.profile_visibility_ferie_hint ??
+                        'La scheda Ferie può non essere in barra: resta raggiungibile da Home quando è attiva.'}
+                    </span>
                   </p>
-                  <p className="text-xs text-slate-500">
-                    {tv.profile_visibility_ferie_hint ??
-                      'La scheda Ferie può non essere in barra: resta raggiungibile da Home quando è attiva.'}
-                  </p>
-                  <div className="max-w-2xl mx-auto w-full">
+                  <div className="w-full">
                     <NavPreviewBar
                       tabs={hubTabs}
                       labels={navLabels}
-                      size="fullscreen"
+                      size="hub"
                       activeTab={activeHubTab}
                       onSelectTab={setActiveHubTab}
                     />
@@ -472,25 +478,14 @@ export default function ProfileVisibilityHub() {
                 </div>
               )}
 
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-accent shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      {navLabels[activeHubTab]}
-                    </p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      {tv.profile_visibility_tab_subtitle ??
-                        'Anteprima a colonna come in app; i permessi di accesso sono nel pannello pieghevole sotto.'}
-                    </p>
-                  </div>
-                </div>
-                <div className="p-4 sm:p-6 space-y-8">
+              <div className="space-y-4">
                   {activeTabPanelEmpty && (
-                    <p className="text-sm text-slate-500 text-center py-6">
-                      {tv.profile_visibility_tab_empty ??
-                        'Nessun permesso o blocco configurabile per questa scheda. Scegli un’altra scheda o attiva prima il permesso della scheda (es. Tabellone team).'}
-                    </p>
+                    <div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+                      <p className="text-sm text-slate-500">
+                        {tv.profile_visibility_tab_empty ??
+                          'Nessun permesso o blocco configurabile per questa scheda. Scegli un’altra scheda o attiva prima il permesso della scheda (es. Tabellone team).'}
+                      </p>
+                    </div>
                   )}
 
                   {!activeTabPanelEmpty && (
@@ -507,56 +502,59 @@ export default function ProfileVisibilityHub() {
                           onUiToggle={(key, vis) => handleUiWidgetToggle(selected, key, vis)}
                           navLabel={navLabels[activeHubTab]}
                         >
-                          {!isManagementRole(selected.role) &&
-                            !isPurelyManagementRole(selected.role) &&
-                            staffModulesForActiveTab.length > 0 && (
-                              <div className="space-y-1.5 border-t border-slate-300/80 pt-2">
-                                <p className="px-1 text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                                  {tv.profile_visibility_tab_staff_modules ?? 'Moduli area personale'}
-                                </p>
-                                {staffModulesForActiveTab.map((mod) => {
-                                  const enabled = getEnabledModules(selected).includes(mod);
-                                  return (
-                                    <div
-                                      key={mod}
-                                      className={`flex min-h-[48px] items-stretch gap-0 overflow-hidden rounded-xl border-2 ${
-                                        enabled
-                                          ? 'border-slate-200 bg-white shadow-sm'
-                                          : 'border-dashed border-slate-400/70 bg-slate-300/40'
-                                      }`}
-                                    >
-                                      <div className={`w-[3px] shrink-0 ${enabled ? 'bg-violet-500' : 'bg-slate-400'}`} aria-hidden />
-                                      <div className="flex min-w-0 flex-1 items-center justify-between gap-2 py-2 pl-2.5 pr-2">
-                                        <p
-                                          className={`text-[13px] font-semibold ${
-                                            enabled ? 'text-slate-900' : 'text-slate-500 line-through'
+                              {!isManagementRole(selected.role) &&
+                                !isPurelyManagementRole(selected.role) &&
+                                staffModulesForActiveTab.length > 0 && (
+                                  <div className="space-y-1 border-t border-slate-300/80 pt-1.5">
+                                    <p className="px-1 text-[8px] font-bold uppercase tracking-wider text-slate-500">
+                                      {tv.profile_visibility_tab_staff_modules ?? 'Moduli area personale'}
+                                    </p>
+                                    {staffModulesForActiveTab.map((mod) => {
+                                      const enabled = getEnabledModules(selected).includes(mod);
+                                      return (
+                                        <div
+                                          key={mod}
+                                          className={`flex min-h-[44px] items-stretch gap-0 rounded-lg border-2 ${
+                                            enabled
+                                              ? 'border-slate-200 bg-white shadow-sm'
+                                              : 'border-dashed border-slate-400/70 bg-slate-300/40'
                                           }`}
                                         >
-                                          {getModuleLabel(mod, effectiveLanguage)}
-                                        </p>
-                                        {!isSelectedAdmin && (
-                                          <button
-                                            type="button"
-                                            role="switch"
-                                            aria-checked={enabled}
-                                            onClick={() => handleModuleToggle(selected, mod, !enabled)}
-                                            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                                              enabled ? 'bg-accent' : 'bg-slate-300'
-                                            }`}
-                                          >
-                                            <span
-                                              className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                                                enabled ? 'translate-x-5' : 'translate-x-0'
+                                          <div
+                                            className={`w-[3px] shrink-0 ${enabled ? 'bg-violet-500' : 'bg-slate-400'}`}
+                                            aria-hidden
+                                          />
+                                          <div className="flex min-w-0 flex-1 items-center justify-between gap-2 py-1.5 pl-2 pr-1.5">
+                                            <p
+                                              className={`text-xs font-semibold ${
+                                                enabled ? 'text-slate-900' : 'text-slate-500 line-through'
                                               }`}
-                                            />
-                                          </button>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
+                                            >
+                                              {getModuleLabel(mod, effectiveLanguage)}
+                                            </p>
+                                            {!isSelectedAdmin && (
+                                              <button
+                                                type="button"
+                                                role="switch"
+                                                aria-checked={enabled}
+                                                onClick={() => handleModuleToggle(selected, mod, !enabled)}
+                                                className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+                                                  enabled ? 'bg-accent' : 'bg-slate-300'
+                                                }`}
+                                              >
+                                                <span
+                                                  className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                                                    enabled ? 'translate-x-4' : 'translate-x-0'
+                                                  }`}
+                                                />
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
                         </ProfileTabRichPreview>
                       )}
 
@@ -571,9 +569,10 @@ export default function ProfileVisibilityHub() {
                         <details
                           key={`perm-${selected.id}-${activeHubTab}`}
                           className="group rounded-xl border border-slate-200 bg-slate-50/90 open:border-slate-300 open:bg-white"
-                          {...({ defaultOpen: !showScreenMock } as object)}
+                          open={permDetailsOpen}
+                          onToggle={(e) => setPermDetailsOpen(e.currentTarget.open)}
                         >
-                          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-bold text-slate-800 [&::-webkit-details-marker]:hidden">
+                          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-xs font-bold text-slate-800 [&::-webkit-details-marker]:hidden">
                             <span>
                               {(tv.profile_visibility_perm_expand ?? 'Permessi di accesso ({n})').replace(
                                 '{n}',
@@ -591,44 +590,48 @@ export default function ProfileVisibilityHub() {
                               const eff = getEffectiveFeaturesForUser(selected)[key] === true;
                               const overridden = isFeatureExplicitlyOverridden(selected, key);
                               const base = getTemplateBaselineFeatures(selected)[key] === true;
+                              const desc = `${overridden
+                                ? tv.profile_visibility_badge_custom ?? 'Personalizzato'
+                                : tv.profile_visibility_badge_template ?? 'Dal template ruolo'}${
+                                !overridden
+                                  ? ` · ${base ? (tv.profile_visibility_on ?? 'On') : (tv.profile_visibility_off ?? 'Off')} ${tv.profile_visibility_in_template ?? 'nel template'}`
+                                  : ''
+                              }`;
                               return (
-                                <div
+                                <AdminRow
                                   key={key}
-                                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
-                                >
-                                  <div className="min-w-0 flex-1">
-                                    <p
-                                      className={`text-sm font-semibold leading-snug ${
-                                        key === 'view_estimated_cost' ? 'border-l-2 border-violet-200 pl-2' : ''
-                                      } text-slate-800`}
+                                  className={`rounded-lg border border-slate-200 bg-white !p-2 shadow-sm !border-b-0 ${
+                                    key === 'view_estimated_cost'
+                                      ? '[&_.font-bold]:border-l-2 [&_.font-bold]:border-violet-200 [&_.font-bold]:pl-2'
+                                      : ''
+                                  }`}
+                                  label={FEATURE_LABELS[key]}
+                                  description={desc}
+                                  action={
+                                    <button
+                                      type="button"
+                                      role="switch"
+                                      aria-checked={eff}
+                                      aria-disabled={isSelectedAdmin}
+                                      tabIndex={isSelectedAdmin ? -1 : 0}
+                                      title={
+                                        isSelectedAdmin ? (tv.profile_visibility_admin_switch_hint ?? '') : undefined
+                                      }
+                                      onClick={() => {
+                                        if (!isSelectedAdmin) handleFeatureToggle(selected, key, !eff);
+                                      }}
+                                      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                                        eff ? 'bg-accent' : 'bg-slate-200'
+                                      } ${isSelectedAdmin ? 'cursor-default opacity-100' : ''}`}
                                     >
-                                      {FEATURE_LABELS[key]}
-                                    </p>
-                                    <p className="mt-0.5 text-[10px] text-slate-400">
-                                      {overridden
-                                        ? tv.profile_visibility_badge_custom ?? 'Personalizzato'
-                                        : tv.profile_visibility_badge_template ?? 'Dal template ruolo'}
-                                      {!overridden &&
-                                        ` · ${base ? (tv.profile_visibility_on ?? 'On') : (tv.profile_visibility_off ?? 'Off')} ${tv.profile_visibility_in_template ?? 'nel template'}`}
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    role="switch"
-                                    aria-checked={eff}
-                                    disabled={isSelectedAdmin}
-                                    onClick={() => handleFeatureToggle(selected, key, !eff)}
-                                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-40 ${
-                                      eff ? 'bg-accent' : 'bg-slate-200'
-                                    }`}
-                                  >
-                                    <span
-                                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                                        eff ? 'translate-x-5' : 'translate-x-0'
-                                      }`}
-                                    />
-                                  </button>
-                                </div>
+                                      <span
+                                        className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                                          eff ? 'translate-x-5' : 'translate-x-0'
+                                        }`}
+                                      />
+                                    </button>
+                                  }
+                                />
                               );
                             })}
                           </div>
@@ -636,7 +639,6 @@ export default function ProfileVisibilityHub() {
                       )}
                     </>
                   )}
-                </div>
               </div>
             </div>
           </div>

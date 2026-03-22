@@ -1,4 +1,24 @@
-import type { User } from '../types';
+import type { User, UserRole } from '../types';
+
+const ALLOWED_ROLES: UserRole[] = [
+  'admin',
+  'manager',
+  'assistant_manager',
+  'waiter',
+  'server',
+  'bartender',
+  'cook',
+  'chef',
+  'dishwasher',
+];
+
+/** DB legacy / vecchie righe: `proprietario` → `manager` (ruolo rimosso dall’app). */
+export function normalizeUserRoleFromRow(role: unknown): UserRole {
+  const r = typeof role === 'string' ? role : 'waiter';
+  if (r === 'proprietario') return 'manager';
+  if (ALLOWED_ROLES.includes(r as UserRole)) return r as UserRole;
+  return 'waiter';
+}
 
 /**
  * Chiavi permesso “opt-out”: assenti/null nel DB = **consentito** (allineato a StaffPersonalDashboard `!== false`).
@@ -41,7 +61,7 @@ export function userRowToSessionUser(row: User): User {
     first_name: row.first_name ?? '',
     email: row.email ?? '',
     pin: row.pin ?? '',
-    role: row.role ?? 'waiter',
+    role: normalizeUserRoleFromRow(row.role),
     status: row.status ?? 'active',
     sort_order: row.sort_order ?? 0,
     language: row.language ?? 'it',

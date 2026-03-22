@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, FileDown, Moon, UserCheck } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, FileDown, Moon, UserCheck } from 'lucide-react';
 import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { uiWidgetKeyAppliesToUser } from '../../utils/uiScreenWidgets';
@@ -72,6 +72,52 @@ export default function TimesheetTabPreview({
               <p className="mt-0.5 text-[10px] font-medium text-slate-500">{c.l}</p>
             </div>
           ))}
+        </div>
+      </WidgetChrome>
+      )}
+
+      {show('stats.mgmt_kpi_cards') && (
+      <WidgetChrome
+        widgetKey="stats.mgmt_kpi_cards"
+        previewUser={previewUser}
+        isSelectedAdmin={isSelectedAdmin}
+        onUiToggle={onUiToggle}
+        hiddenBadge={hiddenBadge}
+      >
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
+            <p className="text-[10px] font-bold uppercase text-slate-400">{t.stats_approved_hours}</p>
+            <p className="text-xl font-bold text-slate-900">128:30</p>
+          </div>
+          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
+            <p className="text-[10px] font-bold uppercase text-slate-400">{t.stats_estimated_cost}</p>
+            <p className="text-xl font-bold text-slate-900">—</p>
+          </div>
+          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
+            <p className="text-[10px] font-bold uppercase text-slate-400">{t.pending}</p>
+            <p className="text-xl font-bold text-amber-800">3</p>
+          </div>
+        </div>
+      </WidgetChrome>
+      )}
+
+      {show('stats.detail_panels') && (
+      <WidgetChrome
+        widgetKey="stats.detail_panels"
+        previewUser={previewUser}
+        isSelectedAdmin={isSelectedAdmin}
+        onUiToggle={onUiToggle}
+        hiddenBadge={hiddenBadge}
+      >
+        <div className="space-y-2">
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800">
+            <span>{t.mod_stats_hours}</span>
+            <ChevronDown className="h-4 w-4 text-slate-400" />
+          </div>
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800">
+            <span>{t.sidebar_shifts}</span>
+            <ChevronDown className="h-4 w-4 text-slate-400" />
+          </div>
         </div>
       </WidgetChrome>
       )}

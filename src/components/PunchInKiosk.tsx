@@ -14,12 +14,15 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
-import type { User as UserType, Shift } from '../types';
+import type { User as UserType, Shift, Language } from '../types';
 import { format } from 'date-fns';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { roundToNext5Minutes } from '../utils/timeCalculations';
 import { forceLightTheme } from '../utils/theme';
 import { isPurelyManagementRole, isManagementRole } from '../utils/permissions';
+
+/** Terminale /timbratura: UI sempre in inglese (dispositivo condiviso in sala). */
+const KIOSK_UI_LANGUAGE: Language = 'en';
 
 interface PunchInKioskProps {
   onGoToLogin: () => void;
@@ -82,7 +85,7 @@ function GiantBrandHeader({ now, locale, children }: { now: Date; locale: Return
 }
 
 export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
-  const { users, shifts, punchRecords, addPunchRecord, showError, effectiveLanguage } = useApp();
+  const { users, shifts, punchRecords, addPunchRecord, showError } = useApp();
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   /** 'in' = timbratura entrata, 'out' = timbratura uscita (solo turni pranzo) */
@@ -95,8 +98,8 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   const hasAttemptedPunchRef = useRef(false);
   const [userWantsShiftList, setUserWantsShiftList] = useState(false);
 
-  const t = getTranslations(effectiveLanguage);
-  const dateLocale = getDateLocale(effectiveLanguage);
+  const t = getTranslations(KIOSK_UI_LANGUAGE);
+  const dateLocale = getDateLocale(KIOSK_UI_LANGUAGE);
 
   const now = useWallAlignedMinuteClock();
   const todayStr = format(now, 'yyyy-MM-dd');
@@ -394,7 +397,16 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
 
   return (
     <div className="min-h-screen overflow-hidden bg-surface flex flex-col p-6 sm:p-8 relative">
-      <GiantBrandHeader now={now} locale={dateLocale} />
+      <GiantBrandHeader now={now} locale={dateLocale}>
+        <button
+          type="button"
+          onClick={onGoToLogin}
+          className="group flex items-center gap-2 rounded-xl border-2 border-slate-300 bg-transparent px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.08),0_1px_3px_-1px_rgba(15,23,42,0.05)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-accent/60 hover:bg-accent/10 hover:text-accent hover:shadow-[0_4px_12px_-3px_rgba(15,23,42,0.1),0_2px_5px_-2px_rgba(45,90,39,0.06)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
+        >
+          <User className="h-4 w-4 shrink-0 text-slate-500 transition-colors group-hover:text-accent" strokeWidth={2} />
+          {t.area_personale}
+        </button>
+      </GiantBrandHeader>
 
       <motion.div
         className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto flex flex-col items-center justify-center px-2 sm:px-4"
@@ -791,18 +803,6 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Pulsante "Accedi" discreto in basso */}
-      <div className="flex justify-center pt-4 pb-2 flex-shrink-0">
-        <button
-          type="button"
-          onClick={onGoToLogin}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-accent hover:bg-white/60 transition-colors"
-        >
-          <User className="w-3.5 h-3.5" strokeWidth={2} />
-          {t.area_personale}
-        </button>
-      </div>
     </div>
   );
 }

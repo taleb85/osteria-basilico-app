@@ -15,7 +15,6 @@ import {
   ENABLED_MODULES,
   type EnabledModule,
   getUnifiedNavTabs,
-  isStaffRequestsFeatureEnabled,
   MODULE_TO_TAB_MANAGEMENT,
   MODULE_TO_TAB_STAFF,
   type AppNavTab,
@@ -42,6 +41,8 @@ export function screenGroupToPreviewTab(screenGroup: string): AppNavTab {
 /** Dove mostrare il toggle permesso nella hub “Cosa vede chi” (per scheda). */
 export function featureKeyToPreviewTab(key: EnabledFeatureKey): AppNavTab {
   switch (key) {
+    case 'home_tab':
+      return 'home';
     case 'team_view':
     case 'edit_shifts':
     case 'approve_shifts':
@@ -62,27 +63,13 @@ export function featureKeyToPreviewTab(key: EnabledFeatureKey): AppNavTab {
   }
 }
 
-/**
- * Schede nell’anteprima admin: stessa barra reale + Ferie se il permesso è attivo (anche fuori barra).
- */
+/** Schede nell’anteprima admin: identiche alla bottom bar reale. */
 export function getProfileHubTabs(
   user: User,
   isManagement: boolean,
   featureFlags?: FeatureFlags | null
 ): AppNavTab[] {
-  const base = getUnifiedNavTabs(user, isManagement, featureFlags);
-  const feat = getEnabledFeatures(user);
-  const wantFerie = feat.ferie_tab === true && isStaffRequestsFeatureEnabled(featureFlags);
-  const order: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'settings'];
-  const out: AppNavTab[] = [];
-  for (const id of order) {
-    if (id === 'ferie') {
-      if (wantFerie) out.push('ferie');
-    } else if (base.includes(id)) {
-      out.push(id);
-    }
-  }
-  return out;
+  return getUnifiedNavTabs(user, isManagement, featureFlags);
 }
 
 export function staffModuleToPreviewTab(mod: EnabledModule, isManagement: boolean): AppNavTab {

@@ -34,7 +34,7 @@ export default function UserAvatarMenu({ variant = 'pill', dense = false, onLogo
   const modalRef = useRef<HTMLDivElement>(null);
 
   const roleKeyMap: Record<string, string> = {
-    admin: 'Admin', proprietario: 'Proprietario', manager: 'Manager', assistant_manager: 'Ass. Manager',
+    admin: 'Admin', proprietario: 'Manager', manager: 'Manager', assistant_manager: 'Ass. Manager',
     waiter: 'Sala', server: 'Sala', cook: 'Cucina', chef: 'Cucina',
     bartender: 'Bar', dishwasher: 'Pulizie',
   };

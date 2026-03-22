@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback, useRef } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
@@ -16,8 +16,14 @@ import { Wrench, MonitorOff } from 'lucide-react';
 import { persistStoredUiLanguage } from './utils/uiLanguagePreference';
 import { PATH_TIMBRATURA, PATH_PROFILO } from './config/appPaths';
 import { APP_SESSION_STORAGE_KEY } from './constants/appSession';
-import { getUnifiedNavTabs, getVisibleManagementTabs, type AppNavTab } from './utils/enabledModules';
-import { isAdminOnly } from './utils/permissions';
+import { getUnifiedNavTabs, type AppNavTab } from './utils/enabledModules';
+import {
+  readMainViewState,
+  writeMainViewState,
+  clearMainViewState,
+  applyWindowScrollY,
+} from './utils/mainAppViewRestore';
+import { isAdminOnly, isManagementRole } from './utils/permissions';
 import AdminGate from './components/AdminGate';
 import AdminLayout from './components/AdminLayout';
 
@@ -26,8 +32,6 @@ const HolidayRequests = lazy(() => import('./components/HolidayRequests'));
 const Statistics = lazy(() => import('./components/Statistics'));
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
 const Timesheets = lazy(() => import('./components/Timesheets'));
-
-const MANAGEMENT_ROLES = ['admin', 'proprietario', 'manager', 'assistant_manager'];
 
 // ─── Maintenance Page ─────────────────────────────────────────────────────────
 function MaintenancePage() {
@@ -48,18 +52,18 @@ function MaintenancePage() {
   );
 }
 
-// ─── Kiosk Disabled Page ──────────────────────────────────────────────────────
+// ─── Kiosk Disabled Page (/timbratura — sempre copy in inglese) ───────────────
 function KioskOffPage() {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-900 px-6 text-center font-sans antialiased">
       <div className="w-20 h-20 rounded-2xl bg-slate-800 flex items-center justify-center mb-6 shadow-inner">
         <MonitorOff className="w-10 h-10 text-slate-400" />
       </div>
-      <h1 className="text-2xl font-bold text-white mb-2">Terminale Disattivato</h1>
+      <h1 className="text-2xl font-bold text-white mb-2">Terminal unavailable</h1>
       <p className="text-slate-400 text-base max-w-xs leading-relaxed">
-        Il terminale di timbratura è momentaneamente disattivato.
+        The punch clock terminal is temporarily disabled.
       </p>
-      <p className="text-slate-500 text-sm mt-2">Contatta il responsabile per informazioni.</p>
+      <p className="text-slate-500 text-sm mt-2">Contact a manager for assistance.</p>
     </div>
   );
 }
@@ -68,6 +72,14 @@ function KioskOffPage() {
 function KioskRoute() {
   const navigate = useNavigate();
   const { currentUser, featureFlags } = useApp();
+
+  useEffect(() => {
+    const prevLang = document.documentElement.lang;
+    document.documentElement.lang = 'en';
+    return () => {
+      document.documentElement.lang = prevLang;
+    };
+  }, []);
 
   useEffect(() => {
     if (currentUser) navigate('/app', { replace: true });
@@ -113,26 +125,60 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     postRefreshLocked,
     silentRefreshData,
     featureFlags,
+    roleTemplatesRevision,
   } = useApp();
 
-  const isManagement = currentUser ? MANAGEMENT_ROLES.includes(currentUser.role) : false;
+  const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
 
+  /** `roleTemplatesRevision` deve essere nelle dipendenze: `getEnabledFeatures` legge il template da cache modulo; dopo PIN/sync il memo altrimenti resta sulla lista schede vecchia. */
   const visibleNavTabs = useMemo((): AppNavTab[] => {
     if (!currentUser) return ['home'];
     return getUnifiedNavTabs(currentUser, isManagement, featureFlags);
-  }, [currentUser, isManagement, featureFlags]);
+  }, [currentUser, isManagement, featureFlags, roleTemplatesRevision]);
+
+  const tr = getTranslations(effectiveLanguage);
+  const noNavTabs = Boolean(currentUser && visibleNavTabs.length === 0);
+
+  const appStickyHeaderRef = useRef<HTMLElement | null>(null);
+
+  /** Altezza reale header sticky → `--app-sticky-header-offset` per barre interne (es. date turni). */
+  useLayoutEffect(() => {
+    const el = appStickyHeaderRef.current;
+    if (!el) return;
+    const setOffset = () => {
+      const h = Math.ceil(el.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--app-sticky-header-offset', `${h}px`);
+    };
+    setOffset();
+    const ro = new ResizeObserver(setOffset);
+    ro.observe(el);
+    window.addEventListener('resize', setOffset);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', setOffset);
+      document.documentElement.style.removeProperty('--app-sticky-header-offset');
+    };
+  }, []);
 
   const [activeTab, setActiveTab] = useState<AppNavTab>('home');
+  const mainViewRestoredUserIdRef = useRef<string | null>(null);
+  const pendingScrollRestoreRef = useRef<{ y: number; tab: AppNavTab } | null>(null);
+  /** Allinea staff a Storage (template/flag) senza burst: stesso ordine di grandezza del throttle in AppContext. */
+  const storagePullThrottleRef = useRef(0);
+  const STORAGE_PULL_THROTTLE_MS = 5000;
 
   const handleTabChange = useCallback(
     (id: AppNavTab) => {
       if (isManagement && id === 'settings' && currentUser && isAdminOnly(currentUser)) {
-        silentRefreshData();
+        void silentRefreshData({ pullRemoteConfig: true });
         navigate('/admin');
         return;
       }
       setActiveTab(id);
-      silentRefreshData();
+      const now = Date.now();
+      const pullRemote = now - storagePullThrottleRef.current >= STORAGE_PULL_THROTTLE_MS;
+      if (pullRemote) storagePullThrottleRef.current = now;
+      void silentRefreshData(pullRemote ? { pullRemoteConfig: true } : undefined);
     },
     [currentUser, isManagement, navigate, silentRefreshData]
   );
@@ -143,15 +189,109 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
   useEffect(() => {
     if (!currentUser) return;
-    // Ferie: solo gestione, accessibile dalla Home ma non in bottom bar
-    if (isManagement && activeTab === 'ferie') {
-      const v = getVisibleManagementTabs(currentUser, featureFlags);
-      if (v.includes('ferie')) return;
-    }
+    if (visibleNavTabs.length === 0) return;
     if (!visibleNavTabs.includes(activeTab)) {
-      setActiveTab(visibleNavTabs[0] ?? 'home');
+      setActiveTab(visibleNavTabs[0]!);
     }
   }, [currentUser, isManagement, featureFlags, visibleNavTabs, activeTab]);
+
+  /** Dopo reload: ripristina tab e (subito dopo il paint) scroll salvati in sessionStorage. */
+  useLayoutEffect(() => {
+    if (!currentUser?.id || visibleNavTabs.length === 0) return;
+    if (mainViewRestoredUserIdRef.current === currentUser.id) return;
+    mainViewRestoredUserIdRef.current = currentUser.id;
+    const s = readMainViewState(currentUser.id);
+    if (s?.activeTab && visibleNavTabs.includes(s.activeTab as AppNavTab)) {
+      const tab = s.activeTab as AppNavTab;
+      setActiveTab(tab);
+      pendingScrollRestoreRef.current = { y: s.scrollY, tab };
+    } else {
+      pendingScrollRestoreRef.current = null;
+    }
+  }, [currentUser?.id, visibleNavTabs]);
+
+  useEffect(() => {
+    const bundle = pendingScrollRestoreRef.current;
+    if (!bundle || bundle.tab !== activeTab) return;
+    if (isGlobalRefreshing || postRefreshLocked) return;
+    pendingScrollRestoreRef.current = null;
+    const y = bundle.y;
+    const apply = () => applyWindowScrollY(y);
+    apply();
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      apply();
+      raf2 = requestAnimationFrame(apply);
+    });
+    const t1 = window.setTimeout(apply, 80);
+    const t2 = window.setTimeout(apply, 320);
+    const t3 = window.setTimeout(apply, 800);
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearTimeout(t3);
+    };
+  }, [activeTab, isGlobalRefreshing, postRefreshLocked]);
+
+  const persistSkipFirstActiveTabRef = useRef(true);
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    const save = () => {
+      writeMainViewState(currentUser.id, {
+        activeTab,
+        scrollY: window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0,
+      });
+    };
+    const onVis = () => {
+      if (document.visibilityState === 'hidden') save();
+    };
+    window.addEventListener('pagehide', save);
+    window.addEventListener('beforeunload', save);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('pagehide', save);
+      window.removeEventListener('beforeunload', save);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [currentUser?.id, activeTab]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    if (persistSkipFirstActiveTabRef.current) {
+      persistSkipFirstActiveTabRef.current = false;
+      return;
+    }
+    writeMainViewState(currentUser.id, {
+      activeTab,
+      scrollY: window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0,
+    });
+  }, [currentUser?.id, activeTab]);
+
+  /** Da NotificationCenter / Statistiche: apre tab (es. Presenze) e scroll ad ancoraggio. */
+  useEffect(() => {
+    const onNavigate = (e: Event) => {
+      const ce = e as CustomEvent<{ tab?: AppNavTab; anchor?: string }>;
+      const tab = ce.detail?.tab;
+      const anchor = ce.detail?.anchor;
+      if (!tab || !visibleNavTabs.includes(tab)) return;
+      setActiveTab(tab);
+      const now = Date.now();
+      const pullRemote = now - storagePullThrottleRef.current >= STORAGE_PULL_THROTTLE_MS;
+      if (pullRemote) storagePullThrottleRef.current = now;
+      void silentRefreshData(pullRemote ? { pullRemoteConfig: true } : undefined);
+      const scrollTo = () => {
+        if (!anchor) return;
+        document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      requestAnimationFrame(() => requestAnimationFrame(scrollTo));
+      window.setTimeout(scrollTo, 400);
+      window.setTimeout(scrollTo, 800);
+    };
+    window.addEventListener('osteria-navigate', onNavigate as EventListener);
+    return () => window.removeEventListener('osteria-navigate', onNavigate as EventListener);
+  }, [visibleNavTabs, isManagement, silentRefreshData]);
 
   const renderManagementContent = () => {
     switch (activeTab) {
@@ -183,12 +323,18 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div className="min-h-screen min-h-[100dvh] w-full bg-[#f8fafc] text-[#1a1a1a] font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
-      <BodyPullToRefresh onRefresh={silentRefreshData} disabled={!!(isGlobalRefreshing || postRefreshLocked)} />
+      <BodyPullToRefresh
+        onRefresh={() => silentRefreshData({ pullRemoteConfig: true })}
+        disabled={!!(isGlobalRefreshing || postRefreshLocked)}
+      />
 
       {/*
         Sticky: solo safe-area + padding come il main (px-4 sm:px-6). Un’unica card definisce i bordi visibili.
       */}
-      <header className="sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] px-4 sm:px-6 pb-2">
+      <header
+        ref={appStickyHeaderRef}
+        className="sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] px-4 sm:px-6 pb-2"
+      >
         <div className={appHeaderCardClass}>
           <MobileProfileHeader
             onLogout={onLogout}
@@ -203,7 +349,11 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked ? 'blur-md pointer-events-none' : ''}`}
       >
         <div className="w-full flex-1 pt-3 sm:pt-4 pb-content px-4 sm:px-6">
-          {isManagement ? (
+          {noNavTabs ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-10 text-center text-sm text-amber-950 max-w-lg mx-auto">
+              {(tr as Record<string, string>).app_all_nav_tabs_disabled}
+            </div>
+          ) : isManagement ? (
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
@@ -246,7 +396,9 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
       <AnimatePresence mode="wait">{postRefreshLocked && <RefreshLockOverlay key="refresh-lock" />}</AnimatePresence>
 
-      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} visibleTabs={visibleNavTabs} />
+      {!noNavTabs && (
+        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} visibleTabs={visibleNavTabs} />
+      )}
     </div>
   );
 }
@@ -255,15 +407,15 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 function ProtectedApp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, featureFlags, showError } = useApp();
+  const { currentUser, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, featureFlags, showError, effectiveLanguage } = useApp();
 
   useEffect(() => {
     const state = location.state as { accessDenied?: boolean } | null;
     if (state?.accessDenied) {
-      showError?.('Accesso Negato');
+      showError?.(getTranslations(effectiveLanguage).app_access_denied);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, location.pathname, navigate, showError]);
+  }, [location.state, location.pathname, navigate, showError, effectiveLanguage]);
 
   const handleLogout = () => {
     forceLightTheme();
@@ -281,6 +433,7 @@ function ProtectedApp() {
 
   useEffect(() => {
     if (forceLogoutRequested) {
+      if (currentUser?.id) clearMainViewState(currentUser.id);
       forceLightTheme();
       try {
         localStorage.removeItem(APP_SESSION_STORAGE_KEY);
@@ -294,7 +447,14 @@ function ProtectedApp() {
       clearForceLogoutRequest();
       navigate(PATH_TIMBRATURA, { replace: true });
     }
-  }, [forceLogoutRequested, clearForceLogoutRequest, currentUser?.language, setCurrentUser, navigate]);
+  }, [
+    forceLogoutRequested,
+    clearForceLogoutRequest,
+    currentUser?.id,
+    currentUser?.language,
+    setCurrentUser,
+    navigate,
+  ]);
 
   if (!currentUser) {
     return <Navigate to={PATH_PROFILO} replace />;

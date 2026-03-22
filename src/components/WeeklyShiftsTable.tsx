@@ -1,12 +1,14 @@
-import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, type RefObject } from 'react';
-import { format, startOfWeek, startOfMonth, addDays, addMonths, parseISO, isToday, eachDayOfInterval, getDay } from 'date-fns';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, type MouseEvent as ReactMouseEvent } from 'react';
+import { format, startOfWeek, endOfWeek, addDays, parseISO, isToday, eachDayOfInterval, getDay } from 'date-fns';
 import { database } from '../lib/database';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
+import { useClampedFixedDropdown } from '../hooks/useClampedFixedDropdown';
 import { Shift, type ApprovalStatus } from '../types';
 import { calculateShiftMinutesGross, getActualShiftTime, formatMinutesToHoursAndMinutes, roundToNext5Minutes, hasShiftConflictSameDay } from '../utils/timeCalculations';
+import { getPunchPairForShift, getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
 import { getTranslations, getDateLocale, getIntlLocale, formatTrans } from '../utils/translations';
 import { getShiftViolations } from '../utils/workRules';
 import { getBreakMinutesForShift, getNetShiftMinutes } from '../utils/breakRules';
@@ -17,8 +19,20 @@ import { exportSchedulePDF } from '../utils/exportSchedulePDF';
 import { getHiddenDates, toggleHiddenDate } from '../utils/hiddenPeriods';
 import { getHistory, type HistoryEntry } from '../utils/scheduleHistory';
 import { getDepartments, getDeptColor } from '../utils/departments';
-import { loadPeriodConfig, getPeriodStartDate, weekIndexForDateInPeriod } from '../utils/periodConfig';
+import {
+  loadPeriodConfig,
+  savePeriodConfig as persistPeriodConfig,
+  getPeriodStartDate,
+  getPeriodEndDate,
+  weekIndexForDateInPeriod,
+  dispatchPeriodConfigUpdated,
+  type PeriodConfig,
+} from '../utils/periodConfig';
+import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
+import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import DatePickerField, { isDatePickerPortalClick } from './DatePickerField';
+import { HorizontalScrollArea } from './HorizontalScrollArea';
 
 /**
  * ── WEB vs MOBILE (breakpoint sm = 640px) ─────────────────────────────────────
@@ -163,81 +177,42 @@ interface WeeklyShiftsTableProps {
   stickyDateBarInScrollPane?: boolean;
 }
 
-/** Margini viewport per menu fixed (evita taglio con overflow-x-clip / schermi stretti). */
-const DROPDOWN_VIEW_MARGIN = 8;
-
-/**
- * Posizione `fixed` sotto il trigger, larghezza max clampata, orizzontale clampato nel viewport
- * (preferisce allineamento a destra come `right-0` ma sposta se esce a sinistra).
- */
-function useClampedFixedDropdown(
-  open: boolean,
-  containerRef: RefObject<HTMLElement | null>,
-  preferredWidth: number
-): { top: number; left: number; width: number } | null {
-  const [style, setStyle] = useState<{ top: number; left: number; width: number } | null>(null);
-
-  const update = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    if (!open || !containerRef.current) {
-      setStyle(null);
-      return;
-    }
-    const r = containerRef.current.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const w = Math.min(preferredWidth, vw - DROPDOWN_VIEW_MARGIN * 2);
-    let left = r.right - w;
-    if (left < DROPDOWN_VIEW_MARGIN) left = DROPDOWN_VIEW_MARGIN;
-    if (left + w > vw - DROPDOWN_VIEW_MARGIN) left = vw - w - DROPDOWN_VIEW_MARGIN;
-    const top = r.bottom + 4;
-    setStyle({ top, left, width: w });
-  }, [open, containerRef, preferredWidth]);
-
-  useLayoutEffect(() => {
-    update();
-  }, [update]);
-
-  useEffect(() => {
-    if (!open) return;
-    update();
-    const onReposition = () => update();
-    window.addEventListener('scroll', onReposition, true);
-    window.addEventListener('resize', onReposition);
-    return () => {
-      window.removeEventListener('scroll', onReposition, true);
-      window.removeEventListener('resize', onReposition);
-    };
-  }, [open, update]);
-
-  return style;
-}
-
 export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollPane = false }: WeeklyShiftsTableProps = {}) {
-  const [periodConfig, setPeriodConfig] = useState(loadPeriodConfig);
-  const [weekIndex, setWeekIndex] = useState(() => weekIndexForDateInPeriod(loadPeriodConfig()));
+  const initialPeriod = loadPeriodConfig();
+  const [periodConfig, setPeriodConfig] = useState(initialPeriod);
+  const [periodDraftStart, setPeriodDraftStart] = useState<string>(initialPeriod.startDate);
+  const [periodDraftNumWeeks, setPeriodDraftNumWeeks] = useState<4 | 5>(initialPeriod.numWeeks);
+  const [periodDraftSaved, setPeriodDraftSaved] = useState(true);
+  const [weekIndex, setWeekIndex] = useState(() => weekIndexForDateInPeriod(initialPeriod));
   const [viewMode, setViewMode] = useState<'week' | '2weeks' | 'day' | 'month'>('week');
-  const [monthOffset, setMonthOffset] = useState(0);
+  /** Vista periodo: offset in settimane; frecce spostano di un intero periodo di paga (4 o 5 sett.). */
+  const [periodPanOffsetWeeks, setPeriodPanOffsetWeeks] = useState(0);
 
   useEffect(() => {
-    const handler = () => setPeriodConfig(loadPeriodConfig());
+    const handler = () => {
+      const cfg = loadPeriodConfig();
+      setPeriodConfig(cfg);
+      setPeriodDraftStart(cfg.startDate);
+      setPeriodDraftNumWeeks(cfg.numWeeks);
+      setPeriodDraftSaved(true);
+    };
     window.addEventListener('osteria_period_updated', handler);
     return () => window.removeEventListener('osteria_period_updated', handler);
   }, []);
-  const [showMenuOpen, setShowMenuOpen] = useState(false);
-  const [filtersMenuOpen, setFiltersMenuOpen] = useState(false);
-  const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
-  const [templatesMenuOpen, setTemplatesMenuOpen] = useState(false);
-  const [legendOpen, setLegendOpen] = useState(false);
+
+  const [wstToolbarDrawerOpen, setWstToolbarDrawerOpen] = useState(false);
+  const [wstToolbarDrawerSection, setWstToolbarDrawerSection] = useState<
+    null | 'filters' | 'legend' | 'department' | 'actions'
+  >(null);
   const [templatesList, setTemplatesList] = useState<string[]>([]);
   const [saveTemplateName, setSaveTemplateName] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
-  const showMenuRef = useRef<HTMLDivElement | null>(null);
-  const filtersMenuRef = useRef<HTMLDivElement | null>(null);
-  const toolsMenuRef = useRef<HTMLDivElement | null>(null);
-  const templatesMenuRef = useRef<HTMLDivElement | null>(null);
-  const legendRef = useRef<HTMLDivElement | null>(null);
-  const legendDropdownStyle = useClampedFixedDropdown(legendOpen, legendRef, 224);
-  const toolsDropdownStyle = useClampedFixedDropdown(toolsMenuOpen, toolsMenuRef, 256);
+  const wstToolbarDrawerRef = useRef<HTMLDivElement | null>(null);
+  const wstToolbarDrawerStyle = useClampedFixedDropdown(wstToolbarDrawerOpen, wstToolbarDrawerRef, 320);
+  const closeWstToolbarDrawer = useCallback(() => {
+    setWstToolbarDrawerOpen(false);
+    setWstToolbarDrawerSection(null);
+  }, []);
   const [selectedShiftIds, setSelectedShiftIds] = useState<string[]>([]);
   const [bulkEditStart, setBulkEditStart] = useState('');
   const [bulkEditEnd, setBulkEditEnd] = useState('');
@@ -274,15 +249,44 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [dateBarStuck, setDateBarStuck] = useState(false);
   const footerTotalsScrollRef = useRef<HTMLDivElement | null>(null);
   const cardScrollRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const syncScrollFromProgrammatic = useRef(false);
   const syncScrollLeft = useCallback((source: HTMLDivElement | null) => {
-    if (!source) return;
-    const left = source.scrollLeft;
+    if (!source || syncScrollFromProgrammatic.current) return;
+    const maxS = source.scrollWidth - source.clientWidth;
+    const ratio = maxS <= 0 ? 0 : source.scrollLeft / maxS;
+
+    syncScrollFromProgrammatic.current = true;
     requestAnimationFrame(() => {
-      if (dateBarScrollRef.current && dateBarScrollRef.current !== source) dateBarScrollRef.current.scrollLeft = left;
-      if (footerTotalsScrollRef.current && footerTotalsScrollRef.current !== source) footerTotalsScrollRef.current.scrollLeft = left;
-      cardScrollRefs.current.forEach((ref) => { if (ref && ref !== source) ref.scrollLeft = left; });
+      const apply = (el: HTMLDivElement | null) => {
+        if (!el || el === source) return;
+        const maxT = el.scrollWidth - el.clientWidth;
+        const next = maxT <= 0 ? 0 : ratio * maxT;
+        if (Math.abs(el.scrollLeft - next) > 0.5) el.scrollLeft = next;
+      };
+      apply(dateBarScrollRef.current);
+      apply(footerTotalsScrollRef.current);
+      cardScrollRefs.current.forEach(apply);
+      syncScrollFromProgrammatic.current = false;
     });
   }, []);
+
+  /** Periodo pianificazione effettivo (bozza in Azioni finché non salvato). Vista mese: giorni attivi solo qui. */
+  const displayPeriodConfig: PeriodConfig = useMemo(() => {
+    if (periodDraftSaved) return periodConfig;
+    const startStr = periodDraftStart.slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startStr)) {
+      return { startDate: periodConfig.startDate, numWeeks: periodDraftNumWeeks };
+    }
+    const d = parseISO(startStr);
+    if (Number.isNaN(d.getTime())) {
+      return { startDate: periodConfig.startDate, numWeeks: periodDraftNumWeeks };
+    }
+    return { startDate: startStr, numWeeks: periodDraftNumWeeks };
+  }, [periodDraftSaved, periodConfig, periodDraftStart, periodDraftNumWeeks]);
+
+  useEffect(() => {
+    setPeriodPanOffsetWeeks(0);
+  }, [displayPeriodConfig.startDate, displayPeriodConfig.numWeeks]);
 
   const periodStartDate = getPeriodStartDate(periodConfig);
   const maxWeekIndex = periodConfig.numWeeks - 1;
@@ -294,9 +298,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   }, [maxWeekIndex]);
 
   useEffect(() => {
+    syncScrollFromProgrammatic.current = true;
     if (dateBarScrollRef.current) dateBarScrollRef.current.scrollLeft = 0;
     if (footerTotalsScrollRef.current) footerTotalsScrollRef.current.scrollLeft = 0;
     cardScrollRefs.current.forEach((ref) => { if (ref) ref.scrollLeft = 0; });
+    requestAnimationFrame(() => { syncScrollFromProgrammatic.current = false; });
   }, [weekIndex]);
 
   /** Ombra più marcata quando la barra date è in sticky (scroll verso il basso). */
@@ -319,7 +325,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [weekIndex, viewMode, monthOffset, stickyDateBarInScrollPane]);
+  }, [weekIndex, viewMode, displayPeriodConfig.startDate, displayPeriodConfig.numWeeks, periodPanOffsetWeeks, stickyDateBarInScrollPane]);
 
   // GestioneTurni: click-to-filter by employee
   const [localFilterUserId, setLocalFilterUserId] = useState<string | null>(null);
@@ -359,13 +365,29 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   }, [postRefreshLocked]);
 
 
+  /** Finestra vista periodo (frecce = ± un periodo di paga, stessa lunghezza di Azioni). */
+  const monthViewPeriodStart = useMemo(
+    () => addDays(getPeriodStartDate(displayPeriodConfig), periodPanOffsetWeeks * 7),
+    [displayPeriodConfig, periodPanOffsetWeeks]
+  );
+  const monthViewPeriodEnd = useMemo(
+    () => addDays(getPeriodEndDate(displayPeriodConfig), periodPanOffsetWeeks * 7),
+    [displayPeriodConfig, periodPanOffsetWeeks]
+  );
+
+  const isDayInMonthViewWindow = useCallback(
+    (d: Date) => {
+      const s = format(d, 'yyyy-MM-dd');
+      return s >= format(monthViewPeriodStart, 'yyyy-MM-dd') && s <= format(monthViewPeriodEnd, 'yyyy-MM-dd');
+    },
+    [monthViewPeriodStart, monthViewPeriodEnd]
+  );
+
   const allWeekDays = useMemo(() => {
     if (viewMode === 'month') {
-      const monthStart = startOfMonth(addMonths(new Date(), monthOffset));
-      const calStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-      const days: Date[] = [];
-      for (let i = 0; i < 42; i++) days.push(addDays(calStart, i));
-      return days;
+      const calStart = startOfWeek(monthViewPeriodStart, { weekStartsOn: 1 });
+      const calEnd = endOfWeek(monthViewPeriodEnd, { weekStartsOn: 1 });
+      return eachDayOfInterval({ start: calStart, end: calEnd });
     }
     if (viewMode === 'day') {
       return [weekStart];
@@ -375,9 +397,25 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     const lastDay = addDays(weekStart, n - 1);
     const capped = lastDay > periodEndDate ? Math.max(1, Math.ceil((periodEndDate.getTime() - weekStart.getTime()) / (24 * 60 * 60 * 1000))) : n;
     return Array.from({ length: capped }, (_, i) => addDays(weekStart, i));
-  }, [weekStart, periodStartDate, periodConfig.numWeeks, viewMode, monthOffset]);
+  }, [weekStart, periodStartDate, periodConfig.numWeeks, viewMode, monthViewPeriodStart, monthViewPeriodEnd]);
 
-  const monthStart = useMemo(() => viewMode === 'month' ? startOfMonth(addMonths(new Date(), monthOffset)) : null, [viewMode, monthOffset]);
+  /** Data pagamento unica per la finestra (mese civile della fine periodo visibile), come Presenze. */
+  const periodViewPrimaryPayrollStr = useMemo(
+    () => format(getPayrollPaymentDateForCalendarMonth(monthViewPeriodEnd), 'yyyy-MM-dd'),
+    [monthViewPeriodEnd]
+  );
+
+  const periodPayrollChipDatesWst = useMemo(() => {
+    const pay = getPayrollPaymentDateForCalendarMonth(monthViewPeriodEnd);
+    const loc = getDateLocale(effectiveLanguage) ?? it;
+    return format(pay, 'd MMM yyyy', { locale: loc });
+  }, [monthViewPeriodEnd, effectiveLanguage]);
+
+  /** Settimana / 2 sett. / giorno: solo la paga del mese della **fine** periodo. Vista mese periodo: stesso criterio sulla finestra (fine periodo visibile). */
+  const weekSchedulePayrollDayStr = useMemo(
+    () => format(getPayrollPaymentDateForCalendarMonth(getPeriodEndDate(displayPeriodConfig)), 'yyyy-MM-dd'),
+    [displayPeriodConfig]
+  );
 
   /** Template: carica lista nomi da Supabase */
   const loadTemplatesList = useCallback(async () => {
@@ -427,13 +465,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           if (res) created++; else skipped++;
         } catch { skipped++; }
       }
-      setTemplatesMenuOpen(false);
+      closeWstToolbarDrawer();
       const msg = skipped > 0
         ? formatTrans(t.template_applied_with_skipped, { base: t.template_applied, created, skipped })
         : formatTrans(t.template_applied_created_only, { base: t.template_applied, created });
       (showSuccess || showError)(msg);
     } catch { (showError ?? (() => {}))(t.template_apply_error); }
-  }, [allWeekDays, addShift, showSuccess, showError, t]);
+  }, [allWeekDays, addShift, showSuccess, showError, t, closeWstToolbarDrawer]);
 
   /** Template: elimina un template */
   const handleDeleteTemplate = useCallback(async (name: string) => {
@@ -510,6 +548,20 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const canManageDrafts = currentUser ? isFeatureEnabled(currentUser, 'edit_shifts') : false;
   const canApproveShifts = currentUser ? isFeatureEnabled(currentUser, 'approve_shifts') : false;
   const isStaff = !isManagement;
+
+  const handleSavePeriodConfigWst = useCallback(() => {
+    const cfg = { startDate: periodDraftStart, numWeeks: periodDraftNumWeeks };
+    persistPeriodConfig(cfg);
+    setPeriodConfig(cfg);
+    setPeriodDraftSaved(true);
+    setWeekIndex(0);
+    dispatchPeriodConfigUpdated();
+    showSuccess?.(t.ts_period_saved);
+    void saveTimesheetPeriodToSupabase(cfg).catch(() => {
+      showError?.(t.ts_period_cloud_failed);
+    });
+  }, [periodDraftStart, periodDraftNumWeeks, showSuccess, showError, t]);
+
   const wTurniToolbar = !isStaff && currentUser ? isUiWidgetVisible(currentUser, 'turni.toolbar_block') : true;
   const wTurniDate = !isStaff && currentUser ? isUiWidgetVisible(currentUser, 'turni.date_nav_bar') : true;
   const wTurniGrid = !isStaff && currentUser ? isUiWidgetVisible(currentUser, 'turni.schedule_grid') : true;
@@ -561,17 +613,20 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         setSidebarMenuShiftId(null);
         setSidebarStatusSubmenuShiftId(null);
       }
-      if (showMenuRef.current && !showMenuRef.current.contains(e.target as Node)) setShowMenuOpen(false);
-      if (filtersMenuRef.current && !filtersMenuRef.current.contains(e.target as Node)) setFiltersMenuOpen(false);
-      if (toolsMenuRef.current && !toolsMenuRef.current.contains(e.target as Node)) setToolsMenuOpen(false);
-      if (templatesMenuRef.current && !templatesMenuRef.current.contains(e.target as Node)) setTemplatesMenuOpen(false);
-      if (legendRef.current && !legendRef.current.contains(e.target as Node)) setLegendOpen(false);
+      if (
+        wstToolbarDrawerRef.current &&
+        !wstToolbarDrawerRef.current.contains(e.target as Node) &&
+        !isDatePickerPortalClick(e.target)
+      ) {
+        setWstToolbarDrawerOpen(false);
+        setWstToolbarDrawerSection(null);
+      }
     };
-    if (sidebarMenuShiftId || sidebarStatusSubmenuShiftId || showMenuOpen || filtersMenuOpen || toolsMenuOpen || templatesMenuOpen || legendOpen) {
+    if (sidebarMenuShiftId || sidebarStatusSubmenuShiftId || wstToolbarDrawerOpen) {
       document.addEventListener('click', handleClick);
       return () => document.removeEventListener('click', handleClick);
     }
-  }, [sidebarMenuShiftId, sidebarStatusSubmenuShiftId, showMenuOpen, filtersMenuOpen, toolsMenuOpen, templatesMenuOpen, legendOpen]);
+  }, [sidebarMenuShiftId, sidebarStatusSubmenuShiftId, wstToolbarDrawerOpen]);
 
 
   const activeUsers = useMemo(() => {
@@ -695,19 +750,19 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       if (!isInputFocused) {
         if (e.key === 'ArrowLeft') {
           e.preventDefault();
-          if (viewMode === 'month') setMonthOffset(prev => prev - 1);
-          else setWeekIndex(prev => Math.max(0, prev - 1));
+          if (viewMode === 'month') setPeriodPanOffsetWeeks((p) => p - displayPeriodConfig.numWeeks);
+          else setWeekIndex((prev) => Math.max(0, prev - 1));
         }
         if (e.key === 'ArrowRight') {
           e.preventDefault();
-          if (viewMode === 'month') setMonthOffset(prev => prev + 1);
-          else setWeekIndex(prev => Math.min(maxWeekIndex, prev + 1));
+          if (viewMode === 'month') setPeriodPanOffsetWeeks((p) => p + displayPeriodConfig.numWeeks);
+          else setWeekIndex((prev) => Math.min(maxWeekIndex, prev + 1));
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [viewMode, maxWeekIndex]);
+  }, [viewMode, maxWeekIndex, displayPeriodConfig.numWeeks]);
 
   useEffect(() => {
     const handleClickOutside = (e: PointerEvent) => {
@@ -815,68 +870,57 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     return `${base}${selectedStyle}rounded-xl px-1.5 py-1 my-0.5 mx-0.5 cursor-default min-h-[44px] sm:min-h-[44px]`;
   };
 
-  const GHOST_END = '23:00';
-
-  /** Restituisce end_time effettivo: reale, 16:00 per 10:00, o 23:00 fantasma per draft serali senza fine. */
-  const getEffectiveEnd = useCallback((shift: Shift): string | null => {
-    const startNorm = (shift.start_time || '').trim().slice(0, 5);
-    const endNorm = (shift.end_time || '').trim().slice(0, 5);
-    if (startNorm === '10:00' && (!endNorm || endNorm === startNorm)) return '16:00';
-    if (endNorm && endNorm !== startNorm) return endNorm;
-    const startHour = parseInt(startNorm.split(':')[0], 10) || 0;
-    if (shift.approval_status === 'draft' && startHour >= 16) return GHOST_END;
-    return null;
-  }, []);
-
-  /** Ore confermate: solo turni confirmed con end_time reale (o 10:00->16:00). */
-  const weeklyMinutesConfirmedByUser = useMemo(() => {
+  /** Ore in settimana (bozza + confermato + approvato), esclusi turni aperti; stessi orari risolti e pause del resto dell’app. */
+  const weeklyMinutesScheduledByUser = useMemo(() => {
     const weekStr = format(weekStart, 'yyyy-MM-dd');
     const weekEnd = format(addDays(weekStart, 7), 'yyyy-MM-dd');
     const weekShifts = shifts.filter(
-      (s) => s && s.date >= weekStr && s.date < weekEnd &&
-        (s.approval_status === 'confirmed' || s.approval_status === 'approved')
+      (s) =>
+        s &&
+        s.date >= weekStr &&
+        s.date < weekEnd &&
+        !isOpenShiftRecord(s) &&
+        (s.approval_status === 'draft' || s.approval_status === 'confirmed' || s.approval_status === 'approved')
     );
     const byUser: Record<string, number> = {};
     for (const shift of weekShifts) {
-      const end = getEffectiveEnd(shift);
-      if (!end) continue;
       try {
-        const startNorm = (shift.start_time || '').trim().slice(0, 5);
+        const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
+        if (!start || !end || start === end) continue;
         const shiftUser = users.find((u) => u.id === shift.user_id);
-        const gross = calculateShiftMinutesGross(startNorm, end);
-        const breakMins = getBreakMinutesForShift(shift, gross, shiftUser ?? undefined, breakRules, breakComputeOpts);
-        const mins = Math.max(0, gross - breakMins);
+        const mins = getNetShiftMinutes(shift, start, end, shiftUser ?? undefined, breakRules, breakComputeOpts);
         byUser[shift.user_id] = (byUser[shift.user_id] ?? 0) + mins;
       } catch {
         /* skip */
       }
     }
     return byUser;
-  }, [shifts, weekStart, getEffectiveEnd, users, breakRules, breakComputeOpts]);
+  }, [shifts, weekStart, users, breakRules, breakComputeOpts, punchRecords]);
 
   /** Ore totali per giorno (somma di tutti gli utenti) — per la riga footer */
   const dailyMinutesByDate = useMemo(() => {
     const byDate: Record<string, number> = {};
     for (const day of allWeekDays) {
       const dateStr = format(day, 'yyyy-MM-dd');
-      const dayShifts = visibleShifts.filter((s) => s.date === dateStr &&
-        (s.approval_status === 'confirmed' || s.approval_status === 'approved'));
+      const dayShifts = visibleShifts.filter(
+        (s) =>
+          s.date === dateStr &&
+          !isOpenShiftRecord(s) &&
+          (s.approval_status === 'draft' || s.approval_status === 'confirmed' || s.approval_status === 'approved')
+      );
       let total = 0;
       for (const shift of dayShifts) {
-        const end = getEffectiveEnd(shift);
-        if (!end) continue;
         try {
-          const startNorm = (shift.start_time || '').trim().slice(0, 5);
+          const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
+          if (!start || !end || start === end) continue;
           const shiftUser = users.find((u) => u.id === shift.user_id);
-          const gross = calculateShiftMinutesGross(startNorm, end);
-          const breakMins = getBreakMinutesForShift(shift, gross, shiftUser ?? undefined, breakRules, breakComputeOpts);
-          total += Math.max(0, gross - breakMins);
+          total += getNetShiftMinutes(shift, start, end, shiftUser ?? undefined, breakRules, breakComputeOpts);
         } catch { /* skip */ }
       }
       byDate[dateStr] = total;
     }
     return byDate;
-  }, [visibleShifts, allWeekDays, getEffectiveEnd, users, breakRules, breakComputeOpts]);
+  }, [visibleShifts, allWeekDays, users, breakRules, breakComputeOpts, punchRecords]);
 
   const [draggedShiftId, setDraggedShiftId] = useState<string | null>(null);
   const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
@@ -1022,6 +1066,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         approval_status: 'confirmed',
         approved_at: null as unknown as string,
         approved_by: null as unknown as string,
+        approved_start_time: null as unknown as string,
+        approved_end_time: null as unknown as string,
       });
       setUnlockShiftId(null);
       setUnlockPin('');
@@ -1127,259 +1173,429 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       )}
       {wTurniToolbar && (
       <>
-      {/* Toolbar: [Oggi] [date] [Vista]  |  [Filtri▾] [Azioni▾] [badge richieste] [badge bozze] */}
-      <div className="ui-toolbar-row mb-4 w-full justify-between">
+      {/* Toolbar: [Oggi] [date] [Vista]  |  [☰ menu: filtri, legenda, reparto, azioni] */}
+      <div className="mb-4 flex w-full min-w-0 flex-wrap items-center justify-between gap-2 sm:gap-3">
 
-        {/* ── Sinistra: navigazione e vista ── */}
-        <div className="ui-toolbar-row-tight min-w-0 sm:gap-2.5">
+        {/* ── Sinistra: stesso pattern scroll della barra Presenze (flex-nowrap + overflow-x) ── */}
+        <div className="flex min-w-0 max-w-full shrink-0 flex-wrap items-center gap-2 sm:h-[22px] sm:max-h-[22px] sm:flex-nowrap sm:gap-2 sm:overflow-x-auto-safe">
           <button
             type="button"
             onClick={() => {
-              setMonthOffset(0);
+              setPeriodPanOffsetWeeks(0);
               setWeekIndex(weekIndexForDateInPeriod(periodConfig));
             }}
-            className="ui-toolbar-ghost-accent"
+            className="ui-toolbar-ghost-accent shrink-0"
           >
             {t.today}
           </button>
-          {/* Selettore vista: Settimana | Mese */}
-          <div className="ui-toolbar-group">
+          <div className="ui-toolbar-group shrink-0">
             {(['week', 'month'] as const).map((vm) => (
               <button
                 key={vm}
                 type="button"
-                onClick={() => { setViewMode(vm); if (vm === 'month') setMonthOffset(0); }}
+                onClick={() => setViewMode(vm)}
                 className={`ui-toolbar-tab ${viewMode === vm ? 'bg-accent text-white' : 'text-slate-600 hover:bg-slate-100'}`}
               >
                 {vm === 'week' ? t.view_week : t.view_month}
               </button>
             ))}
           </div>
+          {viewMode === 'month' && (
+            <>
+              <span
+                className="hidden sm:inline-flex h-[22px] max-w-[min(100%,16rem)] items-center truncate rounded-lg border border-slate-200 bg-slate-50 px-2 text-[11px] font-semibold tabular-nums text-slate-600 shrink-0"
+                title={`${format(monthViewPeriodStart, 'd MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })} → ${format(monthViewPeriodEnd, 'd MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })}`}
+              >
+                {format(monthViewPeriodStart, 'd MMM', { locale: getDateLocale(effectiveLanguage) ?? it })} –{' '}
+                {format(monthViewPeriodEnd, 'd MMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })}
+              </span>
+              {periodPayrollChipDatesWst && (
+                <span
+                  className="hidden min-[480px]:inline-flex h-[22px] max-w-[min(100%,20rem)] shrink-0 items-center truncate rounded-lg border border-emerald-200/90 bg-emerald-50 px-2 text-[10px] font-bold text-emerald-900"
+                  title={periodPayrollChipDatesWst}
+                >
+                  {formatTrans((t as Record<string, string>).wst_month_payroll_chip ?? 'Pagamento: {date}', {
+                    date: periodPayrollChipDatesWst,
+                  })}
+                </span>
+              )}
+            </>
+          )}
           {viewMode !== 'month' && (
-            <span className="inline-flex h-[22px] items-center text-[13px] font-semibold tabular-nums leading-none text-slate-500">
+            <span className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-semibold tabular-nums leading-none text-slate-500">
               {weekIndex + 1}/{periodConfig.numWeeks}
             </span>
           )}
         </div>
 
-        {/* ── Destra: Filtri + Azioni + badge + Scarica PDF ── */}
+        {/* ── Destra: menu hamburger (filtri, legenda, reparto, azioni) ── */}
         <div className="ui-toolbar-row-tight shrink-0">
-
-          {/* ── FILTRI (stato: Approvato, Pubblicato, Bozza) ── */}
           {!isStaff && (
-            <div className="ui-toolbar-dropdown-root" ref={filtersMenuRef}>
-              <button
-                type="button"
-                onClick={() => { setFiltersMenuOpen(!filtersMenuOpen); setShowMenuOpen(false); setToolsMenuOpen(false); }}
-                className={`ui-toolbar-chip ${localFilterStatus !== 'all' ? 'border-accent/30 bg-accent/10 text-accent' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
-              >
-                <Filter className="w-3 h-3" />
-                <span className="hidden sm:inline">{t.wst_filters}</span>
-                {localFilterStatus !== 'all' && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
-                )}
-                <ChevronDown className="w-3 h-3" />
-              </button>
-              {filtersMenuOpen && (
-                <div className="absolute left-0 top-full mt-1 w-28 rounded-xl bg-white border border-slate-200 shadow-xl py-0.5 z-50">
-                  <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                    {t.wst_shift_status_header}
-                  </div>
-                  {[
-                    { key: 'approved' as const,  label: t.ts_status_approved, Icon: Check },
-                    { key: 'confirmed' as const, label: t.wst_filter_published, Icon: Clock },
-                    { key: 'draft' as const,     label: t.status_draft, Icon: FileEdit },
-                  ].map(({ key, label, Icon }) => {
-                    const active = localFilterStatus === key;
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => { setLocalFilterStatus(active ? 'all' : key); setFiltersMenuOpen(false); }}
-                        className={`w-full px-2 py-1 text-left text-[11px] flex items-center gap-1 ${active ? 'bg-accent/10 text-accent font-semibold' : 'text-slate-700 hover:bg-slate-100'}`}
-                      >
-                        <Icon className={`w-2.5 h-2.5 flex-shrink-0 ${active ? 'text-accent' : 'text-slate-400'}`} />
-                        {label}
-                      </button>
-                    );
-                  })}
-                  {localFilterStatus !== 'all' && (
-                    <button
-                      type="button"
-                      onClick={() => { setLocalFilterStatus('all'); setFiltersMenuOpen(false); }}
-                      className="w-full px-2 py-1 text-left text-[11px] text-slate-500 hover:bg-slate-100 flex items-center gap-1 border-t border-slate-100"
-                    >
-                      <X className="w-2.5 h-2.5" /> {t.filter_all}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── LEGGENDA (solo admin/manager/assistant_manager) ── */}
-          {!isStaff && (
-          <div className="ui-toolbar-dropdown-root" ref={legendRef}>
-            <button
-              type="button"
-              onClick={() => { setLegendOpen(!legendOpen); setShowMenuOpen(false); setToolsMenuOpen(false); }}
-              className="ui-toolbar-chip border-slate-200 text-slate-500 hover:bg-slate-100"
-              title={t.wst_legend_tooltip}
-            >
-              <Info className="h-3 w-3" />
-              <span className="hidden sm:inline">{t.wst_legend}</span>
-            </button>
-            {legendOpen && legendDropdownStyle && (
-              <div
-                className="fixed rounded-xl bg-white border border-slate-200 shadow-xl py-2 z-[60] max-h-[80vh] overflow-y-auto overscroll-contain"
-                style={{
-                  top: legendDropdownStyle.top,
-                  left: legendDropdownStyle.left,
-                  width: legendDropdownStyle.width,
-                }}
-              >
-
-                {/* ── Stato turno ── */}
-                <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  {t.wst_shift_status_header}
-                </div>
-                {[
-                  { bg: 'bg-accent',  border: '',                    textCls: 'text-white',  label: t.ts_status_approved,  sub: t.wst_status_sub_approved, check: true },
-                  { bg: 'bg-white',   border: 'border border-slate-200', textCls: 'text-accent', label: t.wst_filter_published, sub: t.wst_status_sub_published, check: false },
-                  { bg: 'bg-white',   border: 'border-dashed border-slate-300', textCls: 'text-black', label: t.status_draft,      sub: t.wst_status_sub_draft, check: false },
-                ].map(({ bg, border, textCls, label, sub, check }) => (
-                  <div key={label} className="flex items-center gap-2.5 px-3 py-1.5">
-                    <span className={`flex-shrink-0 w-10 h-6 rounded-xl ${bg} ${border} flex flex-col items-center justify-center`}>
-                      <span className={`text-[9px] font-bold leading-none ${textCls}`}>10–16</span>
-                      {check && <Check className="w-2.5 h-2.5 text-white mt-0.5" strokeWidth={3} />}
-                    </span>
-                    <span>
-                      <p className="text-xs font-semibold text-slate-700 leading-none">{label}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{sub}</p>
-                    </span>
-                  </div>
-                ))}
-
-                {/* ── Violazioni ── */}
-                <div className="border-t border-slate-100 mt-1.5 pt-1.5">
-                  <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    {t.wst_violations_legend}
-                  </div>
-                  {[
-                    {
-                      ringCls: 'ring-2 ring-red-500',
-                      dot: 'bg-red-500',
-                      label: t.wst_violation_critical,
-                      sub: t.wst_violation_critical_sub,
-                    },
-                    {
-                      ringCls: 'ring-2 ring-amber-400',
-                      dot: 'bg-amber-400',
-                      label: t.wst_violation_attention,
-                      sub: t.wst_violation_attention_sub,
-                    },
-                    {
-                      ringCls: 'shadow-[0_0_8px_rgba(239,68,68,0.6)]',
-                      dot: 'bg-red-300',
-                      label: t.wst_violation_overlap,
-                      sub: t.wst_violation_overlap_sub,
-                    },
-                  ].map(({ ringCls, dot, label, sub }) => (
-                    <div key={label} className="flex items-center gap-2.5 px-3 py-1.5">
-                      <span className={`flex-shrink-0 w-10 h-6 rounded-xl bg-white border border-slate-200 ${ringCls} flex items-center justify-center`}>
-                        <span className={`w-2 h-2 rounded-full ${dot}`} />
-                      </span>
-                      <span>
-                        <p className="text-xs font-semibold text-slate-700 leading-none">{label}</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{sub}</p>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-              </div>
-            )}
-          </div>
-          )}
-
-          {/* ── REPARTO (solo admin/manager/assistant_manager) ── */}
-          {!isStaff && (
-          <div className="ui-toolbar-dropdown-root" ref={showMenuRef}>
-            <button
-              type="button"
-              onClick={() => { setShowMenuOpen(!showMenuOpen); setFiltersMenuOpen(false); setToolsMenuOpen(false); setTemplatesMenuOpen(false); }}
-              className={`ui-toolbar-chip ${localFilterDepartment !== '' ? 'border-accent/30 bg-accent/10 text-accent' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
-            >
-              <span className="hidden sm:inline">{t.wst_department_button}</span>
-              {localFilterDepartment !== '' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
-              )}
-              <ChevronDown className="w-3 h-3" />
-            </button>
-            {showMenuOpen && (
-              <div className="absolute left-0 top-full mt-1 w-48 rounded-xl bg-white border border-slate-200 shadow-xl py-1 z-50">
-                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                  {t.department_filter_label}
-                </div>
-                {[{ value: '', label: t.department_filter_all }, ...getDepartments()].map(({ value: dept, label }) => (
-                  <button
-                    key={dept || 'all'}
-                    type="button"
-                    onClick={() => { setLocalFilterDepartment(dept); setShowMenuOpen(false); }}
-                    className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 ${localFilterDepartment === dept ? 'bg-accent/10 text-accent font-semibold' : 'text-slate-700 hover:bg-slate-100'}`}
-                  >
-                    {dept
-                      ? <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: getDeptColor(dept) }} />
-                      : localFilterDepartment === '' ? <Check className="w-3 h-3 flex-shrink-0" /> : <span className="w-3 h-3 flex-shrink-0" />
-                    }
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          )}
-
-          {/* ── AZIONI (solo admin/manager/assistant_manager) ── */}
-          {!isStaff && (
-          <div className="ui-toolbar-dropdown-root" ref={toolsMenuRef}>
+          <div className="ui-toolbar-dropdown-root shrink-0" ref={wstToolbarDrawerRef}>
             <button
               type="button"
               onClick={() => {
-                const next = !toolsMenuOpen;
-                setToolsMenuOpen(next);
-                setShowMenuOpen(false);
-                setTemplatesMenuOpen(false);
-                if (next) loadTemplatesList();
+                setWstToolbarDrawerOpen((open) => {
+                  if (open) {
+                    setWstToolbarDrawerSection(null);
+                    return false;
+                  }
+                  return true;
+                });
               }}
-              className="ui-toolbar-chip border-slate-200 text-slate-600 hover:bg-slate-100"
-              aria-label={t.wst_actions}
-              title={t.wst_actions}
+              className={`ui-toolbar-chip shrink-0 border-slate-200 text-slate-600 hover:bg-slate-100 ${
+                wstToolbarDrawerOpen ? 'border-accent/35 bg-accent/8 ring-1 ring-accent/15' : ''
+              } ${localFilterStatus !== 'all' || localFilterDepartment !== '' ? 'border-accent/25 bg-accent/5' : ''} ${
+                !periodDraftSaved ? 'border-amber-300/80 bg-amber-50/40' : ''
+              }`}
+              aria-expanded={wstToolbarDrawerOpen}
+              aria-haspopup="true"
+              title={(t as Record<string, string>).wst_toolbar_hamburger_title}
+              aria-label={(t as Record<string, string>).wst_toolbar_hamburger_aria}
             >
-              <MoreHorizontal className="h-3 w-3 shrink-0 sm:hidden" aria-hidden />
-              <span className="hidden sm:inline">{t.wst_actions}</span>
-              <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
+              <Menu className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+              {(localFilterStatus !== 'all' || localFilterDepartment !== '' || !periodDraftSaved) && (
+                <span
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${!periodDraftSaved ? 'bg-amber-500' : 'bg-accent'}`}
+                  aria-hidden
+                />
+              )}
             </button>
-            {toolsMenuOpen && toolsDropdownStyle && (
+            {wstToolbarDrawerOpen && wstToolbarDrawerStyle && (
               <div
-                className="fixed rounded-xl bg-white border border-slate-200 shadow-xl z-[60] max-h-[80vh] overflow-y-auto overscroll-contain"
+                className="fixed rounded-xl border border-slate-200 bg-white py-1 shadow-xl z-[60] max-h-[min(85vh,calc(100dvh-5rem))] overflow-y-auto overscroll-contain"
                 style={{
-                  top: toolsDropdownStyle.top,
-                  left: toolsDropdownStyle.left,
-                  width: toolsDropdownStyle.width,
+                  top: wstToolbarDrawerStyle.top,
+                  left: wstToolbarDrawerStyle.left,
+                  width: wstToolbarDrawerStyle.width,
                 }}
               >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setWstToolbarDrawerSection((sec) => (sec === 'filters' ? null : 'filters'))
+                  }
+                  className="flex w-full items-center justify-between gap-2 border-b border-slate-100 px-3 py-2 text-left hover:bg-slate-50"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <Filter className="h-3.5 w-3.5 shrink-0 text-slate-500" strokeWidth={2.25} />
+                    <span className="text-sm font-semibold text-slate-800">{t.wst_filters}</span>
+                    {localFilterStatus !== 'all' && (
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
+                    )}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
+                      wstToolbarDrawerSection === 'filters' ? '-rotate-180' : ''
+                    }`}
+                    strokeWidth={2.25}
+                    aria-hidden
+                  />
+                </button>
+                {wstToolbarDrawerSection === 'filters' && (
+                  <div className="border-b border-slate-100 py-0.5">
+                    <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                      {t.wst_shift_status_header}
+                    </div>
+                    {[
+                      { key: 'approved' as const, label: t.ts_status_approved, Icon: Check },
+                      { key: 'confirmed' as const, label: t.wst_filter_published, Icon: Clock },
+                      { key: 'draft' as const, label: t.status_draft, Icon: FileEdit },
+                    ].map(({ key, label, Icon }) => {
+                      const active = localFilterStatus === key;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => {
+                            setLocalFilterStatus(active ? 'all' : key);
+                            closeWstToolbarDrawer();
+                          }}
+                          className={`w-full px-2 py-1.5 text-left text-[11px] flex items-center gap-2 ${
+                            active ? 'bg-accent/10 text-accent font-semibold' : 'text-slate-700 hover:bg-slate-100'
+                          }`}
+                        >
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
+                            <Icon className={`h-3.5 w-3.5 ${active ? 'text-accent' : 'text-slate-500'}`} strokeWidth={2.25} />
+                          </span>
+                          {label}
+                        </button>
+                      );
+                    })}
+                    {localFilterStatus !== 'all' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLocalFilterStatus('all');
+                          closeWstToolbarDrawer();
+                        }}
+                        className="w-full px-2 py-1.5 text-left text-[11px] text-slate-500 hover:bg-slate-100 flex items-center gap-2 border-t border-slate-100"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
+                          <X className="h-3.5 w-3.5 text-slate-500" strokeWidth={2.25} />
+                        </span>
+                        {t.filter_all}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setWstToolbarDrawerSection((sec) => (sec === 'legend' ? null : 'legend'))
+                  }
+                  className="flex w-full items-center justify-between gap-2 border-b border-slate-100 px-3 py-2 text-left hover:bg-slate-50"
+                  title={t.wst_legend_tooltip}
+                >
+                  <span className="flex items-center gap-2">
+                    <Info className="h-3.5 w-3.5 shrink-0 text-slate-500" strokeWidth={2.25} />
+                    <span className="text-sm font-semibold text-slate-800">{t.wst_legend}</span>
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
+                      wstToolbarDrawerSection === 'legend' ? '-rotate-180' : ''
+                    }`}
+                    strokeWidth={2.25}
+                    aria-hidden
+                  />
+                </button>
+                {wstToolbarDrawerSection === 'legend' && (
+                  <div className="border-b border-slate-100 py-2">
+                    <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      {t.wst_shift_status_header}
+                    </div>
+                    {[
+                      {
+                        bg: 'bg-accent',
+                        border: '',
+                        textCls: 'text-white',
+                        label: t.ts_status_approved,
+                        sub: t.wst_status_sub_approved,
+                        check: true,
+                      },
+                      {
+                        bg: 'bg-white',
+                        border: 'border border-slate-200',
+                        textCls: 'text-accent',
+                        label: t.wst_filter_published,
+                        sub: t.wst_status_sub_published,
+                        check: false,
+                      },
+                      {
+                        bg: 'bg-white',
+                        border: 'border-dashed border-slate-300',
+                        textCls: 'text-black',
+                        label: t.status_draft,
+                        sub: t.wst_status_sub_draft,
+                        check: false,
+                      },
+                    ].map(({ bg, border, textCls, label, sub, check }) => (
+                      <div key={label} className="flex items-center gap-2.5 px-3 py-1.5">
+                        <span
+                          className={`flex-shrink-0 w-10 h-6 rounded-xl ${bg} ${border} flex flex-col items-center justify-center`}
+                        >
+                          <span className={`text-[9px] font-bold leading-none ${textCls}`}>10–16</span>
+                          {check && <Check className="w-2.5 h-2.5 text-white mt-0.5" strokeWidth={3} />}
+                        </span>
+                        <span>
+                          <p className="text-xs font-semibold text-slate-700 leading-none">{label}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{sub}</p>
+                        </span>
+                      </div>
+                    ))}
+                    <div className="mt-1.5 border-t border-slate-100 pt-1.5">
+                      <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        {t.wst_violations_legend}
+                      </div>
+                      {[
+                        {
+                          ringCls: 'ring-2 ring-red-500',
+                          dot: 'bg-red-500',
+                          label: t.wst_violation_critical,
+                          sub: t.wst_violation_critical_sub,
+                        },
+                        {
+                          ringCls: 'ring-2 ring-amber-400',
+                          dot: 'bg-amber-400',
+                          label: t.wst_violation_attention,
+                          sub: t.wst_violation_attention_sub,
+                        },
+                        {
+                          ringCls: 'shadow-[0_0_8px_rgba(239,68,68,0.6)]',
+                          dot: 'bg-red-300',
+                          label: t.wst_violation_overlap,
+                          sub: t.wst_violation_overlap_sub,
+                        },
+                      ].map(({ ringCls, dot, label, sub }) => (
+                        <div key={label} className="flex items-center gap-3 px-3 py-2">
+                          <span
+                            className={`flex h-8 w-[3.25rem] shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white ${ringCls}`}
+                          >
+                            <span className={`h-2.5 w-2.5 rounded-full ${dot} shadow-sm`} />
+                          </span>
+                          <span className="min-w-0">
+                            <p className="text-xs font-semibold text-slate-700 leading-snug">{label}</p>
+                            <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">{sub}</p>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setWstToolbarDrawerSection((sec) => (sec === 'department' ? null : 'department'))
+                  }
+                  className="flex w-full items-center justify-between gap-2 border-b border-slate-100 px-3 py-2 text-left hover:bg-slate-50"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="text-sm font-semibold text-slate-800">{t.wst_department_button}</span>
+                    {localFilterDepartment !== '' && (
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
+                    )}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
+                      wstToolbarDrawerSection === 'department' ? '-rotate-180' : ''
+                    }`}
+                    strokeWidth={2.25}
+                    aria-hidden
+                  />
+                </button>
+                {wstToolbarDrawerSection === 'department' && (
+                  <div className="border-b border-slate-100 py-1">
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                      {t.department_filter_label}
+                    </div>
+                    {[{ value: '', label: t.department_filter_all }, ...getDepartments()].map(
+                      ({ value: dept, label }) => (
+                        <button
+                          key={dept || 'all'}
+                          type="button"
+                          onClick={() => {
+                            setLocalFilterDepartment(dept);
+                            closeWstToolbarDrawer();
+                          }}
+                          className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2.5 ${
+                            localFilterDepartment === dept
+                              ? 'bg-accent/10 text-accent font-semibold'
+                              : 'text-slate-700 hover:bg-slate-100'
+                          }`}
+                        >
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
+                            {dept ? (
+                              <span
+                                className="h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: getDeptColor(dept) }}
+                              />
+                            ) : localFilterDepartment === '' ? (
+                              <Check className="h-3.5 w-3.5 text-accent" strokeWidth={2.5} />
+                            ) : (
+                              <span className="h-3.5 w-3.5" />
+                            )}
+                          </span>
+                          {label}
+                        </button>
+                      )
+                    )}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWstToolbarDrawerSection((sec) => {
+                      const next = sec === 'actions' ? null : 'actions';
+                      if (next === 'actions') loadTemplatesList();
+                      return next;
+                    });
+                  }}
+                  className={`flex w-full items-center justify-between gap-2 border-b border-slate-100 px-3 py-2 text-left hover:bg-slate-50 ${
+                    !periodDraftSaved ? 'bg-amber-50/50' : ''
+                  }`}
+                  aria-label={t.wst_actions}
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="text-sm font-semibold text-slate-800">{t.wst_actions}</span>
+                    {!periodDraftSaved && (
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden />
+                    )}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
+                      wstToolbarDrawerSection === 'actions' ? '-rotate-180' : ''
+                    }`}
+                    strokeWidth={2.25}
+                    aria-hidden
+                  />
+                </button>
+                {wstToolbarDrawerSection === 'actions' && (
+                  <div className="py-2">
+                {isManagement && (
+                  <>
+                    <div className="px-3 pb-1">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        {(t as { stats_preset_period?: string }).stats_preset_period ?? 'Periodo Presenze'}
+                      </p>
+                    </div>
+                    <div className="px-3 pb-2.5 space-y-2.5 border-b border-slate-100">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 mb-1">{t.ts_period_start}</label>
+                        <DatePickerField
+                          value={periodDraftStart}
+                          onChange={(v) => { setPeriodDraftStart(v); setPeriodDraftSaved(false); setWeekIndex(0); }}
+                          allowClear={false}
+                          aria-label={t.ts_period_start}
+                          className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2 text-[13px] shadow-sm [&_svg]:h-3 [&_svg]:w-3"
+                        />
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => { setPeriodDraftNumWeeks(4); setPeriodDraftSaved(false); setWeekIndex(0); }}
+                          className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
+                            periodDraftNumWeeks === 4 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                          }`}
+                        >
+                          {t.ts_preset_4weeks}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setPeriodDraftNumWeeks(5); setPeriodDraftSaved(false); setWeekIndex(0); }}
+                          className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
+                            periodDraftNumWeeks === 5 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                          }`}
+                        >
+                          {t.ts_preset_5weeks}
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { handleSavePeriodConfigWst(); closeWstToolbarDrawer(); }}
+                        disabled={periodDraftSaved}
+                        className={`w-full rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
+                          periodDraftSaved ? 'cursor-not-allowed bg-slate-200 text-slate-500' : 'bg-accent text-white hover:bg-accent-hover'
+                        }`}
+                      >
+                        {t.ts_save_period}
+                      </button>
+                    </div>
+                  </>
+                )}
 
                 {/* ▸ SEZIONE PIANIFICAZIONE (management only) */}
                 {canManageDrafts && isWideShiftViewport && (
                   <>
-                    <div className="px-3 pt-2 pb-1">
+                    <div className="px-3 pb-1">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t.wst_planning_section}</p>
                     </div>
                     {draftCountInWeek > 0 && (
                       <button
                         type="button"
-                        onClick={() => { requestConfirmAndPublishWeek(weekStart); setToolsMenuOpen(false); }}
+                        onClick={() => { requestConfirmAndPublishWeek(weekStart); closeWstToolbarDrawer(); }}
                         className="w-full px-4 py-2 text-left text-sm font-semibold text-white bg-accent hover:bg-accent-hover flex items-center gap-2"
                       >
                         <Cloud className="w-4 h-4 flex-shrink-0" />
@@ -1405,7 +1621,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             if (res) copied++;
                           } catch { /* skip */ }
                         }
-                        setToolsMenuOpen(false);
+                        closeWstToolbarDrawer();
                         setWeekIndex((i) => Math.min(maxWeekIndex, i + (viewMode === 'day' ? 1 : viewMode === '2weeks' ? 2 : 1)));
                         (showSuccess || showError)(formatTrans(t.shifts_copied_count, { n: copied }));
                       }}
@@ -1416,7 +1632,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setCreatingOpenShift({ date: format(weekStart, 'yyyy-MM-dd') }); setToolsMenuOpen(false); }}
+                      onClick={() => { setCreatingOpenShift({ date: format(weekStart, 'yyyy-MM-dd') }); closeWstToolbarDrawer(); }}
                       className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                     >
                       <Plus className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -1430,7 +1646,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         const rangeStr = format(rangeStart, 'yyyy-MM-dd');
                         const rangeEnd = format(addDays(rangeStart, n), 'yyyy-MM-dd');
                         const toDelete = shifts.filter((s) => s.date >= rangeStr && s.date < rangeEnd && !s.notes?.startsWith('__OPEN__'));
-                        setToolsMenuOpen(false);
+                        closeWstToolbarDrawer();
                         if (!toDelete.length) { showError?.(t.no_shifts_to_delete); return; }
                         if (!confirm(formatTrans(t.wst_delete_all_week_shifts_confirm, { n: toDelete.length }))) return;
                         await deleteShifts(toDelete.map((s) => s.id));
@@ -1509,7 +1725,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     const blob = new Blob(['\ufeff' + header + rows], { type: 'text/csv;charset=utf-8' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a'); a.href = url; a.download = `turni_${weekStr}_${weekEnd}.csv`; a.click(); URL.revokeObjectURL(url);
-                    setToolsMenuOpen(false);
+                    closeWstToolbarDrawer();
                   }}
                   className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                 >
@@ -1519,7 +1735,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 {currentUser && isFeatureEnabled(currentUser, 'export_pdf') && (
                 <button
                   type="button"
-                  onClick={() => { exportSchedulePDF(weekStart, allWeekDays, activeUsers, shifts, { filterLabel: localFilterDepartment || undefined, breakRules, breakComputeOpts }); setToolsMenuOpen(false); }}
+                  onClick={() => {
+                    exportSchedulePDF(weekStart, allWeekDays, activeUsers, shifts, {
+                      filterLabel: localFilterDepartment || undefined,
+                      breakRules,
+                      breakComputeOpts,
+                      punchRecords,
+                      language: effectiveLanguage,
+                    });
+                    closeWstToolbarDrawer();
+                  }}
                   className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                 >
                   <Download className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -1536,7 +1761,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     </div>
                     <button
                       type="button"
-                      onClick={() => { setShowEditViewModal(true); setToolsMenuOpen(false); }}
+                      onClick={() => { setShowEditViewModal(true); closeWstToolbarDrawer(); }}
                       className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                     >
                       <Pencil className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -1544,7 +1769,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setShowHiddenPeriodsModal(true); setToolsMenuOpen(false); }}
+                      onClick={() => { setShowHiddenPeriodsModal(true); closeWstToolbarDrawer(); }}
                       className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                     >
                       <EyeOff className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -1561,17 +1786,19 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 </div>
                 <button
                   type="button"
-                  onClick={() => { setShowHistoryModal(true); setToolsMenuOpen(false); }}
+                  onClick={() => { setShowHistoryModal(true); closeWstToolbarDrawer(); }}
                   className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                 >
                   <History className="w-4 h-4 text-slate-400 flex-shrink-0" />
                   {t.wst_schedule_history_title}
                 </button>
+
+                  </div>
+                )}
               </div>
             )}
           </div>
           )}
-
         </div>
       </div>
       </>
@@ -1843,126 +2070,205 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       />
       {/* Barra date: sticky; bordo/ombra solo sulla card (stesso box) così sembra che fluttui — niente striscia full-bleed */}
       <div
-        className={`sticky z-[35] mt-4 mb-2 ${
-          stickyDateBarInScrollPane ? 'top-0' : 'max-md:top-[calc(4.125rem+max(6px,env(safe-area-inset-top,0px)))] md:top-0'
+        className={`sticky z-[39] mt-4 mb-2 ${
+          stickyDateBarInScrollPane ? 'top-0' : 'top-[var(--app-sticky-header-offset)]'
         }`}
       >
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.04, duration: 0.2 }}
-          className={`h-[34px] rounded-2xl overflow-hidden flex items-stretch bg-white border transition-[box-shadow,border-color] duration-300 ease-out ${
+          className={`rounded-2xl overflow-hidden bg-white border-2 transition-[box-shadow,border-color] duration-300 ease-out ${
             dateBarStuck
-              ? 'border-slate-200/90 shadow-[0_12px_32px_-8px_rgba(45,90,39,0.24),0_8px_20px_-6px_rgba(15,23,42,0.14)]'
-              : 'border-slate-100 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)]'
-          }`}
+              ? 'border-slate-300 shadow-[0_12px_32px_-8px_rgba(45,90,39,0.24),0_8px_20px_-6px_rgba(15,23,42,0.14)]'
+              : 'border-slate-200 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)]'
+          } ${viewMode === 'month' ? 'flex h-[34px] items-stretch' : 'relative h-[34px]'}`}
         >
-          <div className="flex-1 min-w-0 relative flex items-center justify-center">
-            {viewMode === 'month' && monthStart ? (
-              <span className="text-sm font-bold text-slate-800 uppercase tracking-wider">
-                {format(monthStart, 'MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })}
-              </span>
-            ) : (
-            <div
-              ref={dateBarScrollRef}
-              onScroll={(e) => syncScrollLeft(e.currentTarget)}
-              className="absolute inset-0 overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity"
-            >
-              <div className={`flex h-full min-h-[34px] sm:w-full ${allWeekDays.length === 1 ? 'w-[33.33%]' : allWeekDays.length === 14 ? 'w-[466.67%]' : allWeekDays.length === 42 ? 'w-full' : 'w-[233.33%]'}`}>
-                {allWeekDays.map((day) => {
-                  const isTodayDate = isToday(day);
-                  const dayStr = format(day, 'yyyy-MM-dd');
-                  const dayShiftIds = visibleShifts.filter((s) => s.date === dayStr).map((s) => s.id);
-                  const hasShifts = dayShiftIds.length > 0;
-                  return (
-                    <div
-                      key={day.toString()}
-                      role={canEditInApp && !isStaff && hasShifts ? 'button' : undefined}
-                      tabIndex={canEditInApp && !isStaff && hasShifts ? 0 : undefined}
-                      onClick={(e) => {
-                        if (!canEditInApp || isStaff || dayShiftIds.length === 0) return;
-                        if ((e.target as HTMLElement).closest('button')) return;
-                        setSelectedShiftIds(dayShiftIds);
-                        setSidebarDay(dayStr);
-                        // Apri direttamente la sidebar solo per giorno con 1 turno
-                        if (dayShiftIds.length === 1) setSidebarOpen(true);
-                      }}
-                      onKeyDown={(e) => {
-                        if (!canEditInApp || isStaff || dayShiftIds.length === 0) return;
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          setSelectedShiftIds(dayShiftIds);
-                          setSidebarDay(dayStr);
-                          if (dayShiftIds.length === 1) setSidebarOpen(true);
-                        }
-                      }}
-                      onContextMenu={isManagement ? (e) => {
-                        e.preventDefault();
-                        const next = toggleHiddenDate(dayStr);
-                        setHiddenDates(next);
-                      } : undefined}
-                      className={`flex-1 flex items-center justify-center gap-1 border-r border-slate-100 last:border-r-0 min-w-0 snap-center ${hiddenDates.has(dayStr) ? 'bg-slate-200/60' : isTodayDate ? 'bg-accent/10 ring-1 ring-inset ring-accent/35' : ''} ${canEditInApp && !isStaff && hasShifts ? 'cursor-pointer hover:bg-slate-100/80 active:bg-slate-200/80 transition-colors rounded-xl' : ''} ${isManagement ? 'select-none' : ''}`}
-                      title={isManagement ? (hiddenDates.has(dayStr) ? t.wst_day_visible_tooltip : t.wst_day_hide_tooltip) : undefined}
-                    >
-                      {isManagement && hiddenDates.has(dayStr) && (
-                        <EyeOff className="w-3 h-3 text-slate-400 flex-shrink-0" />
-                      )}
-                      <span className={`text-xs uppercase font-bold ${hiddenDates.has(dayStr) ? 'text-slate-400' : 'text-slate-600'}`}>
-                        {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it }).toUpperCase()}
-                      </span>
-                      <span className={`inline-flex text-xs font-bold ${isTodayDate && !hiddenDates.has(dayStr) ? 'bg-accent text-white px-1.5 py-0.5 rounded-xl' : hiddenDates.has(dayStr) ? 'text-slate-400' : 'text-slate-900'}`}>
-                        {format(day, 'd')}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            )}
-
-            {/* Frecce sovrapposte — assolute dentro flex-1, non occupano spazio layout */}
-            <button
-              type="button"
-              onClick={() => viewMode === 'month' ? setMonthOffset(monthOffset - 1) : setWeekIndex((i) => Math.max(0, i - 1))}
-              className="absolute left-0 top-0 h-full w-8 z-20 flex items-center justify-center bg-white/75 hover:bg-white/95 active:bg-slate-100 text-slate-500 transition-colors backdrop-blur-[2px]"
-              aria-label={viewMode === 'month' ? t.wst_month_prev_aria : t.week_prev}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => viewMode === 'month' ? setMonthOffset(monthOffset + 1) : setWeekIndex((i) => Math.min(maxWeekIndex, i + 1))}
-              className="absolute right-0 top-0 h-full w-8 z-20 flex items-center justify-center bg-white/75 hover:bg-white/95 active:bg-slate-100 text-slate-500 transition-colors backdrop-blur-[2px]"
-              aria-label={viewMode === 'month' ? t.wst_month_next_aria : t.week_next}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Indicatore sync — destra */}
-          <AnimatePresence>
-            {(pendingSaves > 0 || justSynced) && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="flex items-center gap-1 px-2 flex-shrink-0 border-l border-slate-100"
+          {viewMode === 'month' ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setPeriodPanOffsetWeeks((p) => p - displayPeriodConfig.numWeeks)}
+                className="shrink-0 w-9 flex items-center justify-center border-r-2 border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 active:bg-slate-100"
+                aria-label={t.wst_month_prev_aria}
               >
-                {pendingSaves > 0 ? (
-                  <>
-                    <Loader2 className="w-3 h-3 text-amber-600 animate-spin" />
-                    <span className="text-amber-600 text-xs font-medium hidden sm:inline">{t.ts_saving}</span>
-                  </>
-                ) : (
-                  <>
-                    <Cloud className="w-3 h-3 text-accent" />
-                    <span className="text-accent text-xs font-medium hidden sm:inline">{t.wst_sync_saved}</span>
-                  </>
+                <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden />
+              </button>
+              <div className="flex-1 min-w-0 flex items-center justify-center px-2 overflow-hidden">
+                <span className="text-center text-[11px] sm:text-sm font-bold text-slate-800 uppercase tracking-wider tabular-nums truncate">
+                  {format(monthViewPeriodStart, 'd MMM', { locale: getDateLocale(effectiveLanguage) ?? it })} –{' '}
+                  {format(monthViewPeriodEnd, 'd MMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPeriodPanOffsetWeeks((p) => p + displayPeriodConfig.numWeeks)}
+                className="shrink-0 w-9 flex items-center justify-center border-l-2 border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 active:bg-slate-100"
+                aria-label={t.wst_month_next_aria}
+              >
+                <ChevronRight className="w-4 h-4 shrink-0" aria-hidden />
+              </button>
+              {/* Indicatore sync — mese: in flex (nessuno scroll orizzontale da allineare) */}
+              <AnimatePresence>
+                {(pendingSaves > 0 || justSynced) && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex items-center gap-1 px-2 flex-shrink-0 border-l border-slate-100"
+                  >
+                    {pendingSaves > 0 ? (
+                      <>
+                        <Loader2 className="w-3 h-3 text-amber-600 animate-spin" />
+                        <span className="text-amber-600 text-xs font-medium hidden sm:inline">{t.ts_saving}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Cloud className="w-3 h-3 text-accent" />
+                        <span className="text-accent text-xs font-medium hidden sm:inline">{t.wst_sync_saved}</span>
+                      </>
+                    )}
+                  </motion.div>
                 )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </AnimatePresence>
+            </>
+          ) : (
+            <>
+              {/*
+                Scroll a tutta larghezza (allineato alla tabella). Frecce in overlay (niente fascia gradiente → niente linea verticale).
+              */}
+              <div
+                ref={dateBarScrollRef}
+                onScroll={(e) => syncScrollLeft(e.currentTarget)}
+                className="absolute inset-0 overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity -mx-0.5 px-0.5"
+              >
+                  <div
+                    className={`flex h-full min-h-[34px] items-stretch sm:w-full ${allWeekDays.length === 1 ? 'w-[33.33%]' : allWeekDays.length === 14 ? 'w-[466.67%]' : allWeekDays.length === 42 ? 'w-full' : 'w-[233.33%]'}`}
+                  >
+                    {allWeekDays.map((day) => {
+                      const isTodayDate = isToday(day);
+                      const dayStr = format(day, 'yyyy-MM-dd');
+                      const isPayrollDayBar = dayStr === weekSchedulePayrollDayStr;
+                      const dayShiftIds = visibleShifts.filter((s) => s.date === dayStr).map((s) => s.id);
+                      const hasShifts = dayShiftIds.length > 0;
+                      const trBar = t as Record<string, string>;
+                      const payrollTitleBar = isPayrollDayBar
+                        ? `${format(day, 'EEEE d MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })} — ${trBar.ts_payroll_day_abbr ?? 'Paga'}`
+                        : '';
+                      const mgmtTitleBar = isManagement
+                        ? hiddenDates.has(dayStr)
+                          ? t.wst_day_visible_tooltip
+                          : t.wst_day_hide_tooltip
+                        : '';
+                      const dateBarTitle = [payrollTitleBar, mgmtTitleBar].filter(Boolean).join('\n') || undefined;
+                      const dayBarCellClass = `flex-1 flex items-center justify-center gap-0.5 sm:gap-1 border-r border-slate-200 last:border-r-0 min-w-0 snap-center whitespace-nowrap font-inherit ${
+                        hiddenDates.has(dayStr)
+                          ? 'bg-slate-200/60'
+                          : isPayrollDayBar
+                            ? 'bg-emerald-50/90 ring-1 ring-inset ring-emerald-200/85'
+                            : isTodayDate
+                              ? 'bg-accent/10 ring-1 ring-inset ring-accent/50'
+                              : ''
+                      } ${canEditInApp && !isStaff && hasShifts ? 'cursor-pointer hover:bg-slate-100/80 active:bg-slate-200/80 transition-colors rounded-xl' : ''} ${isManagement ? 'select-none' : ''}`;
+                      const dayBarInner = (
+                        <>
+                          {isManagement && hiddenDates.has(dayStr) && (
+                            <EyeOff className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                          )}
+                          <span
+                            className={`text-[10px] sm:text-xs uppercase font-bold tabular-nums shrink-0 ${hiddenDates.has(dayStr) ? 'text-slate-400' : 'text-slate-600'}`}
+                          >
+                            {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it }).toUpperCase()}
+                          </span>
+                          <span
+                            className={`inline-flex items-center justify-center text-[11px] sm:text-xs font-bold tabular-nums shrink-0 ${isTodayDate && !hiddenDates.has(dayStr) ? 'bg-accent text-white px-1 sm:px-1.5 py-0.5 rounded-lg sm:rounded-xl min-w-[1.25rem]' : hiddenDates.has(dayStr) ? 'text-slate-400' : 'text-slate-900'}`}
+                          >
+                            {format(day, 'd')}
+                          </span>
+                        </>
+                      );
+                      const onDayBarContextMenu = isManagement
+                        ? (e: ReactMouseEvent<HTMLButtonElement | HTMLDivElement>) => {
+                            e.preventDefault();
+                            const next = toggleHiddenDate(dayStr);
+                            setHiddenDates(next);
+                          }
+                        : undefined;
+                      if (canEditInApp && !isStaff && hasShifts) {
+                        return (
+                          <button
+                            key={day.toString()}
+                            type="button"
+                            onClick={() => {
+                              setSelectedShiftIds(dayShiftIds);
+                              setSidebarDay(dayStr);
+                              if (dayShiftIds.length === 1) setSidebarOpen(true);
+                            }}
+                            onContextMenu={onDayBarContextMenu}
+                            className={`${dayBarCellClass} border-0 p-0`}
+                            title={dateBarTitle}
+                          >
+                            {dayBarInner}
+                          </button>
+                        );
+                      }
+                      return (
+                        <div
+                          key={day.toString()}
+                          onContextMenu={onDayBarContextMenu}
+                          className={dayBarCellClass}
+                          title={dateBarTitle}
+                        >
+                          {dayBarInner}
+                        </div>
+                      );
+                    })}
+                  </div>
+              </div>
+              <button
+                type="button"
+                disabled={weekIndex <= 0}
+                onClick={() => setWeekIndex((i) => Math.max(0, i - 1))}
+                className="absolute left-1 top-1/2 z-30 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/70 bg-white/95 text-slate-500 shadow-sm backdrop-blur-[2px] transition-[color,box-shadow,transform] hover:border-slate-300 hover:text-slate-800 active:scale-95 disabled:pointer-events-none disabled:opacity-0"
+                aria-label={t.week_prev}
+              >
+                <ChevronLeft className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+              </button>
+              <button
+                type="button"
+                disabled={weekIndex >= maxWeekIndex}
+                onClick={() => setWeekIndex((i) => Math.min(maxWeekIndex, i + 1))}
+                className="absolute right-1 top-1/2 z-30 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/70 bg-white/95 text-slate-500 shadow-sm backdrop-blur-[2px] transition-[color,box-shadow,transform] hover:border-slate-300 hover:text-slate-800 active:scale-95 disabled:pointer-events-none disabled:opacity-0"
+                aria-label={t.week_next}
+              >
+                <ChevronRight className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+              </button>
+              <AnimatePresence>
+                {(pendingSaves > 0 || justSynced) && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="pointer-events-none absolute right-10 top-1/2 z-40 flex -translate-y-1/2 items-center gap-1 rounded-full border border-slate-200/60 bg-white/95 py-0.5 pl-1.5 pr-2 shadow-sm backdrop-blur-[2px]"
+                  >
+                    {pendingSaves > 0 ? (
+                      <>
+                        <Loader2 className="h-3 w-3 text-amber-600 animate-spin" />
+                        <span className="text-amber-600 text-xs font-medium hidden sm:inline">{t.ts_saving}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Cloud className="h-3 w-3 text-accent" />
+                        <span className="text-accent text-xs font-medium hidden sm:inline">{t.wst_sync_saved}</span>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          )}
         </motion.div>
       </div>
       </>
@@ -2116,8 +2422,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           </motion.div>
         )}
 
-        {viewMode === 'month' && monthStart ? (
-          <div className="rounded-xl border-2 border-slate-200 bg-white overflow-hidden">
+        {viewMode === 'month' ? (
+          <HorizontalScrollArea
+            remeasureKey={`${displayPeriodConfig.startDate}-${displayPeriodConfig.numWeeks}-${periodPanOffsetWeeks}`}
+            ariaLabelPrev={t.table_h_scroll_prev}
+            ariaLabelNext={t.table_h_scroll_next}
+            navRowClassName="pb-2"
+            scrollClassName="overflow-x-auto-safe"
+          >
+          <div className="min-w-[640px] rounded-xl border-2 border-slate-200 bg-white overflow-hidden">
             {/* Intestazione giorni settimana */}
             <div className="grid grid-cols-7 bg-slate-50 border-b-2 border-slate-200">
               {allWeekDays.slice(0, 7).map((d, i) => (
@@ -2133,30 +2446,67 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             <div className="grid grid-cols-7">
               {allWeekDays.map((day, dayIdx) => {
                 const dayStr = format(day, 'yyyy-MM-dd');
-                const inMonth = day.getMonth() === monthStart.getMonth();
+                const inPlanning = isDayInMonthViewWindow(day);
+                const isPayrollDay = dayStr === periodViewPrimaryPayrollStr;
                 const isTodayDate = isToday(day);
                 const dayShifts = visibleShifts.filter((s) => s.date === dayStr);
                 const hasShifts = dayShifts.length > 0;
                 const dayOpenShifts = openVisibleShifts.filter((s) => s.date === dayStr);
                 const isLastCol = dayIdx % 7 === 6;
+                const showCounts = inPlanning;
+                const tr = t as Record<string, string>;
+                const titleParts: string[] = [];
+                if (!inPlanning) titleParts.push(tr.wst_month_outside_period_title ?? '');
+                if (isPayrollDay) {
+                  titleParts.push(
+                    `${format(day, 'EEEE d MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })} — ${tr.ts_payroll_day_abbr ?? 'Paga'}`
+                  );
+                }
+                const cellTitle = titleParts.length ? titleParts.filter(Boolean).join('\n') : undefined;
                 return (
                   <button
                     key={dayStr}
                     type="button"
+                    title={cellTitle}
                     onClick={() => {
                       const ids = hasShifts ? dayShifts.map((s) => s.id) : [];
                       setSelectedShiftIds(ids);
                       setSidebarDay(dayStr);
                       if (ids.length > 0) setSidebarOpen(true);
                     }}
-                    className={`min-h-[72px] sm:min-h-[84px] p-2 text-left transition-colors border-b-2 border-slate-200 ${!isLastCol ? 'border-r-2 border-r-slate-200' : ''} ${!inMonth ? 'bg-slate-50/80' : isTodayDate ? 'bg-accent/5 hover:bg-accent/10' : 'bg-white hover:bg-slate-50'}`}
+                    className={`min-h-[72px] sm:min-h-[84px] p-2 text-left transition-colors border-b-2 border-slate-200 ${!isLastCol ? 'border-r-2 border-r-slate-200' : ''} ${
+                      !inPlanning
+                        ? 'bg-slate-50/80 hover:bg-slate-100/90'
+                        : isPayrollDay
+                          ? 'bg-emerald-50/90 ring-1 ring-inset ring-emerald-200/90 hover:bg-emerald-50'
+                          : isTodayDate
+                            ? 'bg-accent/5 hover:bg-accent/10'
+                            : 'bg-white hover:bg-slate-50'
+                    }`}
                   >
                     {/* Numero giorno */}
-                    <span className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${isTodayDate ? 'bg-accent text-white' : !inMonth ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <span
+                      className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${
+                        isTodayDate && inPlanning
+                          ? 'bg-accent text-white'
+                          : !inPlanning
+                            ? isPayrollDay
+                              ? 'bg-emerald-100 text-emerald-900 ring-1 ring-emerald-200/80'
+                              : 'text-slate-300'
+                            : isPayrollDay
+                              ? 'bg-emerald-600 text-white'
+                              : 'text-slate-700'
+                      }`}
+                    >
                       {format(day, 'd')}
                     </span>
+                    {isPayrollDay && (
+                      <span className="mt-1 block text-[8px] font-bold uppercase tracking-wide text-emerald-800">
+                        {tr.ts_payroll_day_abbr ?? 'Paga'}
+                      </span>
+                    )}
                     {/* Conteggio turni */}
-                    {hasShifts && inMonth && (
+                    {hasShifts && showCounts && (
                       <span className="flex items-center gap-1 mt-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
                         <span className="text-[11px] font-semibold text-slate-600">
@@ -2165,7 +2515,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       </span>
                     )}
                     {/* Badge turni aperti */}
-                    {dayOpenShifts.length > 0 && inMonth && (
+                    {dayOpenShifts.length > 0 && showCounts && (
                       <span className="block mt-1 text-[9px] font-bold text-amber-700 bg-amber-100 rounded-full px-1.5 py-0.5 w-fit">
                         +{dayOpenShifts.length} {t.open_shifts_short}
                       </span>
@@ -2175,6 +2525,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               })}
             </div>
           </div>
+          </HorizontalScrollArea>
         ) : (
               activeUsers.map((user, userIdx) => {
                 const canManageThisUser = canEditInApp && !isPurelyManagementRole(user.role) && canCreateShifts;
@@ -2265,15 +2616,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           </span>
                         )}
                       </span>
-                      {canViewTotalHours && (() => {
-                        const mins = weeklyMinutesConfirmedByUser[user.id] ?? 0;
-                        if (mins === 0) return null;
-                        return (
-                          <span className="font-bold text-xs uppercase leading-tight text-slate-500">
-                            {formatMinutesToHoursAndMinutes(mins)}
-                          </span>
-                        );
-                      })()}
+                      {canViewTotalHours && (
+                        <span className="font-bold text-xs uppercase leading-tight text-slate-500 tabular-nums shrink-0 min-w-[2.5rem] text-right">
+                          {(weeklyMinutesScheduledByUser[user.id] ?? 0) > 0
+                            ? formatMinutesToHoursAndMinutes(weeklyMinutesScheduledByUser[user.id] ?? 0)
+                            : '—'}
+                        </span>
+                      )}
                     </div>
                     {/* Tabella turni: MOBILE w-[233.33%] + scroll + swipe | WEB sm:w-full = 7 giorni */}
                     <div
@@ -2287,6 +2636,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         <tr className="min-h-[100px] h-[100px] sm:h-[100px]">
                       {allWeekDays.map((day, dayIdx) => {
                         const dayStr = format(day, 'yyyy-MM-dd');
+                        const isPayrollCol = dayStr === weekSchedulePayrollDayStr;
                         const dayShifts = visibleShifts.filter(
                           (s) => s.user_id === user.id && s.date === dayStr
                         );
@@ -2339,7 +2689,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         return (
                           <td
                             key={dayStr}
-                            className={`px-0 py-0 min-w-0 snap-start group border-r border-slate-300 ${isToday(day) ? 'bg-accent/5' : isUnavailDay ? 'bg-red-50/70' : 'bg-white'}`}
+                            className={`px-0 py-0 min-w-0 snap-start group border-r border-slate-300 ${
+                              isPayrollCol
+                                ? 'bg-emerald-50/30 ring-1 ring-inset ring-emerald-200/50'
+                                : isToday(day)
+                                  ? 'bg-accent/5'
+                                  : isUnavailDay
+                                    ? 'bg-red-50/70'
+                                    : 'bg-white'
+                            }`}
                             style={{ width: `calc(100% / ${allWeekDays.length})` }}
                           >
                             {/* Indisponibilità indicator + toggle (solo per staff sulla propria riga) */}
@@ -2394,8 +2752,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   const startNormCell = (dayShift.start_time || '').slice(0, 5);
                                   const endFallback = startNormCell === '10:00' ? '16:00' : null;
                                   const endStr = (actualTimes.endTime || endFallback)?.slice(0, 5) || '___';
-                                  const timeDisplayed = `${actualTimes.startTime.slice(0, 5)} – ${endStr}`;
-                                  const timeDisplayedShort = `${toShortTime(actualTimes.startTime)}–${toShortTime(endStr)}`;
+                                  const { start: dispS, end: dispE } = getResolvedStartEndForHours(dayShift, punchRecords);
+                                  const timeDisplayed =
+                                    dayShift.approved_at && dayShift.approved_start_time && dayShift.approved_end_time
+                                      ? `${dispS} – ${dispE}`
+                                      : `${actualTimes.startTime.slice(0, 5)} – ${endStr}`;
+                                  const timeDisplayedShort =
+                                    dayShift.approved_at && dayShift.approved_start_time && dayShift.approved_end_time
+                                      ? `${toShortTime(dispS)}–${toShortTime(dispE)}`
+                                      : `${toShortTime(actualTimes.startTime)}–${toShortTime(endStr)}`;
                                   const deptColorDay = user.department ? getDeptColor(user.department) : null;
                                   return (
                                     <>
@@ -2429,7 +2794,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                               draggable
                                               onDragStart={(e: React.DragEvent) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', dayShift.id); setDraggedShiftId(dayShift.id); }}
                                               onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); }}
-                                              onDoubleClick={(e) => { e.stopPropagation(); if (dayShift.approval_status === 'approved') return; const cur = `${(dayShift.start_time||'').slice(0,5)}-${(dayShift.end_time||'').slice(0,5)}`; setCellEdit({ shiftId: dayShift.id, value: cur }); }}
+                                              onDoubleClick={(e) => { e.stopPropagation(); if (dayShift.approved_at) return; const cur = `${(dayShift.start_time||'').slice(0,5)}-${(dayShift.end_time||'').slice(0,5)}`; setCellEdit({ shiftId: dayShift.id, value: cur }); }}
                                               className={`absolute top-1/2 -translate-y-1/2 left-[10px] right-[40px] cursor-text ${shakeBadgeId === dayShift.id ? 'animate-shake' : ''}`}
                                               style={{ opacity: 1 }}
                                               title="Doppio click: modifica"
@@ -2444,8 +2809,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                             </span>
                                           )}
                                           {/* ✔ bianca sotto orario — solo approvato */}
-                                          {dayShift.approval_status === 'approved' && (
-                                            <span className="absolute bottom-[3px] left-[10px] text-white opacity-90" title="Approvato">
+                                          {dayShift.approved_at && (
+                                            <span className="absolute bottom-[3px] left-[10px] text-white opacity-90" title="Congelato">
                                               <Check className="w-2.5 h-2.5 flex-shrink-0" strokeWidth={3} />
                                             </span>
                                           )}
@@ -2458,7 +2823,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                             </span>
                                           )}
                                           {/* Hover actions: solo Elimina — solo desktop */}
-                                          {canEditInApp && dayShift.approval_status !== 'approved' && (
+                                          {canEditInApp && !dayShift.approved_at && (
                                             <div className="shift-card-hover-actions absolute top-1 right-1 hidden opacity-0 items-center gap-0.5 transition-opacity duration-200 z-20">
                                               <button
                                                 type="button"
@@ -2520,8 +2885,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 {eveningShift ? (() => {
                                   const actualTimes = getActualShiftTime(eveningShift, punchRecords);
                                   const endEv = actualTimes.endTime ? actualTimes.endTime.slice(0, 5) : '___';
-                                  const timeDisplayed = `${actualTimes.startTime.slice(0, 5)} – ${endEv}`;
-                                  const timeDisplayedShort = `${toShortTime(actualTimes.startTime)}–${toShortTime(endEv)}`;
+                                  const { start: dispS, end: dispE } = getResolvedStartEndForHours(eveningShift, punchRecords);
+                                  const timeDisplayed =
+                                    eveningShift.approved_at && eveningShift.approved_start_time && eveningShift.approved_end_time
+                                      ? `${dispS} – ${dispE}`
+                                      : `${actualTimes.startTime.slice(0, 5)} – ${endEv}`;
+                                  const timeDisplayedShort =
+                                    eveningShift.approved_at && eveningShift.approved_start_time && eveningShift.approved_end_time
+                                      ? `${toShortTime(dispS)}–${toShortTime(dispE)}`
+                                      : `${toShortTime(actualTimes.startTime)}–${toShortTime(endEv)}`;
                                   const deptColorEv = user.department ? getDeptColor(user.department) : null;
                                   return (
                                     <>
@@ -2555,7 +2927,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                               draggable
                                               onDragStart={(e: React.DragEvent) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', eveningShift.id); setDraggedShiftId(eveningShift.id); }}
                                               onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); }}
-                                              onDoubleClick={(e) => { e.stopPropagation(); if (eveningShift.approval_status === 'approved') return; const cur = `${(eveningShift.start_time||'').slice(0,5)}-${(eveningShift.end_time||'').slice(0,5)}`; setCellEdit({ shiftId: eveningShift.id, value: cur }); }}
+                                              onDoubleClick={(e) => { e.stopPropagation(); if (eveningShift.approved_at) return; const cur = `${(eveningShift.start_time||'').slice(0,5)}-${(eveningShift.end_time||'').slice(0,5)}`; setCellEdit({ shiftId: eveningShift.id, value: cur }); }}
                                               className={`absolute top-1/2 -translate-y-1/2 left-[10px] right-[40px] cursor-text ${shakeBadgeId === eveningShift.id ? 'animate-shake' : ''}`}
                                               style={{ opacity: 1 }}
                                               title="Doppio click: modifica"
@@ -2570,13 +2942,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                             </span>
                                           )}
                                           {/* ✔ bianca sotto orario — solo approvato */}
-                                          {eveningShift.approval_status === 'approved' && (
-                                            <span className="absolute bottom-[3px] left-[10px] text-white opacity-90" title="Approvato">
+                                          {eveningShift.approved_at && (
+                                            <span className="absolute bottom-[3px] left-[10px] text-white opacity-90" title="Congelato">
                                               <Check className="w-2.5 h-2.5 flex-shrink-0" strokeWidth={3} />
                                             </span>
                                           )}
                                           {/* Hover actions: solo Elimina — solo desktop */}
-                                          {canEditInApp && eveningShift.approval_status !== 'approved' && (
+                                          {canEditInApp && !eveningShift.approved_at && (
                                             <div className="shift-card-hover-actions absolute top-1 right-1 hidden opacity-0 items-center gap-0.5 transition-opacity duration-200 z-20">
                                               <button
                                                 type="button"
@@ -2622,7 +2994,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             <div
               ref={footerTotalsScrollRef}
               onScroll={(e) => syncScrollLeft(e.currentTarget)}
-              className="w-full overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity"
+              className="w-full overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity -mx-0.5 px-0.5"
             >
               <table className={`table-fixed border-collapse ${allWeekDays.length === 1 ? 'w-[33.33%]' : allWeekDays.length === 14 ? 'w-[466.67%]' : 'w-[233.33%]'} sm:w-full`}>
                 <colgroup>
@@ -2737,6 +3109,61 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     setDrawerPunchEdits((prev) => ({ ...prev, [shift.id]: { ...punchEdits, [field]: val } }));
                   };
 
+                  const stPlanned = (edits.start || '').trim().slice(0, 5);
+                  const enPlanned = (edits.end || '').trim().slice(0, 5);
+                  const plannedNetMins =
+                    stPlanned && enPlanned && stPlanned !== enPlanned
+                      ? getNetShiftMinutes(
+                          { ...shift, start_time: stPlanned, end_time: enPlanned, deduct_break: deductBreak },
+                          stPlanned,
+                          enPlanned,
+                          u ?? undefined,
+                          breakRules,
+                          breakComputeOpts
+                        )
+                      : null;
+
+                  let actualNetMins: number | null = null;
+                  let actualNeedsPunches = false;
+                  if (isFrozen && shift.approved_start_time && shift.approved_end_time) {
+                    const fs = (shift.approved_start_time || '').slice(0, 5);
+                    const fe = (shift.approved_end_time || '').slice(0, 5);
+                    if (fs && fe) {
+                      actualNetMins = getNetShiftMinutes(shift, fs, fe, u ?? undefined, breakRules, breakComputeOpts);
+                    }
+                  } else {
+                    const pin = punchEdits.punchIn?.trim() ?? '';
+                    const pout = punchEdits.punchOut?.trim() ?? '';
+                    const okT = (x: string) => /^\d{2}:\d{2}$/.test(x);
+                    let aS: string | null = null;
+                    let aE: string | null = null;
+                    if (pin && pout && okT(pin) && okT(pout)) {
+                      aS = pin;
+                      aE = pout;
+                    } else {
+                      const pair = getPunchPairForShift(shift, punchRecords);
+                      if (pair.actualStart && pair.actualEnd) {
+                        aS = pair.actualStart;
+                        aE = pair.actualEnd;
+                      } else if (pair.actualStart && pair.plannedEnd) {
+                        aS = pair.actualStart;
+                        aE = pair.plannedEnd;
+                      }
+                    }
+                    if (aS && aE) {
+                      actualNetMins = getNetShiftMinutes(
+                        { ...shift, deduct_break: deductBreak, start_time: aS, end_time: aE },
+                        aS,
+                        aE,
+                        u ?? undefined,
+                        breakRules,
+                        breakComputeOpts
+                      );
+                    } else {
+                      actualNeedsPunches = true;
+                    }
+                  }
+
                   const TimeBlock = ({ field }: { field: 'start' | 'end' }) => {
                     const val = edits[field];
                     const label = field === 'start' ? t.start_time : t.end_time;
@@ -2783,6 +3210,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             <div className="pt-10 text-slate-300 font-bold text-lg">–</div>
                             <TimeBlock field="end" />
                           </div>
+                          {isFrozen && shift.approved_start_time && shift.approved_end_time && (
+                            <p className="text-[11px] text-accent font-semibold mt-2">
+                              Ore congelate: {(shift.approved_start_time || '').slice(0, 5)} –{' '}
+                              {(shift.approved_end_time || '').slice(0, 5)}
+                            </p>
+                          )}
                         </div>
 
                         {/* ── PAUSA AUTOMATICA ───────────────────────── */}
@@ -2806,24 +3239,51 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               <label className="block text-[11px] font-semibold text-slate-500 mb-1">🟢 Entrata</label>
                               <input
                                 type="time"
+                                disabled={isFrozen}
                                 value={punchEdits.punchIn}
                                 onChange={(e) => updatePunchEdits('punchIn', e.target.value.slice(0, 5))}
-                                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-slate-800 text-base font-bold text-center focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+                                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-slate-800 text-base font-bold text-center focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent disabled:bg-slate-50 disabled:text-slate-400"
                               />
                             </div>
                             <div>
                               <label className="block text-[11px] font-semibold text-slate-500 mb-1">🔴 Uscita</label>
                               <input
                                 type="time"
+                                disabled={isFrozen}
                                 value={punchEdits.punchOut}
                                 onChange={(e) => updatePunchEdits('punchOut', e.target.value.slice(0, 5))}
-                                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-slate-800 text-base font-bold text-center focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+                                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-slate-800 text-base font-bold text-center focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent disabled:bg-slate-50 disabled:text-slate-400"
                               />
                             </div>
                           </div>
                           {!punchIn && !punchEdits.punchIn && (
                             <p className="text-[11px] text-slate-400 mt-1.5">{t.wst_no_punch_records}</p>
                           )}
+                        </div>
+
+                        <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-3.5 space-y-2">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.wst_drawer_hours_summary}</p>
+                          <div className="flex justify-between gap-3 items-baseline">
+                            <span className="text-[11px] text-slate-600 font-medium leading-snug min-w-0">{t.wst_drawer_planned_short}</span>
+                            <span className="text-sm font-bold text-slate-900 tabular-nums shrink-0">
+                              {plannedNetMins != null ? formatMinutesToHoursAndMinutes(plannedNetMins) : '—'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between gap-3 items-start">
+                            <span className="text-[11px] text-slate-600 font-medium leading-snug min-w-0 pt-0.5">{t.wst_drawer_actual_short}</span>
+                            <div className="text-sm font-bold text-accent tabular-nums shrink-0 text-right max-w-[55%]">
+                              {actualNetMins != null ? (
+                                formatMinutesToHoursAndMinutes(actualNetMins)
+                              ) : actualNeedsPunches && !isFrozen ? (
+                                <span className="block leading-tight">
+                                  <span className="block">{t.wst_drawer_actual_incomplete}</span>
+                                  <span className="block text-[10px] font-semibold text-slate-500 mt-0.5">{t.wst_drawer_actual_hint}</span>
+                                </span>
+                              ) : (
+                                t.wst_drawer_actual_incomplete
+                              )}
+                            </div>
+                          </div>
                         </div>
 
                         {/* ── STATO (Bozza / Pubblicato / Approvato) ─── */}
@@ -3417,7 +3877,7 @@ interface CreateShiftModalProps {
 }
 
 function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError, onClose, isOpenShift = false }: CreateShiftModalProps) {
-  const { users, addShift, showSuccess, effectiveLanguage } = useApp();
+  const { users, addShift, showSuccess, effectiveLanguage, breakRules, featureFlags } = useApp();
   const t = getTranslations(effectiveLanguage);
   const rawDefault = (defaultTime || '').trim().slice(0, 5);
   const defaultHour = rawDefault ? parseInt(rawDefault.split(':')[0], 10) : 10;
@@ -3427,6 +3887,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
     end_time: isEveningDefault ? '23:00' : '16:00',
   });
   const [selectedDate, setSelectedDate] = useState(date);
+  const [deductBreak, setDeductBreak] = useState(true);
   const [approveForPayroll, setApproveForPayroll] = useState(false);
   const [notifyEmployee, setNotifyEmployee] = useState(true);
   const [publicNote, setPublicNote] = useState('');
@@ -3435,20 +3896,38 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
   const user = users.find((u) => u.id === userId);
   const startHour = parseInt(tempShifts.start_time.split(':')[0], 10);
   const isOpenEndShift = startHour >= 20;
+  const breakOptsModal = useMemo(
+    () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
+    [featureFlags]
+  );
 
-  // Live duration calculation
-  const durationLabel = useMemo(() => {
+  /** Durata netta in badge + indicazione detrazione pausa (regole / default 30′ se ≥6h). */
+  const { netMins, breakMins } = useMemo(() => {
     const s = toHHmm(tempShifts.start_time);
-    const e = toHHmm(tempShifts.end_time);
-    if (!s || !e) return '--';
-    const [sh, sm] = s.split(':').map(Number);
-    const [eh, em] = e.split(':').map(Number);
-    let raw = (eh * 60 + em) - (sh * 60 + sm);
-    if (raw <= 0) raw += 1440;
-    const h = Math.floor(raw / 60);
-    const m = raw % 60;
-    return m > 0 ? `${h}h ${m}min` : `${h}h`;
-  }, [tempShifts.start_time, tempShifts.end_time]);
+    const e = isOpenEndShift ? (toHHmm(tempShifts.end_time) || '23:00') : toHHmm(tempShifts.end_time);
+    if (!s || !e) return { netMins: 0, breakMins: 0 };
+    const syn = {
+      deduct_break: deductBreak,
+      date: selectedDate,
+      start_time: s,
+      end_time: e,
+      user_id: userId,
+    };
+    const gross = calculateShiftMinutesGross(s, e);
+    const bm = getBreakMinutesForShift(syn, gross, user ?? undefined, breakRules, breakOptsModal);
+    const net = getNetShiftMinutes(syn, s, e, user ?? undefined, breakRules, breakOptsModal);
+    return { netMins: net, breakMins: bm };
+  }, [
+    tempShifts.start_time,
+    tempShifts.end_time,
+    isOpenEndShift,
+    deductBreak,
+    selectedDate,
+    userId,
+    user,
+    breakRules,
+    breakOptsModal,
+  ]);
 
   // Past date check for payroll approval
   const isPast = selectedDate < format(new Date(), 'yyyy-MM-dd');
@@ -3481,6 +3960,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
       type: shiftType,
       approval_status: status,
       notes: buildNotes(publicNote),
+      deduct_break: deductBreak,
     };
     await addShift(payload);
     setSaving(false);
@@ -3488,7 +3968,8 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
     onClose();
   };
 
-  const inputClass = 'w-full px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors font-sans font-semibold text-sm';
+  const inputClass =
+    'w-full px-3 py-2.5 rounded-xl bg-white border-2 border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-accent focus:ring-2 focus:ring-accent/25 focus:outline-none transition-colors font-sans font-semibold text-sm shadow-sm';
   const labelClass = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 font-sans';
 
   return (
@@ -3508,10 +3989,10 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
           onClick={(e) => e.stopPropagation()}
           onSubmit={(e) => { e.preventDefault(); handleSave(); }}
           onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); onClose(); } }}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden font-sans"
+          className="card-factorial !p-0 w-full max-w-sm overflow-hidden font-sans !border-2 !border-slate-200 !shadow-none shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)]"
         >
           {/* ── Header ── */}
-          <div className={`px-5 pt-5 pb-4 flex items-start justify-between gap-3 ${isOpenShift ? 'bg-amber-50' : ''}`}>
+          <div className={`px-5 pt-5 pb-4 flex items-start justify-between gap-3 border-b border-slate-200 ${isOpenShift ? 'bg-amber-50' : 'bg-white'}`}>
             <div className="min-w-0">
               <h2 className={`font-bold text-base font-sans leading-tight ${isOpenShift ? 'text-amber-800' : 'text-slate-900'}`}>
                 {isOpenShift ? t.open_shift : t.new_shift}
@@ -3522,10 +4003,33 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Live duration badge */}
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
-                <Clock className="w-3 h-3" />
-                {durationLabel}
+              <div
+                className="flex flex-col items-end gap-0.5 rounded-xl bg-slate-100 px-2.5 py-1 text-slate-600"
+                title={
+                  breakMins > 0 && deductBreak
+                    ? `−${breakMins} min ${t.ts_break_deduction}`
+                    : !deductBreak
+                      ? t.wst_create_shift_no_deduct_badge
+                      : undefined
+                }
+              >
+                <div className="flex items-center gap-1 text-xs font-bold">
+                  <Clock className="w-3 h-3 shrink-0" />
+                  <span className="tabular-nums">
+                    {netMins > 0 || (toHHmm(tempShifts.start_time) && toHHmm(tempShifts.end_time))
+                      ? `${t.wst_create_shift_hours_net} ${formatMinutesToHoursAndMinutes(netMins)}`
+                      : '—'}
+                  </span>
+                </div>
+                {deductBreak && breakMins > 0 ? (
+                  <span className="text-[9px] font-bold text-slate-500 leading-none tabular-nums">
+                    −{breakMins}′ {t.ts_break_deduction}
+                  </span>
+                ) : !deductBreak ? (
+                  <span className="text-[9px] font-bold text-amber-700 leading-none max-w-[7rem] text-right">
+                    {t.wst_create_shift_no_deduct_badge}
+                  </span>
+                ) : null}
               </div>
               <button
                 type="button"
@@ -3574,6 +4078,16 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               </div>
             </div>
 
+            <label className="flex items-center gap-2.5 cursor-pointer min-h-[44px] rounded-xl border-2 border-slate-300 bg-slate-50/90 px-3 py-2.5 shadow-sm transition-colors hover:bg-slate-50">
+              <input
+                type="checkbox"
+                checked={deductBreak}
+                onChange={(e) => setDeductBreak(e.target.checked)}
+                className="h-4 w-4 shrink-0 rounded border-2 border-slate-400 text-accent focus:ring-2 focus:ring-accent/30"
+              />
+              <span className="text-sm font-semibold text-slate-700">{t.deduct_break_label}</span>
+            </label>
+
             {/* ── Note pubblica ── */}
             <div>
               <label className={labelClass}>{t.notes_label} <span className="font-normal normal-case tracking-normal text-slate-400">{t.notes_optional_paren}</span></label>
@@ -3587,7 +4101,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
             </div>
 
             {/* ── Separator ── */}
-            <div className="border-t border-slate-100" />
+            <div className="border-t border-slate-200" />
 
             {/* ── Approvato per libro paga ── */}
             <label className={`flex items-start gap-3 cursor-pointer group ${!isPast ? 'opacity-40 pointer-events-none' : ''}`}>

@@ -1,5 +1,9 @@
 import './utils/i18n'; // Inizializza i18n con detector prima dell'app
 import { StrictMode } from 'react';
+
+if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';

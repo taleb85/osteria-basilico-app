@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'proprietario' | 'manager' | 'assistant_manager' | 'waiter' | 'server' | 'bartender' | 'cook' | 'chef' | 'dishwasher';
+export type UserRole = 'admin' | 'manager' | 'assistant_manager' | 'waiter' | 'server' | 'bartender' | 'cook' | 'chef' | 'dishwasher';
 
 export type UserStatus = 'active' | 'suspended' | 'inactive';
 
@@ -56,7 +56,7 @@ export interface User {
   enabled_features?: Record<string, boolean>;
   /** Sezioni UI nascoste per scheda (`false` = non mostrare). Chiavi dal registro `UI_SCREEN_WIDGETS`. */
   ui_section_overrides?: Record<string, boolean>;
-  /** Se true: account attivo ma non compare nel tabellone turni, presenze collettive e ore di gruppo (es. proprietario solo back-office). */
+  /** Se true: account attivo ma non compare nel tabellone turni, presenze collettive e ore di gruppo (es. solo back-office). */
   hide_from_team_schedule?: boolean;
 }
 
@@ -84,6 +84,9 @@ export interface Shift {
   approved_at?: string;
   /** Nome del manager che ha approvato */
   approved_by?: string;
+  /** Orari congelati alla approvazione definitiva (HH:mm), distinti dal pianificato su start_time/end_time */
+  approved_start_time?: string | null;
+  approved_end_time?: string | null;
 }
 
 export interface HolidayRequest {

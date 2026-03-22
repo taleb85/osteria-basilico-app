@@ -5,12 +5,15 @@ import {
   parseISO,
   isToday,
   eachDayOfInterval,
+  startOfWeek,
+  endOfWeek,
 } from 'date-fns';
 import { it } from 'date-fns/locale';
 import {
-  ChevronLeft, ChevronRight, Download, Check, AlertTriangle, X,
+  ChevronLeft, ChevronRight, Check, AlertTriangle, X,
   Clock, History, FileEdit, ShieldAlert, LogOut, Lock, Unlock,
-  Users, UserCheck, AlertCircle, ArrowRight, Calendar, Moon, LayoutList, Table2,
+  Users, UserCheck, AlertCircle, ArrowRight, Calendar, Moon,
+  ChevronDown, MoreHorizontal,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
@@ -18,8 +21,8 @@ import { getTranslations, getDateLocale, formatTrans } from '../utils/translatio
 import { calculateShiftMinutesGross, formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getBreakMinutesForShift, getNetShiftMinutes } from '../utils/breakRules';
 import { isPurelyManagementRole, isManagementRole, isUserVisibleOnTeamSchedule } from '../utils/permissions';
-import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
+import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { getShiftHistory, type HistoryEntry } from '../utils/scheduleHistory';
 import { database } from '../lib/database';
 import {
@@ -29,11 +32,16 @@ import {
   getPeriodEndDate,
   PERIOD_STORAGE_KEY,
   dispatchPeriodConfigUpdated,
+  type PeriodConfig,
 } from '../utils/periodConfig';
 import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
-import type { PunchAuditEntry } from '../types';
-import jsPDF from 'jspdf';
-import DatePickerField from './DatePickerField';
+import type { PunchAuditEntry, Shift } from '../types';
+import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
+import { HorizontalScrollArea } from './HorizontalScrollArea';
+import DatePickerField, { isDatePickerPortalClick } from './DatePickerField';
+import TimesheetManagementKpiBlock from './TimesheetManagementKpiBlock';
+import { useClampedFixedDropdown } from '../hooks/useClampedFixedDropdown';
+import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -148,6 +156,30 @@ export default function Timesheets() {
   const t = getTranslations(effectiveLanguage);
   const locale = getDateLocale(effectiveLanguage) ?? it;
 
+  const formatAuditValue = useCallback((raw: string | undefined) => {
+    if (raw == null || raw === '') return '—';
+    if (raw.length >= 12 && (raw.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(raw))) {
+      try {
+        const d = parseISO(raw);
+        if (!Number.isNaN(d.getTime())) return format(d, 'dd/MM HH:mm', { locale });
+      } catch {
+        /* ignore */
+      }
+    }
+    return raw.length > 40 ? `${raw.slice(0, 37)}…` : raw;
+  }, [locale]);
+
+  const punchAuditFieldLabel = useCallback(
+    (field: string) => {
+      const tr = t as Record<string, string>;
+      if (field === 'timestamp') return tr.ts_audit_field_timestamp || 'Entrata';
+      if (field === 'calculated_time') return tr.ts_audit_field_calculated_time || 'Entrata (arrotondata)';
+      if (field === 'clock_out_time') return tr.ts_audit_field_clock_out_time || 'Uscita';
+      return field;
+    },
+    [t]
+  );
+
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const uiW = (key: string) => (currentUser ? isUiWidgetVisible(currentUser, key) : false);
 
@@ -164,8 +196,6 @@ export default function Timesheets() {
     const cfg = { startDate: periodStart, numWeeks: periodNumWeeks };
     persistPeriodConfig(cfg);
     setPeriodConfig(cfg);
-    setPeriodStart(periodStart);
-    setPeriodNumWeeks(periodNumWeeks);
     setPeriodSaved(true);
     setWeekIndex(0);
     dispatchPeriodConfigUpdated();
@@ -209,25 +239,68 @@ export default function Timesheets() {
     applyPeriodFromStorage();
   }, [currentUser?.id, applyPeriodFromStorage]);
 
+  /** Da notifiche / Statistiche: filtra la griglia Presenze (es. solo turni pubblicati). */
+  useEffect(() => {
+    try {
+      const v = sessionStorage.getItem('osteria_timesheet_filter');
+      if (!v) return;
+      sessionStorage.removeItem('osteria_timesheet_filter');
+      if (v === 'confirmed' || v === 'approved' || v === 'draft' || v === 'unpunched') {
+        setFilterStatus(v);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   type ViewMode = 'week' | 'month';
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [weekIndex, setWeekIndex] = useState(() =>
     readStoredWeekIndex(initialConfig.startDate, initialConfig.numWeeks)
   );
 
+  const [timesheetActionsOpen, setTimesheetActionsOpen] = useState(false);
+  const timesheetActionsRef = useRef<HTMLDivElement>(null);
+  const timesheetActionsStyle = useClampedFixedDropdown(timesheetActionsOpen, timesheetActionsRef, 288);
+
+  useEffect(() => {
+    if (!timesheetActionsOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (timesheetActionsRef.current?.contains(e.target as Node)) return;
+      if (isDatePickerPortalClick(e.target)) return;
+      setTimesheetActionsOpen(false);
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [timesheetActionsOpen]);
+
+  /** Periodo effettivo in griglia: bozza (data/settimane) finché non si salva, altrimenti config persistita. */
+  const displayPeriodConfig: PeriodConfig = useMemo(() => {
+    if (periodSaved) return periodConfig;
+    const startStr = periodStart.slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startStr)) {
+      return { startDate: periodConfig.startDate, numWeeks: periodNumWeeks };
+    }
+    const d = parseISO(startStr);
+    if (Number.isNaN(d.getTime())) {
+      return { startDate: periodConfig.startDate, numWeeks: periodNumWeeks };
+    }
+    return { startDate: startStr, numWeeks: periodNumWeeks };
+  }, [periodSaved, periodConfig, periodStart, periodNumWeeks]);
+
   useEffect(() => {
     try {
       sessionStorage.setItem(
-        timesheetWeekStorageKey(periodConfig.startDate, periodConfig.numWeeks),
+        timesheetWeekStorageKey(displayPeriodConfig.startDate, displayPeriodConfig.numWeeks),
         String(weekIndex)
       );
     } catch {
       /* ignore */
     }
-  }, [periodConfig.startDate, periodConfig.numWeeks, weekIndex]);
+  }, [displayPeriodConfig.startDate, displayPeriodConfig.numWeeks, weekIndex]);
 
-  const periodStartDate = getPeriodStartDate(periodConfig);
-  const periodEndDate = getPeriodEndDate(periodConfig);
+  const periodStartDate = getPeriodStartDate(displayPeriodConfig);
+  const periodEndDate = getPeriodEndDate(displayPeriodConfig);
   const allPeriodDays = (() => {
     try {
       const end = periodEndDate >= periodStartDate ? periodEndDate : addDays(periodStartDate, 6);
@@ -236,16 +309,35 @@ export default function Timesheets() {
       return eachDayOfInterval({ start: periodStartDate, end: addDays(periodStartDate, 6) });
     }
   })();
-  const maxWeekIndex = periodConfig.numWeeks - 1;
-  const [approving, setApproving] = useState(false);
+
+  /** Vista Mese: griglia lun–dom allineata al calcolo paghe (settimane intere sul periodo). */
+  const calendarPaddedDays = useMemo(() => {
+    const calStart = startOfWeek(periodStartDate, { weekStartsOn: 1 });
+    const calEnd = endOfWeek(periodEndDate, { weekStartsOn: 1 });
+    return eachDayOfInterval({ start: calStart, end: calEnd });
+  }, [periodStartDate, periodEndDate]);
+
+  /** Settimana e mese: una sola paga evidenziata = quella del mese civile che contiene la **fine** del periodo (es. fine marzo → 30/03, non altri lunedì della griglia). */
+  const weekViewPayrollDayStr = useMemo(
+    () => format(getPayrollPaymentDateForCalendarMonth(periodEndDate), 'yyyy-MM-dd'),
+    [periodEndDate]
+  );
+
+  /** Riferimento unico in toolbar vista mese: data pagamento per quel periodo. */
+  const payrollStripForToolbar = useMemo(() => {
+    const pay = getPayrollPaymentDateForCalendarMonth(periodEndDate);
+    return format(pay, 'd MMM yyyy', { locale });
+  }, [periodEndDate, locale]);
+
+  const maxWeekIndex = displayPeriodConfig.numWeeks - 1;
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [auditDetailShiftId, setAuditDetailShiftId] = useState<string | null>(null);
   const [approvingShiftId, setApprovingShiftId] = useState<string | null>(null);
   const [punchAudits, setPunchAudits] = useState<Record<string, PunchAuditEntry[]>>({});
   const [closingShift, setClosingShift] = useState<ClosingShiftState | null>(null);
   const [clockOutTime, setClockOutTime] = useState('');
   const [closingLoading, setClosingLoading] = useState(false);
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null);
-  const [cardView, setCardView] = useState(false);
   const [unlockModalShiftId, setUnlockModalShiftId] = useState<string | null>(null);
   const [unlockPin, setUnlockPin] = useState('');
   const [unlockError, setUnlockError] = useState('');
@@ -279,9 +371,20 @@ export default function Timesheets() {
     deltaMins: number;
   } | null>(null);
 
-  const weekDays = viewMode === 'week'
-    ? allPeriodDays.slice(weekIndex * 7, weekIndex * 7 + 7)
-    : allPeriodDays;
+  const periodStartStr = format(periodStartDate, 'yyyy-MM-dd');
+  const periodEndStr = format(periodEndDate, 'yyyy-MM-dd');
+  const isDayInConfiguredPeriod = useCallback(
+    (d: Date) => {
+      const s = format(d, 'yyyy-MM-dd');
+      return s >= periodStartStr && s <= periodEndStr;
+    },
+    [periodStartStr, periodEndStr]
+  );
+
+  const weekDays =
+    viewMode === 'week'
+      ? allPeriodDays.slice(weekIndex * 7, weekIndex * 7 + 7)
+      : calendarPaddedDays;
   const weekStart = weekDays[0] ?? periodStartDate;
   const lastDay = weekDays[weekDays.length - 1] ?? periodEndDate;
   const weekStr = format(weekStart, 'yyyy-MM-dd');
@@ -388,28 +491,41 @@ export default function Timesheets() {
           });
 
           const clockOutRaw = (punchIn as { clock_out_time?: string | null })?.clock_out_time ?? null;
-          const actualStart = punchIn ? (punchTimeHHMM(punchIn.calculated_time || punchIn.timestamp)) : null;
+          const punchActualStart = punchIn ? punchTimeHHMM(punchIn.calculated_time || punchIn.timestamp) : null;
           const actualEndFull = clockOutRaw ?? punchOut?.timestamp ?? undefined;
-          const actualEnd = actualEndFull ? punchTimeHHMM(actualEndFull) : null;
-          // Detect cross-day OUT (e.g. OUT recorded on a different date than the shift)
+          const punchActualEnd = actualEndFull ? punchTimeHHMM(actualEndFull) : null;
+
+          const frozen = !!(s.approved_at && s.approved_start_time && s.approved_end_time);
+          let displayActualStart = punchActualStart;
+          let displayActualEnd = punchActualEnd;
+          let grossActualMins = 0;
+          let actualEndFullForRow: string | undefined = actualEndFull;
+
+          if (frozen) {
+            const r = getResolvedStartEndForHours(s as Shift, punchRecords);
+            displayActualStart = r.start;
+            displayActualEnd = r.end;
+            grossActualMins = calculateShiftMinutesGross(r.start, r.end);
+            actualEndFullForRow = undefined;
+          } else if (punchActualStart && punchActualEnd) {
+            const startM = toMinutesFromMidnight(punchActualStart);
+            const endM = toMinutesFromMidnight(punchActualEnd);
+            const elapsedMs = actualEndFull && punchIn
+              ? new Date(actualEndFull).getTime() - new Date(punchIn.calculated_time || punchIn.timestamp).getTime()
+              : (endM >= startM ? endM - startM : endM + 1440 - startM) * 60_000;
+            grossActualMins = Math.max(0, Math.round(elapsedMs / 60_000));
+          }
+
           const actualEndDate = actualEndFull ? format(new Date(actualEndFull), 'yyyy-MM-dd') : dateStr;
-          const isCrossDay = !!actualEndFull && actualEndDate !== dateStr;
-          const grossActualMins = (actualStart && actualEnd)
-            ? (() => {
-                const startM = toMinutesFromMidnight(actualStart);
-                const endM = toMinutesFromMidnight(actualEnd);
-                const elapsedMs = actualEndFull && punchIn
-                  ? new Date(actualEndFull).getTime() - new Date(punchIn.calculated_time || punchIn.timestamp).getTime()
-                  : (endM >= startM ? endM - startM : endM + 1440 - startM) * 60_000;
-                return Math.max(0, Math.round(elapsedMs / 60_000));
-              })()
-            : 0;
+          const isCrossDay = !frozen && !!actualEndFull && actualEndDate !== dateStr;
           const actualMins = Math.max(0, grossActualMins - breakMinutes);
           const deltaMins = actualMins - plannedMins;
 
-          // Status flags per color coding
-          const isLate = !!(actualStart && toMinutesFromMidnight(actualStart) > toMinutesFromMidnight(plannedStart) + 5);
-          const hasMissingOut = !!(punchIn && !actualEnd);
+          const isLate = !!(
+            displayActualStart &&
+            toMinutesFromMidnight(displayActualStart) > toMinutesFromMidnight(plannedStart) + 5
+          );
+          const hasMissingOut = frozen ? false : !!(punchIn && !punchActualEnd);
 
           return {
             id: s.id,
@@ -417,9 +533,9 @@ export default function Timesheets() {
             plannedEnd,
             plannedMins,
             breakMinutes,
-            actualStart,
-            actualEnd,
-            actualEndFull,
+            actualStart: displayActualStart,
+            actualEnd: displayActualEnd,
+            actualEndFull: actualEndFullForRow,
             actualMins,
             deltaMins,
             status: s.approval_status,
@@ -556,6 +672,7 @@ export default function Timesheets() {
       deltaMins: number;
       punchInId: string;
       auditCount: number;
+      auditEntries: PunchAuditEntry[];
       dateStr: string;
     }> = [];
 
@@ -591,7 +708,8 @@ export default function Timesheets() {
       const actualMins = Math.max(0, grossActualMins - breakMins);
       const breakDeductionMins = breakMins;
       const deltaMins = actualMins - plannedMins;
-      const auditCount = punchIn.id ? (punchAudits[punchIn.id]?.length ?? 0) : 0;
+      const auditEntries = punchIn.id ? (punchAudits[punchIn.id] ?? []) : [];
+      const auditCount = auditEntries.length;
 
       result.push({
         shift: s,
@@ -607,6 +725,7 @@ export default function Timesheets() {
         deltaMins,
         punchInId: punchIn.id,
         auditCount,
+        auditEntries,
         dateStr: s.date,
       });
     }
@@ -668,6 +787,8 @@ export default function Timesheets() {
         approval_status: 'confirmed',
         approved_at: null as unknown as string,
         approved_by: null as unknown as string,
+        approved_start_time: null as unknown as string,
+        approved_end_time: null as unknown as string,
       });
       const punchIn = punchRecords.find(
         (p) => p.type === 'in' && p.shift_id === unlockModalShiftId
@@ -697,19 +818,6 @@ export default function Timesheets() {
     } finally {
       setUnlocking(false);
     }
-  };
-
-  const handleApproveAll = async () => {
-    // Congela tutti i turni approvati (soft) ma non ancora congelati
-    const toFreeze = weekShifts.filter((s) => s.approval_status === 'approved' && !s.approved_at);
-    if (!toFreeze.length) { showError?.(t.ts_toast_no_shifts_to_freeze); return; }
-    setApproving(true);
-    let count = 0;
-    for (const s of toFreeze) {
-      try { await approveShift(s.id); count++; } catch { /* skip */ }
-    }
-    setApproving(false);
-    showSuccess?.(formatTrans(t.ts_toast_n_shifts_frozen, { n: count }));
   };
 
   const handleConfirmClose = async () => {
@@ -925,350 +1033,6 @@ export default function Timesheets() {
     }
   };
 
-  // ── Export ───────────────────────────────────────────────────────────────
-
-  const handleExportCSV = () => {
-    const csvTitle = formatTrans(t.ts_csv_title, {
-      from: format(weekStart, 'd MMM', { locale }),
-      to: format(addDays(weekStart, 6), 'd MMM yyyy', { locale }),
-    });
-    let csv = `${csvTitle}\n\n`;
-    csv += `${t.ts_csv_header_row}\n`;
-    for (const user of visibleUsers) {
-      for (const day of weekDays) {
-        const dateStr = format(day, 'yyyy-MM-dd');
-        const dayData = timesheetData[user.id]?.[dateStr];
-        if (!dayData || dayData.shifts.length === 0) {
-          csv += `${user.first_name};${dateStr};-;-;-;-;-;-;-;-\n`;
-          continue;
-        }
-        for (const s of dayData.shifts) {
-          csv += `${user.first_name};${dateStr};${s.plannedStart};${s.plannedEnd};${fmtHM(s.plannedMins)};${s.actualStart ?? '-'};${s.actualEnd ?? '-'};${s.actualMins ? fmtHM(s.actualMins) : '-'};${s.actualMins ? fmtHM(s.deltaMins) : '-'};${s.status}\n`;
-        }
-      }
-    }
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `presenze_${weekStr}.csv`; a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleExportPDF = () => {
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
-    // ── Costanti layout ────────────────────────────────────────────────
-    const PW = 297, PH = 210, MG = 10, CW = PW - MG * 2;
-    const NAME_W = 34, PAUSA_W = 12, TOT_W = 24, DAY_W = (CW - NAME_W - PAUSA_W - TOT_W) / 7;
-    const H_HDR = 12,  H_ROW = 17, H_TOT = 7, H_FOOT = 8;
-
-    // Palette brand #2D5A27
-    const C_TEAL   : [number,number,number] = [45, 90, 39];
-    const C_TEAL_L : [number,number,number] = [220, 230, 218];
-    const C_GRID   : [number,number,number] = [226, 232, 240];
-    const C_HDR_BG : [number,number,number] = [241, 245, 249];
-    const C_ROW_ALT: [number,number,number] = [248, 250, 252];
-    const C_DARK   : [number,number,number] = [30,  41,  59];
-    const C_MID    : [number,number,number] = [100, 116, 139];
-    const C_LIGHT  : [number,number,number] = [148, 163, 184];
-    const C_GREEN  : [number,number,number] = [45, 90, 39];
-    const C_RED    : [number,number,number] = [239, 68,  68];
-    const C_AMBER  : [number,number,number] = [245, 158, 11];
-    const C_BLUE   : [number,number,number] = [59,  130, 246];
-
-    const grid = () => { doc.setDrawColor(...C_GRID); doc.setLineWidth(0.1); };
-    const setTxt = (sz: number, style: 'normal'|'bold', rgb: [number,number,number]) => {
-      doc.setFontSize(sz); doc.setFont('helvetica', style); doc.setTextColor(...rgb);
-    };
-    const rightText = (text: string, rightEdge: number, y: number) => {
-      doc.text(text, rightEdge - doc.getTextWidth(text), y);
-    };
-    const centerText = (text: string, xStart: number, width: number, y: number) => {
-      doc.text(text, xStart + width / 2 - doc.getTextWidth(text) / 2, y);
-    };
-
-    // ── PAGE HEADER ────────────────────────────────────────────────────
-    doc.setFillColor(...C_TEAL);
-    doc.rect(0, 0, PW, 18, 'F');
-    setTxt(14, 'bold', [255,255,255]);
-    doc.text(t.ts_brand_name, MG, 12);
-    const wkLabel = formatTrans(t.ts_pdf_week_title, {
-      from: format(weekStart, 'd MMM', { locale }),
-      to: format(addDays(weekStart, 6), 'd MMM yyyy', { locale }),
-    });
-    setTxt(9, 'normal', C_TEAL_L);
-    doc.text(wkLabel, MG + 54, 12);
-    const stampato = formatTrans(t.ts_pdf_printed_on, {
-      datetime: format(new Date(), 'd MMM yyyy HH:mm', { locale }),
-    });
-    setTxt(7, 'normal', C_TEAL_L);
-    doc.text(stampato, PW - MG - doc.getTextWidth(stampato), 12);
-
-    let y = 20;
-
-    // ── INTESTAZIONI COLONNE (sfondo grigio) ───────────────────────────
-    doc.setFillColor(...C_HDR_BG);
-    doc.rect(MG, y, CW, H_HDR, 'F');
-    grid(); doc.rect(MG, y, CW, H_HDR, 'S');
-
-    setTxt(7, 'bold', C_MID);
-    doc.text(t.ts_pdf_col_employee, MG + 2, y + 8);
-    grid(); doc.line(MG + NAME_W, y, MG + NAME_W, y + H_HDR);
-
-    weekDays.forEach((day, i) => {
-      const x = MG + NAME_W + i * DAY_W;
-      const isWE = [0,6].includes(day.getDay());
-      const isNow = format(day,'yyyy-MM-dd') === format(new Date(),'yyyy-MM-dd');
-      if (isWE)  { doc.setFillColor(235,240,246); doc.rect(x, y, DAY_W, H_HDR, 'F'); }
-      if (isNow) { doc.setFillColor(220,240,235); doc.rect(x, y, DAY_W, H_HDR, 'F'); }
-
-      const dColor: [number,number,number] = isNow ? C_TEAL : isWE ? C_LIGHT : C_MID;
-      setTxt(7, 'bold', dColor);
-      centerText(format(day,'EEE',{locale}).toUpperCase(), x, DAY_W, y + 5.5);
-      setTxt(6, 'normal', dColor);
-      centerText(format(day,'d/M'), x, DAY_W, y + 9.5);
-      grid(); doc.line(x, y, x, y + H_HDR);
-    });
-
-    const pausaXhdr = MG + NAME_W + 7 * DAY_W;
-    grid(); doc.line(pausaXhdr, y, pausaXhdr, y + H_HDR);
-    setTxt(6, 'bold', C_MID);
-    centerText(t.ts_pdf_col_break, pausaXhdr, PAUSA_W, y + 8);
-    const totXhdr = pausaXhdr + PAUSA_W;
-    grid(); doc.line(totXhdr, y, totXhdr, y + H_HDR);
-    setTxt(7, 'bold', C_TEAL);
-    centerText(t.ts_pdf_col_total_hrs, totXhdr, TOT_W, y + 8);
-    y += H_HDR;
-
-    // ── RIGHE DATI (zebra striping + griglia completa 0.1mm) ──────────
-    visibleUsers.forEach((user, rowIdx) => {
-      if (y > PH - H_FOOT - H_TOT - 15) {
-        doc.addPage();
-        y = 10;
-        // Ri-stampa intestazioni colonne
-        doc.setFillColor(...C_HDR_BG);
-        doc.rect(MG, y, CW, H_HDR, 'F');
-        grid(); doc.rect(MG, y, CW, H_HDR, 'S');
-        setTxt(7, 'bold', C_MID);
-        doc.text(t.ts_pdf_col_employee, MG + 2, y + 8);
-        weekDays.forEach((day, i) => {
-          const x = MG + NAME_W + i * DAY_W;
-          grid(); doc.line(x, y, x, y + H_HDR);
-          setTxt(6, 'bold', C_MID);
-          centerText(format(day,'EEE d/M',{locale}).toUpperCase(), x, DAY_W, y + 7.5);
-        });
-        grid(); doc.line(MG + NAME_W, y, MG + NAME_W, y + H_HDR);
-        const pX = MG + NAME_W + 7 * DAY_W;
-        grid(); doc.line(pX, y, pX, y + H_HDR);
-        setTxt(6, 'bold', C_MID);
-        centerText(t.ts_pdf_col_break, pX, PAUSA_W, y + 8);
-        const tXh = pX + PAUSA_W;
-        grid(); doc.line(tXh, y, tXh, y + H_HDR);
-        setTxt(7, 'bold', C_TEAL);
-        centerText(t.ts_pdf_col_total_hrs, tXh, TOT_W, y + 8);
-        y += H_HDR;
-      }
-
-      const rowBg: [number,number,number] = rowIdx % 2 === 0 ? [255,255,255] : C_ROW_ALT;
-      doc.setFillColor(...rowBg);
-      doc.rect(MG, y, CW, H_ROW, 'F');
-
-      // Nome
-      setTxt(8, 'bold', C_DARK);
-      doc.text(user.first_name.toUpperCase(), MG + 2.5, y + 6);
-      if (user.last_name) {
-        setTxt(6.5, 'normal', C_MID);
-        doc.text(user.last_name.toUpperCase(), MG + 2.5, y + 10.5);
-      }
-      if (user.department) {
-        setTxt(5.5, 'normal', C_LIGHT);
-        doc.text(user.department.toUpperCase(), MG + 2.5, y + 14.5);
-      }
-
-      // Celle giornaliere
-      weekDays.forEach((day, i) => {
-        const dateStr = format(day,'yyyy-MM-dd');
-        const dayData = timesheetData[user.id]?.[dateStr];
-        const x = MG + NAME_W + i * DAY_W;
-        const isWE = [0,6].includes(day.getDay());
-        const isNow = dateStr === format(new Date(),'yyyy-MM-dd');
-
-        if (isWE) {
-          const bg: [number,number,number] = rowIdx%2===0 ? [248,250,252] : [241,245,249];
-          doc.setFillColor(...bg); doc.rect(x, y, DAY_W, H_ROW, 'F');
-        }
-        if (isNow) { doc.setFillColor(230,247,243); doc.rect(x, y, DAY_W, H_ROW, 'F'); }
-
-        if (!dayData || dayData.shifts.length === 0) {
-          setTxt(8, 'normal', C_LIGHT);
-          centerText('—', x, DAY_W, y + H_ROW/2 + 1.5);
-        } else {
-          dayData.shifts.slice(0, 2).forEach((s, si) => {
-            const oy = si * 8;
-            // Dot status
-            const dotC: [number,number,number] =
-              s.status==='approved' ? C_GREEN :
-              s.hasMissingOut ? C_RED :
-              s.punched && !!s.actualEnd ? C_BLUE :
-              s.punched ? C_AMBER : C_LIGHT;
-            doc.setFillColor(...dotC);
-            doc.circle(x + 2.2, y + 4.5 + oy, 1.1, 'F');
-
-            // Orario pianificato — sinistra, grigio 6pt
-            setTxt(5.5, 'normal', C_MID);
-            doc.text(`${s.plannedStart}–${s.plannedEnd}`, x + 4.5, y + 5.5 + oy);
-
-            // Ore timbrate — destra, bold (allineate a destra)
-            if (s.punched && s.actualEnd && s.actualMins > 0) {
-              const hStr = fmtHM(s.actualMins);
-              const dStr = `${s.deltaMins>=0?'+':''}${fmtHM(s.deltaMins)}`;
-              setTxt(7, 'bold', C_DARK);
-              rightText(hStr, x + DAY_W - 1, y + 5.5 + oy);
-              const deltaC: [number,number,number] = s.deltaMins >= 0 ? C_GREEN : C_RED;
-              setTxt(5.5, 'normal', deltaC);
-              rightText(dStr, x + DAY_W - 1, y + 10 + oy);
-            } else if (s.punched && s.actualStart) {
-              setTxt(5.5, 'bold', C_AMBER);
-              rightText(t.ts_pdf_punch_in_only, x + DAY_W - 1, y + 5.5 + oy);
-            }
-          });
-        }
-      });
-
-      // Colonna PAUSA — minuti sottratti (es. -30m)
-      const pausaX2 = MG + NAME_W + 7 * DAY_W;
-      const userBreakTotal = weekDays.reduce((sum, d) => {
-        const dd = timesheetData[user.id]?.[format(d, 'yyyy-MM-dd')];
-        return sum + (dd?.shifts.reduce((s, sh) => s + sh.breakMinutes, 0) ?? 0);
-      }, 0);
-      if (userBreakTotal > 0) {
-        setTxt(6, 'normal', C_MID);
-        centerText(`−${userBreakTotal}m`, pausaX2, PAUSA_W, y + H_ROW / 2 + 1.5);
-      }
-
-      // Colonna TOTALE — ore allineate a destra
-      const totX2 = pausaX2 + PAUSA_W;
-      const tot = userTotals[user.id];
-      if (tot) {
-        setTxt(6.5, 'normal', C_MID);
-        rightText(fmtHM(tot.plannedMins), totX2 + TOT_W - 2, y + 5.5);
-        if (tot.actualMins > 0) {
-          setTxt(8.5, 'bold', C_TEAL);
-          rightText(fmtHM(tot.actualMins), totX2 + TOT_W - 2, y + 11.5);
-          const dc: [number,number,number] = tot.deltaMins>=0 ? C_GREEN : C_RED;
-          setTxt(5.5, 'bold', dc);
-          rightText(`${tot.deltaMins>=0?'+':''}${fmtHM(tot.deltaMins)}`, totX2 + TOT_W - 2, y + 15.5);
-        }
-      }
-
-      // Griglia completa riga (0.1mm)
-      grid();
-      doc.rect(MG, y, CW, H_ROW, 'S');
-      doc.line(MG + NAME_W, y, MG + NAME_W, y + H_ROW);
-      weekDays.forEach((_, i) => {
-        doc.line(MG + NAME_W + i * DAY_W, y, MG + NAME_W + i * DAY_W, y + H_ROW);
-      });
-      doc.line(pausaX2, y, pausaX2, y + H_ROW);
-      doc.line(totX2, y, totX2, y + H_ROW);
-
-      y += H_ROW;
-    });
-
-    // ── RIGA TOTALI SETTIMANA ──────────────────────────────────────────
-    doc.setFillColor(...C_HDR_BG);
-    doc.rect(MG, y, CW, H_TOT, 'F');
-    grid(); doc.rect(MG, y, CW, H_TOT, 'S');
-    setTxt(6.5, 'bold', C_MID);
-    doc.text(t.ts_pdf_row_total, MG + 2, y + 5);
-    doc.line(MG + NAME_W, y, MG + NAME_W, y + H_TOT);
-
-    weekDays.forEach((day, i) => {
-      const ds = format(day,'yyyy-MM-dd');
-      const gPlanned = visibleUsers.reduce((s,u)=>s+(timesheetData[u.id]?.[ds]?.totalPlannedMins??0),0);
-      const gActual  = visibleUsers.reduce((s,u)=>s+(timesheetData[u.id]?.[ds]?.totalActualMins??0),0);
-      const x = MG + NAME_W + i * DAY_W;
-      grid(); doc.line(x, y, x, y + H_TOT);
-      if (gPlanned > 0) {
-        setTxt(5.5, 'normal', C_MID);
-        doc.text(fmtHM(gPlanned), x + 1.5, y + 3.5);
-      }
-      if (gActual > 0) {
-        setTxt(6, 'bold', C_TEAL);
-        doc.text(fmtHM(gActual), x + 1.5, y + 6.5);
-      }
-    });
-
-    const pausaXf = MG + NAME_W + 7 * DAY_W;
-    grid(); doc.line(pausaXf, y, pausaXf, y + H_TOT);
-    const grandBreak = visibleUsers.reduce((s,u)=>s+weekDays.reduce((sd,d)=>{
-      const dd = timesheetData[u.id]?.[format(d,'yyyy-MM-dd')];
-      return sd + (dd?.shifts.reduce((sm,sh)=>sm+sh.breakMinutes,0)??0);
-    },0),0);
-    if (grandBreak > 0) {
-      setTxt(5.5, 'normal', C_MID);
-      centerText(`−${grandBreak}m`, pausaXf, PAUSA_W, y + 5);
-    }
-    const totXf = pausaXf + PAUSA_W;
-    grid(); doc.line(totXf, y, totXf, y + H_TOT);
-    const grandActual  = visibleUsers.reduce((s,u)=>s+(userTotals[u.id]?.actualMins??0),0);
-    const grandPlanned = visibleUsers.reduce((s,u)=>s+(userTotals[u.id]?.plannedMins??0),0);
-    setTxt(8, 'bold', C_TEAL);
-    rightText(fmtHM(grandActual||grandPlanned), totXf + TOT_W - 2, y + 5.5);
-    y += H_TOT;
-
-    // ── NOTA VALIDAZIONE (approved_by / approved_at) ──────────────────
-    const approvedShifts = weekShifts.filter(s => s.approval_status==='approved' && s.approved_by);
-    if (approvedShifts.length > 0) {
-      y += 3;
-      if (y > PH - H_FOOT - 12) { doc.addPage(); y = 12; }
-      doc.setFillColor(236,253,245);
-      doc.roundedRect(MG, y, CW, 10, 1, 1, 'F');
-      doc.setDrawColor(167,243,208); doc.setLineWidth(0.3);
-      doc.roundedRect(MG, y, CW, 10, 1, 1, 'S');
-
-      const uniqueBy = [...new Set(approvedShifts.map(s=>s.approved_by!))].join(', ');
-      const latestAt = approvedShifts
-        .filter(s=>s.approved_at)
-        .sort((a,b)=>(b.approved_at??'').localeCompare(a.approved_at??''))[0]?.approved_at;
-
-      setTxt(7, 'bold', [6,95,70]);
-      const prefix = formatTrans(t.ts_pdf_validated_by, { names: uniqueBy });
-      doc.text(prefix, MG + 3, y + 6.5);
-      if (latestAt) {
-        setTxt(7, 'normal', [22,120,90]);
-        const suffix = formatTrans(t.ts_pdf_validated_on, {
-          datetime: format(new Date(latestAt), 'dd/MM/yyyy HH:mm'),
-        });
-        doc.text(suffix, MG + 3 + doc.getTextWidth(prefix), y + 6.5);
-      }
-      setTxt(6.5, 'normal', [100,150,130]);
-      rightText(
-        formatTrans(t.ts_pdf_approved_ratio, { approved: approvedShifts.length, total: weekShifts.length }),
-        MG + CW - 2,
-        y + 6.5
-      );
-      y += 10;
-    }
-
-    // ── FOOTER (tutte le pagine) ───────────────────────────────────────
-    const totalPages = doc.getNumberOfPages();
-    for (let pg = 1; pg <= totalPages; pg++) {
-      doc.setPage(pg);
-      doc.setDrawColor(...C_GRID); doc.setLineWidth(0.3);
-      doc.line(MG, PH - H_FOOT - 1, PW - MG, PH - H_FOOT - 1);
-      setTxt(6.5, 'normal', C_LIGHT);
-      doc.text(t.ts_pdf_footer_brand, MG, PH - 4);
-      const pgStr = formatTrans(t.ts_pdf_footer_page, {
-        datetime: format(new Date(), 'd MMMM yyyy HH:mm', { locale }),
-        page: pg,
-        total: totalPages,
-      });
-      rightText(pgStr, PW - MG, PH - 4);
-    }
-
-    doc.save(`presenze_${weekStr}.pdf`);
-  };
-
   // ── Helpers rendering ────────────────────────────────────────────────────
 
   const getShiftCardStyle = (s: ShiftRow, punchAuditCount: number) => {
@@ -1342,56 +1106,46 @@ export default function Timesheets() {
 
   if (!currentUser) return null;
 
+  const tv = t as Record<string, string>;
+  const monthTabTitle = payrollStripForToolbar
+    ? `${tv.ts_timesheet_month_tab_hint ?? ''}\n${formatTrans(tv.ts_timesheet_month_payroll_strip ?? 'Pagamento stipendi previsto: {dates}', { dates: payrollStripForToolbar })}`
+    : (tv.ts_timesheet_month_tab_hint ?? '');
+
   return (
     <>
       <div className="pb-content pt-6 w-full max-w-full font-sans min-h-full">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
 
-          {/* ── Header ─────────────────────────────────────────────────── */}
+          {/* ── Header: periodo, vista, navigazione ── */}
           {uiW('timesheet.header') && (
           <div className="ui-toolbar-page-band">
-              {/* Cluster sinistro compatto: periodo + vista + icone tabella/card (niente gap larghi tra i blocchi) */}
+            <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 sm:gap-3">
               <div className="flex min-w-0 max-w-full shrink-0 flex-wrap items-center gap-2 sm:h-[22px] sm:max-h-[22px] sm:flex-nowrap sm:gap-2 sm:overflow-x-auto-safe">
-                <div className="ui-toolbar-group-muted">
-                  <label className="flex h-[20px] shrink-0 items-center whitespace-nowrap px-2.5 text-[13px] font-semibold leading-none text-slate-500">
-                    {t.ts_period_start}
-                  </label>
-                  <div className="flex shrink-0 items-center px-1">
-                    <DatePickerField
-                      value={periodStart}
-                      onChange={(v) => { setPeriodStart(v); setPeriodSaved(false); }}
-                      allowClear={false}
-                      aria-label={t.ts_period_start}
-                      className="!h-[20px] !min-h-0 !max-h-[20px] gap-1 rounded-md border border-slate-200 bg-white px-1 text-[13px] leading-none shadow-sm [&_svg]:h-2.5 [&_svg]:w-2.5"
-                    />
-                  </div>
-                  <div className="ui-toolbar-segment-pair">
-                    <button type="button" onClick={() => { setPeriodNumWeeks(4); setPeriodSaved(false); }}
-                      className={`ui-toolbar-muted-btn ${periodNumWeeks === 4 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}>
-                      {t.ts_preset_4weeks}
-                    </button>
-                    <button type="button" onClick={() => { setPeriodNumWeeks(5); setPeriodSaved(false); }}
-                      className={`ui-toolbar-muted-btn ${periodNumWeeks === 5 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}>
-                      {t.ts_preset_5weeks}
-                    </button>
-                  </div>
-                  <button type="button" onClick={handleSavePeriodConfig} disabled={periodSaved}
-                    className={`ui-toolbar-muted-btn h-[20px] shrink-0 ${periodSaved ? 'cursor-not-allowed bg-slate-200 text-slate-500' : 'bg-accent text-white hover:bg-accent-hover'}`}>
-                    {t.save ?? 'Salva'}
-                  </button>
-                </div>
-
                 <div className="ui-toolbar-row-tight min-w-0 shrink-0 gap-1.5 sm:gap-1.5">
                   <div className="ui-toolbar-group">
                     <button type="button" onClick={() => setViewMode('week')}
                       className={`ui-toolbar-tab ${viewMode === 'week' ? 'bg-accent text-white' : 'text-slate-500 hover:bg-slate-100'}`}>
                       {t.ts_period_week}
                     </button>
-                    <button type="button" onClick={() => setViewMode('month')}
-                      className={`ui-toolbar-tab ${viewMode === 'month' ? 'bg-accent text-white' : 'text-slate-500 hover:bg-slate-100'}`}>
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('month')}
+                      className={`ui-toolbar-tab ${viewMode === 'month' ? 'bg-accent text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+                      title={monthTabTitle}
+                      aria-label={`${t.ts_period_month}${payrollStripForToolbar ? `. ${formatTrans(tv.ts_timesheet_month_payroll_strip ?? '', { dates: payrollStripForToolbar })}` : ''}`}
+                    >
                       {t.ts_period_month}
                     </button>
                   </div>
+
+                  {viewMode === 'month' && payrollStripForToolbar && (
+                    <span
+                      className="hidden min-[400px]:inline-flex h-[22px] max-w-[min(100%,22rem)] shrink-0 items-center truncate rounded-lg border border-emerald-200/90 bg-emerald-50 px-2 text-[10px] font-semibold text-emerald-900"
+                      title={tv.ts_timesheet_month_tab_hint}
+                    >
+                      {formatTrans(tv.ts_timesheet_month_payroll_strip ?? 'Pagamento stipendi previsto: {dates}', { dates: payrollStripForToolbar })}
+                    </span>
+                  )}
 
                   {viewMode === 'week' && (
                     <div className="ui-toolbar-group">
@@ -1400,7 +1154,7 @@ export default function Timesheets() {
                         <ChevronLeft className="h-3 w-3 text-slate-600" />
                       </button>
                       <span className="ui-toolbar-segment-static min-w-[52px]">
-                        {weekIndex + 1} / {periodConfig.numWeeks}
+                        {weekIndex + 1} / {displayPeriodConfig.numWeeks}
                       </span>
                       <button type="button" onClick={goNextWeek} disabled={weekIndex >= maxWeekIndex}
                         className="ui-toolbar-icon-btn hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40">
@@ -1409,44 +1163,88 @@ export default function Timesheets() {
                     </div>
                   )}
                 </div>
-
-                <div
-                  className="ui-toolbar-group shrink-0"
-                  role="group"
-                  aria-label={`${t.ts_view_table} / ${t.ts_view_cards}`}
-                >
-                  <button type="button" onClick={() => setCardView(false)} title={t.ts_view_table}
-                    className={`ui-toolbar-icon-btn ${!cardView ? 'bg-accent text-white' : 'text-slate-500 hover:bg-slate-100'}`}>
-                    <Table2 className="h-3 w-3" aria-hidden />
-                  </button>
-                  <button type="button" onClick={() => setCardView(true)} title={t.ts_view_cards}
-                    className={`ui-toolbar-icon-btn ${cardView ? 'bg-accent text-white' : 'text-slate-500 hover:bg-slate-100'}`}>
-                    <LayoutList className="h-3 w-3" aria-hidden />
-                  </button>
-                </div>
               </div>
 
-              {isManagement && (
-                <div className="flex shrink-0 flex-wrap items-center gap-2 sm:h-[22px] sm:max-h-[22px] sm:flex-nowrap">
-                  {currentUser && isFeatureEnabled(currentUser, 'approve_shifts') && (
-                    <button type="button" onClick={handleApproveAll} disabled={approving}
-                      className="ui-toolbar-accent">
-                      <Check className="h-3 w-3 shrink-0" />
-                      {t.timesheet_approve_all}
-                    </button>
-                  )}
-                  {currentUser && isFeatureEnabled(currentUser, 'export_pdf') && (
-                    <>
-                      <button type="button" onClick={handleExportCSV} className="ui-toolbar-outline">
-                        <Download className="h-3 w-3 shrink-0" /> CSV
-                      </button>
-                      <button type="button" onClick={handleExportPDF} className="ui-toolbar-outline">
-                        <Download className="h-3 w-3 shrink-0" /> PDF
-                      </button>
-                    </>
+              <div className="ui-toolbar-row-tight shrink-0">
+                <div className="ui-toolbar-dropdown-root" ref={timesheetActionsRef}>
+                  <button
+                    type="button"
+                    onClick={() => setTimesheetActionsOpen((o) => !o)}
+                    className={`ui-toolbar-chip border-slate-200 text-slate-600 hover:bg-slate-100 ${!periodSaved ? 'border-amber-300/80 bg-amber-50/50' : ''}`}
+                    aria-label={(t as { wst_actions?: string }).wst_actions ?? 'Azioni'}
+                    title={(t as { wst_actions?: string }).wst_actions ?? 'Azioni'}
+                  >
+                    <MoreHorizontal className="h-3 w-3 shrink-0 sm:hidden" aria-hidden />
+                    <span className="hidden sm:inline">{(t as { wst_actions?: string }).wst_actions ?? 'Azioni'}</span>
+                    {!periodSaved && (
+                      <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden />
+                    )}
+                    <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
+                  </button>
+                  {timesheetActionsOpen && timesheetActionsStyle && (
+                    <div
+                      className="fixed z-[60] max-h-[80vh] overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white py-2 shadow-xl"
+                      style={{
+                        top: timesheetActionsStyle.top,
+                        left: timesheetActionsStyle.left,
+                        width: timesheetActionsStyle.width,
+                      }}
+                    >
+                      <div className="px-3 pb-1">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          {(t as { stats_preset_period?: string }).stats_preset_period ?? 'Periodo Presenze'}
+                        </p>
+                      </div>
+                      <div className="space-y-2.5 border-b border-slate-100 px-3 pb-2.5">
+                        <div>
+                          <label className="mb-1 block text-[10px] font-bold text-slate-500">{t.ts_period_start}</label>
+                          <DatePickerField
+                            value={periodStart}
+                            onChange={(v) => { setPeriodStart(v); setPeriodSaved(false); setWeekIndex(0); }}
+                            allowClear={false}
+                            aria-label={t.ts_period_start}
+                            className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2 text-[13px] shadow-sm [&_svg]:h-3 [&_svg]:w-3"
+                          />
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => { setPeriodNumWeeks(4); setPeriodSaved(false); setWeekIndex(0); }}
+                            className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
+                              periodNumWeeks === 4 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            }`}
+                          >
+                            {t.ts_preset_4weeks}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setPeriodNumWeeks(5); setPeriodSaved(false); setWeekIndex(0); }}
+                            className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
+                              periodNumWeeks === 5 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            }`}
+                          >
+                            {t.ts_preset_5weeks}
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleSavePeriodConfig();
+                            setTimesheetActionsOpen(false);
+                          }}
+                          disabled={periodSaved}
+                          className={`w-full rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
+                            periodSaved ? 'cursor-not-allowed bg-slate-200 text-slate-500' : 'bg-accent text-white hover:bg-accent-hover'
+                          }`}
+                        >
+                          {t.ts_save_period}
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
-              )}
+              </div>
+            </div>
           </div>
           )}
 
@@ -1510,6 +1308,16 @@ export default function Timesheets() {
               ))}
             </div>
           )}
+
+          {isManagement &&
+            currentUser &&
+            isFeatureEnabled(currentUser, 'view_stats') &&
+            uiW('stats.mgmt_kpi_cards') && (
+              <TimesheetManagementKpiBlock
+                visibleWeekDays={weekDays}
+                showDetailPanels={uiW('stats.detail_panels')}
+              />
+            )}
 
           {/* ── Turni Sera da Chiudere ──────────────────────────────────── */}
           {uiW('timesheet.dinner_close') && isManagement && dinnerShiftsNeedingClose.length > 0 && (
@@ -1603,9 +1411,7 @@ export default function Timesheets() {
                 {readyForApproval.map((item) => {
                   const deltaColor = item.deltaMins > 5 ? 'text-accent' : item.deltaMins < -5 ? 'text-red-500' : 'text-slate-500';
                   const isApproving = approvingShiftId === item.shift.id;
-                  const auditTooltip = item.auditCount > 0
-                    ? `${item.auditCount} modifica${item.auditCount > 1 ? 'he' : ''} al record timbratura`
-                    : undefined;
+                  const auditOpen = auditDetailShiftId === item.shift.id;
                   return (
                     <div
                       key={item.shift.id}
@@ -1622,16 +1428,44 @@ export default function Timesheets() {
                             {format(parseISO(item.dateStr), 'EEEE d MMM', { locale })}
                           </p>
                         </div>
-                        {/* Audit badge con tooltip */}
                         {item.auditCount > 0 && (
-                          <span
-                            title={auditTooltip}
-                            className="flex items-center gap-0.5 text-[10px] font-bold text-orange-600 bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-full cursor-help flex-shrink-0"
+                          <button
+                            type="button"
+                            title={(t as Record<string, string>).ts_audit_toggle_hint || ''}
+                            aria-expanded={auditOpen}
+                            onClick={() =>
+                              setAuditDetailShiftId((id) => (id === item.shift.id ? null : item.shift.id))
+                            }
+                            className={`flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 border transition-colors ${
+                              auditOpen
+                                ? 'text-orange-800 bg-orange-200 border-orange-300'
+                                : 'text-orange-600 bg-orange-100 border-orange-200 hover:bg-orange-200/80'
+                            }`}
                           >
-                            <ShieldAlert className="w-3 h-3" />{item.auditCount}
-                          </span>
+                            <ShieldAlert className="w-3 h-3" />
+                            {item.auditCount}
+                          </button>
                         )}
                       </div>
+                      {auditOpen && item.auditEntries.length > 0 && (
+                        <div className="mb-3 rounded-xl border border-orange-200 bg-orange-50/80 px-3 py-2.5 space-y-1.5">
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-orange-800/80">
+                            {(t as Record<string, string>).ts_audit_changes_title || 'Modifiche'}
+                          </p>
+                          <ul className="space-y-1.5 text-[10px] text-slate-700">
+                            {item.auditEntries.map((e) => (
+                              <li key={e.id} className="leading-snug border-b border-orange-100/80 pb-1.5 last:border-0 last:pb-0">
+                                <span className="font-semibold text-slate-800">{punchAuditFieldLabel(e.field)}</span>
+                                <span className="text-slate-500"> · </span>
+                                <span className="tabular-nums">{formatAuditValue(e.old_value)}</span>
+                                <span className="text-slate-400"> → </span>
+                                <span className="tabular-nums font-medium">{formatAuditValue(e.new_value)}</span>
+                                <span className="block text-[9px] text-slate-500 mt-0.5">{e.actor_name}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
 
                       {/* Pianificato vs Timbrato */}
                       <div className="grid grid-cols-2 gap-2 mb-3">
@@ -1754,155 +1588,58 @@ export default function Timesheets() {
             </div>
           </div>
 
-          {/* ── Vista Card (alternativa mobile) ─────────────────────────── */}
-          {cardView && (
-            <div className="flex flex-col gap-3 mb-2">
-              {visibleUsers.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-                    <Calendar className="w-7 h-7 text-slate-300" />
-                  </div>
-                  <p className="text-slate-600 font-semibold text-sm mb-1">{t.ts_no_employees_found}</p>
-                  <p className="text-slate-400 text-xs">{t.ts_check_filters}</p>
-                </div>
-              )}
-              {visibleUsers.map((user) => {
-                const totals = userTotals[user.id];
-                const hasAnyShift = weekDays.some((d) => {
-                  const dateStr = format(d, 'yyyy-MM-dd');
-                  return (timesheetData[user.id]?.[dateStr]?.shifts.length ?? 0) > 0;
-                });
-                if (!hasAnyShift) return null;
-                return (
-                  <div key={user.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                    {/* Employee header */}
-                    <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-accent/15 flex items-center justify-center text-accent font-bold text-xs flex-shrink-0">
-                          {user.first_name[0]}
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-800 text-sm">{user.first_name}</p>
-                          {user.department && <p className="text-[10px] text-slate-400">{user.department}</p>}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-slate-500">{formatMinutesToHoursAndMinutes(totals?.plannedMins ?? 0)}</p>
-                        {(totals?.actualMins ?? 0) > 0 && (
-                          <p className="text-sm font-bold text-slate-900">{formatMinutesToHoursAndMinutes(totals.actualMins)}</p>
-                        )}
-                      </div>
-                    </div>
-                    {/* Shifts list */}
-                    <div className="divide-y divide-slate-50">
-                      {weekDays.map((day) => {
-                        const dateStr = format(day, 'yyyy-MM-dd');
-                        const dayData = timesheetData[user.id]?.[dateStr];
-                        if (!dayData || dayData.shifts.length === 0) return null;
-                        const todayDate = isToday(day);
-                        return (
-                          <div key={dateStr} className={`px-4 py-3 ${todayDate ? 'bg-accent/[0.03]' : ''}`}>
-                            <p className={`text-[11px] font-bold uppercase tracking-wide mb-2 ${todayDate ? 'text-accent' : 'text-slate-400'}`}>
-                              {format(day, 'EEE d MMM', { locale })}
-                            </p>
-                            <div className="flex flex-col gap-1.5">
-                              {dayData.shifts.map((s) => {
-                                const punchAuditCount = s.punchInId ? (punchAudits[s.punchInId]?.length ?? 0) : 0;
-                                const { border, bg, ring, dot, label, labelCls } = getShiftCardStyle(s, punchAuditCount);
-                                const deltaColor = s.deltaMins > 5 ? 'text-accent' : s.deltaMins < -5 ? 'text-red-500' : 'text-slate-500';
-                                return (
-                                  <button
-                                    key={s.id}
-                                    type="button"
-                                    onClick={() => openDrawer(s, user, dateStr)}
-                                    className={`w-full text-left rounded-xl border-l-[3px] ${border} ${bg} ${ring} px-3 py-2.5 shadow-sm hover:shadow-md transition-all`}
-                                  >
-                                    <div className="flex items-center justify-between gap-2">
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dot}`} />
-                                          <span className="text-xs font-semibold text-slate-500 tabular-nums">
-                                            {t.ts_label_planned}: {s.plannedStart}–{s.plannedEnd || '?'}
-                                          </span>
-                                          <span className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full ${labelCls}`}>{label}</span>
-                                        </div>
-                                        {s.punched ? (
-                                          <p className="text-sm font-bold text-slate-800 tabular-nums">
-                                            {s.actualStart}
-                                            {s.actualEnd ? ` → ${s.actualEnd}` : <span className="text-amber-500 font-medium text-xs"> {t.ts_missing_exit}</span>}
-                                          </p>
-                                        ) : (
-                                          <p className="text-sm text-slate-400 italic">{t.ts_status_unpunched}</p>
-                                        )}
-                                      </div>
-                                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                                        {s.actualMins > 0 && (
-                                          <span className={`text-xs font-bold tabular-nums ${deltaColor}`}>
-                                            {s.deltaMins >= 0 ? '+' : ''}{fmtHM(s.deltaMins)}
-                                          </span>
-                                        )}
-                                        {s.status === 'approved' && (
-                                          <span className="text-[9px] font-bold text-accent-dark bg-accent/10 px-1.5 py-0.5 rounded-xl flex items-center gap-0.5">
-                                            <Lock className="w-2.5 h-2.5" /> OK
-                                          </span>
-                                        )}
-                                        {punchAuditCount > 0 && (
-                                          <span className="text-[9px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-xl flex items-center gap-0.5">
-                                            <ShieldAlert className="w-2.5 h-2.5" />{punchAuditCount}
-                                          </span>
-                                        )}
-                                        {isManagement && s.status === 'approved' && !s.approved_at && (
-                                          <span
-                                            role="button"
-                                            onClick={(ev) => { ev.stopPropagation(); void handleApproveShift(s.id); }}
-                                            className="text-[9px] font-bold text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded-xl cursor-pointer hover:bg-accent/20 flex items-center gap-0.5"
-                                          >
-                                            <Lock className="w-2.5 h-2.5" /> Congela
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
           {/* ── Tabella principale ──────────────────────────────────────── */}
-          <div className={`rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden ${cardView ? 'hidden' : ''}`}>
-            <div className="overflow-x-auto-safe">
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <HorizontalScrollArea
+              variant="overlay"
+              remeasureKey={`${viewMode}-${weekStr}-${weekDays.length}`}
+              ariaLabelPrev={t.table_h_scroll_prev}
+              ariaLabelNext={t.table_h_scroll_next}
+              scrollClassName="overflow-x-auto-safe"
+            >
             <table className="w-full border-collapse min-w-[700px]">
               <thead>
                 <tr className="border-b border-slate-100">
                   <th className="sticky left-0 bg-slate-50 pl-4 pr-3 py-3.5 text-left text-slate-500 text-[11px] uppercase tracking-wider font-semibold min-w-[130px] border-r border-slate-100 z-10">
                     {t.employee}
                   </th>
-                  {weekDays.map((day) => {
+                  {weekDays.map((day, dayIdx) => {
                     const todayDate = isToday(day);
                     const dStr = format(day, 'yyyy-MM-dd');
+                    const inP = viewMode === 'month' ? isDayInConfiguredPeriod(day) : true;
+                    const isPayrollDay = dStr === weekViewPayrollDayStr;
+                    const payrollHighlight = isPayrollDay && (viewMode === 'week' || inP);
                     const isPast = dStr < todayStr;
                     const dayShiftCount = visibleUsers.reduce((n, u) => {
                       const d = timesheetData[u.id]?.[dStr];
                       return n + (d?.shifts.filter((s) => s.status !== 'approved').length ?? 0);
                     }, 0);
+                    const canReview = inP && isPast && isManagement && dayShiftCount > 0;
+                    const weekEndCol = viewMode === 'month' && (dayIdx + 1) % 7 === 0;
                     return (
                       <th key={dStr}
-                        onClick={isPast && isManagement && dayShiftCount > 0 ? () => handleOpenDayReview(dStr) : undefined}
-                        title={isPast && isManagement && dayShiftCount > 0 ? t.ts_review_shifts_tooltip.replace('{n}', String(dayShiftCount)) : undefined}
-                        className={`px-2 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap border-r border-slate-100 min-w-[92px] transition-colors ${
-                          todayDate ? 'bg-accent/5' : 'bg-slate-50'
-                        } ${isPast && isManagement && dayShiftCount > 0 ? 'cursor-pointer hover:bg-accent/10 group' : ''}`}>
-                        <div className={todayDate ? 'text-accent' : 'text-slate-400'}>{format(day, 'EEE', { locale })}</div>
-                        <div className={`font-bold mt-0.5 text-sm ${todayDate ? 'text-accent' : 'text-slate-700'}`}>{format(day, 'd MMM', { locale })}</div>
-                        {isPast && isManagement && dayShiftCount > 0 && (
+                        onClick={canReview ? () => handleOpenDayReview(dStr) : undefined}
+                        title={
+                          isPayrollDay
+                            ? `${format(day, 'EEEE d MMMM yyyy', { locale })} — ${tv.ts_payroll_day_abbr ?? 'Paga'}`
+                            : canReview
+                              ? t.ts_review_shifts_tooltip.replace('{n}', String(dayShiftCount))
+                              : undefined
+                        }
+                        className={`px-2 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap min-w-[92px] transition-colors ${
+                          weekEndCol ? 'border-r-2 border-r-slate-200' : 'border-r border-slate-100'
+                        } ${
+                          payrollHighlight ? 'bg-emerald-50 ring-1 ring-inset ring-emerald-200/90' : todayDate ? 'bg-accent/5' : 'bg-slate-50'
+                        } ${viewMode === 'month' && !inP ? '!bg-slate-100/90 opacity-70' : ''} ${canReview ? 'cursor-pointer hover:bg-accent/10 group' : ''}`}
+                      >
+                        <div className={todayDate && inP ? 'text-accent' : !inP ? 'text-slate-400' : 'text-slate-400'}>{format(day, 'EEE', { locale })}</div>
+                        <div className={`font-bold mt-0.5 text-sm ${todayDate && inP ? 'text-accent' : !inP ? 'text-slate-500' : payrollHighlight ? 'text-emerald-900' : 'text-slate-700'}`}>{format(day, 'd MMM', { locale })}</div>
+                        {payrollHighlight && (
+                          <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-800">
+                            {tv.ts_payroll_day_abbr ?? 'Paga'}
+                          </div>
+                        )}
+                        {canReview && (
                           <div className="mt-0.5 text-[9px] font-semibold text-accent/60 group-hover:text-accent transition-colors">
                             {t.ts_review_short}
                           </div>
@@ -1930,15 +1667,29 @@ export default function Timesheets() {
                       </td>
 
                       {/* Celle giornaliere */}
-                      {weekDays.map((day) => {
+                      {weekDays.map((day, dayIdx) => {
                         const dateStr = format(day, 'yyyy-MM-dd');
                         const dayData = timesheetData[user.id]?.[dateStr];
                         const todayDate = isToday(day);
+                        const inP = viewMode === 'month' ? isDayInConfiguredPeriod(day) : true;
+                        const isPayrollDay = dateStr === weekViewPayrollDayStr;
+                        const payrollHighlight = isPayrollDay && (viewMode === 'week' || inP);
+                        const weekEndCol = viewMode === 'month' && (dayIdx + 1) % 7 === 0;
+                        const tdBorder = weekEndCol ? 'border-r-2 border-r-slate-200' : 'border-r border-slate-100';
+                        const tdMuted = viewMode === 'month' && !inP;
+                        const tdBg =
+                          payrollHighlight
+                            ? 'bg-emerald-50/50'
+                            : todayDate && inP
+                              ? 'bg-accent/5'
+                              : tdMuted
+                                ? 'bg-slate-100/90 opacity-70'
+                                : '';
 
                         if (!dayData || dayData.shifts.length === 0) {
                           return (
-                            <td key={dateStr} className={`px-2 py-3 text-center border-r border-slate-100 ${todayDate ? 'bg-accent/5' : ''}`}>
-                              <span className="text-slate-200 text-sm">–</span>
+                            <td key={dateStr} className={`px-2 py-3 text-center ${tdBorder} ${tdBg}`}>
+                              <span className={`text-sm ${tdMuted ? 'text-slate-300' : 'text-slate-200'}`}>–</span>
                             </td>
                           );
                         }
@@ -1950,14 +1701,14 @@ export default function Timesheets() {
 
                         if (filteredShifts.length === 0) {
                           return (
-                            <td key={dateStr} className={`px-2 py-3 text-center border-r border-slate-100 ${todayDate ? 'bg-accent/5' : ''}`}>
-                              <span className="text-slate-200 text-sm">–</span>
+                            <td key={dateStr} className={`px-2 py-3 text-center ${tdBorder} ${tdBg}`}>
+                              <span className={`text-sm ${tdMuted ? 'text-slate-300' : 'text-slate-200'}`}>–</span>
                             </td>
                           );
                         }
 
                         return (
-                          <td key={dateStr} className={`px-1.5 py-2 border-r border-slate-100 align-top ${todayDate ? 'bg-accent/5' : ''}`}>
+                          <td key={dateStr} className={`px-1.5 py-2 ${tdBorder} align-top ${tdBg}`}>
                             <div className="flex flex-col gap-1">
                               {filteredShifts.map((s) => {
                                 const punchAuditCount = s.punchInId ? (punchAudits[s.punchInId]?.length ?? 0) : 0;
@@ -2087,18 +1838,36 @@ export default function Timesheets() {
                     <td className="sticky left-0 bg-slate-50 pl-4 pr-3 py-3 text-slate-600 font-bold text-xs uppercase border-r border-slate-100 z-10">
                       {t.stats_total}
                     </td>
-                    {weekDays.map((day) => {
+                    {weekDays.map((day, dayIdx) => {
                       const dateStr = format(day, 'yyyy-MM-dd');
                       const planned = visibleUsers.reduce((s, u) => s + (timesheetData[u.id]?.[dateStr]?.totalPlannedMins ?? 0), 0);
                       const actual = visibleUsers.reduce((s, u) => s + (timesheetData[u.id]?.[dateStr]?.totalActualMins ?? 0), 0);
+                      const inP = viewMode === 'month' ? isDayInConfiguredPeriod(day) : true;
+                      const isPayrollDay = dateStr === weekViewPayrollDayStr;
+                      const payrollHighlight = isPayrollDay && (viewMode === 'week' || inP);
+                      const weekEndCol = viewMode === 'month' && (dayIdx + 1) % 7 === 0;
+                      const tdBorder = weekEndCol ? 'border-r-2 border-r-slate-200' : 'border-r border-slate-100';
+                      const tdMuted = viewMode === 'month' && !inP;
+                      const tdBg =
+                        payrollHighlight
+                          ? 'bg-emerald-50/50'
+                          : tdMuted
+                            ? 'bg-slate-100/90 opacity-70'
+                            : '';
                       return (
-                        <td key={dateStr} className="px-2 py-3 text-center border-r border-slate-100 text-xs">
+                        <td key={dateStr} className={`px-2 py-3 text-center ${tdBorder} text-xs ${tdBg}`}>
                           {planned > 0 ? (
                             <>
-                              <div className="text-slate-500">{formatMinutesToHoursAndMinutes(planned)}</div>
-                              {actual > 0 && <div className="font-semibold text-slate-800">{formatMinutesToHoursAndMinutes(actual)}</div>}
+                              <div className={tdMuted ? 'text-slate-400' : 'text-slate-500'}>{formatMinutesToHoursAndMinutes(planned)}</div>
+                              {actual > 0 && (
+                                <div className={`font-semibold ${tdMuted ? 'text-slate-500' : 'text-slate-800'}`}>
+                                  {formatMinutesToHoursAndMinutes(actual)}
+                                </div>
+                              )}
                             </>
-                          ) : <span className="text-slate-300">–</span>}
+                          ) : (
+                            <span className={tdMuted ? 'text-slate-300' : 'text-slate-300'}>–</span>
+                          )}
                         </td>
                       );
                     })}
@@ -2114,7 +1883,7 @@ export default function Timesheets() {
                 </tfoot>
               )}
             </table>
-            </div>
+            </HorizontalScrollArea>
           </div>
           </>
           )}

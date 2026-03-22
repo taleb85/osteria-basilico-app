@@ -6,6 +6,22 @@ import { useApp } from '../context/AppContext';
 import { getTranslations } from '../utils/translations';
 import { generateNotifications, getSeenIds, markAllSeen, AppNotification, NotifSeverity } from '../utils/notifications';
 
+const TS_FILTER_KEY = 'osteria_timesheet_filter';
+
+function openTimesheetWithConfirmedFilter() {
+  try {
+    sessionStorage.setItem(TS_FILTER_KEY, 'confirmed');
+  } catch {
+    /* ignore */
+  }
+  window.dispatchEvent(
+    new CustomEvent('osteria-navigate', {
+      detail: { tab: 'timesheet' as const, anchor: 'timesheet-section-main-grid' },
+    })
+  );
+}
+import { isStandalonePwa, requestNotificationPermissionForBadgeOnUserGesture } from '../utils/appIconBadge';
+
 // ── Icon + colour helpers ─────────────────────────────────────────────────────
 
 function severityRing(s: NotifSeverity): string {
@@ -97,7 +113,13 @@ export default function NotificationCenter({ denseTrigger = false }: Notificatio
     [allNotifs, seenIds]
   );
 
-  const handleOpen = () => {
+  const handleBellClick = () => {
+    if (!open) {
+      requestNotificationPermissionForBadgeOnUserGesture();
+      if (typeof Notification === 'undefined' || Notification.permission !== 'default' || !isStandalonePwa()) {
+        window.dispatchEvent(new CustomEvent('app-badge-recheck'));
+      }
+    }
     setOpen((v) => !v);
   };
 
@@ -106,7 +128,6 @@ export default function NotificationCenter({ denseTrigger = false }: Notificatio
     const ids = allNotifs.map((n) => n.id);
     markAllSeen(currentUser.id, ids);
     setSeenIds(new Set(ids));
-    /** Estensibile (badge altrove): oggi nessun listener in app. */
     window.dispatchEvent(new CustomEvent('notifications-seen'));
   };
 
@@ -166,19 +187,15 @@ export default function NotificationCenter({ denseTrigger = false }: Notificatio
               <ul className="divide-y divide-slate-50">
                 {allNotifs.map((n) => {
                   const isNew = !seenIds.has(n.id);
-                  return (
-                    <li
-                      key={n.id}
-                      className={`flex items-start gap-3 px-4 py-3 transition-colors ${
-                        isNew ? 'bg-slate-50/80' : 'bg-white'
-                      }`}
-                    >
+                  const isApprovalNav = n.type === 'approval_needed';
+                  const Row = (
+                    <>
                       <div
                         className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${severityRing(n.severity)}`}
                       >
                         <SeverityIcon s={n.severity} />
                       </div>
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-1 text-left">
                         <div className="flex items-center justify-between gap-2">
                           <p className={`text-xs font-semibold text-slate-800 ${isNew ? '' : 'opacity-70'}`}>
                             {n.title}
@@ -189,7 +206,39 @@ export default function NotificationCenter({ denseTrigger = false }: Notificatio
                           <TypeIcon type={n.type} />
                           <span>{n.body}</span>
                         </p>
+                        {isApprovalNav && (
+                          <p className="text-[10px] font-semibold text-accent mt-1">{t.notif_tap_open_timesheet}</p>
+                        )}
                       </div>
+                    </>
+                  );
+                  if (isApprovalNav) {
+                    return (
+                      <li key={n.id} className={`p-0 ${isNew ? 'bg-slate-50/80' : 'bg-white'}`}>
+                        <button
+                          type="button"
+                          className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-100/90"
+                          onClick={() => {
+                            if (currentUser) markAllSeen(currentUser.id, [n.id]);
+                            setSeenIds((prev) => new Set([...prev, n.id]));
+                            openTimesheetWithConfirmedFilter();
+                            setOpen(false);
+                            window.dispatchEvent(new CustomEvent('notifications-seen'));
+                          }}
+                        >
+                          {Row}
+                        </button>
+                      </li>
+                    );
+                  }
+                  return (
+                    <li
+                      key={n.id}
+                      className={`flex items-start gap-3 px-4 py-3 transition-colors ${
+                        isNew ? 'bg-slate-50/80' : 'bg-white'
+                      }`}
+                    >
+                      {Row}
                     </li>
                   );
                 })}
@@ -212,7 +261,7 @@ export default function NotificationCenter({ denseTrigger = false }: Notificatio
       <button
         ref={buttonRef}
         type="button"
-        onClick={handleOpen}
+        onClick={handleBellClick}
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={t.notif_aria_open}

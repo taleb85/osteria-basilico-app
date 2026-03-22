@@ -13,7 +13,7 @@ export function translateRole(role: string, lang: Language = 'it'): string {
     case 'admin':
       return t.role_admin;
     case 'proprietario':
-      return (t as { role_proprietario?: string }).role_proprietario ?? 'Proprietario';
+      return t.role_manager;
     case 'manager':
       return t.role_manager;
     case 'assistant_manager':

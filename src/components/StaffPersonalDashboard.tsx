@@ -5,8 +5,9 @@ import { database } from '../lib/database';
 import { useApp } from '../context/AppContext';
 import { User as UserType, Shift, HolidayRequest, PunchRecord } from '../types';
 import { format, isToday, isFuture } from 'date-fns';
-import { getActualShiftTime, formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
+import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
+import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { getVisibleStaffTabs, isStaffRequestsFeatureEnabled, type AppNavTab } from '../utils/enabledModules';
 import { isPurelyManagementRole } from '../utils/permissions';
@@ -15,6 +16,7 @@ import { userRowToSessionUser } from '../utils/staffPermissionDefaults';
 import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
 import { getDepartments } from '../utils/departments';
 import WeeklyShiftsTable from './WeeklyShiftsTable';
+import AdminRow from './ui/AdminRow';
 import RequestHolidayModal from './RequestHolidayModal';
 import LanguageToggleGrid from './LanguageToggleGrid';
 import NotificationCenter from './NotificationCenter';
@@ -30,7 +32,7 @@ interface StaffPersonalDashboardProps {
 }
 
 export default function StaffPersonalDashboard({ user, onLogout, activeTab }: StaffPersonalDashboardProps) {
-  const { setCurrentUser, users, effectiveLanguage, setLanguage, breakRules, featureFlags } = useApp();
+  const { setCurrentUser, users, effectiveLanguage, setLanguage, breakRules, featureFlags, roleTemplatesRevision } = useApp();
   const latestUser = users.find((u) => u.id === user.id) ?? user;
   // Usa latestUser (da users) per permessi: quando l'admin disabilita can_request_holidays,
   // currentUser non viene aggiornato (è un altro utente), ma users sì.
@@ -130,8 +132,8 @@ export default function StaffPersonalDashboard({ user, onLogout, activeTab }: St
   const approvedShifts = visibleShifts;
   
   const totalApprovedMinutes = approvedShifts.reduce((sum, shift) => {
-    const actual = getActualShiftTime(shift, punchRecords);
-    return sum + getNetShiftMinutes(shift, actual.startTime, actual.endTime, displayUser, breakRules, breakComputeOpts);
+    const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
+    return sum + getNetShiftMinutes(shift, start, end, displayUser, breakRules, breakComputeOpts);
   }, 0);
   const totalApprovedHours = formatMinutesToHoursAndMinutes(totalApprovedMinutes);
 
@@ -198,7 +200,7 @@ export default function StaffPersonalDashboard({ user, onLogout, activeTab }: St
   /** Sempre prima di qualsiasi return anticipato (loading / profilo gestionale) — altrimenti React #310. */
   const visibleStaffTabs = useMemo(
     () => getVisibleStaffTabs(displayUser, featureFlags),
-    [displayUser, featureFlags]
+    [displayUser, featureFlags, roleTemplatesRevision]
   );
 
   const renderHome = () => {
@@ -363,39 +365,41 @@ export default function StaffPersonalDashboard({ user, onLogout, activeTab }: St
   const renderProfile = () => (
     <div className="space-y-4">
       {uiW('staff_profile.panel') && (
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
         <div className="px-5 py-4 border-b border-slate-100">
-          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-[0.18em]">{(t as { profile_settings?: string }).profile_settings ?? 'Impostazioni profilo'}</h3>
+          <h3 className="ui-section-title text-slate-600">{(t as { profile_settings?: string }).profile_settings ?? 'Impostazioni profilo'}</h3>
         </div>
-        <div className="divide-y divide-slate-50">
-          <div className="flex items-center justify-between px-5 py-4">
-            <span className="text-sm font-medium text-slate-700">{t.sidebar_profile}</span>
-            <span className="text-sm font-semibold text-slate-900 uppercase tracking-wide">{displayName}</span>
-          </div>
-          <div className="flex items-center justify-between px-5 py-4">
-            <span className="text-sm font-medium text-slate-700">{(t as { email?: string }).email ?? 'Email'}</span>
-            <span className="text-sm text-slate-600 truncate max-w-[55%] text-right">{displayUser?.email ?? '—'}</span>
-          </div>
-          <div className="flex items-center justify-between px-5 py-4">
-            <span className="text-sm font-medium text-slate-700">{(t as { phone?: string }).phone ?? 'Telefono'}</span>
-            <span className="text-sm text-slate-600">{displayUser?.phone ?? '—'}</span>
-          </div>
-          <div className="flex items-center justify-between px-5 py-4">
-            <span className="text-sm font-medium text-slate-700">{(t as { department_label?: string }).department_label ?? 'Reparto'}</span>
-            <span className="text-sm text-slate-600">{displayDept}</span>
-          </div>
-          <div className="flex items-center justify-between px-5 py-4">
-            <span className="text-sm font-medium text-slate-700">{t.profile_notifications}</span>
-            <NotificationCenter />
-          </div>
-          <div className="px-5 py-4">
-            <p className="text-sm font-medium text-slate-700 mb-3">{t.language}</p>
-            <LanguageToggleGrid effectiveLanguage={effectiveLanguage} setLanguage={setLanguage} />
-          </div>
+        <div>
+          <AdminRow
+            label={t.sidebar_profile}
+            action={<span className="text-sm font-semibold text-slate-900 uppercase tracking-wide truncate max-w-[55%] text-right">{displayName}</span>}
+          />
+          <AdminRow
+            label={(t as { email?: string }).email ?? 'Email'}
+            action={<span className="text-sm text-slate-600 truncate max-w-[55%] text-right">{displayUser?.email ?? '—'}</span>}
+          />
+          <AdminRow
+            label={(t as { phone?: string }).phone ?? 'Telefono'}
+            action={<span className="text-sm text-slate-600">{displayUser?.phone ?? '—'}</span>}
+          />
+          <AdminRow
+            label={(t as { department_label?: string }).department_label ?? 'Reparto'}
+            action={<span className="text-sm text-slate-600">{displayDept}</span>}
+          />
+          <AdminRow label={t.profile_notifications} action={<NotificationCenter />} />
+          <AdminRow
+            className="!items-start"
+            label={t.language}
+            action={
+              <div className="min-w-0 max-w-full sm:max-w-xs">
+                <LanguageToggleGrid effectiveLanguage={effectiveLanguage} setLanguage={setLanguage} />
+              </div>
+            }
+          />
           <button
             type="button"
             onClick={onLogout}
-            className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-red-50 transition-colors min-h-[52px] text-red-600 font-medium"
+            className="w-full flex items-center justify-between border-t border-slate-100 px-5 py-4 text-left hover:bg-red-50 transition-colors min-h-[52px] text-red-600 font-medium"
           >
             <span className="text-sm">{(t as { header_logout?: string }).header_logout ?? 'Esci'}</span>
             <LogOut className="w-5 h-5" strokeWidth={2} />
@@ -533,6 +537,7 @@ export default function StaffPersonalDashboard({ user, onLogout, activeTab }: St
               <>
                 {activeTab === 'home' && renderHome()}
                 {activeTab === 'turni' && renderShifts()}
+                {activeTab === 'ferie' && renderHolidays()}
                 {activeTab === 'timesheet' && (
                   <Suspense fallback={tabSpinner}>
                     <Timesheets />

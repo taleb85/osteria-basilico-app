@@ -177,25 +177,20 @@ export default function ProfileTabRichPreview({
     );
   }
 
+  /** Vista come scheda app reale: niente cornice “telefono”, solo contenuto a tutta larghezza con dati dimostrativi. */
   return (
-    <div className="space-y-3">
-      <h3 className="mb-1 text-sm font-bold text-slate-800">{tv.profile_visibility_mock_heading ?? 'Anteprima schermata'}</h3>
-      <p className="mb-2 max-w-md text-[11px] text-slate-500">
-        {tv.profile_visibility_mock_hint_realistic ?? tv.profile_visibility_mock_hint ?? ''}
-      </p>
-      <div className="flex justify-center pb-1">
-        <div className="mx-auto w-full max-w-4xl sm:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl rounded-[1.75rem] sm:rounded-[2rem] border-[3px] border-slate-800 bg-slate-800 p-2 sm:p-3 shadow-2xl">
-          <div className="flex max-h-[min(88vh,960px)] min-h-[280px] flex-col overflow-hidden rounded-[1.25rem] sm:rounded-[1.35rem] bg-[#e2e8f0]">
-            <div className="shrink-0 border-b border-slate-200 bg-white px-3 py-2.5 text-center sm:py-3">
-              <p className="text-sm font-bold tracking-tight text-slate-900 sm:text-base">{navLabel}</p>
-              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:text-[11px]">
-                {tv.profile_visibility_mock_frame_label ?? 'Simulazione'}
-              </p>
-            </div>
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain p-3 sm:p-4">
-              <div className="space-y-4">{blocks}</div>
-              {children}
-            </div>
+    <div className="w-full">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-900/[0.04]">
+        <div className="border-b border-slate-200 bg-white px-4 py-3 sm:px-5 sm:py-3.5">
+          <h3 className="text-base font-bold tracking-tight text-slate-900 sm:text-lg">{navLabel}</h3>
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-600 sm:text-sm">
+            {tv.profile_visibility_mock_hint_realistic ?? tv.profile_visibility_mock_hint ?? ''}
+          </p>
+        </div>
+        <div className="bg-[#f8fafc] px-4 py-4 sm:px-6 sm:py-6">
+          <div className="mx-auto w-full max-w-6xl space-y-5">
+            {blocks}
+            {children}
           </div>
         </div>
       </div>

@@ -28,7 +28,7 @@ const formatDiscursiveDate = (dateStr: string) => {
 };
 
 export default function RequestHolidayModal({ isOpen, onClose, userId }: RequestHolidayModalProps) {
-  const { addHolidayRequest, currentUser, effectiveLanguage } = useApp();
+  const { addHolidayRequest, currentUser, effectiveLanguage, showError } = useApp();
   const t = getTranslations(effectiveLanguage);
 
   const [startDate, setStartDate] = useState('');
@@ -74,7 +74,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
 
       handleClose();
     } catch {
-      alert(t.holiday_request_send_error);
+      showError?.(t.holiday_request_send_error);
     } finally {
       setIsSubmitting(false);
     }

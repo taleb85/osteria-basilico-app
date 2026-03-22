@@ -1,6 +1,7 @@
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { LogOut } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
@@ -80,8 +81,19 @@ export default function MobileProfileHeader({
                 {dateStr}
               </p>
             </div>
-            <UserAvatarMenu variant="toolbar" onLogout={onLogout} />
+            <UserAvatarMenu variant="toolbar" />
             <NotificationCenter denseTrigger />
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                title={t.header_logout}
+                aria-label={t.header_logout}
+                className="relative flex flex-shrink-0 items-center justify-center border transition-colors touch-manipulation min-h-[40px] min-w-[40px] rounded-lg border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-200 hover:text-red-700"
+              >
+                <LogOut size={15} strokeWidth={2} aria-hidden />
+              </button>
+            )}
           </div>
         </div>
       </div>

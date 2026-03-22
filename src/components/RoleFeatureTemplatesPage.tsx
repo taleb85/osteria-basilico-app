@@ -5,7 +5,6 @@ import { useApp } from '../context/AppContext';
 import { canEditRoleFeatureTemplates } from '../utils/permissions';
 import {
   ADMIN_MODULE_KEYS,
-  ADMIN_MODULE_LABELS,
   ENABLED_FEATURE_KEYS,
   type EnabledFeatures,
   type EnabledFeatureKey,
@@ -18,9 +17,10 @@ import {
   type SettingsOperationalPermKey,
 } from '../utils/enabledFeatures';
 import RoleFeatureSectionsBlock from './RoleFeatureSectionsBlock';
+import AdminRow from './ui/AdminRow';
 import { getRoleFeatureTemplatesCache, type RoleFeatureTemplatesOnDisk, type RoleTemplateGroup } from '../utils/roleFeatureTemplates';
 import { serializeAdminModulesForDisk } from '../utils/adminModulesGlobal';
-import { getTranslations } from '../utils/translations';
+import { getAdminModuleLabel, getTranslations } from '../utils/translations';
 import { buildSettingsPermissionRows, SETTINGS_OPERATIONAL_PERM_KEYS } from '../utils/settingsPermissionRows';
 import { operationalPayloadForUser } from '../utils/roleTemplateUserSync';
 
@@ -40,13 +40,12 @@ function readRoleGroupExpanded(g: RoleTemplateGroup): boolean {
   }
 }
 
-const GROUP_LABELS: Record<RoleTemplateGroup, string> = {
-  proprietario: 'Proprietario',
-  management: 'Manager e Assistant Manager',
-  staff: 'Staff (camerieri, bar, cucina, …)',
-};
-
 export type RoleFeatureTemplatesPanelVariant = 'page' | 'embedded';
+
+function groupTitle(g: RoleTemplateGroup, tv: Record<string, string>): string {
+  if (g === 'management') return tv.role_group_management ?? 'Manager';
+  return tv.role_group_staff ?? 'Staff';
+}
 
 type Props = { variant?: RoleFeatureTemplatesPanelVariant };
 
@@ -76,15 +75,10 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
   const allOnInit = () =>
     Object.fromEntries(ENABLED_FEATURE_KEYS.map((k) => [k, true])) as EnabledFeatures;
-  const [prop, setProp] = useState<EnabledFeatures>(allOnInit);
   const [mgmt, setMgmt] = useState<EnabledFeatures>(allOnInit);
   const [staff, setStaff] = useState<EnabledFeatures>(allOnInit);
-  const [teamScheduleProp, setTeamScheduleProp] = useState(true);
   const [teamScheduleMgmt, setTeamScheduleMgmt] = useState(true);
   const [teamScheduleStaff, setTeamScheduleStaff] = useState(true);
-  const [opProp, setOpProp] = useState<Record<SettingsOperationalPermKey, boolean>>(() =>
-    buildMergedOperationalTemplateForGroup('proprietario', getRoleFeatureTemplatesCache())
-  );
   const [opMgmt, setOpMgmt] = useState<Record<SettingsOperationalPermKey, boolean>>(() =>
     buildMergedOperationalTemplateForGroup('management', getRoleFeatureTemplatesCache())
   );
@@ -118,7 +112,6 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   }, []);
 
   const [roleGroupExpanded, setRoleGroupExpanded] = useState<Record<RoleTemplateGroup, boolean>>(() => ({
-    proprietario: readRoleGroupExpanded('proprietario'),
     management: readRoleGroupExpanded('management'),
     staff: readRoleGroupExpanded('staff'),
   }));
@@ -137,13 +130,10 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
   useEffect(() => {
     const disk = getRoleFeatureTemplatesCache();
-    setProp(buildMergedTemplateForAdminEditor('proprietario', disk));
     setMgmt(buildMergedTemplateForAdminEditor('management', disk));
     setStaff(buildMergedTemplateForAdminEditor('staff', disk));
-    setTeamScheduleProp(getTemplateGroupTeamScheduleVisible('proprietario', disk));
     setTeamScheduleMgmt(getTemplateGroupTeamScheduleVisible('management', disk));
     setTeamScheduleStaff(getTemplateGroupTeamScheduleVisible('staff', disk));
-    setOpProp(buildMergedOperationalTemplateForGroup('proprietario', disk));
     setOpMgmt(buildMergedOperationalTemplateForGroup('management', disk));
     setOpStaff(buildMergedOperationalTemplateForGroup('staff', disk));
   }, [roleTemplatesRevision]);
@@ -154,8 +144,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
   const toggleRole = useCallback((group: RoleTemplateGroup, key: EnabledFeatureKey) => {
     const upd = (prev: EnabledFeatures) => ({ ...prev, [key]: !(prev[key] === true) });
-    if (group === 'proprietario') setProp(upd);
-    else if (group === 'management') setMgmt(upd);
+    if (group === 'management') setMgmt(upd);
     else setStaff(upd);
   }, []);
 
@@ -164,19 +153,14 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
       ...prev,
       [key]: !prev[key],
     });
-    if (group === 'proprietario') setOpProp(apply);
-    else if (group === 'management') setOpMgmt(apply);
+    if (group === 'management') setOpMgmt(apply);
     else setOpStaff(apply);
   }, []);
 
   const resetGroupAllOn = useCallback((group: RoleTemplateGroup) => {
     const allOn = Object.fromEntries(ENABLED_FEATURE_KEYS.map((k) => [k, true])) as EnabledFeatures;
     const allOp = allOperationalTrue();
-    if (group === 'proprietario') {
-      setProp(allOn);
-      setTeamScheduleProp(true);
-      setOpProp(allOp);
-    } else if (group === 'management') {
+    if (group === 'management') {
       setMgmt(allOn);
       setTeamScheduleMgmt(true);
       setOpMgmt(allOp);
@@ -199,14 +183,13 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     setSaving(true);
     try {
       const disk: RoleFeatureTemplatesOnDisk = {
-        proprietario: serializeTemplateGroupForDisk(prop, teamScheduleProp, opProp),
         management: serializeTemplateGroupForDisk(mgmt, teamScheduleMgmt, opMgmt),
         staff: serializeTemplateGroupForDisk(staff, teamScheduleStaff, opStaff),
       };
       await saveRoleFeatureTemplates(disk);
       await saveAdminModulesGlobal(serializeAdminModulesForDisk(mods));
 
-      const opTemplates = { proprietario: opProp, management: opMgmt, staff: opStaff };
+      const opTemplates = { management: opMgmt, staff: opStaff };
       for (const u of users) {
         const payload = operationalPayloadForUser(u, opTemplates);
         if (payload && Object.keys(payload).length > 0) {
@@ -214,10 +197,10 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
         }
       }
 
-      showSuccess?.('Salvato: template, moduli Admin e permessi operativi sincronizzati sui profili.');
+      showSuccess?.(t.role_templates_save_success);
     } catch (e) {
       console.error(e);
-      const msg = e instanceof Error ? e.message : 'Salvataggio non riuscito.';
+      const msg = e instanceof Error ? e.message : t.role_templates_save_error;
       showError?.(msg);
     } finally {
       setSaving(false);
@@ -228,21 +211,19 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     if (variant === 'embedded') return null;
     return (
       <div className="pb-content pt-6 px-4 sm:px-6">
-        <p className="text-sm text-slate-600">Solo Amministratore o Proprietario possono modificare questa configurazione.</p>
+        <p className="text-sm text-slate-600">{t.role_templates_forbidden_body}</p>
       </div>
     );
   }
 
   const getTeamScheduleVisible = (g: RoleTemplateGroup) =>
-    g === 'proprietario' ? teamScheduleProp : g === 'management' ? teamScheduleMgmt : teamScheduleStaff;
+    g === 'management' ? teamScheduleMgmt : teamScheduleStaff;
   const setTeamScheduleVisible = (g: RoleTemplateGroup, v: boolean) => {
-    if (g === 'proprietario') setTeamScheduleProp(v);
-    else if (g === 'management') setTeamScheduleMgmt(v);
+    if (g === 'management') setTeamScheduleMgmt(v);
     else setTeamScheduleStaff(v);
   };
 
-  const getOp = (g: RoleTemplateGroup) =>
-    g === 'proprietario' ? opProp : g === 'management' ? opMgmt : opStaff;
+  const getOp = (g: RoleTemplateGroup) => (g === 'management' ? opMgmt : opStaff);
 
   const switchRowClass =
     'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
@@ -250,35 +231,36 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const renderAdminModulesBlock = () => (
     <div className="pt-3 border-t border-slate-100">
       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-        Moduli scheda Impostazioni (globali)
+        {t.role_templates_admin_modules_heading}
       </p>
-      <p className="text-[11px] text-slate-500 mb-2">
-        Stessi valori per tutti i profili gestionali; modificabili da qui (un solo stato condiviso tra le tre schede).
-      </p>
-      <div className="rounded-xl overflow-hidden border border-slate-200 divide-y divide-slate-100 bg-white">
+      <p className="text-[11px] text-slate-500 mb-2">{t.role_templates_admin_modules_hint}</p>
+      <div className="rounded-xl border border-slate-200 bg-white">
         {ADMIN_MODULE_KEYS.map((key) => {
           const enabled = mods[key] === true;
           return (
-            <div key={key} className="flex items-center justify-between py-2.5 px-3">
-              <span className="text-sm text-slate-700 pr-2">{ADMIN_MODULE_LABELS[key]}</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={enabled}
-                onClick={() => toggleMod(key)}
-                className={switchRowClass}
-                style={{
-                  backgroundColor: enabled ? ACCENT : 'rgb(226 232 240)',
-                  ['--tw-ring-color' as string]: `${ACCENT}40`,
-                }}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
-                    enabled ? 'translate-x-5' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
+            <AdminRow
+              key={key}
+              label={getAdminModuleLabel(key, t as Record<string, string>)}
+              action={
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={enabled}
+                  onClick={() => toggleMod(key)}
+                  className={switchRowClass}
+                  style={{
+                    backgroundColor: enabled ? ACCENT : 'rgb(226 232 240)',
+                    ['--tw-ring-color' as string]: `${ACCENT}40`,
+                  }}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                      enabled ? 'translate-x-5' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              }
+            />
           );
         })}
       </div>
@@ -297,44 +279,43 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     const op = getOp(group);
     return (
       <div className="pt-3 border-t border-slate-100">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Permessi operativi</p>
-        <p className="text-[11px] text-slate-500 mb-2">
-          Allineati al salvataggio su tutti gli utenti di questo gruppo (come nella scheda Permessi per utente).
-        </p>
-        <div className="rounded-xl overflow-hidden border border-slate-200 divide-y divide-slate-100 bg-white">
+        <p className="ui-section-title mb-2 text-slate-400">{t.role_templates_operational_heading}</p>
+        <p className="text-[11px] text-slate-500 mb-2">{t.role_templates_operational_hint}</p>
+        <div className="rounded-xl border border-slate-200 bg-white">
           {permRows.map((perm) => {
             const enabled = op[perm.key] === true;
             return (
-              <div key={perm.key} className="flex items-center justify-between gap-3 py-2.5 px-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm text-slate-700">{perm.label}</span>
-                    {perm.adminOnly && (
-                      <span className="text-[9px] font-bold text-accent border border-accent/30 bg-accent/8 rounded-xl px-1.5 py-0.5 uppercase tracking-wider">
-                        Gestione
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">{perm.description}</p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={enabled}
-                  onClick={() => toggleOperational(group, perm.key)}
-                  className={switchRowClass}
-                  style={{
-                    backgroundColor: enabled ? ACCENT : 'rgb(226 232 240)',
-                    ['--tw-ring-color' as string]: `${ACCENT}40`,
-                  }}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
-                      enabled ? 'translate-x-5' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
+              <AdminRow
+                key={perm.key}
+                label={perm.label}
+                description={perm.description}
+                badge={
+                  perm.adminOnly ? (
+                    <span className="text-[9px] font-bold text-accent border border-accent/30 bg-accent/8 rounded-xl px-1.5 py-0.5 uppercase tracking-wider">
+                      {t.role_templates_badge_management}
+                    </span>
+                  ) : undefined
+                }
+                action={
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={enabled}
+                    onClick={() => toggleOperational(group, perm.key)}
+                    className={switchRowClass}
+                    style={{
+                      backgroundColor: enabled ? ACCENT : 'rgb(226 232 240)',
+                      ['--tw-ring-color' as string]: `${ACCENT}40`,
+                    }}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                        enabled ? 'translate-x-5' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                }
+              />
             );
           })}
         </div>
@@ -357,7 +338,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
               className={`w-4 h-4 shrink-0 text-slate-500 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
               aria-hidden
             />
-            <h2 className="text-xs font-bold text-slate-700 uppercase tracking-widest">{GROUP_LABELS[group]}</h2>
+            <h2 className="ui-section-title text-slate-700">{groupTitle(group, t as Record<string, string>)}</h2>
           </button>
           <button
             type="button"
@@ -365,7 +346,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-800 px-2 py-1 rounded-lg border border-slate-200 hover:bg-white"
           >
             <RotateCcw className="w-3 h-3" />
-            Default: tutti attivi
+            {t.role_templates_default_all_on}
           </button>
         </div>
         <AnimatePresence initial={false}>
@@ -385,34 +366,36 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                   onToggle={(key) => toggleRole(group, key)}
                 />
                 <div className="pt-3 border-t border-slate-100">
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-slate-500" />
-                      <span className="text-sm text-slate-700">Visibile in tabellone turni (Griglia)</span>
-                    </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={getTeamScheduleVisible(group)}
-                      onClick={() => setTeamScheduleVisible(group, !getTeamScheduleVisible(group))}
-                      className={switchRowClass}
-                      style={{
-                        backgroundColor: getTeamScheduleVisible(group) ? ACCENT : 'rgb(226 232 240)',
-                        ['--tw-ring-color' as string]: `${ACCENT}40`,
-                      }}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
-                          getTeamScheduleVisible(group) ? 'translate-x-5' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+                  <div className="rounded-xl border border-slate-200 bg-white">
+                    <AdminRow
+                      icon={<Users className="h-4 w-4 text-slate-500" aria-hidden />}
+                      label={t.settings_visible_on_schedule_row}
+                      description={
+                        getTeamScheduleVisible(group)
+                          ? t.role_template_grid_visible_desc
+                          : t.role_template_grid_hidden_desc
+                      }
+                      action={
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={getTeamScheduleVisible(group)}
+                          onClick={() => setTeamScheduleVisible(group, !getTeamScheduleVisible(group))}
+                          className={switchRowClass}
+                          style={{
+                            backgroundColor: getTeamScheduleVisible(group) ? ACCENT : 'rgb(226 232 240)',
+                            ['--tw-ring-color' as string]: `${ACCENT}40`,
+                          }}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                              getTeamScheduleVisible(group) ? 'translate-x-5' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      }
+                    />
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    {getTeamScheduleVisible(group)
-                      ? 'Profilo visibile nel tabellone turni e nelle viste collettive.'
-                      : 'Profilo nascosto dal tabellone (resta attivo; override per utente dal pulsante Griglia in Gestione team).'}
-                  </p>
                 </div>
                 {renderAdminModulesBlock()}
                 {renderOperationalBlock(group)}
@@ -426,7 +409,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                   style={{ backgroundColor: ACCENT }}
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Salva tutto
+                  {t.role_templates_save_all}
                 </button>
               </div>
             </motion.div>
@@ -438,9 +421,10 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
   const introDescription = (
     <p className="text-slate-500 text-sm mt-1 leading-snug">
-      Ogni scheda raggruppa <strong>schede app</strong>, <strong>Griglia</strong>, <strong>moduli Impostazioni</strong> (globali, stessi switch in tutte e tre) e <strong>permessi operativi</strong>.{' '}
-      <strong>Salva tutto</strong> aggiorna file su Storage e sincronizza i permessi operativi su tutti gli utenti non admin.
-      File:{' '}
+      {t.role_templates_intro_p1}{' '}
+      <strong className="text-slate-700">{t.role_templates_save_all}</strong>{' '}
+      {t.role_templates_intro_p2}{' '}
+      {t.role_templates_intro_files_label}{' '}
       <code className="text-xs bg-slate-100 px-1 rounded">role_feature_templates.json</code>,{' '}
       <code className="text-xs bg-slate-100 px-1 rounded">admin_sheet_modules.json</code>.
     </p>
@@ -448,7 +432,6 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
   const groupsBlock = (
     <div className={`space-y-6 ${variant === 'embedded' ? 'mb-0' : 'mb-8'}`}>
-      {renderGroup('proprietario', prop)}
       {renderGroup('management', mgmt)}
       {renderGroup('staff', staff)}
     </div>

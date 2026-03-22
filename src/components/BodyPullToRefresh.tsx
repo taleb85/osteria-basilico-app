@@ -5,6 +5,17 @@ import { useIsStandalone } from '../hooks/useIsStandalone';
 
 const PULL_THRESHOLD = 60;
 const RESISTANCE = 0.4;
+/** Soglia minima pull (px) prima di preventDefault sul touchmove (browser). */
+const PULL_PREVENT_DEFAULT_PX = 10;
+
+function isWindowAtScrollTop(threshold = 10): boolean {
+  const y = Math.max(
+    window.scrollY,
+    document.documentElement?.scrollTop ?? 0,
+    document.body?.scrollTop ?? 0
+  );
+  return y <= threshold;
+}
 
 interface BodyPullToRefreshProps {
   onRefresh: () => Promise<void>;
@@ -31,14 +42,21 @@ export default function BodyPullToRefresh({ onRefresh, disabled }: BodyPullToRef
   useEffect(() => {
     if (!isStandalone) return;
 
+    (PullToRefresh as { setPassiveMode?: (passive: boolean) => void }).setPassiveMode?.(false);
+
     const ptr = PullToRefresh.init({
       mainElement: 'body',
       triggerElement: 'body',
       distThreshold: 60,
       distMax: 80,
       shouldPullToRefresh: () => {
-        // iOS PWA: scrollY può essere negativo durante overscroll
-        return window.scrollY <= 10;
+        if (window.scrollY < 0) return true; /* iOS: overscroll in cima */
+        const y = Math.max(
+          window.scrollY,
+          document.documentElement?.scrollTop ?? 0,
+          document.body?.scrollTop ?? 0
+        );
+        return y <= 10;
       },
       onRefresh: () => {
         if (disabledRef.current) return Promise.resolve();
@@ -60,15 +78,18 @@ export default function BodyPullToRefresh({ onRefresh, disabled }: BodyPullToRef
 
     const handleTouchStart = (e: TouchEvent) => {
       if (disabled || e.touches.length === 0) return;
-      if (window.scrollY > 5) return;
+      if (!isWindowAtScrollTop(5)) return;
       startY.current = e.touches[0].clientY;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       if (disabled || e.touches.length === 0) return;
-      if (window.scrollY > 5) return;
+      if (!isWindowAtScrollTop(5)) return;
       const currentY = e.touches[0].clientY;
       const diff = currentY - startY.current;
+      if (diff > PULL_PREVENT_DEFAULT_PX && e.cancelable) {
+        e.preventDefault();
+      }
       if (diff > 0) {
         const resisted = Math.min(diff * RESISTANCE, PULL_THRESHOLD * 1.5);
         setPullDistance(resisted);
@@ -88,7 +109,7 @@ export default function BodyPullToRefresh({ onRefresh, disabled }: BodyPullToRef
     };
 
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('touchend', handleTouchEnd, { passive: true });
     document.addEventListener('touchcancel', handleTouchEnd, { passive: true });
     return () => {

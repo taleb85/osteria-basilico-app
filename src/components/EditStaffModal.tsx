@@ -13,7 +13,7 @@ interface EditStaffModalProps {
 }
 
 export default function EditStaffModal({ isOpen, onClose, user }: EditStaffModalProps) {
-  const { updateUser, currentUser, effectiveLanguage } = useApp();
+  const { updateUser, currentUser, effectiveLanguage, showError } = useApp();
   const t = getTranslations(effectiveLanguage);
   const hourlyStr =
     user.hourly_rate_eur != null && Number.isFinite(user.hourly_rate_eur)
@@ -79,7 +79,7 @@ export default function EditStaffModal({ isOpen, onClose, user }: EditStaffModal
     } catch (error) {
       console.error('[EditStaffModal] Error updating user:', error);
       setIsSaving(false);
-      alert(t.save_error_retry);
+      showError?.(t.save_error_retry);
     }
   };
 

@@ -39,9 +39,15 @@ export default function GenericWidgetsColumn({
                     onUiToggle={onUiToggle}
                     hiddenBadge={hiddenBadge}
                   >
-                    <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
+                    <div
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
+                      title={w.key}
+                    >
                       <p className="text-sm font-semibold text-slate-800">{w.label}</p>
-                      <p className="mt-1 font-sans text-[10px] text-slate-400 break-all text-center">{w.key}</p>
+                      <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                        {tv.profile_visibility_generic_widget_demo ??
+                          'Contenuto dimostrativo: in app qui compariranno i dati reali.'}
+                      </p>
                     </div>
                   </WidgetChrome>
                 ))}

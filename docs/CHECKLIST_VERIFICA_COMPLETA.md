@@ -68,7 +68,9 @@ Usala **in ordine**. Non incollare mai in chat **chiavi, token o `.env`**: se se
    - [ ] Bucket e policy come in `docs/SUPABASE_STORAGE_APP_CONFIG.md`.
 
 6. **Realtime (aggiornamenti tra dispositivi senza refresh)**  
-   L’app si iscrive ai cambiamenti sulla tabella `public.users`. In Supabase: **Database → Replication** (o *Publication*, a seconda della versione) → assicurati che la tabella **`users`** sia inclusa nella publication usata da Realtime (spesso `supabase_realtime`). Se manca, un tablet può non vedere subito le modifiche al profilo fatte da un altro dispositivo finché non torni in primo piano o non fai pull-to-refresh.
+   L’app si iscrive ai cambiamenti su `shifts`, `users`, `holiday_requests`, `punch_records`. In Supabase: **Database → Replication** → le tabelle usate devono essere nella publication Realtime.  
+   **Dati su Storage** (`app-config`: template ruoli, feature flags, …): non passano da Realtime; l’app li riallinea al **ritorno in primo piano**, al **pull-to-refresh**, al cambio tab in **gestione**, e in **Area admin** (vedi codice: throttle ~5s + pull forzato a foreground). Se PC e telefono sembrano diversi, verifica bucket/policy in `docs/SUPABASE_STORAGE_APP_CONFIG.md`.  
+   **Background Sync** (Chrome/Edge/Android): in **offline** viene registrato un sync one-shot; alla **riconnessione** il service worker può risvegliarsi e far partire un refresh dati (`silentRefreshData` + Storage) sulle finestre ancora aperte — su Safari iOS non è disponibile; restano foreground/online già gestiti dall’app.
 
 ---
 
@@ -118,4 +120,5 @@ Apri `https://osteria-basilico-app.vercel.app` (o dominio custom).
 - Deploy e checklist generale: [DEPLOY.md](../DEPLOY.md)  
 - Git + Vercel: [CONNESSIONE_GIT_VERCEL.md](./CONNESSIONE_GIT_VERCEL.md)  
 - Stato sintetico: [STATO_PROGETTO.md](./STATO_PROGETTO.md)  
-- Variabili esempio: [`.env.example`](../.env.example)
+- Variabili esempio: [`.env.example`](../.env.example)  
+- **Sincronizzazione multi-dispositivo (QA manuale):** [SYNC_VERIFICATION_CHECKLIST.md](./SYNC_VERIFICATION_CHECKLIST.md)

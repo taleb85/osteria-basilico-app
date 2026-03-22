@@ -10,11 +10,14 @@ import { format, isToday, isTomorrow, parseISO, addDays, startOfWeek } from 'dat
 import { it } from 'date-fns/locale';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
-import { isPurelyManagementRole, isUserVisibleOnTeamSchedule } from '../utils/permissions';
+import { isManagementRole, isPurelyManagementRole, isUserVisibleOnTeamSchedule } from '../utils/permissions';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
+import type { Shift } from '../types';
+import ApproveShiftModal from './ApproveShiftModal';
+import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
 
 // ── Board helpers ────────────────────────────────────────────────────────────
 const BOARD_KEY = 'manager_board_note';
@@ -66,6 +69,7 @@ interface HomePageProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onNavigateToReports }: HomePageProps) {
   const { currentUser, shifts, holidays, users, punchRecords, updatePunchRecord, approveShift, effectiveLanguage, showSuccess, showError, breakRules, featureFlags } = useApp();
+  const t = getTranslations(effectiveLanguage);
   const shiftsListRef = useRef<HTMLDivElement>(null);
   const now = useWallAlignedMinuteClock();
 
@@ -76,6 +80,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
   const [clockOutInput, setClockOutInput] = useState('');
   const [closingLoading, setClosingLoading] = useState(false);
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [approveModal, setApproveModal] = useState<{ shift: Shift; userName: string } | null>(null);
 
   const handleSaveBoard = () => {
     if (!boardDraft.trim()) { clearBoardNote(); setBoardNoteState(null); }
@@ -91,25 +96,28 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
       const base = parseISO(closeModal.dateStr);
       const clockOutDate = new Date(base.getFullYear(), base.getMonth(), base.getDate(), h ?? 0, m ?? 0, 0, 0);
       await updatePunchRecord(closeModal.punchInId, { clock_out_time: clockOutDate.toISOString() });
-      showSuccess?.('Uscita registrata.');
+      showSuccess?.(t.home_toast_exit_registered);
       setCloseModal(null);
       setClockOutInput('');
     } catch {
-      showError?.("Errore durante la registrazione dell'uscita.");
+      showError?.(t.home_toast_exit_error);
     } finally {
       setClosingLoading(false);
     }
-  }, [closeModal, clockOutInput, updatePunchRecord, showSuccess, showError]);
+  }, [closeModal, clockOutInput, updatePunchRecord, showSuccess, showError, t]);
 
-  const handleApprove = useCallback(async (shiftId: string) => {
-    setApprovingId(shiftId);
-    try {
-      await approveShift(shiftId);
-      showSuccess?.('Turno approvato e congelato.');
-    } finally {
-      setApprovingId(null);
-    }
-  }, [approveShift, showSuccess]);
+  const handleApproveFromModal = useCallback(
+    async (shiftId: string, approvedStart: string, approvedEnd: string) => {
+      setApprovingId(shiftId);
+      try {
+        await approveShift(shiftId, { approvedStart, approvedEnd });
+        showSuccess?.(t.home_toast_shift_approved);
+      } finally {
+        setApprovingId(null);
+      }
+    },
+    [approveShift, showSuccess, t]
+  );
 
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
@@ -117,10 +125,9 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
   );
 
   if (!currentUser) return null;
-  const t = getTranslations(effectiveLanguage);
   const locale = getDateLocale(effectiveLanguage) ?? it;
 
-  const isMgmtUser = ['admin', 'proprietario', 'manager', 'assistant_manager'].includes(currentUser.role);
+  const isMgmtUser = isManagementRole(currentUser.role);
   const uiW = (key: string) => isUiWidgetVisible(currentUser, key);
   /** Tabellone team su Home: rispetta matrice `team_view` (non solo il ruolo). */
   const showTeamHome = isMgmtUser && isFeatureEnabled(currentUser, 'team_view');
@@ -147,12 +154,17 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
     const d = parseISO(s.date);
     return d >= weekStart && d < weekEnd && (s.approval_status === 'approved' || s.approval_status === 'confirmed');
   });
-  const weeklyMinutes = thisWeekShifts.reduce(
-    (sum, s) =>
+  const weeklyMinutes = thisWeekShifts.reduce((sum, s) => {
+    const u = users.find((x) => x.id === s.user_id) ?? currentUser;
+    if (s.approved_at && s.approved_start_time && s.approved_end_time) {
+      const { start, end } = getResolvedStartEndForHours(s, punchRecords);
+      return sum + getNetShiftMinutes(s, start, end, u, breakRules, breakComputeOpts);
+    }
+    return (
       sum +
-      getNetShiftMinutes(s, (s.start_time || '').slice(0, 5), (s.end_time || '').slice(0, 5), currentUser, breakRules, breakComputeOpts),
-    0
-  );
+      getNetShiftMinutes(s, (s.start_time || '').slice(0, 5), (s.end_time || '').slice(0, 5), u, breakRules, breakComputeOpts)
+    );
+  }, 0);
 
   const pendingHolidays = holidays.filter((h) => h.status === 'pending');
   const myApprovedHolidays = holidays
@@ -207,13 +219,19 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
     const scheduledStart = (s.start_time || '').slice(0, 5);
     const scheduledEnd = (s.end_time || '').slice(0, 5);
     const scheduledMins = getNetShiftMinutes(s, scheduledStart, scheduledEnd, user ?? undefined, breakRules, breakComputeOpts);
-    const actualMins = (actualStart && actualEnd)
-      ? getNetShiftMinutes(s, actualStart, actualEnd, user ?? undefined, breakRules, breakComputeOpts)
-      : 0;
+    let actualMins = 0;
+    if (s.approved_at && s.approved_start_time && s.approved_end_time) {
+      const { start, end } = getResolvedStartEndForHours(s, punchRecords);
+      actualMins = getNetShiftMinutes(s, start, end, user ?? undefined, breakRules, breakComputeOpts);
+    } else if (actualStart && actualEnd) {
+      actualMins = getNetShiftMinutes(s, actualStart, actualEnd, user ?? undefined, breakRules, breakComputeOpts);
+    } else if (actualStart && scheduledEnd) {
+      actualMins = getNetShiftMinutes(s, actualStart, scheduledEnd, user ?? undefined, breakRules, breakComputeOpts);
+    }
     const deltaMins = actualMins - scheduledMins;
     const isLate = !!(actualStart && timeToMins(actualStart) > timeToMins(scheduledStart) + 5);
     const hasMissingOut = !!(punchIn && !actualEnd);
-    const isApproved = s.approval_status === 'approved';
+    const isApproved = s.approval_status === 'approved' && !!s.approved_at;
     const canApprove =
       showTeamHome &&
       canApproveShiftsHome &&
@@ -539,7 +557,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                         setClockOutInput(e.scheduledEnd);
                         setCloseModal({ shiftId: e.shift.id, punchInId: e.punchIn.id, dateStr: todayStr, plannedEnd: e.scheduledEnd, employeeName: e.user?.first_name ?? '—', actualStart: e.actualStart ?? e.scheduledStart });
                       }}
-                      onApprove={() => handleApprove(e.shift.id)}
+                      onApprove={() => setApproveModal({ shift: e.shift, userName: e.user?.first_name ?? '—' })}
                       approvingId={approvingId}
                       t={t}
                     />
@@ -570,7 +588,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                         setClockOutInput(e.scheduledEnd);
                         setCloseModal({ shiftId: e.shift.id, punchInId: e.punchIn.id, dateStr: todayStr, plannedEnd: e.scheduledEnd, employeeName: e.user?.first_name ?? '—', actualStart: e.actualStart ?? e.scheduledStart });
                       }}
-                      onApprove={() => handleApprove(e.shift.id)}
+                      onApprove={() => setApproveModal({ shift: e.shift, userName: e.user?.first_name ?? '—' })}
                       approvingId={approvingId}
                       t={t}
                     />
@@ -735,6 +753,17 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
           );
         })()}
       </AnimatePresence>
+
+      {approveModal && currentUser && (
+        <ApproveShiftModal
+          shift={approveModal.shift}
+          punchRecords={punchRecords}
+          userName={approveModal.userName}
+          currentUser={currentUser}
+          onClose={() => setApproveModal(null)}
+          onApprove={(id, st, en) => handleApproveFromModal(id, st, en)}
+        />
+      )}
     </>
   );
 }

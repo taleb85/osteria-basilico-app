@@ -48,7 +48,7 @@ const DEFAULT_ADMIN: EnabledModule[] = [...ENABLED_MODULES];
 const DEFAULT_STAFF: EnabledModule[] = ['my_shifts'];
 
 export function getDefaultEnabledModules(role: string): EnabledModule[] {
-  if (role === 'admin' || role === 'proprietario' || role === 'manager' || role === 'assistant_manager') {
+  if (role === 'admin' || role === 'manager' || role === 'assistant_manager') {
     return DEFAULT_ADMIN;
   }
   return DEFAULT_STAFF;
@@ -84,12 +84,12 @@ export function getVisibleManagementTabs(
 ): string[] {
   const tabs = new Set<string>();
   const merged = getEnabledFeatures(user);
+  if (merged.home_tab) tabs.add('home');
   if (merged.team_view) tabs.add('turni');
   if (merged.view_stats) tabs.add('reports');
   if (merged.export_pdf) tabs.add('timesheet');
   if (merged.ferie_tab && isStaffRequestsFeatureEnabled(featureFlags)) tabs.add('ferie');
   if (merged.admin_tab) tabs.add('settings');
-  tabs.add('home');
   return Array.from(tabs);
 }
 
@@ -100,7 +100,7 @@ export function getVisibleStaffTabs(
 ): string[] {
   const tabs = new Set<string>();
   const feat = getEnabledFeatures(user);
-  tabs.add('home');
+  if (feat.home_tab) tabs.add('home');
   if (feat.team_view) tabs.add('shifts');
   if (feat.view_stats) tabs.add('stats');
   if (feat.ferie_tab && isStaffRequestsFeatureEnabled(featureFlags)) tabs.add('holidays');
@@ -128,29 +128,33 @@ export function getAppNavTabTitle(t: Record<string, string>, tab: AppNavTab): st
   }
 }
 
-const UNIFIED_NAV_ORDER: AppNavTab[] = ['home', 'turni', 'timesheet', 'reports', 'settings'];
+/** Ordine bottom bar / PWA: allineato all’anteprima “Cosa vede chi”. */
+const UNIFIED_NAV_ORDER: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'settings'];
 
 /**
  * Voci bottom bar: stessa struttura per tutti i profili (come PWA).
- * Ferie restano fuori dalla barra (accesso da Home / link dedicati).
+ * Ogni voce dipende da `enabled_features` (template + eccezioni utente), tranne admin cablato.
  */
 export function getUnifiedNavTabs(
   user: { role: string; enabled_modules?: unknown; enabled_features?: unknown },
-  isManagement: boolean,
+  _isManagement: boolean,
   featureFlags?: FeatureFlags | null
 ): AppNavTab[] {
-  if (isManagement) {
-    const v = new Set(getVisibleManagementTabs(user, featureFlags));
-    return UNIFIED_NAV_ORDER.filter((id) => id === 'home' || v.has(id));
-  }
   const feat = getEnabledFeatures(user);
-  const out: AppNavTab[] = ['home'];
-  if (feat.team_view) out.push('turni');
-  out.push('timesheet');
-  if (feat.view_stats) out.push('reports');
-  out.push('settings');
+  const ferieOk = feat.ferie_tab === true && isStaffRequestsFeatureEnabled(featureFlags);
+  const out: AppNavTab[] = [];
+  for (const id of UNIFIED_NAV_ORDER) {
+    if (id === 'home' && feat.home_tab) out.push('home');
+    else if (id === 'turni' && feat.team_view) out.push('turni');
+    else if (id === 'ferie' && ferieOk) out.push('ferie');
+    else if (id === 'timesheet' && feat.export_pdf) out.push('timesheet');
+    else if (id === 'reports' && feat.view_stats) out.push('reports');
+    else if (id === 'settings' && feat.admin_tab) out.push('settings');
+  }
   return out;
 }
+
+const APP_NAV_TAB_IDS: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'settings'];
 
 export function isTabEnabledForUser(
   user: { role: string; enabled_modules?: unknown; enabled_features?: unknown },
@@ -159,9 +163,8 @@ export function isTabEnabledForUser(
   featureFlags?: FeatureFlags | null
 ): boolean {
   if (tabId === 'profile') return true;
-  if (tabId === 'settings') {
-    if (isManagement) return getVisibleManagementTabs(user, featureFlags).includes('settings');
-    return true;
+  if (APP_NAV_TAB_IDS.includes(tabId as AppNavTab)) {
+    return getUnifiedNavTabs(user, isManagement, featureFlags).includes(tabId as AppNavTab);
   }
   const visible = isManagement ? getVisibleManagementTabs(user, featureFlags) : getVisibleStaffTabs(user, featureFlags);
   return visible.includes(tabId);

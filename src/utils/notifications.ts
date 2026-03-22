@@ -208,3 +208,18 @@ export function generateNotifications(
 
   return notifications.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 }
+
+/** Conteggio notifiche non segnate come lette (stessa logica di NotificationCenter). */
+export function countUnreadNotifications(
+  currentUser: User | null,
+  shifts: Shift[],
+  holidays: HolidayRequest[],
+  users: User[],
+  t: Record<string, string>,
+  language: Language
+): number {
+  if (!currentUser) return 0;
+  const all = generateNotifications(currentUser, shifts, holidays, users, t, language);
+  const seen = getSeenIds(currentUser.id);
+  return all.filter((n) => !seen.has(n.id)).length;
+}

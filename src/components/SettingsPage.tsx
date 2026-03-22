@@ -5,7 +5,7 @@ import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monit
 import { useApp } from '../context/AppContext';
 import type { User, UserRole } from '../types';
 import { translateRole } from '../utils/roles';
-import { getTranslations, formatTrans, getFeatureStrings } from '../utils/translations';
+import { getAdminModuleLabel, getTranslations, formatTrans, getFeatureStrings } from '../utils/translations';
 import { canUserEdit, isAdminOnly, canViewSuspended, isPurelyManagementRole, isManagementRole, isUserVisibleOnTeamSchedule, canEditRoleFeatureTemplates } from '../utils/permissions';
 import { isUserPermissionEffective } from '../utils/staffPermissionDefaults';
 import { buildSettingsPermissionRows } from '../utils/settingsPermissionRows';
@@ -23,8 +23,9 @@ import {
 } from '../utils/departments';
 import type { Department, PermissionCategory } from '../utils/departments';
 import { FEATURE_DEFINITIONS } from '../utils/featureFlags';
-import { getEnabledFeatures, ADMIN_MODULE_KEYS, ADMIN_MODULE_LABELS, getAdminModuleEnabled, isAdminModuleEnabled } from '../utils/enabledFeatures';
+import { getEnabledFeatures, ADMIN_MODULE_KEYS, getAdminModuleEnabled, isAdminModuleEnabled } from '../utils/enabledFeatures';
 import RoleFeatureSectionsBlock, { PERMISSION_SUMMARY_LIST_CLASS } from './RoleFeatureSectionsBlock';
+import AdminRow from './ui/AdminRow';
 import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage';
 import type { WorkRules } from '../utils/workRules';
 
@@ -481,7 +482,7 @@ export default function SettingsPage() {
                                   })}
                                 </p>
                                 <div>
-                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                                  <p className="ui-section-title mb-2 text-slate-400">
                                     {formatTrans(t.settings_perms_tab_heading, { name: user.first_name ?? '' })}
                                   </p>
                                   <RoleFeatureSectionsBlock
@@ -490,18 +491,23 @@ export default function SettingsPage() {
                                     language={effectiveLanguage}
                                   />
                                   <div className={`mt-3 ${PERMISSION_SUMMARY_LIST_CLASS}`}>
-                                    <div className="flex items-center justify-between gap-3 py-2.5 px-4">
-                                      <span className={`text-sm min-w-0 ${isUserVisibleOnTeamSchedule(user) ? 'text-slate-800 font-medium' : 'text-slate-600'}`}>
-                                        {t.settings_visible_on_schedule_row}
-                                      </span>
-                                      <span
-                                        className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
-                                          isUserVisibleOnTeamSchedule(user) ? 'bg-accent text-white shadow-sm' : 'bg-slate-100 text-slate-500'
-                                        }`}
-                                      >
-                                        {isUserVisibleOnTeamSchedule(user) ? t.role_template_yes : t.role_template_no}
-                                      </span>
-                                    </div>
+                                    <AdminRow
+                                      className="!py-2.5 !px-4"
+                                      label={
+                                        <span className={isUserVisibleOnTeamSchedule(user) ? 'text-slate-800' : 'text-slate-600'}>
+                                          {t.settings_visible_on_schedule_row}
+                                        </span>
+                                      }
+                                      action={
+                                        <span
+                                          className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
+                                            isUserVisibleOnTeamSchedule(user) ? 'bg-accent text-white shadow-sm' : 'bg-slate-100 text-slate-500'
+                                          }`}
+                                        >
+                                          {isUserVisibleOnTeamSchedule(user) ? t.role_template_yes : t.role_template_no}
+                                        </span>
+                                      }
+                                    />
                                   </div>
                                   <p className="text-[10px] text-slate-400 mt-2 leading-snug">
                                     Template + pulsante Griglia in riga (override solo visibilità tabellone).
@@ -524,20 +530,24 @@ export default function SettingsPage() {
                                     const adminMods = getAdminModuleEnabled(user);
                                     const enabled = adminMods[key] === true;
                                     return (
-                                      <div key={key} className="flex items-center gap-3 px-4 py-2.5">
-                                        <div className="flex-1 min-w-0">
-                                          <p className={`text-sm font-semibold leading-none ${enabled ? 'text-slate-800' : 'text-slate-500'}`}>
-                                            {ADMIN_MODULE_LABELS[key]}
-                                          </p>
-                                        </div>
-                                        <span
-                                          className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
-                                            enabled ? 'bg-accent text-white shadow-sm' : 'bg-slate-100 text-slate-500'
-                                          }`}
-                                        >
-                                          {enabled ? t.role_template_yes : t.role_template_no}
-                                        </span>
-                                      </div>
+                                      <AdminRow
+                                        key={key}
+                                        className="!py-2.5 !px-4"
+                                        label={
+                                          <span className={enabled ? 'text-slate-800' : 'text-slate-500'}>
+                                            {getAdminModuleLabel(key, t as Record<string, string>)}
+                                          </span>
+                                        }
+                                        action={
+                                          <span
+                                            className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
+                                              enabled ? 'bg-accent text-white shadow-sm' : 'bg-slate-100 text-slate-500'
+                                            }`}
+                                          >
+                                            {enabled ? t.role_template_yes : t.role_template_no}
+                                          </span>
+                                        }
+                                      />
                                     );
                                   })}
                                 </div>
@@ -555,7 +565,7 @@ export default function SettingsPage() {
                               </div>
                             ) : (
                               <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                                <p className="ui-section-title mb-2 text-slate-400">
                                   {formatTrans(t.settings_operational_perms_heading, { name: user.first_name ?? '' })}
                                 </p>
                                 <p className="text-[11px] text-slate-500 mb-2 leading-snug">
@@ -565,30 +575,28 @@ export default function SettingsPage() {
                                   {permissionDefinitions.map((perm) => {
                                     const enabled = isUserPermissionEffective(user, perm.key);
                                     return (
-                                      <div key={perm.key} className="flex items-center justify-between gap-3 px-4 py-2.5">
-                                        <div className="flex-1 min-w-0">
-                                          <div className="flex items-center gap-2 flex-wrap">
-                                            <p className={`text-sm font-semibold leading-none ${enabled ? 'text-slate-800' : 'text-slate-500'}`}>
-                                              {perm.label}
-                                            </p>
-                                            {perm.adminOnly && (
-                                              <span className="text-[9px] font-bold text-accent border border-accent/30 bg-accent/8 rounded-xl px-1.5 py-0.5 uppercase tracking-wider">
-                                                {t.settings_badge_admin}
-                                              </span>
-                                            )}
-                                          </div>
-                                          <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                                            {perm.description}
-                                          </p>
-                                        </div>
-                                        <span
-                                          className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
-                                            enabled ? 'bg-accent text-white shadow-sm' : 'bg-slate-100 text-slate-500'
-                                          }`}
-                                        >
-                                          {enabled ? t.role_template_yes : t.role_template_no}
-                                        </span>
-                                      </div>
+                                      <AdminRow
+                                        key={perm.key}
+                                        className="!py-2.5 !px-4"
+                                        label={<span className={enabled ? 'text-slate-800' : 'text-slate-500'}>{perm.label}</span>}
+                                        description={perm.description}
+                                        badge={
+                                          perm.adminOnly ? (
+                                            <span className="text-[9px] font-bold text-accent border border-accent/30 bg-accent/8 rounded-xl px-1.5 py-0.5 uppercase tracking-wider">
+                                              {t.settings_badge_admin}
+                                            </span>
+                                          ) : undefined
+                                        }
+                                        action={
+                                          <span
+                                            className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
+                                              enabled ? 'bg-accent text-white shadow-sm' : 'bg-slate-100 text-slate-500'
+                                            }`}
+                                          >
+                                            {enabled ? t.role_template_yes : t.role_template_no}
+                                          </span>
+                                        }
+                                      />
                                     );
                                   })}
                                 </div>
@@ -610,7 +618,7 @@ export default function SettingsPage() {
         {/* Reparti (se abilitata in Impostazioni e profilo ha permesso) */}
         {isAdminModuleEnabled(currentUser, 'department_creation') && (featureFlags.department_creation ?? true) && (
           <section className="mb-6">
-            <h2 className="text-slate-700 text-[11px] font-semibold uppercase tracking-widest mb-3">
+            <h2 className="ui-section-title mb-3 text-slate-600">
               {t.settings_departments_section_title}
             </h2>
             <div className="panel p-4 rounded-xl space-y-4">

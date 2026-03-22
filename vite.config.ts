@@ -31,8 +31,7 @@ export default defineConfig({
         lang: 'it',
         // standalone = nessuna barra del browser (kiosk tablet + telefono staff)
         display: 'standalone',
-        // Splash Android / schermata di caricamento: verde basilico + icona manifest
-        background_color: '#2D5A27',
+        background_color: '#FFFFFF',
         theme_color: '#2D5A27',
         // any = supporta portrait (telefono) e landscape (tablet kiosk)
         orientation: 'any',
@@ -62,9 +61,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Precache SOLO icone/manifest — NO js/css: evita MIME type errors da cache stale
-        globPatterns: ['**/*.{ico,png,svg,webmanifest}'],
-        globIgnores: ['**/index.html', '**/*.js', '**/*.css'],
+        importScripts: ['pwa-background-sync.js'],
+        // Precache: icone/manifest + index.html (navigateFallback richiede URL nel precache).
+        globPatterns: ['**/*.{ico,png,svg,webmanifest}', 'index.html'],
+        globIgnores: ['**/*.js', '**/*.css'],
 
         // SPA fallback: tutte le rotte tornano a index.html
         navigateFallback: 'index.html',
@@ -76,21 +76,8 @@ export default defineConfig({
           /^\/assets\//,
         ],
 
-        // Navigate (index.html): NetworkFirst — dopo deploy nuovo bundle
+        /** Vedi commento in `scripts/vite.config.mjs` (navigate NetworkFirst vs offline /profilo). */
         runtimeCaching: [
-          {
-            urlPattern: ({ request }) => request.mode === 'navigate',
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'pages-cache',
-              // Su mobile la rete è spesso lenta: timeout basso → cache HTML vecchia e dati “che non si aggiornano”
-              networkTimeoutSeconds: 25,
-              cacheableResponse: { statuses: [0, 200] },
-              expiration: { maxEntries: 4, maxAgeSeconds: 60 },
-            },
-          },
-          // Nessuna strategia su *.supabase.co: il SW non deve intercettare REST/Storage/Auth.
-          // NetworkFirst + timeout su 3G serviva risposte GET in cache stale; createClient usa già cache: 'no-store'.
           {
             // Google Fonts → CacheFirst: raramente cambiano
             urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,

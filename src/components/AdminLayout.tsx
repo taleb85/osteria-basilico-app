@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Settings, LayoutList, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Users, Settings, LayoutList, RefreshCw, RotateCcw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { isAdminOnly, canEditRoleFeatureTemplates } from '../utils/permissions';
 import { getTranslations } from '../utils/translations';
@@ -19,6 +19,7 @@ export default function AdminLayout() {
   const {
     currentUser,
     silentRefreshData,
+    hardReloadFromDatabase,
     effectiveLanguage,
     showSuccess,
     isGlobalRefreshing,
@@ -26,13 +27,33 @@ export default function AdminLayout() {
   const t = getTranslations(effectiveLanguage);
   const [activeTab, setActiveTab] = useState<AdminTab>('profili');
   const [cloudSyncing, setCloudSyncing] = useState(false);
+  const [hardReloading, setHardReloading] = useState(false);
   const fullAdminNav = currentUser && isAdminOnly(currentUser);
   const showAdminNav = fullAdminNav || (currentUser && canEditRoleFeatureTemplates(currentUser));
-  const syncBusy = cloudSyncing || isGlobalRefreshing;
+  const syncBusy = cloudSyncing || hardReloading || isGlobalRefreshing;
 
   const handleTabChange = useCallback((tab: AdminTab) => {
     setActiveTab(tab);
-    silentRefreshData();
+    /** Storage (template ruoli, moduli admin, flag): altrimenti telefono resta su localStorage vecchio ≠ PC. */
+    void silentRefreshData({ pullRemoteConfig: true });
+  }, [silentRefreshData]);
+
+  useEffect(() => {
+    void silentRefreshData({ pullRemoteConfig: true });
+  }, [silentRefreshData]);
+
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === 'visible') {
+        void silentRefreshData({ pullRemoteConfig: true });
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('pageshow', onVis);
+    return () => {
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('pageshow', onVis);
+    };
   }, [silentRefreshData]);
 
   useEffect(() => {
@@ -58,39 +79,66 @@ export default function AdminLayout() {
             {showAdminNav && (
               <nav className="flex flex-wrap items-center justify-end gap-1 rounded-xl bg-slate-100/90 border border-slate-200/70 p-1 max-w-[min(100%,46rem)]">
                 {fullAdminNav && (
-                  <button
-                    type="button"
-                    disabled={syncBusy}
-                    aria-busy={syncBusy}
-                    onClick={async () => {
-                      setCloudSyncing(true);
-                      try {
-                        await silentRefreshData({ pullRemoteConfig: true });
-                        showSuccess?.(t.settings_cloud_sync_success);
-                      } finally {
-                        setCloudSyncing(false);
-                      }
-                    }}
-                    className={`relative flex min-h-[44px] items-center gap-2 overflow-hidden rounded-lg border px-3 text-xs font-semibold transition-all duration-200 disabled:pointer-events-none ${
-                      syncBusy
-                        ? 'border-accent/25 bg-white text-slate-700 shadow-[inset_0_0_0_1px_rgba(45,90,39,0.08)]'
-                        : 'border-transparent text-slate-600 hover:border-slate-200/80 hover:bg-white/90 hover:text-slate-900'
-                    } disabled:opacity-60`}
-                  >
-                    {syncBusy && (
-                      <span
-                        className="pointer-events-none absolute inset-x-2 bottom-1 h-[3px] overflow-hidden rounded-full bg-slate-200/70"
+                  <>
+                    <button
+                      type="button"
+                      disabled={syncBusy}
+                      aria-busy={syncBusy}
+                      onClick={async () => {
+                        setCloudSyncing(true);
+                        try {
+                          await silentRefreshData({ pullRemoteConfig: true });
+                          showSuccess?.(t.settings_cloud_sync_success);
+                        } finally {
+                          setCloudSyncing(false);
+                        }
+                      }}
+                      className={`relative flex min-h-[44px] items-center gap-2 overflow-hidden rounded-lg border px-3 text-xs font-semibold transition-all duration-200 disabled:pointer-events-none ${
+                        syncBusy
+                          ? 'border-accent/25 bg-white text-slate-700 shadow-[inset_0_0_0_1px_rgba(45,90,39,0.08)]'
+                          : 'border-transparent text-slate-600 hover:border-slate-200/80 hover:bg-white/90 hover:text-slate-900'
+                      } disabled:opacity-60`}
+                    >
+                      {syncBusy && (
+                        <span
+                          className="pointer-events-none absolute inset-x-2 bottom-1 h-[3px] overflow-hidden rounded-full bg-slate-200/70"
+                          aria-hidden
+                        >
+                          <span className="block h-full w-[42%] rounded-full bg-gradient-to-r from-accent/75 to-accent shadow-[0_0_8px_rgba(45,90,39,0.35)] animate-admin-sync-bar" />
+                        </span>
+                      )}
+                      <RefreshCw
+                        className={`relative z-[1] h-3.5 w-3.5 shrink-0 transition-transform ${cloudSyncing ? 'animate-spin text-accent' : ''}`}
                         aria-hidden
-                      >
-                        <span className="block h-full w-[42%] rounded-full bg-gradient-to-r from-accent/75 to-accent shadow-[0_0_8px_rgba(45,90,39,0.35)] animate-admin-sync-bar" />
-                      </span>
-                    )}
-                    <RefreshCw
-                      className={`relative z-[1] h-3.5 w-3.5 shrink-0 transition-transform ${syncBusy ? 'animate-spin text-accent' : ''}`}
-                      aria-hidden
-                    />
-                    <span className="relative z-[1]">{t.settings_cloud_sync_button}</span>
-                  </button>
+                      />
+                      <span className="relative z-[1]">{t.settings_cloud_sync_button}</span>
+                    </button>
+                    <button
+                      type="button"
+                      disabled={syncBusy}
+                      title={t.hard_reload_hint}
+                      onClick={async () => {
+                        if (!window.confirm(t.hard_reload_confirm)) return;
+                        setHardReloading(true);
+                        try {
+                          await hardReloadFromDatabase();
+                        } finally {
+                          setHardReloading(false);
+                        }
+                      }}
+                      className={`relative flex min-h-[44px] items-center gap-2 overflow-hidden rounded-lg border px-3 text-xs font-semibold transition-all duration-200 disabled:pointer-events-none ${
+                        hardReloading
+                          ? 'border-amber-300/80 bg-amber-50 text-amber-950 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.2)]'
+                          : 'border-amber-200/90 bg-amber-50/95 text-amber-950 hover:bg-amber-100 hover:border-amber-300'
+                      } disabled:opacity-60`}
+                    >
+                      <RotateCcw
+                        className={`relative z-[1] h-3.5 w-3.5 shrink-0 ${hardReloading ? 'animate-spin' : ''}`}
+                        aria-hidden
+                      />
+                      <span className="relative z-[1] max-w-[10rem] truncate sm:max-w-none">{t.hard_reload_button}</span>
+                    </button>
+                  </>
                 )}
                 <button
                   type="button"

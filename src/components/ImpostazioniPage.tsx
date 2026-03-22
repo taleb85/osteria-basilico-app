@@ -4,7 +4,18 @@
  */
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutGrid, Building2, ShieldAlert, Zap, Coffee, ChevronDown, Users, MapPin, RefreshCw } from 'lucide-react';
+import {
+  LayoutGrid,
+  Building2,
+  ShieldAlert,
+  Zap,
+  Coffee,
+  ChevronDown,
+  Users,
+  MapPin,
+  RefreshCw,
+  RotateCcw,
+} from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getFeatureStrings, formatTrans } from '../utils/translations';
 import { isAdminOnly } from '../utils/permissions';
@@ -40,12 +51,15 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     effectiveLanguage,
     showSuccess,
     silentRefreshData,
+    hardReloadFromDatabase,
     isGlobalRefreshing,
   } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [howOpen, setHowOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState<Record<string, boolean>>({});
   const [cloudSyncing, setCloudSyncing] = useState(false);
+  const [hardReloading, setHardReloading] = useState(false);
+  const syncBusy = cloudSyncing || hardReloading || isGlobalRefreshing;
 
   const toggleDetail = useCallback((slug: string) => {
     setDetailOpen((prev) => ({ ...prev, [slug]: !prev[slug] }));
@@ -177,7 +191,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             )}
             <button
               type="button"
-              disabled={cloudSyncing || isGlobalRefreshing}
+              disabled={syncBusy}
               onClick={async () => {
                 setCloudSyncing(true);
                 try {
@@ -189,13 +203,28 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
               }}
               className="inline-flex items-center justify-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:pointer-events-none"
             >
-              <RefreshCw
-                className={`w-3.5 h-3.5 ${cloudSyncing || isGlobalRefreshing ? 'animate-spin' : ''}`}
-                aria-hidden
-              />
+              <RefreshCw className={`w-3.5 h-3.5 ${cloudSyncing ? 'animate-spin' : ''}`} aria-hidden />
               {t.settings_cloud_sync_button}
             </button>
+            <button
+              type="button"
+              disabled={syncBusy}
+              onClick={async () => {
+                if (!window.confirm(t.hard_reload_confirm)) return;
+                setHardReloading(true);
+                try {
+                  await hardReloadFromDatabase();
+                } finally {
+                  setHardReloading(false);
+                }
+              }}
+              className="inline-flex items-center justify-center gap-2 self-start rounded-lg border border-amber-200/90 bg-amber-50/90 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-900 hover:bg-amber-100/90 hover:border-amber-300 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <RotateCcw className={`w-3.5 h-3.5 ${hardReloading ? 'animate-spin' : ''}`} aria-hidden />
+              {t.hard_reload_button}
+            </button>
           </div>
+          <p className="text-[11px] text-slate-500 mt-2 max-w-3xl leading-relaxed">{t.hard_reload_hint}</p>
           {onOpenProfilesTab && (
             <p className="text-[11px] text-slate-400 mt-1.5 max-w-3xl">{t.impostazioni_master_panel_scroll_hint}</p>
           )}
@@ -231,7 +260,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
         <div className="space-y-6">
           {IMPOSTAZIONI_GROUPS.map((group) => (
             <section key={group.titleKey}>
-              <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] mb-2.5">
+              <h2 className="ui-section-title mb-2.5 text-slate-400">
                 {t[group.titleKey]}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{group.slugs.map((slug) => renderCard(slug))}</div>

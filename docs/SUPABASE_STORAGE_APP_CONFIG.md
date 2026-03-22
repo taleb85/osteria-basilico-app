@@ -11,6 +11,7 @@ L’app può salvare in Storage (bucket **`app-config`**) questi file JSON:
 | `role_feature_templates.json` | Template permessi per ruolo (Admin → Permessi ruoli) |
 | `admin_sheet_modules.json` | Moduli scheda Admin globali |
 | `timesheet-period.json` | Config periodo foglio ore (se usata la sync su Storage) |
+| `client_sync_revision.json` | Contatore revisione: dopo modifiche admin critiche (permessi, ruoli, flag…) gli altri dispositivi richiedono refresh con PIN |
 
 Le policy sul bucket **`app-config`** valgono per **tutti** i path sopra: non servono policy separate per `geofence.json`. Se l’upload da Impostazioni fallisce con errore Storage, verifica le stesse condizioni degli altri JSON (bucket esistente, policy `anon`/`authenticated`, MIME).
 

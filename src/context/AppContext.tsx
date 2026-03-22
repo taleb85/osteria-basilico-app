@@ -7,7 +7,9 @@ import { supabase } from '../lib/supabase';
 import { hasShiftConflictSameDay, computeEffectivePunchIn, calculateShiftMinutesGross } from '../utils/timeCalculations';
 import { AnimatePresence } from 'framer-motion';
 import Toast from '../components/Toast';
-import { getTranslations } from '../utils/translations';
+import { formatTrans, getTranslations } from '../utils/translations';
+import { countUnreadNotifications } from '../utils/notifications';
+import { setAppLauncherBadgeUnreadCountAsync } from '../utils/appIconBadge';
 import { logHistory, logShiftEdit } from '../utils/scheduleHistory';
 import { isManagementRole } from '../utils/permissions';
 import {
@@ -46,6 +48,16 @@ import i18n from '../utils/i18n';
 import { userRowToSessionUser } from '../utils/staffPermissionDefaults';
 import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
 import {
+  bumpClientSyncRevisionOnSupabase,
+  fetchClientSyncRevisionFromSupabase,
+  getAckClientSyncRevision,
+  writeAckClientSyncRevision,
+} from '../utils/clientSyncRevision';
+import {
+  OSTERIA_BACKGROUND_SYNC_MESSAGE,
+  registerOsteriaBackgroundSync,
+} from '../utils/backgroundSync';
+import {
   readGeofenceEnvConfig,
   haversineDistanceMeters,
   getCurrentPositionCoords,
@@ -67,13 +79,23 @@ import {
   hasPinUnlockCredential,
   registerPinUnlockCredential,
 } from '../utils/pinUnlockWebAuthn';
+import { getDefaultApprovalClockHHMM } from '../utils/shiftResolvedClockTimes';
+import { pinMatchesStored } from '../utils/loginIdentifier';
 
 interface AppContextType {
   showError: (message: string) => void;
   showSuccess: (message: string) => void;
   forceGlobalRefresh: () => Promise<void>;
   hardResetTestData: () => Promise<{ shifts: number; holidays: number; punchRecords: number; notifications?: number }>;
-  silentRefreshData: (opts?: { pullRemoteConfig?: boolean }) => Promise<void>;
+  silentRefreshData: (opts?: {
+    pullRemoteConfig?: boolean;
+    /** Non invocare `forceGlobalRefresh` se la revisione Storage è avanti (es. reload volontario dal server). */
+    skipRemoteRevisionCheck?: boolean;
+    /** Rilancia l’errore invece di limitarsi al log (es. `hardReloadFromDatabase`). */
+    throwOnError?: boolean;
+  }) => Promise<void>;
+  /** Svuota cache turni locale, ricarica DB + Storage cloud, aggiorna ack revisione — senza lock PIN. */
+  hardReloadFromDatabase: () => Promise<void>;
   isGlobalRefreshing: boolean;
   postRefreshLocked: boolean;
   unlockAfterRefresh: (pin: string) => Promise<boolean>;
@@ -103,12 +125,12 @@ interface AppContextType {
   addShift: (shift: Omit<Shift, 'id'>) => Promise<Shift | null>;
   updateShift: (id: string, shift: Partial<Shift>) => void;
   /**
-   * Approva definitivamente un turno:
-   * - setta approval_status = 'approved' + approved_at + approved_by
-   * - scrive un record in punch_audit_log per la tracciabilità
-   * - il turno diventa non modificabile (enforced in UI)
+   * Approva definitivamente un turno (congelo):
+   * - approval_status = 'approved' + approved_at + approved_by + approved_start_time/end_time
+   * - se già soft-approved, aggiunge solo congelo (approved_at + orari congelati)
+   * - scrive punch_audit_log per tracciabilità
    */
-  approveShift: (shiftId: string) => Promise<void>;
+  approveShift: (shiftId: string, opts?: { approvedStart: string; approvedEnd: string }) => Promise<void>;
   /** Approva il turno senza congelarlo (nessun approved_at/approved_by). Il congelo avviene separatamente nelle Presenze. */
   approveShiftSoft: (shiftId: string) => Promise<void>;
   deleteShift: (id: string) => void;
@@ -249,7 +271,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /** Permette a updateUser (definito prima) di innescare il refresh dopo permessi. */
-  const silentRefreshDataRef = useRef<(opts?: { pullRemoteConfig?: boolean }) => Promise<void>>(async () => {});
+  const silentRefreshDataRef = useRef<
+    (opts?: {
+      pullRemoteConfig?: boolean;
+      skipRemoteRevisionCheck?: boolean;
+      throwOnError?: boolean;
+    }) => Promise<void>
+  >(async () => {});
+  /** Revisione Storage da accettare con PIN dopo `forceGlobalRefresh` (altri dispositivi). */
+  const pendingClientSyncRevRef = useRef<number | null>(null);
+  const forceGlobalRefreshRef = useRef<() => Promise<void>>(async () => {});
 
   /** Lingua profilo in sessione, altrimenti preferenza persistita (login/kiosk senza sessione allineati). */
   const effectiveLanguage: Language = useMemo(() => {
@@ -283,6 +314,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setRoleTemplatesRevision((n) => n + 1);
     try {
       await saveRoleFeatureTemplatesToSupabase(data);
+      const rev = await bumpClientSyncRevisionOnSupabase();
+      if (rev != null) writeAckClientSyncRevision(rev);
     } catch (e) {
       setRoleFeatureTemplatesCache(previous ?? null);
       try {
@@ -306,6 +339,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAdminModulesRevision((n) => n + 1);
     try {
       await saveAdminModulesGlobalToSupabase(data);
+      const rev = await bumpClientSyncRevisionOnSupabase();
+      if (rev != null) writeAckClientSyncRevision(rev);
     } catch (e) {
       setAdminModulesGlobalCache(previous ?? null);
       try {
@@ -345,6 +380,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
       unsubHolidaysAvail();
     };
   }, []);
+
+  /** Ricalcola badge icona (notifiche lette, permesso iOS concesso, ritorno in app). */
+  const [launcherBadgeTick, setLauncherBadgeTick] = useState(0);
+  useEffect(() => {
+    const onSeen = () => setLauncherBadgeTick((x) => x + 1);
+    const onRecheck = () => setLauncherBadgeTick((x) => x + 1);
+    window.addEventListener('notifications-seen', onSeen);
+    window.addEventListener('app-badge-recheck', onRecheck);
+    return () => {
+      window.removeEventListener('notifications-seen', onSeen);
+      window.removeEventListener('app-badge-recheck', onRecheck);
+    };
+  }, []);
+
+  useEffect(() => {
+    const bump = () => {
+      if (document.visibilityState === 'visible') setLauncherBadgeTick((x) => x + 1);
+    };
+    document.addEventListener('visibilitychange', bump);
+    window.addEventListener('pageshow', bump);
+    return () => {
+      document.removeEventListener('visibilitychange', bump);
+      window.removeEventListener('pageshow', bump);
+    };
+  }, []);
+
+  /** Badge sull’icona PWA (Badging API): allineato alle notifiche in-app non lette. */
+  useEffect(() => {
+    if (!currentUser) {
+      void setAppLauncherBadgeUnreadCountAsync(0);
+      return;
+    }
+    const t = getTranslations(effectiveLanguage);
+    const unread = countUnreadNotifications(currentUser, shifts, holidays, users, t, effectiveLanguage);
+    void setAppLauncherBadgeUnreadCountAsync(unread);
+  }, [currentUser, shifts, holidays, users, effectiveLanguage, launcherBadgeTick]);
 
   const loadInitialData = async () => {
     try {
@@ -468,6 +539,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if ((shift.start_time || '').trim().slice(0, 5) === '10:00' && (!endTime || endTime.trim() === '')) {
       endTime = '16:00';
     }
+    if (!String(endTime).trim()) {
+      showError(getTranslations(effectiveLanguage).shift_end_time_required);
+      return null;
+    }
     const autoBreak = computePersistedAutoBreak(
       shift.start_time ?? '',
       endTime,
@@ -484,7 +559,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       logHistory('create', actor, `Turno creato: ${shift.date} ${shift.start_time}–${endTime || '?'}`);
     }
     return res;
-  }, [shifts, showError, computePersistedAutoBreak]);
+  }, [shifts, showError, computePersistedAutoBreak, effectiveLanguage]);
 
   const updateShift = useCallback(async (id: string, updates: Partial<Shift>) => {
     const existing = shifts.find((s) => s.id === id);
@@ -498,7 +573,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
     if (updates.user_id !== undefined || updates.date !== undefined) {
       if (otherShiftsOnDate.length >= MAX_SHIFTS_PER_DAY) {
-        showError('Un dipendente non può avere più di 2 turni nello stesso giorno.');
+        showError(getTranslations(effectiveLanguage).max_two_shifts_same_day);
         return;
       }
     }
@@ -506,7 +581,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const finalStart = updates.start_time ?? existing.start_time;
       const finalEnd = updates.end_time ?? existing.end_time ?? '';
       if (hasShiftConflictSameDay(otherShiftsOnDate, { start_time: finalStart, end_time: finalEnd })) {
-        showError('Conflitto orario: il turno si sovrappone a uno esistente.');
+        showError(getTranslations(effectiveLanguage).shift_overlap_same_day);
         return;
       }
       const autoBreak = computePersistedAutoBreak(
@@ -553,7 +628,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setShifts(prev => prev.map(s => s.id === id ? existing : s));
       throw err;
     }
-  }, [shifts, showError, computePersistedAutoBreak]);
+  }, [shifts, showError, computePersistedAutoBreak, effectiveLanguage]);
 
   /**
    * Approva definitivamente un turno.
@@ -566,23 +641,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await updateShift(shiftId, { approval_status: 'approved' });
   }, [shifts, updateShift]);
 
-  const approveShift = useCallback(async (shiftId: string) => {
+  const approveShift = useCallback(async (shiftId: string, opts?: { approvedStart: string; approvedEnd: string }) => {
     const existing = shifts.find((s) => s.id === shiftId);
-    if (!existing || existing.approval_status === 'approved') return;
+    if (!existing || existing.approved_at) return;
+    if (existing.approval_status !== 'confirmed' && existing.approval_status !== 'approved') return;
 
     const actor = currentUserRef.current;
     const approvedAt = new Date().toISOString();
     const approvedBy = actor ? `${actor.first_name} ${actor.last_name ?? ''}`.trim() : 'Manager';
 
-    // 1. Aggiorna il turno
+    let startHH = opts?.approvedStart?.trim().slice(0, 5) ?? '';
+    let endHH = opts?.approvedEnd?.trim().slice(0, 5) ?? '';
+    if (!startHH || !endHH) {
+      const def = getDefaultApprovalClockHHMM(existing, punchRecordsRef.current);
+      startHH = def.start;
+      endHH = def.end;
+    }
+
     await updateShift(shiftId, {
       approval_status: 'approved',
       approved_at: approvedAt,
       approved_by: approvedBy,
+      approved_start_time: startHH,
+      approved_end_time: endHH,
     });
 
-    // 2. Scrivi un entry nell'audit log per la tracciabilità
-    //    Trova il punch_record di entrata per questo turno
     const punchIn = punchRecordsRef.current.find(
       (p) => p.type === 'in' && (p.shift_id === shiftId || p.user_id === existing.user_id)
     );
@@ -630,9 +713,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Rollback: ripristina stato locale
       setShifts(prev => [...prev, ...removedShifts]);
       setPunchRecords(prev => [...prev, ...removedPunchRecords]);
-      showError('Errore durante l\'eliminazione del turno. Riprova.');
+      showError(getTranslations(effectiveLanguage).shift_delete_bulk_error);
     }
-  }, [shifts, punchRecords, showError]);
+  }, [shifts, punchRecords, showError, effectiveLanguage]);
 
   const copyShift = useCallback((shift: Shift, newDate: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- id excluded for new shift
@@ -901,10 +984,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
         'hourly_rate_eur' in updates ||
         'monthly_confirmed' in updates;
       const needsSilentRefresh = updatesRemoteConfig || updatesProfileOrIdentity;
+      const shouldBumpClientSyncRevision =
+        updatesRemoteConfig ||
+        'role' in updates ||
+        'status' in updates ||
+        'pin' in updates ||
+        'department' in updates ||
+        'hide_from_team_schedule' in updates;
       // Sempre refresh dopo salvataggio profilo/permessi: se PostgREST restituisce `res` null (es. RLS su SELECT dopo UPDATE),
       // senza questo gli altri dispositivi e la lista utenti non si allineano al DB.
       if (needsSilentRefresh) {
-        await silentRefreshDataRef.current(updatesRemoteConfig ? { pullRemoteConfig: true } : undefined);
+        if (shouldBumpClientSyncRevision) {
+          const rev = await bumpClientSyncRevisionOnSupabase();
+          if (rev != null) writeAckClientSyncRevision(rev);
+        }
+        const pullRemote =
+          updatesRemoteConfig || shouldBumpClientSyncRevision;
+        await silentRefreshDataRef.current(pullRemote ? { pullRemoteConfig: true } : undefined);
       }
     } catch (err) {
       // Ripristino in caso di errore
@@ -912,17 +1008,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (currentUser?.id === id) setCurrentUser(userRowToSessionUser(prevUser as User));
       const detail = err && typeof err === 'object' && 'message' in err ? String((err as { message: string }).message) : '';
       console.warn('[updateUser]', detail || err);
+      const tr = getTranslations(effectiveLanguage);
       showError(
         detail
-          ? `Salvataggio non riuscito: ${detail.slice(0, 120)}`
-          : 'Errore durante il salvataggio. Riprova o verifica le migrazioni Supabase (colonne users).'
+          ? formatTrans(tr.app_save_failed_detail, { detail: detail.slice(0, 120) })
+          : tr.app_save_failed_profile
       );
     }
-  }, [currentUser, users, showError]);
+  }, [currentUser, users, showError, effectiveLanguage]);
 
   const deleteUser = useCallback(async (id: string) => {
     await database.users.delete(id);
     setUsers(prev => prev.filter(u => u.id !== id));
+    const rev = await bumpClientSyncRevisionOnSupabase();
+    if (rev != null) writeAckClientSyncRevision(rev);
   }, []);
 
   const reorderUsers = useCallback(async (userId: string, direction: 'up' | 'down') => {
@@ -989,7 +1088,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * Con `pullRemoteConfig: true` (dopo toggle permessi/flag/regole) ricarica anche Storage.
    * Feature flag: remoto vince sul local (allineamento multi-dispositivo); il toggle locale salva già su Storage prima del refresh.
    */
-  const silentRefreshData = useCallback(async (opts?: { pullRemoteConfig?: boolean }) => {
+  const silentRefreshData = useCallback(async (opts?: {
+    pullRemoteConfig?: boolean;
+    skipRemoteRevisionCheck?: boolean;
+    throwOnError?: boolean;
+  }) => {
     try {
       const [loadedUsers, loadedShifts, loadedHolidays, loadedPunchRecords, loadedAvailability] = await Promise.all([
         database.users.getAll().catch(() => []),
@@ -1033,21 +1136,61 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setAdminModulesRevision((n) => n + 1);
         await refreshGeofenceEffectiveConfig();
       }
+
+      /* Cross-device: la revisione va controllata a ogni sync DB, non solo con pullRemoteConfig
+         (altrimenti pull-to-refresh, mount, cambio tab non leggono mai Storage). */
+      if (!opts?.skipRemoteRevisionCheck) {
+        const remoteRev = await fetchClientSyncRevisionFromSupabase().catch(() => null);
+        if (remoteRev != null && remoteRev > getAckClientSyncRevision()) {
+          if (currentUserRef.current) {
+            pendingClientSyncRevRef.current = remoteRev;
+            await forceGlobalRefreshRef.current();
+          } else {
+            writeAckClientSyncRevision(remoteRev);
+          }
+        }
+      }
     } catch (err) {
       console.error('Errore durante il refresh silenzioso:', err);
+      if (opts?.throwOnError) throw err;
     }
   }, [refreshGeofenceEffectiveConfig]);
 
   silentRefreshDataRef.current = silentRefreshData;
 
+  const hardReloadFromDatabase = useCallback(async () => {
+    setIsGlobalRefreshing(true);
+    try {
+      const shiftCacheKeys = Object.keys(localStorage).filter(
+        (k) => k.toLowerCase().includes('shift') || k.toLowerCase().includes('turni')
+      );
+      shiftCacheKeys.forEach((k) => localStorage.removeItem(k));
+      await silentRefreshData({
+        pullRemoteConfig: true,
+        skipRemoteRevisionCheck: true,
+        throwOnError: true,
+      });
+      pendingClientSyncRevRef.current = null;
+      const rev = await fetchClientSyncRevisionFromSupabase().catch(() => null);
+      if (rev != null) writeAckClientSyncRevision(rev);
+      showSuccess(getTranslations(effectiveLanguage).hard_reload_success);
+    } catch (err) {
+      console.error('[hardReloadFromDatabase]', err);
+      showError(getTranslations(effectiveLanguage).hard_reload_error);
+    } finally {
+      setIsGlobalRefreshing(false);
+    }
+  }, [silentRefreshData, showError, showSuccess, effectiveLanguage]);
+
   /**
    * Ritorno in primo piano (PWA ↔ browser, cambio app su mobile) e **rete di nuovo disponibile**:
    * - DB (turni, utenti, timbrature…): sempre refresh anche **senza login** (kiosk / login usano gli stessi dati).
-   * - Storage (flag, template ruoli): al massimo ogni CONFIG_PULL_THROTTLE_MS per non martellare Supabase.
+   * - Storage (flag, template ruoli): throttling + **pull forzato** a ogni ritorno in primo piano (meno lag PC↔telefono).
    */
   useEffect(() => {
     let lastConfigPull = 0;
-    const CONFIG_PULL_THROTTLE_MS = 12_000;
+    /** Tra un pull Storage e l’altro mentre l’app resta in primo piano (evita burst su Supabase). */
+    const CONFIG_PULL_THROTTLE_MS = 5_000;
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     const runForegroundSync = () => {
@@ -1065,21 +1208,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const pullRemote = now - lastConfigPull >= CONFIG_PULL_THROTTLE_MS;
         if (pullRemote) lastConfigPull = now;
         void silentRefreshDataRef.current(pullRemote ? { pullRemoteConfig: true } : undefined);
-      }, 350);
+      }, 200);
     };
 
     const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        lastConfigPull = 0;
+      }
       runForegroundSync();
     };
     const onOnline = () => {
+      lastConfigPull = 0;
       runForegroundSync();
     };
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('focus', runForegroundSync);
     window.addEventListener('online', onOnline);
     const onPageShow = (e: PageTransitionEvent) => {
-      // bfcache + alcuni browser mobile: sync anche senza persisted
-      if (e.persisted || document.visibilityState === 'visible') runForegroundSync();
+      if (e.persisted || document.visibilityState === 'visible') {
+        lastConfigPull = 0;
+        runForegroundSync();
+      }
     };
     window.addEventListener('pageshow', onPageShow);
     return () => {
@@ -1088,6 +1237,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('pageshow', onPageShow);
       if (debounceTimer) clearTimeout(debounceTimer);
+    };
+  }, []);
+
+  /** Background Sync API: dopo riconnessione lo SW può notificare le finestre (Chrome/Edge/Android). */
+  const lastBackgroundSyncRefreshRef = useRef(0);
+  useEffect(() => {
+    const throttleMs = 4000;
+    const onSwMessage = (event: MessageEvent) => {
+      if (event.data?.type !== OSTERIA_BACKGROUND_SYNC_MESSAGE) return;
+      const now = Date.now();
+      if (now - lastBackgroundSyncRefreshRef.current < throttleMs) return;
+      lastBackgroundSyncRefreshRef.current = now;
+      void silentRefreshDataRef.current({ pullRemoteConfig: true });
+    };
+    navigator.serviceWorker?.addEventListener('message', onSwMessage);
+
+    const onOffline = () => {
+      void registerOsteriaBackgroundSync();
+    };
+    window.addEventListener('offline', onOffline);
+    if (!navigator.onLine) {
+      void registerOsteriaBackgroundSync();
+    }
+    void navigator.serviceWorker?.ready.then(() => {
+      if (!navigator.onLine) void registerOsteriaBackgroundSync();
+    });
+
+    return () => {
+      navigator.serviceWorker?.removeEventListener('message', onSwMessage);
+      window.removeEventListener('offline', onOffline);
     };
   }, []);
 
@@ -1104,6 +1283,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setFeatureFlagsState((prev) => ({ ...prev, [name]: enabled }));
     saveLocalFeatureFlag(name, enabled);
     await updateFeatureFlagInSupabase(name, enabled).catch(() => {});
+    const rev = await bumpClientSyncRevisionOnSupabase();
+    if (rev != null) writeAckClientSyncRevision(rev);
     await silentRefreshData({ pullRemoteConfig: true });
   }, [silentRefreshData]);
 
@@ -1119,12 +1300,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setWorkRules = useCallback(async (rules: WorkRules) => {
     setWorkRulesState(rules);
     await saveWorkRulesToSupabase(rules).catch(() => {});
+    const rev = await bumpClientSyncRevisionOnSupabase();
+    if (rev != null) writeAckClientSyncRevision(rev);
     await silentRefreshData({ pullRemoteConfig: true });
   }, [silentRefreshData]);
 
   const setBreakRules = useCallback(async (rules: BreakRule[]) => {
     setBreakRulesState(rules);
     await saveBreakRulesToSupabase(rules).catch(() => {});
+    const rev = await bumpClientSyncRevisionOnSupabase();
+    if (rev != null) writeAckClientSyncRevision(rev);
     await silentRefreshData({ pullRemoteConfig: true });
   }, [silentRefreshData]);
 
@@ -1170,10 +1355,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setPostRefreshLocked(true);
     } catch (err) {
       console.error('Errore durante il refresh globale:', err);
-      showError('Errore durante la sincronizzazione. Riprova.');
+      pendingClientSyncRevRef.current = null;
+      showError(getTranslations(effectiveLanguage).app_sync_failed_retry);
       setIsGlobalRefreshing(false);
     }
-  }, [showError]);
+  }, [showError, effectiveLanguage]);
+
+  forceGlobalRefreshRef.current = forceGlobalRefresh;
+
+  const isGlobalRefreshingRef = useRef(false);
+  const postRefreshLockedRef = useRef(false);
+  useEffect(() => {
+    isGlobalRefreshingRef.current = isGlobalRefreshing;
+  }, [isGlobalRefreshing]);
+  useEffect(() => {
+    postRefreshLockedRef.current = postRefreshLocked;
+  }, [postRefreshLocked]);
+
+  /**
+   * Sync periodico con sessione + schermo visibile: stesso percorso di `silentRefreshData({ pullRemoteConfig })`.
+   * Così allineiamo **DB** (profili, permessi JSONB) e **Storage** (template ruoli, flag, periodo presenze…).
+   * Il solo `users.getAll` non bastava: le matrici permesso vivono anche su `role_feature_templates.json`, ecc.
+   */
+  useEffect(() => {
+    if (!currentUser) return;
+    const POLL_MS = 60_000;
+    const check = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (isGlobalRefreshingRef.current || postRefreshLockedRef.current) return;
+      void silentRefreshDataRef.current({ pullRemoteConfig: true });
+    };
+    const id = window.setInterval(check, POLL_MS);
+    const t0 = window.setTimeout(check, 8_000);
+    return () => {
+      window.clearInterval(id);
+      window.clearTimeout(t0);
+    };
+  }, [currentUser?.id]);
 
   const runPostUnlockRefreshActions = useCallback(async (): Promise<boolean> => {
     try {
@@ -1194,33 +1412,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setPendingPublishWeekStart(null);
         showSuccess(getTranslations(effectiveLanguage).shifts_published);
       }
-      const [loadedUsers, loadedShifts, loadedHolidays, loadedPunchRecords] = await Promise.all([
+      const [loadedUsers, loadedShifts, loadedHolidays, loadedPunchRecords, loadedAvailability] = await Promise.all([
         database.users.getAll().catch(() => []),
         database.shifts.getAll().catch(() => []),
         database.holidays.getAll().catch(() => []),
         database.punchRecords.getAll().catch(() => []),
+        database.availability.getAll().catch(() => []),
       ]);
       setUsers(loadedUsers);
       setShifts(loadedShifts);
       setHolidays(loadedHolidays);
       setPunchRecords(loadedPunchRecords);
+      setAvailability(loadedAvailability);
+      setCurrentUser((prev) => sessionUserFromLoadedUsersList(prev, loadedUsers));
     } catch (err) {
       console.error('Errore dopo conferma PIN:', err);
-      showError('Errore durante il salvataggio. Riprova.');
+      showError(getTranslations(effectiveLanguage).app_save_unlock_failed);
       return false;
+    }
+    const revToAck = pendingClientSyncRevRef.current;
+    if (revToAck != null) {
+      writeAckClientSyncRevision(revToAck);
+      pendingClientSyncRevRef.current = null;
+    }
+    /** Allinea Storage prima di togliere l’overlay: altrimenti sembra che «dopo il PIN non succeda nulla» mentre il pull è ancora in corso. */
+    if (revToAck != null) {
+      try {
+        await silentRefreshData({ pullRemoteConfig: true, skipRemoteRevisionCheck: true });
+      } catch (e) {
+        console.error('[runPostUnlockRefreshActions] silentRefreshData', e);
+        showError(getTranslations(effectiveLanguage).app_sync_failed_retry);
+      }
     }
     setPostRefreshLocked(false);
     return true;
-  }, [pendingOrderIds, pendingPublishWeekStart, shifts, effectiveLanguage, showError, showSuccess]);
+  }, [pendingOrderIds, pendingPublishWeekStart, shifts, effectiveLanguage, showError, showSuccess, silentRefreshData]);
 
   const unlockAfterRefresh = useCallback(
     async (pin: string): Promise<boolean> => {
       if (!currentUser) return false;
       const freshUser = users.find((u) => u.id === currentUser.id);
-      if (!freshUser || freshUser.pin !== pin) {
-        setForceLogoutRequested(true);
-        return false;
-      }
+      /** Stesso criterio del login: `pin` da PostgREST può arrivare come numero → `!==` falliva sempre. */
+      if (!freshUser || !pinMatchesStored(freshUser, pin)) return false;
       return runPostUnlockRefreshActions();
     },
     [currentUser, users, runPostUnlockRefreshActions]
@@ -1240,8 +1473,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const registerPinUnlockDevice = useCallback(
     async (pin: string): Promise<{ ok: boolean; wrongPin: boolean }> => {
       if (!currentUser) return { ok: false, wrongPin: false };
-      const freshUser = users.find((u) => u.id === currentUser.id);
-      if (!freshUser || freshUser.pin !== pin) {
+      let freshUser: User | null = null;
+      try {
+        freshUser = await database.users.getById(currentUser.id);
+      } catch {
+        freshUser = users.find((u) => u.id === currentUser.id) ?? null;
+      }
+      if (!freshUser || !pinMatchesStored(freshUser, pin)) {
         return { ok: false, wrongPin: true };
       }
       try {
@@ -1299,7 +1537,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       currentUser, setCurrentUser, users, shifts, holidays, punchRecords, availability, toggleAvailability,
       addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift,
       publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
-      updateUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, silentRefreshData, isGlobalRefreshing,
+      updateUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing,
       postRefreshLocked, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest,
       featureFlags, setFeatureFlag, geofenceEffectiveConfig, saveGeofenceConfig,
       workRules, setWorkRules, breakRules, setBreakRules,
@@ -1307,9 +1545,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       adminModulesRevision, saveAdminModulesGlobal,
     }}>
       <PwaGate>{children}</PwaGate>
-      <AnimatePresence>
+      <AnimatePresence mode="sync">
         {toastMessage && (
           <Toast
+            key={`${toastType}:${toastMessage.slice(0, 80)}`}
             message={toastMessage}
             type={toastType}
             onClose={() => setToastMessage(null)}

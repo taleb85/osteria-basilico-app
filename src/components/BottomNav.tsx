@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Home, Calendar, ClipboardList, BarChart3, ShieldCheck } from 'lucide-react';
+import { Home, Calendar, ClipboardList, BarChart3, ShieldCheck, Palmtree } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations } from '../utils/translations';
 import type { AppNavTab } from '../utils/enabledModules';
@@ -9,7 +9,7 @@ const SCROLL_THRESHOLD = 40;
 interface BottomNavProps {
   activeTab: AppNavTab;
   onTabChange: (tab: AppNavTab) => void;
-  /** Tab visibili (ordine fisso: dashboard, turni, presenze, statistiche, impostazioni). */
+  /** Tab visibili (ordine: dashboard, turni, ferie, presenze, statistiche, impostazioni). */
   visibleTabs: AppNavTab[];
 }
 
@@ -45,6 +45,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
   const defs: { id: AppNavTab; icon: typeof Home; label: string }[] = [
     { id: 'home', icon: Home, label: t.sidebar_dashboard },
     { id: 'turni', icon: Calendar, label: t.sidebar_shifts },
+    { id: 'ferie', icon: Palmtree, label: t.sidebar_holidays },
     { id: 'timesheet', icon: ClipboardList, label: t.sidebar_attendance },
     { id: 'reports', icon: BarChart3, label: t.sidebar_statistics },
     { id: 'settings', icon: ShieldCheck, label: t.sidebar_admin },

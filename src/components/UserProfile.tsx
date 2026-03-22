@@ -265,15 +265,10 @@ export function ProfileFormAdmin({
               <option value="bartender">{t.bartender_role}</option>
               <option value="dishwasher">{t.dishwasher_role}</option>
               <option value="assistant_manager">{t.assistant_manager_role}</option>
-              {(currentUser.role === 'admin' || currentUser.role === 'proprietario' || currentUser.role === 'manager') && (
+              {(currentUser.role === 'admin' || currentUser.role === 'manager') && (
                 <option value="manager">{t.manager_role}</option>
               )}
-              {isAdminOnly(currentUser) && (
-                <>
-                  <option value="admin">{t.admin_role}</option>
-                  <option value="proprietario">{(t as { proprietor_role?: string }).proprietor_role ?? 'Proprietario'}</option>
-                </>
-              )}
+              {isAdminOnly(currentUser) && <option value="admin">{t.admin_role}</option>}
             </select>
           </div>
           <div>

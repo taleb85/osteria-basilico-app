@@ -25,7 +25,7 @@ export const PERMISSION_MATRIX_KEYS = [
 export type PermissionMatrixKey = (typeof PERMISSION_MATRIX_KEYS)[number];
 
 /** Schede aggiuntive in dashboard (oltre alla matrice da 6). */
-export const DASHBOARD_TAB_FEATURE_KEYS = ['ferie_tab', 'admin_tab'] as const;
+export const DASHBOARD_TAB_FEATURE_KEYS = ['home_tab', 'ferie_tab', 'admin_tab'] as const;
 export type DashboardTabFeatureKey = (typeof DASHBOARD_TAB_FEATURE_KEYS)[number];
 
 export const ENABLED_FEATURE_KEYS = [
@@ -48,6 +48,7 @@ export const FEATURE_LABELS: Record<EnabledFeatureKey, string> = {
   view_stats: 'Visualizzazione Statistiche',
   view_estimated_cost: 'Costo stimato del lavoro (Statistiche)',
   desktop_access: 'Accesso Browser Desktop (deprecato — il gate PWA è unificato)',
+  home_tab: 'Visualizza scheda Dashboard',
   ferie_tab: 'Visualizza scheda Ferie',
   admin_tab: 'Visualizza scheda Admin (Impostazioni)',
 };
@@ -55,6 +56,7 @@ export const FEATURE_LABELS: Record<EnabledFeatureKey, string> = {
 /** Etichette orientate alle tab (stessi permessi; testo più chiaro nella sezione “Schede”). */
 export const FEATURE_LABELS_TAB_FIRST: Record<EnabledFeatureKey, string> = {
   ...FEATURE_LABELS,
+  home_tab: 'Scheda Dashboard — riepilogo',
   team_view: 'Scheda Turni — tabellone team',
   export_pdf: 'Scheda Presenze — foglio e PDF',
   view_stats: 'Scheda Statistiche',
@@ -62,9 +64,7 @@ export const FEATURE_LABELS_TAB_FIRST: Record<EnabledFeatureKey, string> = {
   admin_tab: 'Scheda Admin — impostazioni e profili',
 };
 
-export type RoleTemplateRow =
-  | { kind: 'always_home' }
-  | { kind: 'feature'; key: EnabledFeatureKey };
+export type RoleTemplateRow = { kind: 'feature'; key: EnabledFeatureKey };
 
 export type RoleTemplateSectionId = 'tabs_nav' | 'shift_ops' | 'other';
 
@@ -81,11 +81,11 @@ export const ROLE_TEMPLATE_FEATURE_SECTIONS: readonly RoleTemplateSection[] = [
   {
     id: 'tabs_nav',
     rows: [
-      { kind: 'always_home' },
+      { kind: 'feature', key: 'home_tab' },
       { kind: 'feature', key: 'team_view' },
+      { kind: 'feature', key: 'ferie_tab' },
       { kind: 'feature', key: 'export_pdf' },
       { kind: 'feature', key: 'view_stats' },
-      { kind: 'feature', key: 'ferie_tab' },
       { kind: 'feature', key: 'admin_tab' },
     ],
   },
@@ -124,34 +124,14 @@ export const ADMIN_MODULE_KEYS = [
 
 export type AdminModuleKey = (typeof ADMIN_MODULE_KEYS)[number];
 
-export const ADMIN_MODULE_LABELS: Record<AdminModuleKey, string> = {
-  visibility_management: 'Gestione Visibilità',
-  department_creation: 'Creazione Reparti',
-  violation_rules: 'Regole Violazioni',
-  master_control_panel: 'Master Control Panel',
-  auto_breaks: 'Pause Automatiche',
-};
-
 /** Default per admin: tutte attive (cablate) */
 const DEFAULT_ADMIN_FEATURES: EnabledFeatures = Object.fromEntries(
   ENABLED_FEATURE_KEYS.map((k) => [k, true])
 ) as EnabledFeatures;
 
-/** Default codice: Proprietario (template dedicato in UI Admin). */
-const DEFAULT_PROPRIETARIO_FEATURES: EnabledFeatures = {
-  team_view: true,
-  edit_shifts: true,
-  approve_shifts: true,
-  export_pdf: true,
-  view_stats: true,
-  view_estimated_cost: true,
-  desktop_access: true,
-  ferie_tab: true,
-  admin_tab: true,
-};
-
-/** Default codice: Manager e Assistant Manager (gruppo separato dal Proprietario). */
+/** Default codice: Manager e Assistant Manager (template gruppo `management`). */
 const DEFAULT_MANAGER_FEATURES: EnabledFeatures = {
+  home_tab: true,
   team_view: true,
   edit_shifts: true,
   approve_shifts: true,
@@ -164,14 +144,17 @@ const DEFAULT_MANAGER_FEATURES: EnabledFeatures = {
 };
 
 /**
- * Default per staff (template “Permessi ruoli”): stesso set pieno del management.
- * L’Admin può restringere dal file template o con eccezioni per singolo utente (`enabled_features`).
+ * Default per staff operativo: come management tranne **admin_tab** (Impostazioni / profili).
+ * Con `admin_tab` true di default molti profili vedevano la scheda senza averla mai abilitata nel template,
+ * e merge/template risultavano fuorvianti. Si riattiva da template ruoli “staff” o override `enabled_features`.
  */
-const DEFAULT_STAFF_FEATURES: EnabledFeatures = { ...DEFAULT_MANAGER_FEATURES };
+const DEFAULT_STAFF_FEATURES: EnabledFeatures = {
+  ...DEFAULT_MANAGER_FEATURES,
+  admin_tab: false,
+};
 
 export function getDefaultEnabledFeatures(role: string): EnabledFeatures {
   if (role === 'admin') return { ...DEFAULT_ADMIN_FEATURES };
-  if (role === 'proprietario') return { ...DEFAULT_PROPRIETARIO_FEATURES };
   if (role === 'manager' || role === 'assistant_manager') return { ...DEFAULT_MANAGER_FEATURES };
   return { ...DEFAULT_STAFF_FEATURES };
 }
@@ -179,7 +162,6 @@ export function getDefaultEnabledFeatures(role: string): EnabledFeatures {
 /** Gruppo per file template: admin non ha file (sempre pieno). */
 export function getRolePermissionGroup(role: string): 'admin' | RoleTemplateGroup {
   if (role === 'admin') return 'admin';
-  if (role === 'proprietario') return 'proprietario';
   if (role === 'manager' || role === 'assistant_manager') return 'management';
   return 'staff';
 }
@@ -196,7 +178,6 @@ function applyDiskTemplateToBase(base: EnabledFeatures, group: RoleTemplateGroup
 
 /** Default “codice” per un gruppo template (editor Admin / reset). */
 export function getCodeDefaultsForTemplateGroup(group: RoleTemplateGroup): EnabledFeatures {
-  if (group === 'proprietario') return { ...getDefaultEnabledFeatures('proprietario') } as EnabledFeatures;
   if (group === 'management') return { ...getDefaultEnabledFeatures('manager') } as EnabledFeatures;
   return { ...getDefaultEnabledFeatures('waiter') } as EnabledFeatures;
 }
@@ -284,6 +265,7 @@ export function getEnabledFeatures(user: { role: string; enabled_features?: unkn
   if (user.role === 'admin') {
     const result = { ...base };
     for (const k of PERMISSION_MATRIX_KEYS) result[k] = true;
+    result.home_tab = true;
     result.admin_tab = true;
     result.ferie_tab = true;
     return result;
@@ -347,9 +329,7 @@ export function getAdminModuleEnabled(user: { role: string; enabled_features?: u
     return base;
   }
   const defaultForRole =
-    user.role === 'proprietario' || user.role === 'manager' || user.role === 'assistant_manager'
-      ? { ...DEFAULT_ADMIN_MODULES }
-      : {};
+    user.role === 'manager' || user.role === 'assistant_manager' ? { ...DEFAULT_ADMIN_MODULES } : {};
   const global = getAdminModulesGlobalCache();
   if (!global || Object.keys(global).length === 0) {
     return defaultForRole;
@@ -361,7 +341,7 @@ export function getAdminModuleEnabled(user: { role: string; enabled_features?: u
   return result;
 }
 
-/** Restituisce true se l'utente ha il modulo admin abilitato. Solo admin: sempre tutti attivi; proprietario/manager rispettano enabled_features. */
+/** Restituisce true se l'utente ha il modulo admin abilitato. Solo admin: sempre tutti attivi; manager rispettano enabled_features. */
 export function isAdminModuleEnabled(user: { role: string; enabled_features?: unknown }, key: AdminModuleKey): boolean {
   if (user.role === 'admin') return true;
   const mods = getAdminModuleEnabled(user);

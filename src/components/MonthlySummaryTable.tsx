@@ -1,15 +1,17 @@
 import { useMemo } from 'react';
 import { startOfMonth, endOfMonth, eachWeekOfInterval, format, endOfWeek, eachDayOfInterval } from 'date-fns';
 import { useApp } from '../context/AppContext';
-import { getActualShiftTime, formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
+import { formatMinutesToHoursAndMinutes, calculateShiftMinutesGross } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
+import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
 import { motion } from 'framer-motion';
 import { TrendingUp } from 'lucide-react';
 import { translateRole } from '../utils/roles';
 import { isPurelyManagementRole, isManagementRole, isUserVisibleOnTeamSchedule } from '../utils/permissions';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
-import { getTranslations, getDateLocale } from '../utils/translations';
+import { getTranslations, getDateLocale, formatTrans } from '../utils/translations';
 import { it } from 'date-fns/locale';
+import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
 
 export default function MonthlySummaryTable() {
   const { users, shifts, currentUser, punchRecords, effectiveLanguage, breakRules, featureFlags } = useApp();
@@ -25,6 +27,7 @@ export default function MonthlySummaryTable() {
   const now = new Date();
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
+  const payrollPayDate = getPayrollPaymentDateForCalendarMonth(monthStart);
 
   const weeks = eachWeekOfInterval(
     { start: monthStart, end: monthEnd },
@@ -45,13 +48,9 @@ export default function MonthlySummaryTable() {
 
     const user = users.find((u) => u.id === userId);
     return weekShifts.reduce((sum, shift) => {
-      const actualTimes = getActualShiftTime(shift, punchRecords);
-      if (!actualTimes.isCompleted) return sum;
-      if (!actualTimes.endTime || actualTimes.endTime.trim() === '') return sum;
-      const endNorm = (shift.end_time || '').trim().slice(0, 5);
-      const startNorm = (shift.start_time || '').slice(0, 5);
-      if (endNorm === startNorm) return sum;
-      return sum + getNetShiftMinutes(shift, actualTimes.startTime, actualTimes.endTime, user ?? undefined, breakRules, breakComputeOpts);
+      const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
+      if (calculateShiftMinutesGross(start, end) <= 0) return sum;
+      return sum + getNetShiftMinutes(shift, start, end, user ?? undefined, breakRules, breakComputeOpts);
     }, 0);
   };
 
@@ -84,6 +83,18 @@ export default function MonthlySummaryTable() {
             </h1>
             <p className="text-slate-500 dark:text-gray-400 text-sm uppercase tracking-widest mt-1">
               {format(now, 'MMMM yyyy', { locale: getLocale() })}
+            </p>
+            <p className="text-slate-600 dark:text-gray-400 text-xs mt-2 max-w-xl leading-snug">
+              <span className="font-semibold text-slate-800 dark:text-gray-200">
+                {(t as { stats_payroll_title?: string }).stats_payroll_title ?? 'Pagamento stipendi'}:{' '}
+              </span>
+              {formatTrans(
+                (t as { stats_payroll_date_line?: string }).stats_payroll_date_line ?? 'Data prevista: {date}',
+                { date: format(payrollPayDate, 'EEEE d MMMM yyyy', { locale: getLocale() }) }
+              )}
+              <span className="block mt-1 text-slate-500 dark:text-gray-500 font-normal">
+                {(t as { stats_payroll_hint?: string }).stats_payroll_hint}
+              </span>
             </p>
           </div>
           <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center border border-slate-200 dark:border-white/10">

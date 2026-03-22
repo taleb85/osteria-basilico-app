@@ -240,7 +240,7 @@ export const UI_SCREEN_WIDGETS: UiScreenWidgetDef[] = [
   // ── Statistiche / Report ─────────────────────────────────────────────
   {
     key: 'stats.title',
-    audience: 'management',
+    audience: 'all',
     screenGroup: 'stats',
     screenLabel: 'Statistiche',
     label: 'Titolo pagina',

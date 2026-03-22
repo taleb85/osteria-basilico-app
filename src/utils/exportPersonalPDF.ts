@@ -3,6 +3,8 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from 'dat
 import { it } from 'date-fns/locale';
 import { User, Shift } from '../types';
 import { getNetShiftMinutes, type BreakMinutesComputeOptions, type BreakRule } from './breakRules';
+import { getResolvedStartEndForHours, type PunchRecordLike } from './shiftResolvedClockTimes';
+import { isPurelyManagementRole } from './permissions';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -28,8 +30,11 @@ export function exportPersonalPDF(
   approvedHolidayDates: Set<string>,
   restaurantName = 'Osteria Basilico',
   breakRules: BreakRule[] = [],
-  breakComputeOpts?: BreakMinutesComputeOptions
+  breakComputeOpts?: BreakMinutesComputeOptions,
+  punchRecords: PunchRecordLike[] = []
 ): void {
+  if (isPurelyManagementRole(user.role)) return;
+
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const PAGE_W = 210;
   const MARGIN = 12;
@@ -171,17 +176,11 @@ export function exportPersonalPDF(
       } else if (dayShifts.length > 0) {
         // Shift times
         dayShifts.slice(0, 2).forEach((s, si) => {
-          const mins = getNetShiftMinutes(
-            s,
-            (s.start_time || '').slice(0, 5),
-            (s.end_time || '').slice(0, 5),
-            user,
-            breakRules,
-            breakComputeOpts
-          );
+          const { start, end } = getResolvedStartEndForHours(s, punchRecords);
+          const mins = getNetShiftMinutes(s, start, end, user, breakRules, breakComputeOpts);
           totalMins += mins;
           totalDays++;
-          const timeStr = `${(s.start_time || '').slice(0, 5)}–${(s.end_time || '').slice(0, 5)}`;
+          const timeStr = `${start}–${end}`;
           doc.setFontSize(6.5);
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(17, 94, 89);

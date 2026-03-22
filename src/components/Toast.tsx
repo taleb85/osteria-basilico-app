@@ -1,34 +1,61 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
+import { Check, AlertCircle } from 'lucide-react';
 
 interface ToastProps {
   message: string;
   type?: 'error' | 'success' | 'info';
   onClose: () => void;
+  /** ms visibili (default 3.5s) */
   duration?: number;
 }
 
-export default function Toast({ message, type = 'error', onClose, duration = 4000 }: ToastProps) {
+/**
+ * Banner globale in basso al centro: successo verde basilico, errore rosso.
+ * Posizione ~bottom-6 + safe area (sopra home indicator iOS).
+ */
+export default function Toast({ message, type = 'error', onClose, duration = 3500 }: ToastProps) {
   useEffect(() => {
     const t = setTimeout(onClose, duration);
     return () => clearTimeout(t);
   }, [onClose, duration]);
 
-  const glassStyles = type === 'error'
-    ? 'bg-red-500/20 dark:bg-red-500/30 text-red-700 dark:text-red-300 border-red-200/50 dark:border-red-500/30'
-    : type === 'success'
-      ? 'bg-accent/12 dark:bg-accent/22 text-slate-800 dark:text-accent-light/95 border-accent/28 dark:border-accent/40'
-      : 'bg-slate-500/20 dark:bg-slate-500/30 text-slate-800 dark:text-slate-200 border-slate-300/50 dark:border-slate-500/30';
+  const isSuccess = type === 'success';
+  const isError = type === 'error';
 
-  return (
+  const barClass = isSuccess
+    ? 'bg-[#2D5A27] text-white border border-white/10 shadow-lg'
+    : isError
+      ? 'bg-red-600 text-white border border-red-500/80 shadow-lg'
+      : 'bg-slate-800 text-white border border-slate-600/80 shadow-lg';
+
+  const el = (
     <motion.div
-      initial={{ y: 24, opacity: 0 }}
+      role="status"
+      aria-live="polite"
+      initial={{ y: 40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 20, opacity: 0 }}
+      exit={{ y: 24, opacity: 0 }}
       transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
-      className={`fixed left-1/2 -translate-x-1/2 z-[200] w-[min(calc(100vw-2rem),28rem)] backdrop-blur-xl border px-5 py-3 rounded-2xl shadow-[0_4px_24px_-4px_rgba(45,90,39,0.12),0_8px_24px_-8px_rgba(15,23,42,0.1)] font-medium text-sm text-center ${glassStyles} bottom-[max(1.25rem,env(safe-area-inset-bottom,0px)+0.75rem)]`}
+      className={`fixed left-1/2 z-[9999] flex max-w-[min(90vw,28rem)] -translate-x-1/2 items-center gap-3 rounded-[12px] px-4 py-3 sm:max-w-md ${barClass}`}
+      style={{
+        bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))',
+      }}
     >
-      {message}
+      {isSuccess ? (
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
+          <Check className="h-5 w-5 text-white" strokeWidth={2.5} aria-hidden />
+        </span>
+      ) : isError ? (
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
+          <AlertCircle className="h-5 w-5 text-white" strokeWidth={2.25} aria-hidden />
+        </span>
+      ) : null}
+      <p className="min-w-0 flex-1 text-left text-sm font-bold leading-snug break-words">{message}</p>
     </motion.div>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(el, document.body);
 }

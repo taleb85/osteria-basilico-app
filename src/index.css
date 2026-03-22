@@ -27,6 +27,8 @@
     --color-accent: #2D5A27;
     --surface: #f8fafc;
     --surface-card: #ffffff;
+    /** Offset sotto l’header sticky app (MainApp lo aggiorna in px via ResizeObserver). */
+    --app-sticky-header-offset: calc(max(6px, env(safe-area-inset-top, 0px)) + 5rem);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
@@ -37,7 +39,8 @@
     transition: background-color 0.3s ease;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
-    touch-action: manipulation; /* blocca double-tap zoom */
+    overscroll-behavior: none; /* iOS: blocca bounce elastico sulla pagina */
+    /* zoom già disabilitato da viewport (user-scalable=no); evitare manipulation qui per non rompere pull-to-refresh */
   }
 
   * {
@@ -66,17 +69,23 @@
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
     -webkit-overflow-scrolling: touch; /* iOS scroll fluido */
-    touch-action: manipulation; /* blocca double-tap zoom */
+    overscroll-behavior: none;
   }
 
   /** Tutta l’app React: stessa stack Inter del tema Tailwind (`font-sans`). */
   #root {
     @apply min-h-0 font-sans antialiased text-[#1a1a1a];
+    overscroll-behavior: none;
   }
 }
 
 /* Card / Panel — Clean Minimal: bianco solido, niente vetro */
 @layer components {
+  /** Titoli sezione unificati (Admin, permessi, impostazioni) */
+  .ui-section-title {
+    @apply text-xs font-bold uppercase tracking-widest text-slate-500;
+  }
+
   .panel {
     background: #ffffff;
     border-radius: 16px;
@@ -122,8 +131,25 @@
     touch-action: manipulation;
   }
 
+  /** Feedback tocco (esclude switch iOS-style = role="switch") */
+  button:not(:disabled):not([role='switch']) {
+    transition: transform 100ms ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+      opacity 0.15s ease;
+  }
+  button:not(:disabled):not([role='switch']):active {
+    transform: scale(0.95);
+  }
+  a[href]:active {
+    transform: scale(0.95);
+    transition: transform 100ms ease;
+  }
+
   nav a {
     border-radius: 12px;
+  }
+
+  a[href] {
+    transition: transform 100ms ease;
   }
 
   /* Card Factorial — Clean Minimal: bianco, rounded-2xl (16px), ombra soft unificata */

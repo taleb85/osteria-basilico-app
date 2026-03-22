@@ -2,13 +2,14 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   forwardRef,
   type MutableRefObject,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { format, parseISO, isValid } from 'date-fns';
+import { format } from 'date-fns';
 import { DayPicker, type Matcher } from 'react-day-picker';
 import { Calendar, ChevronDown } from 'lucide-react';
 import { it } from 'date-fns/locale';
@@ -16,6 +17,25 @@ import { useApp } from '../context/AppContext';
 import { getTranslations, getDateLocale } from '../utils/translations';
 
 import 'react-day-picker/style.css';
+
+export function isDatePickerPortalClick(target: EventTarget | null): boolean {
+  const el =
+    target instanceof Element
+      ? target
+      : target instanceof Node && target.parentElement
+        ? target.parentElement
+        : null;
+  return Boolean(el?.closest('[data-osteria-date-picker-portal]'));
+}
+
+/** yyyy-MM-dd come data locale (mezzogiorno), senza shift UTC di parseISO. */
+function parseLocalDateOnly(iso: string): Date | undefined {
+  const s = iso.trim().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return undefined;
+  const [y, m, d] = s.split('-').map(Number);
+  const dt = new Date(y, m - 1, d, 12, 0, 0, 0);
+  return Number.isNaN(dt.getTime()) ? undefined : dt;
+}
 
 export type DatePickerFieldProps = {
   value: string;
@@ -54,7 +74,21 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
   const popRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
 
-  const selected = value && isValid(parseISO(value)) ? parseISO(value) : undefined;
+  const selected = value ? parseLocalDateOnly(value) : undefined;
+
+  const anchorMonth = useMemo(() => {
+    if (value) {
+      const p = parseLocalDateOnly(value);
+      if (p) return p;
+    }
+    if (min) {
+      const p = parseLocalDateOnly(min);
+      if (p) return p;
+    }
+    return new Date();
+  }, [value, min]);
+  const [visibleMonth, setVisibleMonth] = useState<Date>(() => anchorMonth);
+  const wasOpenRef = useRef(false);
 
   const updatePos = useCallback(() => {
     const el = innerRef.current;
@@ -81,6 +115,12 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
     };
   }, [open, updatePos]);
 
+  /** Solo all’apertura: evita di azzerare il mese mentre si naviga o mentre `value` si aggiorna con il menu aperto. */
+  useLayoutEffect(() => {
+    if (open && !wasOpenRef.current) setVisibleMonth(anchorMonth);
+    wasOpenRef.current = open;
+  }, [open, anchorMonth]);
+
   useEffect(() => {
     if (!open) return;
     const onDown = (e: PointerEvent) => {
@@ -100,10 +140,10 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
   }, [open]);
 
   const matchers: Matcher[] = [];
-  if (min && isValid(parseISO(min))) matchers.push({ before: parseISO(min) });
-  if (max && isValid(parseISO(max))) matchers.push({ after: parseISO(max) });
-
-  const defaultMonth = selected ?? (min && isValid(parseISO(min)) ? parseISO(min) : new Date());
+  const minD = min ? parseLocalDateOnly(min) : undefined;
+  const maxD = max ? parseLocalDateOnly(max) : undefined;
+  if (minD) matchers.push({ before: minD });
+  if (maxD) matchers.push({ after: maxD });
 
   const label = selected ? format(selected, 'd MMM yyyy', { locale }) : chooseLabel;
 
@@ -113,6 +153,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
     createPortal(
       <div
         ref={popRef}
+        data-osteria-date-picker-portal=""
         className="fixed z-[10050] min-w-[288px] rounded-3xl border border-slate-200/90 bg-white p-3.5 shadow-[0_12px_40px_-8px_rgba(15,23,42,0.22),0_4px_16px_-4px_rgba(45,90,39,0.1)]"
         style={{ top: pos.top, left: pos.left }}
         role="dialog"
@@ -121,15 +162,17 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
       >
         <DayPicker
           mode="single"
-          required={false}
+          required={!allowClear}
           selected={selected}
-          onSelect={(d) => {
+          onSelect={(d: Date | undefined) => {
             if (d) onChange(format(d, 'yyyy-MM-dd'));
+            else if (allowClear) onChange('');
             setOpen(false);
           }}
           locale={locale}
           captionLayout="dropdown"
-          defaultMonth={defaultMonth}
+          month={visibleMonth}
+          onMonthChange={setVisibleMonth}
           disabled={matchers.length ? matchers : undefined}
           className="rdp-modern"
         />

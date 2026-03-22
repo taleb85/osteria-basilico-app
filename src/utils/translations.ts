@@ -1,4 +1,5 @@
 import type { Language } from '../types';
+import type { AdminModuleKey } from './enabledFeatures';
 import { it, enUS, es, fr } from 'date-fns/locale';
 
 type DateFnsLocale = typeof it;
@@ -333,6 +334,8 @@ const baseIt = {
   approve_shift: 'Approva turno',
   check_and_edit_times: 'Verifica e modifica gli orari',
   times_based_on_punches: 'Orari basati sulle timbrature',
+  approve_shift_edit_hint:
+    'Sotto puoi correggere ingresso e uscita prima del congelo: il pianificato e le timbrature sul turno non vengono sovrascritti.',
   entry: 'Entrata',
   exit: 'Uscita',
   total_hours_label: 'Ore totali',
@@ -369,6 +372,7 @@ const baseIt = {
   stats_pending_shifts: 'Turni in Attesa',
   stats_confirmed_not_approved: 'confermati, non ancora approvati',
   stats_approved_shifts_in_period: 'Turni Approvati nel periodo',
+  stats_planned_abbr: 'pian.',
   stats_no_approved_shifts: 'Nessun turno approvato nel periodo selezionato.',
   stats_shifts_awaiting_approval: 'Turni in attesa di approvazione',
   stats_no_pending_shifts: 'Nessun turno in attesa nel periodo selezionato.',
@@ -377,6 +381,10 @@ const baseIt = {
   stats_no_confirmed_shifts_period: 'Non ci sono turni confermati nel periodo selezionato',
   stats_total: 'Totale',
   stats_your_hours_in_range: 'Le tue ore nell\'intervallo selezionato',
+  stats_payroll_title: 'Pagamento stipendi',
+  stats_payroll_hint:
+    'Lunedì dopo l’ultima domenica dell’ultima settimana completa (lun–dom) nel mese.',
+  stats_payroll_date_line: 'Data prevista: {date}',
 
   // Sidebar tabs
   sidebar_dashboard: 'Dashboard',
@@ -412,6 +420,7 @@ const baseIt = {
   notif_approval_title: 'Turni da approvare',
   notif_approval_one: '1 turno in attesa',
   notif_approval_many: '{n} turni in attesa',
+  notif_tap_open_timesheet: 'Apri Presenze · filtro Pubblicato',
 
   // AdminLayout (/admin)
   admin_back_to_app: 'Torna all\'app',
@@ -435,6 +444,48 @@ const baseIt = {
   role_template_always_on: 'Sempre',
   role_template_yes: 'Sì',
   role_template_no: 'No',
+  role_templates_save_success:
+    'Salvato: template, moduli Admin e permessi operativi sincronizzati sui profili.',
+  role_templates_save_error: 'Salvataggio non riuscito.',
+  role_templates_forbidden_body:
+    'Solo Amministratore o Proprietario possono modificare questa configurazione.',
+  role_group_proprietario: 'Proprietario',
+  role_group_management: 'Manager e Assistant Manager',
+  role_group_staff: 'Staff (sala, bar, cucina, …)',
+  role_templates_admin_modules_heading: 'Moduli scheda Impostazioni (globali)',
+  role_templates_admin_modules_hint:
+    'Stessi valori per tutti i profili gestionali; modificabili da qui (un solo stato condiviso tra le tre schede).',
+  role_templates_modules_reset_all: 'Moduli: tutti attivi',
+  role_templates_operational_heading: 'Permessi operativi',
+  role_templates_operational_hint:
+    'Allineati al salvataggio su tutti gli utenti di questo gruppo (come nella scheda Permessi per utente).',
+  role_templates_badge_management: 'Gestione',
+  role_templates_default_all_on: 'Default: tutti attivi',
+  role_templates_save_all: 'Salva tutto',
+  role_templates_intro_p1:
+    'Ogni scheda raggruppa schede app, Griglia, moduli Impostazioni (globali, stessi switch in tutte e tre) e permessi operativi.',
+  role_templates_intro_p2:
+    'Salva tutto aggiorna i file su Storage e sincronizza i permessi operativi su tutti gli utenti non admin.',
+  role_templates_intro_files_label: 'File:',
+  admin_module_visibility_management: 'Gestione visibilità',
+  admin_module_department_creation: 'Creazione reparti',
+  admin_module_violation_rules: 'Regole violazioni orarie',
+  admin_module_master_control_panel: 'Pannello di controllo (Master)',
+  admin_module_auto_breaks: 'Pause automatiche (detrazione)',
+  role_template_grid_visible_desc:
+    'Profilo visibile nel tabellone turni e nelle viste collettive.',
+  role_template_grid_hidden_desc:
+    'Profilo nascosto dal tabellone (resta attivo; override per utente dal pulsante Griglia in Gestione team).',
+  shift_end_time_required: 'Indicare l\'ora di fine turno.',
+  shift_delete_bulk_error: 'Errore durante l\'eliminazione dei turni. Riprova.',
+  app_save_failed_detail: 'Salvataggio non riuscito: {detail}',
+  app_save_failed_profile:
+    'Errore durante il salvataggio. Riprova o verifica le migrazioni Supabase (tabella users).',
+  app_sync_failed_retry: 'Errore durante la sincronizzazione. Riprova.',
+  app_save_unlock_failed: 'Errore durante il salvataggio. Riprova.',
+  app_access_denied: 'Accesso negato',
+  schedule_pdf_total_abbr: 'TOT',
+  schedule_pdf_page_x_of_y: 'Pagina {page} di {total}',
 
   profile_visibility_title: 'Cosa vede chi',
   profile_visibility_subtitle:
@@ -453,7 +504,7 @@ const baseIt = {
   profile_visibility_admin_note:
     'Profilo Amministratore: tutte le funzioni restano attive; le eccezioni per utente non si applicano.',
   profile_visibility_ferie_hint:
-    'La scheda Ferie non è nella barra: si apre da Home quando la funzione è attiva.',
+    'La scheda Ferie in barra si attiva con «Visualizza scheda Ferie»; se il Master Control disattiva le richieste staff, la scheda non compare.',
   profile_visibility_reset_features: 'Rimuovi eccezioni permessi (eredita template)',
   profile_visibility_reset_done: 'Eccezioni permessi rimosse: vale il template di ruolo.',
   profile_visibility_widgets_heading: 'Permessi e schede (widget)',
@@ -466,6 +517,8 @@ const baseIt = {
   profile_visibility_modules_hint:
     'Stessi flag della tabella Gestione visibilità in Gestione profili; formato widget.',
   profile_visibility_saved_hint: 'Salvato.',
+  profile_visibility_admin_switch_hint:
+    'Il profilo Admin ha sempre tutti i permessi attivi (non modificabile).',
   profile_visibility_forbidden: 'Solo l’amministratore può usare questa sezione.',
   profile_visibility_screen_sections: 'Sezioni per scheda (layout)',
   profile_visibility_screen_sections_hint:
@@ -475,7 +528,7 @@ const baseIt = {
   profile_visibility_pick_tab_hint:
     'Tocca una scheda nella barra verde: sotto compaiono solo permessi e blocchi di interfaccia di quella schermata.',
   profile_visibility_tab_subtitle:
-    'Vedi la scheda in verticale come in app; i permessi di accesso sono nel pannello pieghevole sotto.',
+    'Sotto vedi la scheda a tutta larghezza con dati fittizi; i permessi restano nel pannello pieghevole in fondo.',
   profile_visibility_tab_empty:
     'Niente da configurare qui. Prova un’altra scheda o attiva prima il permesso della scheda (es. Tabellone team).',
   profile_visibility_tab_permissions: 'Permessi collegati a questa scheda',
@@ -486,11 +539,13 @@ const baseIt = {
   profile_visibility_mock_hint:
     'Disposizione verticale come nell’app: ogni riquadro è un blocco reale. Il toggle mostra o nasconde quel pezzo.',
   profile_visibility_mock_frame_label: 'Simulazione',
+  profile_visibility_generic_widget_demo:
+    'Qui in app compariranno i dati reali del locale. Nascondi il blocco per togliere questa sezione dalla schermata.',
   profile_visibility_mock_no_blocks:
     'Nessun blocco layout su questa scheda: espandi «Permessi di accesso» sotto per attivare la scheda o le funzioni.',
   profile_visibility_perm_expand: 'Permessi di accesso ({n})',
   profile_visibility_mock_hint_realistic:
-    'Riproduciamo il layout della Home gestionale (Jean/John e numeri sono solo dimostrativi).',
+    'Nomi, orari e numeri sono solo di esempio (non sono i dati reali del locale). Ogni riquadro con badge è un blocco vero dell’app: nascondilo per vedere cosa sparisce dalla scheda.',
   profile_visibility_mock_realistic_label: 'Anteprima — Home gestionale (dati dimostrativi)',
   profile_visibility_dinner_placeholder:
     'Chiusura turni sera — in app questo blocco compare solo quando serve.',
@@ -498,6 +553,8 @@ const baseIt = {
     'Richiedono attenzione — in app compare solo se ci sono ritardi, OUT mancanti o da approvare.',
   profile_visibility_ferie_global_disabled:
     'Richieste ferie disattivate globalmente: il riquadro non compare in app.',
+  app_all_nav_tabs_disabled:
+    'Nessuna scheda della barra è abilitata per questo profilo. Chiedi a un amministratore di attivare almeno una voce in «Cosa vede chi» o nei permessi di ruolo.',
 
   // HomePage management
   home_today: 'Oggi',
@@ -562,9 +619,14 @@ const baseIt = {
   ts_preset_4weeks: '4 sett.',
   ts_preset_5weeks: '5 sett.',
   ts_period_start: 'Data inizio',
+  ts_save_period: 'Salva periodo',
   ts_period_saved: 'Periodo salvato.',
   ts_period_cloud_failed: 'Salvato sul dispositivo; sincronizzazione cloud non riuscita (riprova o apri dal browser).',
   ts_period_month: 'Mese',
+  ts_timesheet_month_tab_hint:
+    'Calendario a settimane complete (lun–dom), come il ciclo paghe. È evidenziato solo il giorno di pagamento stipendi del mese civile in cui finisce il periodo (riferimento unico).',
+  ts_timesheet_month_payroll_strip: 'Pagamento stipendi previsto: {dates}',
+  ts_payroll_day_abbr: 'Paga',
   ts_stat_in_shift: 'In turno ora',
   ts_stat_delays: 'Ritardi oggi',
   ts_stat_missing_out: 'OUT mancanti',
@@ -578,6 +640,11 @@ const baseIt = {
   ts_ready_for_approval: 'Pronti per l\'Approvazione',
   ts_label_punched: 'Timbrato',
   ts_break_deduction: 'pausa',
+  ts_audit_field_timestamp: 'Timbratura entrata',
+  ts_audit_field_calculated_time: 'Entrata (arrotondata)',
+  ts_audit_field_clock_out_time: 'Uscita',
+  ts_audit_toggle_hint: 'Mostra le modifiche al record timbratura',
+  ts_audit_changes_title: 'Modifiche registrate',
   ts_break_hint_ready_card:
     'Con almeno una regola pausa attiva in Impostazioni, solo quelle regole contano (anche 0 min): non valgono i minuti pausa sul singolo turno né i 30 min automatici da durata ≥6h.',
   ts_approving: 'Congelo in corso...',
@@ -671,6 +738,8 @@ const baseIt = {
   ts_period_weeks_abbr: '{n} sett.',
   ts_view_table: 'Vista tabella',
   ts_view_cards: 'Vista card',
+  table_h_scroll_prev: 'Scorri tabella a sinistra',
+  table_h_scroll_next: 'Scorri tabella a destra',
   ts_crossday_out_label: 'OUT: {time} (data errata)',
   ts_fix_exit_time_label: 'Orario uscita da correggere',
   ts_out_missing_short: 'OUT mancante',
@@ -758,10 +827,21 @@ const baseIt = {
   wst_day_hide_tooltip: 'Tasto destro per nascondere questo giorno ai dipendenti',
   wst_month_prev_aria: 'Mese precedente',
   wst_month_next_aria: 'Mese successivo',
+  wst_month_payroll_chip: 'Pagamento stipendi previsto: {date}',
+  wst_toolbar_hamburger_title: 'Menu',
+  wst_toolbar_hamburger_aria: 'Apri il menu: filtri, legenda, reparto e azioni',
+  wst_month_outside_period_title: 'Giorno fuori dal periodo pianificazione (Azioni)',
   wst_name_row_filter_title: 'Clicca per filtrare · Trascina per riordinare',
   wst_unavailability_remove: 'Rimuovi indisponibilità',
   wst_unavailability_mark: 'Segna come non disponibile',
   wst_punches_section_title: 'Timbrature',
+  wst_drawer_hours_summary: 'Ore nette (dopo pausa)',
+  wst_drawer_planned_short: 'Stimato · pianificato',
+  wst_drawer_actual_short: 'Effettivo · timbrature',
+  wst_drawer_actual_incomplete: '—',
+  wst_drawer_actual_hint: 'Completa entrata e uscita',
+  wst_create_shift_hours_net: 'Netto',
+  wst_create_shift_no_deduct_badge: 'Pausa non detratta',
   wst_no_punch_records: 'Nessuna timbratura registrata.',
   wst_go_freeze_prefix: 'Approvato. Vai su ',
   wst_go_freeze_suffix: ' per congelarlo.',
@@ -851,6 +931,13 @@ const baseIt = {
   settings_cloud_sync_button: 'Sincronizza',
   settings_cloud_sync_success:
     'Sincronizzazione completata: turni, utenti e configurazione cloud (flag, geofence, template…).',
+  hard_reload_button: 'Ricarica tutto dal server',
+  hard_reload_hint:
+    'Svuota la cache locale dei turni e scarica di nuovo turni, utenti, ferie e configurazione cloud.',
+  hard_reload_confirm:
+    'Ricaricare tutti i dati dal server? Verrà svuotata la cache turni locale; operazioni non salvate altrove potrebbero andare perse.',
+  hard_reload_success: 'Dati aggiornati dal server.',
+  hard_reload_error: 'Impossibile ricaricare i dati. Verifica la connessione e riprova.',
   wst_actions: 'Azioni',
   wst_export_section: 'Export',
   wst_view_section: 'Vista',
@@ -1064,7 +1151,7 @@ const baseEn: Record<string, string> = {
   lang_short_en: 'English',
   lang_short_es: 'Español',
   lang_short_fr: 'Français',
-  area_personale: 'Area Personale',
+  area_personale: 'Personal area',
   pwa_title: 'Osteria Basilico — Official App',
   pwa_subtitle: 'After sign-in, always use the installed app (phone, tablet, or PC): same data everywhere, no browser vs app conflicts.',
   pwa_ios_title: 'On iPhone/iPad (Safari)',
@@ -1308,6 +1395,7 @@ const baseEn: Record<string, string> = {
   stats_pending_shifts: 'Pending Shifts',
   stats_confirmed_not_approved: 'confirmed, not yet approved',
   stats_approved_shifts_in_period: 'Approved Shifts in period',
+  stats_planned_abbr: 'sched.',
   stats_no_approved_shifts: 'No approved shifts in selected period.',
   stats_shifts_awaiting_approval: 'Shifts awaiting approval',
   stats_no_pending_shifts: 'No pending shifts in selected period.',
@@ -1316,6 +1404,10 @@ const baseEn: Record<string, string> = {
   stats_no_confirmed_shifts_period: 'No confirmed shifts in the selected period',
   stats_total: 'Total',
   stats_your_hours_in_range: 'Your hours in the selected range',
+  stats_payroll_title: 'Payroll payment',
+  stats_payroll_hint:
+    'Monday after the Sunday that ends the last full week (Mon–Sun) within the calendar month.',
+  stats_payroll_date_line: 'Scheduled date: {date}',
 
   // Sidebar tabs EN
   sidebar_dashboard: 'Dashboard',
@@ -1350,6 +1442,7 @@ const baseEn: Record<string, string> = {
   notif_approval_title: 'Shifts to approve',
   notif_approval_one: '1 shift pending',
   notif_approval_many: '{n} shifts pending',
+  notif_tap_open_timesheet: 'Open Attendance · Published filter',
 
   admin_back_to_app: 'Back to app',
   admin_nav_profiles: 'Staff profiles',
@@ -1372,6 +1465,46 @@ const baseEn: Record<string, string> = {
   role_template_always_on: 'Always',
   role_template_yes: 'Yes',
   role_template_no: 'No',
+  role_templates_save_success:
+    'Saved: role templates, Admin sheet modules and operational permissions synced to profiles.',
+  role_templates_save_error: 'Save failed.',
+  role_templates_forbidden_body: 'Only Administrator or Owner can edit this configuration.',
+  role_group_proprietario: 'Owner',
+  role_group_management: 'Manager & Assistant Manager',
+  role_group_staff: 'Staff (floor, bar, kitchen, …)',
+  role_templates_admin_modules_heading: 'Settings sheet modules (global)',
+  role_templates_admin_modules_hint:
+    'Same values for all management profiles; editable here (one shared state across the three tabs).',
+  role_templates_modules_reset_all: 'Modules: all on',
+  role_templates_operational_heading: 'Operational permissions',
+  role_templates_operational_hint:
+    'Applied on save to all users in this group (same as per-user Permissions).',
+  role_templates_badge_management: 'Management',
+  role_templates_default_all_on: 'Default: all on',
+  role_templates_save_all: 'Save all',
+  role_templates_intro_p1:
+    'Each tab groups app tabs, team schedule grid, Settings modules (global, same toggles in all three) and operational permissions.',
+  role_templates_intro_p2:
+    'Save all updates Storage files and syncs operational permissions to every non-admin user.',
+  role_templates_intro_files_label: 'Files:',
+  admin_module_visibility_management: 'Visibility management',
+  admin_module_department_creation: 'Department setup',
+  admin_module_violation_rules: 'Schedule compliance rules',
+  admin_module_master_control_panel: 'Master control panel',
+  admin_module_auto_breaks: 'Automatic break deduction',
+  role_template_grid_visible_desc: 'Profile visible on the team schedule and in collective views.',
+  role_template_grid_hidden_desc:
+    'Profile hidden from the schedule board (still active; per-user override via Grid in Staff profiles).',
+  shift_end_time_required: 'Shift end time is required.',
+  shift_delete_bulk_error: 'Could not delete shifts. Please try again.',
+  app_save_failed_detail: 'Save failed: {detail}',
+  app_save_failed_profile:
+    'Save failed. Try again or check Supabase migrations (users table).',
+  app_sync_failed_retry: 'Synchronisation failed. Please try again.',
+  app_save_unlock_failed: 'Save failed. Please try again.',
+  app_access_denied: 'Access denied',
+  schedule_pdf_total_abbr: 'TOT',
+  schedule_pdf_page_x_of_y: 'Page {page} of {total}',
 
   profile_visibility_title: 'Who sees what',
   profile_visibility_subtitle:
@@ -1390,7 +1523,7 @@ const baseEn: Record<string, string> = {
   profile_visibility_admin_note:
     'Administrator profile: all features stay on; per-user exceptions do not apply.',
   profile_visibility_ferie_hint:
-    'The Time off tab is not in the bar; it opens from Home when enabled.',
+    'The Time off tab in the bar is controlled by “Time off tab”; if staff requests are off in Master Control, the tab is hidden.',
   profile_visibility_reset_features: 'Clear permission overrides (use role template)',
   profile_visibility_reset_done: 'Permission overrides cleared; role template applies.',
   profile_visibility_widgets_heading: 'Permissions & tabs (widgets)',
@@ -1403,6 +1536,8 @@ const baseEn: Record<string, string> = {
   profile_visibility_modules_hint:
     'Same flags as the visibility table under Staff profiles, in widget form.',
   profile_visibility_saved_hint: 'Saved.',
+  profile_visibility_admin_switch_hint:
+    'The Admin profile always has all permissions enabled (read-only).',
   profile_visibility_forbidden: 'Only the administrator can use this section.',
   profile_visibility_screen_sections: 'Sections per screen (layout)',
   profile_visibility_screen_sections_hint:
@@ -1412,7 +1547,7 @@ const baseEn: Record<string, string> = {
   profile_visibility_pick_tab_hint:
     'Tap a tab in the green bar: below you only see permissions and UI blocks for that screen.',
   profile_visibility_tab_subtitle:
-    'See the tab stacked like the app; access permissions are in the collapsible panel below.',
+    'Below is the full-width tab with sample data; permissions stay in the collapsible panel at the bottom.',
   profile_visibility_tab_empty:
     'Nothing to configure here. Try another tab or enable the tab’s permission first (e.g. team schedule).',
   profile_visibility_tab_permissions: 'Permissions for this tab',
@@ -1423,11 +1558,13 @@ const baseEn: Record<string, string> = {
   profile_visibility_mock_hint:
     'Vertical layout like the app: each card is a real block. The toggle shows or hides that piece.',
   profile_visibility_mock_frame_label: 'Simulation',
+  profile_visibility_generic_widget_demo:
+    'The live app shows real venue data here. Hide the block to remove this section from the screen.',
   profile_visibility_mock_no_blocks:
     'No layout blocks on this tab — expand “Access permissions” below to enable the tab or features.',
   profile_visibility_perm_expand: 'Access permissions ({n})',
   profile_visibility_mock_hint_realistic:
-    'This mirrors the management Home layout (Jean/John and numbers are demo-only).',
+    'Names, times and figures are placeholders (not your real data). Each framed block is a real app section — hide it to see what disappears from the tab.',
   profile_visibility_mock_realistic_label: 'Preview — management Home (demo data)',
   profile_visibility_dinner_placeholder:
     'Dinner shift close — in the app this block only appears when needed.',
@@ -1435,6 +1572,8 @@ const baseEn: Record<string, string> = {
     'Needs attention — in the app this only appears when there are issues to fix.',
   profile_visibility_ferie_global_disabled:
     'Time-off requests disabled globally: this card will not appear in the app.',
+  app_all_nav_tabs_disabled:
+    'No bottom bar tabs are enabled for this profile. Ask an administrator to turn on at least one tab in “Who sees what” or role permissions.',
 
   // HomePage EN
   home_today: 'Today',
@@ -1499,9 +1638,14 @@ const baseEn: Record<string, string> = {
   ts_preset_4weeks: '4 wks',
   ts_preset_5weeks: '5 wks',
   ts_period_start: 'Start date',
+  ts_save_period: 'Save period',
   ts_period_saved: 'Period saved.',
   ts_period_cloud_failed: 'Saved on this device; cloud sync failed (try again or open in browser).',
   ts_period_month: 'Month',
+  ts_timesheet_month_tab_hint:
+    'Full Mon–Sun weeks (payroll-style). Only the payroll payment day for the calendar month containing the period end is highlighted.',
+  ts_timesheet_month_payroll_strip: 'Expected payroll payment: {dates}',
+  ts_payroll_day_abbr: 'Pay',
   ts_stat_in_shift: 'On shift now',
   ts_stat_delays: 'Delays today',
   ts_stat_missing_out: 'Missing OUT',
@@ -1515,6 +1659,11 @@ const baseEn: Record<string, string> = {
   ts_ready_for_approval: 'Ready for Approval',
   ts_label_punched: 'Clocked',
   ts_break_deduction: 'break',
+  ts_audit_field_timestamp: 'Clock-in timestamp',
+  ts_audit_field_calculated_time: 'Rounded entry',
+  ts_audit_field_clock_out_time: 'Clock-out',
+  ts_audit_toggle_hint: 'Show punch record edits',
+  ts_audit_changes_title: 'Recorded changes',
   ts_break_hint_ready_card:
     'With at least one active break rule in Settings, only those rules apply (including 0 min): per-shift break minutes and the automatic 30 min for ≥6h are ignored.',
   ts_approving: 'Freezing...',
@@ -1608,6 +1757,8 @@ const baseEn: Record<string, string> = {
   ts_period_weeks_abbr: '{n} wk',
   ts_view_table: 'Table view',
   ts_view_cards: 'Card view',
+  table_h_scroll_prev: 'Scroll table left',
+  table_h_scroll_next: 'Scroll table right',
   ts_crossday_out_label: 'OUT: {time} (wrong date)',
   ts_fix_exit_time_label: 'Exit time needs correction',
   ts_out_missing_short: 'Missing OUT',
@@ -1693,10 +1844,21 @@ const baseEn: Record<string, string> = {
   wst_day_hide_tooltip: 'Right-click to hide this day from staff',
   wst_month_prev_aria: 'Previous month',
   wst_month_next_aria: 'Next month',
+  wst_month_payroll_chip: 'Expected payroll payment: {date}',
+  wst_toolbar_hamburger_title: 'Menu',
+  wst_toolbar_hamburger_aria: 'Open menu: filters, legend, department, and actions',
+  wst_month_outside_period_title: 'Outside the planning period (Actions)',
   wst_name_row_filter_title: 'Click to filter · Drag to reorder',
   wst_unavailability_remove: 'Remove unavailability',
   wst_unavailability_mark: 'Mark as unavailable',
   wst_punches_section_title: 'Punches',
+  wst_drawer_hours_summary: 'Net hours (after break)',
+  wst_drawer_planned_short: 'Planned estimate',
+  wst_drawer_actual_short: 'Actual · punches',
+  wst_drawer_actual_incomplete: '—',
+  wst_drawer_actual_hint: 'Enter in and out',
+  wst_create_shift_hours_net: 'Net',
+  wst_create_shift_no_deduct_badge: 'Break not deducted',
   wst_no_punch_records: 'No punch records.',
   wst_go_freeze_prefix: 'Approved. Go to ',
   wst_go_freeze_suffix: ' to freeze it.',
@@ -1786,6 +1948,13 @@ const baseEn: Record<string, string> = {
   settings_cloud_sync_button: 'Sync',
   settings_cloud_sync_success:
     'Sync complete: shifts, users and cloud config (flags, geofence, templates…).',
+  hard_reload_button: 'Reload everything from server',
+  hard_reload_hint:
+    'Clears local shift cache and re-downloads shifts, users, leave data and cloud config.',
+  hard_reload_confirm:
+    'Reload all data from the server? Local shift cache will be cleared; unsaved work elsewhere may be lost.',
+  hard_reload_success: 'Data updated from server.',
+  hard_reload_error: 'Could not reload data. Check your connection and try again.',
   wst_actions: 'Actions',
   wst_export_section: 'Export',
   wst_view_section: 'View',
@@ -1928,6 +2097,8 @@ const baseEn: Record<string, string> = {
   approve_shift: 'Approve shift',
   check_and_edit_times: 'Check and edit times',
   times_based_on_punches: 'Times based on punches',
+  approve_shift_edit_hint:
+    'You can adjust start and end below before freezing; planned times and punch records on the shift are not overwritten.',
   entry: 'Entry',
   exit: 'Exit',
   total_hours_label: 'Total hours',
@@ -2255,6 +2426,7 @@ const baseEs: Record<string, string> = {
   stats_pending_shifts: 'Turnos Pendientes',
   stats_confirmed_not_approved: 'confirmados, pendientes de aprobación',
   stats_approved_shifts_in_period: 'Turnos Aprobados en el periodo',
+  stats_planned_abbr: 'plan.',
   stats_no_approved_shifts: 'Sin turnos aprobados en el periodo seleccionado.',
   stats_shifts_awaiting_approval: 'Turnos pendientes de aprobación',
   stats_no_pending_shifts: 'Sin turnos pendientes en el periodo seleccionado.',
@@ -2263,6 +2435,10 @@ const baseEs: Record<string, string> = {
   stats_no_confirmed_shifts_period: 'Sin turnos confirmados en el periodo seleccionado',
   stats_total: 'Total',
   stats_your_hours_in_range: 'Tus horas en el intervalo seleccionado',
+  stats_payroll_title: 'Pago de nómina',
+  stats_payroll_hint:
+    'El lunes siguiente al domingo que cierra la última semana completa (lun–dom) del mes.',
+  stats_payroll_date_line: 'Fecha prevista: {date}',
 
   // Sidebar ES
   sidebar_dashboard: 'Dashboard',
@@ -2297,6 +2473,7 @@ const baseEs: Record<string, string> = {
   notif_approval_title: 'Turnos por aprobar',
   notif_approval_one: '1 turno pendiente',
   notif_approval_many: '{n} turnos pendientes',
+  notif_tap_open_timesheet: 'Abrir Presencias · filtro Publicado',
 
   admin_back_to_app: 'Volver a la app',
   admin_nav_profiles: 'Gestión de perfiles',
@@ -2319,6 +2496,46 @@ const baseEs: Record<string, string> = {
   role_template_always_on: 'Siempre',
   role_template_yes: 'Sí',
   role_template_no: 'No',
+  role_templates_save_success:
+    'Guardado: plantillas de rol, módulos de la hoja Admin y permisos operativos sincronizados en los perfiles.',
+  role_templates_save_error: 'No se pudo guardar.',
+  role_templates_forbidden_body: 'Solo Administrador o Propietario pueden modificar esta configuración.',
+  role_group_proprietario: 'Propietario',
+  role_group_management: 'Manager y Assistant Manager',
+  role_group_staff: 'Staff (sala, bar, cocina, …)',
+  role_templates_admin_modules_heading: 'Módulos de la hoja Ajustes (globales)',
+  role_templates_admin_modules_hint:
+    'Mismos valores para todos los perfiles de gestión; se editan aquí (un solo estado compartido entre las tres pestañas).',
+  role_templates_modules_reset_all: 'Módulos: todos activos',
+  role_templates_operational_heading: 'Permisos operativos',
+  role_templates_operational_hint:
+    'Se aplican al guardar a todos los usuarios de este grupo (igual que en Permisos por usuario).',
+  role_templates_badge_management: 'Gestión',
+  role_templates_default_all_on: 'Predeterminado: todo activo',
+  role_templates_save_all: 'Guardar todo',
+  role_templates_intro_p1:
+    'Cada pestaña agrupa pestañas de la app, cuadrícula del planificador, módulos de Ajustes (globales, mismos interruptores en las tres) y permisos operativos.',
+  role_templates_intro_p2:
+    'Guardar todo actualiza los archivos en Storage y sincroniza los permisos operativos en todos los usuarios que no son admin.',
+  role_templates_intro_files_label: 'Archivos:',
+  admin_module_visibility_management: 'Gestión de visibilidad',
+  admin_module_department_creation: 'Creación de departamentos',
+  admin_module_violation_rules: 'Reglas de incumplimiento horario',
+  admin_module_master_control_panel: 'Panel de control maestro',
+  admin_module_auto_breaks: 'Descansos automáticos (deducción)',
+  role_template_grid_visible_desc: 'Perfil visible en el planificador de turnos y en vistas colectivas.',
+  role_template_grid_hidden_desc:
+    'Perfil oculto del tablero (sigue activo; excepción por usuario con el botón Cuadrícula en Gestión de perfiles).',
+  shift_end_time_required: 'Indica la hora de fin del turno.',
+  shift_delete_bulk_error: 'Error al eliminar turnos. Inténtalo de nuevo.',
+  app_save_failed_detail: 'No se pudo guardar: {detail}',
+  app_save_failed_profile:
+    'Error al guardar. Inténtalo de nuevo o revisa las migraciones de Supabase (tabla users).',
+  app_sync_failed_retry: 'Error de sincronización. Inténtalo de nuevo.',
+  app_save_unlock_failed: 'Error al guardar. Inténtalo de nuevo.',
+  app_access_denied: 'Acceso denegado',
+  schedule_pdf_total_abbr: 'TOT',
+  schedule_pdf_page_x_of_y: 'Pág. {page} de {total}',
 
   profile_visibility_title: 'Quién ve qué',
   profile_visibility_subtitle:
@@ -2335,7 +2552,8 @@ const baseEs: Record<string, string> = {
   profile_visibility_close_preview: 'Cerrar vista previa',
   profile_visibility_fullscreen_title: 'Vista previa del perfil',
   profile_visibility_admin_note: 'Administrador: todo activo; no hay excepciones aquí.',
-  profile_visibility_ferie_hint: 'Vacaciones no van en la barra; se abren desde Inicio.',
+  profile_visibility_ferie_hint:
+    'La pestaña Vacaciones en la barra depende de «Ver pestaña Vacaciones»; si el Master Control desactiva solicitudes, no aparece.',
   profile_visibility_reset_features: 'Quitar excepciones (usar plantilla de rol)',
   profile_visibility_reset_done: 'Excepciones eliminadas; aplica la plantilla.',
   profile_visibility_widgets_heading: 'Permisos y pestañas (widgets)',
@@ -2347,6 +2565,8 @@ const baseEs: Record<string, string> = {
   profile_visibility_modules_heading: 'Módulos área personal (staff)',
   profile_visibility_modules_hint: 'Igual que la tabla de visibilidad en perfiles.',
   profile_visibility_saved_hint: 'Guardado.',
+  profile_visibility_admin_switch_hint:
+    'El perfil Admin siempre tiene todos los permisos activos (solo lectura).',
   profile_visibility_forbidden: 'Solo el administrador puede usar esta sección.',
   profile_visibility_screen_sections: 'Secciones por pantalla (diseño)',
   profile_visibility_screen_sections_hint:
@@ -2356,7 +2576,7 @@ const baseEs: Record<string, string> = {
   profile_visibility_pick_tab_hint:
     'Toca una pestaña en la barra verde: abajo solo verás permisos y bloques de esa pantalla.',
   profile_visibility_tab_subtitle:
-    'Vista vertical como en la app; los permisos de acceso están en el panel plegable de abajo.',
+    'Abajo tienes la pestaña a ancho completo con datos de ejemplo; los permisos siguen en el panel desplegable.',
   profile_visibility_tab_empty:
     'Nada que configurar aquí. Prueba otra pestaña o activa antes el permiso de la pestaña.',
   profile_visibility_tab_permissions: 'Permisos de esta pestaña',
@@ -2367,15 +2587,19 @@ const baseEs: Record<string, string> = {
   profile_visibility_mock_hint:
     'Mismo orden vertical que en la app: cada tarjeta es un bloque real. El interruptor muestra u oculta ese trozo.',
   profile_visibility_mock_frame_label: 'Simulación',
+  profile_visibility_generic_widget_demo:
+    'En la app aparecerán aquí los datos reales. Oculta el bloque para quitar esta sección.',
   profile_visibility_mock_no_blocks:
     'Sin bloques de diseño en esta pestaña: abre «Permisos de acceso» abajo.',
   profile_visibility_perm_expand: 'Permisos de acceso ({n})',
   profile_visibility_mock_hint_realistic:
-    'Mismo diseño que la Home de gestión (Jean/John y números son demo).',
+    'Nombres, horarios y cifras son de ejemplo (no son datos reales). Cada bloque enmarcado es una sección real: ocúltalo para ver qué desaparece.',
   profile_visibility_mock_realistic_label: 'Vista previa — Home gestión (datos demo)',
   profile_visibility_dinner_placeholder: 'Cierre turno cena — solo aparece en la app si aplica.',
   profile_visibility_critical_placeholder: 'Requieren atención — solo si hay incidencias.',
   profile_visibility_ferie_global_disabled: 'Vacaciones desactivadas globalmente: no aparece el bloque.',
+  app_all_nav_tabs_disabled:
+    'No hay pestañas activas en la barra para este perfil. Pide a un administrador que active al menos una en permisos o «Quién ve qué».',
 
   // HomePage ES
   home_today: 'Hoy',
@@ -2440,9 +2664,14 @@ const baseEs: Record<string, string> = {
   ts_preset_4weeks: '4 sem.',
   ts_preset_5weeks: '5 sem.',
   ts_period_start: 'Fecha inicio',
+  ts_save_period: 'Guardar período',
   ts_period_saved: 'Período guardado.',
   ts_period_cloud_failed: 'Guardado en el dispositivo; falló la sincronización en la nube.',
   ts_period_month: 'Mes',
+  ts_timesheet_month_tab_hint:
+    'Calendario por semanas completas (lun–dom). Solo se resalta el día de pago de nómina del mes civil en que termina el período.',
+  ts_timesheet_month_payroll_strip: 'Pago de nómina previsto: {dates}',
+  ts_payroll_day_abbr: 'Pago',
   ts_stat_in_shift: 'En turno ahora',
   ts_stat_delays: 'Retrasos hoy',
   ts_stat_missing_out: 'Salidas pendientes',
@@ -2456,6 +2685,11 @@ const baseEs: Record<string, string> = {
   ts_ready_for_approval: 'Listos para Aprobación',
   ts_label_punched: 'Fichado',
   ts_break_deduction: 'pausa',
+  ts_audit_field_timestamp: 'Fichaje entrada',
+  ts_audit_field_calculated_time: 'Entrada (redondeada)',
+  ts_audit_field_clock_out_time: 'Salida',
+  ts_audit_toggle_hint: 'Ver cambios en el fichaje',
+  ts_audit_changes_title: 'Cambios registrados',
   ts_break_hint_ready_card:
     'Con al menos una regla de pausa activa en Ajustes, solo cuentan esas reglas (también 0 min): se ignoran los minutos en el turno y los 30 min automáticos por duración ≥6h.',
   ts_approving: 'Aprobando...',
@@ -2549,6 +2783,8 @@ const baseEs: Record<string, string> = {
   ts_period_weeks_abbr: '{n} sem.',
   ts_view_table: 'Vista tabla',
   ts_view_cards: 'Vista tarjetas',
+  table_h_scroll_prev: 'Desplazar tabla a la izquierda',
+  table_h_scroll_next: 'Desplazar tabla a la derecha',
   ts_crossday_out_label: 'OUT: {time} (fecha incorrecta)',
   ts_fix_exit_time_label: 'Hora de salida a corregir',
   ts_out_missing_short: 'OUT faltante',
@@ -2634,10 +2870,21 @@ const baseEs: Record<string, string> = {
   wst_day_hide_tooltip: 'Clic derecho para ocultar este día al personal',
   wst_month_prev_aria: 'Mes anterior',
   wst_month_next_aria: 'Mes siguiente',
+  wst_month_payroll_chip: 'Pago de nómina previsto: {date}',
+  wst_toolbar_hamburger_title: 'Menú',
+  wst_toolbar_hamburger_aria: 'Abrir menú: filtros, leyenda, departamento y acciones',
+  wst_month_outside_period_title: 'Fuera del periodo de planificación (Acciones)',
   wst_name_row_filter_title: 'Clic para filtrar · Arrastra para reordenar',
   wst_unavailability_remove: 'Quitar no disponibilidad',
   wst_unavailability_mark: 'Marcar como no disponible',
   wst_punches_section_title: 'Fichajes',
+  wst_drawer_hours_summary: 'Horas netas (tras pausa)',
+  wst_drawer_planned_short: 'Estimado · planificado',
+  wst_drawer_actual_short: 'Efectivo · fichajes',
+  wst_drawer_actual_incomplete: '—',
+  wst_drawer_actual_hint: 'Completa entrada y salida',
+  wst_create_shift_hours_net: 'Neto',
+  wst_create_shift_no_deduct_badge: 'Pausa no descontada',
   wst_no_punch_records: 'Sin fichajes registrados.',
   wst_go_freeze_prefix: 'Aprobado. Ve a ',
   wst_go_freeze_suffix: ' para congelarlo.',
@@ -2727,6 +2974,13 @@ const baseEs: Record<string, string> = {
   settings_cloud_sync_button: 'Sincronizar',
   settings_cloud_sync_success:
     'Sincronización completada: turnos, usuarios y configuración en la nube (flags, geocerca, plantillas…).',
+  hard_reload_button: 'Recargar todo desde el servidor',
+  hard_reload_hint:
+    'Vacía la caché local de turnos y vuelve a descargar turnos, usuarios, ausencias y la config en la nube.',
+  hard_reload_confirm:
+    '¿Recargar todos los datos desde el servidor? Se vaciará la caché local de turnos; el trabajo no guardado puede perderse.',
+  hard_reload_success: 'Datos actualizados desde el servidor.',
+  hard_reload_error: 'No se pudieron recargar los datos. Comprueba la conexión e inténtalo de nuevo.',
   wst_actions: 'Acciones',
   wst_export_section: 'Exportar',
   wst_view_section: 'Vista',
@@ -2868,6 +3122,8 @@ const baseEs: Record<string, string> = {
   approve_shift: 'Aprobar turno',
   check_and_edit_times: 'Verificar y editar horarios',
   times_based_on_punches: 'Horarios basados en fichajes',
+  approve_shift_edit_hint:
+    'Puedes ajustar entrada y salida antes de congelar; lo planificado y los fichajes no se sobrescriben.',
   entry: 'Entrada',
   exit: 'Salida',
   total_hours_label: 'Horas totales',
@@ -2997,6 +3253,7 @@ const baseFr: Record<string, string> = {
   notif_approval_title: 'Shifts à approuver',
   notif_approval_one: '1 shift en attente',
   notif_approval_many: '{n} shifts en attente',
+  notif_tap_open_timesheet: 'Ouvrir Présences · filtre Publié',
   sidebar_admin: 'Admin',
   sidebar_home: 'Accueil',
   bottom_nav_settings_short: 'Régl.',
@@ -3030,6 +3287,49 @@ const baseFr: Record<string, string> = {
   role_template_always_on: 'Toujours',
   role_template_yes: 'Oui',
   role_template_no: 'Non',
+  role_templates_save_success:
+    'Enregistré : modèles de rôle, modules de la feuille Admin et permissions opérationnelles synchronisés sur les profils.',
+  role_templates_save_error: 'Enregistrement impossible.',
+  role_templates_forbidden_body: 'Seuls l’administrateur ou le propriétaire peuvent modifier cette configuration.',
+  role_group_proprietario: 'Propriétaire',
+  role_group_management: 'Manager et assistant manager',
+  role_group_staff: 'Staff (salle, bar, cuisine, …)',
+  role_templates_admin_modules_heading: 'Modules de la feuille Paramètres (globaux)',
+  role_templates_admin_modules_hint:
+    'Mêmes valeurs pour tous les profils de gestion ; modifiables ici (un seul état partagé entre les trois onglets).',
+  role_templates_modules_reset_all: 'Modules : tout activer',
+  role_templates_operational_heading: 'Permissions opérationnelles',
+  role_templates_operational_hint:
+    'Appliquées à l’enregistrement à tous les utilisateurs de ce groupe (comme dans Permissions par utilisateur).',
+  role_templates_badge_management: 'Gestion',
+  role_templates_default_all_on: 'Défaut : tout actif',
+  role_templates_save_all: 'Tout enregistrer',
+  role_templates_intro_p1:
+    'Chaque onglet regroupe les onglets app, la grille du planning, les modules Paramètres (globaux, mêmes interrupteurs sur les trois) et les permissions opérationnelles.',
+  role_templates_intro_p2:
+    'Tout enregistrer met à jour les fichiers sur Storage et synchronise les permissions opérationnelles pour tous les utilisateurs non admin.',
+  role_templates_intro_files_label: 'Fichiers :',
+  admin_module_visibility_management: 'Gestion de la visibilité',
+  admin_module_department_creation: 'Création des services',
+  admin_module_violation_rules: 'Règles de conformité horaire',
+  admin_module_master_control_panel: 'Panneau de contrôle principal',
+  admin_module_auto_breaks: 'Pauses automatiques (déduction)',
+  role_template_grid_visible_desc: 'Profil visible sur le planning équipe et dans les vues collectives.',
+  role_template_grid_hidden_desc:
+    'Profil masqué du planning (toujours actif ; exception par utilisateur via Grille dans Gestion des profils).',
+  shift_end_time_required: 'L’heure de fin du shift est obligatoire.',
+  shift_delete_bulk_error: 'Erreur lors de la suppression des shifts. Réessayez.',
+  app_save_failed_detail: 'Enregistrement impossible : {detail}',
+  app_save_failed_profile:
+    'Erreur lors de l’enregistrement. Réessayez ou vérifiez les migrations Supabase (table users).',
+  app_sync_failed_retry: 'Erreur de synchronisation. Réessayez.',
+  app_save_unlock_failed: 'Erreur lors de l’enregistrement. Réessayez.',
+  app_access_denied: 'Accès refusé',
+  schedule_pdf_total_abbr: 'TOT',
+  schedule_pdf_page_x_of_y: 'P. {page} / {total}',
+  home_toast_exit_registered: 'Sortie enregistrée.',
+  home_toast_exit_error: 'Erreur lors de l’enregistrement de la sortie.',
+  home_toast_shift_approved: 'Shift approuvé et figé.',
 
   profile_visibility_title: 'Qui voit quoi',
   profile_visibility_subtitle:
@@ -3046,7 +3346,8 @@ const baseFr: Record<string, string> = {
   profile_visibility_close_preview: 'Fermer l’aperçu',
   profile_visibility_fullscreen_title: 'Aperçu du profil',
   profile_visibility_admin_note: 'Administrateur : tout reste actif ; pas d’exceptions ici.',
-  profile_visibility_ferie_hint: 'Les congés ne sont pas dans la barre ; accès depuis l’accueil.',
+  profile_visibility_ferie_hint:
+    'L’onglet Congés dans la barre suit « Afficher l’onglet Congés » ; si le Master Control désactive les demandes staff, il disparaît.',
   profile_visibility_reset_features: 'Supprimer les exceptions (modèle de rôle)',
   profile_visibility_reset_done: 'Exceptions supprimées ; le modèle de rôle s’applique.',
   profile_visibility_widgets_heading: 'Permissions et onglets (widgets)',
@@ -3058,6 +3359,8 @@ const baseFr: Record<string, string> = {
   profile_visibility_modules_heading: 'Modules espace perso (staff)',
   profile_visibility_modules_hint: 'Comme le tableau de visibilité dans les profils.',
   profile_visibility_saved_hint: 'Enregistré.',
+  profile_visibility_admin_switch_hint:
+    'Le profil Admin a toujours toutes les permissions actives (lecture seule).',
   profile_visibility_forbidden: 'Seul l’administrateur peut utiliser cette section.',
   profile_visibility_screen_sections: 'Sections par écran (mise en page)',
   profile_visibility_screen_sections_hint:
@@ -3067,7 +3370,7 @@ const baseFr: Record<string, string> = {
   profile_visibility_pick_tab_hint:
     'Touchez un onglet dans la barre verte : en dessous, seuls les permissions et blocs de cet écran.',
   profile_visibility_tab_subtitle:
-    'Aperçu vertical comme dans l’app ; les permissions d’accès sont dans le panneau repliable ci-dessous.',
+    'Ci-dessous l’onglet en pleine largeur avec des données d’exemple ; les permissions restent dans le panneau repliable en bas.',
   profile_visibility_tab_empty:
     'Rien à configurer ici. Essayez un autre onglet ou activez d’abord la permission de l’onglet.',
   profile_visibility_tab_permissions: 'Permissions pour cet onglet',
@@ -3078,15 +3381,19 @@ const baseFr: Record<string, string> = {
   profile_visibility_mock_hint:
     'Disposition verticale comme dans l’app : chaque carte est un bloc réel. Le bouton affiche ou masque ce bloc.',
   profile_visibility_mock_frame_label: 'Simulation',
+  profile_visibility_generic_widget_demo:
+    'Dans l’app, ce sont vos vraies données. Masquez le bloc pour retirer cette section.',
   profile_visibility_mock_no_blocks:
     'Pas de blocs de mise en page sur cet onglet — ouvrez « Permissions d’accès » ci-dessous.',
   profile_visibility_perm_expand: 'Permissions d’accès ({n})',
   profile_visibility_mock_hint_realistic:
-    'Reproduit la Home gestion (Jean/John et chiffres sont une démo).',
+    'Noms, horaires et chiffres sont factices (pas vos vraies données). Chaque bloc encadré est une vraie section : masquez-le pour voir ce qui disparaît.',
   profile_visibility_mock_realistic_label: 'Aperçu — Home gestion (données démo)',
   profile_visibility_dinner_placeholder: 'Fermeture service soir — visible dans l’app seulement si besoin.',
   profile_visibility_critical_placeholder: 'À traiter — visible seulement s’il y a des anomalies.',
   profile_visibility_ferie_global_disabled: 'Congés désactivés globalement : la carte n’apparaît pas.',
+  app_all_nav_tabs_disabled:
+    'Aucun onglet de la barre n’est activé pour ce profil. Demandez à un administrateur d’en activer au moins un dans « Qui voit quoi » ou les permissions de rôle.',
 
   save_error: 'Erreur lors de l\'enregistrement.',
   ts_toast_no_shifts_to_freeze: 'Aucun shift approuvé à figer.',
@@ -3094,6 +3401,8 @@ const baseFr: Record<string, string> = {
   ts_period_weeks_abbr: '{n} sem.',
   ts_view_table: 'Vue tableau',
   ts_view_cards: 'Vue cartes',
+  table_h_scroll_prev: 'Faire défiler le tableau vers la gauche',
+  table_h_scroll_next: 'Faire défiler le tableau vers la droite',
   ts_crossday_out_label: 'OUT : {time} (date incorrecte)',
   ts_fix_exit_time_label: 'Heure de sortie à corriger',
   ts_out_missing_short: 'OUT manquant',
@@ -3179,10 +3488,21 @@ const baseFr: Record<string, string> = {
   wst_day_hide_tooltip: 'Clic droit pour masquer ce jour au personnel',
   wst_month_prev_aria: 'Mois précédent',
   wst_month_next_aria: 'Mois suivant',
+  wst_month_payroll_chip: 'Paie : {date}',
+  wst_toolbar_hamburger_title: 'Menu',
+  wst_toolbar_hamburger_aria: 'Ouvrir le menu : filtres, légende, service et actions',
+  wst_month_outside_period_title: 'Hors période de planification (Actions)',
   wst_name_row_filter_title: 'Clic pour filtrer · Glisser pour réordonner',
   wst_unavailability_remove: 'Retirer indisponibilité',
   wst_unavailability_mark: 'Marquer comme indisponible',
   wst_punches_section_title: 'Pointages',
+  wst_drawer_hours_summary: 'Heures nettes (après pause)',
+  wst_drawer_planned_short: 'Estimé · planifié',
+  wst_drawer_actual_short: 'Effectif · pointages',
+  wst_drawer_actual_incomplete: '—',
+  wst_drawer_actual_hint: 'Renseigner entrée et sortie',
+  wst_create_shift_hours_net: 'Net',
+  wst_create_shift_no_deduct_badge: 'Pause non déduite',
   wst_no_punch_records: 'Aucun pointage enregistré.',
   wst_go_freeze_prefix: 'Approuvé. Allez dans ',
   wst_go_freeze_suffix: ' pour le figer.',
@@ -3272,6 +3592,13 @@ const baseFr: Record<string, string> = {
   settings_cloud_sync_button: 'Synchroniser',
   settings_cloud_sync_success:
     'Synchronisation terminée : plannings, utilisateurs et config cloud (drapeaux, géorepérage, modèles…).',
+  hard_reload_button: 'Tout recharger depuis le serveur',
+  hard_reload_hint:
+    'Vide le cache local des shifts et retélécharge shifts, utilisateurs, absences et config cloud.',
+  hard_reload_confirm:
+    'Recharger toutes les données depuis le serveur ? Le cache local des shifts sera vidé ; le travail non enregistré peut être perdu.',
+  hard_reload_success: 'Données mises à jour depuis le serveur.',
+  hard_reload_error: 'Impossible de recharger les données. Vérifiez la connexion et réessayez.',
   wst_actions: 'Actions',
   wst_export_section: 'Export',
   wst_view_section: 'Vue',
@@ -3397,6 +3724,7 @@ const baseFr: Record<string, string> = {
   ts_stat_card_hint: 'Aller à la section associée',
   timesheet_approve_all: 'Tout approuver',
   timesheet_my_week: 'Votre semaine',
+  ts_save_period: 'Enregistrer la période',
   ts_period_saved: 'Période enregistrée.',
   ts_period_cloud_failed: 'Enregistré sur l’appareil ; synchronisation cloud échouée.',
 
@@ -3438,6 +3766,20 @@ export const translations: Record<Language, Record<string, string>> = {
   es: baseEs,
   fr: baseFr,
 };
+
+const ADMIN_MODULE_TR_KEYS: Record<AdminModuleKey, string> = {
+  visibility_management: 'admin_module_visibility_management',
+  department_creation: 'admin_module_department_creation',
+  violation_rules: 'admin_module_violation_rules',
+  master_control_panel: 'admin_module_master_control_panel',
+  auto_breaks: 'admin_module_auto_breaks',
+};
+
+/** Etichette moduli scheda Impostazioni (globali) dalla lingua attiva. */
+export function getAdminModuleLabel(key: AdminModuleKey, t: Record<string, string>): string {
+  const trKey = ADMIN_MODULE_TR_KEYS[key];
+  return (trKey && t[trKey]) || key;
+}
 
 export function translate(key: string, lang?: Language): string {
   const language = (lang ?? 'it') as Language;

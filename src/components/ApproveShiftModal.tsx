@@ -1,17 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Clock, RotateCcw } from 'lucide-react';
 import { Shift, User } from '../types';
-import { getActualShiftTime, calculateShiftMinutes, formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
+import { calculateShiftMinutes, formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
+import { getPunchPairForShift, getDefaultApprovalClockHHMM, type PunchRecordLike } from '../utils/shiftResolvedClockTimes';
 import { getTranslations } from '../utils/translations';
 import { useApp } from '../context/AppContext';
 
 interface ApproveShiftModalProps {
   shift: Shift;
-  punchRecords: Array<{ timestamp: string; calculated_time?: string; type: 'in' | 'out' }>;
+  punchRecords: PunchRecordLike[];
   userName: string;
   onClose: () => void;
-  onApprove: (shiftId: string, updatedStartTime: string, updatedEndTime: string) => void;
+  onApprove: (shiftId: string, updatedStartTime: string, updatedEndTime: string) => void | Promise<void>;
   onRevertToPending?: (shiftId: string) => void;
   currentUser: User;
 }
@@ -19,12 +20,19 @@ interface ApproveShiftModalProps {
 export default function ApproveShiftModal({ shift, punchRecords, userName, onClose, onApprove, onRevertToPending, currentUser }: ApproveShiftModalProps) {
   const { effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
-  const actualTimes = getActualShiftTime(shift, punchRecords);
-  const [startTime, setStartTime] = useState(actualTimes.startTime.slice(0, 5));
-  const [endTime, setEndTime] = useState(actualTimes.endTime.slice(0, 5));
+  const pair = getPunchPairForShift(shift, punchRecords);
+  const defaults = getDefaultApprovalClockHHMM(shift, punchRecords);
+  const [startTime, setStartTime] = useState(defaults.start);
+  const [endTime, setEndTime] = useState(defaults.end);
 
-  const handleApprove = () => {
-    onApprove(shift.id, startTime, endTime);
+  useEffect(() => {
+    const d = getDefaultApprovalClockHHMM(shift, punchRecords);
+    setStartTime(d.start);
+    setEndTime(d.end);
+  }, [shift.id, shift.start_time, shift.end_time, shift.approved_at, shift.approved_start_time, shift.approved_end_time, punchRecords]);
+
+  const handleApprove = async () => {
+    await onApprove(shift.id, startTime, endTime);
     onClose();
   };
 
@@ -82,6 +90,23 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
                 {t.times_based_on_punches}
               </p>
             </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 px-3 py-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t.home_label_planned}</p>
+                <p className="font-bold tabular-nums text-slate-800 dark:text-gray-100">
+                  {pair.plannedStart} → {pair.plannedEnd}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-sky-50/80 dark:bg-sky-900/20 px-3 py-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t.ts_label_punched}</p>
+                <p className="font-bold tabular-nums text-slate-800 dark:text-gray-100">
+                  {pair.actualStart ?? '—'} → {pair.actualEnd ?? '—'}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-500 dark:text-gray-400 font-semibold">{t.approve_shift_edit_hint}</p>
 
             <div className="grid grid-cols-2 gap-4">
               <div>

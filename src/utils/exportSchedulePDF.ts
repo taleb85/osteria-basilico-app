@@ -1,9 +1,11 @@
 import jsPDF from 'jspdf';
 import { format, addDays } from 'date-fns';
-import { it } from 'date-fns/locale';
-import { User, Shift } from '../types';
+import type { Locale } from 'date-fns';
+import { User, Shift, type Language } from '../types';
 import { getNetShiftMinutes, type BreakMinutesComputeOptions, type BreakRule } from './breakRules';
 import { isPurelyManagementRole } from './permissions';
+import { getResolvedStartEndForHours, type PunchRecordLike } from './shiftResolvedClockTimes';
+import { formatTrans, getDateLocale, getTranslations } from './translations';
 
 // ── Colours ───────────────────────────────────────────────────────────────────
 
@@ -27,25 +29,20 @@ const STATUS_COLOR: Record<string, [number, number, number]> = {
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
-function fmtDay(date: Date): string {
-  return format(date, 'EEE d', { locale: it }).toUpperCase();
+function fmtDay(date: Date, locale: Locale): string {
+  return format(date, 'EEE d', { locale }).toUpperCase();
 }
 
 function totalHours(
   shifts: Shift[],
   user: User,
   breakRules: BreakRule[],
-  breakComputeOpts?: BreakMinutesComputeOptions
+  breakComputeOpts: BreakMinutesComputeOptions | undefined,
+  punchRecords: PunchRecordLike[]
 ): string {
   const mins = shifts.reduce((sum, s) => {
-    return sum + getNetShiftMinutes(
-      s,
-      (s.start_time || '').slice(0, 5),
-      (s.end_time || '').slice(0, 5),
-      user,
-      breakRules,
-      breakComputeOpts
-    );
+    const { start, end } = getResolvedStartEndForHours(s, punchRecords);
+    return sum + getNetShiftMinutes(s, start, end, user, breakRules, breakComputeOpts);
   }, 0);
   if (mins === 0) return '';
   const h = Math.floor(mins / 60);
@@ -66,6 +63,9 @@ export function exportSchedulePDF(
     includeOpen?: boolean;
     breakRules?: BreakRule[];
     breakComputeOpts?: BreakMinutesComputeOptions;
+    punchRecords?: PunchRecordLike[];
+    /** Lingua UI utente (etichette PDF). */
+    language?: Language;
   } = {}
 ): void {
   const {
@@ -74,7 +74,12 @@ export function exportSchedulePDF(
     includeOpen = false,
     breakRules = [],
     breakComputeOpts,
+    punchRecords = [],
+    language: langOpt,
   } = options;
+  const language = langOpt ?? 'it';
+  const t = getTranslations(language);
+  const locale = getDateLocale(language) as Locale;
 
   const numDays = weekDays.length;
   const weekEnd = addDays(weekStart, numDays);
@@ -117,7 +122,7 @@ export function exportSchedulePDF(
   doc.text(restaurantName, MARGIN, 12);
 
   // Week range
-  const rangeLabel = `${format(weekStart, 'd MMMM', { locale: it })} – ${format(addDays(weekEnd, -1), 'd MMMM yyyy', { locale: it })}`;
+  const rangeLabel = `${format(weekStart, 'd MMMM', { locale })} – ${format(addDays(weekEnd, -1), 'd MMMM yyyy', { locale })}`;
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text(rangeLabel, MARGIN + 56, 12);
@@ -129,7 +134,9 @@ export function exportSchedulePDF(
   // Print timestamp (right)
   doc.setFontSize(7);
   doc.setTextColor(220, 230, 218);
-  const printedAt = `Stampato il ${format(new Date(), 'd MMM yyyy HH:mm', { locale: it })}`;
+  const printedAt = formatTrans(t.ts_pdf_printed_on, {
+    datetime: format(new Date(), 'd MMM yyyy HH:mm', { locale }),
+  });
   doc.text(printedAt, PAGE_W - MARGIN - doc.getTextWidth(printedAt), 12);
 
   // ── Column headers ─────────────────────────────────────────────────────────
@@ -143,7 +150,7 @@ export function exportSchedulePDF(
   doc.setTextColor(100, 116, 139);
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
-  doc.text('DIPENDENTE', MARGIN + 2, y + 6.5);
+  doc.text(t.ts_pdf_col_employee, MARGIN + 2, y + 6.5);
 
   // Day column headers
   weekDays.forEach((day, i) => {
@@ -156,7 +163,7 @@ export function exportSchedulePDF(
     doc.setTextColor(isWeekend ? 148 : 71, isWeekend ? 160 : 85, isWeekend ? 184 : 105);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7);
-    const label = fmtDay(day);
+    const label = fmtDay(day, locale);
     doc.text(label, x + DAY_W / 2 - doc.getTextWidth(label) / 2, y + 6.5);
   });
 
@@ -165,7 +172,7 @@ export function exportSchedulePDF(
   doc.setTextColor(100, 116, 139);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7);
-  const totLabel = 'TOT';
+  const totLabel = t.schedule_pdf_total_abbr;
   doc.text(totLabel, totX + TOT_W / 2 - doc.getTextWidth(totLabel) / 2, y + 6.5);
 
   y += HEADER_ROW;
@@ -237,7 +244,8 @@ export function exportSchedulePDF(
 
         // Shift times
         dayShifts.slice(0, 2).forEach((s, si) => {
-          const timeStr = `${(s.start_time || '').slice(0, 5)}–${(s.end_time || '').slice(0, 5)}`;
+          const { start, end } = getResolvedStartEndForHours(s, punchRecords);
+          const timeStr = `${start}–${end}`;
           const statusC = STATUS_COLOR[s.approval_status] ?? [148, 163, 184];
           doc.setFillColor(...statusC);
           doc.roundedRect(x + 2, y + 2 + si * 4.5, 2, 3, 0.5, 0.5, 'F');
@@ -259,7 +267,7 @@ export function exportSchedulePDF(
     const totX2 = MARGIN + NAME_W + numDays * DAY_W;
     doc.setDrawColor(226, 232, 240);
     doc.line(totX2, y, totX2, y + DATA_ROW);
-    const weekTotal = totalHours(userShifts, user, breakRules, breakComputeOpts);
+    const weekTotal = totalHours(userShifts, user, breakRules, breakComputeOpts, punchRecords);
     if (weekTotal) {
       doc.setTextColor(...BASILICO);
       doc.setFontSize(7);
@@ -286,12 +294,12 @@ export function exportSchedulePDF(
   doc.setFontSize(6);
   doc.setFont('helvetica', 'normal');
   const legend = [
-    { color: STATUS_COLOR.approved,  label: 'Approvato' },
-    { color: STATUS_COLOR.confirmed, label: 'Confermato' },
-    { color: STATUS_COLOR.draft,     label: 'Bozza' },
-    { color: DEPT_FILL.sala,         label: 'Sala', border: DEPT_BORDER.sala },
-    { color: DEPT_FILL.kitchen,      label: 'Cucina', border: DEPT_BORDER.kitchen },
-    { color: DEPT_FILL.bar,          label: 'Bar', border: DEPT_BORDER.bar },
+    { color: STATUS_COLOR.approved, label: t.status_approved },
+    { color: STATUS_COLOR.confirmed, label: t.status_confirmed },
+    { color: STATUS_COLOR.draft, label: t.status_draft },
+    { color: DEPT_FILL.sala, label: t.department_sala, border: DEPT_BORDER.sala },
+    { color: DEPT_FILL.kitchen, label: t.department_kitchen, border: DEPT_BORDER.kitchen },
+    { color: DEPT_FILL.bar, label: t.department_bar, border: DEPT_BORDER.bar },
   ];
   let lx = MARGIN;
   legend.forEach(({ color, label, border }) => {
@@ -313,7 +321,11 @@ export function exportSchedulePDF(
   // ── Footer ────────────────────────────────────────────────────────────────
   doc.setFontSize(6);
   doc.setTextColor(148, 163, 184);
-  doc.text(`Pagina 1 di ${doc.getNumberOfPages()}`, PAGE_W - MARGIN - 20, PAGE_H - 4);
+  const pageStr = formatTrans(t.schedule_pdf_page_x_of_y, {
+    page: 1,
+    total: doc.getNumberOfPages(),
+  });
+  doc.text(pageStr, PAGE_W - MARGIN - doc.getTextWidth(pageStr), PAGE_H - 4);
 
   // ── Save ──────────────────────────────────────────────────────────────────
   const fileName = `schedule_${format(weekStart, 'yyyy-MM-dd')}.pdf`;

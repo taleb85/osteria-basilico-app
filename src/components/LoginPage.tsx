@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User as UserIcon, Lock, Loader2, Eye, EyeOff, Clock, Fingerprint } from 'lucide-react';
@@ -224,12 +224,22 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
-                type={showPassword ? 'text' : 'password'}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                enterKeyHint="done"
+                autoComplete="current-password"
+                autoCorrect="off"
+                spellCheck={false}
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '');
+                  setPassword(digits);
+                  setError('');
+                }}
                 onKeyDown={handleKeyDown}
                 placeholder="••••"
-                autoComplete="current-password"
+                style={!showPassword ? ({ WebkitTextSecurity: 'disc' } as CSSProperties) : undefined}
                 className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/60 transition-all"
               />
               <button
