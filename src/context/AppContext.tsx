@@ -1,6 +1,17 @@
 import { createContext, useContext, useState, useRef, ReactNode, useEffect, useCallback, useMemo } from 'react';
 import { persistStoredUiLanguage, readStoredUiLanguage } from '../utils/uiLanguagePreference';
-import { User, Shift, HolidayRequest, PunchRecord, PunchAuditEntry, Language, HolidayStatus } from '../types';
+import {
+  User,
+  Shift,
+  HolidayRequest,
+  PunchRecord,
+  PunchAuditEntry,
+  Language,
+  HolidayStatus,
+  UserRole,
+  UserStatus,
+  Department,
+} from '../types';
 import { format, addDays, parseISO } from 'date-fns';
 import { database } from '../lib/database';
 import { supabase } from '../lib/supabase';
@@ -45,7 +56,7 @@ import { type BreakRule, getBreakRules, saveBreakRulesToSupabase, getBreakMinute
 import { loadTimesheetPeriodFromSupabase, applyRemoteTimesheetPeriod } from '../utils/timesheetPeriodSupabase';
 import PwaGate from '../components/PwaGate';
 import i18n from '../utils/i18n';
-import { userRowToSessionUser } from '../utils/staffPermissionDefaults';
+import { userRowToSessionUser, defaultPermissionFieldsForNewUser } from '../utils/staffPermissionDefaults';
 import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
 import {
   bumpClientSyncRevisionOnSupabase,
@@ -144,6 +155,17 @@ interface AppContextType {
   updatePunchRecord: (id: string, updates: { timestamp?: string; calculated_time?: string; clock_out_time?: string | null }) => Promise<void>;
   deletePunchRecordsForShift: (shiftId: string) => Promise<void>;
   updateUser: (id: string, updates: Partial<User>) => void;
+  /** Inserisce un nuovo dipendente in `users` (gestione: admin, manager, assistente, capo). */
+  createUser: (payload: {
+    first_name: string;
+    last_name?: string;
+    email: string;
+    role: UserRole;
+    pin: string;
+    status: UserStatus;
+    department?: Department;
+    hourly_rate_eur?: number | null;
+  }) => Promise<User | null>;
   deleteUser: (id: string) => void;
   reorderUsers: (userId: string, direction: 'up' | 'down') => void;
   /** Applica l'ordine degli utenti solo nello stato (senza DB). Usato da Edit view Salva. */
@@ -1024,6 +1046,87 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (rev != null) writeAckClientSyncRevision(rev);
   }, []);
 
+  const createUser = useCallback(
+    async (payload: {
+      first_name: string;
+      last_name?: string;
+      email: string;
+      role: UserRole;
+      pin: string;
+      status: UserStatus;
+      department?: Department;
+      hourly_rate_eur?: number | null;
+    }): Promise<User | null> => {
+      const tr = getTranslations(effectiveLanguage);
+      const maxOrder = users.reduce((m, u) => Math.max(m, u.sort_order ?? 0), 0);
+      const perms = defaultPermissionFieldsForNewUser(payload.role);
+      const lastName = payload.last_name?.trim() ?? '';
+      const newRow: Omit<User, 'id'> = {
+        first_name: payload.first_name.trim(),
+        /* Stringa vuota se assente: DB legacy con last_name NOT NULL. */
+        last_name: lastName,
+        email: payload.email.trim().toLowerCase(),
+        role: payload.role,
+        pin: payload.pin,
+        status: payload.status,
+        sort_order: maxOrder + 1,
+        language: 'it',
+        theme: 'light',
+        ...perms,
+        ...(payload.department ? { department: payload.department } : {}),
+        ...(payload.hourly_rate_eur != null && Number.isFinite(payload.hourly_rate_eur)
+          ? { hourly_rate_eur: payload.hourly_rate_eur }
+          : {}),
+      };
+      try {
+        const res = await database.users.insert(newRow);
+        if (!res) {
+          showError(tr.create_employee_error_no_row);
+          return null;
+        }
+        const created = res as User;
+        setUsers((prev) => {
+          const others = prev.filter((u) => u.id !== created.id);
+          return [...others, created].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+        });
+        const rev = await bumpClientSyncRevisionOnSupabase();
+        if (rev != null) writeAckClientSyncRevision(rev);
+        try {
+          await silentRefreshDataRef.current({
+            pullRemoteConfig: true,
+            skipRemoteRevisionCheck: true,
+          });
+        } catch (syncErr) {
+          console.warn('[createUser] refresh dopo creazione', syncErr);
+        }
+        showSuccess(tr.create_employee_success);
+        return created;
+      } catch (err) {
+        const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: string }).message) : '';
+        const details =
+          err && typeof err === 'object' && 'details' in err ? String((err as { details: string }).details) : '';
+        const code = err && typeof err === 'object' && 'code' in err ? String((err as { code: string }).code) : '';
+        const dup = code === '23505' || /unique|duplicate/i.test(msg + details);
+        const rls =
+          code === '42501' ||
+          /row-level security|permission denied|rls|new row violates/i.test(`${msg} ${details}`.toLowerCase());
+        const detailLine = (msg + (details ? ` — ${details}` : '')).trim().slice(0, 160);
+        console.warn('[createUser]', detailLine || err);
+        showError(
+          rls
+            ? tr.create_employee_error_rls
+            : dup
+              ? tr.create_employee_error_duplicate
+              : detailLine
+                ? detailLine
+                : tr.create_employee_error
+        );
+        return null;
+      }
+    },
+    [users, effectiveLanguage, showError, showSuccess]
+  );
+
   const reorderUsers = useCallback(async (userId: string, direction: 'up' | 'down') => {
     try {
       const sorted = [...users].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
@@ -1094,20 +1197,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     throwOnError?: boolean;
   }) => {
     try {
-      const [loadedUsers, loadedShifts, loadedHolidays, loadedPunchRecords, loadedAvailability] = await Promise.all([
-        database.users.getAll().catch(() => []),
-        database.shifts.getAll().catch(() => []),
-        database.holidays.getAll().catch(() => []),
-        database.punchRecords.getAll().catch(() => []),
-        database.availability.getAll().catch(() => []),
-      ]);
-      setUsers(loadedUsers);
-      setShifts(loadedShifts);
-      setHolidays(loadedHolidays);
-      setPunchRecords(loadedPunchRecords);
-      setAvailability(loadedAvailability);
+      const safeLoad = async <T,>(label: string, fn: () => Promise<T[]>): Promise<T[] | null> => {
+        try {
+          return await fn();
+        } catch (e) {
+          console.warn(`[silentRefreshData] ${label} non caricato, stato UI invariato`, e);
+          return null;
+        }
+      };
 
-      setCurrentUser((prev) => sessionUserFromLoadedUsersList(prev, loadedUsers));
+      const [loadedUsers, loadedShifts, loadedHolidays, loadedPunchRecords, loadedAvailability] = await Promise.all([
+        safeLoad('users', () => database.users.getAll()),
+        safeLoad('shifts', () => database.shifts.getAll()),
+        safeLoad('holidays', () => database.holidays.getAll()),
+        safeLoad('punchRecords', () => database.punchRecords.getAll()),
+        safeLoad('availability', () => database.availability.getAll()),
+      ]);
+
+      if (loadedUsers !== null) setUsers(loadedUsers);
+      if (loadedShifts !== null) setShifts(loadedShifts);
+      if (loadedHolidays !== null) setHolidays(loadedHolidays);
+      if (loadedPunchRecords !== null) setPunchRecords(loadedPunchRecords);
+      if (loadedAvailability !== null) setAvailability(loadedAvailability);
+
+      if (loadedUsers !== null) {
+        setCurrentUser((prev) => sessionUserFromLoadedUsersList(prev, loadedUsers));
+      }
 
       if (opts?.pullRemoteConfig) {
         /** Feature flags + periodo presenze da Storage (PWA ↔ browser); work/break restano su localStorage. */
@@ -1537,7 +1652,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       currentUser, setCurrentUser, users, shifts, holidays, punchRecords, availability, toggleAvailability,
       addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift,
       publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
-      updateUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing,
+      updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing,
       postRefreshLocked, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest,
       featureFlags, setFeatureFlag, geofenceEffectiveConfig, saveGeofenceConfig,
       workRules, setWorkRules, breakRules, setBreakRules,

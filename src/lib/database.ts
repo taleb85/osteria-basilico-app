@@ -50,6 +50,46 @@ function isMissingColumnError(error: unknown): boolean {
 }
 
 /** Rimuove dal body la colonna citata nell’errore PostgREST (DB senza migrazione). */
+function omitUndefinedRecord(obj: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) out[k] = v;
+  }
+  return out;
+}
+
+/** Colonne “sicure” per insert dipendente se il DB non ha tutte le colonne dell’app. */
+const USER_INSERT_CORE_KEYS = [
+  'first_name',
+  'last_name',
+  'email',
+  'role',
+  'pin',
+  'status',
+  'sort_order',
+  'language',
+  'theme',
+] as const;
+
+const USER_INSERT_EXTENDED_KEYS = [
+  ...USER_INSERT_CORE_KEYS,
+  'can_create_shifts',
+  'can_approve_shifts',
+  'can_view_total_hours',
+  'can_edit_staff_pins',
+  'can_manage_drafts',
+  'department',
+  'hourly_rate_eur',
+] as const;
+
+function pickInsertKeys(obj: Record<string, unknown>, keys: readonly string[]): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const k of keys) {
+    if (k in obj && obj[k] !== undefined) out[k] = obj[k];
+  }
+  return out;
+}
+
 function stripMissingUserColumns(payload: Record<string, unknown>, error: unknown): Record<string, unknown> | null {
   const msg = `${(error as { message?: string }).message || ''} ${(error as { details?: string }).details || ''}`;
   const out = { ...payload };
@@ -86,13 +126,69 @@ export const database = {
 
     async insert(user: Omit<User, 'id'>) {
       if (!supabase) return null;
-      const { data, error } = await supabase!
+      const payload = omitUndefinedRecord(user as Record<string, unknown>);
+      const email = typeof payload.email === 'string' ? payload.email.trim().toLowerCase() : '';
+      if (!email) return null;
+
+      const runInsert = async (body: Record<string, unknown>) =>
+        supabase!.from('users').insert(body);
+
+      const errCode = (e: unknown) => (e as { code?: string })?.code ?? '';
+
+      let { error } = await runInsert(payload);
+
+      if (error && isMissingColumnError(error)) {
+        const stripped = stripMissingUserColumns(payload, error);
+        if (stripped && Object.keys(stripped).length < Object.keys(payload).length) {
+          const second = await runInsert(stripped);
+          error = second.error;
+        }
+      }
+
+      if (error && errCode(error) !== '23505') {
+        const ext = pickInsertKeys(payload, [...USER_INSERT_EXTENDED_KEYS]);
+        const r2 = await runInsert(ext);
+        if (!r2.error) error = null;
+        else error = r2.error;
+      }
+
+      if (error && errCode(error) !== '23505') {
+        const core = pickInsertKeys(payload, [...USER_INSERT_CORE_KEYS]);
+        const r3 = await runInsert(core);
+        if (!r3.error) error = null;
+        else error = r3.error;
+      }
+
+      if (error) {
+        console.error('[database.users.insert] fallito', error);
+        throw error;
+      }
+
+      const ordered = await supabase!
         .from('users')
-        .insert(user)
-        .select()
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+        .select('*')
+        .eq('email', email)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (!ordered.error && ordered.data?.[0]) {
+        return ordered.data[0] as User;
+      }
+      if (ordered.error && !isMissingColumnError(ordered.error)) {
+        throw ordered.error;
+      }
+
+      const plain = await supabase!.from('users').select('*').eq('email', email).limit(1);
+      if (plain.error) throw plain.error;
+      if (plain.data?.[0]) return plain.data[0] as User;
+
+      const all = await supabase!.from('users').select('*').order('sort_order', { ascending: true });
+      if (all.error) {
+        console.warn('[database.users.insert] nessuna riga per email; getAll fallito', all.error);
+        return null;
+      }
+      const found = all.data?.find((u: { email?: string }) => String(u.email ?? '').toLowerCase() === email);
+      return (found as User) ?? null;
     },
 
     async update(id: string, updates: Partial<User>) {

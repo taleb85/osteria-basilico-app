@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { User, UserRole } from '../types';
 import { translateRole } from '../utils/roles';
@@ -172,6 +172,7 @@ export default function SettingsPage() {
   const t = getTranslations(effectiveLanguage);
 
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [showCreateStaff, setShowCreateStaff] = useState(false);
   const [expandedPermsUserId, setExpandedPermsUserId] = useState<string | null>(null);
   const [showSuspended, setShowSuspended] = useState(false);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
@@ -351,15 +352,27 @@ export default function SettingsPage() {
                 {t.settings_team_section_title}
               </h2>
             </button>
-            {canSeeSuspended && (
-              <button
-                type="button"
-                onClick={() => setShowSuspended(!showSuspended)}
-                className="shrink-0 text-slate-400 text-xs uppercase tracking-wider hover:text-slate-700 border border-slate-200 rounded-xl px-2 py-1 hover:bg-slate-50 transition-colors"
-              >
-                {showSuspended ? t.hide_suspended : t.show_suspended}
-              </button>
-            )}
+            <div className="flex items-center gap-2 shrink-0">
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={() => setShowCreateStaff(true)}
+                  className="inline-flex items-center gap-1.5 text-slate-600 text-xs font-semibold uppercase tracking-wider border border-slate-200 rounded-xl px-2.5 py-1.5 hover:bg-slate-50 transition-colors"
+                >
+                  <UserPlus className="w-3.5 h-3.5" aria-hidden />
+                  {t.admin_add_employee}
+                </button>
+              )}
+              {canSeeSuspended && (
+                <button
+                  type="button"
+                  onClick={() => setShowSuspended(!showSuspended)}
+                  className="text-slate-400 text-xs uppercase tracking-wider hover:text-slate-700 border border-slate-200 rounded-xl px-2 py-1 hover:bg-slate-50 transition-colors"
+                >
+                  {showSuspended ? t.hide_suspended : t.show_suspended}
+                </button>
+              )}
+            </div>
           </div>
 
           <AnimatePresence initial={false}>
@@ -1345,6 +1358,13 @@ export default function SettingsPage() {
 
       </motion.div>
 
+      {showCreateStaff && (
+        <CreateStaffModal
+          isOpen
+          onClose={() => setShowCreateStaff(false)}
+          onCreated={(u) => setEditingUser(u)}
+        />
+      )}
       {editingUser && (
         <EditStaffModal
           isOpen={true}

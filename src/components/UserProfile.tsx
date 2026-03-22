@@ -183,6 +183,7 @@ export function ProfileFormAdmin({
   onSubmit,
   onClose,
   isSaving,
+  variant = 'edit',
 }: {
   user: UserType;
   currentUser: UserType;
@@ -191,11 +192,15 @@ export function ProfileFormAdmin({
   onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
   isSaving: boolean;
+  /** `create`: nessun blocco link invito (serve `id` dopo salvataggio). */
+  variant?: 'edit' | 'create';
 }) {
   const { effectiveLanguage, showSuccess, showError } = useApp();
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
-  const isSuspended = user.status === 'suspended' || user.status === 'inactive';
+  const layoutRole = variant === 'create' ? formData.role : user.role;
+  const isSuspended =
+    variant === 'edit' && (user.status === 'suspended' || user.status === 'inactive');
   const invitePinComplete = formData.pin.replace(/\D/g, '').length === 4;
 
   const accessLink = useMemo(
@@ -314,7 +319,7 @@ export function ProfileFormAdmin({
         </div>
 
         {/* Reparto sopra Stato account (nascosto solo per Admin — profilo puramente gestionale) */}
-        {!isPurelyManagementRole(user.role) && (
+        {!isPurelyManagementRole(layoutRole) && (
           <div>
             <label className={labelClass}>{t.department_label}</label>
             <select
@@ -374,36 +379,38 @@ export function ProfileFormAdmin({
           </select>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-3 space-y-2">
-          <button
-            type="button"
-            onClick={() => void handleCopyAccessLink()}
-            className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-800 hover:bg-slate-50 transition-colors font-sans"
-          >
-            <Copy className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
-            {tv.admin_employee_access_link_btn ?? 'Copia link accesso'}
-          </button>
-          <p className="text-[11px] text-slate-600 leading-snug font-sans flex gap-1.5">
-            <Link2 className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" aria-hidden />
-            <span>{tv.admin_employee_access_link_hint ?? ''}</span>
-          </p>
-          <p className="text-[11px] font-medium text-slate-800 font-sans pl-5">
-            {formatTrans(tv.admin_employee_access_link_preview ?? 'Nome al login: {name}', {
-              name: `${formData.first_name} ${formData.last_name ?? ''}`.trim() || '—',
-            })}
-          </p>
-          {formData.status !== 'active' && (
-            <p className="text-[11px] text-amber-800 font-medium font-sans pl-5">
-              {tv.admin_employee_access_link_inactive ?? ''}
+        {variant === 'edit' && (
+          <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-3 space-y-2">
+            <button
+              type="button"
+              onClick={() => void handleCopyAccessLink()}
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-800 hover:bg-slate-50 transition-colors font-sans"
+            >
+              <Copy className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+              {tv.admin_employee_access_link_btn ?? 'Copia link accesso'}
+            </button>
+            <p className="text-[11px] text-slate-600 leading-snug font-sans flex gap-1.5">
+              <Link2 className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" aria-hidden />
+              <span>{tv.admin_employee_access_link_hint ?? ''}</span>
             </p>
-          )}
-          {!invitePinComplete && (
-            <p className="text-[11px] text-amber-800 font-medium font-sans pl-5">
-              {tv.admin_employee_access_link_pin_incomplete ?? ''}
+            <p className="text-[11px] font-medium text-slate-800 font-sans pl-5">
+              {formatTrans(tv.admin_employee_access_link_preview ?? 'Nome al login: {name}', {
+                name: `${formData.first_name} ${formData.last_name ?? ''}`.trim() || '—',
+              })}
             </p>
-          )}
-          <p className="text-[10px] text-slate-400 font-mono break-all pl-5">{accessLink}</p>
-        </div>
+            {formData.status !== 'active' && (
+              <p className="text-[11px] text-amber-800 font-medium font-sans pl-5">
+                {tv.admin_employee_access_link_inactive ?? ''}
+              </p>
+            )}
+            {!invitePinComplete && (
+              <p className="text-[11px] text-amber-800 font-medium font-sans pl-5">
+                {tv.admin_employee_access_link_pin_incomplete ?? ''}
+              </p>
+            )}
+            <p className="text-[10px] text-slate-400 font-mono break-all pl-5">{accessLink}</p>
+          </div>
+        )}
 
         <p className="text-[11px] text-slate-500 mt-2">
           {(t as { permissions_in_settings?: string }).permissions_in_settings ?? 'Permessi Funzionalità, Moduli e Gestione Visibilità: apri la scheda Admin e clicca "Permessi" sul dipendente.'}
@@ -422,7 +429,7 @@ export function ProfileFormAdmin({
             disabled={isSaving}
             className="flex-1 px-4 py-2 rounded-xl text-sm bg-accent text-white font-semibold hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-sans"
           >
-            {isSaving ? t.saving : t.save_changes}
+            {isSaving ? t.saving : variant === 'create' ? t.create_employee_submit : t.save_changes}
           </button>
         </div>
       </form>

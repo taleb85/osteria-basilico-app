@@ -1,4 +1,5 @@
 import type { User, UserRole } from '../types';
+import { isManagementRole } from './permissions';
 
 const ALLOWED_ROLES: UserRole[] = [
   'admin',
@@ -56,6 +57,39 @@ export function toggledPermissionDbValue(user: User, key: keyof User): boolean {
  * Costruisce l’oggetto `User` per sessione/login da una riga DB/merge,
  * senza perdere JSONB opzionali e senza far collassare i permessi opt-out in `false`.
  */
+/** Flag gestionali iniziali in base al ruolo (nuova riga `users` da pannello). */
+export function defaultPermissionFieldsForNewUser(role: UserRole): Pick<
+  User,
+  'can_create_shifts' | 'can_approve_shifts' | 'can_manage_drafts' | 'can_view_total_hours' | 'can_edit_staff_pins'
+> {
+  const off = {
+    can_create_shifts: false,
+    can_approve_shifts: false,
+    can_manage_drafts: false,
+    can_view_total_hours: false,
+    can_edit_staff_pins: false,
+  };
+  if (role === 'admin') {
+    return {
+      can_create_shifts: true,
+      can_approve_shifts: true,
+      can_manage_drafts: true,
+      can_view_total_hours: true,
+      can_edit_staff_pins: true,
+    };
+  }
+  if (isManagementRole(role)) {
+    return {
+      can_create_shifts: true,
+      can_approve_shifts: true,
+      can_manage_drafts: true,
+      can_view_total_hours: true,
+      can_edit_staff_pins: false,
+    };
+  }
+  return off;
+}
+
 export function userRowToSessionUser(row: User): User {
   return {
     ...row,

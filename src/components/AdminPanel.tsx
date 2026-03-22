@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { ChevronUp, ChevronDown, Edit2, Trash2, UserX, UserCheck, Download, Upload } from 'lucide-react';
+import { ChevronUp, ChevronDown, Edit2, Trash2, UserX, UserCheck, Download, Upload, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { User } from '../types';
@@ -9,10 +9,12 @@ import { importDataToSupabase, clearAllData } from '../utils/importData';
 import { translateRole } from '../utils/roles';
 import { getTranslations } from '../utils/translations';
 import EditStaffModal from './EditStaffModal';
+import CreateStaffModal from './CreateStaffModal';
 
 export default function AdminPanel() {
   const { users, shifts, punchRecords, holidays, currentUser, updateUser, deleteUser, reorderUsers, effectiveLanguage } = useApp();
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [showCreateStaff, setShowCreateStaff] = useState(false);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importStatus, setImportStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -132,7 +134,18 @@ export default function AdminPanel() {
         </div>
 
         <div className="bg-black/15 backdrop-blur-md rounded-[32px] border-2 border-white/30 overflow-hidden shadow-2xl">
-          <div className="p-4 border-b border-white/20 flex items-center justify-end">
+          <div className="p-4 border-b border-white/20 flex items-center justify-between gap-3 flex-wrap">
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => setShowCreateStaff(true)}
+                className="inline-flex items-center gap-2 rounded-2xl border-2 border-white/35 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/15 transition-colors font-sans"
+              >
+                <UserPlus className="w-4 h-4" aria-hidden />
+                {t.admin_add_employee}
+              </button>
+            )}
+            <div className="flex-1 min-w-[1rem]" />
             {canSeeSuspended && (
               <button
                 onClick={() => setShowSuspended(!showSuspended)}
@@ -186,6 +199,13 @@ export default function AdminPanel() {
         </div>
       </motion.div>
 
+      {showCreateStaff && (
+        <CreateStaffModal
+          isOpen
+          onClose={() => setShowCreateStaff(false)}
+          onCreated={(u) => setEditingUser(u)}
+        />
+      )}
       {editingUser && <EditStaffModal isOpen={true} user={users.find((u) => u.id === editingUser.id) ?? editingUser} onClose={() => setEditingUser(null)} />}
       {showImportConfirm && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
