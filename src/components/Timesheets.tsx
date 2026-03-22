@@ -40,7 +40,7 @@ import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
 import { HorizontalScrollArea } from './HorizontalScrollArea';
 import DatePickerField, { isDatePickerPortalClick } from './DatePickerField';
 import TimesheetManagementKpiBlock from './TimesheetManagementKpiBlock';
-import { useClampedFixedDropdown } from '../hooks/useClampedFixedDropdown';
+import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -261,12 +261,14 @@ export default function Timesheets() {
 
   const [timesheetActionsOpen, setTimesheetActionsOpen] = useState(false);
   const timesheetActionsRef = useRef<HTMLDivElement>(null);
-  const timesheetActionsStyle = useClampedFixedDropdown(timesheetActionsOpen, timesheetActionsRef, 288);
+  const timesheetActionsModalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!timesheetActionsOpen) return;
     const handleClick = (e: MouseEvent) => {
-      if (timesheetActionsRef.current?.contains(e.target as Node)) return;
+      const tgt = e.target as Node;
+      if (timesheetActionsModalRef.current?.contains(tgt)) return;
+      if (timesheetActionsRef.current?.contains(tgt)) return;
       if (isDatePickerPortalClick(e.target)) return;
       setTimesheetActionsOpen(false);
     };
@@ -1181,68 +1183,70 @@ export default function Timesheets() {
                     )}
                     <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
                   </button>
-                  {timesheetActionsOpen && timesheetActionsStyle && (
-                    <div
-                      className="fixed z-[60] max-h-[80vh] overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white py-2 shadow-xl"
-                      style={{
-                        top: timesheetActionsStyle.top,
-                        left: timesheetActionsStyle.left,
-                        width: timesheetActionsStyle.width,
-                      }}
-                    >
-                      <div className="px-3 pb-1">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          {(t as { stats_preset_period?: string }).stats_preset_period ?? 'Periodo Presenze'}
-                        </p>
+                </div>
+                {timesheetActionsOpen && (
+                  <CenteredModalPortal
+                    open
+                    onClose={() => setTimesheetActionsOpen(false)}
+                    panelRef={timesheetActionsModalRef}
+                    backdropAriaLabel={(t as Record<string, string>).close ?? 'Chiudi'}
+                    ariaLabel={(t as { wst_actions?: string }).wst_actions ?? 'Azioni'}
+                    maxWidthClass="max-w-sm"
+                    maxHeightClass="max-h-[min(90dvh,560px)]"
+                    panelClassName="py-2"
+                  >
+                    <div className="px-3 pb-1">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        {(t as { stats_preset_period?: string }).stats_preset_period ?? 'Periodo Presenze'}
+                      </p>
+                    </div>
+                    <div className="space-y-2.5 border-b border-slate-100 px-3 pb-2.5">
+                      <div>
+                        <label className="mb-1 block text-[10px] font-bold text-slate-500">{t.ts_period_start}</label>
+                        <DatePickerField
+                          value={periodStart}
+                          onChange={(v) => { setPeriodStart(v); setPeriodSaved(false); setWeekIndex(0); }}
+                          allowClear={false}
+                          aria-label={t.ts_period_start}
+                          className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2 text-[13px] shadow-sm [&_svg]:h-3 [&_svg]:w-3"
+                        />
                       </div>
-                      <div className="space-y-2.5 border-b border-slate-100 px-3 pb-2.5">
-                        <div>
-                          <label className="mb-1 block text-[10px] font-bold text-slate-500">{t.ts_period_start}</label>
-                          <DatePickerField
-                            value={periodStart}
-                            onChange={(v) => { setPeriodStart(v); setPeriodSaved(false); setWeekIndex(0); }}
-                            allowClear={false}
-                            aria-label={t.ts_period_start}
-                            className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2 text-[13px] shadow-sm [&_svg]:h-3 [&_svg]:w-3"
-                          />
-                        </div>
-                        <div className="flex gap-1">
-                          <button
-                            type="button"
-                            onClick={() => { setPeriodNumWeeks(4); setPeriodSaved(false); setWeekIndex(0); }}
-                            className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
-                              periodNumWeeks === 4 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
-                            }`}
-                          >
-                            {t.ts_preset_4weeks}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => { setPeriodNumWeeks(5); setPeriodSaved(false); setWeekIndex(0); }}
-                            className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
-                              periodNumWeeks === 5 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
-                            }`}
-                          >
-                            {t.ts_preset_5weeks}
-                          </button>
-                        </div>
+                      <div className="flex gap-1">
                         <button
                           type="button"
-                          onClick={() => {
-                            handleSavePeriodConfig();
-                            setTimesheetActionsOpen(false);
-                          }}
-                          disabled={periodSaved}
-                          className={`w-full rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
-                            periodSaved ? 'cursor-not-allowed bg-slate-200 text-slate-500' : 'bg-accent text-white hover:bg-accent-hover'
+                          onClick={() => { setPeriodNumWeeks(4); setPeriodSaved(false); setWeekIndex(0); }}
+                          className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
+                            periodNumWeeks === 4 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                           }`}
                         >
-                          {t.ts_save_period}
+                          {t.ts_preset_4weeks}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setPeriodNumWeeks(5); setPeriodSaved(false); setWeekIndex(0); }}
+                          className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
+                            periodNumWeeks === 5 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                          }`}
+                        >
+                          {t.ts_preset_5weeks}
                         </button>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSavePeriodConfig();
+                          setTimesheetActionsOpen(false);
+                        }}
+                        disabled={periodSaved}
+                        className={`w-full rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
+                          periodSaved ? 'cursor-not-allowed bg-slate-200 text-slate-500' : 'bg-accent text-white hover:bg-accent-hover'
+                        }`}
+                      >
+                        {t.ts_save_period}
+                      </button>
                     </div>
-                  )}
-                </div>
+                  </CenteredModalPortal>
+                )}
               </div>
             </div>
           </div>

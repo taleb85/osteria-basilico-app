@@ -7,7 +7,6 @@ import { getTranslations } from '../utils/translations';
 import { ProfileFormSelf, type ProfileFormSelfData } from './UserProfile';
 import type { Language } from '../types';
 import { isManagementRole } from '../utils/permissions';
-
 interface UserAvatarMenuProps {
   /** `pill` = sidebar/desktop; `profileRow` = riga lista; `toolbar` = icona affiancata a ora/notifiche (mobile header). */
   variant?: 'pill' | 'profileRow' | 'toolbar';

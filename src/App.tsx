@@ -6,6 +6,7 @@ import { forceLightTheme } from './utils/theme';
 import { getTranslations } from './utils/translations';
 import BottomNav from './components/BottomNav';
 import MobileProfileHeader from './components/MobileProfileHeader';
+import HeaderTodayCoworkersCard from './components/HeaderTodayCoworkersCard';
 import RefreshLockOverlay from './components/RefreshLockOverlay';
 import BodyPullToRefresh from './components/BodyPullToRefresh';
 import HomePage from './components/HomePage';
@@ -16,7 +17,7 @@ import { Wrench, MonitorOff } from 'lucide-react';
 import { persistStoredUiLanguage } from './utils/uiLanguagePreference';
 import { PATH_TIMBRATURA, PATH_PROFILO } from './config/appPaths';
 import { APP_SESSION_STORAGE_KEY } from './constants/appSession';
-import { getUnifiedNavTabs, type AppNavTab } from './utils/enabledModules';
+import { getUnifiedNavTabs, getBottomNavTabsForMainApp, type AppNavTab } from './utils/enabledModules';
 import {
   readMainViewState,
   writeMainViewState,
@@ -134,6 +135,12 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const visibleNavTabs = useMemo((): AppNavTab[] => {
     if (!currentUser) return ['home'];
     return getUnifiedNavTabs(currentUser, isManagement, featureFlags);
+  }, [currentUser, isManagement, featureFlags, roleTemplatesRevision]);
+
+  /** Bottom bar: staff con ordine ferie → turni (Statistiche in barra se abilitata). */
+  const bottomNavTabs = useMemo((): AppNavTab[] => {
+    if (!currentUser) return ['home'];
+    return getBottomNavTabsForMainApp(currentUser, isManagement, featureFlags);
   }, [currentUser, isManagement, featureFlags, roleTemplatesRevision]);
 
   const tr = getTranslations(effectiveLanguage);
@@ -341,8 +348,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
             activeTab={activeTab}
             showOnDesktop
             parentProvidesCardShell
+            hideHeaderLogout={!isManagement}
           />
         </div>
+        {currentUser && (
+          <div className={`${appHeaderCardClass} mt-2`}>
+            <HeaderTodayCoworkersCard />
+          </div>
+        )}
       </header>
 
       <main
@@ -397,7 +410,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       <AnimatePresence mode="wait">{postRefreshLocked && <RefreshLockOverlay key="refresh-lock" />}</AnimatePresence>
 
       {!noNavTabs && (
-        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} visibleTabs={visibleNavTabs} />
+        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} visibleTabs={bottomNavTabs} />
       )}
     </div>
   );

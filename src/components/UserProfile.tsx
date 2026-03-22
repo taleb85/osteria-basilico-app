@@ -14,6 +14,7 @@ import { buildProfiloAccessLink } from '../config/appPaths';
 import type { User as UserType, Language, Department } from '../types';
 import { isPurelyManagementRole, isAdminOnly } from '../utils/permissions';
 import { getDepartments } from '../utils/departments';
+import StaffOperationalPermissionsEditor from './StaffOperationalPermissionsEditor';
 
 const LANGS: Language[] = ['it', 'en', 'es', 'fr'];
 
@@ -379,6 +380,12 @@ export function ProfileFormAdmin({
           </select>
         </div>
 
+        {variant === 'edit' && !isPurelyManagementRole(layoutRole) && (
+          <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
+            <StaffOperationalPermissionsEditor user={user} currentUser={currentUser} />
+          </div>
+        )}
+
         {variant === 'edit' && (
           <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-3 space-y-2">
             <button
@@ -413,7 +420,8 @@ export function ProfileFormAdmin({
         )}
 
         <p className="text-[11px] text-slate-500 mt-2">
-          {(t as { permissions_in_settings?: string }).permissions_in_settings ?? 'Permessi Funzionalità, Moduli e Gestione Visibilità: apri la scheda Admin e clicca "Permessi" sul dipendente.'}
+          {(t as { permissions_in_settings?: string }).permissions_in_settings ??
+            'Funzionalità, moduli e visibilità schede: Impostazioni → Team → Permessi sul dipendente (template ruoli + anteprima).'}
         </p>
 
         <div className="flex space-x-2 pt-3">

@@ -20,6 +20,8 @@ interface MobileProfileHeaderProps {
   embeddedInAppHeader?: boolean;
   /** Il genitore (es. MainApp) avvolge già la card con bordo/ombra — solo contenuto interno. */
   parentProvidesCardShell?: boolean;
+  /** Staff: logout solo da Impostazioni — meno pulsanti nell’header. */
+  hideHeaderLogout?: boolean;
 }
 
 export default function MobileProfileHeader({
@@ -29,6 +31,7 @@ export default function MobileProfileHeader({
   compact = false,
   embeddedInAppHeader = false,
   parentProvidesCardShell = false,
+  hideHeaderLogout = false,
 }: MobileProfileHeaderProps) {
   const { currentUser, effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
@@ -81,9 +84,9 @@ export default function MobileProfileHeader({
                 {dateStr}
               </p>
             </div>
-            <UserAvatarMenu variant="toolbar" />
+            <UserAvatarMenu variant="toolbar" onLogout={hideHeaderLogout ? onLogout : undefined} />
             <NotificationCenter denseTrigger />
-            {onLogout && (
+            {onLogout && !hideHeaderLogout && (
               <button
                 type="button"
                 onClick={onLogout}

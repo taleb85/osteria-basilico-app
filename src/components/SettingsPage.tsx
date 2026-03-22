@@ -1,5 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -7,8 +6,7 @@ import type { User, UserRole } from '../types';
 import { translateRole } from '../utils/roles';
 import { getAdminModuleLabel, getTranslations, formatTrans, getFeatureStrings } from '../utils/translations';
 import { canUserEdit, isAdminOnly, canViewSuspended, isPurelyManagementRole, isManagementRole, isUserVisibleOnTeamSchedule, canEditRoleFeatureTemplates } from '../utils/permissions';
-import { isUserPermissionEffective } from '../utils/staffPermissionDefaults';
-import { buildSettingsPermissionRows } from '../utils/settingsPermissionRows';
+import StaffOperationalPermissionsEditor from './StaffOperationalPermissionsEditor';
 import { exportToJSON, exportToCSV } from '../utils/exportData';
 import { importDataToSupabase, clearAllData } from '../utils/importData';
 import EditStaffModal from './EditStaffModal';
@@ -27,6 +25,7 @@ import { FEATURE_DEFINITIONS } from '../utils/featureFlags';
 import { getEnabledFeatures, ADMIN_MODULE_KEYS, getAdminModuleEnabled, isAdminModuleEnabled } from '../utils/enabledFeatures';
 import RoleFeatureSectionsBlock, { PERMISSION_SUMMARY_LIST_CLASS } from './RoleFeatureSectionsBlock';
 import AdminRow from './ui/AdminRow';
+import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage';
 import type { WorkRules } from '../utils/workRules';
 
@@ -46,39 +45,18 @@ function DepartmentColorPicker({
   onChange: (hex: string) => void;
   title: string;
 }) {
+  const { effectiveLanguage } = useApp();
+  const t = getTranslations(effectiveLanguage);
+  const tv = t as Record<string, string>;
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 });
-
-  const updatePopoverPosition = useCallback(() => {
-    const btn = wrapRef.current?.querySelector('button');
-    if (!btn) return;
-    const r = btn.getBoundingClientRect();
-    const maxW = Math.min(window.innerWidth - 32, 17.5 * 16);
-    let left = r.left;
-    if (left + maxW > window.innerWidth - 16) {
-      left = Math.max(16, window.innerWidth - 16 - maxW);
-    }
-    setPopoverPos({ top: r.bottom + 10, left });
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!open) return;
-    updatePopoverPosition();
-    window.addEventListener('scroll', updatePopoverPosition, true);
-    window.addEventListener('resize', updatePopoverPosition);
-    return () => {
-      window.removeEventListener('scroll', updatePopoverPosition, true);
-      window.removeEventListener('resize', updatePopoverPosition);
-    };
-  }, [open, updatePopoverPosition]);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (e: PointerEvent) => {
       if (wrapRef.current?.contains(e.target as Node)) return;
-      if (popoverRef.current?.contains(e.target as Node)) return;
+      if (modalRef.current?.contains(e.target as Node)) return;
       setOpen(false);
     };
     document.addEventListener('pointerdown', onPointerDown);
@@ -97,54 +75,39 @@ function DepartmentColorPicker({
         className="relative h-9 w-9 shrink-0 rounded-full border-2 border-white shadow-[0_2px_10px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/90 outline-none transition-transform hover:ring-slate-300 focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 active:scale-[0.96]"
         style={{ backgroundColor: value }}
       />
-      {typeof document !== 'undefined' &&
-        createPortal(
-          <AnimatePresence>
-            {open && (
-              <motion.div
-                key="dept-color-popover"
-                ref={popoverRef}
-                role="dialog"
-                aria-label={title}
-                initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -4, scale: 0.99 }}
-                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                style={{
-                  position: 'fixed',
-                  top: popoverPos.top,
-                  left: popoverPos.left,
-                  zIndex: 200,
-                  width: 'min(calc(100vw - 2rem), 17.5rem)',
-                }}
-                className="rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-[0_16px_48px_-12px_rgba(15,23,42,0.22),0_4px_16px_-4px_rgba(45,90,39,0.08)] supports-[backdrop-filter]:backdrop-blur-md"
-              >
-                <p className="mb-2.5 px-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">{title}</p>
-                <div className="grid grid-cols-6 gap-2">
-                  {DEPARTMENT_COLOR_PRESETS.map((hex) => {
-                    const selected = value.toLowerCase() === hex.toLowerCase();
-                    return (
-                      <button
-                        key={hex}
-                        type="button"
-                        title={hex}
-                        onClick={() => {
-                          onChange(hex);
-                          setOpen(false);
-                        }}
-                        className={`h-8 w-8 rounded-full border-2 border-white shadow-sm outline-none transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 ${
-                          selected ? 'ring-2 ring-accent ring-offset-2' : 'ring-1 ring-slate-200/70'
-                        }`}
-                        style={{ backgroundColor: hex }}
-                      />
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>,
-          document.body
-        )}
+      {open && (
+        <CenteredModalPortal
+          open
+          onClose={() => setOpen(false)}
+          panelRef={modalRef}
+          backdropAriaLabel={tv.close ?? 'Chiudi'}
+          ariaLabel={title}
+          maxWidthClass="max-w-xs"
+          panelClassName="p-3"
+        >
+          <p className="mb-2.5 px-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">{title}</p>
+          <div className="grid grid-cols-6 gap-2">
+            {DEPARTMENT_COLOR_PRESETS.map((hex) => {
+              const selected = value.toLowerCase() === hex.toLowerCase();
+              return (
+                <button
+                  key={hex}
+                  type="button"
+                  title={hex}
+                  onClick={() => {
+                    onChange(hex);
+                    setOpen(false);
+                  }}
+                  className={`h-8 w-8 rounded-full border-2 border-white shadow-sm outline-none transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 ${
+                    selected ? 'ring-2 ring-accent ring-offset-2' : 'ring-1 ring-slate-200/70'
+                  }`}
+                  style={{ backgroundColor: hex }}
+                />
+              );
+            })}
+          </div>
+        </CenteredModalPortal>
+      )}
     </div>
   );
 }
@@ -229,8 +192,6 @@ export default function SettingsPage() {
     if (!window.confirm(t.settings_delete_break_rule_confirm)) return;
     setBreakRules(breakRules.filter((r) => r.id !== id));
   }, [breakRules, setBreakRules, t.settings_delete_break_rule_confirm]);
-
-  const permissionDefinitions = useMemo(() => buildSettingsPermissionRows(t), [t]);
 
   const toggleTeamSectionExpanded = useCallback(() => {
     setTeamSectionExpanded((prev) => {
@@ -598,43 +559,7 @@ export default function SettingsPage() {
                                 </p>
                               </div>
                             ) : (
-                              <div>
-                                <p className="ui-section-title mb-2 text-slate-400">
-                                  {formatTrans(t.settings_operational_perms_heading, { name: user.first_name ?? '' })}
-                                </p>
-                                <p className="text-[11px] text-slate-500 mb-2 leading-snug">
-                                  {t.settings_operational_perms_db_hint}
-                                </p>
-                                <div className={PERMISSION_SUMMARY_LIST_CLASS}>
-                                  {permissionDefinitions.map((perm) => {
-                                    const enabled = isUserPermissionEffective(user, perm.key);
-                                    return (
-                                      <AdminRow
-                                        key={perm.key}
-                                        className="!py-2.5 !px-4"
-                                        label={<span className={enabled ? 'text-slate-800' : 'text-slate-500'}>{perm.label}</span>}
-                                        description={perm.description}
-                                        badge={
-                                          perm.adminOnly ? (
-                                            <span className="text-[9px] font-bold text-accent border border-accent/30 bg-accent/8 rounded-xl px-1.5 py-0.5 uppercase tracking-wider">
-                                              {t.settings_badge_admin}
-                                            </span>
-                                          ) : undefined
-                                        }
-                                        action={
-                                          <span
-                                            className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
-                                              enabled ? 'bg-accent text-white shadow-sm' : 'bg-slate-100 text-slate-500'
-                                            }`}
-                                          >
-                                            {enabled ? t.role_template_yes : t.role_template_no}
-                                          </span>
-                                        }
-                                      />
-                                    );
-                                  })}
-                                </div>
-                              </div>
+                              <StaffOperationalPermissionsEditor user={user} currentUser={currentUser} />
                             )}
                           </div>
                         </motion.div>

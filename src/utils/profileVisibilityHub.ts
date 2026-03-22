@@ -47,8 +47,10 @@ export function featureKeyToPreviewTab(key: EnabledFeatureKey): AppNavTab {
     case 'edit_shifts':
     case 'approve_shifts':
       return 'turni';
-    case 'export_pdf':
+    case 'timesheet_tab':
       return 'timesheet';
+    case 'export_pdf':
+      return 'turni';
     case 'view_stats':
     case 'view_estimated_cost':
       return 'reports';
@@ -152,7 +154,7 @@ const MODULE_LABELS_IT: Record<EnabledModule, string> = {
   stats_hours: 'Statistiche ore',
   financial_reports: 'Report / finanziari',
   vacation_requests: 'Ferie e permessi',
-  pdf_export: 'PDF presenze',
+  pdf_export: 'Scheda Presenze (modulo legacy)',
 };
 
 export function getModuleLabel(module: EnabledModule, lang: string): string {
@@ -163,7 +165,7 @@ export function getModuleLabel(module: EnabledModule, lang: string): string {
       stats_hours: 'Hours stats',
       financial_reports: 'Reports',
       vacation_requests: 'Time off',
-      pdf_export: 'Attendance PDF',
+      pdf_export: 'Attendance sheet (legacy module)',
     };
     return en[module];
   }

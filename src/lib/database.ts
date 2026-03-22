@@ -1,7 +1,8 @@
 import { supabase } from './supabase';
 import { User, Shift, HolidayRequest, PunchRecord, PunchAuditEntry } from '../types';
 import { sanitizeUiSectionOverrides } from '../utils/uiScreenWidgets';
-import { buildDemoProfileData, punchRecordsFromSpecs } from '../utils/seedDemoProfileData';
+import { buildDemoCoworkerShiftsToday, buildDemoProfileData, punchRecordsFromSpecs } from '../utils/seedDemoProfileData';
+import { isUserVisibleOnTeamSchedule } from '../utils/permissions';
 
 /** Evita 400 su jsonb / tipi non validi. */
 function sanitizeUserUpdatePayload(payload: Record<string, unknown>): Record<string, unknown> {
@@ -864,13 +865,25 @@ export const database = {
     holidays: number;
     punchRecords: number;
     userUpdated: boolean;
+    coworkerShifts: number;
   }> {
     if (!supabase) {
       throw new Error('Supabase non configurato');
     }
     const built = buildDemoProfileData(new Date(), userId);
+    let coworkerShiftsBuilt: Omit<Shift, 'id'>[] = [];
+    try {
+      const allUsers = await database.users.getAll();
+      const coworkers = (allUsers as User[])
+        .filter((u) => u.id !== userId && isUserVisibleOnTeamSchedule(u))
+        .slice(0, 4);
+      coworkerShiftsBuilt = buildDemoCoworkerShiftsToday(new Date(), coworkers.map((c) => c.id));
+    } catch {
+      /* nessun elenco utenti: solo turni del profilo demo */
+    }
+    const shiftsToInsert = [...built.shifts, ...coworkerShiftsBuilt];
     /** Solo chiavi esplicite: mai `approved_*` nell’INSERT (batch PostgREST = unione colonne; oggetti “Shift” portano chiavi extra). */
-    const shiftRowsFull = built.shifts.map((s) => {
+    const shiftRowsFull = shiftsToInsert.map((s) => {
       const row: Record<string, string | boolean> = {
         user_id: s.user_id,
         date: s.date,
@@ -883,7 +896,7 @@ export const database = {
       if (s.notes && String(s.notes).trim()) row.notes = String(s.notes).trim();
       return row;
     });
-    const shiftRowsMinimal = built.shifts.map((s) => ({
+    const shiftRowsMinimal = shiftsToInsert.map((s) => ({
       user_id: s.user_id,
       date: s.date,
       start_time: s.start_time,
@@ -954,6 +967,7 @@ export const database = {
       holidays: built.holidays.length,
       punchRecords: punchCount,
       userUpdated,
+      coworkerShifts: coworkerShiftsBuilt.length,
     };
   },
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   startOfMonth,
   endOfMonth,
@@ -29,9 +29,15 @@ import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { motion } from 'framer-motion';
 import { Calendar } from 'lucide-react';
 import DatePickerField from './DatePickerField';
+import { CenteredModalPortal } from './ui/CenteredModalPortal';
 
 function toDateOnly(d: Date): string {
   return format(d, 'yyyy-MM-dd');
+}
+
+function formatStatsChipDate(iso: string, locale: typeof it): string {
+  const d = parseISO(iso.slice(0, 10));
+  return Number.isNaN(d.getTime()) ? '—' : format(d, 'dd/MM/yy', { locale });
 }
 
 type WeekKey = string; // "2026-W10"
@@ -58,7 +64,9 @@ export default function Statistics() {
   const [preset, setPreset]     = useState<Preset>('period');
   const [dateStart, setDateStart] = useState<string>(initialPeriod.start);
   const [dateEnd, setDateEnd]     = useState<string>(initialPeriod.end);
-  const dateStartInputRef = useRef<HTMLButtonElement>(null);
+  /** Staff: date manuali → non sovrascrivere su `osteria_period_updated` finché non si riallinea. */
+  const [staffRangeCustom, setStaffRangeCustom] = useState(false);
+  const [mgmtRangeModalOpen, setMgmtRangeModalOpen] = useState(false);
 
   // Sync date range when preset changes
   useEffect(() => {
@@ -80,18 +88,24 @@ export default function Statistics() {
     }
   }, [preset]);
 
-  // Aggiorna range quando il periodo viene salvato in Presenze
+  // Aggiorna range quando il periodo viene salvato in Presenze (gestione: solo preset «periodo»; staff: sempre salvo date custom)
   useEffect(() => {
     const handler = () => {
+      const { startDate, endDate } = getPeriodDateRange(loadPeriodConfig());
+      if (!showManagementStatsChrome) {
+        if (staffRangeCustom) return;
+        setDateStart(startDate);
+        setDateEnd(endDate);
+        return;
+      }
       if (preset === 'period') {
-        const { startDate, endDate } = getPeriodDateRange(loadPeriodConfig());
         setDateStart(startDate);
         setDateEnd(endDate);
       }
     };
     window.addEventListener('osteria_period_updated', handler);
     return () => window.removeEventListener('osteria_period_updated', handler);
-  }, [preset]);
+  }, [preset, showManagementStatsChrome, staffRangeCustom]);
 
   const rangeStart = useMemo(() => {
     const s = new Date(dateStart);
@@ -208,54 +222,88 @@ export default function Statistics() {
 
         {/* ── Filtro Temporale (gestione + view_stats) ───────────────── */}
         {showManagementStatsChrome && uiW('stats.mgmt_filters') && (
-          <div className="ui-toolbar-page-band">
-            <div className="ui-toolbar-page-band-inner">
-              <div className="ui-toolbar-row-tight min-w-0">
-                {PRESETS.map((p) => (
+          <>
+            <div className="ui-toolbar-page-band">
+              <div className="ui-toolbar-page-band-inner">
+                <div className="ui-toolbar-row-tight min-w-0 flex-wrap items-center gap-2">
+                  {PRESETS.map((p) => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => {
+                        setPreset(p.key);
+                        if (p.key === 'custom') setMgmtRangeModalOpen(true);
+                      }}
+                      className={`ui-toolbar-pill transition-all ${
+                        preset === p.key
+                          ? 'border-accent bg-accent text-white'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      {p.key === 'custom' && <Calendar className="h-3 w-3 shrink-0" aria-hidden />}
+                      {p.label}
+                    </button>
+                  ))}
                   <button
-                    key={p.key}
                     type="button"
-                    onClick={() => {
-                      setPreset(p.key);
-                      if (p.key === 'custom') {
-                        requestAnimationFrame(() => {
-                          dateStartInputRef.current?.focus();
-                          dateStartInputRef.current?.click();
-                        });
-                      }
-                    }}
-                    className={`ui-toolbar-pill transition-all ${
-                      preset === p.key
-                        ? 'border-accent bg-accent text-white'
-                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
+                    onClick={() => setMgmtRangeModalOpen(true)}
+                    className="ui-toolbar-chip max-w-full border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                    aria-label={t.stats_date_range}
+                    title={t.stats_date_range}
                   >
-                    {p.key === 'custom' && <Calendar className="h-3 w-3 shrink-0" />}
-                    {p.label}
+                    <Calendar className="h-3 w-3 shrink-0 text-slate-500" aria-hidden />
+                    <span className="min-w-0 truncate tabular-nums text-[12px] font-semibold sm:text-[13px]">
+                      {formatStatsChipDate(dateStart, statsLoc)} → {formatStatsChipDate(dateEnd, statsLoc)}
+                    </span>
                   </button>
-                ))}
-              </div>
-              {/* Date picker (sempre visibili, ma prominenti solo in custom) */}
-              <div className={`ui-toolbar-row shrink-0 transition-opacity ${preset !== 'custom' ? 'pointer-events-none opacity-50' : ''}`}>
-                <DatePickerField
-                  ref={dateStartInputRef}
-                  value={dateStart}
-                  max={dateEnd}
-                  allowClear={false}
-                  onChange={(v) => { setDateStart(v); setPreset('custom'); }}
-                  aria-label={t.stats_date_range}
-                />
-                <span className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-medium leading-none text-slate-400">→</span>
-                <DatePickerField
-                  value={dateEnd}
-                  min={dateStart}
-                  allowClear={false}
-                  onChange={(v) => { setDateEnd(v); setPreset('custom'); }}
-                  aria-label={t.stats_date_range}
-                />
+                </div>
               </div>
             </div>
-          </div>
+            {mgmtRangeModalOpen && (
+              <CenteredModalPortal
+                open
+                onClose={() => setMgmtRangeModalOpen(false)}
+                backdropAriaLabel={tv.close ?? 'Chiudi'}
+                ariaLabel={t.stats_date_range}
+                maxWidthClass="max-w-md"
+                panelClassName="p-4 sm:p-5"
+              >
+                <h3 className="mb-4 border-b border-slate-100 pb-3 text-base font-bold text-slate-900">{t.stats_date_range}</h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <DatePickerField
+                    value={dateStart}
+                    max={dateEnd}
+                    allowClear={false}
+                    onChange={(v) => {
+                      setDateStart(v);
+                      setPreset('custom');
+                    }}
+                    aria-label={tv.stats_aria_date_start ?? t.stats_date_range}
+                  />
+                  <span className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-medium leading-none text-slate-400" aria-hidden>
+                    →
+                  </span>
+                  <DatePickerField
+                    value={dateEnd}
+                    min={dateStart}
+                    allowClear={false}
+                    onChange={(v) => {
+                      setDateEnd(v);
+                      setPreset('custom');
+                    }}
+                    aria-label={tv.stats_aria_date_end ?? t.stats_date_range}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMgmtRangeModalOpen(false)}
+                  className="mt-5 w-full rounded-xl bg-accent py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-accent-hover"
+                >
+                  {tv.close ?? 'Chiudi'}
+                </button>
+              </CenteredModalPortal>
+            )}
+          </>
         )}
 
         {/* ── Sezione ore (staff o gestionale senza view_stats) ──────── */}
@@ -267,7 +315,10 @@ export default function Statistics() {
               value={dateStart}
               max={dateEnd}
               allowClear={false}
-              onChange={setDateStart}
+              onChange={(v) => {
+                setStaffRangeCustom(true);
+                setDateStart(v);
+              }}
               aria-label={tv.stats_aria_date_start}
             />
             <span className="inline-flex shrink-0 items-center text-[11px] font-semibold text-slate-400 sm:text-[12px]" aria-hidden>
@@ -278,9 +329,26 @@ export default function Statistics() {
               value={dateEnd}
               min={dateStart}
               allowClear={false}
-              onChange={setDateEnd}
+              onChange={(v) => {
+                setStaffRangeCustom(true);
+                setDateEnd(v);
+              }}
               aria-label={tv.stats_aria_date_end}
             />
+            {staffRangeCustom ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setStaffRangeCustom(false);
+                  const { startDate, endDate } = getPeriodDateRange(loadPeriodConfig());
+                  setDateStart(startDate);
+                  setDateEnd(endDate);
+                }}
+                className="shrink-0 rounded-lg border border-accent/30 bg-accent/5 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-accent-dark transition-colors hover:bg-accent/10 sm:text-[11px]"
+              >
+                {tv.stats_align_timesheet_period ?? 'Periodo presenze'}
+              </button>
+            ) : null}
           </div>
         )}
 

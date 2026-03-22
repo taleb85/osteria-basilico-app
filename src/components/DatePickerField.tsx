@@ -8,13 +8,13 @@ import {
   forwardRef,
   type MutableRefObject,
 } from 'react';
-import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
 import { DayPicker, type Matcher } from 'react-day-picker';
 import { Calendar, ChevronDown } from 'lucide-react';
 import { it } from 'date-fns/locale';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getDateLocale } from '../utils/translations';
+import { CenteredModalPortal } from './ui/CenteredModalPortal';
 
 import 'react-day-picker/style.css';
 
@@ -69,11 +69,13 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
 ) {
   const { effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
+  const tv = t as Record<string, string>;
   const locale = getDateLocale(effectiveLanguage) ?? it;
   const clearLabel = (t as { date_picker_clear?: string }).date_picker_clear ?? 'Cancella';
   const chooseLabel = (t as { date_picker_choose?: string }).date_picker_choose ?? 'Scegli data';
 
   const innerRef = useRef<HTMLButtonElement | null>(null);
+  const popRef = useRef<HTMLDivElement>(null);
   const setButtonRef = useCallback(
     (node: HTMLButtonElement | null) => {
       innerRef.current = node;
@@ -84,8 +86,6 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
   );
 
   const [open, setOpen] = useState(false);
-  const popRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
 
   const selected = value ? parseLocalDateOnly(value) : undefined;
 
@@ -103,30 +103,14 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
   const [visibleMonth, setVisibleMonth] = useState<Date>(() => anchorMonth);
   const wasOpenRef = useRef(false);
 
-  const updatePos = useCallback(() => {
-    const el = innerRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const popH = 400;
-    const flip = r.bottom + popH > window.innerHeight - 12 && r.top > popH;
-    const left = Math.max(8, Math.min(r.left, window.innerWidth - 296));
-    setPos({
-      top: flip ? Math.max(8, r.top - popH - 8) : r.bottom + 8,
-      left,
-    });
-  }, []);
-
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!open) return;
-    updatePos();
-    const onScroll = () => updatePos();
-    window.addEventListener('scroll', onScroll, true);
-    window.addEventListener('resize', onScroll);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     return () => {
-      window.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('resize', onScroll);
+      document.body.style.overflow = prev;
     };
-  }, [open, updatePos]);
+  }, [open]);
 
   /** Solo all’apertura: evita di azzerare il mese mentre si naviga o mentre `value` si aggiorna con il menu aperto. */
   useLayoutEffect(() => {
@@ -152,9 +136,22 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
     };
   }, [open]);
 
-  const matchers: Matcher[] = [];
   const minD = min ? parseLocalDateOnly(min) : undefined;
   const maxD = max ? parseLocalDateOnly(max) : undefined;
+  const startMonthNav = useMemo(() => {
+    const m = min ? parseLocalDateOnly(min) : undefined;
+    if (m) return new Date(m.getFullYear(), m.getMonth(), 1);
+    const y = new Date().getFullYear();
+    return new Date(y - 5, 0, 1);
+  }, [min]);
+  const endMonthNav = useMemo(() => {
+    const m = max ? parseLocalDateOnly(max) : undefined;
+    if (m) return new Date(m.getFullYear(), m.getMonth(), 1);
+    const y = new Date().getFullYear();
+    return new Date(y + 2, 11, 1);
+  }, [max]);
+
+  const matchers: Matcher[] = [];
   if (minD) matchers.push({ before: minD });
   if (maxD) matchers.push({ after: maxD });
 
@@ -162,64 +159,54 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
     ? format(selected, compact ? 'dd/MM/yy' : 'd MMM yyyy', { locale })
     : chooseLabel;
 
-  const popover =
-    open &&
-    !disabled &&
-    createPortal(
+  const panelInner = (
+    <>
+      <DayPicker
+        mode="single"
+        required={!allowClear}
+        selected={selected}
+        onSelect={(d: Date | undefined) => {
+          if (d) onChange(format(d, 'yyyy-MM-dd'));
+          else if (allowClear) onChange('');
+          setOpen(false);
+        }}
+        locale={locale}
+        captionLayout="dropdown"
+        startMonth={startMonthNav}
+        endMonth={endMonthNav}
+        month={visibleMonth}
+        onMonthChange={setVisibleMonth}
+        disabled={matchers.length ? matchers : undefined}
+        className="rdp-modern"
+      />
       <div
-        ref={popRef}
-        data-osteria-date-picker-portal=""
-        className="fixed z-[10050] min-w-[288px] rounded-3xl border border-slate-200/90 bg-white p-3.5 shadow-[0_12px_40px_-8px_rgba(15,23,42,0.22),0_4px_16px_-4px_rgba(45,90,39,0.1)]"
-        style={{ top: pos.top, left: pos.left }}
-        role="dialog"
-        aria-modal="true"
-        aria-label={chooseLabel}
+        className={`mt-3 flex items-center gap-2.5 border-t border-slate-100 pt-3.5 ${allowClear ? 'justify-between' : 'justify-end'}`}
       >
-        <DayPicker
-          mode="single"
-          required={!allowClear}
-          selected={selected}
-          onSelect={(d: Date | undefined) => {
-            if (d) onChange(format(d, 'yyyy-MM-dd'));
-            else if (allowClear) onChange('');
-            setOpen(false);
-          }}
-          locale={locale}
-          captionLayout="dropdown"
-          month={visibleMonth}
-          onMonthChange={setVisibleMonth}
-          disabled={matchers.length ? matchers : undefined}
-          className="rdp-modern"
-        />
-        <div
-          className={`mt-3 flex items-center gap-2.5 border-t border-slate-100 pt-3.5 ${allowClear ? 'justify-between' : 'justify-end'}`}
-        >
-          {allowClear ? (
-            <button
-              type="button"
-              className="rounded-2xl px-2.5 py-1.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
-              onClick={() => {
-                onChange('');
-                setOpen(false);
-              }}
-            >
-              {clearLabel}
-            </button>
-          ) : null}
+        {allowClear ? (
           <button
             type="button"
-            className="rounded-2xl bg-accent px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-hover"
+            className="rounded-2xl px-2.5 py-1.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
             onClick={() => {
-              onChange(format(new Date(), 'yyyy-MM-dd'));
+              onChange('');
               setOpen(false);
             }}
           >
-            {t.today}
+            {clearLabel}
           </button>
-        </div>
-      </div>,
-      document.body
-    );
+        ) : null}
+        <button
+          type="button"
+          className="rounded-2xl bg-accent px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-hover"
+          onClick={() => {
+            onChange(format(new Date(), 'yyyy-MM-dd'));
+            setOpen(false);
+          }}
+        >
+          {t.today}
+        </button>
+      </div>
+    </>
+  );
 
   return (
     <>
@@ -240,7 +227,21 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         <span className="min-w-0 truncate tabular-nums">{label}</span>
         <ChevronDown className="ml-0.5 h-3 w-3 shrink-0 text-slate-400" aria-hidden />
       </button>
-      {popover}
+      {open && !disabled && (
+        <CenteredModalPortal
+          open
+          onClose={() => setOpen(false)}
+          panelRef={popRef}
+          backdropAriaLabel={tv.close ?? 'Chiudi'}
+          ariaLabel={chooseLabel}
+          maxWidthClass="max-w-lg"
+          maxHeightClass="max-h-[min(92dvh,720px)]"
+          panelClassName="p-3.5"
+          markDatePickerPortal
+        >
+          {panelInner}
+        </CenteredModalPortal>
+      )}
     </>
   );
 });

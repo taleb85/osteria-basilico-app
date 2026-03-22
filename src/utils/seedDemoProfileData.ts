@@ -27,6 +27,31 @@ function shiftTime(hhmm: string): string {
   return hhmm.length <= 5 ? `${hhmm}:00` : hhmm;
 }
 
+/** Turni confermati per oggi su altri utenti (card “In turno oggi” / griglia). Orari distinti da 11:30 / 18:00 del profilo demo. */
+export function buildDemoCoworkerShiftsToday(now: Date, coworkerUserIds: string[]): Omit<Shift, 'id'>[] {
+  if (coworkerUserIds.length === 0) return [];
+  const day0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = format(day0, 'yyyy-MM-dd');
+  const slots: Array<{ start: string; end: string; type: 'lunch' | 'dinner' }> = [
+    { start: '10:00', end: '14:30', type: 'lunch' },
+    { start: '12:00', end: '16:00', type: 'lunch' },
+    { start: '17:30', end: '23:00', type: 'dinner' },
+    { start: '11:00', end: '15:00', type: 'lunch' },
+  ];
+  return coworkerUserIds.map((uid, i) => {
+    const t = slots[i % slots.length];
+    return {
+      user_id: uid,
+      date: today,
+      start_time: shiftTime(t.start),
+      end_time: shiftTime(t.end),
+      type: t.type,
+      approval_status: 'confirmed',
+      deduct_break: true,
+    };
+  });
+}
+
 /**
  * Dati di esempio per un singolo dipendente: turni (confermati / approvati con congelo),
  * timbrature collegate, richieste ferie/permessi, campi profilo (telefono, reparto, tariffa, ore mensili).
@@ -47,6 +72,8 @@ export function buildDemoProfileData(now: Date, userId: string): DemoProfileBuil
   };
 
   const entries: Entry[] = [
+    /* Oggi (data locale di `now`): un turno confermato, senza timbrature precaricate — prova IN/OUT da dispositivo. */
+    { offset: 0, type: 'lunch', start: '10:00', end: '22:00', approval_status: 'confirmed' },
     { offset: -18, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'approved', punch: true, freeze: true },
     { offset: -17, type: 'dinner', start: '18:00', end: '23:30', approval_status: 'confirmed', punch: true },
     { offset: -15, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'confirmed', punch: true },

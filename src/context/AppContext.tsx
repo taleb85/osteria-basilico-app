@@ -104,6 +104,7 @@ interface AppContextType {
     holidays: number;
     punchRecords: number;
     userUpdated: boolean;
+    coworkerShifts: number;
   }>;
   silentRefreshData: (opts?: {
     pullRemoteConfig?: boolean;
