@@ -86,7 +86,6 @@ export const ROLE_TEMPLATE_FEATURE_SECTIONS: readonly RoleTemplateSection[] = [
       { kind: 'feature', key: 'ferie_tab' },
       { kind: 'feature', key: 'export_pdf' },
       { kind: 'feature', key: 'view_stats' },
-      { kind: 'feature', key: 'admin_tab' },
     ],
   },
   {
@@ -140,17 +139,13 @@ const DEFAULT_MANAGER_FEATURES: EnabledFeatures = {
   view_estimated_cost: true,
   desktop_access: true,
   ferie_tab: true,
-  admin_tab: true,
+  /** Solo il ruolo `admin` vede la scheda Impostazioni / profili in barra (ignora template e JSONB). */
+  admin_tab: false,
 };
 
-/**
- * Default per staff operativo: come management tranne **admin_tab** (Impostazioni / profili).
- * Con `admin_tab` true di default molti profili vedevano la scheda senza averla mai abilitata nel template,
- * e merge/template risultavano fuorvianti. Si riattiva da template ruoli “staff” o override `enabled_features`.
- */
+/** Default staff: come management (stesso `admin_tab` false). */
 const DEFAULT_STAFF_FEATURES: EnabledFeatures = {
   ...DEFAULT_MANAGER_FEATURES,
-  admin_tab: false,
 };
 
 export function getDefaultEnabledFeatures(role: string): EnabledFeatures {
@@ -272,7 +267,9 @@ export function getEnabledFeatures(user: { role: string; enabled_features?: unkn
   }
   const grp = getRolePermissionGroup(user.role);
   if (grp === 'admin') return base;
-  return mergeUserFeatureOverrides(applyDiskTemplateToBase(base, grp), user.enabled_features);
+  const merged = mergeUserFeatureOverrides(applyDiskTemplateToBase(base, grp), user.enabled_features);
+  merged.admin_tab = false;
+  return merged;
 }
 
 /** Override per-utente da colonna `users.enabled_features` (JSONB), se presente. */
@@ -289,10 +286,9 @@ function mergeUserFeatureOverrides(
   return out;
 }
 
-/** Scheda Admin / Impostazioni nella dashboard. Solo ruolo `admin` è sempre true (non resta bloccato). */
+/** Scheda Admin / Impostazioni nella dashboard: solo ruolo `admin`. */
 export function isAdminSettingsTabEnabled(user: { role: string; enabled_features?: unknown }): boolean {
-  if (user.role === 'admin') return true;
-  return getEnabledFeatures(user).admin_tab === true;
+  return user.role === 'admin';
 }
 
 /** Default per Manager/Assistant Manager: tutte le funzioni Impostazioni attive. */
