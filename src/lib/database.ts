@@ -71,8 +71,16 @@ const USER_INSERT_CORE_KEYS = [
   'theme',
 ] as const;
 
-const USER_INSERT_EXTENDED_KEYS = [
-  ...USER_INSERT_CORE_KEYS,
+function pickInsertKeys(obj: Record<string, unknown>, keys: readonly string[]): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const k of keys) {
+    if (k in obj && obj[k] !== undefined) out[k] = obj[k];
+  }
+  return out;
+}
+
+/** Campi da applicare dopo l’INSERT (UPDATE), non nel primo insert. */
+const USER_INSERT_PATCH_KEYS = [
   'can_create_shifts',
   'can_approve_shifts',
   'can_view_total_hours',
@@ -82,12 +90,9 @@ const USER_INSERT_EXTENDED_KEYS = [
   'hourly_rate_eur',
 ] as const;
 
-function pickInsertKeys(obj: Record<string, unknown>, keys: readonly string[]): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const k of keys) {
-    if (k in obj && obj[k] !== undefined) out[k] = obj[k];
-  }
-  return out;
+export function formatSupabaseError(err: unknown): string {
+  const e = err as { message?: string; details?: string; hint?: string };
+  return [e.message, e.details, e.hint].filter(Boolean).join(' — ');
 }
 
 function stripMissingUserColumns(payload: Record<string, unknown>, error: unknown): Record<string, unknown> | null {
@@ -135,60 +140,82 @@ export const database = {
 
       const errCode = (e: unknown) => (e as { code?: string })?.code ?? '';
 
-      let { error } = await runInsert(payload);
+      /*
+       * 1) Solo colonne “core” nell’INSERT: molti 400/RLS strani vengono da colonne extra nel primo write.
+       * 2) Permessi / reparto / tariffa → UPDATE (stessa logica resilient di users.update).
+       */
+      let coreBody = pickInsertKeys(payload, [...USER_INSERT_CORE_KEYS]);
+      let { error } = await runInsert(coreBody);
 
       if (error && isMissingColumnError(error)) {
-        const stripped = stripMissingUserColumns(payload, error);
-        if (stripped && Object.keys(stripped).length < Object.keys(payload).length) {
+        const stripped = stripMissingUserColumns(coreBody, error);
+        if (stripped && Object.keys(stripped).length < Object.keys(coreBody).length) {
           const second = await runInsert(stripped);
           error = second.error;
+          coreBody = stripped;
         }
       }
 
-      if (error && errCode(error) !== '23505') {
-        const ext = pickInsertKeys(payload, [...USER_INSERT_EXTENDED_KEYS]);
-        const r2 = await runInsert(ext);
-        if (!r2.error) error = null;
-        else error = r2.error;
-      }
-
-      if (error && errCode(error) !== '23505') {
-        const core = pickInsertKeys(payload, [...USER_INSERT_CORE_KEYS]);
-        const r3 = await runInsert(core);
-        if (!r3.error) error = null;
-        else error = r3.error;
-      }
-
       if (error) {
-        console.error('[database.users.insert] fallito', error);
+        console.error('[database.users.insert] insert core fallito', error);
         throw error;
       }
 
-      const ordered = await supabase!
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .order('created_at', { ascending: false })
-        .limit(1);
+      const fetchInserted = async (): Promise<User | null> => {
+        const ordered = await supabase!
+          .from('users')
+          .select('*')
+          .eq('email', email)
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-      if (!ordered.error && ordered.data?.[0]) {
-        return ordered.data[0] as User;
-      }
-      if (ordered.error && !isMissingColumnError(ordered.error)) {
-        throw ordered.error;
-      }
+        if (!ordered.error && ordered.data?.[0]) {
+          return ordered.data[0] as User;
+        }
+        if (ordered.error && !isMissingColumnError(ordered.error)) {
+          throw ordered.error;
+        }
 
-      const plain = await supabase!.from('users').select('*').eq('email', email).limit(1);
-      if (plain.error) throw plain.error;
-      if (plain.data?.[0]) return plain.data[0] as User;
+        const plain = await supabase!.from('users').select('*').eq('email', email).limit(1);
+        if (plain.error) throw plain.error;
+        if (plain.data?.[0]) return plain.data[0] as User;
 
-      const all = await supabase!.from('users').select('*').order('sort_order', { ascending: true });
-      if (all.error) {
-        console.warn('[database.users.insert] nessuna riga per email; getAll fallito', all.error);
+        const all = await supabase!.from('users').select('*').order('sort_order', { ascending: true });
+        if (all.error) {
+          console.warn('[database.users.insert] nessuna riga per email; getAll fallito', all.error);
+          return null;
+        }
+        const found = all.data?.find((u: { email?: string }) => String(u.email ?? '').toLowerCase() === email);
+        return (found as User) ?? null;
+      };
+
+      let row = await fetchInserted();
+      if (!row) {
+        console.error('[database.users.insert] insert ok ma riga non leggibile (email)', email);
         return null;
       }
-      const found = all.data?.find((u: { email?: string }) => String(u.email ?? '').toLowerCase() === email);
-      return (found as User) ?? null;
+
+      const patch: Partial<User> = {};
+      for (const k of USER_INSERT_PATCH_KEYS) {
+        if (k in payload && payload[k] !== undefined) {
+          (patch as Record<string, unknown>)[k] = payload[k];
+        }
+      }
+
+      if (Object.keys(patch).length > 0) {
+        try {
+          const updated = await database.users.update(row.id, patch);
+          if (updated) row = updated as User;
+          else {
+            const again = await database.users.getById(row.id);
+            if (again) row = again;
+          }
+        } catch (patchErr) {
+          console.warn('[database.users.insert] patch permessi/reparto fallito (riga creata)', patchErr);
+        }
+      }
+
+      return row;
     },
 
     async update(id: string, updates: Partial<User>) {

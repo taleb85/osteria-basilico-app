@@ -13,7 +13,7 @@ import {
   Department,
 } from '../types';
 import { format, addDays, parseISO } from 'date-fns';
-import { database } from '../lib/database';
+import { database, formatSupabaseError } from '../lib/database';
 import { supabase } from '../lib/supabase';
 import { hasShiftConflictSameDay, computeEffectivePunchIn, calculateShiftMinutesGross } from '../utils/timeCalculations';
 import { AnimatePresence } from 'framer-motion';
@@ -1102,23 +1102,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
         showSuccess(tr.create_employee_success);
         return created;
       } catch (err) {
+        const full = formatSupabaseError(err);
         const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: string }).message) : '';
         const details =
           err && typeof err === 'object' && 'details' in err ? String((err as { details: string }).details) : '';
         const code = err && typeof err === 'object' && 'code' in err ? String((err as { code: string }).code) : '';
-        const dup = code === '23505' || /unique|duplicate/i.test(msg + details);
+        const dup = code === '23505' || /unique|duplicate/i.test(msg + details + full);
         const rls =
           code === '42501' ||
-          /row-level security|permission denied|rls|new row violates/i.test(`${msg} ${details}`.toLowerCase());
-        const detailLine = (msg + (details ? ` — ${details}` : '')).trim().slice(0, 160);
-        console.warn('[createUser]', detailLine || err);
+          /row-level security|permission denied|rls|new row violates|policy/i.test(`${msg} ${details} ${full}`.toLowerCase());
+        console.warn('[createUser]', full || err);
+        const detailSlice = full.trim().slice(0, 220);
         showError(
           rls
             ? tr.create_employee_error_rls
             : dup
               ? tr.create_employee_error_duplicate
-              : detailLine
-                ? detailLine
+              : detailSlice
+                ? detailSlice
                 : tr.create_employee_error
         );
         return null;
