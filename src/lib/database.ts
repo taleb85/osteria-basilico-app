@@ -138,13 +138,15 @@ export const database = {
       const runInsert = async (body: Record<string, unknown>) =>
         supabase!.from('users').insert(body);
 
-      const errCode = (e: unknown) => (e as { code?: string })?.code ?? '';
-
       /*
        * 1) Solo colonne “core” nell’INSERT: molti 400/RLS strani vengono da colonne extra nel primo write.
        * 2) Permessi / reparto / tariffa → UPDATE (stessa logica resilient di users.update).
        */
       let coreBody = pickInsertKeys(payload, [...USER_INSERT_CORE_KEYS]);
+      /* DB con last_name nullable: meglio omettere che inviare "". */
+      if (coreBody.last_name === '') {
+        delete coreBody.last_name;
+      }
       let { error } = await runInsert(coreBody);
 
       if (error && isMissingColumnError(error)) {

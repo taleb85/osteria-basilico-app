@@ -1058,6 +1058,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       hourly_rate_eur?: number | null;
     }): Promise<User | null> => {
       const tr = getTranslations(effectiveLanguage);
+      if (!supabase) {
+        showError(tr.create_employee_error_no_supabase);
+        return null;
+      }
       const maxOrder = users.reduce((m, u) => Math.max(m, u.sort_order ?? 0), 0);
       const perms = defaultPermissionFieldsForNewUser(payload.role);
       const lastName = payload.last_name?.trim() ?? '';
@@ -1099,6 +1103,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } catch (syncErr) {
           console.warn('[createUser] refresh dopo creazione', syncErr);
         }
+        /* Il refresh può sostituire la lista prima che la replica esponga la nuova riga: reintegra il creato. */
+        setUsers((prev) => {
+          if (prev.some((u) => u.id === created.id)) return prev;
+          return [...prev, created].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+        });
         showSuccess(tr.create_employee_success);
         return created;
       } catch (err) {

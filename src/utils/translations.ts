@@ -152,6 +152,8 @@ const baseIt = {
     'Database: manca il permesso INSERT su utenti. In Supabase → SQL Editor esegui la migrazione allow_anon_insert_users (file 20260323150000) o chiedi all’admin del progetto.',
   create_employee_error_no_row:
     'Creazione non confermata: controlla permessi INSERT/SELECT su `users` in Supabase ed esegui la migrazione 20260323150000 se necessario.',
+  create_employee_error_no_supabase:
+    'Supabase non configurato: imposta VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (o VITE_SUPABASE_PUBLISHABLE_KEY) nel file .env e riavvia npm run dev.',
   create_employee_pin_required: 'Imposta un PIN a 4 cifre.',
   create_employee_name_required: 'Inserisci il nome.',
   create_employee_email_required: 'Inserisci l\'email.',
@@ -1243,6 +1245,8 @@ const baseEn: Record<string, string> = {
     'Database: INSERT on users is not allowed for the anon key. Run migration 20260323150000_allow_anon_insert_users_pin_app.sql in Supabase SQL Editor (or ask your project admin).',
   create_employee_error_no_row:
     'Could not confirm the new user was created. Check INSERT/SELECT RLS policies on `users` and run migration 20260323150000 if needed.',
+  create_employee_error_no_supabase:
+    'Supabase not configured: set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (or VITE_SUPABASE_PUBLISHABLE_KEY) in .env and restart npm run dev.',
   create_employee_pin_required: 'Set a 4-digit PIN.',
   create_employee_name_required: 'Enter the first name.',
   create_employee_email_required: 'Enter the email.',
@@ -2301,6 +2305,8 @@ const baseEs: Record<string, string> = {
     'Base de datos: no hay permiso INSERT en usuarios. Ejecuta en Supabase → SQL Editor la migración 20260323150000 (anon insert users) o pide ayuda al administrador.',
   create_employee_error_no_row:
     'No se pudo confirmar el alta. Revisa las políticas RLS INSERT/SELECT en `users` y aplica la migración 20260323150000 si hace falta.',
+  create_employee_error_no_supabase:
+    'Supabase no configurado: define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY (o VITE_SUPABASE_PUBLISHABLE_KEY) en .env y reinicia npm run dev.',
   create_employee_pin_required: 'Indica un PIN de 4 dígitos.',
   create_employee_name_required: 'Introduce el nombre.',
   create_employee_email_required: 'Introduce el correo.',
@@ -3748,6 +3754,8 @@ const baseFr: Record<string, string> = {
     'Base de données : pas d’autorisation INSERT sur les utilisateurs. Exécutez la migration 20260323150000 dans l’éditeur SQL Supabase ou contactez l’admin du projet.',
   create_employee_error_no_row:
     'Création non confirmée : vérifiez les politiques RLS INSERT/SELECT sur `users` et appliquez la migration 20260323150000 si besoin.',
+  create_employee_error_no_supabase:
+    'Supabase non configuré : définissez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY (ou VITE_SUPABASE_PUBLISHABLE_KEY) dans .env et redémarrez npm run dev.',
   create_employee_pin_required: 'Indiquez un PIN à 4 chiffres.',
   create_employee_name_required: 'Saisissez le prénom.',
   create_employee_email_required: 'Saisissez l’e-mail.',
