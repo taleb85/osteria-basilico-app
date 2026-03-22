@@ -98,6 +98,13 @@ interface AppContextType {
   showSuccess: (message: string) => void;
   forceGlobalRefresh: () => Promise<void>;
   hardResetTestData: () => Promise<{ shifts: number; holidays: number; punchRecords: number; notifications?: number }>;
+  /** Inserisce turni, timbrature, ferie e campi profilo di esempio per l’utente indicato (anteprima / test). */
+  seedDemoProfileForUser: (userId: string) => Promise<{
+    shifts: number;
+    holidays: number;
+    punchRecords: number;
+    userUpdated: boolean;
+  }>;
   silentRefreshData: (opts?: {
     pullRemoteConfig?: boolean;
     /** Non invocare `forceGlobalRefresh` se la revisione Storage è avanti (es. reload volontario dal server). */
@@ -1404,6 +1411,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return result;
   }, []);
 
+  const seedDemoProfileForUser = useCallback(
+    async (userId: string) => {
+      const result = await database.seedDemoProfileForUser(userId);
+      await silentRefreshData({ skipRemoteRevisionCheck: true });
+      return result;
+    },
+    [silentRefreshData]
+  );
+
   const setFeatureFlag = useCallback(async (name: string, enabled: boolean) => {
     setFeatureFlagsState((prev) => ({ ...prev, [name]: enabled }));
     saveLocalFeatureFlag(name, enabled);
@@ -1662,7 +1678,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       currentUser, setCurrentUser, users, shifts, holidays, punchRecords, availability, toggleAvailability,
       addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift,
       publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
-      updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing,
+      updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing,
       postRefreshLocked, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest,
       featureFlags, setFeatureFlag, geofenceEffectiveConfig, saveGeofenceConfig,
       workRules, setWorkRules, breakRules, setBreakRules,

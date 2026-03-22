@@ -404,6 +404,8 @@ const baseIt = {
   stats_shifts_awaiting_approval: 'Turni in attesa di approvazione',
   stats_no_pending_shifts: 'Nessun turno in attesa nel periodo selezionato.',
   stats_date_range: 'Intervallo date',
+  stats_aria_date_start: 'Intervallo — data inizio',
+  stats_aria_date_end: 'Intervallo — data fine',
   stats_no_data: 'Nessun dato presente',
   stats_no_confirmed_shifts_period: 'Non ci sono turni confermati nel periodo selezionato',
   stats_total: 'Totale',
@@ -412,6 +414,13 @@ const baseIt = {
   stats_payroll_hint:
     'Lunedì dopo l’ultima domenica dell’ultima settimana completa (lun–dom) nel mese.',
   stats_payroll_date_line: 'Data prevista: {date}',
+  stats_week_tabs_legend: 'Settimane nel periodo',
+  stats_week_tabs_aria: 'Seleziona una settimana',
+  stats_week_by_week_heading: 'Ore per settimana',
+  stats_selected_week: 'Periodo selezionato',
+  stats_week_no_hours: 'Nessun turno confermato in questa settimana.',
+  stats_period_total_label: 'Ore totali nel periodo',
+  stats_team_hours_period: 'Ore totali team nel periodo',
 
   // Sidebar tabs
   sidebar_dashboard: 'Dashboard',
@@ -925,6 +934,19 @@ const baseIt = {
   settings_data_toggle_hide: '− Dati',
   settings_data_toggle_show: '+ Dati',
   settings_reset_test_data_btn: 'Reset dati di test',
+  settings_seed_demo_profile_btn: 'Aggiungi dati demo profilo',
+  settings_seed_demo_profile_confirm:
+    'Verranno aggiunti turni, timbrature, richieste ferie e campi profilo di esempio per il dipendente scelto nel menu (non si cancella nulla). Ripetere l’azione crea duplicati. Continuare?',
+  settings_seed_demo_profile_done: 'Dati demo aggiunti. Ricarica le schede Home / Turni / Ferie / Presenze / Statistiche.',
+  settings_seed_demo_profile_error: 'Impossibile aggiungere i dati demo.',
+  settings_seed_demo_profile_hint:
+    'Sviluppo / anteprima: aggiunge turni, timbrature, ferie e dati in scheda senza cancellare nulla.',
+  settings_seed_demo_profile_pick_user: 'Dipendente per cui caricare i dati demo',
+  settings_seed_demo_profile_no_staff:
+    'Non ci sono dipendenti attivi (escluso admin). Aggiungi o attiva uno staff per usare questa funzione.',
+  impostazioni_demo_profile_title: 'Dati demo · anteprima profilo staff',
+  impostazioni_demo_profile_lead:
+    'Aggiunge turni, timbrature e ferie di esempio per il dipendente scelto. Backup JSON/CSV e reset: scheda Profili → Strumenti avanzati.',
   settings_perm_holidays_l: 'Richiedi ferie',
   settings_perm_holidays_d: 'Può inviare richieste di ferie e permessi dalla dashboard personale.',
   settings_perm_punch_l: 'Timbra dalla app',
@@ -1456,6 +1478,8 @@ const baseEn: Record<string, string> = {
   stats_shifts_awaiting_approval: 'Shifts awaiting approval',
   stats_no_pending_shifts: 'No pending shifts in selected period.',
   stats_date_range: 'Date range',
+  stats_aria_date_start: 'Range — start date',
+  stats_aria_date_end: 'Range — end date',
   stats_no_data: 'No data available',
   stats_no_confirmed_shifts_period: 'No confirmed shifts in the selected period',
   stats_total: 'Total',
@@ -1464,6 +1488,13 @@ const baseEn: Record<string, string> = {
   stats_payroll_hint:
     'Monday after the Sunday that ends the last full week (Mon–Sun) within the calendar month.',
   stats_payroll_date_line: 'Scheduled date: {date}',
+  stats_week_tabs_legend: 'Weeks in range',
+  stats_week_tabs_aria: 'Select a week',
+  stats_week_by_week_heading: 'Hours by week',
+  stats_selected_week: 'Selected period',
+  stats_week_no_hours: 'No confirmed shifts this week.',
+  stats_period_total_label: 'Total hours in range',
+  stats_team_hours_period: 'Total team hours in range',
 
   // Sidebar tabs EN
   sidebar_dashboard: 'Dashboard',
@@ -1971,6 +2002,19 @@ const baseEn: Record<string, string> = {
   settings_data_toggle_hide: '− Data',
   settings_data_toggle_show: '+ Data',
   settings_reset_test_data_btn: 'Reset test data',
+  settings_seed_demo_profile_btn: 'Add demo profile data',
+  settings_seed_demo_profile_confirm:
+    'This will append sample shifts, punches, holiday requests and profile fields for the employee selected above (nothing is deleted). Running again creates duplicates. Continue?',
+  settings_seed_demo_profile_done: 'Demo data added. Check Home, Shifts, Holidays, Timesheets and Statistics.',
+  settings_seed_demo_profile_error: 'Could not add demo data.',
+  settings_seed_demo_profile_hint:
+    'Dev / preview: appends shifts, punches, holidays and profile fields; nothing is deleted.',
+  settings_seed_demo_profile_pick_user: 'Employee to attach demo data to',
+  settings_seed_demo_profile_no_staff:
+    'No active non-admin staff. Add or activate an employee to use this.',
+  impostazioni_demo_profile_title: 'Demo data · staff profile preview',
+  impostazioni_demo_profile_lead:
+    'Adds sample shifts, punches and holidays for the selected employee. Full backup/reset: Profiles tab → Advanced tools.',
   settings_perm_holidays_l: 'Request holidays',
   settings_perm_holidays_d: 'Can submit holiday requests from personal dashboard.',
   settings_perm_punch_l: 'Punch from app',
@@ -2516,6 +2560,8 @@ const baseEs: Record<string, string> = {
   stats_shifts_awaiting_approval: 'Turnos pendientes de aprobación',
   stats_no_pending_shifts: 'Sin turnos pendientes en el periodo seleccionado.',
   stats_date_range: 'Intervalo de fechas',
+  stats_aria_date_start: 'Intervalo — fecha inicio',
+  stats_aria_date_end: 'Intervalo — fecha fin',
   stats_no_data: 'Sin datos disponibles',
   stats_no_confirmed_shifts_period: 'Sin turnos confirmados en el periodo seleccionado',
   stats_total: 'Total',
@@ -2524,6 +2570,13 @@ const baseEs: Record<string, string> = {
   stats_payroll_hint:
     'El lunes siguiente al domingo que cierra la última semana completa (lun–dom) del mes.',
   stats_payroll_date_line: 'Fecha prevista: {date}',
+  stats_week_tabs_legend: 'Semanas del periodo',
+  stats_week_tabs_aria: 'Seleccionar una semana',
+  stats_week_by_week_heading: 'Horas por semana',
+  stats_selected_week: 'Periodo seleccionado',
+  stats_week_no_hours: 'Sin turnos confirmados esta semana.',
+  stats_period_total_label: 'Horas totales en el periodo',
+  stats_team_hours_period: 'Horas totales del equipo en el periodo',
 
   // Sidebar ES
   sidebar_dashboard: 'Dashboard',
@@ -3026,6 +3079,19 @@ const baseEs: Record<string, string> = {
   settings_data_toggle_hide: '− Datos',
   settings_data_toggle_show: '+ Datos',
   settings_reset_test_data_btn: 'Restablecer datos de prueba',
+  settings_seed_demo_profile_btn: 'Añadir datos demo del perfil',
+  settings_seed_demo_profile_confirm:
+    'Se añadirán turnos, fichajes, solicitudes de vacaciones y campos de perfil de ejemplo para el empleado elegido (no se borra nada). Repetir crea duplicados. ¿Continuar?',
+  settings_seed_demo_profile_done: 'Datos demo añadidos. Revisa Inicio, Turnos, Vacaciones, Fichajes y Estadísticas.',
+  settings_seed_demo_profile_error: 'No se pudieron añadir los datos demo.',
+  settings_seed_demo_profile_hint:
+    'Desarrollo / vista previa: añade turnos, fichajes, vacaciones y campos de perfil; no borra nada.',
+  settings_seed_demo_profile_pick_user: 'Empleado para los datos demo',
+  settings_seed_demo_profile_no_staff:
+    'No hay personal activo (sin contar admin). Añade o activa un empleado para usar esto.',
+  impostazioni_demo_profile_title: 'Datos demo · vista previa del perfil',
+  impostazioni_demo_profile_lead:
+    'Añade turnos, fichajes y vacaciones de ejemplo. Backup/reset: pestaña Perfiles → Herramientas avanzadas.',
   settings_perm_holidays_l: 'Solicitar vacaciones',
   settings_perm_holidays_d: 'Puede enviar solicitudes de vacaciones desde el panel personal.',
   settings_perm_punch_l: 'Fichar desde la app',
@@ -3646,6 +3712,19 @@ const baseFr: Record<string, string> = {
   settings_data_toggle_hide: '− Données',
   settings_data_toggle_show: '+ Données',
   settings_reset_test_data_btn: 'Réinitialiser données de test',
+  settings_seed_demo_profile_btn: 'Ajouter données démo profil',
+  settings_seed_demo_profile_confirm:
+    'Ajout d’exemples de shifts, pointages, demandes de congés et champs profil pour l’employé choisi (rien n’est supprimé). Répéter crée des doublons. Continuer ?',
+  settings_seed_demo_profile_done: 'Données démo ajoutées. Vérifiez Accueil, Shifts, Congés, Pointages et Statistiques.',
+  settings_seed_demo_profile_error: 'Impossible d’ajouter les données démo.',
+  settings_seed_demo_profile_hint:
+    'Développement / aperçu : ajoute shifts, pointages, congés et champs profil ; rien n’est supprimé.',
+  settings_seed_demo_profile_pick_user: 'Employé concerné (données démo)',
+  settings_seed_demo_profile_no_staff:
+    'Aucun employé actif (hors admin). Ajoutez ou activez un membre du personnel.',
+  impostazioni_demo_profile_title: 'Données démo · aperçu profil staff',
+  impostazioni_demo_profile_lead:
+    'Ajoute shifts, pointages et congés d’exemple. Sauvegarde / reset : onglet Profils → Outils avancés.',
   settings_perm_holidays_l: 'Demander des congés',
   settings_perm_holidays_d: 'Peut envoyer des demandes de congés depuis le tableau de bord personnel.',
   settings_perm_punch_l: 'Pointer depuis l\'app',

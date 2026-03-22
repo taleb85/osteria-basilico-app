@@ -159,6 +159,7 @@ export default function SettingsPage() {
     updateUser,
     effectiveLanguage,
     hardResetTestData,
+    seedDemoProfileForUser,
     showSuccess,
     showError,
     featureFlags,
@@ -182,6 +183,7 @@ export default function SettingsPage() {
   const [showAdminAdvancedSection, setShowAdminAdvancedSection] = useState(false);
   const [teamSectionExpanded, setTeamSectionExpanded] = useState(readTeamSectionExpanded);
   const [resettingData, setResettingData] = useState(false);
+  const [seedingDemoProfile, setSeedingDemoProfile] = useState(false);
   const [geoLat, setGeoLat] = useState('');
   const [geoLng, setGeoLng] = useState('');
   const [geoRadius, setGeoRadius] = useState('120');
@@ -241,6 +243,24 @@ export default function SettingsPage() {
       return next;
     });
   }, []);
+
+  const demoProfileCandidates = useMemo(
+    () =>
+      users
+        .filter((u) => u.status === 'active' && !isPurelyManagementRole(u.role))
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
+    [users]
+  );
+
+  const [demoProfileTargetUserId, setDemoProfileTargetUserId] = useState('');
+
+  useEffect(() => {
+    const valid =
+      demoProfileTargetUserId &&
+      demoProfileCandidates.some((u) => u.id === demoProfileTargetUserId);
+    if (valid) return;
+    setDemoProfileTargetUserId(demoProfileCandidates[0]?.id ?? '');
+  }, [demoProfileCandidates, demoProfileTargetUserId]);
 
   if (!currentUser) return null;
 
@@ -1292,16 +1312,10 @@ export default function SettingsPage() {
               <span>{t.settings_advanced_tools_admin}</span>
               <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${showAdminAdvancedSection ? 'rotate-180' : ''}`} />
             </button>
-            <AnimatePresence>
-              {showAdminAdvancedSection && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="mt-3 rounded-xl border border-slate-200 bg-white">
-                    <div className="p-4 space-y-2">
+            {showAdminAdvancedSection && (
+              <div className="mt-3">
+                <div className="rounded-xl border border-slate-200 bg-white">
+                    <div className="p-4 space-y-3">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t.settings_backup_data_section}</p>
                       <div className="flex flex-wrap gap-2">
                         <button
@@ -1325,6 +1339,8 @@ export default function SettingsPage() {
                         >
                           {t.report_csv}
                         </button>
+                      </div>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-3 space-y-3">
                         <button
                           type="button"
                           disabled={resettingData}
@@ -1344,16 +1360,73 @@ export default function SettingsPage() {
                               setResettingData(false);
                             }
                           }}
-                          className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium uppercase hover:bg-amber-100 disabled:opacity-60"
+                          className="w-full px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium uppercase hover:bg-amber-100 disabled:opacity-60 text-center"
                         >
                           {resettingData ? t.ui_ellipsis : t.settings_reset_test_data_btn}
                         </button>
+                        <div className="space-y-2">
+                          <label htmlFor="osteria-demo-profile-user-settings" className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                            {t.settings_seed_demo_profile_pick_user}
+                          </label>
+                          {demoProfileCandidates.length === 0 ? (
+                            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                              {t.settings_seed_demo_profile_no_staff}
+                            </p>
+                          ) : (
+                            <select
+                              id="osteria-demo-profile-user-settings"
+                              value={demoProfileTargetUserId}
+                              onChange={(e) => setDemoProfileTargetUserId(e.target.value)}
+                              className={deptPermissionCategorySelectClass}
+                            >
+                              {demoProfileCandidates.map((u) => (
+                                <option key={u.id} value={u.id}>
+                                  {[u.first_name, u.last_name].filter(Boolean).join(' ').trim() || u.email}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                          <button
+                            type="button"
+                            disabled={
+                              seedingDemoProfile ||
+                              resettingData ||
+                              !demoProfileTargetUserId ||
+                              demoProfileCandidates.length === 0
+                            }
+                            onClick={async () => {
+                              if (!window.confirm(t.settings_seed_demo_profile_confirm)) return;
+                              setSeedingDemoProfile(true);
+                              try {
+                                await seedDemoProfileForUser(demoProfileTargetUserId);
+                                showSuccess(t.settings_seed_demo_profile_done);
+                                setImportStatus({
+                                  type: 'success',
+                                  message: t.settings_seed_demo_profile_done,
+                                });
+                                setTimeout(() => setImportStatus(null), 4000);
+                              } catch (e) {
+                                showError(e instanceof Error ? e.message : t.settings_seed_demo_profile_error);
+                                setImportStatus({
+                                  type: 'error',
+                                  message: t.settings_seed_demo_profile_error,
+                                });
+                                setTimeout(() => setImportStatus(null), 3000);
+                              } finally {
+                                setSeedingDemoProfile(false);
+                              }
+                            }}
+                            className="w-full px-3 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium uppercase hover:bg-emerald-100 disabled:opacity-60 text-center"
+                          >
+                            {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
+                          </button>
+                          <p className="text-[10px] text-slate-500 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+            )}
           </section>
         )}
 

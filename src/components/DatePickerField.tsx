@@ -47,11 +47,24 @@ export type DatePickerFieldProps = {
   id?: string;
   /** Mostra «Cancella» nel footer (default true). */
   allowClear?: boolean;
+  /** Data breve (es. 23/02/26) e padding ridotto — toolbar su una riga. */
+  compact?: boolean;
   'aria-label'?: string;
 };
 
 const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(function DatePickerField(
-  { value, onChange, min, max, disabled, className = '', id, allowClear = true, 'aria-label': ariaLabel },
+  {
+    value,
+    onChange,
+    min,
+    max,
+    disabled,
+    className = '',
+    id,
+    allowClear = true,
+    compact = false,
+    'aria-label': ariaLabel,
+  },
   ref
 ) {
   const { effectiveLanguage } = useApp();
@@ -145,7 +158,9 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
   if (minD) matchers.push({ before: minD });
   if (maxD) matchers.push({ after: maxD });
 
-  const label = selected ? format(selected, 'd MMM yyyy', { locale }) : chooseLabel;
+  const label = selected
+    ? format(selected, compact ? 'dd/MM/yy' : 'd MMM yyyy', { locale })
+    : chooseLabel;
 
   const popover =
     open &&
@@ -217,7 +232,9 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`inline-flex h-[22px] min-h-[22px] max-h-[22px] shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-left text-[13px] font-medium leading-none tabular-nums text-slate-800 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50/80 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        className={`inline-flex h-[22px] min-h-[22px] max-h-[22px] shrink-0 items-center gap-0.5 rounded-lg border border-slate-200 bg-white text-left font-medium leading-none tabular-nums text-slate-800 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50/80 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 ${
+          compact ? 'px-1.5 text-[11px] sm:text-[12px]' : 'gap-1 px-2 text-[13px]'
+        } ${className}`}
       >
         <Calendar className="h-3 w-3 shrink-0 text-slate-400" aria-hidden />
         <span className="min-w-0 truncate tabular-nums">{label}</span>

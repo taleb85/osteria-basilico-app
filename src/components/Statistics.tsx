@@ -29,7 +29,6 @@ import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { motion } from 'framer-motion';
 import { Calendar } from 'lucide-react';
 import DatePickerField from './DatePickerField';
-import { HorizontalScrollArea } from './HorizontalScrollArea';
 
 function toDateOnly(d: Date): string {
   return format(d, 'yyyy-MM-dd');
@@ -191,6 +190,8 @@ export default function Statistics() {
   const uiW = (key: string) => isUiWidgetVisible(currentUser, key);
   const statsLoc = getDateLocale(effectiveLanguage) ?? it;
   const tv = t as Record<string, string>;
+  const staffSelfId = displayUsers[0]?.id ?? currentUser.id;
+  const staffRangeTotalMins = Object.values(minutesByUserByWeek[staffSelfId] ?? {}).reduce((a, b) => a + b, 0);
 
   return (
     <div className="pb-content pt-6 w-full max-w-full font-sans min-h-full">
@@ -199,7 +200,7 @@ export default function Statistics() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        {uiW('stats.title') && (
+        {showManagementStatsChrome && uiW('stats.title') && (
           <div className="mb-5 px-1 sm:px-0">
             <h1 className="text-slate-900 font-bold text-xl sm:text-2xl tracking-tight">{t.stats_title}</h1>
           </div>
@@ -259,25 +260,26 @@ export default function Statistics() {
 
         {/* ── Sezione ore (staff o gestionale senza view_stats) ──────── */}
         {!showManagementStatsChrome && uiW('stats.table') && (
-          <div className="ui-toolbar-row mb-5 w-full">
-            <div className="inline-flex h-[22px] shrink-0 items-center gap-2">
-              <Calendar className="h-3 w-3 shrink-0 text-slate-600" />
-              <span className="text-[13px] font-semibold leading-none text-slate-900">{t.stats_date_range}</span>
-            </div>
+          <div className="mb-5 flex w-full min-w-0 flex-nowrap items-center justify-start gap-1.5 overflow-x-auto pb-0.5 smooth-touch [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <span className="sr-only">{t.stats_date_range}</span>
             <DatePickerField
+              compact
               value={dateStart}
               max={dateEnd}
               allowClear={false}
               onChange={setDateStart}
-              aria-label={t.stats_date_range}
+              aria-label={tv.stats_aria_date_start}
             />
-            <span className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-medium leading-none text-slate-400">→</span>
+            <span className="inline-flex shrink-0 items-center text-[11px] font-semibold text-slate-400 sm:text-[12px]" aria-hidden>
+              →
+            </span>
             <DatePickerField
+              compact
               value={dateEnd}
               min={dateStart}
               allowClear={false}
               onChange={setDateEnd}
-              aria-label={t.stats_date_range}
+              aria-label={tv.stats_aria_date_end}
             />
           </div>
         )}
@@ -296,104 +298,111 @@ export default function Statistics() {
           </div>
         )}
 
-        {/* ── Tabella dettaglio ore per settimana ─────────────────────── */}
-        {uiW('stats.table') && (
-        <div className="card-factorial !p-0 mb-6 overflow-hidden">
-          <HorizontalScrollArea
-            variant="overlay"
-            remeasureKey={`${dateStart}-${dateEnd}-${weeksInRange.length}`}
-            ariaLabelPrev={t.table_h_scroll_prev}
-            ariaLabelNext={t.table_h_scroll_next}
-            scrollClassName="overflow-x-auto-safe p-5 sm:p-6"
-          >
-          <table className="w-full border-collapse min-w-[400px]">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="sticky left-0 z-10 bg-slate-50 pl-5 pr-4 py-3 text-left text-slate-600 text-xs uppercase tracking-widest font-medium min-w-[120px] border-r border-slate-200">
-                  {t.employee}
-                </th>
-                {weeksInRange.map((w) => (
-                  <th
-                    key={w.key}
-                    className="px-3 py-3 text-center text-slate-600 text-xs uppercase tracking-widest font-medium whitespace-nowrap border-r border-slate-200"
-                  >
-                    {w.label}
-                  </th>
-                ))}
-                <th className="pl-4 pr-5 py-3 text-center text-slate-900 text-xs uppercase tracking-widest font-bold min-w-[80px] bg-slate-50 border-l border-slate-200">
-                  {t.total_hours}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayUsers.map((u, rowIdx) => {
-                const byWeek = minutesByUserByWeek[u.id] ?? {};
-                const totalMins = Object.values(byWeek).reduce((a, b) => a + b, 0);
-                return (
-                  <tr
-                    key={u.id}
-                    className={`border-b border-slate-100 last:border-0 hover:bg-slate-50/50 ${rowIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}
-                  >
-                    <td className="sticky left-0 z-10 bg-inherit pl-5 pr-4 py-3 text-left border-r border-slate-100">
-                      <span className="text-slate-900 font-semibold text-sm uppercase">
-                        {u.first_name ?? ''}
-                      </span>
-                    </td>
-                    {weeksInRange.map((w) => (
-                      <td key={w.key} className="px-3 py-3 text-center text-slate-900 text-xs border-r border-slate-100">
-                        {(byWeek[w.key] ?? 0) > 0 ? formatMinutesToHoursAndMinutes(byWeek[w.key] ?? 0) : '–'}
-                      </td>
-                    ))}
-                    <td className="pl-4 pr-5 py-3 text-center text-slate-900 font-semibold text-sm bg-slate-50/50 border-l border-slate-100">
-                      {formatMinutesToHoursAndMinutes(totalMins)}
-                    </td>
-                  </tr>
-                );
-              })}
-              {/* Empty state — nessun dato nel periodo */}
-              {!hasDataInRange && (
-                <tr>
-                  <td colSpan={weeksInRange.length + 2} className="py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
-                        <Calendar className="w-6 h-6 text-slate-300" />
-                      </div>
-                      <p className="text-slate-600 font-semibold text-sm">{t.stats_no_data}</p>
-                      <p className="text-slate-400 text-xs">{t.stats_no_confirmed_shifts_period}</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-            {showManagementStatsChrome && (
-            <tfoot>
-              <tr className="border-t border-slate-200 bg-slate-50">
-                <td className="sticky left-0 z-10 bg-slate-50 pl-5 pr-4 py-3 text-slate-600 font-semibold text-sm border-r border-slate-100">
-                  {t.stats_total}
-                </td>
+        {/* ── Tabella ore: solo card (stesso stile “Le tue ore nell’intervallo…”), niente scroll orizzontale ─ */}
+        {uiW('stats.table') && displayUsers.length <= 1 && (
+          <div className="mb-8 space-y-4 md:mb-6">
+            <div className="card-factorial p-5 sm:p-6">
+              <p className="mb-2 text-xs font-medium uppercase tracking-widest text-slate-600">
+                {t.stats_your_hours_in_range}
+              </p>
+              <p className="text-2xl font-semibold tabular-nums text-slate-900">
+                {formatMinutesToHoursAndMinutes(staffRangeTotalMins)}
+              </p>
+            </div>
+            {!hasDataInRange ? (
+              <div className="card-factorial flex flex-col items-center gap-3 p-8 pb-16 text-center sm:p-10">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
+                  <Calendar className="h-6 w-6 text-slate-300" />
+                </div>
+                <p className="text-sm font-semibold text-slate-800">{t.stats_no_data}</p>
+                <p className="max-w-xs text-xs leading-relaxed text-slate-500">{t.stats_no_confirmed_shifts_period}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                  {tv.stats_week_by_week_heading ?? tv.stats_week_tabs_legend}
+                </p>
                 {weeksInRange.map((w) => {
-                  const weekTotal = displayUsers.reduce(
-                    (s, u) => s + (minutesByUserByWeek[u.id]?.[w.key] ?? 0),
-                    0
-                  );
+                  const wMins = minutesByUserByWeek[staffSelfId]?.[w.key] ?? 0;
                   return (
-                    <td key={w.key} className="px-3 py-3 text-center text-slate-900 font-semibold text-xs border-r border-slate-100">
-                      {weekTotal > 0 ? formatMinutesToHoursAndMinutes(weekTotal) : '–'}
-                    </td>
+                    <div key={w.key} className="card-factorial p-5 sm:p-6">
+                      <p className="mb-2 text-xs font-medium uppercase tracking-widest text-slate-600">
+                        {w.label}
+                      </p>
+                      <p className="text-2xl font-semibold tabular-nums text-slate-900">
+                        {wMins > 0 ? formatMinutesToHoursAndMinutes(wMins) : '–'}
+                      </p>
+                      {wMins === 0 && (
+                        <p className="mt-3 text-xs text-slate-500">{tv.stats_week_no_hours}</p>
+                      )}
+                    </div>
                   );
                 })}
-                <td className="pl-4 pr-5 py-3 text-center text-slate-900 font-semibold text-sm bg-slate-50 border-l border-slate-100">
-                  {formatMinutesToHoursAndMinutes(totalMinutesAll)}
-                </td>
-              </tr>
-            </tfoot>
+              </div>
             )}
-          </table>
-          </HorizontalScrollArea>
-        </div>
+          </div>
         )}
 
-        {!showManagementStatsChrome && uiW('stats.staff_summary') && (
+        {uiW('stats.table') && displayUsers.length > 1 && (
+          <div className="mb-6 space-y-4">
+            {showManagementStatsChrome && (
+              <div className="card-factorial p-5 sm:p-6">
+                <p className="mb-2 text-xs font-medium uppercase tracking-widest text-slate-600">
+                  {tv.stats_team_hours_period ?? t.stats_total}
+                </p>
+                <p className="text-2xl font-semibold tabular-nums text-slate-900">
+                  {formatMinutesToHoursAndMinutes(totalMinutesAll)}
+                </p>
+              </div>
+            )}
+            {!hasDataInRange ? (
+              <div className="card-factorial flex flex-col items-center gap-3 p-8 text-center sm:p-10">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
+                  <Calendar className="h-6 w-6 text-slate-300" />
+                </div>
+                <p className="text-sm font-semibold text-slate-800">{t.stats_no_data}</p>
+                <p className="max-w-xs text-xs text-slate-500">{t.stats_no_confirmed_shifts_period}</p>
+              </div>
+            ) : (
+              weeksInRange.map((w) => {
+                const weekTotal = displayUsers.reduce(
+                  (s, u) => s + (minutesByUserByWeek[u.id]?.[w.key] ?? 0),
+                  0
+                );
+                return (
+                  <div key={w.key} className="card-factorial p-5 sm:p-6">
+                    <p className="mb-4 text-xs font-medium uppercase tracking-widest text-slate-600">{w.label}</p>
+                    <ul className="space-y-3">
+                      {displayUsers.map((u) => {
+                        const m = minutesByUserByWeek[u.id]?.[w.key] ?? 0;
+                        return (
+                          <li key={u.id} className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                            <span className="text-sm font-semibold uppercase tracking-wide text-slate-800">
+                              {(u.first_name ?? '').trim() || '—'}
+                            </span>
+                            <span className="shrink-0 text-lg font-semibold tabular-nums text-slate-900">
+                              {m > 0 ? formatMinutesToHoursAndMinutes(m) : '–'}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {showManagementStatsChrome && (
+                      <div className="mt-4 flex items-baseline justify-between border-t border-slate-200 pt-4 text-sm font-bold text-slate-800">
+                        <span>{t.stats_total}</span>
+                        <span className="tabular-nums text-lg text-accent-dark">
+                          {weekTotal > 0 ? formatMinutesToHoursAndMinutes(weekTotal) : '–'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {!showManagementStatsChrome && uiW('stats.staff_summary') && !uiW('stats.table') && (
           <div className="card-factorial p-5 sm:p-6">
             <p className="text-slate-600 text-xs uppercase tracking-widest font-medium mb-2">
               {t.stats_your_hours_in_range}

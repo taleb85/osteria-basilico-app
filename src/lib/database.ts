@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { User, Shift, HolidayRequest, PunchRecord, PunchAuditEntry } from '../types';
 import { sanitizeUiSectionOverrides } from '../utils/uiScreenWidgets';
+import { buildDemoProfileData, punchRecordsFromSpecs } from '../utils/seedDemoProfileData';
 
 /** Evita 400 su jsonb / tipi non validi. */
 function sanitizeUserUpdatePayload(payload: Record<string, unknown>): Record<string, unknown> {
@@ -107,6 +108,31 @@ function stripMissingUserColumns(payload: Record<string, unknown>, error: unknow
     return Object.keys(out).length ? out : null;
   }
   return null;
+}
+
+/** Solo queste colonne su INSERT: `approved_*` va impostato con `shifts.update` (altrimenti 400 se colonne assenti o vincoli). */
+const SHIFT_INSERT_ALLOW: (keyof Shift)[] = [
+  'user_id',
+  'date',
+  'start_time',
+  'end_time',
+  'type',
+  'approval_status',
+  'notes',
+  'deduct_break',
+  'break_minutes',
+  'is_auto_break',
+  'admin_note',
+  'skills',
+];
+
+function pickShiftInsertPayload(shift: Omit<Shift, 'id'>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const key of SHIFT_INSERT_ALLOW) {
+    const v = shift[key];
+    if (v !== undefined) out[key as string] = v;
+  }
+  return out;
 }
 
 export const database = {
@@ -322,9 +348,10 @@ export const database = {
     },
 
     async insert(shift: Omit<Shift, 'id'>) {
+      const payload = pickShiftInsertPayload(shift);
       const { data, error } = await supabase!
         .from('shifts')
-        .insert(shift)
+        .insert(payload)
         .select()
         .maybeSingle();
       if (error) throw error;
@@ -333,9 +360,10 @@ export const database = {
 
     async insertMany(shifts: Omit<Shift, 'id'>[]) {
       if (!supabase || shifts.length === 0) return [];
+      const payloads = shifts.map(pickShiftInsertPayload);
       const { data, error } = await supabase!
         .from('shifts')
-        .insert(shifts)
+        .insert(payloads)
         .select();
       if (error) throw error;
       return (data || []) as Shift[];
@@ -825,6 +853,108 @@ export const database = {
     }
 
     return { shifts: 0, holidays: 0, punchRecords: 0 };
+  },
+
+  /**
+   * Inserisce dati di esempio per un dipendente (turni approvati/confermati, timbrature, ferie, campi profilo).
+   * Non elimina nulla: chiamate ripetute duplicano i record.
+   */
+  async seedDemoProfileForUser(userId: string): Promise<{
+    shifts: number;
+    holidays: number;
+    punchRecords: number;
+    userUpdated: boolean;
+  }> {
+    if (!supabase) {
+      throw new Error('Supabase non configurato');
+    }
+    const built = buildDemoProfileData(new Date(), userId);
+    /** Solo chiavi esplicite: mai `approved_*` nell’INSERT (batch PostgREST = unione colonne; oggetti “Shift” portano chiavi extra). */
+    const shiftRowsFull = built.shifts.map((s) => {
+      const row: Record<string, string | boolean> = {
+        user_id: s.user_id,
+        date: s.date,
+        start_time: s.start_time,
+        end_time: s.end_time || '',
+        type: s.type,
+        approval_status: s.approval_status,
+        deduct_break: s.deduct_break !== false,
+      };
+      if (s.notes && String(s.notes).trim()) row.notes = String(s.notes).trim();
+      return row;
+    });
+    const shiftRowsMinimal = built.shifts.map((s) => ({
+      user_id: s.user_id,
+      date: s.date,
+      start_time: s.start_time,
+      end_time: s.end_time || '',
+      type: s.type,
+      approval_status: s.approval_status,
+    }));
+
+    let insertedShifts: Shift[];
+    const runInsert = async (rows: Record<string, string | boolean>[]) => {
+      const { data, error } = await supabase!.from('shifts').insert(rows).select();
+      if (error) throw error;
+      return (data || []) as Shift[];
+    };
+    try {
+      insertedShifts = await runInsert(shiftRowsFull);
+    } catch {
+      try {
+        const noNotes = shiftRowsFull.map((r) => {
+          const { notes: _n, ...rest } = r;
+          void _n;
+          return rest;
+        });
+        insertedShifts = await runInsert(noNotes);
+      } catch {
+        insertedShifts = await runInsert(shiftRowsMinimal);
+      }
+    }
+    for (const orig of built.shifts) {
+      if (!orig.approved_at) continue;
+      const row = insertedShifts.find(
+        (r) =>
+          r.date === orig.date && (r.start_time || '').slice(0, 5) === (orig.start_time || '').slice(0, 5)
+      );
+      if (!row) continue;
+      try {
+        await database.shifts.update(row.id, {
+          approved_at: orig.approved_at,
+          approved_by: orig.approved_by,
+          approved_start_time: orig.approved_start_time ?? null,
+          approved_end_time: orig.approved_end_time ?? null,
+        });
+      } catch {
+        /* DB senza colonne approved_*: il turno resta comunque creato */
+      }
+    }
+    let punchCount = 0;
+    for (const spec of built.punchSpecs) {
+      const shift = insertedShifts.find(
+        (s) => s.date === spec.date && (s.start_time || '').slice(0, 5) === spec.startTime
+      );
+      if (!shift) continue;
+      for (const pr of punchRecordsFromSpecs(userId, shift.id, spec)) {
+        await database.punchRecords.insert(pr);
+        punchCount += 1;
+      }
+    }
+    for (const h of built.holidays) {
+      await database.holidays.insert(h);
+    }
+    let userUpdated = false;
+    if (Object.keys(built.userPatch).length > 0) {
+      await database.users.update(userId, built.userPatch);
+      userUpdated = true;
+    }
+    return {
+      shifts: insertedShifts.length,
+      holidays: built.holidays.length,
+      punchRecords: punchCount,
+      userUpdated,
+    };
   },
 
   shiftTemplates: {
