@@ -435,7 +435,7 @@ const baseIt = {
 
   role_templates_page_title: 'Permessi ruoli e scheda Admin',
   role_templates_embedded_toggle_aria: 'Apri o chiudi il pannello permessi per ruolo',
-  role_templates_embedded_collapsed_hint: 'Proprietario, Manager, Staff — espandi per modificare.',
+  role_templates_embedded_collapsed_hint: 'Manager, Capo, Staff — espandi per modificare.',
   role_templates_embedded_expanded_hint: 'Comprimi per scorrere più facilmente la pagina.',
   role_template_section_tabs_nav: 'Schede in app (barra inferiore)',
   role_template_section_shift_ops: 'Operatività sui turni',
@@ -452,6 +452,7 @@ const baseIt = {
     'Solo Amministratore o Proprietario possono modificare questa configurazione.',
   role_group_proprietario: 'Proprietario',
   role_group_management: 'Manager e Assistant Manager',
+  role_group_capo: 'Capo',
   role_group_staff: 'Staff (sala, bar, cucina, …)',
   role_templates_admin_modules_heading: 'Moduli scheda Impostazioni (globali)',
   role_templates_admin_modules_hint:
@@ -1458,7 +1459,7 @@ const baseEn: Record<string, string> = {
 
   role_templates_page_title: 'Role permissions & Admin sheet',
   role_templates_embedded_toggle_aria: 'Expand or collapse role permissions panel',
-  role_templates_embedded_collapsed_hint: 'Owner, Manager, Staff — expand to edit.',
+  role_templates_embedded_collapsed_hint: 'Manager, Capo, Staff — expand to edit.',
   role_templates_embedded_expanded_hint: 'Collapse for easier scrolling.',
   role_template_section_tabs_nav: 'In-app tabs (bottom bar)',
   role_template_section_shift_ops: 'Shift operations',
@@ -1474,6 +1475,7 @@ const baseEn: Record<string, string> = {
   role_templates_forbidden_body: 'Only Administrator or Owner can edit this configuration.',
   role_group_proprietario: 'Owner',
   role_group_management: 'Manager & Assistant Manager',
+  role_group_capo: 'Capo',
   role_group_staff: 'Staff (floor, bar, kitchen, …)',
   role_templates_admin_modules_heading: 'Settings sheet modules (global)',
   role_templates_admin_modules_hint:
@@ -2491,7 +2493,7 @@ const baseEs: Record<string, string> = {
 
   role_templates_page_title: 'Permisos por rol y hoja Admin',
   role_templates_embedded_toggle_aria: 'Abrir o cerrar el panel de permisos por rol',
-  role_templates_embedded_collapsed_hint: 'Propietario, Manager, Staff — expande para editar.',
+  role_templates_embedded_collapsed_hint: 'Manager, Capo, Staff — expande para editar.',
   role_templates_embedded_expanded_hint: 'Contrae para desplazarte más fácil.',
   role_template_section_tabs_nav: 'Pestañas en la app (barra inferior)',
   role_template_section_shift_ops: 'Operativa de turnos',
@@ -2507,6 +2509,7 @@ const baseEs: Record<string, string> = {
   role_templates_forbidden_body: 'Solo Administrador o Propietario pueden modificar esta configuración.',
   role_group_proprietario: 'Propietario',
   role_group_management: 'Manager y Assistant Manager',
+  role_group_capo: 'Capo',
   role_group_staff: 'Staff (sala, bar, cocina, …)',
   role_templates_admin_modules_heading: 'Módulos de la hoja Ajustes (globales)',
   role_templates_admin_modules_hint:
@@ -3283,7 +3286,7 @@ const baseFr: Record<string, string> = {
 
   role_templates_page_title: 'Permissions par rôle et feuille Admin',
   role_templates_embedded_toggle_aria: 'Ouvrir ou fermer le panneau des permissions par rôle',
-  role_templates_embedded_collapsed_hint: 'Propriétaire, Manager, Staff — développez pour modifier.',
+  role_templates_embedded_collapsed_hint: 'Manager, Capo, Staff — développez pour modifier.',
   role_templates_embedded_expanded_hint: 'Réduire pour faciliter le défilement.',
   role_template_section_tabs_nav: 'Onglets dans l’app (barre du bas)',
   role_template_section_shift_ops: 'Opérations sur les shifts',
@@ -3299,6 +3302,7 @@ const baseFr: Record<string, string> = {
   role_templates_forbidden_body: 'Seuls l’administrateur ou le propriétaire peuvent modifier cette configuration.',
   role_group_proprietario: 'Propriétaire',
   role_group_management: 'Manager et assistant manager',
+  role_group_capo: 'Capo',
   role_group_staff: 'Staff (salle, bar, cuisine, …)',
   role_templates_admin_modules_heading: 'Modules de la feuille Paramètres (globaux)',
   role_templates_admin_modules_hint:

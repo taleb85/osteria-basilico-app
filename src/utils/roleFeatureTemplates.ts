@@ -4,13 +4,13 @@ const BUCKET = 'app-config';
 const FILE_PATH = 'role_feature_templates.json';
 const STORAGE_KEY = 'osteria_role_feature_templates_v1';
 /** Template per gruppo (admin escluso — sempre pieno). Il vecchio gruppo `proprietario` su Storage viene fuso in `management` in lettura. */
-export type RoleTemplateGroup = 'management' | 'staff';
+export type RoleTemplateGroup = 'management' | 'capo' | 'staff';
 
 export type RoleFeatureTemplatesOnDisk = Partial<
   Record<RoleTemplateGroup, Partial<Record<string, boolean>>>
 >;
 
-const ALL_GROUPS: RoleTemplateGroup[] = ['management', 'staff'];
+const ALL_GROUPS: RoleTemplateGroup[] = ['management', 'capo', 'staff'];
 
 let cache: RoleFeatureTemplatesOnDisk | null = null;
 
@@ -49,6 +49,11 @@ export function parseRoleTemplatesFile(raw: unknown): RoleFeatureTemplatesOnDisk
   const staffBlock = o.staff;
   if (staffBlock && typeof staffBlock === 'object' && !Array.isArray(staffBlock)) {
     out.staff = { ...(staffBlock as Record<string, boolean>) };
+  }
+
+  const capoBlock = o.capo;
+  if (capoBlock && typeof capoBlock === 'object' && !Array.isArray(capoBlock)) {
+    out.capo = { ...(capoBlock as Record<string, boolean>) };
   }
 
   const legacyProp = o.proprietario;

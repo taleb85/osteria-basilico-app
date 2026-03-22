@@ -158,6 +158,7 @@ export function getDefaultEnabledFeatures(role: string): EnabledFeatures {
 export function getRolePermissionGroup(role: string): 'admin' | RoleTemplateGroup {
   if (role === 'admin') return 'admin';
   if (role === 'manager' || role === 'assistant_manager') return 'management';
+  if (role === 'capo') return 'capo';
   return 'staff';
 }
 
@@ -174,6 +175,7 @@ function applyDiskTemplateToBase(base: EnabledFeatures, group: RoleTemplateGroup
 /** Default “codice” per un gruppo template (editor Admin / reset). */
 export function getCodeDefaultsForTemplateGroup(group: RoleTemplateGroup): EnabledFeatures {
   if (group === 'management') return { ...getDefaultEnabledFeatures('manager') } as EnabledFeatures;
+  if (group === 'capo') return { ...getDefaultEnabledFeatures('capo') } as EnabledFeatures;
   return { ...getDefaultEnabledFeatures('waiter') } as EnabledFeatures;
 }
 

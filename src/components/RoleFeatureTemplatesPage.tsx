@@ -44,6 +44,7 @@ export type RoleFeatureTemplatesPanelVariant = 'page' | 'embedded';
 
 function groupTitle(g: RoleTemplateGroup, tv: Record<string, string>): string {
   if (g === 'management') return tv.role_group_management ?? 'Manager';
+  if (g === 'capo') return tv.role_group_capo ?? 'Capo';
   return tv.role_group_staff ?? 'Staff';
 }
 
@@ -76,11 +77,16 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const allOnInit = () =>
     Object.fromEntries(ENABLED_FEATURE_KEYS.map((k) => [k, true])) as EnabledFeatures;
   const [mgmt, setMgmt] = useState<EnabledFeatures>(allOnInit);
+  const [capo, setCapo] = useState<EnabledFeatures>(allOnInit);
   const [staff, setStaff] = useState<EnabledFeatures>(allOnInit);
   const [teamScheduleMgmt, setTeamScheduleMgmt] = useState(true);
+  const [teamScheduleCapo, setTeamScheduleCapo] = useState(true);
   const [teamScheduleStaff, setTeamScheduleStaff] = useState(true);
   const [opMgmt, setOpMgmt] = useState<Record<SettingsOperationalPermKey, boolean>>(() =>
     buildMergedOperationalTemplateForGroup('management', getRoleFeatureTemplatesCache())
+  );
+  const [opCapo, setOpCapo] = useState<Record<SettingsOperationalPermKey, boolean>>(() =>
+    buildMergedOperationalTemplateForGroup('capo', getRoleFeatureTemplatesCache())
   );
   const [opStaff, setOpStaff] = useState<Record<SettingsOperationalPermKey, boolean>>(() =>
     buildMergedOperationalTemplateForGroup('staff', getRoleFeatureTemplatesCache())
@@ -113,6 +119,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
   const [roleGroupExpanded, setRoleGroupExpanded] = useState<Record<RoleTemplateGroup, boolean>>(() => ({
     management: readRoleGroupExpanded('management'),
+    capo: readRoleGroupExpanded('capo'),
     staff: readRoleGroupExpanded('staff'),
   }));
 
@@ -145,6 +152,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const toggleRole = useCallback((group: RoleTemplateGroup, key: EnabledFeatureKey) => {
     const upd = (prev: EnabledFeatures) => ({ ...prev, [key]: !(prev[key] === true) });
     if (group === 'management') setMgmt(upd);
+    else if (group === 'capo') setCapo(upd);
     else setStaff(upd);
   }, []);
 
@@ -154,6 +162,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
       [key]: !prev[key],
     });
     if (group === 'management') setOpMgmt(apply);
+    else if (group === 'capo') setOpCapo(apply);
     else setOpStaff(apply);
   }, []);
 
@@ -184,12 +193,13 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     try {
       const disk: RoleFeatureTemplatesOnDisk = {
         management: serializeTemplateGroupForDisk(mgmt, teamScheduleMgmt, opMgmt),
+        capo: serializeTemplateGroupForDisk(capo, teamScheduleCapo, opCapo),
         staff: serializeTemplateGroupForDisk(staff, teamScheduleStaff, opStaff),
       };
       await saveRoleFeatureTemplates(disk);
       await saveAdminModulesGlobal(serializeAdminModulesForDisk(mods));
 
-      const opTemplates = { management: opMgmt, staff: opStaff };
+      const opTemplates = { management: opMgmt, capo: opCapo, staff: opStaff };
       for (const u of users) {
         const payload = operationalPayloadForUser(u, opTemplates);
         if (payload && Object.keys(payload).length > 0) {
@@ -216,14 +226,22 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     );
   }
 
-  const getTeamScheduleVisible = (g: RoleTemplateGroup) =>
-    g === 'management' ? teamScheduleMgmt : teamScheduleStaff;
+  const getTeamScheduleVisible = (g: RoleTemplateGroup) => {
+    if (g === 'management') return teamScheduleMgmt;
+    if (g === 'capo') return teamScheduleCapo;
+    return teamScheduleStaff;
+  };
   const setTeamScheduleVisible = (g: RoleTemplateGroup, v: boolean) => {
     if (g === 'management') setTeamScheduleMgmt(v);
+    else if (g === 'capo') setTeamScheduleCapo(v);
     else setTeamScheduleStaff(v);
   };
 
-  const getOp = (g: RoleTemplateGroup) => (g === 'management' ? opMgmt : opStaff);
+  const getOp = (g: RoleTemplateGroup) => {
+    if (g === 'management') return opMgmt;
+    if (g === 'capo') return opCapo;
+    return opStaff;
+  };
 
   const switchRowClass =
     'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
@@ -433,6 +451,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const groupsBlock = (
     <div className={`space-y-6 ${variant === 'embedded' ? 'mb-0' : 'mb-8'}`}>
       {renderGroup('management', mgmt)}
+      {renderGroup('capo', capo)}
       {renderGroup('staff', staff)}
     </div>
   );
