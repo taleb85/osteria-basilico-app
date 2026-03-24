@@ -44,7 +44,7 @@ type ImpostazioniPageProps = {
 };
 
 const demoProfileSelectClass =
-  'w-full max-w-md px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent';
+  'w-full max-w-md rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100';
 
 export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPageProps) {
   const {
@@ -111,7 +111,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     return (
       <div
         key={slug}
-        className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-sm hover:border-slate-300/90 transition-colors h-full flex flex-col"
+        className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm transition-colors hover:border-slate-300/90 dark:border-white/10 dark:bg-neutral-900 sm:p-4"
       >
         <div className="flex items-start gap-3 min-w-0">
           <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
@@ -120,8 +120,8 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-800 leading-tight">{label}</p>
-                <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-snug">{description}</p>
+                <p className="text-sm font-semibold leading-tight text-slate-800 dark:text-neutral-100">{label}</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-neutral-300 mt-1 leading-snug">{description}</p>
               </div>
               <button
                 type="button"
@@ -137,10 +137,10 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
                     })
                   );
                 }}
-                className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 mt-0.5 ${enabled ? 'bg-accent' : 'bg-slate-200'}`}
+                className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
               >
                 <span
-                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-0'}`}
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-0'}`}
                 />
               </button>
             </div>
@@ -167,11 +167,11 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
                       transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
                       className="overflow-hidden"
                     >
-                      <div className="rounded-lg border border-slate-100 bg-slate-50/90 px-2.5 py-2 mt-2">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                      <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50/90 px-2.5 py-2 dark:border-white/10 dark:bg-neutral-800/80">
+                        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
                           {t.impostazioni_detail_label}
                         </p>
-                        <ul className="text-[11px] text-slate-600 space-y-1 list-disc pl-3.5 leading-relaxed">
+                        <ul className="list-disc space-y-1 pl-3.5 text-[11px] leading-relaxed text-slate-600 dark:text-neutral-300">
                           {detailLines.map((line, i) => (
                             <li key={i}>{line}</li>
                           ))}
@@ -197,14 +197,14 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
         className="max-w-5xl"
       >
         <header className="mb-5">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">
+          <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-[0.2em] mb-1">
             {t.impostazioni_page_subtitle}
           </p>
           <h1 className="text-slate-800 text-xl font-semibold tracking-tight">{t.settings_title}</h1>
           <p className="text-slate-600 text-sm mt-2 leading-relaxed max-w-3xl">{t.impostazioni_page_lead}</p>
 
           <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-2 sm:gap-3 max-w-3xl">
-            <p className="text-xs text-slate-500">{t.impostazioni_duplicate_hint}</p>
+            <p className="text-xs text-slate-500 dark:text-neutral-300">{t.impostazioni_duplicate_hint}</p>
             {onOpenProfilesTab && (
               <button
                 type="button"
@@ -227,7 +227,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
                   setCloudSyncing(false);
                 }
               }}
-              className="inline-flex items-center justify-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:pointer-events-none"
+              className="inline-flex items-center justify-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 hover:border-slate-300 hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:border-white/15 dark:hover:bg-neutral-700"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${cloudSyncing ? 'animate-spin' : ''}`} aria-hidden />
               {t.settings_cloud_sync_button}
@@ -244,28 +244,28 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
                   setHardReloading(false);
                 }
               }}
-              className="inline-flex items-center justify-center gap-2 self-start rounded-lg border border-amber-200/90 bg-amber-50/90 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-900 hover:bg-amber-100/90 hover:border-amber-300 disabled:opacity-50 disabled:pointer-events-none"
+              className="inline-flex items-center justify-center gap-2 self-start rounded-lg border border-amber-200/90 bg-amber-50/90 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-900 hover:border-amber-300 hover:bg-amber-100/90 disabled:pointer-events-none disabled:opacity-50 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:border-amber-700 dark:hover:bg-amber-950/55"
             >
               <RotateCcw className={`w-3.5 h-3.5 ${hardReloading ? 'animate-spin' : ''}`} aria-hidden />
               {t.hard_reload_button}
             </button>
           </div>
-          <p className="text-[11px] text-slate-500 mt-2 max-w-3xl leading-relaxed">{t.hard_reload_hint}</p>
+          <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-2 max-w-3xl leading-relaxed">{t.hard_reload_hint}</p>
           {onOpenProfilesTab && (
-            <p className="text-[11px] text-slate-400 mt-1.5 max-w-3xl">{t.impostazioni_master_panel_scroll_hint}</p>
+            <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-1.5 max-w-3xl">{t.impostazioni_master_panel_scroll_hint}</p>
           )}
 
-          <div className="mt-4 max-w-3xl rounded-xl border border-slate-200/90 bg-white/80 overflow-hidden">
+          <div className="mt-4 max-w-3xl overflow-hidden rounded-xl border border-slate-200/90 bg-white/80 dark:border-white/10 dark:bg-neutral-900/80">
             <button
               type="button"
               aria-expanded={howOpen}
               onClick={() => setHowOpen((o) => !o)}
-              className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left hover:bg-slate-50/80 transition-colors"
+              className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition-colors hover:bg-slate-50/80 dark:hover:bg-white/[0.04]"
             >
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-200">
                 {t.impostazioni_page_how_title}
               </span>
-              <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${howOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform dark:text-neutral-400 ${howOpen ? 'rotate-180' : ''}`} />
             </button>
             <AnimatePresence initial={false}>
               {howOpen && (
@@ -274,9 +274,9 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
-                  className="overflow-hidden border-t border-slate-100"
+                  className="overflow-hidden border-t border-slate-100 dark:border-white/10"
                 >
-                  <p className="px-3 py-3 text-[12px] text-slate-600 leading-relaxed">{t.impostazioni_page_how_body}</p>
+                  <p className="px-3 py-3 text-[12px] leading-relaxed text-slate-600 dark:text-neutral-300">{t.impostazioni_page_how_body}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -286,7 +286,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
         <div className="space-y-6">
           {IMPOSTAZIONI_GROUPS.map((group) => (
             <section key={group.titleKey}>
-              <h2 className="ui-section-title mb-2.5 text-slate-400">
+              <h2 className="ui-section-title mb-2.5 text-slate-400 dark:text-neutral-400">
                 {t[group.titleKey]}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{group.slugs.map((slug) => renderCard(slug))}</div>
@@ -295,22 +295,22 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
         </div>
 
         <section
-          className="mt-8 rounded-xl border-2 border-emerald-400/90 bg-emerald-50/90 p-4 sm:p-5 space-y-3 shadow-sm"
+          className="mt-8 space-y-3 rounded-xl border-2 border-emerald-400/90 bg-emerald-50/90 p-4 shadow-sm dark:border-emerald-700/50 dark:bg-emerald-950/30 sm:p-5"
           aria-label={t.impostazioni_demo_profile_title}
         >
-          <h2 className="text-sm font-bold text-emerald-950 uppercase tracking-wide">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-emerald-950 dark:text-emerald-100">
             {t.impostazioni_demo_profile_title}
           </h2>
-          <p className="text-xs text-emerald-900/85 leading-relaxed max-w-2xl">{t.impostazioni_demo_profile_lead}</p>
+          <p className="max-w-2xl text-xs leading-relaxed text-emerald-900/85 dark:text-emerald-200/90">{t.impostazioni_demo_profile_lead}</p>
           <div className="space-y-2 max-w-md">
             <label
               htmlFor="osteria-demo-profile-user-impostazioni"
-              className="block text-[10px] font-bold uppercase tracking-wider text-emerald-900/80"
+              className="block text-[10px] font-bold uppercase tracking-wider text-emerald-900/80 dark:text-emerald-200/90"
             >
               {t.settings_seed_demo_profile_pick_user}
             </label>
             {demoProfileCandidates.length === 0 ? (
-              <p className="text-xs text-amber-900 bg-amber-100 border border-amber-300/80 rounded-lg px-3 py-2">
+              <p className="rounded-lg border border-amber-300/80 bg-amber-100 px-3 py-2 text-xs text-amber-900 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200">
                 {t.settings_seed_demo_profile_no_staff}
               </p>
             ) : (

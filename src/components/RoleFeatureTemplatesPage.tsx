@@ -259,10 +259,10 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
   const renderAdminModulesBlock = () => (
     <div className="pt-3 border-t border-slate-100">
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+      <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-2">
         {t.role_templates_admin_modules_heading}
       </p>
-      <p className="text-[11px] text-slate-500 mb-2">{t.role_templates_admin_modules_hint}</p>
+      <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-2">{t.role_templates_admin_modules_hint}</p>
       <div className="rounded-xl border border-slate-200 bg-white">
         {ADMIN_MODULE_KEYS.map((key) => {
           const enabled = mods[key] === true;
@@ -283,7 +283,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                   }}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
                       enabled ? 'translate-x-5' : 'translate-x-1'
                     }`}
                   />
@@ -296,7 +296,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
       <button
         type="button"
         onClick={resetMods}
-        className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-800 px-2 py-1 rounded-lg border border-slate-200 hover:bg-slate-50"
+        className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-neutral-300 hover:text-slate-800 px-2 py-1 rounded-lg border border-slate-200 hover:bg-slate-50"
       >
         <RotateCcw className="w-3 h-3" />
         Moduli: tutti attivi
@@ -308,8 +308,8 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     const op = getOp(group);
     return (
       <div className="pt-3 border-t border-slate-100">
-        <p className="ui-section-title mb-2 text-slate-400">{t.role_templates_operational_heading}</p>
-        <p className="text-[11px] text-slate-500 mb-2">{t.role_templates_operational_hint}</p>
+        <p className="ui-section-title mb-2 text-slate-400 dark:text-neutral-400">{t.role_templates_operational_heading}</p>
+        <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-2">{t.role_templates_operational_hint}</p>
         <div className="rounded-xl border border-slate-200 bg-white">
           {permRows.map((perm) => {
             const enabled = op[perm.key] === true;
@@ -338,7 +338,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                     }}
                   >
                     <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
                         enabled ? 'translate-x-5' : 'translate-x-1'
                       }`}
                     />
@@ -392,7 +392,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 <div className="pt-3 border-t border-slate-100">
                   <div className="rounded-xl border border-slate-200 bg-white">
                     <AdminRow
-                      icon={<Users className="h-4 w-4 text-slate-500" aria-hidden />}
+                      icon={<Users className="h-4 w-4 text-slate-500 dark:text-neutral-300" aria-hidden />}
                       label={t.settings_visible_on_schedule_row}
                       description={
                         getTeamScheduleVisible(group)
@@ -412,7 +412,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                           }}
                         >
                           <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
                               getTeamScheduleVisible(group) ? 'translate-x-5' : 'translate-x-1'
                             }`}
                           />
@@ -444,7 +444,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   };
 
   const introDescription = (
-    <p className="text-slate-500 text-sm mt-1 leading-snug">
+    <p className="text-slate-500 dark:text-neutral-300 text-sm mt-1 leading-snug">
       {t.role_templates_intro_p1}{' '}
       <strong className="text-slate-700">{t.role_templates_save_all}</strong>{' '}
       {t.role_templates_intro_p2}{' '}
@@ -501,7 +501,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-slate-800 text-base font-bold leading-tight">{t.role_templates_page_title}</h2>
-              <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+              <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-snug">
                 {embeddedExpanded ? t.role_templates_embedded_expanded_hint : t.role_templates_embedded_collapsed_hint}
               </p>
             </div>

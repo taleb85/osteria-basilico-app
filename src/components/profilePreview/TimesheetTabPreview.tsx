@@ -34,7 +34,7 @@ export default function TimesheetTabPreview({
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
           <div className="min-w-0">
             <h2 className="text-base font-bold text-slate-900">{t.timesheet_title}</h2>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
               {t.stats_preset_current_week}
             </p>
           </div>
@@ -69,7 +69,7 @@ export default function TimesheetTabPreview({
           ].map((c) => (
             <div key={c.l} className="rounded-xl border border-slate-100 bg-white p-3 text-center shadow-sm">
               <p className="text-xl font-bold text-slate-900">{c.v}</p>
-              <p className="mt-0.5 text-[10px] font-medium text-slate-500">{c.l}</p>
+              <p className="mt-0.5 text-[10px] font-medium text-slate-500 dark:text-neutral-300">{c.l}</p>
             </div>
           ))}
         </div>
@@ -86,15 +86,15 @@ export default function TimesheetTabPreview({
       >
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
-            <p className="text-[10px] font-bold uppercase text-slate-400">{t.stats_approved_hours}</p>
+            <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.stats_approved_hours}</p>
             <p className="text-xl font-bold text-slate-900">128:30</p>
           </div>
           <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
-            <p className="text-[10px] font-bold uppercase text-slate-400">{t.stats_estimated_cost}</p>
+            <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.stats_estimated_cost}</p>
             <p className="text-xl font-bold text-slate-900">—</p>
           </div>
           <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
-            <p className="text-[10px] font-bold uppercase text-slate-400">{t.pending}</p>
+            <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.pending}</p>
             <p className="text-xl font-bold text-amber-800">3</p>
           </div>
         </div>
@@ -112,11 +112,11 @@ export default function TimesheetTabPreview({
         <div className="space-y-2">
           <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800">
             <span>{t.mod_stats_hours}</span>
-            <ChevronDown className="h-4 w-4 text-slate-400" />
+            <ChevronDown className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
           </div>
           <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800">
             <span>{t.sidebar_shifts}</span>
-            <ChevronDown className="h-4 w-4 text-slate-400" />
+            <ChevronDown className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
           </div>
         </div>
       </WidgetChrome>
@@ -130,8 +130,8 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/50 px-3 py-3 text-center text-xs text-indigo-900/80">
-          <Moon className="mx-auto mb-1 h-4 w-4 text-indigo-500" />
+        <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/50 px-3 py-3 text-center text-xs text-amber-900/80 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-200/90">
+          <Moon className="mx-auto mb-1 h-4 w-4 text-amber-600 dark:text-amber-400" />
           {tv.profile_visibility_dinner_placeholder ?? 'Chiusura turni sera'}
         </div>
       </WidgetChrome>
@@ -162,9 +162,9 @@ export default function TimesheetTabPreview({
       >
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="grid grid-cols-[minmax(4rem,1fr)_repeat(4,minmax(0,1fr))] gap-px bg-slate-200 text-[9px]">
-            <div className="bg-slate-50 px-1 py-2 font-bold text-slate-500">Staff</div>
+            <div className="bg-slate-50 px-1 py-2 font-bold text-slate-500 dark:text-neutral-300">Staff</div>
             {['Lun', 'Mar', 'Mer', 'Gio'].map((d) => (
-              <div key={d} className="bg-slate-50 py-2 text-center font-bold text-slate-500">
+              <div key={d} className="bg-slate-50 py-2 text-center font-bold text-slate-500 dark:text-neutral-300">
                 {d}
               </div>
             ))}

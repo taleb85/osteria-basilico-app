@@ -33,16 +33,16 @@ export default function TurniMgmtPreview({
             <span className="rounded-xl border border-accent/30 px-2 py-1 text-xs font-semibold text-accent">{t.today}</span>
             <div className="flex rounded-xl border border-slate-200 p-0.5">
               <span className="rounded-lg bg-accent px-2 py-1 text-xs font-medium text-white">{t.view_week}</span>
-              <span className="px-2 py-1 text-xs text-slate-500">{t.view_month}</span>
+              <span className="px-2 py-1 text-xs text-slate-500 dark:text-neutral-300">{t.view_month}</span>
             </div>
-            <span className="text-xs font-semibold text-slate-500">1/4</span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-neutral-300">1/4</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-2 py-1 text-xs text-slate-600">
               <Filter className="h-3 w-3" /> {t.wst_filters}
               <ChevronDown className="h-3 w-3" />
             </span>
-            <span className="rounded-xl border border-slate-200 px-2 py-1 text-[10px] font-semibold text-slate-500">
+            <span className="rounded-xl border border-slate-200 px-2 py-1 text-[10px] font-semibold text-slate-500 dark:text-neutral-300">
               {t.wst_actions ?? 'Azioni'} ▾
             </span>
           </div>
@@ -62,7 +62,7 @@ export default function TurniMgmtPreview({
               key={d}
               className={`flex min-w-[2.5rem] flex-col items-center rounded-lg px-1 py-1 text-center ${i === 2 ? 'bg-accent/15 ring-1 ring-accent/40' : ''}`}
             >
-              <span className="text-[9px] font-bold text-slate-400">{d}</span>
+              <span className="text-[9px] font-bold text-slate-400 dark:text-neutral-400">{d}</span>
               <span className="text-xs font-bold text-slate-800">{10 + i}</span>
             </div>
           ))}
@@ -78,11 +78,11 @@ export default function TurniMgmtPreview({
       >
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="grid grid-cols-[minmax(4rem,1fr)_repeat(7,minmax(0,1fr))] gap-px bg-slate-200 text-[10px]">
-            <div className="flex items-center gap-1 bg-slate-50 px-2 py-2 font-bold text-slate-500">
+            <div className="flex items-center gap-1 bg-slate-50 px-2 py-2 font-bold text-slate-500 dark:text-neutral-300">
               <Users className="h-3 w-3" /> Team
             </div>
             {days.map((d) => (
-              <div key={d} className="bg-slate-50 py-2 text-center font-bold text-slate-500">
+              <div key={d} className="bg-slate-50 py-2 text-center font-bold text-slate-500 dark:text-neutral-300">
                 {d.slice(0, 1)}
               </div>
             ))}
@@ -106,7 +106,7 @@ export default function TurniMgmtPreview({
               </div>
             ))}
           </div>
-          <p className="flex items-center justify-center gap-1 border-t border-slate-100 py-2 text-[10px] text-slate-400">
+          <p className="flex items-center justify-center gap-1 border-t border-slate-100 py-2 text-[10px] text-slate-400 dark:text-neutral-400">
             <Calendar className="h-3 w-3" />
             {tv.profile_visibility_turni_grid_hint ?? 'Griglia dimostrativa — in app sono i turni reali del periodo.'}
           </p>

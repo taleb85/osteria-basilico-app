@@ -36,7 +36,7 @@ export default function SettingsTabPreview({
               </div>
               <div className="min-w-0">
                 <p className="truncate text-base font-bold text-slate-900">{name}</p>
-                <p className="text-xs text-slate-500">{previewUser.email ?? 'email@…'}</p>
+                <p className="text-xs text-slate-500 dark:text-neutral-300">{previewUser.email ?? 'email@…'}</p>
               </div>
             </div>
           </div>
@@ -48,7 +48,7 @@ export default function SettingsTabPreview({
               { Icon: ShieldCheck, label: t.pin_for_profile },
             ].map(({ Icon, label }) => (
               <div key={label} className="flex items-center gap-3 px-4 py-3">
-                <Icon className="h-5 w-5 text-slate-400" />
+                <Icon className="h-5 w-5 text-slate-400 dark:text-neutral-400" />
                 <span className="text-sm font-medium text-slate-800">{label}</span>
               </div>
             ))}

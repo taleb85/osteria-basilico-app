@@ -78,7 +78,7 @@ function DepartmentColorPicker({
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((o) => !o)}
-        className="relative h-9 w-9 shrink-0 rounded-full border-2 border-white shadow-[0_2px_10px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/90 outline-none transition-transform hover:ring-slate-300 focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 active:scale-[0.96]"
+        className="relative h-9 w-9 shrink-0 rounded-full border-2 border-white shadow-[0_2px_10px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/90 outline-none transition-transform hover:ring-slate-300 focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 active:scale-[0.96] dark:ring-neutral-600 dark:hover:ring-neutral-500 dark:focus-visible:ring-offset-neutral-900"
         style={{ backgroundColor: value }}
       />
       {open && (
@@ -91,7 +91,7 @@ function DepartmentColorPicker({
           maxWidthClass="max-w-xs"
           panelClassName="p-3"
         >
-          <p className="mb-2.5 px-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">{title}</p>
+          <p className="mb-2.5 px-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{title}</p>
           <div className="grid grid-cols-6 gap-2">
             {DEPARTMENT_COLOR_PRESETS.map((hex) => {
               const selected = value.toLowerCase() === hex.toLowerCase();
@@ -193,7 +193,7 @@ export default function SettingsPage() {
   const builtinValues = new Set(BUILTIN_DEPARTMENTS.map((d) => d.value));
 
   const deptPermissionCategorySelectClass =
-    'w-full min-w-[10rem] max-w-[16rem] px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent';
+    'w-full min-w-[10rem] max-w-[16rem] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100';
 
   const updateWorkRule = useCallback(<K extends keyof WorkRules>(key: K, value: WorkRules[K]) => {
     const next = { ...workRules, [key]: value };
@@ -307,7 +307,7 @@ export default function SettingsPage() {
   if (!isManager) {
     return (
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
-        <p className="text-slate-600 text-sm">{t.no_access_settings}</p>
+        <p className="text-sm text-slate-600 dark:text-neutral-300">{t.no_access_settings}</p>
       </div>
     );
   }
@@ -325,10 +325,10 @@ export default function SettingsPage() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className={`mb-4 rounded-xl p-4 border ${
+              className={`mb-4 rounded-xl border p-4 ${
                 importStatus.type === 'success'
-                  ? 'bg-accent/10 text-accent border-accent/40'
-                  : 'bg-red-50 text-red-700 border-red-200'
+                  ? 'border-accent/40 bg-accent/10 text-accent dark:bg-accent/15 dark:text-accent-light'
+                  : 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-950/35 dark:text-red-300'
               }`}
             >
               {importStatus.message}
@@ -353,14 +353,14 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={toggleTeamSectionExpanded}
-              className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-slate-100/80 -ml-1"
+              className="-ml-1 flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-slate-100/80 dark:hover:bg-white/[0.06]"
               aria-expanded={teamSectionExpanded}
             >
               <ChevronDown
-                className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${teamSectionExpanded ? 'rotate-180' : ''}`}
+                className={`h-4 w-4 shrink-0 text-slate-400 transition-transform dark:text-neutral-400 ${teamSectionExpanded ? 'rotate-180' : ''}`}
                 aria-hidden
               />
-              <h2 className="text-slate-700 text-[11px] font-semibold uppercase tracking-widest">
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-700 dark:text-neutral-200">
                 {t.settings_team_section_title}
               </h2>
             </button>
@@ -369,7 +369,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateStaff(true)}
-                  className="inline-flex items-center gap-1.5 text-slate-600 text-xs font-semibold uppercase tracking-wider border border-slate-200 rounded-xl px-2.5 py-1.5 hover:bg-slate-50 transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-neutral-800"
                 >
                   <UserPlus className="w-3.5 h-3.5" aria-hidden />
                   {t.admin_add_employee}
@@ -379,7 +379,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="text-slate-400 text-xs uppercase tracking-wider hover:text-slate-700 border border-slate-200 rounded-xl px-2 py-1 hover:bg-slate-50 transition-colors"
+                  className="rounded-xl border border-slate-200 px-2 py-1 text-xs uppercase tracking-wider text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 dark:border-white/10 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>
@@ -396,7 +396,7 @@ export default function SettingsPage() {
                 transition={{ duration: 0.22 }}
                 className="overflow-hidden"
               >
-                <div className="panel rounded-xl shadow-none overflow-hidden divide-y divide-slate-100">
+                <div className="panel divide-y divide-slate-100 overflow-hidden rounded-xl shadow-none dark:divide-white/10">
               {displayUsers.map((user) => {
                 const isPermsOpen = expandedPermsUserId === user.id;
                 return (
@@ -408,10 +408,10 @@ export default function SettingsPage() {
                         onClick={() => canEdit && setEditingUser(user)}
                         className={`flex-1 min-w-0 text-left ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
                       >
-                        <span className="text-slate-900 font-semibold text-sm uppercase block truncate">
+                        <span className="block truncate text-sm font-semibold uppercase text-slate-900 dark:text-neutral-100">
                           {user.first_name ?? ''} {user.last_name ?? ''}
                         </span>
-                        <span className="text-slate-500 text-[10px] uppercase tracking-wider">
+                        <span className="text-slate-500 dark:text-neutral-300 text-[10px] uppercase tracking-wider">
                           {translateRole(user.role, currentUser.language)}
                           {!isPurelyManagementRole(user.role) && user.status === 'active' && !isUserVisibleOnTeamSchedule(user) && (
                             <span className="ml-1.5 text-amber-600 font-semibold normal-case">
@@ -431,7 +431,7 @@ export default function SettingsPage() {
                             className={`px-2 py-1 rounded-lg border text-[10px] font-semibold transition-colors ${
                               isPermsOpen
                                 ? 'bg-accent text-white border-accent'
-                                : 'border-slate-200 text-slate-500 hover:bg-slate-100'
+                                : 'border-slate-200 text-slate-500 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-400 dark:hover:bg-neutral-800'
                             }`}
                           >
                             {t.settings_user_perms_button}
@@ -461,7 +461,7 @@ export default function SettingsPage() {
                             className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-semibold transition-colors ${
                               isUserVisibleOnTeamSchedule(user)
                                 ? 'border-accent/30 bg-accent/10 text-accent'
-                                : 'border-slate-200 bg-slate-50 text-slate-400'
+                                : 'border-slate-200 bg-slate-50 text-slate-400 dark:border-white/10 dark:bg-neutral-800/80 dark:text-neutral-400'
                             }`}
                           >
                             <Users className="w-3 h-3 shrink-0 opacity-70" />
@@ -477,10 +477,10 @@ export default function SettingsPage() {
                             aria-checked={user.status === 'active'}
                             onClick={() => handleToggleStatus(user)}
                             className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
-                              user.status === 'active' ? 'bg-accent' : 'bg-slate-200'
+                              user.status === 'active' ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
                             }`}
                           >
-                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${user.status === 'active' ? 'translate-x-5' : 'translate-x-0'}`} />
+                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${user.status === 'active' ? 'translate-x-5' : 'translate-x-0'}`} />
                           </button>
                         )}
                       </div>
@@ -500,14 +500,14 @@ export default function SettingsPage() {
                             {/* Matrice permessi: solo lettura (definita dal ruolo) */}
                             {!isPurelyManagementRole(user.role) && (
                               <div className="space-y-4">
-                                <p className="text-[11px] text-slate-500 leading-snug">
+                                <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">
                                   {formatTrans(t.settings_perms_effective_intro, {
                                     name: user.first_name ?? '',
                                     role: translateRole(user.role, currentUser.language),
                                   })}
                                 </p>
                                 <div>
-                                  <p className="ui-section-title mb-2 text-slate-400">
+                                  <p className="ui-section-title mb-2 text-slate-400 dark:text-neutral-400">
                                     {formatTrans(t.settings_perms_tab_heading, { name: user.first_name ?? '' })}
                                   </p>
                                   <RoleFeatureSectionsBlock
@@ -519,7 +519,13 @@ export default function SettingsPage() {
                                     <AdminRow
                                       className="!py-2.5 !px-4"
                                       label={
-                                        <span className={isUserVisibleOnTeamSchedule(user) ? 'text-slate-800' : 'text-slate-600'}>
+                                        <span
+                                          className={
+                                            isUserVisibleOnTeamSchedule(user)
+                                              ? 'text-slate-800 dark:text-neutral-100'
+                                              : 'text-slate-600 dark:text-neutral-400'
+                                          }
+                                        >
                                           {t.settings_visible_on_schedule_row}
                                         </span>
                                       }
@@ -534,7 +540,7 @@ export default function SettingsPage() {
                                       }
                                     />
                                   </div>
-                                  <p className="text-[10px] text-slate-400 mt-2 leading-snug">
+                                  <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-2 leading-snug">
                                     Template + pulsante Griglia in riga (override solo visibilità tabellone).
                                   </p>
                                 </div>
@@ -544,10 +550,10 @@ export default function SettingsPage() {
                             {/* Moduli scheda Impostazioni: globali, solo Admin modifica (Permessi ruoli) */}
                             {isManagementRole(user.role) && (
                               <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                                <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-2">
                                   {formatTrans(t.settings_admin_settings_modules_heading, { name: user.first_name ?? '' })}
                                 </p>
-                                <p className="text-[11px] text-slate-500 mb-2">
+                                <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-2">
                                   {t.settings_admin_settings_modules_body}
                                 </p>
                                 <div className={PERMISSION_SUMMARY_LIST_CLASS}>
@@ -559,17 +565,19 @@ export default function SettingsPage() {
                                         key={key}
                                         className="!py-2.5 !px-4"
                                         label={
-                                          <span className={enabled ? 'text-slate-800' : 'text-slate-500'}>
+                                          <span className={enabled ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-500 dark:text-neutral-400'}>
                                             {getAdminModuleLabel(key, t as Record<string, string>)}
                                           </span>
                                         }
                                         action={
                                           <span
                                             className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
-                                              enabled ? 'bg-accent text-white shadow-sm' : 'bg-slate-100 text-slate-500'
-                                            }`}
-                                          >
-                                            {enabled ? t.role_template_yes : t.role_template_no}
+                                            enabled
+                                              ? 'bg-accent text-white shadow-sm'
+                                              : 'bg-slate-100 text-slate-500 dark:bg-neutral-800 dark:text-neutral-400'
+                                          }`}
+                                        >
+                                          {enabled ? t.role_template_yes : t.role_template_no}
                                           </span>
                                         }
                                       />
@@ -580,11 +588,9 @@ export default function SettingsPage() {
                             )}
 
                             {isPurelyManagementRole(user.role) ? (
-                              <div className="rounded-xl border border-accent/25 bg-accent/5 px-4 py-3">
-                                <p className="text-sm font-bold text-slate-800">
-                                  {t.settings_admin_perm_title}
-                                </p>
-                                <p className="mt-1.5 text-[11px] text-slate-600 leading-relaxed">
+                              <div className="rounded-xl border border-accent/25 bg-accent/5 px-4 py-3 dark:border-accent/35 dark:bg-accent/10">
+                                <p className="text-sm font-bold text-slate-800 dark:text-neutral-100">{t.settings_admin_perm_title}</p>
+                                <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600 dark:text-neutral-300">
                                   {t.settings_admin_perm_readonly_body}
                                 </p>
                               </div>
@@ -621,8 +627,10 @@ export default function SettingsPage() {
                   return (
                     <div
                       key={d.value}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold uppercase text-white transition-shadow ${
-                        isEditingChip ? 'ring-2 ring-white/90 ring-offset-2 ring-offset-slate-100 shadow-md' : ''
+                      className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold uppercase text-white transition-shadow ${
+                        isEditingChip
+                          ? 'shadow-md ring-2 ring-white/90 ring-offset-2 ring-offset-slate-100 dark:ring-offset-neutral-900'
+                          : ''
                       }`}
                       style={{ backgroundColor: badgeColor }}
                     >
@@ -682,12 +690,12 @@ export default function SettingsPage() {
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="rounded-xl border border-accent/25 bg-slate-50/90 p-3 space-y-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <div className="space-y-3 rounded-xl border border-accent/25 bg-slate-50/90 p-3 dark:border-accent/30 dark:bg-neutral-800/60">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
                         {t.settings_dept_edit_title}
                       </p>
                       {builtinValues.has(editingDeptValue) && (
-                        <p className="text-[11px] text-slate-500 leading-snug">{t.settings_dept_builtin_edit_hint}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">{t.settings_dept_builtin_edit_hint}</p>
                       )}
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
                         <DepartmentColorPicker
@@ -713,11 +721,11 @@ export default function SettingsPage() {
                               setEditingDeptValue(null);
                             }
                           }}
-                          className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent sm:min-w-[12rem]"
+                          className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100 sm:min-w-[12rem]"
                         />
                         {!builtinValues.has(editingDeptValue) && (
                           <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-1">
                               {t.settings_dept_permission_group}
                             </label>
                             <select
@@ -757,14 +765,14 @@ export default function SettingsPage() {
                           <button
                             type="button"
                             onClick={() => setEditingDeptValue(null)}
-                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
                           >
                             {t.cancel}
                           </button>
                         </div>
                       </div>
                       {!builtinValues.has(editingDeptValue) && (
-                        <p className="text-[11px] text-slate-500 leading-snug">{t.settings_dept_permission_group_hint}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">{t.settings_dept_permission_group_hint}</p>
                       )}
                     </div>
                   </motion.div>
@@ -772,7 +780,7 @@ export default function SettingsPage() {
               </AnimatePresence>
 
               {/* Aggiunta nuovo reparto */}
-              <div className="space-y-3 pt-1 border-t border-slate-100">
+              <div className="space-y-3 border-t border-slate-100 pt-1 dark:border-white/10">
                 <div className="flex flex-wrap items-center gap-2">
                   <DepartmentColorPicker
                     value={newDeptColor}
@@ -817,7 +825,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
                   <div className="shrink-0 sm:w-56">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-1">
                       {t.settings_dept_permission_group}
                     </label>
                     <select
@@ -831,12 +839,12 @@ export default function SettingsPage() {
                       <option value="bar">{t.department_bar}</option>
                     </select>
                   </div>
-                  <p className="text-[11px] text-slate-400 leading-snug flex-1 pt-0 sm:pt-5">
+                  <p className="text-[11px] text-slate-400 dark:text-neutral-400 leading-snug flex-1 pt-0 sm:pt-5">
                     {t.settings_dept_permission_group_hint}
                   </p>
                 </div>
               </div>
-              <p className="text-[11px] text-slate-400">{t.settings_builtin_depts_hint}</p>
+              <p className="text-[11px] text-slate-400 dark:text-neutral-400">{t.settings_builtin_depts_hint}</p>
             </div>
           </SettingsAccordionSection>
         )}
@@ -851,48 +859,48 @@ export default function SettingsPage() {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {/* Critico */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 flex flex-col gap-3">
+              <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-neutral-900">
                 <div className="flex items-center gap-2">
-                  <span className="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-100 dark:bg-red-950/50">
+                    <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
                   </span>
-                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">{t.wst_violation_critical}</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-neutral-100">{t.wst_violation_critical}</h3>
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">{t.wst_violation_critical_sub}</p>
+                <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">{t.wst_violation_critical_sub}</p>
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] font-medium text-slate-600">{t.settings_toggle_on}</span>
+                  <span className="text-[11px] font-medium text-slate-600 dark:text-neutral-300">{t.settings_toggle_on}</span>
                   <button
                     type="button"
                     role="switch"
                     aria-checked={workRules.criticEnabled}
                     onClick={() => updateWorkRule('criticEnabled', !workRules.criticEnabled)}
-                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.criticEnabled ? 'bg-accent' : 'bg-slate-200'}`}
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.criticEnabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
                   >
-                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${workRules.criticEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${workRules.criticEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
                 </div>
                 {workRules.criticEnabled && (
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                  <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2 dark:border-white/10">
                     <div>
-                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">{t.settings_wr_max_shift_h}</label>
+                      <label className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 mb-0.5">{t.settings_wr_max_shift_h}</label>
                       <input
                         type="number"
                         min={4}
                         max={14}
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
-                        className="w-full px-2 py-1 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">{t.settings_wr_min_rest}</label>
+                      <label className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 mb-0.5">{t.settings_wr_min_rest}</label>
                       <input
                         type="number"
                         min={6}
                         max={24}
                         value={workRules.minRestHours}
                         onChange={(e) => updateWorkRule('minRestHours', Math.max(6, Math.min(24, +e.target.value || 11)))}
-                        className="w-full px-2 py-1 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100"
                       />
                     </div>
                   </div>
@@ -900,48 +908,48 @@ export default function SettingsPage() {
               </div>
 
               {/* Attenzione */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 flex flex-col gap-3">
+              <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-neutral-900">
                 <div className="flex items-center gap-2">
-                  <span className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950/45">
+                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
                   </span>
-                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">{t.wst_violation_attention}</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-neutral-100">{t.wst_violation_attention}</h3>
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">{t.wst_violation_attention_sub}</p>
+                <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">{t.wst_violation_attention_sub}</p>
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] font-medium text-slate-600">{t.settings_toggle_on}</span>
+                  <span className="text-[11px] font-medium text-slate-600 dark:text-neutral-300">{t.settings_toggle_on}</span>
                   <button
                     type="button"
                     role="switch"
                     aria-checked={workRules.attentionEnabled}
                     onClick={() => updateWorkRule('attentionEnabled', !workRules.attentionEnabled)}
-                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.attentionEnabled ? 'bg-accent' : 'bg-slate-200'}`}
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.attentionEnabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
                   >
-                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${workRules.attentionEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${workRules.attentionEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
                 </div>
                 {workRules.attentionEnabled && (
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                  <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2 dark:border-white/10">
                     <div>
-                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">{t.settings_wr_max_day}</label>
+                      <label className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 mb-0.5">{t.settings_wr_max_day}</label>
                       <input
                         type="number"
                         min={4}
                         max={14}
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
-                        className="w-full px-2 py-1 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">{t.settings_wr_max_week}</label>
+                      <label className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 mb-0.5">{t.settings_wr_max_week}</label>
                       <input
                         type="number"
                         min={20}
                         max={60}
                         value={workRules.maxWeeklyHours}
                         onChange={(e) => updateWorkRule('maxWeeklyHours', Math.max(20, Math.min(60, +e.target.value || 48)))}
-                        className="w-full px-2 py-1 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100"
                       />
                     </div>
                   </div>
@@ -949,24 +957,24 @@ export default function SettingsPage() {
               </div>
 
               {/* Sovrapposizione */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 flex flex-col gap-3">
+              <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-neutral-900">
                 <div className="flex items-center gap-2">
-                  <span className="w-8 h-8 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shadow-[0_0_6px_rgba(239,68,68,0.3)]">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-300" />
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-100 bg-red-50 shadow-[0_0_6px_rgba(239,68,68,0.3)] dark:border-red-900/40 dark:bg-red-950/35">
+                    <span className="h-2.5 w-2.5 rounded-full bg-red-300" />
                   </span>
-                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">{t.wst_violation_overlap}</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-neutral-100">{t.wst_violation_overlap}</h3>
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">{t.wst_violation_overlap_sub}</p>
+                <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">{t.wst_violation_overlap_sub}</p>
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] font-medium text-slate-600">{t.settings_toggle_on}</span>
+                  <span className="text-[11px] font-medium text-slate-600 dark:text-neutral-300">{t.settings_toggle_on}</span>
                   <button
                     type="button"
                     role="switch"
                     aria-checked={workRules.overlapEnabled}
                     onClick={() => updateWorkRule('overlapEnabled', !workRules.overlapEnabled)}
-                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.overlapEnabled ? 'bg-accent' : 'bg-slate-200'}`}
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.overlapEnabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
                   >
-                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${workRules.overlapEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${workRules.overlapEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
                 </div>
               </div>
@@ -998,24 +1006,30 @@ export default function SettingsPage() {
                 return (
                   <div
                     key={rule.id}
-                    className={`rounded-2xl border p-4 flex flex-col gap-3 transition-all ${isEnabled ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50 opacity-70'}`}
+                    className={`flex flex-col gap-3 rounded-2xl border p-4 transition-all ${
+                      isEnabled
+                        ? 'border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900'
+                        : 'border-slate-100 bg-slate-50 opacity-70 dark:border-white/5 dark:bg-neutral-900/50'
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       <span className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
                         <Coffee className="w-4 h-4 text-amber-600" />
                       </span>
-                      <h3 className={`text-xs font-bold uppercase tracking-wider truncate flex-1 ${isEnabled ? 'text-slate-800' : 'text-slate-400'}`}>
+                      <h3
+                        className={`flex-1 truncate text-xs font-bold uppercase tracking-wider ${isEnabled ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-400 dark:text-neutral-500'}`}
+                      >
                         {rule.title}
                       </h3>
                     </div>
-                    <p className="text-[11px] text-slate-500 leading-snug">
+                    <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">
                       {rule.breakStart} – {rule.breakEnd}
                       {rule.minShiftDurationEnabled !== false ? (
                         <>
                           {' · '}min. {Math.round(rule.minShiftMinutes / 60 * 10) / 10}{t.settings_break_hours_suffix}
                         </>
                       ) : (
-                        <span className="text-slate-400"> · {t.settings_break_no_shift_threshold}</span>
+                        <span className="text-slate-400 dark:text-neutral-400"> · {t.settings_break_no_shift_threshold}</span>
                       )}
                       {' · '}
                       <span className={rule.paid ? 'text-accent' : 'text-amber-600'}>
@@ -1023,7 +1037,7 @@ export default function SettingsPage() {
                       </span>
                     </p>
                     <div className="flex items-center justify-between pt-1 mt-auto">
-                      <span className="text-[11px] font-medium text-slate-600">{t.settings_toggle_on}</span>
+                      <span className="text-[11px] font-medium text-slate-600 dark:text-neutral-300">{t.settings_toggle_on}</span>
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
@@ -1031,14 +1045,14 @@ export default function SettingsPage() {
                           aria-checked={isEnabled}
                           onClick={toggle}
                           title={isEnabled ? t.settings_break_toggle_disable : t.settings_break_toggle_enable}
-                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${isEnabled ? 'bg-accent' : 'bg-slate-200'}`}
+                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${isEnabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
                         >
-                          <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${isEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                          <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${isEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
-                        <button type="button" onClick={() => setEditingBreakRule(rule)} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+                        <button type="button" onClick={() => setEditingBreakRule(rule)} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 dark:text-neutral-400 hover:text-slate-700 transition-colors">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" onClick={() => handleDeleteBreakRule(rule.id)} className="p-1.5 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
+                        <button type="button" onClick={() => handleDeleteBreakRule(rule.id)} className="p-1.5 rounded-xl hover:bg-red-50 text-slate-400 dark:text-neutral-400 hover:text-red-500 transition-colors">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1049,7 +1063,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => setCreatingBreakRule(true)}
-                className="rounded-2xl border-2 border-dashed border-slate-200 bg-white/50 p-4 flex flex-col items-center justify-center gap-2 text-slate-500 hover:border-accent hover:text-accent hover:bg-accent/5 transition-colors min-h-[120px]"
+                className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-white/50 p-4 text-slate-500 transition-colors hover:border-accent hover:bg-accent/5 hover:text-accent dark:border-white/15 dark:bg-neutral-900/40 dark:text-neutral-300 dark:hover:bg-accent/10"
               >
                 <Plus className="w-6 h-6" />
                 <span className="text-xs font-semibold">{t.settings_break_new_rule}</span>
@@ -1065,25 +1079,25 @@ export default function SettingsPage() {
             subtitle={t.settings_presence_accordion_subtitle}
             defaultOpen={true}
           >
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-              <p className="text-[11px] text-slate-500 mb-3 leading-snug">{t.settings_presence_section_hint}</p>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-neutral-900/50">
+              <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-3 leading-snug">{t.settings_presence_section_hint}</p>
               {(() => {
                 const effectiveTok = resolveEffectiveVerificationToken(presenceVerificationConfig);
                 const diskTok = presenceVerificationConfig.verificationToken?.trim() ?? '';
                 const preview =
                   effectiveTok.length > 20 ? `${effectiveTok.slice(0, 20)}…` : effectiveTok || '—';
                 return (
-                  <div className="mb-3 space-y-1.5 rounded-xl border border-slate-200/90 bg-white/90 px-3 py-2">
-                    <p className="text-[11px] text-slate-700 leading-snug">
+                  <div className="mb-3 space-y-1.5 rounded-xl border border-slate-200/90 bg-white/90 px-3 py-2 dark:border-white/10 dark:bg-neutral-900/80">
+                    <p className="text-[11px] leading-snug text-slate-700 dark:text-neutral-200">
                       {effectiveTok
                         ? formatTrans(t.settings_presence_effective_token_preview, { preview })
                         : t.settings_presence_token_none}
                     </p>
                     {!diskTok && effectiveTok ? (
-                      <p className="text-[10px] text-slate-500 leading-snug">{t.settings_presence_token_env_only}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-neutral-300 leading-snug">{t.settings_presence_token_env_only}</p>
                     ) : null}
                     {presenceVerificationConfig.nfcLastRegisteredAt ? (
-                      <p className="text-[10px] text-slate-500">
+                      <p className="text-[10px] text-slate-500 dark:text-neutral-300">
                         {formatTrans(t.settings_presence_nfc_last, {
                           date: new Date(presenceVerificationConfig.nfcLastRegisteredAt).toLocaleString(),
                         })}
@@ -1092,8 +1106,8 @@ export default function SettingsPage() {
                   </div>
                 );
               })()}
-              <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 mb-3">
-                <span className="text-xs font-semibold text-slate-800">{t.settings_presence_require_label}</span>
+              <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 dark:border-white/10 dark:bg-neutral-900">
+                <span className="text-xs font-semibold text-slate-800 dark:text-neutral-100">{t.settings_presence_require_label}</span>
                 <button
                   type="button"
                   role="switch"
@@ -1110,11 +1124,11 @@ export default function SettingsPage() {
                     }
                   }}
                   className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
-                    presenceVerificationConfig.requireVerification ? 'bg-accent' : 'bg-slate-200'
+                    presenceVerificationConfig.requireVerification ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
                   }`}
                 >
                   <span
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${
                       presenceVerificationConfig.requireVerification ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
@@ -1149,7 +1163,7 @@ export default function SettingsPage() {
                       setPresenceNfcBusy(false);
                     }
                   }}
-                  className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                  className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-50 disabled:opacity-60 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
                 >
                   <Nfc className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                   {presenceNfcBusy ? t.ui_ellipsis : t.settings_presence_register_nfc}
@@ -1304,35 +1318,47 @@ export default function SettingsPage() {
                 return (
                   <div
                     key={feature.slug}
-                    className={`relative rounded-2xl border p-4 flex flex-col gap-3 transition-all duration-200 ${
+                    className={`relative flex flex-col gap-3 rounded-2xl border p-4 transition-all duration-200 ${
                       isMaintenance
                         ? enabled
-                          ? 'border-red-300 bg-red-50 shadow-[0_0_0_3px_rgba(239,68,68,0.12)]'
-                          : 'border-amber-200 bg-amber-50/60'
-                        : 'border-slate-100 bg-white shadow-sm'
+                          ? 'border-red-300 bg-red-50 shadow-[0_0_0_3px_rgba(239,68,68,0.12)] dark:border-red-800/50 dark:bg-red-950/40 dark:shadow-[0_0_0_3px_rgba(239,68,68,0.2)]'
+                          : 'border-amber-200 bg-amber-50/60 dark:border-amber-800/40 dark:bg-amber-950/35'
+                        : 'border-slate-100 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none'
                     }`}
                   >
                     {/* Card top */}
                     <div className="flex items-start justify-between gap-3">
                       {/* Icon + label */}
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                          isMaintenance
-                            ? enabled ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
-                            : enabled ? 'bg-accent/10 text-accent' : 'bg-slate-100 text-slate-400'
-                        }`}>
+                        <div
+                          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl ${
+                            isMaintenance
+                              ? enabled
+                                ? 'bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-300'
+                                : 'bg-amber-100 text-amber-600 dark:bg-amber-950/45 dark:text-amber-300'
+                              : enabled
+                                ? 'bg-accent/10 text-accent'
+                                : 'bg-slate-100 text-slate-400 dark:bg-neutral-800 dark:text-neutral-500'
+                          }`}
+                        >
                           {iconMap[feature.slug]}
                         </div>
                         <div className="min-w-0">
-                          <p className={`text-sm font-semibold leading-tight ${
-                            isMaintenance
-                              ? enabled ? 'text-red-700' : 'text-amber-700'
-                              : enabled ? 'text-slate-800' : 'text-slate-400'
-                          }`}>
+                          <p
+                            className={`text-sm font-semibold leading-tight ${
+                              isMaintenance
+                                ? enabled
+                                  ? 'text-red-700 dark:text-red-300'
+                                  : 'text-amber-700 dark:text-amber-200'
+                                : enabled
+                                  ? 'text-slate-800 dark:text-neutral-100'
+                                  : 'text-slate-400 dark:text-neutral-500'
+                            }`}
+                          >
                             {featureLabel}
                           </p>
                           {isMaintenance && enabled && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 mt-0.5">
+                            <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400">
                               <AlertTriangle className="w-2.5 h-2.5" />
                               {t.settings_maintenance_active_badge}
                             </span>
@@ -1351,20 +1377,24 @@ export default function SettingsPage() {
                         }}
                         className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
                           isMaintenance
-                            ? enabled ? 'bg-red-500' : 'bg-slate-200'
-                            : enabled ? 'bg-accent' : 'bg-slate-200'
+                            ? enabled ? 'bg-red-500' : 'bg-slate-200 dark:bg-neutral-600'
+                            : enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
                         }`}
                       >
-                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-0'}`} />
                       </button>
                     </div>
 
                     {/* Description */}
-                    <p className={`text-[11px] leading-snug ${
-                      isMaintenance
-                        ? enabled ? 'text-red-500' : 'text-amber-600/80'
-                        : 'text-slate-400'
-                    }`}>
+                    <p
+                      className={`text-[11px] leading-snug ${
+                        isMaintenance
+                          ? enabled
+                            ? 'text-red-500 dark:text-red-400'
+                            : 'text-amber-600/80 dark:text-amber-300/90'
+                          : 'text-slate-400 dark:text-neutral-400'
+                      }`}
+                    >
                       {featureDescription}
                     </p>
                   </div>
@@ -1372,20 +1402,20 @@ export default function SettingsPage() {
               })}
             </div>
 
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <MapPin className="w-4 h-4 text-accent flex-shrink-0" />
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-neutral-900/70">
+              <div className="mb-2 flex items-center gap-2">
+                <MapPin className="h-4 w-4 flex-shrink-0 text-accent" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-neutral-100">
                   {t.settings_geofence_editor_title}
                 </h3>
               </div>
-              <p className="text-[11px] text-slate-500 mb-3 leading-snug">
+              <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-3 leading-snug">
                 {t.settings_geofence_editor_hint}
               </p>
               {geofenceEffectiveConfig && (
-                <div className="mb-3 flex items-start gap-2 rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-3 py-2">
-                  <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" aria-hidden />
-                  <p className="text-[11px] text-emerald-900 leading-snug">
+                <div className="mb-3 flex items-start gap-2 rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-3 py-2 dark:border-emerald-800/50 dark:bg-emerald-950/40">
+                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />
+                  <p className="text-[11px] leading-snug text-emerald-900 dark:text-emerald-100">
                     {formatTrans(t.settings_geofence_active_summary, {
                       lat: geofenceEffectiveConfig.lat.toFixed(6),
                       lng: geofenceEffectiveConfig.lng.toFixed(6),
@@ -1395,36 +1425,36 @@ export default function SettingsPage() {
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600">
+                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600 dark:text-neutral-300">
                   {t.settings_geofence_lat}
                   <input
                     type="text"
                     inputMode="decimal"
                     value={geoLat}
                     onChange={(e) => setGeoLat(e.target.value)}
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800"
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-100"
                     placeholder="45.123456"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600">
+                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600 dark:text-neutral-300">
                   {t.settings_geofence_lng}
                   <input
                     type="text"
                     inputMode="decimal"
                     value={geoLng}
                     onChange={(e) => setGeoLng(e.target.value)}
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800"
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-100"
                     placeholder="9.123456"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600">
+                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600 dark:text-neutral-300">
                   {t.settings_geofence_radius}
                   <input
                     type="text"
                     inputMode="numeric"
                     value={geoRadius}
                     onChange={(e) => setGeoRadius(e.target.value)}
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800"
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-100"
                     placeholder="120"
                   />
                 </label>
@@ -1455,7 +1485,7 @@ export default function SettingsPage() {
                       setGeoAcquiring(false);
                     }
                   }}
-                  className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                  className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-50 disabled:opacity-60 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
                 >
                   <LocateFixed className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                   {geoAcquiring ? t.ui_ellipsis : t.settings_geofence_acquire_gps}
@@ -1497,33 +1527,33 @@ export default function SettingsPage() {
             title={t.settings_advanced_tools_admin}
             defaultOpen={false}
           >
-            <div className="rounded-xl border border-slate-200 bg-white">
-              <div className="p-4 space-y-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t.settings_backup_data_section}</p>
+            <div className="rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900">
+              <div className="space-y-3 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.settings_backup_data_section}</p>
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
                           onClick={handleImportClick}
-                          className="px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-xs font-medium uppercase hover:bg-slate-50"
+                          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium uppercase text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
                         >
                           {t.restore}
                         </button>
                         <button
                           type="button"
                           onClick={() => exportToJSON({ users, shifts, punchRecords, holidays })}
-                          className="px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-xs font-medium uppercase hover:bg-slate-50"
+                          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium uppercase text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
                         >
                           {t.backup_json}
                         </button>
                         <button
                           type="button"
                           onClick={() => exportToCSV({ users, shifts, punchRecords, holidays })}
-                          className="px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-xs font-medium uppercase hover:bg-slate-50"
+                          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium uppercase text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
                         >
                           {t.report_csv}
                         </button>
                       </div>
-                      <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-3 space-y-3">
+                      <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/90 p-3 dark:border-white/10 dark:bg-neutral-800/60">
                         <button
                           type="button"
                           disabled={resettingData}
@@ -1543,16 +1573,16 @@ export default function SettingsPage() {
                               setResettingData(false);
                             }
                           }}
-                          className="w-full px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium uppercase hover:bg-amber-100 disabled:opacity-60 text-center"
+                          className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-amber-800 hover:bg-amber-100 disabled:opacity-60 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/55"
                         >
                           {resettingData ? t.ui_ellipsis : t.settings_reset_test_data_btn}
                         </button>
                         <div className="space-y-2">
-                          <label htmlFor="osteria-demo-profile-user-settings" className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                          <label htmlFor="osteria-demo-profile-user-settings" className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
                             {t.settings_seed_demo_profile_pick_user}
                           </label>
                           {demoProfileCandidates.length === 0 ? (
-                            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200">
                               {t.settings_seed_demo_profile_no_staff}
                             </p>
                           ) : (
@@ -1599,11 +1629,11 @@ export default function SettingsPage() {
                                 setSeedingDemoProfile(false);
                               }
                             }}
-                            className="w-full px-3 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium uppercase hover:bg-emerald-100 disabled:opacity-60 text-center"
+                            className="w-full rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-emerald-800 hover:bg-emerald-100 disabled:opacity-60 dark:border-emerald-800/50 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-950/55"
                           >
                             {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
                           </button>
-                          <p className="text-[10px] text-slate-500 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-neutral-300 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
                         </div>
                       </div>
                     </div>
@@ -1637,16 +1667,16 @@ export default function SettingsPage() {
       )}
 
       {showImportConfirm && importFile && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
           <div className="panel w-full max-w-sm p-6">
-            <h3 className="text-slate-900 font-semibold text-sm mb-2">{t.attention}</h3>
-            <p className="text-slate-700 text-sm mb-4">{t.import_warning}</p>
-            <p className="text-slate-600 text-xs font-sans mb-4 break-all text-center tabular-nums">{importFile.name}</p>
+            <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-neutral-50">{t.attention}</h3>
+            <p className="mb-4 text-sm text-slate-700 dark:text-neutral-300">{t.import_warning}</p>
+            <p className="mb-4 break-all text-center font-sans text-xs tabular-nums text-slate-600 dark:text-neutral-400">{importFile.name}</p>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={handleConfirmImport}
-                className="flex-1 py-2.5 rounded-xl bg-accent text-white text-xs font-semibold uppercase hover:bg-accent-hover"
+                className="flex-1 rounded-xl bg-accent py-2.5 text-xs font-semibold uppercase text-white hover:bg-accent-hover"
               >
                 {t.confirm}
               </button>
@@ -1656,7 +1686,7 @@ export default function SettingsPage() {
                   setShowImportConfirm(false);
                   setImportFile(null);
                 }}
-                className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold uppercase"
+                className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-semibold uppercase text-slate-600 hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
               >
                 {t.cancel}
               </button>
@@ -1738,15 +1768,22 @@ function BreakRuleModal({
     });
   };
 
-  const labelClass = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5';
-  const inputClass = 'w-full px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors';
+  const labelClass =
+    'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400';
+  const inputClass =
+    'w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100';
   const chipClass = (active: boolean) =>
-    `px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
-      active ? 'bg-accent text-white border-accent' : 'bg-white text-slate-600 border-slate-200 hover:border-accent hover:text-accent'
+    `cursor-pointer rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors ${
+      active
+        ? 'border-accent bg-accent text-white'
+        : 'border-slate-200 bg-white text-slate-600 hover:border-accent hover:text-accent dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-accent'
     }`;
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      onClick={onClose}
+    >
       <motion.form
         initial={{ scale: 0.93, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -1754,22 +1791,26 @@ function BreakRuleModal({
         transition={{ type: 'spring', damping: 28, stiffness: 380 }}
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto font-sans"
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white font-sans shadow-2xl dark:border dark:border-white/10 dark:bg-neutral-900"
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white px-5 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between z-10">
-          <h2 className="text-base font-bold text-slate-900">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-5 pt-5 pb-4 dark:border-white/10 dark:bg-neutral-900">
+          <h2 className="text-base font-bold text-slate-900 dark:text-neutral-50">
             {isEdit ? t.settings_break_modal_edit_title : t.settings_break_modal_new_title}
           </h2>
-          <button type="button" onClick={onClose} className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
-            <X className="w-4 h-4 text-slate-500" />
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+          >
+            <X className="h-4 w-4 text-slate-500 dark:text-neutral-300" />
           </button>
         </div>
 
         <div className="px-5 py-5 space-y-5">
           {/* ── Generale ── */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">{t.settings_break_section_general}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-3">{t.settings_break_section_general}</p>
             <div className="space-y-3">
               {/* Titolo */}
               <div>
@@ -1797,11 +1838,11 @@ function BreakRuleModal({
               </div>
 
               {/* Soglia turno: attivabile/disattivabile */}
-              <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 space-y-3">
+              <div className="space-y-3 rounded-xl border border-slate-100 bg-slate-50/70 p-3 dark:border-white/10 dark:bg-neutral-800/50">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-700">{t.settings_break_shift_threshold_title}</p>
-                    <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                    <p className="text-xs font-semibold text-slate-700 dark:text-neutral-200">{t.settings_break_shift_threshold_title}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-snug">
                       {minShiftThresholdOn ? t.settings_break_shift_threshold_on : t.settings_break_shift_threshold_off}
                     </p>
                   </div>
@@ -1810,24 +1851,24 @@ function BreakRuleModal({
                     role="switch"
                     aria-checked={minShiftThresholdOn}
                     onClick={() => setMinShiftThresholdOn((v) => !v)}
-                    className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${minShiftThresholdOn ? 'bg-accent' : 'bg-slate-300'}`}
+                    className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${minShiftThresholdOn ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'}`}
                   >
-                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${minShiftThresholdOn ? 'translate-x-5' : 'translate-x-0'}`} />
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${minShiftThresholdOn ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
                 </div>
                 {minShiftThresholdOn && (
-                  <div className="flex items-center gap-3 pt-1 border-t border-slate-100/90">
-                    <span className="text-[10px] font-semibold text-slate-500 uppercase shrink-0">{t.settings_break_min_label}</span>
+                  <div className="flex items-center gap-3 border-t border-slate-100/90 pt-1 dark:border-white/10">
+                    <span className="shrink-0 text-[10px] font-semibold uppercase text-slate-500 dark:text-neutral-300">{t.settings_break_min_label}</span>
                     <button
                       type="button"
                       onClick={() => setMinHours((h) => Math.max(0.5, Math.round((h - 0.5) * 10) / 10))}
-                      className="w-8 h-8 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center font-bold text-slate-700"
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
                     >−</button>
-                    <span className="w-16 text-center font-bold text-slate-800 text-sm">{minHours}h</span>
+                    <span className="w-16 text-center text-sm font-bold text-slate-800 dark:text-neutral-100">{minHours}h</span>
                     <button
                       type="button"
                       onClick={() => setMinHours((h) => Math.min(12, Math.round((h + 0.5) * 10) / 10))}
-                      className="w-8 h-8 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center font-bold text-slate-700"
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
                     >+</button>
                   </div>
                 )}
@@ -1844,23 +1885,23 @@ function BreakRuleModal({
                     {t.settings_break_paid_btn}
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1.5">
+                <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-1.5">
                   {paid ? t.settings_break_paid_hint : t.settings_break_unpaid_hint}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-slate-100" />
+          <div className="border-t border-slate-100 dark:border-white/10" />
 
           {/* ── Assegna a ── */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">{t.settings_break_assign_section}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-3">{t.settings_break_assign_section}</p>
             <div className="space-y-3">
               <div>
                 <label className={labelClass}>
                   {t.settings_break_label_depts}{' '}
-                  <span className="font-normal normal-case tracking-normal text-slate-400">{t.settings_break_none_means_all}</span>
+                  <span className="font-normal normal-case tracking-normal text-slate-400 dark:text-neutral-400">{t.settings_break_none_means_all}</span>
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {getDepartments().map((d) => (
@@ -1878,7 +1919,7 @@ function BreakRuleModal({
               <div>
                 <label className={labelClass}>
                   {t.settings_break_label_roles}{' '}
-                  <span className="font-normal normal-case tracking-normal text-slate-400">{t.settings_break_none_means_all}</span>
+                  <span className="font-normal normal-case tracking-normal text-slate-400 dark:text-neutral-400">{t.settings_break_none_means_all}</span>
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {BREAK_MODAL_ROLE_VALUES.map((r) => (
@@ -1896,11 +1937,11 @@ function BreakRuleModal({
             </div>
           </div>
 
-          <div className="border-t border-slate-100" />
+          <div className="border-t border-slate-100 dark:border-white/10" />
 
           {/* ── Applica a ── */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">{t.settings_break_apply_section}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-3">{t.settings_break_apply_section}</p>
             <div className="space-y-3">
               {/* Date range */}
               <div className="grid grid-cols-2 gap-3">
@@ -1922,7 +1963,7 @@ function BreakRuleModal({
               <div>
                 <label className={labelClass}>
                   {t.settings_break_weekdays}{' '}
-                  <span className="font-normal normal-case tracking-normal text-slate-400">{t.settings_break_none_means_all}</span>
+                  <span className="font-normal normal-case tracking-normal text-slate-400 dark:text-neutral-400">{t.settings_break_none_means_all}</span>
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {weekdayOptions.map((d) => (
@@ -1952,7 +1993,7 @@ function BreakRuleModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition-colors"
+              className="rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
             >
               {t.cancel}
             </button>

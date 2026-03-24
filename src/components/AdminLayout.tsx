@@ -91,7 +91,7 @@ export default function AdminLayout() {
         {adminNavOpen && showAdminNav && (
           <button
             type="button"
-            className="fixed inset-0 z-0 bg-slate-900/25"
+            className="fixed inset-0 z-0 bg-slate-900/25 dark:bg-black/50"
             aria-label={t.close}
             onClick={() => setAdminNavOpen(false)}
           />
@@ -114,10 +114,10 @@ export default function AdminLayout() {
                   aria-expanded={adminNavOpen}
                   aria-controls="admin-layout-nav-menu"
                   aria-label={t.admin_nav_menu_aria}
-                  className={`flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border px-3 text-slate-700 transition-colors ${
+                  className={`flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border px-3 text-slate-700 transition-colors dark:text-neutral-200 ${
                     adminNavOpen
-                      ? 'border-accent/30 bg-accent/[0.08] text-accent'
-                      : 'border-slate-200/70 bg-slate-100/90 hover:border-slate-200 hover:bg-white/95'
+                      ? 'border-accent/30 bg-accent/[0.08] text-accent dark:bg-accent/15 dark:text-accent-light'
+                      : 'border-slate-200/70 bg-slate-100/90 hover:border-slate-200 hover:bg-white/95 dark:border-white/10 dark:bg-neutral-800 dark:hover:border-white/15 dark:hover:bg-neutral-700'
                   }`}
                 >
                   {adminNavOpen ? <X className="h-5 w-5 shrink-0" aria-hidden /> : <Menu className="h-5 w-5 shrink-0" aria-hidden />}
@@ -127,7 +127,7 @@ export default function AdminLayout() {
                       id="admin-layout-nav-menu"
                       role="menu"
                       aria-label={t.admin_nav_menu_aria}
-                      className="absolute right-0 top-[calc(100%+0.5rem)] z-[2] flex max-h-[min(70vh,32rem)] w-[min(calc(100vw-2rem),22rem)] flex-col gap-1 overflow-y-auto rounded-xl border border-slate-200/80 bg-white p-2 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.25)]"
+                      className="absolute right-0 top-[calc(100%+0.5rem)] z-[2] flex max-h-[min(70vh,32rem)] w-[min(calc(100vw-2rem),22rem)] flex-col gap-1 overflow-y-auto rounded-xl border border-slate-200/80 bg-white p-2 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.25)] dark:border-white/10 dark:bg-neutral-900 dark:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.5)]"
                     >
                       {fullAdminNav && (
                         <>
@@ -147,13 +147,13 @@ export default function AdminLayout() {
                             }}
                             className={`relative flex w-full min-h-[44px] items-center gap-2 overflow-hidden rounded-lg border px-3 text-left text-xs font-semibold transition-all duration-200 disabled:pointer-events-none ${
                               syncBusy
-                                ? 'border-accent/25 bg-white text-slate-700 shadow-[inset_0_0_0_1px_rgba(45,90,39,0.08)]'
-                                : 'border-transparent text-slate-600 hover:border-slate-200/80 hover:bg-slate-50 hover:text-slate-900'
+                                ? 'border-accent/25 bg-white text-slate-700 shadow-[inset_0_0_0_1px_rgba(45,90,39,0.08)] dark:bg-neutral-800 dark:text-neutral-100'
+                                : 'border-transparent text-slate-600 hover:border-slate-200/80 hover:bg-slate-50 hover:text-slate-900 dark:text-neutral-300 dark:hover:border-white/10 dark:hover:bg-neutral-800 dark:hover:text-neutral-50'
                             } disabled:opacity-60`}
                           >
                             {syncBusy && (
                               <span
-                                className="pointer-events-none absolute inset-x-2 bottom-1 h-[3px] overflow-hidden rounded-full bg-slate-200/70"
+                                className="pointer-events-none absolute inset-x-2 bottom-1 h-[3px] overflow-hidden rounded-full bg-slate-200/70 dark:bg-neutral-600/80"
                                 aria-hidden
                               >
                                 <span className="block h-full w-[42%] rounded-full bg-gradient-to-r from-accent/75 to-accent shadow-[0_0_8px_rgba(45,90,39,0.35)] animate-admin-sync-bar" />
@@ -181,8 +181,8 @@ export default function AdminLayout() {
                             }}
                             className={`relative flex w-full min-h-[44px] items-center gap-2 overflow-hidden rounded-lg border px-3 text-left text-xs font-semibold transition-all duration-200 disabled:pointer-events-none ${
                               hardReloading
-                                ? 'border-amber-300/80 bg-amber-50 text-amber-950 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.2)]'
-                                : 'border-amber-200/90 bg-amber-50/95 text-amber-950 hover:bg-amber-100 hover:border-amber-300'
+                                ? 'border-amber-300/80 bg-amber-50 text-amber-950 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.2)] dark:border-amber-700/50 dark:bg-amber-950/40 dark:text-amber-100'
+                                : 'border-amber-200/90 bg-amber-50/95 text-amber-950 hover:border-amber-300 hover:bg-amber-100 dark:border-amber-800/40 dark:bg-amber-950/35 dark:text-amber-100 dark:hover:border-amber-700 dark:hover:bg-amber-950/50'
                             } disabled:opacity-60`}
                           >
                             <RotateCcw
@@ -191,7 +191,7 @@ export default function AdminLayout() {
                             />
                             <span className="relative z-[1]">{t.hard_reload_button}</span>
                           </button>
-                          <div className="my-1 h-px bg-slate-200/80" aria-hidden />
+                          <div className="my-1 h-px bg-slate-200/80 dark:bg-white/10" aria-hidden />
                         </>
                       )}
                       <button
@@ -200,8 +200,8 @@ export default function AdminLayout() {
                         onClick={() => selectAdminTab('profili')}
                         className={`flex w-full min-h-[44px] items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold transition-colors ${
                           activeTab === 'profili'
-                            ? 'bg-accent/[0.08] text-accent ring-1 ring-accent/20'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                            ? 'bg-accent/[0.08] text-accent ring-1 ring-accent/20 dark:bg-accent/15 dark:text-accent-light'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-50'
                         }`}
                       >
                         <Users className={`h-3.5 w-3.5 shrink-0 ${activeTab === 'profili' ? 'text-accent' : ''}`} />
@@ -215,8 +215,8 @@ export default function AdminLayout() {
                             onClick={() => selectAdminTab('visibilita')}
                             className={`flex w-full min-h-[44px] items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold transition-colors ${
                               activeTab === 'visibilita'
-                                ? 'bg-accent/[0.08] text-accent ring-1 ring-accent/20'
-                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                ? 'bg-accent/[0.08] text-accent ring-1 ring-accent/20 dark:bg-accent/15 dark:text-accent-light'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-50'
                             }`}
                           >
                             <LayoutList className={`h-3.5 w-3.5 shrink-0 ${activeTab === 'visibilita' ? 'text-accent' : ''}`} />
@@ -228,8 +228,8 @@ export default function AdminLayout() {
                             onClick={() => selectAdminTab('impostazioni')}
                             className={`flex w-full min-h-[44px] items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold transition-colors ${
                               activeTab === 'impostazioni'
-                                ? 'bg-accent/[0.08] text-accent ring-1 ring-accent/20'
-                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                ? 'bg-accent/[0.08] text-accent ring-1 ring-accent/20 dark:bg-accent/15 dark:text-accent-light'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-50'
                             }`}
                           >
                             <Settings className={`h-3.5 h-3.5 shrink-0 ${activeTab === 'impostazioni' ? 'text-accent' : ''}`} />

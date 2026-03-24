@@ -2,7 +2,7 @@ import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, typ
 import { format, startOfWeek, endOfWeek, addDays, parseISO, isToday, eachDayOfInterval, getDay } from 'date-fns';
 import { database } from '../lib/database';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
@@ -130,6 +130,26 @@ function toTimestampISO(dateStr: string, timeStr: string): string {
 
 // ── Open shift helpers ──────────────────────────────────────────────────────
 /** Vero se il turno è aperto (non assegnato) o in richiesta di assegnazione. */
+const OPEN_SHIFTS_BAR_COLLAPSED_KEY = 'osteria_wst_open_shifts_bar_collapsed';
+
+/** Etichetta ruolo breve — allineata allo stile UserAvatarMenu (toolbar). */
+function scheduleDrawerRoleLabel(role: string | undefined): string {
+  const m: Record<string, string> = {
+    admin: 'Admin',
+    proprietario: 'Manager',
+    manager: 'Manager',
+    assistant_manager: 'Ass. Manager',
+    waiter: 'Sala',
+    server: 'Sala',
+    capo: 'Capo',
+    cook: 'Cucina',
+    chef: 'Cucina',
+    bartender: 'Bar',
+    dishwasher: 'Pulizie',
+  };
+  return m[(role || '').toLowerCase().trim()] ?? (role ? role.slice(0, 12) : '');
+}
+
 const isOpenShiftRecord = (s: { notes?: string }) =>
   !!(s.notes && (s.notes.startsWith('__OPEN__') || s.notes.startsWith('__OPEN_REQ__')));
 
@@ -252,6 +272,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   dragSelectRef.current = dragSelect;
   const [creatingShift, setCreatingShift] = useState<{ userId: string; date: string; defaultTime: string } | null>(null);
   const [creatingOpenShift, setCreatingOpenShift] = useState<{ date: string } | null>(null);
+  const [openShiftsBarCollapsed, setOpenShiftsBarCollapsed] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const dateBarScrollRef = useRef<HTMLDivElement>(null);
@@ -360,6 +381,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const { users, shifts, holidays, availability, toggleAvailability, updateShift, updateUser, currentUser, punchRecords, addShift, updatePunchRecord, addPunchRecord, deleteShifts, showError, showSuccess, silentRefreshData, requestConfirmAndSaveOrder, requestConfirmAndPublishWeek, postRefreshLocked, effectiveLanguage, approveShiftSoft, workRules, breakRules, featureFlags } = useApp();
   const { requestProof, modal: presenceVerificationModal } = usePunchPresenceVerification(effectiveLanguage);
   const t = getTranslations(effectiveLanguage);
+  const tv = t as Record<string, string>;
   const addPunchWithPresence = useCallback(
     async (userId: string, type: 'in' | 'out', opts?: { timestamp?: string; shift_id?: string }) => {
       try {
@@ -705,6 +727,26 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const openVisibleShifts = useMemo(() => visibleShifts.filter(isOpenShiftRecord), [visibleShifts]);
   /** Turni regolari (esclude turni aperti e in richiesta). */
   const regularVisibleShifts = useMemo(() => visibleShifts.filter((s) => !isOpenShiftRecord(s)), [visibleShifts]);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(OPEN_SHIFTS_BAR_COLLAPSED_KEY) === '1') setOpenShiftsBarCollapsed(true);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const toggleOpenShiftsBarCollapsed = useCallback(() => {
+    setOpenShiftsBarCollapsed((c) => {
+      const next = !c;
+      try {
+        localStorage.setItem(OPEN_SHIFTS_BAR_COLLAPSED_KEY, next ? '1' : '0');
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
   const shiftToPos = useMemo(() => {
     const m = new Map<string, { userIdx: number; dayIdx: number; slotIdx: number }>();
     activeUsers.forEach((u, ui) => {
@@ -866,20 +908,20 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     return 'planned';
   };
 
-  /** Brand: bozza = bianco + bordo basilico; approvato = basilico pieno + testo bianco. */
+  /** Bozza: tratteggio + testo bianco in dark. Pubblicato: bordo chiaro + testo verde (accent), no tinte smeraldo. */
   const VARIANT_CLASSES: Record<ShiftColorVariant, { bg: string; text: string; selRing: string; border?: string; borderBottom?: string }> = {
     planned: {
-      bg: 'bg-white hover:bg-slate-50',
-      text: 'text-slate-900',
-      selRing: 'ring-accent/40',
-      border: 'border-2 border-accent rounded-xl',
+      bg: 'bg-slate-50 hover:bg-slate-100 dark:bg-neutral-950/85 dark:hover:bg-neutral-900/90',
+      text: 'text-slate-900 dark:text-white',
+      selRing: 'ring-white/40',
+      border: 'border-2 border-dashed border-slate-400 dark:border-white/75 rounded-xl shadow-sm',
     },
     inprogress: {
-      bg: 'bg-white hover:bg-slate-50',
-      text: 'text-accent',
+      bg: 'bg-slate-50 hover:bg-slate-100 dark:bg-neutral-950/90 dark:hover:bg-neutral-900',
+      text: 'text-accent dark:text-accent-light',
       selRing: 'ring-accent/40',
-      border: 'border border-slate-200',
-      borderBottom: 'border-b-2 border-slate-400',
+      border: 'border-2 border-slate-300 dark:border-white/65 rounded-xl shadow-sm',
+      borderBottom: 'border-b-2 border-slate-400 dark:border-b-white/50',
     },
     approved: {
       bg: 'bg-accent hover:bg-accent-hover',
@@ -1195,7 +1237,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         className="min-h-full"
       >
       {isStaff && !wStaffTable ? (
-        <p className="text-sm text-slate-500 text-center py-16 px-4">
+        <p className="text-sm text-slate-500 dark:text-neutral-300 text-center py-16 px-4">
           {t.no_shifts_scheduled}
         </p>
       ) : (
@@ -1234,7 +1276,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 key={vm}
                 type="button"
                 onClick={() => setViewMode(vm)}
-                className={`ui-toolbar-tab ${viewMode === vm ? 'bg-accent text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                className={`ui-toolbar-tab ${viewMode === vm ? 'bg-accent text-white' : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800'}`}
               >
                 {vm === 'week' ? t.view_week : t.view_month}
               </button>
@@ -1243,7 +1285,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           {viewMode === 'month' && (
             <>
               <span
-                className="hidden sm:inline-flex h-[22px] max-w-[min(100%,16rem)] items-center truncate rounded-lg border border-slate-200 bg-slate-50 px-2 text-[11px] font-semibold tabular-nums text-slate-600 shrink-0"
+                className="hidden sm:inline-flex h-[22px] max-w-[min(100%,16rem)] items-center truncate rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-900/80 px-2 text-[11px] font-semibold tabular-nums text-slate-600 dark:text-neutral-300 shrink-0"
                 title={`${format(monthViewPeriodStart, 'd MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })} → ${format(monthViewPeriodEnd, 'd MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })}`}
               >
                 {format(monthViewPeriodStart, 'd MMM', { locale: getDateLocale(effectiveLanguage) ?? it })} –{' '}
@@ -1251,7 +1293,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               </span>
               {periodPayrollChipDatesWst && (
                 <span
-                  className="hidden min-[480px]:inline-flex h-[22px] max-w-[min(100%,20rem)] shrink-0 items-center truncate rounded-lg border border-emerald-200/90 bg-emerald-50 px-2 text-[10px] font-bold text-emerald-900"
+                  className="hidden min-[480px]:inline-flex h-[22px] max-w-[min(100%,20rem)] shrink-0 items-center truncate rounded-lg border border-emerald-200/90 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/50 px-2 text-[10px] font-bold text-emerald-900 dark:text-emerald-200"
                   title={periodPayrollChipDatesWst}
                 >
                   {formatTrans((t as Record<string, string>).wst_month_payroll_chip ?? 'Pagamento: {date}', {
@@ -1262,7 +1304,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             </>
           )}
           {viewMode !== 'month' && (
-            <span className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-semibold tabular-nums leading-none text-slate-500">
+            <span className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-semibold tabular-nums leading-none text-slate-500 dark:text-neutral-300">
               {weekIndex + 1}/{periodConfig.numWeeks}
             </span>
           )}
@@ -1284,10 +1326,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   return true;
                 });
               }}
-              className={`ui-toolbar-chip shrink-0 border-slate-200 text-slate-600 hover:bg-slate-100 ${
+              className={`ui-toolbar-chip shrink-0 border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 ${
                 wstToolbarDrawerOpen ? 'border-accent/35 bg-accent/8 ring-1 ring-accent/15' : ''
-              } ${localFilterStatus !== 'all' || localFilterDepartment !== '' ? 'border-accent/25 bg-accent/5' : ''} ${
-                !periodDraftSaved ? 'border-amber-300/80 bg-amber-50/40' : ''
+              } ${localFilterStatus !== 'all' || localFilterDepartment !== '' ? 'border-accent/25 bg-accent/5 dark:bg-accent/10' : ''} ${
+                !periodDraftSaved ? 'border-amber-300/80 bg-amber-50/40 dark:border-amber-700/50 dark:bg-amber-950/30' : ''
               }`}
               aria-expanded={wstToolbarDrawerOpen}
               aria-haspopup="true"
@@ -1319,17 +1361,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   onClick={() =>
                     setWstToolbarDrawerSection((sec) => (sec === 'filters' ? null : 'filters'))
                   }
-                  className="flex w-full items-center justify-between gap-2 border-b border-slate-100 px-3 py-2 text-left hover:bg-slate-50"
+                  className="flex w-full items-center justify-between gap-2 border-b border-slate-100 dark:border-white/10 px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-neutral-800/80"
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    <Filter className="h-3.5 w-3.5 shrink-0 text-slate-500" strokeWidth={2.25} />
-                    <span className="text-sm font-semibold text-slate-800">{t.wst_filters}</span>
+                    <Filter className="h-3.5 w-3.5 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
+                    <span className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.wst_filters}</span>
                     {localFilterStatus !== 'all' && (
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
                     )}
                   </span>
                   <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
+                    className={`h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-400 transition-transform ${
                       wstToolbarDrawerSection === 'filters' ? '-rotate-180' : ''
                     }`}
                     strokeWidth={2.25}
@@ -1337,8 +1379,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   />
                 </button>
                 {wstToolbarDrawerSection === 'filters' && (
-                  <div className="border-b border-slate-100 py-0.5">
-                    <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                  <div className="border-b border-slate-100 dark:border-white/10 py-0.5">
+                    <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 border-b border-slate-100 dark:border-white/10">
                       {t.wst_shift_status_header}
                     </div>
                     {[
@@ -1356,11 +1398,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             closeWstToolbarDrawer();
                           }}
                           className={`w-full px-2 py-1.5 text-left text-[11px] flex items-center gap-2 ${
-                            active ? 'bg-accent/10 text-accent font-semibold' : 'text-slate-700 hover:bg-slate-100'
+                            active ? 'bg-accent/10 text-accent font-semibold' : 'text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800'
                           }`}
                         >
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
-                            <Icon className={`h-3.5 w-3.5 ${active ? 'text-accent' : 'text-slate-500'}`} strokeWidth={2.25} />
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-900">
+                            <Icon className={`h-3.5 w-3.5 ${active ? 'text-accent' : 'text-slate-500 dark:text-neutral-400'}`} strokeWidth={2.25} />
                           </span>
                           {label}
                         </button>
@@ -1373,10 +1415,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           setLocalFilterStatus('all');
                           closeWstToolbarDrawer();
                         }}
-                        className="w-full px-2 py-1.5 text-left text-[11px] text-slate-500 hover:bg-slate-100 flex items-center gap-2 border-t border-slate-100"
+                        className="w-full px-2 py-1.5 text-left text-[11px] text-slate-500 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 flex items-center gap-2 border-t border-slate-100 dark:border-white/10"
                       >
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
-                          <X className="h-3.5 w-3.5 text-slate-500" strokeWidth={2.25} />
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-900">
+                          <X className="h-3.5 w-3.5 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
                         </span>
                         {t.filter_all}
                       </button>
@@ -1389,15 +1431,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   onClick={() =>
                     setWstToolbarDrawerSection((sec) => (sec === 'legend' ? null : 'legend'))
                   }
-                  className="flex w-full items-center justify-between gap-2 border-b border-slate-100 px-3 py-2 text-left hover:bg-slate-50"
+                  className="flex w-full items-center justify-between gap-2 border-b border-slate-100 dark:border-white/10 px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-neutral-800/80"
                   title={t.wst_legend_tooltip}
                 >
                   <span className="flex items-center gap-2">
-                    <Info className="h-3.5 w-3.5 shrink-0 text-slate-500" strokeWidth={2.25} />
-                    <span className="text-sm font-semibold text-slate-800">{t.wst_legend}</span>
+                    <Info className="h-3.5 w-3.5 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
+                    <span className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.wst_legend}</span>
                   </span>
                   <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
+                    className={`h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-400 transition-transform ${
                       wstToolbarDrawerSection === 'legend' ? '-rotate-180' : ''
                     }`}
                     strokeWidth={2.25}
@@ -1405,8 +1447,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   />
                 </button>
                 {wstToolbarDrawerSection === 'legend' && (
-                  <div className="border-b border-slate-100 py-2">
-                    <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <div className="border-b border-slate-100 dark:border-white/10 py-2">
+                    <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
                       {t.wst_shift_status_header}
                     </div>
                     {[
@@ -1419,17 +1461,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         check: true,
                       },
                       {
-                        bg: 'bg-white',
-                        border: 'border border-slate-200',
+                        bg: 'bg-white dark:bg-neutral-900',
+                        border: 'border border-slate-200 dark:border-white/15',
                         textCls: 'text-accent',
                         label: t.wst_filter_published,
                         sub: t.wst_status_sub_published,
                         check: false,
                       },
                       {
-                        bg: 'bg-white',
-                        border: 'border-dashed border-slate-300',
-                        textCls: 'text-black',
+                        bg: 'bg-white dark:bg-neutral-900',
+                        border: 'border-dashed border-slate-300 dark:border-neutral-500',
+                        textCls: 'text-black dark:text-neutral-100',
                         label: t.status_draft,
                         sub: t.wst_status_sub_draft,
                         check: false,
@@ -1443,13 +1485,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           {check && <Check className="w-2.5 h-2.5 text-white mt-0.5" strokeWidth={3} />}
                         </span>
                         <span>
-                          <p className="text-xs font-semibold text-slate-700 leading-none">{label}</p>
-                          <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{sub}</p>
+                          <p className="text-xs font-semibold text-slate-700 dark:text-neutral-200 leading-none">{label}</p>
+                          <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-0.5 leading-tight">{sub}</p>
                         </span>
                       </div>
                     ))}
-                    <div className="mt-1.5 border-t border-slate-100 pt-1.5">
-                      <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <div className="mt-1.5 border-t border-slate-100 dark:border-white/10 pt-1.5">
+                      <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
                         {t.wst_violations_legend}
                       </div>
                       {[
@@ -1480,7 +1522,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           </span>
                           <span className="min-w-0">
                             <p className="text-xs font-semibold text-slate-700 leading-snug">{label}</p>
-                            <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">{sub}</p>
+                            <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-0.5 leading-snug">{sub}</p>
                           </span>
                         </div>
                       ))}
@@ -1493,16 +1535,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   onClick={() =>
                     setWstToolbarDrawerSection((sec) => (sec === 'department' ? null : 'department'))
                   }
-                  className="flex w-full items-center justify-between gap-2 border-b border-slate-100 px-3 py-2 text-left hover:bg-slate-50"
+                  className="flex w-full items-center justify-between gap-2 border-b border-slate-100 dark:border-white/10 px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-neutral-800/80"
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    <span className="text-sm font-semibold text-slate-800">{t.wst_department_button}</span>
+                    <span className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.wst_department_button}</span>
                     {localFilterDepartment !== '' && (
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
                     )}
                   </span>
                   <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
+                    className={`h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-400 transition-transform ${
                       wstToolbarDrawerSection === 'department' ? '-rotate-180' : ''
                     }`}
                     strokeWidth={2.25}
@@ -1510,8 +1552,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   />
                 </button>
                 {wstToolbarDrawerSection === 'department' && (
-                  <div className="border-b border-slate-100 py-1">
-                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                  <div className="border-b border-slate-100 py-1 dark:border-white/10">
+                    <div className="border-b border-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-white/10 dark:text-neutral-400">
                       {t.department_filter_label}
                     </div>
                     {[
@@ -1528,13 +1570,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             setLocalFilterDepartment(dept);
                             closeWstToolbarDrawer();
                           }}
-                          className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2.5 ${
+                          className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm ${
                             localFilterDepartment === dept
-                              ? 'bg-accent/10 text-accent font-semibold'
-                              : 'text-slate-700 hover:bg-slate-100'
+                              ? 'bg-accent/10 font-semibold text-accent dark:bg-accent/15'
+                              : 'text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800'
                           }`}
                         >
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-neutral-800">
                             {dept ? (
                               <span
                                 className="h-2.5 w-2.5 rounded-full"
@@ -1562,19 +1604,19 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       return next;
                     });
                   }}
-                  className={`flex w-full items-center justify-between gap-2 border-b border-slate-100 px-3 py-2 text-left hover:bg-slate-50 ${
-                    !periodDraftSaved ? 'bg-amber-50/50' : ''
+                  className={`flex w-full items-center justify-between gap-2 border-b border-slate-100 dark:border-white/10 px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-neutral-800/80 ${
+                    !periodDraftSaved ? 'bg-amber-50/50 dark:bg-amber-950/25' : ''
                   }`}
                   aria-label={t.wst_actions}
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    <span className="text-sm font-semibold text-slate-800">{t.wst_actions}</span>
+                    <span className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.wst_actions}</span>
                     {!periodDraftSaved && (
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden />
                     )}
                   </span>
                   <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
+                    className={`h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-400 transition-transform ${
                       wstToolbarDrawerSection === 'actions' ? '-rotate-180' : ''
                     }`}
                     strokeWidth={2.25}
@@ -1586,19 +1628,19 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 {canShiftOps && (
                   <>
                     <div className="px-3 pb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
                         {(t as { stats_preset_period?: string }).stats_preset_period ?? 'Periodo Presenze'}
                       </p>
                     </div>
-                    <div className="px-3 pb-2.5 space-y-2.5 border-b border-slate-100">
+                    <div className="space-y-2.5 border-b border-slate-100 px-3 pb-2.5 dark:border-white/10">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 mb-1">{t.ts_period_start}</label>
+                        <label className="mb-1 block text-[10px] font-bold text-slate-500 dark:text-neutral-300">{t.ts_period_start}</label>
                         <DatePickerField
                           value={periodDraftStart}
                           onChange={(v) => { setPeriodDraftStart(v); setPeriodDraftSaved(false); setWeekIndex(0); }}
                           allowClear={false}
                           aria-label={t.ts_period_start}
-                          className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2 text-[13px] shadow-sm [&_svg]:h-3 [&_svg]:w-3"
+                          className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2 text-[13px] text-slate-800 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:border-white/15 dark:hover:bg-neutral-800 [&_svg]:h-3 [&_svg]:w-3"
                         />
                       </div>
                       <div className="flex gap-1">
@@ -1606,7 +1648,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           type="button"
                           onClick={() => { setPeriodDraftNumWeeks(4); setPeriodDraftSaved(false); setWeekIndex(0); }}
                           className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
-                            periodDraftNumWeeks === 4 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            periodDraftNumWeeks === 4
+                              ? 'bg-accent text-white'
+                              : 'bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600'
                           }`}
                         >
                           {t.ts_preset_4weeks}
@@ -1615,7 +1659,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           type="button"
                           onClick={() => { setPeriodDraftNumWeeks(5); setPeriodDraftSaved(false); setWeekIndex(0); }}
                           className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
-                            periodDraftNumWeeks === 5 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            periodDraftNumWeeks === 5
+                              ? 'bg-accent text-white'
+                              : 'bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600'
                           }`}
                         >
                           {t.ts_preset_5weeks}
@@ -1626,7 +1672,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         onClick={() => { handleSavePeriodConfigWst(); closeWstToolbarDrawer(); }}
                         disabled={periodDraftSaved}
                         className={`w-full rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
-                          periodDraftSaved ? 'cursor-not-allowed bg-slate-200 text-slate-500' : 'bg-accent text-white hover:bg-accent-hover'
+                          periodDraftSaved
+                            ? 'cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-neutral-800 dark:text-neutral-500'
+                            : 'bg-accent text-white hover:bg-accent-hover'
                         }`}
                       >
                         {t.ts_save_period}
@@ -1639,7 +1687,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 {canManageDrafts && isWideShiftViewport && (
                   <>
                     <div className="px-3 pb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t.wst_planning_section}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.wst_planning_section}</p>
                     </div>
                     {draftCountInWeek > 0 && (
                       <button
@@ -1674,17 +1722,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         setWeekIndex((i) => Math.min(maxWeekIndex, i + (viewMode === 'day' ? 1 : viewMode === '2weeks' ? 2 : 1)));
                         (showSuccess || showError)(formatTrans(t.shifts_copied_count, { n: copied }));
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
+                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
                     >
-                      <Copy className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                      <Copy className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
                       {t.copy_week}
                     </button>
                     <button
                       type="button"
                       onClick={() => { setCreatingOpenShift({ date: format(weekStart, 'yyyy-MM-dd') }); closeWstToolbarDrawer(); }}
-                      className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
+                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
                     >
-                      <Plus className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                      <Plus className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
                       {t.new_open_shift}
                     </button>
                     <button
@@ -1701,12 +1749,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         await deleteShifts(toDelete.map((s) => s.id));
                         showSuccess?.(formatTrans(t.shifts_deleted_count, { n: toDelete.length }));
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/35"
                     >
-                      <Trash2 className="w-4 h-4 flex-shrink-0" />
+                      <Trash2 className="h-4 w-4 flex-shrink-0" />
                       Elimina settimana
                     </button>
-                    <div className="my-1 border-t border-slate-100" />
+                    <div className="my-1 border-t border-slate-100 dark:border-white/10" />
                   </>
                 )}
 
@@ -1714,7 +1762,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 {canManageDrafts && isWideShiftViewport && (
                   <>
                     <div className="px-3 pt-1.5 pb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Template</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">Template</p>
                     </div>
                     <div className="px-3 pb-2">
                       <div className="flex gap-1.5">
@@ -1724,7 +1772,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           onChange={(e) => setSaveTemplateName(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTemplate(saveTemplateName); }}
                           placeholder={t.template_name_placeholder}
-                          className="flex-1 min-w-0 px-2 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-accent"
+                          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-accent dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder:text-neutral-500"
                         />
                         <button
                           type="button"
@@ -1737,31 +1785,31 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       </div>
                     </div>
                     {templatesList.length === 0 ? (
-                      <p className="px-4 py-1.5 text-xs text-slate-400 italic">
+                      <p className="px-4 py-1.5 text-xs text-slate-400 dark:text-neutral-400 italic">
                         {t.template_no_templates}
                       </p>
                     ) : (
                       templatesList.map((name) => (
-                        <div key={name} className="flex items-center gap-1 px-3 py-1.5 hover:bg-slate-50 group">
-                          <span className="flex-1 text-sm text-slate-700 truncate">{name}</span>
+                        <div key={name} className="group flex items-center gap-1 px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-neutral-800/80">
+                          <span className="flex-1 truncate text-sm text-slate-800 dark:text-neutral-100">{name}</span>
                           <button type="button" onClick={() => handleApplyTemplate(name)}
                             className="px-2 py-0.5 rounded-xl text-xs font-medium bg-accent/10 text-accent hover:bg-accent/20 flex-shrink-0">
                             {t.template_apply}
                           </button>
                           <button type="button" onClick={() => handleDeleteTemplate(name)}
-                            className="p-1 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 flex-shrink-0">
+                            className="flex-shrink-0 rounded-xl p-1 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:text-neutral-400 dark:hover:bg-red-950/40 dark:hover:text-red-400">
                             <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
                       ))
                     )}
-                    <div className="my-1 border-t border-slate-100" />
+                    <div className="my-1 border-t border-slate-100 dark:border-white/10" />
                   </>
                 )}
 
                 {/* ▸ SEZIONE EXPORT */}
                 <div className="px-3 pt-1.5 pb-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t.wst_export_section}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.wst_export_section}</p>
                 </div>
                 <button
                   type="button"
@@ -1776,9 +1824,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     const a = document.createElement('a'); a.href = url; a.download = `turni_${weekStr}_${weekEnd}.csv`; a.click(); URL.revokeObjectURL(url);
                     closeWstToolbarDrawer();
                   }}
-                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
+                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
                 >
-                  <Download className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                  <Download className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
                   {t.export_csv}
                 </button>
                 {currentUser && isFeatureEnabled(currentUser, 'export_pdf') && (
@@ -1794,9 +1842,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     });
                     closeWstToolbarDrawer();
                   }}
-                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
+                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
                 >
-                  <Download className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                  <Download className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
                   {t.download_pdf}
                 </button>
                 )}
@@ -1804,41 +1852,45 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 {/* ▸ SEZIONE VISTA (management only) */}
                 {canUseShiftManagementChrome && (
                   <>
-                    <div className="my-1 border-t border-slate-100" />
+                    <div className="my-1 border-t border-slate-100 dark:border-white/10" />
                     <div className="px-3 pt-1.5 pb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t.wst_view_section}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.wst_view_section}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => { setShowEditViewModal(true); closeWstToolbarDrawer(); }}
-                      className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
+                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
                     >
-                      <Pencil className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                      <Pencil className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
                       {t.edit_view}
                     </button>
                     <button
                       type="button"
                       onClick={() => { setShowHiddenPeriodsModal(true); closeWstToolbarDrawer(); }}
-                      className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
+                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
                     >
-                      <EyeOff className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                      <EyeOff className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
                       {t.wst_hidden_periods_short}
-                      {hiddenDates.size > 0 && <span className="ml-auto text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full font-semibold">{hiddenDates.size}</span>}
+                      {hiddenDates.size > 0 && (
+                        <span className="ml-auto rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700 dark:bg-neutral-700 dark:text-neutral-200">
+                          {hiddenDates.size}
+                        </span>
+                      )}
                     </button>
                   </>
                 )}
 
                 {/* ▸ SEZIONE REGISTRO */}
-                <div className="my-1 border-t border-slate-100" />
+                <div className="my-1 border-t border-slate-100 dark:border-white/10" />
                 <div className="px-3 pt-1.5 pb-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t.wst_registry_section}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.wst_registry_section}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => { setShowHistoryModal(true); closeWstToolbarDrawer(); }}
-                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
+                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
                 >
-                  <History className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                  <History className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
                   {t.wst_schedule_history_title}
                 </button>
 
@@ -1855,19 +1907,19 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
       {/* Modale Storico schedule */}
       {showHistoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setShowHistoryModal(false)}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/65" onClick={() => setShowHistoryModal(false)}>
+          <div className="flex w-full max-w-lg max-h-[80vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-white/10 dark:bg-neutral-900" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/10">
               <div className="flex items-center gap-2">
-                <History className="w-4 h-4 text-slate-600" />
-                <h3 className="font-bold text-slate-800 text-sm">{t.wst_schedule_history_title}</h3>
+                <History className="h-4 w-4 text-slate-600 dark:text-neutral-300" />
+                <h3 className="text-sm font-bold text-slate-800 dark:text-neutral-100">{t.wst_schedule_history_title}</h3>
               </div>
-              <button type="button" onClick={() => setShowHistoryModal(false)} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-500"><X className="w-4 h-4" /></button>
+              <button type="button" onClick={() => setShowHistoryModal(false)} className="rounded-xl p-1.5 text-slate-500 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-white/10"><X className="h-4 w-4" /></button>
             </div>
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
+            <div className="max-h-[80vh] flex-1 divide-y divide-slate-50 overflow-y-auto dark:divide-white/10">
               {(() => {
                 const entries = getHistory();
-                if (entries.length === 0) return <p className="text-slate-500 text-sm p-4 text-center">{t.wst_history_no_activity}</p>;
+                if (entries.length === 0) return <p className="text-slate-500 dark:text-neutral-300 text-sm p-4 text-center">{t.wst_history_no_activity}</p>;
                 const actionLabel: Record<string, string> = {
                   create: t.hist_action_create,
                   update: t.hist_action_update,
@@ -1876,15 +1928,22 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   bulk_delete: t.hist_action_bulk_delete,
                   bulk_approve: t.hist_action_bulk_approve,
                 };
-                const actionColor: Record<string, string> = { create: 'bg-accent/12 text-accent', update: 'bg-blue-100 text-blue-700', delete: 'bg-red-100 text-red-700', publish: 'bg-accent/10 text-accent', bulk_delete: 'bg-red-100 text-red-700', bulk_approve: 'bg-accent/12 text-accent' };
+                const actionColor: Record<string, string> = {
+                  create: 'bg-accent/12 text-accent dark:bg-accent/20 dark:text-accent-light',
+                  update: 'bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200',
+                  delete: 'bg-red-100 text-red-700 dark:bg-red-950/45 dark:text-red-300',
+                  publish: 'bg-accent/10 text-accent dark:bg-accent/20 dark:text-accent-light',
+                  bulk_delete: 'bg-red-100 text-red-700 dark:bg-red-950/45 dark:text-red-300',
+                  bulk_approve: 'bg-accent/12 text-accent dark:bg-accent/20 dark:text-accent-light',
+                };
                 return entries.map((entry: HistoryEntry) => (
-                  <div key={entry.id} className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50">
-                    <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${actionColor[entry.action] ?? 'bg-slate-100 text-slate-600'}`}>
+                  <div key={entry.id} className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5">
+                    <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${actionColor[entry.action] ?? 'bg-slate-100 text-slate-600 dark:bg-neutral-800 dark:text-neutral-300'}`}>
                       {actionLabel[entry.action] ?? entry.action}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-slate-800 truncate">{entry.description}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
+                      <p className="truncate text-xs font-semibold text-slate-800 dark:text-neutral-100">{entry.description}</p>
+                      <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-0.5">
                         {entry.actorName} · {new Date(entry.timestamp).toLocaleString(getIntlLocale(effectiveLanguage), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -1898,24 +1957,24 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
       {/* Modale Periodi nascosti */}
       {showHiddenPeriodsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setShowHiddenPeriodsModal(false)}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[70vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/65" onClick={() => setShowHiddenPeriodsModal(false)}>
+          <div className="flex w-full max-w-sm max-h-[70vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-white/10 dark:bg-neutral-900" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/10">
               <div className="flex items-center gap-2">
-                <EyeOff className="w-4 h-4 text-slate-600" />
-                <h3 className="font-bold text-slate-800 text-sm">{t.wst_hidden_periods_modal_title}</h3>
+                <EyeOff className="h-4 w-4 text-slate-600 dark:text-neutral-300" />
+                <h3 className="text-sm font-bold text-slate-800 dark:text-neutral-100">{t.wst_hidden_periods_modal_title}</h3>
               </div>
-              <button type="button" onClick={() => setShowHiddenPeriodsModal(false)} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-500"><X className="w-4 h-4" /></button>
+              <button type="button" onClick={() => setShowHiddenPeriodsModal(false)} className="rounded-xl p-1.5 text-slate-500 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-white/10"><X className="h-4 w-4" /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              <p className="text-xs text-slate-500 mb-3">{t.wst_hidden_periods_modal_help}</p>
+              <p className="text-xs text-slate-500 dark:text-neutral-300 mb-3">{t.wst_hidden_periods_modal_help}</p>
               {hiddenDates.size === 0 ? (
-                <p className="text-slate-400 text-sm text-center py-4">{t.wst_no_hidden_days}</p>
+                <p className="text-slate-400 dark:text-neutral-400 text-sm text-center py-4">{t.wst_no_hidden_days}</p>
               ) : (
                 <ul className="space-y-2">
                   {[...hiddenDates].sort().map((date) => (
-                    <li key={date} className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
-                      <span className="text-sm font-semibold text-slate-700">
+                    <li key={date} className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-white/10 dark:bg-neutral-800/80">
+                      <span className="text-sm font-semibold text-slate-700 dark:text-neutral-200">
                         {new Date(date + 'T12:00:00').toLocaleDateString(getIntlLocale(effectiveLanguage), { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
                       </span>
                       <button
@@ -1940,11 +1999,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
       {/* Modale elenco nomi nella tabella turni */}
       {showEditViewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => { setShowEditViewModal(false); setEditingNameUserId(null); setDraggingEditViewUserId(null); setDropTargetEditViewIdx(null); }}>
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full max-h-[80vh] flex flex-col min-h-0 overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 flex-shrink-0">
-              <h3 className="text-sm font-bold text-slate-800">{t.names_list_title}</h3>
-              <button type="button" onClick={() => { setShowEditViewModal(false); setEditingNameUserId(null); setDraggingEditViewUserId(null); setDropTargetEditViewIdx(null); }} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-500">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/65" onClick={() => { setShowEditViewModal(false); setEditingNameUserId(null); setDraggingEditViewUserId(null); setDropTargetEditViewIdx(null); }}>
+          <div className="flex max-h-[80vh] min-h-0 w-full max-w-sm flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-white/10 dark:bg-neutral-900" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/10">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-neutral-100">{t.names_list_title}</h3>
+              <button type="button" onClick={() => { setShowEditViewModal(false); setEditingNameUserId(null); setDraggingEditViewUserId(null); setDropTargetEditViewIdx(null); }} className="rounded-xl p-1.5 text-slate-500 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-white/10">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -2022,7 +2081,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       <div className="absolute left-2 right-2 top-0 h-0.5 bg-accent rounded-full z-10 pointer-events-none" aria-hidden />
                     )}
                     {canUseShiftManagementChrome && (
-                      <span className="shrink-0 text-slate-400 touch-none" aria-hidden title={t.drag_to_reorder}>
+                      <span className="shrink-0 text-slate-400 dark:text-neutral-400 touch-none" aria-hidden title={t.drag_to_reorder}>
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 6h2v2H8V6zm0 5h2v2H8v-2zm0 5h2v2H8v-2zm6-10h2v2h-2V6zm0 5h2v2h-2v-2zm0 5h2v2h-2v-2z"/></svg>
                       </span>
                     )}
@@ -2058,7 +2117,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               setEditingNameUserId(u.id);
                               setEditingNameValue(u.first_name);
                             }}
-                            className="shrink-0 p-1 rounded-xl text-slate-500 hover:text-accent hover:bg-accent/10 focus:outline-none focus:ring-1 focus:ring-accent"
+                            className="shrink-0 p-1 rounded-xl text-slate-500 dark:text-neutral-300 hover:text-accent hover:bg-accent/10 focus:outline-none focus:ring-1 focus:ring-accent"
                             title={t.edit_name}
                             aria-label={t.edit_name}
                           >
@@ -2127,10 +2186,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.04, duration: 0.2 }}
-          className={`rounded-2xl overflow-hidden bg-white border-2 transition-[box-shadow,border-color] duration-300 ease-out ${
+          className={`rounded-2xl overflow-hidden bg-white dark:bg-neutral-900 border-2 transition-[box-shadow,border-color] duration-300 ease-out ${
             dateBarStuck
-              ? 'border-slate-300 shadow-[0_12px_32px_-8px_rgba(45,90,39,0.24),0_8px_20px_-6px_rgba(15,23,42,0.14)]'
-              : 'border-slate-200 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)]'
+              ? 'border-slate-300 dark:border-neutral-600 shadow-[0_12px_32px_-8px_rgba(45,90,39,0.24),0_8px_20px_-6px_rgba(15,23,42,0.14)] dark:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.55),0_8px_20px_-6px_rgba(0,0,0,0.35)]'
+              : 'border-slate-200 dark:border-white/10 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.4),0_2px_8px_-4px_rgba(0,0,0,0.25)]'
           } ${viewMode === 'month' ? 'flex h-[34px] items-stretch' : 'relative h-[34px]'}`}
         >
           {viewMode === 'month' ? (
@@ -2138,13 +2197,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               <button
                 type="button"
                 onClick={() => setPeriodPanOffsetWeeks((p) => p - displayPeriodConfig.numWeeks)}
-                className="shrink-0 w-9 flex items-center justify-center border-r-2 border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 active:bg-slate-100"
+                className="shrink-0 w-9 flex items-center justify-center border-r-2 border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 text-slate-500 dark:text-neutral-300 transition-colors hover:bg-slate-50 dark:hover:bg-neutral-800 active:bg-slate-100 dark:active:bg-neutral-800"
                 aria-label={t.wst_month_prev_aria}
               >
                 <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden />
               </button>
               <div className="flex-1 min-w-0 flex items-center justify-center px-2 overflow-hidden">
-                <span className="text-center text-[11px] sm:text-sm font-bold text-slate-800 uppercase tracking-wider tabular-nums truncate">
+                <span className="text-center text-[11px] sm:text-sm font-bold text-slate-800 dark:text-neutral-100 uppercase tracking-wider tabular-nums truncate">
                   {format(monthViewPeriodStart, 'd MMM', { locale: getDateLocale(effectiveLanguage) ?? it })} –{' '}
                   {format(monthViewPeriodEnd, 'd MMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })}
                 </span>
@@ -2152,7 +2211,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               <button
                 type="button"
                 onClick={() => setPeriodPanOffsetWeeks((p) => p + displayPeriodConfig.numWeeks)}
-                className="shrink-0 w-9 flex items-center justify-center border-l-2 border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 active:bg-slate-100"
+                className="shrink-0 w-9 flex items-center justify-center border-l-2 border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 text-slate-500 dark:text-neutral-300 transition-colors hover:bg-slate-50 dark:hover:bg-neutral-800 active:bg-slate-100 dark:active:bg-neutral-800"
                 aria-label={t.wst_month_next_aria}
               >
                 <ChevronRight className="w-4 h-4 shrink-0" aria-hidden />
@@ -2165,7 +2224,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2 }}
                     exit={{ opacity: 0, scale: 0.9 }}
-                    className="flex items-center gap-1 px-2 flex-shrink-0 border-l border-slate-100"
+                    className="flex items-center gap-1 px-2 flex-shrink-0 border-l border-slate-100 dark:border-white/10"
                   >
                     {pendingSaves > 0 ? (
                       <>
@@ -2211,27 +2270,27 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           : t.wst_day_hide_tooltip
                         : '';
                       const dateBarTitle = [payrollTitleBar, mgmtTitleBar].filter(Boolean).join('\n') || undefined;
-                      const dayBarCellClass = `flex-1 flex items-center justify-center gap-0.5 sm:gap-1 border-r border-slate-200 last:border-r-0 min-w-0 snap-center whitespace-nowrap font-inherit ${
+                      const dayBarCellClass = `flex-1 flex items-center justify-center gap-0.5 sm:gap-1 border-r border-slate-200 dark:border-white/10 last:border-r-0 min-w-0 snap-center whitespace-nowrap font-inherit ${
                         hiddenDates.has(dayStr)
-                          ? 'bg-slate-200/60'
+                          ? 'bg-slate-200/60 dark:bg-neutral-700/50'
                           : isPayrollDayBar
-                            ? 'bg-emerald-50/90 ring-1 ring-inset ring-emerald-200/85'
+                            ? 'bg-emerald-50/90 dark:bg-emerald-950/40 ring-1 ring-inset ring-emerald-200/85 dark:ring-emerald-800/50'
                             : isTodayDate
                               ? 'bg-accent/10 ring-1 ring-inset ring-accent/50'
                               : ''
-                      } ${canEditInApp && !isStaff && hasShifts ? 'cursor-pointer hover:bg-slate-100/80 active:bg-slate-200/80 transition-colors rounded-xl' : ''} ${isManagement ? 'select-none' : ''}`;
+                      } ${canEditInApp && !isStaff && hasShifts ? 'cursor-pointer hover:bg-slate-100/80 dark:hover:bg-neutral-800/80 active:bg-slate-200/80 dark:active:bg-neutral-700/80 transition-colors rounded-xl' : ''} ${isManagement ? 'select-none' : ''}`;
                       const dayBarInner = (
                         <>
                           {canShiftOps && hiddenDates.has(dayStr) && (
-                            <EyeOff className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                            <EyeOff className="w-3 h-3 text-slate-400 dark:text-neutral-400 flex-shrink-0" />
                           )}
                           <span
-                            className={`text-[10px] sm:text-xs uppercase font-bold tabular-nums shrink-0 ${hiddenDates.has(dayStr) ? 'text-slate-400' : 'text-slate-600'}`}
+                            className={`text-[10px] sm:text-xs uppercase font-bold tabular-nums shrink-0 ${hiddenDates.has(dayStr) ? 'text-slate-400 dark:text-neutral-400' : 'text-slate-600 dark:text-neutral-300'}`}
                           >
                             {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it }).toUpperCase()}
                           </span>
                           <span
-                            className={`inline-flex items-center justify-center text-[11px] sm:text-xs font-bold tabular-nums shrink-0 ${isTodayDate && !hiddenDates.has(dayStr) ? 'bg-accent text-white px-1 sm:px-1.5 py-0.5 rounded-lg sm:rounded-xl min-w-[1.25rem]' : hiddenDates.has(dayStr) ? 'text-slate-400' : 'text-slate-900'}`}
+                            className={`inline-flex items-center justify-center text-[11px] sm:text-xs font-bold tabular-nums shrink-0 ${isTodayDate && !hiddenDates.has(dayStr) ? 'bg-accent text-white px-1 sm:px-1.5 py-0.5 rounded-lg sm:rounded-xl min-w-[1.25rem]' : hiddenDates.has(dayStr) ? 'text-slate-400 dark:text-neutral-400' : 'text-slate-900 dark:text-neutral-50'}`}
                           >
                             {format(day, 'd')}
                           </span>
@@ -2279,7 +2338,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 type="button"
                 disabled={weekIndex <= 0}
                 onClick={() => setWeekIndex((i) => Math.max(0, i - 1))}
-                className="absolute left-1 top-1/2 z-30 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/70 bg-white/95 text-slate-500 shadow-sm backdrop-blur-[2px] transition-[color,box-shadow,transform] hover:border-slate-300 hover:text-slate-800 active:scale-95 disabled:pointer-events-none disabled:opacity-0"
+                className="absolute left-1 top-1/2 z-30 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/70 dark:border-white/15 bg-white/95 dark:bg-neutral-900/95 text-slate-500 dark:text-neutral-300 shadow-sm backdrop-blur-[2px] transition-[color,box-shadow,transform] hover:border-slate-300 dark:hover:border-white/25 hover:text-slate-800 dark:hover:text-neutral-100 active:scale-95 disabled:pointer-events-none disabled:opacity-0"
                 aria-label={t.week_prev}
               >
                 <ChevronLeft className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
@@ -2288,7 +2347,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 type="button"
                 disabled={weekIndex >= maxWeekIndex}
                 onClick={() => setWeekIndex((i) => Math.min(maxWeekIndex, i + 1))}
-                className="absolute right-1 top-1/2 z-30 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/70 bg-white/95 text-slate-500 shadow-sm backdrop-blur-[2px] transition-[color,box-shadow,transform] hover:border-slate-300 hover:text-slate-800 active:scale-95 disabled:pointer-events-none disabled:opacity-0"
+                className="absolute right-1 top-1/2 z-30 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/70 dark:border-white/15 bg-white/95 dark:bg-neutral-900/95 text-slate-500 dark:text-neutral-300 shadow-sm backdrop-blur-[2px] transition-[color,box-shadow,transform] hover:border-slate-300 dark:hover:border-white/25 hover:text-slate-800 dark:hover:text-neutral-100 active:scale-95 disabled:pointer-events-none disabled:opacity-0"
                 aria-label={t.week_next}
               >
                 <ChevronRight className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
@@ -2326,31 +2385,54 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       {/* Contenuto: vista mese (calendario) o schede turni */}
       {wTurniGrid && (
       <div ref={scrollContainerRef} className="flex flex-col gap-2 pb-4">
-        {/* Turni aperti subito sotto la barra date (vista settimana) */}
+        {/* Turni aperti subito sotto la barra date (vista settimana) — comprimibile */}
         {viewMode !== 'month' && (openVisibleShifts.length > 0 || canEditInApp) && (
           <motion.div
             initial={{ y: -6, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.25 }}
-            className="w-full rounded-xl overflow-hidden border border-dashed border-amber-400 bg-amber-50/60"
+            className="w-full overflow-hidden rounded-xl border border-dashed border-amber-400 bg-amber-50/60 dark:border-amber-600/60 dark:bg-amber-950/25"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between min-h-0 px-3 py-1.5 border-b border-amber-200 bg-amber-100">
-              <span className="flex items-center gap-1.5 text-xs font-bold uppercase text-amber-700">
-                <Plus className="w-3 h-3" />
-                {t.open_shifts}
-              </span>
+            <div className="flex min-h-0 items-center justify-between gap-2 border-b border-amber-200 bg-amber-100 px-2 py-1.5 dark:border-amber-800/50 dark:bg-amber-950/40 sm:px-3">
+              <div className="flex min-w-0 items-center gap-1">
+                <button
+                  type="button"
+                  onClick={toggleOpenShiftsBarCollapsed}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-amber-300/80 bg-white/90 text-amber-800 transition-colors hover:bg-white dark:border-amber-700/60 dark:bg-amber-950/60 dark:text-amber-100 dark:hover:bg-amber-900/70"
+                  aria-expanded={!openShiftsBarCollapsed}
+                  aria-label={
+                    openShiftsBarCollapsed
+                      ? (tv.wst_open_shifts_bar_expand_aria ?? 'Espandi')
+                      : (tv.wst_open_shifts_bar_collapse_aria ?? 'Comprimi')
+                  }
+                >
+                  {openShiftsBarCollapsed ? (
+                    <ChevronDown className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+                  ) : (
+                    <ChevronUp className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+                  )}
+                </button>
+                <span className="flex min-w-0 items-center gap-1 text-xs font-bold uppercase text-amber-800 dark:text-amber-100">
+                  <Plus className="h-3 w-3 shrink-0" aria-hidden />
+                  <span className="truncate">{t.open_shifts}</span>
+                  {openShiftsBarCollapsed && openVisibleShifts.length > 0 ? (
+                    <span className="shrink-0 tabular-nums text-[10px] font-bold normal-case text-amber-700 dark:text-amber-200">
+                      ({openVisibleShifts.length})
+                    </span>
+                  ) : null}
+                </span>
+              </div>
               {canEditInApp && (
                 <button
                   type="button"
                   onClick={() => setCreatingOpenShift({ date: format(weekStart, 'yyyy-MM-dd') })}
-                  className="text-[10px] font-semibold text-amber-700 hover:text-amber-900 border border-amber-300 rounded-xl px-2 py-0.5 bg-white"
+                  className="shrink-0 rounded-xl border border-amber-300 bg-white px-2 py-0.5 text-[10px] font-semibold text-amber-800 hover:text-amber-950 dark:border-amber-700/70 dark:bg-amber-950/50 dark:text-amber-100 dark:hover:text-amber-50"
                 >
                   + {t.new_open_shift}
                 </button>
               )}
             </div>
-            {/* Griglia giorni */}
+            {!openShiftsBarCollapsed && (
             <div
               className="overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity"
               ref={(el) => { if (el) cardScrollRefs.current[activeUsers.length] = el; }}
@@ -2468,6 +2550,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 </tbody>
               </table>
             </div>
+            )}
           </motion.div>
         )}
 
@@ -2479,13 +2562,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             navRowClassName="pb-2"
             scrollClassName="overflow-x-auto-safe"
           >
-          <div className="min-w-[640px] rounded-xl border-2 border-slate-200 bg-white overflow-hidden">
+          <div className="min-w-[640px] rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 overflow-hidden">
             {/* Intestazione giorni settimana */}
-            <div className="grid grid-cols-7 bg-slate-50 border-b-2 border-slate-200">
+            <div className="grid grid-cols-7 bg-slate-50 dark:bg-neutral-800/80 border-b-2 border-slate-200 dark:border-white/10">
               {allWeekDays.slice(0, 7).map((d, i) => (
                 <div
                   key={d.toString()}
-                  className={`py-2 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 ${i < 6 ? 'border-r-2 border-slate-200' : ''}`}
+                  className={`py-2 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 ${i < 6 ? 'border-r-2 border-slate-200 dark:border-white/10' : ''}`}
                 >
                   {format(d, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it })}
                 </div>
@@ -2523,14 +2606,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       setSidebarDay(dayStr);
                       if (ids.length > 0) setSidebarOpen(true);
                     }}
-                    className={`min-h-[72px] sm:min-h-[84px] p-2 text-left transition-colors border-b-2 border-slate-200 ${!isLastCol ? 'border-r-2 border-r-slate-200' : ''} ${
+                    className={`min-h-[72px] sm:min-h-[84px] p-2 text-left transition-colors border-b-2 border-slate-200 dark:border-white/10 ${!isLastCol ? 'border-r-2 border-r-slate-200 dark:border-r-white/10' : ''} ${
                       !inPlanning
-                        ? 'bg-slate-50/80 hover:bg-slate-100/90'
+                        ? 'bg-slate-50/80 dark:bg-neutral-900/90 hover:bg-slate-100/90 dark:hover:bg-neutral-800'
                         : isPayrollDay
-                          ? 'bg-emerald-50/90 ring-1 ring-inset ring-emerald-200/90 hover:bg-emerald-50'
+                          ? 'bg-emerald-50/90 dark:bg-emerald-950/35 ring-1 ring-inset ring-emerald-200/90 dark:ring-emerald-800/40 hover:bg-emerald-50 dark:hover:bg-emerald-950/50'
                           : isTodayDate
                             ? 'bg-accent/5 hover:bg-accent/10'
-                            : 'bg-white hover:bg-slate-50'
+                            : 'bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800'
                     }`}
                   >
                     {/* Numero giorno */}
@@ -2540,17 +2623,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           ? 'bg-accent text-white'
                           : !inPlanning
                             ? isPayrollDay
-                              ? 'bg-emerald-100 text-emerald-900 ring-1 ring-emerald-200/80'
-                              : 'text-slate-300'
+                              ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100 ring-1 ring-emerald-200/80 dark:ring-emerald-700/50'
+                              : 'text-slate-300 dark:text-neutral-600'
                             : isPayrollDay
                               ? 'bg-emerald-600 text-white'
-                              : 'text-slate-700'
+                              : 'text-slate-700 dark:text-neutral-200'
                       }`}
                     >
                       {format(day, 'd')}
                     </span>
                     {isPayrollDay && (
-                      <span className="mt-1 block text-[8px] font-bold uppercase tracking-wide text-emerald-800">
+                      <span className="mt-1 block text-[8px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-300">
                         {tr.ts_payroll_day_abbr ?? 'Paga'}
                       </span>
                     )}
@@ -2558,7 +2641,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     {hasShifts && showCounts && (
                       <span className="flex items-center gap-1 mt-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
-                        <span className="text-[11px] font-semibold text-slate-600">
+                        <span className="text-[11px] font-semibold text-slate-600 dark:text-neutral-300">
                           {dayShifts.length} {dayShifts.length === 1 ? t.shift_singular : t.shift_plural}
                         </span>
                       </span>
@@ -2614,13 +2697,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       setDraggingUserIdx(null); setDropUserIdx(null);
                       requestConfirmAndSaveOrder(ordered);
                     }}
-                    className={`w-full rounded-xl card-factorial !p-0 overflow-hidden border-b-2 border-slate-400 ${draggingUserIdx !== null && draggingUserIdx !== userIdx ? 'opacity-50' : ''} ${dropUserIdx === userIdx && draggingUserIdx !== null && draggingUserIdx !== userIdx ? 'ring-2 ring-inset ring-accent' : ''}`}
+                    className={`w-full rounded-xl card-factorial !p-0 overflow-hidden border-b-2 border-slate-400 dark:border-neutral-600 ${draggingUserIdx !== null && draggingUserIdx !== userIdx ? 'opacity-50' : ''} ${dropUserIdx === userIdx && draggingUserIdx !== null && draggingUserIdx !== userIdx ? 'ring-2 ring-inset ring-accent' : ''}`}
                   >
                     {/* Header scheda: nome + ore (fisso, non scorre) — verde bottomnav */}
                     <div
                       onClick={() => canViewTotalHours && setLocalFilterUserId(prev => prev === user.id ? null : user.id)}
                       title={canEditInApp ? t.wst_name_row_filter_title : undefined}
-                      className={`flex items-center justify-between min-h-0 px-2.5 py-1 border-b border-slate-200 bg-slate-50 ${user.status === 'suspended' || user.status === 'inactive' ? 'opacity-60' : ''} ${canEditInApp ? 'cursor-pointer' : ''}`}
+                      className={`flex items-center justify-between min-h-0 px-2.5 py-1 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-800/70 ${user.status === 'suspended' || user.status === 'inactive' ? 'opacity-60' : ''} ${canEditInApp ? 'cursor-pointer' : ''}`}
                     >
                       <span className="flex items-center gap-1.5 min-w-0 flex-1">
                         {canEditInApp && editingNameUserId === user.id ? (
@@ -2645,12 +2728,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               }
                             }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full min-w-0 px-1.5 py-0.5 text-xs font-bold uppercase leading-tight rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-accent text-slate-900"
+                            className="w-full min-w-0 px-1.5 py-0.5 text-xs font-bold uppercase leading-tight rounded-xl border border-slate-300 dark:border-white/10 bg-white dark:bg-neutral-900 focus:outline-none focus:ring-1 focus:ring-accent text-slate-900 dark:text-neutral-100"
                             autoFocus
                           />
                         ) : (
                           <span
-                            className={`font-bold text-xs uppercase leading-tight truncate ${user.status === 'suspended' || user.status === 'inactive' ? 'text-slate-400 line-through' : 'text-slate-800'} ${(canViewTotalHours || canEditInApp) ? 'cursor-pointer hover:underline' : ''}`}
+                            className={`font-bold text-xs uppercase leading-tight truncate ${user.status === 'suspended' || user.status === 'inactive' ? 'text-slate-400 dark:text-neutral-500 line-through' : 'text-slate-800 dark:text-neutral-100'} ${(canViewTotalHours || canEditInApp) ? 'cursor-pointer hover:underline' : ''}`}
                             onClick={() => (canViewTotalHours || canEditInApp) && setLocalFilterUserId(prev => prev === user.id ? null : user.id)}
                             onDoubleClick={(e) => {
                               e.stopPropagation();
@@ -2666,7 +2749,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         )}
                       </span>
                       {canViewTotalHours && (
-                        <span className="font-bold text-xs uppercase leading-tight text-slate-500 tabular-nums shrink-0 min-w-[2.5rem] text-right">
+                        <span className="font-bold text-xs uppercase leading-tight text-slate-500 dark:text-neutral-300 tabular-nums shrink-0 min-w-[2.5rem] text-right">
                           {(weeklyMinutesScheduledByUser[user.id] ?? 0) > 0
                             ? formatMinutesToHoursAndMinutes(weeklyMinutesScheduledByUser[user.id] ?? 0)
                             : '—'}
@@ -2718,7 +2801,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           return (
                             <td
                               key={dayStr}
-                              className="px-0 py-0 min-w-0 snap-start bg-amber-50/60 border-r border-slate-300"
+                              className="px-0 py-0 min-w-0 snap-start bg-amber-50/60 border-r border-slate-300 dark:bg-amber-950/30 dark:border-neutral-600"
                               style={{ width: `calc(100% / ${allWeekDays.length})` }}
                             >
                               <motion.div
@@ -2738,14 +2821,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         return (
                           <td
                             key={dayStr}
-                            className={`px-0 py-0 min-w-0 snap-start group border-r border-slate-300 ${
+                            className={`px-0 py-0 min-w-0 snap-start group border-r border-slate-300 dark:border-neutral-600 ${
                               isPayrollCol
-                                ? 'bg-emerald-50/30 ring-1 ring-inset ring-emerald-200/50'
+                                ? 'bg-emerald-50/30 ring-1 ring-inset ring-emerald-200/50 dark:bg-emerald-950/20 dark:ring-emerald-800/40'
                                 : isToday(day)
-                                  ? 'bg-accent/5'
+                                  ? 'bg-accent/5 dark:bg-accent/10'
                                   : isUnavailDay
-                                    ? 'bg-red-50/70'
-                                    : 'bg-white'
+                                    ? 'bg-red-50/70 dark:bg-red-950/25'
+                                    : 'bg-white dark:bg-neutral-950/40'
                             }`}
                             style={{ width: `calc(100% / ${allWeekDays.length})` }}
                           >
@@ -2794,7 +2877,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 onDragLeave={() => setDropTargetKey(null)}
                                 onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { handleDropShift(draggedShiftId, user.id, dayStr); setDraggedShiftId(null); setDropTargetKey(null); } }}
                                 title={dayShift && needsCambioWarning(dayShift) ? t.no_change_at_16 : undefined}
-                                className={`flex flex-col ${dayShift && dayVariant === 'planned' ? 'border-b-2 border-dashed border-slate-300' : 'border-b-2 border-slate-500'} relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? 'bg-amber-100 border-2 border-amber-400' : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
+                                className={`flex flex-col ${dayShift && dayVariant === 'planned' ? 'border-b-2 border-dashed border-slate-300 dark:border-white/55' : 'border-b-2 border-slate-400 dark:border-white/45'} relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600' : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
                               >
                                 {dayShift ? (() => {
                                   const actualTimes = getActualShiftTime(dayShift, punchRecords);
@@ -2813,11 +2896,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   const deptColorDay = user.department ? getDeptColor(user.department) : null;
                                   return (
                                     <>
-                                      {/* Dept color left accent bar */}
+                                      {/* Dept color indicator (dot) */}
                                       {deptColorDay && dayVariant === 'inprogress' && (
                                         <span
-                                          className="absolute top-1 left-1 bottom-1 w-[3px] rounded-full opacity-80"
+                                          className="absolute left-0.5 top-1.5 h-1.5 w-1.5 shrink-0 rounded-full opacity-90 ring-1 ring-white/40 dark:ring-black/20"
                                           style={{ backgroundColor: deptColorDay }}
+                                          aria-hidden
                                         />
                                       )}
                                       {/* Inline edit input */}
@@ -2848,13 +2932,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                               style={{ opacity: 1 }}
                                               title="Doppio click: modifica"
                                             >
-                                              <span className={`text-xs font-bold leading-none truncate hidden sm:block ${dayVariant === 'approved' ? 'text-white' : dayVariant === 'planned' ? 'text-black' : 'text-accent'}`}>{timeDisplayed}</span>
-                                              <span className={`text-[11px] font-bold leading-none block sm:hidden ${dayVariant === 'approved' ? 'text-white' : dayVariant === 'planned' ? 'text-black' : 'text-accent'}`}>{timeDisplayedShort}</span>
+                                              <span className={`text-xs font-bold leading-none truncate hidden sm:block ${dayVariant === 'approved' ? 'text-white' : dayVariant === 'planned' ? 'text-slate-900 dark:text-white' : 'text-accent dark:text-accent-light'}`}>{timeDisplayed}</span>
+                                              <span className={`text-[11px] font-bold leading-none block sm:hidden ${dayVariant === 'approved' ? 'text-white' : dayVariant === 'planned' ? 'text-slate-900 dark:text-white' : 'text-accent dark:text-accent-light'}`}>{timeDisplayedShort}</span>
                                             </span>
                                           ) : (
                                             <span className="absolute top-1/2 -translate-y-1/2 left-[10px] right-[40px]">
-                                              <span className={`text-xs font-bold leading-none truncate hidden sm:block ${dayVariant === 'approved' ? 'text-white' : dayVariant === 'planned' ? 'text-black' : 'text-accent'}`}>{timeDisplayed}</span>
-                                              <span className={`text-[11px] font-bold leading-none block sm:hidden ${dayVariant === 'approved' ? 'text-white' : dayVariant === 'planned' ? 'text-black' : 'text-accent'}`}>{timeDisplayedShort}</span>
+                                              <span className={`text-xs font-bold leading-none truncate hidden sm:block ${dayVariant === 'approved' ? 'text-white' : dayVariant === 'planned' ? 'text-slate-900 dark:text-white' : 'text-accent dark:text-accent-light'}`}>{timeDisplayed}</span>
+                                              <span className={`text-[11px] font-bold leading-none block sm:hidden ${dayVariant === 'approved' ? 'text-white' : dayVariant === 'planned' ? 'text-slate-900 dark:text-white' : 'text-accent dark:text-accent-light'}`}>{timeDisplayedShort}</span>
                                             </span>
                                           )}
                                           {/* ✔ bianca sotto orario — solo approvato */}
@@ -2929,7 +3013,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 onDragLeave={() => setDropTargetKey(null)}
                                 onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { handleDropShift(draggedShiftId, user.id, dayStr); setDraggedShiftId(null); setDropTargetKey(null); } }}
                                 title={eveningShift && needsCambioWarning(eveningShift) ? t.no_change_at_16 : undefined}
-                                className={`flex flex-col relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_1` ? 'bg-amber-100 border-2 border-amber-400' : eveningShift ? getCellStyle(eveningShift, selectedShiftIds.includes(eveningShift.id) || isInDragRect(1), selectedShiftIds.length > 0, eveningVariant) : isInDragRect(1) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${eveningShift ? 'shift-card-hover-group' : ''} ${!eveningShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50' : !eveningShift ? 'cursor-default' : eveningShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
+                                className={`flex flex-col relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_1` ? 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600' : eveningShift ? getCellStyle(eveningShift, selectedShiftIds.includes(eveningShift.id) || isInDragRect(1), selectedShiftIds.length > 0, eveningVariant) : isInDragRect(1) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${eveningShift ? 'shift-card-hover-group' : ''} ${!eveningShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !eveningShift ? 'cursor-default' : eveningShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
                               >
                                 {eveningShift ? (() => {
                                   const actualTimes = getActualShiftTime(eveningShift, punchRecords);
@@ -2946,11 +3030,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   const deptColorEv = user.department ? getDeptColor(user.department) : null;
                                   return (
                                     <>
-                                      {/* Dept color left accent bar */}
+                                      {/* Dept color indicator (dot) */}
                                       {deptColorEv && eveningVariant === 'inprogress' && (
                                         <span
-                                          className="absolute top-1 left-1 bottom-1 w-[3px] rounded-full opacity-80"
+                                          className="absolute left-0.5 top-1.5 h-1.5 w-1.5 shrink-0 rounded-full opacity-90 ring-1 ring-white/40 dark:ring-black/20"
                                           style={{ backgroundColor: deptColorEv }}
+                                          aria-hidden
                                         />
                                       )}
                                       {/* Inline edit input */}
@@ -2981,13 +3066,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                               style={{ opacity: 1 }}
                                               title="Doppio click: modifica"
                                             >
-                                              <span className={`text-xs font-bold leading-none truncate hidden sm:block ${eveningVariant === 'approved' ? 'text-white' : eveningVariant === 'planned' ? 'text-black' : 'text-accent'}`}>{timeDisplayed}</span>
-                                              <span className={`text-[11px] font-bold leading-none block sm:hidden ${eveningVariant === 'approved' ? 'text-white' : eveningVariant === 'planned' ? 'text-black' : 'text-accent'}`}>{timeDisplayedShort}</span>
+                                              <span className={`text-xs font-bold leading-none truncate hidden sm:block ${eveningVariant === 'approved' ? 'text-white' : eveningVariant === 'planned' ? 'text-slate-900 dark:text-white' : 'text-accent dark:text-accent-light'}`}>{timeDisplayed}</span>
+                                              <span className={`text-[11px] font-bold leading-none block sm:hidden ${eveningVariant === 'approved' ? 'text-white' : eveningVariant === 'planned' ? 'text-slate-900 dark:text-white' : 'text-accent dark:text-accent-light'}`}>{timeDisplayedShort}</span>
                                             </span>
                                           ) : (
                                             <span className="absolute top-1/2 -translate-y-1/2 left-[10px] right-[40px]">
-                                              <span className={`text-xs font-bold leading-none truncate hidden sm:block ${eveningVariant === 'approved' ? 'text-white' : eveningVariant === 'planned' ? 'text-black' : 'text-accent'}`}>{timeDisplayed}</span>
-                                              <span className={`text-[11px] font-bold leading-none block sm:hidden ${eveningVariant === 'approved' ? 'text-white' : eveningVariant === 'planned' ? 'text-black' : 'text-accent'}`}>{timeDisplayedShort}</span>
+                                              <span className={`text-xs font-bold leading-none truncate hidden sm:block ${eveningVariant === 'approved' ? 'text-white' : eveningVariant === 'planned' ? 'text-slate-900 dark:text-white' : 'text-accent dark:text-accent-light'}`}>{timeDisplayed}</span>
+                                              <span className={`text-[11px] font-bold leading-none block sm:hidden ${eveningVariant === 'approved' ? 'text-white' : eveningVariant === 'planned' ? 'text-slate-900 dark:text-white' : 'text-accent dark:text-accent-light'}`}>{timeDisplayedShort}</span>
                                             </span>
                                           )}
                                           {/* ✔ bianca sotto orario — solo approvato */}
@@ -3050,12 +3135,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   {allWeekDays.map((_, i) => <col key={i} className="w-[14.28%]" />)}
                 </colgroup>
                 <tbody>
-                  <tr className="bg-white border-t border-accent/20">
+                  <tr className="bg-white dark:bg-neutral-900 border-t border-accent/20">
                     {allWeekDays.map((day) => {
                       const dateStr = format(day, 'yyyy-MM-dd');
                       const mins = dailyMinutesByDate[dateStr] ?? 0;
                       return (
-                        <td key={dateStr} className="border border-slate-100 bg-white px-1 py-1 text-center snap-start">
+                        <td key={dateStr} className="border border-slate-100 dark:border-white/10 bg-white dark:bg-neutral-900 px-1 py-1 text-center snap-start">
                           {mins > 0 ? (
                             <span className="text-[10px] font-bold text-accent tabular-nums">
                               {formatMinutesToHoursAndMinutes(mins)}
@@ -3086,7 +3171,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/30 z-[290]"
+              className="fixed inset-0 z-[290] bg-black/30 dark:bg-black/55"
               onClick={() => { setSidebarOpen(false); setSelectedShiftIds([]); setDrawerDeleteConfirm(null); setSidebarEdits({}); setDrawerPunchEdits({}); }}
             />
 
@@ -3096,23 +3181,23 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-white shadow-2xl z-[300] flex flex-col border-l border-slate-100"
+              className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-white dark:bg-neutral-900 shadow-2xl z-[300] flex flex-col border-l border-slate-100 dark:border-white/10"
             >
               {/* ─── HEADER ─────────────────────────────────────────────── */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 flex-shrink-0">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/10 flex-shrink-0">
                 <div className="flex items-center gap-1.5">
-                  <button type="button" onClick={() => { const d = parseISO(sidebarDay); setSidebarDay(format(addDays(d, -1), 'yyyy-MM-dd')); setDrawerDeleteConfirm(null); }} className="p-2 rounded-xl hover:bg-slate-100">
-                    <ChevronLeft className="w-4 h-4 text-slate-500" />
+                  <button type="button" onClick={() => { const d = parseISO(sidebarDay); setSidebarDay(format(addDays(d, -1), 'yyyy-MM-dd')); setDrawerDeleteConfirm(null); }} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10">
+                    <ChevronLeft className="w-4 h-4 text-slate-500 dark:text-neutral-300" />
                   </button>
-                  <span className="font-bold text-slate-800 text-sm">
+                  <span className="font-bold text-slate-800 dark:text-neutral-100 text-sm">
                     {format(parseISO(sidebarDay), 'EEE d MMM', { locale: getDateLocale(effectiveLanguage) ?? it })}
                   </span>
-                  <button type="button" onClick={() => { const d = parseISO(sidebarDay); setSidebarDay(format(addDays(d, 1), 'yyyy-MM-dd')); setDrawerDeleteConfirm(null); }} className="p-2 rounded-xl hover:bg-slate-100">
-                    <ChevronRight className="w-4 h-4 text-slate-500" />
+                  <button type="button" onClick={() => { const d = parseISO(sidebarDay); setSidebarDay(format(addDays(d, 1), 'yyyy-MM-dd')); setDrawerDeleteConfirm(null); }} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10">
+                    <ChevronRight className="w-4 h-4 text-slate-500 dark:text-neutral-300" />
                   </button>
                 </div>
-                <button type="button" onClick={() => { setSidebarOpen(false); setSelectedShiftIds([]); setDrawerDeleteConfirm(null); setSidebarEdits({}); setDrawerPunchEdits({}); }} className="p-2 rounded-xl hover:bg-slate-100">
-                  <X className="w-5 h-5 text-slate-500" />
+                <button type="button" onClick={() => { setSidebarOpen(false); setSelectedShiftIds([]); setDrawerDeleteConfirm(null); setSidebarEdits({}); setDrawerPunchEdits({}); }} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10">
+                  <X className="w-5 h-5 text-slate-500 dark:text-neutral-300" />
                 </button>
               </div>
 
@@ -3130,6 +3215,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 if (dayShifts.length === 1) {
                   const shift = dayShifts[0];
                   const u = users.find((usr) => usr.id === shift.user_id);
+                  const drawerRoleShort = scheduleDrawerRoleLabel(u?.role);
                   const edits = sidebarEdits[shift.id] ?? {
                     start: (shift.start_time || '').slice(0, 5),
                     end: (shift.end_time || '').slice(0, 5),
@@ -3218,13 +3304,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     const label = field === 'start' ? t.start_time : t.end_time;
                     return (
                       <div className="flex-1">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{label}</p>
+                        <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-1.5">{label}</p>
                         <input
                           type="time"
                           disabled={isFrozen}
                           value={val}
                           onChange={(e) => updateEdits(field, e.target.value.slice(0, 5))}
-                          className="w-full px-3 py-3 rounded-xl border border-slate-200 text-slate-800 text-xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-3 text-center text-xl font-bold text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:border-accent dark:disabled:bg-neutral-900 dark:disabled:text-neutral-500"
                         />
                       </div>
                     );
@@ -3237,12 +3323,21 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
                         {/* ── User badge ─────────────────────────────── */}
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                            <span className="text-accent font-bold text-sm">{(u?.first_name ?? '?')[0]}</span>
+                          <div className="flex min-h-[40px] min-w-[40px] max-w-[88px] flex-shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-100 bg-slate-50 px-1.5 dark:border-white/10 dark:bg-neutral-800">
+                            <span className="select-none text-[14px] font-bold leading-none text-slate-700 dark:text-neutral-200">
+                              {(u?.first_name ?? '?')[0]}
+                            </span>
+                            {drawerRoleShort ? (
+                              <span className="w-full truncate text-center text-[8px] font-semibold uppercase leading-tight text-slate-500 dark:text-neutral-300">
+                                {drawerRoleShort}
+                              </span>
+                            ) : null}
                           </div>
                           <div>
-                            <p className="font-bold text-slate-800 text-sm leading-none">{u?.first_name} {u?.last_name}</p>
-                            <p className="text-[11px] text-slate-400 mt-0.5 capitalize">{u?.role}</p>
+                            <p className="text-sm font-bold leading-none text-slate-800 dark:text-neutral-100">
+                              {u?.first_name} {u?.last_name}
+                            </p>
+                            <p className="mt-0.5 text-[11px] capitalize text-slate-400 dark:text-neutral-400">{u?.role}</p>
                           </div>
                           {isFrozen && (
                             <span className="ml-auto flex items-center gap-1 text-[11px] font-bold text-accent bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full">
@@ -3253,10 +3348,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
                         {/* ── ORARI ──────────────────────────────────── */}
                         <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Orari</p>
+                          <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-3">Orari</p>
                           <div className="flex gap-3 items-start">
                             <TimeBlock field="start" />
-                            <div className="pt-10 text-slate-300 font-bold text-lg">–</div>
+                            <div className="pt-10 text-lg font-bold text-slate-300 dark:text-neutral-500">–</div>
                             <TimeBlock field="end" />
                           </div>
                           {isFrozen && shift.approved_start_time && shift.approved_end_time && (
@@ -3269,64 +3364,64 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
                         {/* ── PAUSA AUTOMATICA ───────────────────────── */}
                         {!isFrozen && (
-                          <label className="flex items-center gap-2 cursor-pointer py-1">
+                          <label className="flex cursor-pointer items-center gap-2 py-1">
                             <input
                               type="checkbox"
                               checked={deductBreak}
                               onChange={(e) => setDeductBreak(e.target.checked)}
-                              className="w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent/30"
+                              className="h-5 w-5 shrink-0 rounded-full border-2 border-slate-300 accent-accent focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-0 dark:border-white/25 dark:bg-neutral-900"
                             />
-                            <span className="text-xs font-medium text-slate-600">{t.deduct_break_label}</span>
+                            <span className="text-xs font-medium text-slate-600 dark:text-neutral-300">{t.deduct_break_label}</span>
                           </label>
                         )}
 
                         {/* ── TIMBRATURE ─────────────────────────────── */}
                         <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">{t.wst_punches_section_title}</p>
+                          <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-2">{t.wst_punches_section_title}</p>
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-500 mb-1">🟢 Entrata</label>
+                              <label className="block text-[11px] font-semibold text-slate-500 dark:text-neutral-300 mb-1">🟢 Entrata</label>
                               <input
                                 type="time"
                                 disabled={isFrozen}
                                 value={punchEdits.punchIn}
                                 onChange={(e) => updatePunchEdits('punchIn', e.target.value.slice(0, 5))}
-                                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-slate-800 text-base font-bold text-center focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent disabled:bg-slate-50 disabled:text-slate-400"
+                                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-center text-base font-bold text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:bg-slate-50 disabled:text-slate-400 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:border-accent dark:disabled:bg-neutral-900 dark:disabled:text-neutral-500"
                               />
                             </div>
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-500 mb-1">🔴 Uscita</label>
+                              <label className="block text-[11px] font-semibold text-slate-500 dark:text-neutral-300 mb-1">🔴 Uscita</label>
                               <input
                                 type="time"
                                 disabled={isFrozen}
                                 value={punchEdits.punchOut}
                                 onChange={(e) => updatePunchEdits('punchOut', e.target.value.slice(0, 5))}
-                                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-slate-800 text-base font-bold text-center focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent disabled:bg-slate-50 disabled:text-slate-400"
+                                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-center text-base font-bold text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:bg-slate-50 disabled:text-slate-400 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:border-accent dark:disabled:bg-neutral-900 dark:disabled:text-neutral-500"
                               />
                             </div>
                           </div>
                           {!punchIn && !punchEdits.punchIn && (
-                            <p className="text-[11px] text-slate-400 mt-1.5">{t.wst_no_punch_records}</p>
+                            <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-1.5">{t.wst_no_punch_records}</p>
                           )}
                         </div>
 
-                        <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-3.5 space-y-2">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.wst_drawer_hours_summary}</p>
-                          <div className="flex justify-between gap-3 items-baseline">
-                            <span className="text-[11px] text-slate-600 font-medium leading-snug min-w-0">{t.wst_drawer_planned_short}</span>
-                            <span className="text-sm font-bold text-slate-900 tabular-nums shrink-0">
+                        <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/90 p-3.5 dark:border-white/10 dark:bg-neutral-800/80">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-400">{t.wst_drawer_hours_summary}</p>
+                          <div className="flex items-baseline justify-between gap-3">
+                            <span className="min-w-0 text-[11px] font-medium leading-snug text-slate-600 dark:text-neutral-300">{t.wst_drawer_planned_short}</span>
+                            <span className="shrink-0 text-sm font-bold tabular-nums text-slate-900 dark:text-neutral-100">
                               {plannedNetMins != null ? formatMinutesToHoursAndMinutes(plannedNetMins) : '—'}
                             </span>
                           </div>
-                          <div className="flex justify-between gap-3 items-start">
-                            <span className="text-[11px] text-slate-600 font-medium leading-snug min-w-0 pt-0.5">{t.wst_drawer_actual_short}</span>
+                          <div className="flex items-start justify-between gap-3">
+                            <span className="min-w-0 pt-0.5 text-[11px] font-medium leading-snug text-slate-600 dark:text-neutral-300">{t.wst_drawer_actual_short}</span>
                             <div className="text-sm font-bold text-accent tabular-nums shrink-0 text-right max-w-[55%]">
                               {actualNetMins != null ? (
                                 formatMinutesToHoursAndMinutes(actualNetMins)
                               ) : actualNeedsPunches && !isFrozen ? (
                                 <span className="block leading-tight">
                                   <span className="block">{t.wst_drawer_actual_incomplete}</span>
-                                  <span className="block text-[10px] font-semibold text-slate-500 mt-0.5">{t.wst_drawer_actual_hint}</span>
+                                  <span className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 mt-0.5">{t.wst_drawer_actual_hint}</span>
                                 </span>
                               ) : (
                                 t.wst_drawer_actual_incomplete
@@ -3338,12 +3433,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         {/* ── STATO (Bozza / Pubblicato / Approvato) ─── */}
                         {!isFrozen && (canManageDrafts || canApproveShifts) && (
                           <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">{t.filter_status}</p>
-                            <div className="flex gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
+                            <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-2">{t.filter_status}</p>
+                            <div className="flex gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 dark:border-white/10 dark:bg-neutral-800/90">
                               {[
-                                { st: 'draft' as const,     label: t.status_draft,     cls: 'text-slate-600', need: 'draft' as const },
-                                { st: 'confirmed' as const, label: t.wst_filter_published, cls: 'text-blue-600', need: 'draft' as const },
-                                { st: 'approved' as const,  label: t.ts_status_approved,  cls: 'text-accent', need: 'approval' as const },
+                                { st: 'draft' as const, label: t.status_draft, cls: 'text-slate-600 dark:text-neutral-300', need: 'draft' as const },
+                                {
+                                  st: 'confirmed' as const,
+                                  label: t.wst_filter_published,
+                                  cls: 'text-accent dark:text-accent-light',
+                                  need: 'draft' as const,
+                                },
+                                { st: 'approved' as const, label: t.ts_status_approved, cls: 'text-accent dark:text-accent-light', need: 'approval' as const },
                               ].map(({ st, label, cls, need }) => {
                                 const active = (st === 'approved' && isSoftApproved) || (st === 'confirmed' && isConfirmed) || (st === 'draft' && isDraft);
                                 const canClick = need === 'draft' ? canManageDrafts : canApproveShifts;
@@ -3358,7 +3458,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       else if (st === 'confirmed') { updateShift(shift.id, { approval_status: 'confirmed' }); showSuccess?.(t.shift_status_toast_published); }
                                       else if (st === 'approved') { await approveShiftSoft(shift.id); showSuccess?.(t.shift_approved_toast); }
                                     }}
-                                    className={`min-h-[36px] flex-1 rounded-md px-2 py-1.5 text-center text-[13px] font-semibold leading-none transition-colors ${active ? 'border border-slate-200 bg-white shadow-sm ' + cls : canClick ? 'text-slate-400 hover:bg-white/60 hover:text-slate-600' : 'cursor-not-allowed text-slate-300 opacity-60'}`}
+                                    className={`min-h-[36px] flex-1 rounded-md px-2 py-1.5 text-center text-[13px] font-semibold leading-none transition-colors ${
+                                      active
+                                        ? 'border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 ' + cls
+                                        : canClick
+                                          ? 'text-slate-400 hover:bg-white/60 hover:text-slate-600 dark:text-neutral-500 dark:hover:bg-white/10 dark:hover:text-neutral-200'
+                                          : 'cursor-not-allowed text-slate-300 opacity-60 dark:text-neutral-600'
+                                    }`}
                                   >
                                     {label}
                                   </button>
@@ -3371,9 +3477,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         {/* ── Messaggio stato (approvato/congelato) ──── */}
                         <div className="space-y-2">
                           {isSoftApproved && (
-                            <div className="flex items-center gap-2.5 bg-accent/10 border border-accent/25 rounded-xl px-3 py-2.5">
-                              <Check className="w-4 h-4 text-accent flex-shrink-0" strokeWidth={3} />
-                              <p className="text-xs font-semibold text-accent">
+                            <div className="flex items-center gap-2.5 rounded-xl border border-accent/25 bg-accent/10 px-3 py-2.5 dark:border-accent/35 dark:bg-accent/15">
+                              <Check className="h-4 w-4 flex-shrink-0 text-accent dark:text-accent-light" strokeWidth={3} />
+                              <p className="text-xs font-semibold text-accent dark:text-accent-light">
                                 {t.wst_go_freeze_prefix}
                                 <strong>{t.sidebar_attendance}</strong>
                                 {t.wst_go_freeze_suffix}
@@ -3383,8 +3489,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           {isFrozen && (
                             <div>
                               {unlockShiftId === shift.id ? (
-                                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-4">
-                                  <p className="text-xs text-slate-500 mb-2 text-center font-semibold">{t.wst_unlock_pin_heading}</p>
+                                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-4 dark:border-red-900/50 dark:bg-red-950/40">
+                                  <p className="text-xs text-slate-500 dark:text-neutral-300 mb-2 text-center font-semibold">{t.wst_unlock_pin_heading}</p>
                                   <input
                                     type="password"
                                     inputMode="numeric"
@@ -3397,11 +3503,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       setUnlockPin(val); setUnlockError('');
                                       if (val.length === 4) handleUnlockShift(shift.id, val);
                                     }}
-                                    className={`w-full text-center text-2xl tracking-[0.6em] font-bold px-3 py-2.5 rounded-xl border focus:outline-none focus:ring-2 transition-all ${unlockError ? 'border-red-400 ring-red-200 bg-white text-red-600' : 'border-slate-300 ring-accent/30 bg-white text-slate-900'}`}
+                                    className={`w-full rounded-xl border px-3 py-2.5 text-center text-2xl font-bold tracking-[0.6em] transition-all focus:outline-none focus:ring-2 ${
+                                      unlockError
+                                        ? 'border-red-400 bg-white text-red-600 ring-red-200 dark:bg-neutral-900 dark:text-red-400'
+                                        : 'border-slate-300 bg-white text-slate-900 ring-accent/30 dark:border-white/15 dark:bg-neutral-800 dark:text-neutral-100'
+                                    }`}
                                   />
                                   {unlockError && <p className="text-xs text-red-500 text-center mt-1.5 font-semibold">{unlockError}</p>}
                                   {unlocking && <p className="text-xs text-accent text-center mt-1.5">{t.ts_unlocking}</p>}
-                                  <button type="button" onClick={() => { setUnlockShiftId(null); setUnlockPin(''); setUnlockError(''); }} className="mt-2 w-full text-xs text-slate-400 hover:text-slate-600 transition-colors">
+                                  <button type="button" onClick={() => { setUnlockShiftId(null); setUnlockPin(''); setUnlockError(''); }} className="mt-2 w-full text-xs text-slate-400 dark:text-neutral-400 hover:text-slate-600 transition-colors">
                                     {t.cancel}
                                   </button>
                                 </div>
@@ -3409,7 +3519,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 <button
                                   type="button"
                                   onClick={() => { setUnlockShiftId(shift.id); setUnlockPin(''); setUnlockError(''); }}
-                                  className="w-full py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 font-bold text-sm flex items-center justify-center gap-2 hover:bg-amber-100 transition-colors"
+                                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 py-3 text-sm font-bold text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/55"
                                 >
                                   <Lock className="w-4 h-4" /> {t.wst_unlock_with_pin_btn}
                                 </button>
@@ -3420,7 +3530,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       </div>
 
                       {/* ── FOOTER ──────────────────────────────────── */}
-                      <div className="flex-shrink-0 border-t border-slate-100 px-4 py-3 space-y-2">
+                      <div className="flex-shrink-0 space-y-2 border-t border-slate-100 px-4 py-3 dark:border-white/10">
                         {/* SALVA — sempre visibile se non congelato */}
                         {!isFrozen && (
                           <button
@@ -3436,8 +3546,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         {/* Duplica + Elimina */}
                         {drawerDeleteConfirm === shift.id ? (
                           <div className="flex gap-2">
-                            <button type="button" onClick={() => setDrawerDeleteConfirm(null)}
-                              className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-semibold text-sm hover:bg-slate-200 transition-colors">
+                            <button
+                              type="button"
+                              onClick={() => setDrawerDeleteConfirm(null)}
+                              className="flex-1 rounded-xl bg-slate-100 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                            >
                               {t.cancel}
                             </button>
                             <button type="button"
@@ -3455,8 +3568,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             </button>
                           </div>
                         ) : (
-                          <button type="button" onClick={() => setDrawerDeleteConfirm(shift.id)}
-                            className="w-full py-2.5 rounded-xl bg-red-50 border border-red-100 text-red-600 font-semibold text-sm flex items-center justify-center gap-1.5 hover:bg-red-100 transition-colors">
+                          <button
+                            type="button"
+                            onClick={() => setDrawerDeleteConfirm(shift.id)}
+                            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-red-100 bg-red-50 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/35 dark:text-red-300 dark:hover:bg-red-950/50"
+                          >
                             <Trash2 className="w-4 h-4" /> {t.delete_shift}
                           </button>
                         )}
@@ -3477,23 +3593,23 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       <div className="rounded-xl border-2 border-accent/20 bg-accent/5 p-3.5 space-y-3">
                         <div>
                           <p className="text-xs font-bold text-accent">{formatTrans(t.wst_bulk_apply_title, { n: selectedShiftIds.length })}</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">{t.wst_bulk_empty_fields_hint}</p>
+                          <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-0.5">{t.wst_bulk_empty_fields_hint}</p>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1">{t.start_time}</label>
+                            <label className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-1">{t.start_time}</label>
                             <input type="time" value={bulkEditStart} onChange={(e) => setBulkEditStart(e.target.value)}
                               className="w-full px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent" />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1">{t.end_time}</label>
+                            <label className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-1">{t.end_time}</label>
                             <input type="time" value={bulkEditEnd} onChange={(e) => setBulkEditEnd(e.target.value)}
                               className="w-full px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent" />
                           </div>
                         </div>
                         {canManageDrafts && (
                           <div>
-                            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Stato</p>
+                            <p className="text-[10px] font-semibold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-1.5">Stato</p>
                             <div className="flex gap-1 flex-wrap">
                               <button type="button" onClick={() => setBulkEditStatus('')}
                                 className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-colors ${bulkEditStatus === '' ? 'bg-slate-700 text-white border-slate-700' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-400'}`}>
@@ -3552,7 +3668,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       </div>
                     )}
                     {dayShifts.length === 0 ? (
-                      <p className="text-slate-500 text-sm py-2">{t.no_shifts_scheduled}</p>
+                      <p className="text-slate-500 dark:text-neutral-300 text-sm py-2">{t.no_shifts_scheduled}</p>
                     ) : dayShifts.map((shift) => {
                       const u = users.find((usr) => usr.id === shift.user_id);
                       const edits = sidebarEdits[shift.id] ?? { start: (shift.start_time || '').slice(0, 5), end: (shift.end_time || '').slice(0, 5) };
@@ -3560,7 +3676,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         <div key={shift.id} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-2">
                           <div className="flex items-center justify-between">
                             <p className="font-semibold text-slate-800 text-sm">{u?.first_name ?? '-'}</p>
-                            <span className="text-[11px] font-semibold text-slate-400 capitalize">{shift.approval_status}</span>
+                            <span className="text-[11px] font-semibold text-slate-400 dark:text-neutral-400 capitalize">{shift.approval_status}</span>
                           </div>
                           <div className="flex gap-2 items-center">
                             <input type="time" value={edits.start}
@@ -3781,17 +3897,17 @@ function ShiftEditPanel({ shift, onClose, onSaved, embedded = false, showCloseBu
     : 0;
   const isPublished = shift.approval_status === 'confirmed' || shift.approval_status === 'approved';
 
-  const timeInputClass = 'min-h-[44px] flex-1 min-w-0 px-3 rounded-xl bg-white border border-slate-300 text-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent touch-target';
+  const timeInputClass = 'min-h-[44px] flex-1 min-w-0 px-3 rounded-xl bg-white dark:bg-neutral-900 border border-slate-300 dark:border-white/15 text-slate-800 dark:text-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent touch-target';
   const btnClass = 'min-h-[44px] min-w-[44px] px-3 rounded-xl text-sm font-semibold uppercase disabled:opacity-60 flex items-center justify-center gap-1.5 flex-shrink-0 touch-target';
 
   const content = (
     <div className="flex flex-col gap-3 p-4">
       {/* Riga 1: Nome + orari (o solo nome se read-only) */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <span className="font-semibold text-slate-800 text-sm">{user?.first_name ?? '-'}</span>
+        <span className="font-semibold text-slate-800 dark:text-neutral-100 text-sm">{user?.first_name ?? '-'}</span>
         {canEdit ? (
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="text-xs font-medium text-slate-500 whitespace-nowrap">{t.start}</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-neutral-300 whitespace-nowrap">{t.start}</span>
             <input
               type="time"
               value={startTime}
@@ -3817,8 +3933,8 @@ function ShiftEditPanel({ shift, onClose, onSaved, embedded = false, showCloseBu
               className={timeInputClass}
               style={{ maxWidth: '120px' }}
             />
-            <span className="text-slate-400 text-sm flex-shrink-0">–</span>
-            <span className="text-xs font-medium text-slate-500 whitespace-nowrap">{t.end}</span>
+            <span className="text-slate-400 dark:text-neutral-400 text-sm flex-shrink-0">–</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-neutral-300 whitespace-nowrap">{t.end}</span>
             <input
               type="time"
               value={endTime}
@@ -3925,9 +4041,9 @@ function ShiftEditPanel({ shift, onClose, onSaved, embedded = false, showCloseBu
   return (
     <>
       {embedded ? (
-        <div className="bg-slate-50/80 border-t border-slate-100">{content}</div>
+        <div className="bg-slate-50/80 dark:bg-neutral-900/80 border-t border-slate-100 dark:border-white/10">{content}</div>
       ) : (
-        <div className="rounded-xl shadow-lg bg-white border border-slate-200">{content}</div>
+        <div className="rounded-xl shadow-lg bg-white dark:bg-neutral-900 border border-slate-200 dark:border-white/10">{content}</div>
       )}
       {shiftEditPresenceModal}
     </>
@@ -4038,8 +4154,9 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
   };
 
   const inputClass =
-    'w-full px-3 py-2.5 rounded-xl bg-white border-2 border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-accent focus:ring-2 focus:ring-accent/25 focus:outline-none transition-colors font-sans font-semibold text-sm shadow-sm';
-  const labelClass = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 font-sans';
+    'w-full rounded-xl border-2 border-slate-300 bg-white px-3 py-2.5 font-sans text-sm font-semibold text-slate-800 shadow-sm transition-colors placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 dark:border-white/15 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500';
+  const labelClass =
+    'mb-1 block font-sans text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400';
 
   return (
     <AnimatePresence>
@@ -4047,7 +4164,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 dark:bg-black/65"
         onClick={onClose}
       >
         <motion.form
@@ -4058,22 +4175,34 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
           onClick={(e) => e.stopPropagation()}
           onSubmit={(e) => { e.preventDefault(); handleSave(); }}
           onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); onClose(); } }}
-          className="card-factorial !p-0 w-full max-w-sm overflow-hidden font-sans !border-2 !border-slate-200 !shadow-none shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)]"
+          className="card-factorial !p-0 w-full max-w-sm overflow-hidden font-sans !border-2 !border-slate-200 !shadow-none shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:!border-white/10"
         >
           {/* ── Header ── */}
-          <div className={`px-5 pt-5 pb-4 flex items-start justify-between gap-3 border-b border-slate-200 ${isOpenShift ? 'bg-amber-50' : 'bg-white'}`}>
+          <div
+            className={`flex items-start justify-between gap-3 border-b border-slate-200 px-5 pb-4 pt-5 dark:border-white/10 ${
+              isOpenShift ? 'bg-amber-50 dark:bg-amber-950/40' : 'bg-white dark:bg-neutral-900'
+            }`}
+          >
             <div className="min-w-0">
-              <h2 className={`font-bold text-base font-sans leading-tight ${isOpenShift ? 'text-amber-800' : 'text-slate-900'}`}>
+              <h2
+                className={`font-sans text-base font-bold leading-tight ${
+                  isOpenShift ? 'text-amber-800 dark:text-amber-200' : 'text-slate-900 dark:text-neutral-100'
+                }`}
+              >
                 {isOpenShift ? t.open_shift : t.new_shift}
               </h2>
-              <p className="text-slate-400 text-xs mt-0.5 font-sans">
-                {!isOpenShift && user && <><span className="font-semibold text-slate-600">{user.first_name}</span> · </>}
+              <p className="mt-0.5 font-sans text-xs text-slate-400 dark:text-neutral-400">
+                {!isOpenShift && user && (
+                  <>
+                    <span className="font-semibold text-slate-600 dark:text-neutral-300">{user.first_name}</span> ·{' '}
+                  </>
+                )}
                 {format(parseISO(selectedDate), 'EEEE d MMM', { locale: getDateLocale(effectiveLanguage) ?? it })}
               </p>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex flex-shrink-0 items-center gap-2">
               <div
-                className="flex flex-col items-end gap-0.5 rounded-xl bg-slate-100 px-2.5 py-1 text-slate-600"
+                className="flex flex-col items-end gap-0.5 rounded-xl bg-slate-100 px-2.5 py-1 text-slate-600 dark:bg-neutral-800 dark:text-neutral-200"
                 title={
                   breakMins > 0 && deductBreak
                     ? `−${breakMins} min ${t.ts_break_deduction}`
@@ -4091,7 +4220,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                   </span>
                 </div>
                 {deductBreak && breakMins > 0 ? (
-                  <span className="text-[9px] font-bold text-slate-500 leading-none tabular-nums">
+                  <span className="text-[9px] font-bold text-slate-500 dark:text-neutral-300 leading-none tabular-nums">
                     −{breakMins}′ {t.ts_break_deduction}
                   </span>
                 ) : !deductBreak ? (
@@ -4103,14 +4232,14 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 transition-colors hover:bg-slate-200"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
               >
-                <X className="w-4 h-4 text-slate-500" />
+                <X className="h-4 w-4 text-slate-500 dark:text-neutral-300" />
               </button>
             </div>
           </div>
 
-          <div className="px-5 pb-5 space-y-4">
+          <div className="space-y-4 bg-white px-5 pb-5 dark:bg-neutral-900">
             {/* ── Data ── */}
             <div>
               <label className={labelClass}>Data</label>
@@ -4135,7 +4264,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               <div>
                 <label className={labelClass}>{t.end_time}</label>
                 {isOpenEndShift ? (
-                  <p className="text-slate-400 text-xs pt-2.5 font-sans">{t.manual_close_dinner}</p>
+                  <p className="text-slate-400 dark:text-neutral-400 text-xs pt-2.5 font-sans">{t.manual_close_dinner}</p>
                 ) : (
                   <input
                     type="time"
@@ -4147,19 +4276,19 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               </div>
             </div>
 
-            <label className="flex items-center gap-2.5 cursor-pointer min-h-[44px] rounded-xl border-2 border-slate-300 bg-slate-50/90 px-3 py-2.5 shadow-sm transition-colors hover:bg-slate-50">
+            <label className="flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 border-slate-300 bg-slate-50/90 px-3 py-2.5 shadow-sm transition-colors hover:bg-slate-50 dark:border-white/15 dark:bg-neutral-800/90 dark:hover:bg-neutral-800">
               <input
                 type="checkbox"
                 checked={deductBreak}
                 onChange={(e) => setDeductBreak(e.target.checked)}
-                className="h-4 w-4 shrink-0 rounded border-2 border-slate-400 text-accent focus:ring-2 focus:ring-accent/30"
+                className="h-4 w-4 shrink-0 rounded border-2 border-slate-400 text-accent focus:ring-2 focus:ring-accent/30 dark:border-neutral-500"
               />
-              <span className="text-sm font-semibold text-slate-700">{t.deduct_break_label}</span>
+              <span className="text-sm font-semibold text-slate-700 dark:text-neutral-200">{t.deduct_break_label}</span>
             </label>
 
             {/* ── Note pubblica ── */}
             <div>
-              <label className={labelClass}>{t.notes_label} <span className="font-normal normal-case tracking-normal text-slate-400">{t.notes_optional_paren}</span></label>
+              <label className={labelClass}>{t.notes_label} <span className="font-normal normal-case tracking-normal text-slate-400 dark:text-neutral-400">{t.notes_optional_paren}</span></label>
               <input
                 type="text"
                 value={publicNote}
@@ -4170,7 +4299,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
             </div>
 
             {/* ── Separator ── */}
-            <div className="border-t border-slate-200" />
+            <div className="border-t border-slate-200 dark:border-white/10" />
 
             {/* ── Approvato per libro paga ── */}
             <label className={`flex items-start gap-3 cursor-pointer group ${!isPast ? 'opacity-40 pointer-events-none' : ''}`}>
@@ -4182,12 +4311,12 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                   disabled={!isPast}
                   className="sr-only peer"
                 />
-                <div className="w-9 h-5 rounded-full bg-slate-200 peer-checked:bg-accent transition-colors" />
-                <div className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+                <div className="h-5 w-9 rounded-full bg-slate-200 transition-colors peer-checked:bg-accent dark:bg-neutral-700" />
+                <div className="toggle-knob absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-700 leading-tight">Approvato per libro paga</p>
-                <p className="text-xs text-slate-400 mt-0.5">{isPast ? t.shift_will_be_approved_past : t.shift_payroll_only_past}</p>
+                <p className="text-sm font-semibold leading-tight text-slate-700 dark:text-neutral-200">Approvato per libro paga</p>
+                <p className="text-xs text-slate-400 dark:text-neutral-400 mt-0.5">{isPast ? t.shift_will_be_approved_past : t.shift_payroll_only_past}</p>
               </div>
             </label>
 
@@ -4200,12 +4329,12 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                   onChange={(e) => setNotifyEmployee(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-9 h-5 rounded-full bg-slate-200 peer-checked:bg-accent transition-colors" />
-                <div className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+                <div className="h-5 w-9 rounded-full bg-slate-200 transition-colors peer-checked:bg-accent dark:bg-neutral-700" />
+                <div className="toggle-knob absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-700 leading-tight">Avvisa il dipendente</p>
-                <p className="text-xs text-slate-400 mt-0.5">{t.shift_visible_after_publish}</p>
+                <p className="text-sm font-semibold leading-tight text-slate-700 dark:text-neutral-200">Avvisa il dipendente</p>
+                <p className="text-xs text-slate-400 dark:text-neutral-400 mt-0.5">{t.shift_visible_after_publish}</p>
               </div>
             </label>
 
@@ -4219,7 +4348,11 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 {t.create_shift}
               </button>
-              <button type="button" onClick={onClose} className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition-colors font-sans">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-xl bg-slate-100 px-4 py-3 font-sans text-sm font-bold text-slate-700 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+              >
                 {t.cancel}
               </button>
             </div>

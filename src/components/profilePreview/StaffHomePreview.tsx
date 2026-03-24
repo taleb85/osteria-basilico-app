@@ -50,7 +50,7 @@ export default function StaffHomePreview({
       >
         <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">{t.hours_this_month}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-neutral-400">{t.hours_this_month}</p>
             <p className="text-2xl font-bold text-slate-900">32:00</p>
           </div>
           <TrendingUp className="h-8 w-8 text-accent/40" />
@@ -110,7 +110,7 @@ export default function StaffHomePreview({
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-slate-700">{t.sidebar_holidays}</p>
-              <p className="text-sm text-slate-500">{t.holiday_management}</p>
+              <p className="text-sm text-slate-500 dark:text-neutral-300">{t.holiday_management}</p>
             </div>
           </div>
           <ChevronRight className="h-5 w-5 text-slate-300" />

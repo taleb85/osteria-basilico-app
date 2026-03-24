@@ -30,13 +30,24 @@ export function readStoredThemePreference(): Theme | null {
   return null;
 }
 
-/** Logout, kiosk, schermata login: sempre chiaro e senza preferenza persistita. */
-export function forceLightTheme(): void {
-  document.documentElement.classList.remove('dark');
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem('theme');
-  } catch {
-    /* ignore */
+/**
+ * Login, kiosk, dopo logout: applica il tema da preferenza salvata (`userTheme`) o,
+ * se assente, da `prefers-color-scheme`. Non cancella la scelta utente in localStorage.
+ */
+export function applyUnauthenticatedDocumentTheme(): void {
+  const stored = readStoredThemePreference();
+  if (stored === 'dark' || stored === 'light') {
+    applyDocumentTheme(stored);
+    return;
   }
+  if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+    applyDocumentTheme('dark');
+    return;
+  }
+  applyDocumentTheme('light');
+}
+
+/** Alias storico: non forza più il tema chiaro né rimuove le preferenze. */
+export function forceLightTheme(): void {
+  applyUnauthenticatedDocumentTheme();
 }

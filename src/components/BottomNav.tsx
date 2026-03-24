@@ -65,7 +65,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
                   type="button"
                   onClick={() => onTabChange(id)}
                   title={label}
-                  className="flex-1 min-w-0 min-h-[46px] sm:min-h-[50px] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center gap-0.5 sm:gap-1 px-0.5 py-1 text-white/[0.78] transition-all duration-200 hover:bg-white/10 hover:text-white/95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D5A27] active:scale-[0.97]"
+                  className="keep-white-glass flex-1 min-w-0 min-h-[46px] sm:min-h-[50px] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center gap-0.5 sm:gap-1 px-0.5 py-1 text-white/[0.78] transition-all duration-200 hover:bg-white/10 hover:text-white/95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D5A27] active:scale-[0.97]"
                 >
                   {showProfilePic ? (
                     <span

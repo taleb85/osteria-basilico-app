@@ -44,7 +44,7 @@ export interface Department {
 
 // Default colors for built-in departments
 export const BUILTIN_DEPARTMENTS: Department[] = [
-  { value: 'sala',    label: 'Sala',   color: '#3b82f6' }, // blue-500
+  { value: 'sala',    label: 'Sala',   color: '#0d9488' }, // teal-600 (no blue)
   { value: 'kitchen', label: 'Cucina', color: '#f97316' }, // orange-500
   { value: 'bar',     label: 'Bar',    color: '#2D5A27' },
 ];
@@ -54,19 +54,19 @@ const DEFAULT_CUSTOM_COLOR = '#2D5A27'; // accent green
 /** Palette fissa per nuovi reparti (UI selettore colore). */
 export const DEPARTMENT_COLOR_PRESETS: readonly string[] = [
   '#2D5A27',
-  '#3b82f6',
-  '#f97316',
   '#0d9488',
-  '#6366f1',
+  '#0f766e',
+  '#f97316',
+  '#ea580c',
+  '#ca8a04',
   '#a855f7',
   '#ec4899',
   '#ef4444',
   '#f59e0b',
   '#84cc16',
   '#14b8a6',
-  '#0891b2',
-  '#2563eb',
-  '#4f46e5',
+  '#115e59',
+  '#047857',
   '#7c3aed',
   '#db2777',
   '#b45309',

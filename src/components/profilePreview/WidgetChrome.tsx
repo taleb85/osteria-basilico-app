@@ -23,7 +23,7 @@ export function WidgetChrome({
     <div className="relative">
       {!isSelectedAdmin && (
         <div className="mb-1 flex items-center justify-end gap-2">
-          <span className="hidden max-w-[55%] truncate text-right text-[9px] font-medium text-slate-400 sm:inline">
+          <span className="hidden max-w-[55%] truncate text-right text-[9px] font-medium text-slate-400 dark:text-neutral-400 sm:inline">
             {previewWidgetLabel(widgetKey)}
           </span>
           <button
@@ -35,7 +35,7 @@ export function WidgetChrome({
             className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${visible ? 'bg-accent' : 'bg-slate-300'}`}
           >
             <span
-              className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+              className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white toggle-knob shadow transition-transform ${
                 visible ? 'translate-x-4' : 'translate-x-0'
               }`}
             />

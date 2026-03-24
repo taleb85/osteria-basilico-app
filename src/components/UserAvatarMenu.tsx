@@ -147,7 +147,7 @@ export default function UserAvatarMenu({
           </span>
           {displayRole ? (
             <span
-              className="w-full text-center text-[8px] font-semibold uppercase leading-tight text-slate-500 truncate select-none"
+              className="w-full text-center text-[8px] font-semibold uppercase leading-tight text-slate-500 dark:text-neutral-300 truncate select-none"
               aria-hidden
             >
               {displayRole}
@@ -229,7 +229,7 @@ export default function UserAvatarMenu({
                     <button
                       type="button"
                       onClick={() => setIsOpen(false)}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 dark:text-neutral-300 hover:text-slate-800 hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                       aria-label={t.close}
                     >
                       <span className="text-xl leading-none">×</span>

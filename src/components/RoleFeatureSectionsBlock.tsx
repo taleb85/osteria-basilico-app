@@ -87,7 +87,7 @@ export default function RoleFeatureSectionsBlock(props: Props) {
         description={lockedOn ? homeHint : undefined}
         badge={
           lockedOn ? (
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 border border-slate-200 rounded-lg px-1.5 py-0.5">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300 bg-slate-100 border border-slate-200 rounded-lg px-1.5 py-0.5">
               {tv.role_template_always_on ?? 'Sempre'}
             </span>
           ) : undefined
@@ -108,7 +108,7 @@ export default function RoleFeatureSectionsBlock(props: Props) {
             } ${enabled ? 'bg-accent' : 'bg-slate-200'}`}
           >
             <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
                 enabled ? 'translate-x-5' : 'translate-x-1'
               }`}
             />
@@ -129,7 +129,7 @@ export default function RoleFeatureSectionsBlock(props: Props) {
             {ROLE_TEMPLATE_TAB_SHEET_GROUPS.map((group) => (
               <div key={group.id} className="border-b border-gray-100 last:border-b-0">
                 <div className="px-5 pt-3 pb-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
                     {tv[group.titleKey] ?? group.id}
                   </span>
                 </div>

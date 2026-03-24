@@ -28,9 +28,9 @@ export default function StaffShiftsPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.approved_hours_summary}</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-400">{t.approved_hours_summary}</p>
           <p className="mt-1 text-2xl font-bold text-slate-900">24:00</p>
-          <p className="mt-1 text-xs text-slate-500">{t.hours_this_month}</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-neutral-300">{t.hours_this_month}</p>
         </div>
       </WidgetChrome>
 
@@ -43,7 +43,7 @@ export default function StaffShiftsPreview({
       >
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5">
-            <Calendar className="h-4 w-4 text-slate-400" />
+            <Calendar className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
             <span className="text-xs font-bold text-slate-700">{t.sidebar_shifts}</span>
           </div>
           <div className="divide-y divide-slate-50 p-2">

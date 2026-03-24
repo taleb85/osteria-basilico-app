@@ -30,7 +30,7 @@ export default function FerieMgmtPreview({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-lg font-bold text-slate-900">{t.sidebar_holidays}</h2>
-            <p className="text-xs text-slate-500">{t.holiday_management}</p>
+            <p className="text-xs text-slate-500 dark:text-neutral-300">{t.holiday_management}</p>
           </div>
           <button
             type="button"
@@ -54,7 +54,7 @@ export default function FerieMgmtPreview({
           <p className="mb-2 text-center text-xs font-bold text-slate-600">Marzo 2026</p>
           <div className="grid grid-cols-7 gap-1 text-center text-[10px]">
             {['L', 'M', 'M', 'G', 'V', 'S', 'D'].map((d, i) => (
-              <span key={`h-${i}`} className="font-bold text-slate-400">
+              <span key={`h-${i}`} className="font-bold text-slate-400 dark:text-neutral-400">
                 {d}
               </span>
             ))}
@@ -86,7 +86,7 @@ export default function FerieMgmtPreview({
               <Palmtree className="h-8 w-8 shrink-0 text-accent/60" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-slate-800">Jean · Ferie</p>
-                <p className="text-xs text-slate-500">15–19 mar</p>
+                <p className="text-xs text-slate-500 dark:text-neutral-300">15–19 mar</p>
               </div>
               <span className="shrink-0 rounded-lg bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800">
                 {t.pending ?? 'In attesa'}

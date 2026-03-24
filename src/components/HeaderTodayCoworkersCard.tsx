@@ -64,7 +64,7 @@ export default function HeaderTodayCoworkersCard() {
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400">{title}</p>
-          <p className="truncate text-[10px] text-slate-400 dark:text-neutral-500 capitalize" title={todayLabel}>
+          <p className="truncate text-[10px] text-slate-500 dark:text-neutral-400 capitalize" title={todayLabel}>
             {todayLabel}
           </p>
         </div>

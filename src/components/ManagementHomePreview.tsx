@@ -122,11 +122,11 @@ export default function ManagementHomePreview({
           >
             <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-200">
-                <Users className="h-4 w-4 text-slate-500" />
+                <Users className="h-4 w-4 text-slate-500 dark:text-neutral-300" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-800">Profilo Gestionale</p>
-                <p className="text-xs text-slate-500">Nessun turno assegnato — accesso solo alla gestione</p>
+                <p className="text-xs text-slate-500 dark:text-neutral-300">Nessun turno assegnato — accesso solo alla gestione</p>
               </div>
             </div>
           </WidgetChrome>
@@ -141,11 +141,11 @@ export default function ManagementHomePreview({
         >
           <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-3">
             <div className="flex items-start gap-3">
-              <Megaphone size={15} className="mt-0.5 shrink-0 text-slate-400" />
+              <Megaphone size={15} className="mt-0.5 shrink-0 text-slate-400 dark:text-neutral-400" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs italic text-slate-400">{t.home_board_empty}</p>
+                <p className="text-xs italic text-slate-400 dark:text-neutral-400">{t.home_board_empty}</p>
               </div>
-              <button type="button" tabIndex={-1} className="shrink-0 rounded-xl p-1.5 text-slate-400">
+              <button type="button" tabIndex={-1} className="shrink-0 rounded-xl p-1.5 text-slate-400 dark:text-neutral-400">
                 <Pencil size={13} />
               </button>
             </div>
@@ -161,18 +161,50 @@ export default function ManagementHomePreview({
         >
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              { label: t.home_stat_in_shift, value: 0, Icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
-              { label: t.home_stat_delays, value: 0, Icon: Clock, color: 'text-slate-400', bg: 'bg-slate-50', border: 'border-slate-100' },
-              { label: t.home_stat_missing_out, value: 0, Icon: AlertCircle, color: 'text-slate-400', bg: 'bg-slate-50', border: 'border-slate-100' },
-              { label: t.home_stat_approved, value: 2, Icon: UserCheck, color: 'text-accent', bg: 'bg-accent/8', border: 'border-accent/20' },
-            ].map(({ label, value, Icon, color, bg, border }) => (
-              <div key={label} className={`flex items-center gap-3 rounded-2xl border ${border} ${bg} px-4 py-3.5`}>
-                <div className={`flex h-9 w-9 items-center justify-center rounded-xl border ${border} ${bg}`}>
-                  <Icon className={`h-4 w-4 ${color}`} />
+              {
+                label: t.home_stat_in_shift,
+                value: 0,
+                Icon: Users,
+                iconColor: 'text-teal-600 dark:text-teal-400',
+                bg: 'bg-teal-50 dark:bg-teal-950/35',
+                border: 'border-teal-100 dark:border-teal-800/40',
+                iconWell: 'bg-teal-100/80 dark:bg-teal-950/50',
+              },
+              {
+                label: t.home_stat_delays,
+                value: 0,
+                Icon: Clock,
+                iconColor: 'text-red-600 dark:text-red-400',
+                bg: 'bg-slate-50 dark:bg-neutral-900/60',
+                border: 'border-slate-100 dark:border-white/10',
+                iconWell: 'bg-red-50/90 dark:bg-red-950/25',
+              },
+              {
+                label: t.home_stat_missing_out,
+                value: 0,
+                Icon: AlertCircle,
+                iconColor: 'text-orange-600 dark:text-orange-400',
+                bg: 'bg-slate-50 dark:bg-neutral-900/60',
+                border: 'border-slate-100 dark:border-white/10',
+                iconWell: 'bg-orange-50/90 dark:bg-orange-950/25',
+              },
+              {
+                label: t.home_stat_approved,
+                value: 2,
+                Icon: UserCheck,
+                iconColor: 'text-accent dark:text-accent-light',
+                bg: 'bg-accent/8 dark:bg-accent/15',
+                border: 'border-accent/20 dark:border-accent/30',
+                iconWell: 'bg-accent/15 dark:bg-accent/25',
+              },
+            ].map(({ label, value, Icon, iconColor, bg, border, iconWell }) => (
+              <div key={label} className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 ${border} ${bg}`}>
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${border} ${iconWell}`}>
+                  <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
                 </div>
                 <div>
                   <p className="text-2xl font-bold leading-none text-slate-900">{value}</p>
-                  <p className="mt-0.5 text-[11px] leading-tight text-slate-500">{label}</p>
+                  <p className="mt-0.5 text-[11px] leading-tight text-slate-500 dark:text-neutral-300">{label}</p>
                 </div>
               </div>
             ))}
@@ -186,8 +218,8 @@ export default function ManagementHomePreview({
           onUiToggle={onUiToggle}
           hiddenBadge={hiddenBadge}
         >
-          <div className="rounded-2xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-3 text-center text-xs text-indigo-800/80">
-            <Moon className="mx-auto mb-1 h-4 w-4 text-indigo-500" />
+          <div className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/50 px-4 py-3 text-center text-xs text-amber-900/80 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-200/90">
+            <Moon className="mx-auto mb-1 h-4 w-4 text-amber-600 dark:text-amber-400" />
             {tv.profile_visibility_dinner_placeholder ?? 'Chiusura turni sera — in app compare solo se serve'}
           </div>
         </WidgetChrome>
@@ -214,9 +246,9 @@ export default function ManagementHomePreview({
         >
           <div>
             <div className="mb-3 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-slate-500" />
+              <Calendar className="h-4 w-4 text-slate-500 dark:text-neutral-300" />
               <h2 className="text-sm font-bold text-slate-800">{t.home_todays_shifts}</h2>
-              <span className="ml-1 text-[11px] text-slate-400">(2)</span>
+              <span className="ml-1 text-[11px] text-slate-400 dark:text-neutral-400">(2)</span>
               <span className="ml-auto flex items-center gap-0.5 text-xs font-semibold text-accent">
                 {t.home_see_all_shifts} <ArrowRight className="h-3 w-3" />
               </span>
@@ -255,16 +287,16 @@ export default function ManagementHomePreview({
             <div className="cursor-default rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-bold text-slate-800">{t.home_section_attendance}</h3>
-                <TrendingUp className="h-4 w-4 text-slate-400" />
+                <TrendingUp className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
               </div>
               <div className="space-y-3">
                 {[
                   { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-accent' },
-                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-blue-500' },
+                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-teal-600 dark:bg-teal-500' },
                 ].map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="mb-1.5 flex justify-between text-xs">
-                      <span className="font-medium text-slate-500">{label}</span>
+                      <span className="font-medium text-slate-500 dark:text-neutral-300">{label}</span>
                       <span className="font-bold text-slate-700">{pct}%</span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-slate-100">
@@ -294,7 +326,7 @@ export default function ManagementHomePreview({
                 <Palmtree className="h-4 w-4 text-accent" />
               </div>
               {staffRequestsEnabled ? (
-                <p className="py-4 text-center text-xs text-slate-400">{t.home_no_requests}</p>
+                <p className="py-4 text-center text-xs text-slate-400 dark:text-neutral-400">{t.home_no_requests}</p>
               ) : (
                 <p className="py-4 text-center text-xs text-amber-700">
                   {tv.profile_visibility_ferie_global_disabled ?? 'Richieste ferie disattivate globalmente — il blocco non compare in app.'}
@@ -313,18 +345,18 @@ export default function ManagementHomePreview({
             <div className="flex flex-col gap-3">
               <div className="cursor-default rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                 <div className="mb-2 flex items-center justify-between">
-                  <TrendingUp className="h-4 w-4 text-slate-400" />
-                  <span className="text-[10px] font-semibold uppercase text-slate-400">{t.home_kpi_hours_week}</span>
+                  <TrendingUp className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
+                  <span className="text-[10px] font-semibold uppercase text-slate-400 dark:text-neutral-400">{t.home_kpi_hours_week}</span>
                 </div>
                 <p className="text-2xl font-bold text-slate-900">{formatMinutesToHoursAndMinutes(weeklyMinutesDemo)}</p>
               </div>
               <div className="cursor-default rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                 <div className="mb-2 flex items-center justify-between">
-                  <Calendar className="h-4 w-4 text-slate-400" />
-                  <span className="text-[10px] font-semibold uppercase text-slate-400">{t.home_kpi_shifts_week}</span>
+                  <Calendar className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
+                  <span className="text-[10px] font-semibold uppercase text-slate-400 dark:text-neutral-400">{t.home_kpi_shifts_week}</span>
                 </div>
                 <p className="text-2xl font-bold text-slate-900">{shiftsWeekDemo}</p>
-                <p className="mt-0.5 text-[11px] text-slate-400">{t.home_today}</p>
+                <p className="mt-0.5 text-[11px] text-slate-400 dark:text-neutral-400">{t.home_today}</p>
               </div>
             </div>
           </WidgetChrome>
@@ -337,7 +369,7 @@ export default function ManagementHomePreview({
 
   return (
     <div className="w-full max-w-3xl rounded-[1.75rem] border-[3px] border-slate-800 bg-[#f8fafc] p-3 shadow-2xl sm:p-4">
-      <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">
+      <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
         {tv.profile_visibility_mock_realistic_label ?? 'Anteprima — Home gestionale (dati dimostrativi)'}
       </p>
       {body}

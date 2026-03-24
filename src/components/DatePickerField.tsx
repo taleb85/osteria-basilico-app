@@ -169,12 +169,12 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         className="rdp-modern"
       />
       <div
-        className={`mt-3 flex items-center gap-2.5 border-t border-slate-100 pt-3.5 ${allowClear ? 'justify-between' : 'justify-end'}`}
+        className={`mt-3 flex items-center gap-2.5 border-t border-slate-100 pt-3.5 dark:border-white/10 ${allowClear ? 'justify-between' : 'justify-end'}`}
       >
         {allowClear ? (
           <button
             type="button"
-            className="rounded-2xl px-2.5 py-1.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
+            className="rounded-2xl px-2.5 py-1.5 text-sm font-semibold text-slate-500 dark:text-neutral-300 transition-colors hover:bg-slate-50 hover:text-slate-800"
             onClick={() => {
               onChange('');
               setOpen(false);
@@ -208,13 +208,13 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`inline-flex h-[22px] min-h-[22px] max-h-[22px] shrink-0 items-center gap-0.5 rounded-lg border border-slate-200 bg-white text-left font-medium leading-none tabular-nums text-slate-800 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50/80 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 ${
+        className={`inline-flex h-[22px] min-h-[22px] max-h-[22px] shrink-0 items-center gap-0.5 rounded-lg border border-slate-200 bg-white text-left font-medium leading-none tabular-nums text-slate-800 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50/80 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:border-white/15 dark:hover:bg-neutral-700 ${
           compact ? 'px-1.5 text-[11px] sm:text-[12px]' : 'gap-1 px-2 text-[13px]'
         } ${className}`}
       >
-        <Calendar className="h-3 w-3 shrink-0 text-slate-400" aria-hidden />
+        <Calendar className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-400" aria-hidden />
         <span className="min-w-0 truncate tabular-nums">{label}</span>
-        <ChevronDown className="ml-0.5 h-3 w-3 shrink-0 text-slate-400" aria-hidden />
+        <ChevronDown className="ml-0.5 h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-400" aria-hidden />
       </button>
       {open && !disabled && (
         <CenteredModalPortal
@@ -223,8 +223,8 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
           panelRef={popRef}
           backdropAriaLabel={tv.close ?? 'Chiudi'}
           ariaLabel={chooseLabel}
-          maxWidthClass="max-w-lg"
-          maxHeightClass="max-h-[min(92dvh,720px)]"
+          maxWidthClass="max-w-md"
+          maxHeightClass="max-h-[min(88dvh,560px)]"
           panelClassName="p-3.5"
           markDatePickerPortal
         >

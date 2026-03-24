@@ -48,7 +48,7 @@ export default function StatisticsTabPreview({
           <span className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
             {t.stats_preset_current_month}
           </span>
-          <span className="text-[10px] text-slate-400">{t.stats_preset_period}</span>
+          <span className="text-[10px] text-slate-400 dark:text-neutral-400">{t.stats_preset_period}</span>
         </div>
       </WidgetChrome>
       )}
@@ -83,9 +83,9 @@ export default function StatisticsTabPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t.mod_stats_hours}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.mod_stats_hours}</p>
           <p className="mt-1 text-2xl font-bold text-slate-900">24:00</p>
-          <p className="text-xs text-slate-500">{t.stats_preset_current_week}</p>
+          <p className="text-xs text-slate-500 dark:text-neutral-300">{t.stats_preset_current_week}</p>
         </div>
       </WidgetChrome>
       )}

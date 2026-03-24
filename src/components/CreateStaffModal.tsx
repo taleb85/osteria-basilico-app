@@ -131,7 +131,7 @@ export default function CreateStaffModal({ isOpen, onClose, onCreated }: CreateS
           <div className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between z-10">
             <div>
               <h2 className="text-base font-bold text-slate-900 tracking-wide font-sans">{t.create_employee_title}</h2>
-              <p className="text-xs text-slate-500 mt-0.5 font-sans">{t.create_employee_subtitle}</p>
+              <p className="text-xs text-slate-500 dark:text-neutral-300 mt-0.5 font-sans">{t.create_employee_subtitle}</p>
             </div>
             <button
               type="button"

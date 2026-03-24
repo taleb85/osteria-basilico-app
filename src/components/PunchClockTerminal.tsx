@@ -151,7 +151,7 @@ export default function PunchClockTerminal({ isOpen, onClose }: PunchClockTermin
                       }`}
                     >
                       {pin.length > i && (
-                        <div className="w-4 h-4 rounded-full bg-white" />
+                        <div className="w-4 h-4 rounded-full bg-white toggle-knob" />
                       )}
                     </div>
                   ))}

@@ -56,6 +56,9 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const filesInputRef = useRef<HTMLInputElement>(null);
+  /** Telefono/tablet touch: un solo input senza `capture` → foglio nativo unico (evita doppia scelta). */
+  const nativePickInputRef = useRef<HTMLInputElement>(null);
+  const [preferNativePhotoPicker, setPreferNativePhotoPicker] = useState(false);
   const [avatarFocus, setAvatarFocus] = useState<AvatarFocus>({ x: 50, y: 50 });
   const focusRef = useRef<AvatarFocus>({ x: 50, y: 50 });
   const savedSnapshotRef = useRef('');
@@ -91,14 +94,26 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
     (readProfileAvatarFromStorage(currentUser.id) ?? currentUser.avatar_url ?? null);
 
   useEffect(() => {
-    if (!photoSourceSheetOpen) return;
+    const mq = window.matchMedia('(pointer: coarse)');
+    const apply = () => setPreferNativePhotoPicker(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+
+  useEffect(() => {
+    if (preferNativePhotoPicker) setPhotoSourceSheetOpen(false);
+  }, [preferNativePhotoPicker]);
+
+  useEffect(() => {
+    if (!photoSourceSheetOpen || preferNativePhotoPicker) return;
     const onDown = (e: PointerEvent) => {
       if (photoMenuWrapRef.current?.contains(e.target as Node)) return;
       setPhotoSourceSheetOpen(false);
     };
     document.addEventListener('pointerdown', onDown, true);
     return () => document.removeEventListener('pointerdown', onDown, true);
-  }, [photoSourceSheetOpen]);
+  }, [photoSourceSheetOpen, preferNativePhotoPicker]);
 
   const onPickedFileForCrop = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -264,6 +279,14 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
         aria-hidden
         onChange={onPickedFileForCrop}
       />
+      <input
+        ref={nativePickInputRef}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        aria-hidden
+        onChange={onPickedFileForCrop}
+      />
 
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -294,27 +317,33 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
                 type="button"
                 onClick={(ev) => {
                   ev.stopPropagation();
+                  if (preferNativePhotoPicker) {
+                    nativePickInputRef.current?.click();
+                    return;
+                  }
                   setPhotoSourceSheetOpen((o) => !o);
                 }}
                 disabled={photoBusy}
-                aria-expanded={photoSourceSheetOpen}
-                aria-haspopup="menu"
-                aria-controls="profile-photo-source-menu"
+                aria-expanded={preferNativePhotoPicker ? undefined : photoSourceSheetOpen}
+                aria-haspopup={preferNativePhotoPicker ? undefined : 'menu'}
+                aria-controls={preferNativePhotoPicker ? undefined : 'profile-photo-source-menu'}
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent text-white shadow-sm outline-none transition-colors hover:bg-accent-hover active:scale-[0.96] disabled:opacity-50 touch-manipulation focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-0"
                 title={changePhoto}
                 aria-label={changePhoto}
               >
                 <Camera className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
               </button>
-              <ProfilePhotoSourceSheet
-                open={photoSourceSheetOpen}
-                labels={sourceLabels}
-                onClose={() => setPhotoSourceSheetOpen(false)}
-                onPickGallery={() => galleryInputRef.current?.click()}
-                onPickCamera={() => cameraInputRef.current?.click()}
-                onPickFiles={() => filesInputRef.current?.click()}
-                menuId="profile-photo-source-menu"
-              />
+              {!preferNativePhotoPicker ? (
+                <ProfilePhotoSourceSheet
+                  open={photoSourceSheetOpen}
+                  labels={sourceLabels}
+                  onClose={() => setPhotoSourceSheetOpen(false)}
+                  onPickGallery={() => galleryInputRef.current?.click()}
+                  onPickCamera={() => cameraInputRef.current?.click()}
+                  onPickFiles={() => filesInputRef.current?.click()}
+                  menuId="profile-photo-source-menu"
+                />
+              ) : null}
             </div>
           </div>
           <h2 className="mt-4 text-center text-xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
@@ -322,7 +351,7 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
           </h2>
         </div>
 
-        <p className="px-4 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">{sectionLabel}</p>
+        <p className="px-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-neutral-400">{sectionLabel}</p>
 
         {/* Form impostazioni profilo */}
         <div className="overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-sm">

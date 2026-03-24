@@ -30,7 +30,7 @@ export default function StaffHolidaysPreview({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-lg font-bold text-slate-900">{t.sidebar_holidays}</h2>
-            <p className="text-xs text-slate-500">{t.holiday_management}</p>
+            <p className="text-xs text-slate-500 dark:text-neutral-300">{t.holiday_management}</p>
           </div>
           <button
             type="button"
@@ -58,7 +58,7 @@ export default function StaffHolidaysPreview({
             <Palmtree className="h-8 w-8 shrink-0 text-accent/50" />
             <div>
               <p className="text-sm font-semibold text-slate-800">Ferie estive</p>
-              <p className="text-xs text-slate-500">1–7 ago · {t.approved ?? 'Approvata'}</p>
+              <p className="text-xs text-slate-500 dark:text-neutral-300">1–7 ago · {t.approved ?? 'Approvata'}</p>
             </div>
           </div>
         </div>

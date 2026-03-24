@@ -239,7 +239,7 @@ export default function Statistics() {
                       className={`ui-toolbar-pill transition-all ${
                         preset === p.key
                           ? 'border-accent bg-accent text-white'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-neutral-700'
                       }`}
                     >
                       {p.key === 'custom' && <Calendar className="h-3 w-3 shrink-0" aria-hidden />}
@@ -253,7 +253,7 @@ export default function Statistics() {
                     aria-label={t.stats_date_range}
                     title={t.stats_date_range}
                   >
-                    <Calendar className="h-3 w-3 shrink-0 text-slate-500" aria-hidden />
+                    <Calendar className="h-3 w-3 shrink-0 text-slate-500 dark:text-neutral-300" aria-hidden />
                     <span className="min-w-0 truncate tabular-nums text-[12px] font-semibold sm:text-[13px]">
                       {formatStatsChipDate(dateStart, statsLoc)} → {formatStatsChipDate(dateEnd, statsLoc)}
                     </span>
@@ -282,7 +282,7 @@ export default function Statistics() {
                     }}
                     aria-label={tv.stats_aria_date_start ?? t.stats_date_range}
                   />
-                  <span className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-medium leading-none text-slate-400" aria-hidden>
+                  <span className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-medium leading-none text-slate-400 dark:text-neutral-400" aria-hidden>
                     →
                   </span>
                   <DatePickerField
@@ -323,7 +323,7 @@ export default function Statistics() {
               }}
               aria-label={tv.stats_aria_date_start}
             />
-            <span className="inline-flex shrink-0 items-center text-[11px] font-semibold text-slate-400 sm:text-[12px]" aria-hidden>
+            <span className="inline-flex shrink-0 items-center text-[11px] font-semibold text-slate-400 dark:text-neutral-400 sm:text-[12px]" aria-hidden>
               →
             </span>
             <DatePickerField
@@ -355,12 +355,14 @@ export default function Statistics() {
         )}
 
         {showManagementStatsChrome && payrollForCalendarMonth && uiW('stats.table') && (
-          <div className="mb-4 rounded-2xl border border-accent/25 bg-accent/5 px-4 py-3.5 text-sm">
-            <p className="font-bold text-slate-900">{tv.stats_payroll_title ?? 'Pagamento stipendi'}</p>
-            <p className="text-slate-600 mt-1 text-xs leading-snug max-w-2xl">
+          <div className="mb-4 rounded-2xl border border-accent/25 bg-accent/5 px-4 py-3.5 text-sm dark:border-accent/35 dark:bg-accent/10">
+            <p className="font-bold text-slate-900 dark:text-neutral-100">
+              {tv.stats_payroll_title ?? 'Pagamento stipendi'}
+            </p>
+            <p className="mt-1 max-w-2xl text-xs leading-snug text-slate-600 dark:text-neutral-300">
               {tv.stats_payroll_hint}
             </p>
-            <p className="mt-2 font-semibold text-accent-dark">
+            <p className="mt-2 font-semibold text-accent-dark dark:text-accent-light">
               {formatTrans(tv.stats_payroll_date_line ?? 'Data prevista: {date}', {
                 date: format(payrollForCalendarMonth.payDate, 'EEEE d MMMM yyyy', { locale: statsLoc }),
               })}
@@ -381,15 +383,15 @@ export default function Statistics() {
             </div>
             {!hasDataInRange ? (
               <div className="card-factorial flex flex-col items-center gap-3 p-8 pb-16 text-center sm:p-10">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
-                  <Calendar className="h-6 w-6 text-slate-300" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 dark:bg-neutral-800">
+                  <Calendar className="h-6 w-6 text-slate-300 dark:text-neutral-500" />
                 </div>
-                <p className="text-sm font-semibold text-slate-800">{t.stats_no_data}</p>
-                <p className="max-w-xs text-xs leading-relaxed text-slate-500">{t.stats_no_confirmed_shifts_period}</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.stats_no_data}</p>
+                <p className="max-w-xs text-xs leading-relaxed text-slate-500 dark:text-neutral-300">{t.stats_no_confirmed_shifts_period}</p>
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                <p className="px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-400">
                   {tv.stats_week_by_week_heading ?? tv.stats_week_tabs_legend}
                 </p>
                 {weeksInRange.map((w) => {
@@ -403,7 +405,7 @@ export default function Statistics() {
                         {wMins > 0 ? formatMinutesToHoursAndMinutes(wMins) : '–'}
                       </p>
                       {wMins === 0 && (
-                        <p className="mt-3 text-xs text-slate-500">{tv.stats_week_no_hours}</p>
+                        <p className="mt-3 text-xs text-slate-500 dark:text-neutral-300">{tv.stats_week_no_hours}</p>
                       )}
                     </div>
                   );
@@ -427,11 +429,11 @@ export default function Statistics() {
             )}
             {!hasDataInRange ? (
               <div className="card-factorial flex flex-col items-center gap-3 p-8 text-center sm:p-10">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
-                  <Calendar className="h-6 w-6 text-slate-300" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 dark:bg-neutral-800">
+                  <Calendar className="h-6 w-6 text-slate-300 dark:text-neutral-500" />
                 </div>
-                <p className="text-sm font-semibold text-slate-800">{t.stats_no_data}</p>
-                <p className="max-w-xs text-xs text-slate-500">{t.stats_no_confirmed_shifts_period}</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.stats_no_data}</p>
+                <p className="max-w-xs text-xs text-slate-500 dark:text-neutral-300">{t.stats_no_confirmed_shifts_period}</p>
               </div>
             ) : (
               weeksInRange.map((w) => {
@@ -441,16 +443,16 @@ export default function Statistics() {
                 );
                 return (
                   <div key={w.key} className="card-factorial p-5 sm:p-6">
-                    <p className="mb-4 text-xs font-medium uppercase tracking-widest text-slate-600">{w.label}</p>
+                    <p className="mb-4 text-xs font-medium uppercase tracking-widest text-slate-600 dark:text-neutral-400">{w.label}</p>
                     <ul className="space-y-3">
                       {displayUsers.map((u) => {
                         const m = minutesByUserByWeek[u.id]?.[w.key] ?? 0;
                         return (
-                          <li key={u.id} className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-                            <span className="text-sm font-semibold uppercase tracking-wide text-slate-800">
+                          <li key={u.id} className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0 dark:border-white/10">
+                            <span className="text-sm font-semibold uppercase tracking-wide text-slate-800 dark:text-neutral-100">
                               {(u.first_name ?? '').trim() || '—'}
                             </span>
-                            <span className="shrink-0 text-lg font-semibold tabular-nums text-slate-900">
+                            <span className="shrink-0 text-lg font-semibold tabular-nums text-slate-900 dark:text-neutral-50">
                               {m > 0 ? formatMinutesToHoursAndMinutes(m) : '–'}
                             </span>
                           </li>
@@ -458,7 +460,7 @@ export default function Statistics() {
                       })}
                     </ul>
                     {showManagementStatsChrome && (
-                      <div className="mt-4 flex items-baseline justify-between border-t border-slate-200 pt-4 text-sm font-bold text-slate-800">
+                      <div className="mt-4 flex items-baseline justify-between border-t border-slate-200 pt-4 text-sm font-bold text-slate-800 dark:border-white/10 dark:text-neutral-100">
                         <span>{t.stats_total}</span>
                         <span className="tabular-nums text-lg text-accent-dark">
                           {weekTotal > 0 ? formatMinutesToHoursAndMinutes(weekTotal) : '–'}

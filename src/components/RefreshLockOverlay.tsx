@@ -135,7 +135,7 @@ export default function RefreshLockOverlay() {
           }}
         >
         <div className="flex flex-col items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-          <div className="flex items-center gap-2 text-slate-500">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-neutral-300">
             <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-accent" strokeWidth={2} />
             <span className="text-xs font-semibold uppercase tracking-wider">{t.pin_for_profile}</span>
           </div>

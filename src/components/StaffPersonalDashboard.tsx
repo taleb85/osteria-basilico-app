@@ -248,12 +248,12 @@ export default function StaffPersonalDashboard({
         {uiW('staff_home.month_hours') && confirmedThisMonth && (
           <div className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">{t.hours_this_month}</p>
-              <p className="text-2xl font-bold text-slate-900">{formatMinutesToHoursAndMinutes(confirmedThisMonth.minutes)}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{confirmedThisMonth.shiftsCount} {t.shifts_confirmed}</p>
+              <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-1">{t.hours_this_month}</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-neutral-100">{formatMinutesToHoursAndMinutes(confirmedThisMonth.minutes)}</p>
+              <p className="text-xs text-slate-400 dark:text-neutral-400 mt-0.5">{confirmedThisMonth.shiftsCount} {t.shifts_confirmed}</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-accent" />
+            <div className="w-10 h-10 rounded-xl bg-accent/10 dark:bg-accent/20 flex items-center justify-center ring-1 ring-inset ring-accent/15 dark:ring-accent/30">
+              <TrendingUp className="w-5 h-5 text-accent dark:text-accent-light" />
             </div>
           </div>
         )}
@@ -295,36 +295,40 @@ export default function StaffPersonalDashboard({
 
         {/* Prossimi turni */}
         {uiW('staff_home.upcoming') && (
-        <div ref={shiftsListRef} className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div ref={shiftsListRef} className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-white/10">
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-[0.18em]">{t.upcoming_shifts}</h3>
-            <ChevronRight className="w-4 h-4 text-slate-300" />
+            <h3 className="text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase tracking-[0.18em]">{t.upcoming_shifts}</h3>
+            <ChevronRight className="w-4 h-4 text-slate-300 dark:text-neutral-400" />
           </div>
 
           {upcomingShifts.length === 0 && todayShifts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-              <Clock className="w-7 h-7 mb-2 opacity-50" />
-              <p className="text-sm">{t.no_shifts_scheduled}</p>
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <Clock className="w-7 h-7 mb-3 text-slate-500 dark:text-neutral-400 shrink-0" aria-hidden />
+              <p className="text-sm font-medium text-center text-slate-600 dark:text-neutral-300 leading-snug max-w-[16rem]">
+                {t.no_shifts_scheduled}
+              </p>
             </div>
           ) : sortedDates.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-              <CheckCircle className="w-7 h-7 mb-2 opacity-50" />
-              <p className="text-sm">Nessun turno futuro</p>
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <CheckCircle className="w-7 h-7 mb-3 text-slate-500 dark:text-neutral-400 shrink-0" aria-hidden />
+              <p className="text-sm font-medium text-center text-slate-600 dark:text-neutral-300 leading-snug max-w-[16rem]">
+                Nessun turno futuro
+              </p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-slate-50 dark:divide-white/5">
               {sortedDates.map((dateStr) => {
                 const dayShifts = grouped[dateStr].sort((a, b) => a.start_time.localeCompare(b.start_time));
                 return (
                   <div key={dateStr} className="flex items-center px-5 py-3.5 gap-4">
-                    <p className="text-slate-400 font-semibold text-xs uppercase tracking-wide flex-shrink-0 w-[68px] leading-tight">
+                    <p className="text-slate-500 dark:text-neutral-400 font-semibold text-xs uppercase tracking-wide flex-shrink-0 w-[68px] leading-tight">
                       {format(new Date(dateStr), 'EEE d MMM', { locale: dateLocale })}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {dayShifts.map(s => (
                         <div
                           key={s.id}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-accent/8 border border-accent/20 text-accent-dark"
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-accent/8 border border-accent/20 text-accent-dark dark:text-accent"
                         >
                           <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
                           <span className="font-semibold text-xs">
@@ -348,18 +352,18 @@ export default function StaffPersonalDashboard({
           <button
             type="button"
             onClick={() => setHolidaysFocus(true)}
-            className="w-full bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 shadow-sm px-5 py-4 flex items-center justify-between gap-3 text-left hover:border-accent/30 transition-colors min-h-[52px]"
+            className="w-full bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm px-5 py-4 flex items-center justify-between gap-3 text-left hover:border-accent/30 transition-colors min-h-[52px]"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
-                <Palmtree className="w-5 h-5 text-accent" />
+              <div className="w-10 h-10 rounded-xl bg-accent/10 dark:bg-accent/20 flex items-center justify-center flex-shrink-0 ring-1 ring-inset ring-accent/15 dark:ring-accent/30">
+                <Palmtree className="w-5 h-5 text-accent dark:text-accent-light" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-slate-700 uppercase tracking-widest">{t.sidebar_holidays}</p>
-                <p className="text-sm text-slate-500 truncate">{t.holiday_management}</p>
+                <p className="text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase tracking-widest">{t.sidebar_holidays}</p>
+                <p className="text-sm text-slate-500 dark:text-neutral-400 truncate">{t.holiday_management}</p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
+            <ChevronRight className="w-5 h-5 text-slate-300 dark:text-neutral-400 flex-shrink-0" />
           </button>
         )}
 
@@ -370,10 +374,10 @@ export default function StaffPersonalDashboard({
   const renderShifts = () => (
     <div className="space-y-4">
       {uiW('staff_shifts.summary') && (
-      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-slate-200 dark:border-white/10 shadow-sm flex items-center justify-between">
         <div>
-          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">{t.approved_hours_summary}</p>
-          <p className="text-4xl font-bold text-slate-900">{totalApprovedHours}</p>
+          <p className="text-[10px] font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-widest mb-1">{t.approved_hours_summary}</p>
+          <p className="text-4xl font-bold text-slate-900 dark:text-neutral-100">{totalApprovedHours}</p>
         </div>
         <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center">
           <TrendingUp className="w-6 h-6 text-accent" />
@@ -447,7 +451,7 @@ export default function StaffPersonalDashboard({
               >
                 {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
               </button>
-              <p className="text-[10px] text-slate-400 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
+              <p className="text-[10px] text-slate-400 dark:text-neutral-400 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
             </div>
           )}
           <button
@@ -480,28 +484,28 @@ export default function StaffPersonalDashboard({
       </div>
       )}
       {uiW('staff_holidays.list') && (holidays.length === 0 ? (
-        <div className="bg-white dark:bg-neutral-900 rounded-2xl p-12 text-center border border-slate-200 shadow-sm text-slate-400">
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-white/10 shadow-sm text-slate-500 dark:text-neutral-400">
           <Palmtree className="w-10 h-10 mx-auto mb-3 opacity-40" />
           <p className="text-sm font-medium">{t.no_holidays_yet}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {holidays.map((holiday) => (
-            <div key={holiday.id} className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-slate-200 shadow-sm flex items-start justify-between gap-3">
+            <div key={holiday.id} className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-slate-200 dark:border-white/10 shadow-sm flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-slate-800 font-semibold text-sm">
+                <p className="text-slate-800 dark:text-neutral-100 font-semibold text-sm">
                   {format(new Date(holiday.start_date), 'd MMM', { locale: dateLocale })} — {format(new Date(holiday.end_date), 'd MMM yyyy', { locale: dateLocale })}
                 </p>
                 {'reason' in holiday && typeof holiday.reason === 'string' && holiday.reason && (
-                  <p className="text-slate-400 text-xs italic mt-1 truncate">"{holiday.reason}"</p>
+                  <p className="text-slate-500 dark:text-neutral-400 text-xs italic mt-1 truncate">"{holiday.reason}"</p>
                 )}
               </div>
               <div className={`flex-shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase border tracking-wider ${
                 holiday.status === 'approved'
-                  ? 'text-accent border-accent/30 bg-accent/8'
+                  ? 'text-accent border-accent/30 bg-accent/8 dark:bg-accent/15'
                   : holiday.status === 'rejected'
-                  ? 'text-red-600 border-red-200 bg-red-50'
-                  : 'text-amber-700 border-amber-200 bg-amber-50'
+                  ? 'text-red-600 border-red-200 bg-red-50 dark:bg-red-950/45 dark:border-red-800/50 dark:text-red-300'
+                  : 'text-amber-700 border-amber-200 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800/50 dark:text-amber-300'
               }`}>
                 {holiday.status === 'approved' ? t.approved : holiday.status === 'rejected' ? t.rejected : t.pending}
               </div>
@@ -517,16 +521,16 @@ export default function StaffPersonalDashboard({
   // Profilo gestionale solo Admin: nessun turno assegnato (Proprietario = stesso flusso Manager)
   if (isPurelyManagementRole(displayUser.role)) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans antialiased flex flex-col items-center justify-center px-6 safe-area-pad">
-        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 shadow-sm p-8 max-w-sm text-center">
-          <Shield className="w-14 h-14 text-slate-400 mx-auto mb-4" strokeWidth={1.5} />
-          <h2 className="text-lg font-bold text-slate-800 mb-2">Profilo Gestionale</h2>
-          <p className="text-slate-500 text-sm">Nessun turno assegnato</p>
-          <p className="text-slate-400 text-xs mt-3">Questo profilo è riservato alla gestione. Accedi al pannello di controllo per amministrare turni e personale.</p>
+      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0a0a0a] text-slate-800 dark:text-neutral-100 font-sans antialiased flex flex-col items-center justify-center px-6 safe-area-pad">
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm p-8 max-w-sm text-center">
+          <Shield className="w-14 h-14 text-slate-500 dark:text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
+          <h2 className="text-lg font-bold text-slate-800 dark:text-neutral-100 mb-2">Profilo Gestionale</h2>
+          <p className="text-slate-500 dark:text-neutral-400 text-sm">Nessun turno assegnato</p>
+          <p className="text-slate-500 dark:text-neutral-400 text-xs mt-3">Questo profilo è riservato alla gestione. Accedi al pannello di controllo per amministrare turni e personale.</p>
           <button
             type="button"
             onClick={onLogout}
-            className="mt-6 w-full py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition-colors"
+            className="mt-6 w-full py-3 rounded-xl bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 font-semibold text-sm hover:bg-slate-200 dark:hover:bg-neutral-700 transition-colors"
           >
             {(t as { header_logout?: string }).header_logout ?? 'Esci'}
           </button>
@@ -564,11 +568,11 @@ export default function StaffPersonalDashboard({
           <div className="rounded-2xl border border-slate-100 dark:border-white/10 bg-white dark:bg-neutral-900 p-4 shadow-sm">
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-slate-50 dark:bg-neutral-950/80 border border-slate-100 dark:border-white/10 rounded-2xl px-4 py-3 text-center">
-                <p className="text-slate-400 dark:text-neutral-500 text-[10px] font-medium uppercase tracking-widest mb-1">{t.week_hours}</p>
+                <p className="text-slate-500 dark:text-neutral-400 text-[10px] font-medium uppercase tracking-widest mb-1">{t.week_hours}</p>
                 <p className="text-slate-900 dark:text-neutral-100 text-2xl font-bold tabular-nums">{totalApprovedHours}</p>
               </div>
               <div className="bg-slate-50 dark:bg-neutral-950/80 border border-slate-100 dark:border-white/10 rounded-2xl px-4 py-3 text-center">
-                <p className="text-slate-400 dark:text-neutral-500 text-[10px] font-medium uppercase tracking-widest mb-1">{t.shifts_week}</p>
+                <p className="text-slate-500 dark:text-neutral-400 text-[10px] font-medium uppercase tracking-widest mb-1">{t.shifts_week}</p>
                 <p className="text-slate-900 dark:text-neutral-100 text-2xl font-bold tabular-nums">{upcomingShifts.length + todayShifts.length}</p>
               </div>
             </div>
@@ -626,11 +630,11 @@ export default function StaffPersonalDashboard({
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 leading-tight">Installa l'app Osteria</p>
                 {isIos ? (
-                  <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                  <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-snug">
                     Tocca <strong>Condividi</strong> → <strong>Aggiungi a schermata Home</strong>
                   </p>
                 ) : (
-                  <p className="text-[11px] text-slate-500 mt-0.5">Accedi più velocemente ai tuoi turni</p>
+                  <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5">Accedi più velocemente ai tuoi turni</p>
                 )}
               </div>
               {!isIos && (
@@ -640,7 +644,7 @@ export default function StaffPersonalDashboard({
                 </button>
               )}
               <button type="button" onClick={dismissInstallBanner}
-                className="flex-shrink-0 p-1 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" aria-label="Chiudi">
+                className="flex-shrink-0 p-1 rounded-xl text-slate-400 dark:text-neutral-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" aria-label="Chiudi">
                 <X className="w-4 h-4" />
               </button>
             </div>

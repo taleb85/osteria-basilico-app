@@ -10,12 +10,12 @@ import { formatTrans, getDateLocale, getTranslations } from './translations';
 // ── Colours ───────────────────────────────────────────────────────────────────
 
 const DEPT_FILL: Record<string, [number, number, number]> = {
-  sala:    [220, 241, 255],  // light blue
+  sala:    [240, 253, 250],  // light teal (allinea a reparto Sala, no blu)
   kitchen: [255, 237, 213],  // light orange
   bar:     [220, 230, 218],  // tint basilico (accent light)
 };
 const DEPT_BORDER: Record<string, [number, number, number]> = {
-  sala:    [59, 130, 246],
+  sala:    [13, 148, 136], // teal-600
   kitchen: [249, 115, 22],
   bar:     [45, 90, 39],
 };

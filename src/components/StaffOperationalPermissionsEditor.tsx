@@ -56,10 +56,10 @@ export default function StaffOperationalPermissionsEditor({ user, currentUser }:
 
   return (
     <div>
-      <p className="ui-section-title mb-2 text-slate-400">
+      <p className="ui-section-title mb-2 text-slate-400 dark:text-neutral-400">
         {formatTrans(t.settings_operational_perms_heading, { name: user.first_name ?? '' })}
       </p>
-      <p className="text-[11px] text-slate-500 mb-2 leading-snug">{t.settings_operational_perms_editable_hint}</p>
+      <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-2 leading-snug">{t.settings_operational_perms_editable_hint}</p>
       <div className={PERMISSION_SUMMARY_LIST_CLASS}>
         {rows.map((perm) => {
           const enabled = isUserPermissionEffective(user, perm.key);
@@ -91,7 +91,7 @@ export default function StaffOperationalPermissionsEditor({ user, currentUser }:
                     } ${busyKey !== null ? 'opacity-60 cursor-wait' : ''}`}
                   >
                     <span
-                      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${
                         enabled ? 'translate-x-5' : 'translate-x-0'
                       }`}
                     />

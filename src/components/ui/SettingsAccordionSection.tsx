@@ -48,19 +48,19 @@ export function SettingsAccordionSection({
       <button
         type="button"
         onClick={toggle}
-        className="mb-3 flex w-full items-center justify-between gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-slate-100/80 -ml-1"
+        className="-ml-1 mb-3 flex w-full items-center justify-between gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-slate-100/80 dark:hover:bg-white/[0.06]"
         aria-expanded={open}
       >
         <div className="min-w-0 flex-1">
-          <h2 className="text-slate-700 text-[11px] font-semibold uppercase tracking-widest">{title}</h2>
+          <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-700 dark:text-neutral-200">{title}</h2>
           {subtitle ? (
-            <p className="mt-0.5 text-left text-[11px] font-normal normal-case tracking-normal text-slate-400">
+            <p className="mt-0.5 text-left text-[11px] font-normal normal-case tracking-normal text-slate-400 dark:text-neutral-400">
               {subtitle}
             </p>
           ) : null}
         </div>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform dark:text-neutral-400 ${open ? 'rotate-180' : ''}`}
           aria-hidden
         />
       </button>

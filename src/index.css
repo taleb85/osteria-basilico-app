@@ -109,7 +109,7 @@
 
   /** Tutta l’app React: stessa stack Inter del tema Tailwind (`font-sans`). */
   #root {
-    @apply min-h-0 font-sans antialiased text-[#1a1a1a];
+    @apply min-h-0 font-sans antialiased text-[#1a1a1a] dark:text-neutral-100;
     overscroll-behavior: none;
   }
 }
@@ -129,7 +129,7 @@
 @layer components {
   /** Titoli sezione unificati (Admin, permessi, impostazioni) */
   .ui-section-title {
-    @apply text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-neutral-400;
+    @apply text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-neutral-300;
   }
 
   .panel {
@@ -236,14 +236,14 @@
    * niente gap tra celle; solo linee divide-x; angoli dal contenitore (overflow-hidden + rounded-lg).
    */
   .ui-toolbar-group {
-    @apply flex h-[22px] items-center gap-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm;
-    @apply divide-x divide-slate-200;
+    @apply flex h-[22px] items-center gap-0 overflow-hidden rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-sm;
+    @apply divide-x divide-slate-200 dark:divide-white/10;
   }
 
   /** Fascia grigia periodo Presenze: stesso schema segmenti; scroll orizzontale se serve */
   .ui-toolbar-group-muted {
-    @apply flex h-[22px] max-h-[22px] w-max max-w-full shrink-0 flex-nowrap items-center gap-0 overflow-x-auto-safe rounded-lg border border-slate-200 bg-slate-50 shadow-sm;
-    @apply divide-x divide-slate-200;
+    @apply flex h-[22px] max-h-[22px] w-max max-w-full shrink-0 flex-nowrap items-center gap-0 overflow-x-auto-safe rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-900/80 shadow-sm;
+    @apply divide-x divide-slate-200 dark:divide-white/10;
   }
 
   /** Tab affiancati: niente arrotondamento proprio (resta il clip del gruppo) */
@@ -258,12 +258,12 @@
 
   /** Testo statico tra icone (es. 1 / 5) nello stesso gruppo segmentato */
   .ui-toolbar-segment-static {
-    @apply flex h-[20px] min-h-[20px] shrink-0 items-center justify-center px-1.5 text-center text-[13px] font-semibold tabular-nums leading-none text-slate-600;
+    @apply flex h-[20px] min-h-[20px] shrink-0 items-center justify-center px-1.5 text-center text-[13px] font-semibold tabular-nums leading-none text-slate-600 dark:text-neutral-300;
   }
 
   /** Sotto-segmento (es. 4 sett. | 5 sett.) dentro fascia muted */
   .ui-toolbar-segment-pair {
-    @apply flex h-[20px] shrink-0 items-stretch divide-x divide-slate-200;
+    @apply flex h-[20px] shrink-0 items-stretch divide-x divide-slate-200 dark:divide-white/10;
   }
 
   /** Pulsante compatto dentro fascia muted (preset settimane, Salva) */
@@ -273,17 +273,17 @@
 
   /** Pill singola (preset statistiche) */
   .ui-toolbar-pill {
-    @apply flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 px-2.5 text-center text-[13px] font-medium leading-none shadow-sm transition-colors;
+    @apply flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 px-2.5 text-center text-[13px] font-medium leading-none shadow-sm transition-colors;
   }
 
   /** Chip toolbar (filtri turni, ecc.) */
   .ui-toolbar-chip {
-    @apply inline-flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 px-2 text-center text-[13px] font-medium leading-none shadow-sm transition-colors;
+    @apply inline-flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 px-2 text-center text-[13px] font-medium leading-none shadow-sm transition-colors;
   }
 
   /** «Oggi» / outline accent */
   .ui-toolbar-ghost-accent {
-    @apply inline-flex h-[22px] items-center justify-center rounded-lg border border-accent/30 px-2 text-center text-[13px] font-semibold leading-none text-accent shadow-sm transition-colors hover:bg-accent/10;
+    @apply inline-flex h-[22px] items-center justify-center rounded-lg border border-accent/30 px-2 text-center text-[13px] font-semibold leading-none text-accent shadow-sm transition-colors hover:bg-accent/10 dark:text-accent-light dark:hover:bg-accent/15;
   }
 
   /** Pulsante primario compatto in toolbar (accent) */
@@ -293,7 +293,7 @@
 
   /** Pulsante secondario bordo (CSV, outline) */
   .ui-toolbar-outline {
-    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-center text-[13px] font-semibold leading-none text-slate-600 shadow-sm transition-colors hover:bg-slate-50;
+    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 px-2.5 text-center text-[13px] font-semibold leading-none text-slate-600 dark:text-neutral-300 shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-neutral-800;
   }
 
   /**
@@ -498,4 +498,131 @@
   letter-spacing: 0.06em;
   color: rgb(100 116 139);
   opacity: 1;
+}
+
+/* ── Dark: niente sfondo bianco su utility Tailwind bg-white* (card, tabelle, pulsanti) ──
+ * Eccezioni:
+ *   `toggle-knob` — pallini switch / puntino PIN su accent
+ *   `keep-white-glass` — vetro su brand (bottom nav, tile colorate)
+ *   `preserve-on-dark` — es. tile “Tema chiaro” selezionato (bg bianco voluto) */
+html.dark .bg-white:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23) !important;
+}
+html.dark .bg-white\/95:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.95) !important;
+}
+html.dark .bg-white\/90:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.9) !important;
+}
+html.dark .bg-white\/80:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.8) !important;
+}
+html.dark .bg-white\/70:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.7) !important;
+}
+html.dark .bg-white\/60:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.6) !important;
+}
+html.dark .bg-white\/50:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.5) !important;
+}
+html.dark .bg-white\/40:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.4) !important;
+}
+html.dark .bg-white\/30:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.3) !important;
+}
+html.dark .bg-white\/20:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.2) !important;
+}
+html.dark .bg-white\/10:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.1) !important;
+}
+html.dark .bg-white\/5:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.05) !important;
+}
+
+html.dark .hover\:bg-white:hover:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23) !important;
+}
+html.dark .hover\:bg-white\/95:hover:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.95) !important;
+}
+html.dark .hover\:bg-white\/80:hover:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.8) !important;
+}
+html.dark .hover\:bg-white\/60:hover:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.6) !important;
+}
+html.dark .hover\:bg-white\/30:hover:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.3) !important;
+}
+html.dark .hover\:bg-white\/15:hover:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.15) !important;
+}
+html.dark .hover\:bg-white\/10:hover:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.1) !important;
+}
+html.dark .active\:bg-white:active:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23) !important;
+}
+html.dark .active\:bg-white\/10:active:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.1) !important;
+}
+
+html.dark .dark\:hover\:bg-white\/10:hover:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.1) !important;
+}
+html.dark .dark\:hover\:bg-white\/15:hover:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.15) !important;
+}
+html.dark .dark\:active\:bg-white\/10:active:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.1) !important;
+}
+
+/** Utility `dark:bg-white/…` (stesso obiettivo: niente bianco in dark) */
+.dark\:bg-white\/5:is(.dark *):not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.05) !important;
+}
+.dark\:bg-white\/10:is(.dark *):not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.1) !important;
+}
+.dark\:bg-white\/\[0\.04\]:is(.dark *):not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.04) !important;
+}
+.dark\:hover\:bg-white\/5:hover:is(.dark *):not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.05) !important;
+}
+.dark\:hover\:bg-white\/10:hover:is(.dark *):not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.1) !important;
+}
+.dark\:hover\:bg-white\/15:hover:is(.dark *):not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.15) !important;
+}
+.dark\:active\:bg-white\/10:active:is(.dark *):not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
+  background-color: rgb(23 23 23 / 0.1) !important;
+}
+
+/** react-day-picker: tema scuro (non usa solo classi Tailwind) */
+html.dark .rdp-modern.rdp-root {
+  color: rgb(229 229 229);
+}
+html.dark .rdp-modern.rdp-root .rdp-dropdown_root select {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgb(23 23 23);
+  color: rgb(245 245 245);
+}
+html.dark .rdp-modern.rdp-root .rdp-button_previous,
+html.dark .rdp-modern.rdp-root .rdp-button_next {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgb(23 23 23);
+  color: rgb(212 212 212);
+}
+html.dark .rdp-modern.rdp-root .rdp-weekday {
+  color: rgb(163 163 163);
+}
+
+/** Dark: slate-600 (#475569 = rgb(71,85,105)) → bianco per testi secondari */
+html.dark .text-slate-600 {
+  color: rgb(255 255 255) !important;
 }

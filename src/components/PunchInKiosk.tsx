@@ -18,7 +18,7 @@ import type { User as UserType, Shift, Language } from '../types';
 import { format } from 'date-fns';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { roundToNext5Minutes } from '../utils/timeCalculations';
-import { forceLightTheme } from '../utils/theme';
+import { applyUnauthenticatedDocumentTheme } from '../utils/theme';
 import { isPurelyManagementRole, canOperateTeamSchedule } from '../utils/permissions';
 import { usePunchPresenceVerification } from '../hooks/usePunchPresenceVerification';
 
@@ -217,7 +217,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   }, [selectedUser, selectedUserShifts, unpunchedShifts, now, isPunched, isPunchedOut]);
 
   useEffect(() => {
-    forceLightTheme();
+    applyUnauthenticatedDocumentTheme();
   }, []);
 
   /** Auto-selezione: se c'è un turno ovvio e l'utente non ha cliccato "Cambia turno", salta alla schermata PIN */
@@ -462,7 +462,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
           onClick={onGoToLogin}
           className="group flex items-center gap-2 rounded-xl border-2 border-slate-300 bg-transparent px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.08),0_1px_3px_-1px_rgba(15,23,42,0.05)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-accent/60 hover:bg-accent/10 hover:text-accent hover:shadow-[0_4px_12px_-3px_rgba(15,23,42,0.1),0_2px_5px_-2px_rgba(45,90,39,0.06)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
         >
-          <User className="h-4 w-4 shrink-0 text-slate-500 transition-colors group-hover:text-accent" strokeWidth={2} />
+          <User className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300 transition-colors group-hover:text-accent" strokeWidth={2} />
           {t.area_personale}
         </button>
       </GiantBrandHeader>
@@ -510,9 +510,13 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
               const actionLabel = allPunched
                 ? null
                 : lunchAwaitingOut
-                  ? { label: t.punch_clock_out_label, color: 'bg-amber-50 text-amber-700 border-amber-200' }
+                  ? {
+                      label: t.punch_clock_out_label,
+                      color:
+                        'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200',
+                    }
                   : dinnerActive
-                    ? { label: t.punch_in_shift_label, color: 'bg-blue-50 text-blue-700 border-blue-200' }
+                    ? { label: t.punch_in_shift_label, color: 'bg-teal-50 text-teal-800 border-teal-200 dark:bg-teal-950/40 dark:text-teal-200 dark:border-teal-800/50' }
                     : nextShift
                       ? { label: t.punch_clock_in_label, color: 'bg-accent/10 text-accent border-accent/20' }
                       : null;
@@ -523,10 +527,10 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                 : lunchAwaitingOut
                   ? 'border-l-amber-400'
                   : dinnerActive
-                    ? 'border-l-blue-400'
+                    ? 'border-l-teal-500'
                     : nextShift?.nearStart || nextShift?.inProgress
                       ? 'border-l-accent'
-                      : 'border-l-slate-200';
+                      : 'border-l-slate-200 dark:border-l-neutral-600';
 
               return (
                 <motion.button
@@ -537,12 +541,12 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                   animate="visible"
                   onClick={() => setSelectedUser(user)}
                   whileTap={{ scale: 0.98 }}
-                  className={`w-full flex flex-col px-5 py-3.5 rounded-2xl bg-white border border-slate-100 border-l-4 ${borderColor} shadow-sm hover:shadow-md transition-all cursor-pointer font-sans text-left`}
+                  className={`flex w-full cursor-pointer flex-col rounded-2xl border border-slate-100 border-l-4 bg-white px-5 py-3.5 font-sans text-left shadow-sm transition-all hover:shadow-md dark:border-white/10 dark:bg-neutral-900 ${borderColor}`}
                 >
                   {/* Riga 1: nome + badge azione */}
                   <div className="flex items-center justify-between gap-2 w-full">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-semibold text-slate-900 uppercase truncate text-base">
+                      <span className="truncate text-base font-semibold uppercase text-slate-900 dark:text-neutral-100">
                         {user.first_name.toUpperCase()}
                       </span>
                       {allPunched && (
@@ -569,7 +573,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                         : awaitingLunchOut
                           ? 'bg-amber-400 animate-pulse'
                           : dinnerInProgress
-                            ? 'bg-blue-400 animate-pulse'
+                            ? 'bg-teal-500 animate-pulse'
                             : inProgress || ns
                               ? 'bg-accent/50'
                               : 'bg-slate-200';
@@ -578,7 +582,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                         : awaitingLunchOut
                           ? 'text-amber-600'
                           : dinnerInProgress
-                            ? 'text-blue-600'
+                            ? 'text-teal-700 dark:text-teal-300'
                             : inProgress || ns
                               ? 'text-slate-700'
                               : 'text-slate-400';
@@ -588,7 +592,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                           <span className={`text-xs font-medium uppercase ${textColor}`}>{timeStr}</span>
                           {done && <Check className="w-3 h-3 text-accent flex-shrink-0" strokeWidth={2.5} />}
                           {awaitingLunchOut && <span className="text-[10px] text-amber-500 font-semibold">{t.punch_exit_question}</span>}
-                          {dinnerInProgress && <span className="text-[10px] text-blue-500 font-semibold">{t.punch_in_shift_small}</span>}
+                          {dinnerInProgress && <span className="text-[10px] font-semibold text-teal-600 dark:text-teal-400">{t.punch_in_shift_small}</span>}
                         </span>
                       );
                     })}
@@ -625,7 +629,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                 <button
                   onClick={closeOverlay}
                   disabled={isLoading}
-                  className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors"
+                  className="p-2 rounded-xl text-slate-500 dark:text-neutral-300 hover:bg-slate-100 transition-colors"
                   aria-label={t.cancel}
                 >
                   <X className="w-5 h-5" />
@@ -667,17 +671,19 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                             done
                               ? 'bg-slate-50 border-slate-100 cursor-default'
                               : dinnerInProgress
-                                ? 'bg-blue-50 border-blue-100 cursor-default'
+                                ? 'cursor-default bg-teal-50 border-teal-100 dark:bg-teal-950/35 dark:border-teal-800/50'
                                 : awaitingLunchOut
                                   ? 'bg-amber-50 border-amber-200 cursor-pointer hover:bg-amber-100'
                                   : 'bg-white border-slate-200 hover:bg-slate-50 cursor-pointer'
                           } ${isSuggested ? 'ring-2 ring-accent/40' : ''}`}
                         >
-                          <span className={`flex-shrink-0 ${done ? 'text-accent' : awaitingLunchOut ? 'text-amber-500' : dinnerInProgress ? 'text-blue-400' : isDayShift ? 'text-amber-500' : 'text-slate-400'}`}>
+                          <span
+                            className={`flex-shrink-0 ${done ? 'text-accent' : awaitingLunchOut ? 'text-amber-500' : dinnerInProgress ? 'text-teal-600 dark:text-teal-400' : isDayShift ? 'text-amber-500' : 'text-slate-400 dark:text-neutral-500'}`}
+                          >
                             {isDayShift ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                           </span>
-                          <span className="flex items-center gap-2 flex-1 text-base font-medium text-slate-700">
-                            <Clock className="w-4 h-4 text-slate-400" />
+                          <span className="flex flex-1 items-center gap-2 text-base font-medium text-slate-700 dark:text-neutral-200">
+                            <Clock className="w-4 h-4 text-slate-400 dark:text-neutral-400" />
                             {shift.start_time.slice(0, 5)} — {shift.end_time ? shift.end_time.slice(0, 5) : '--:--'}
                           </span>
                           {done ? (
@@ -685,7 +691,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                           ) : awaitingLunchOut ? (
                             <span className="text-xs font-semibold text-amber-600 uppercase flex-shrink-0">{t.punch_clock_out_label}</span>
                           ) : dinnerInProgress ? (
-                            <span className="text-xs font-medium text-blue-500 flex-shrink-0">{t.punch_in_shift_label}</span>
+                            <span className="flex-shrink-0 text-xs font-medium text-teal-600 dark:text-teal-400">{t.punch_in_shift_label}</span>
                           ) : isSuggested ? (
                             <span className="text-xs font-medium text-accent uppercase flex-shrink-0">{t.punch_suggested}</span>
                           ) : null}
@@ -726,7 +732,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                       <button
                         onClick={() => { setUserWantsShiftList(true); setSelectedShift(null); }}
                         disabled={isLoading}
-                        className="text-slate-500 hover:text-slate-700 text-xs font-medium font-sans underline"
+                        className="text-slate-500 dark:text-neutral-300 hover:text-slate-700 text-xs font-medium font-sans underline"
                       >
                         {t.change_shift}
                       </button>

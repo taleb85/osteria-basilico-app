@@ -102,7 +102,7 @@ function NavPreviewBar({
                 key={id}
                 type="button"
                 onClick={() => onSelectTab!(id)}
-                className={`${cls} cursor-pointer hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white`}
+                className={`${cls} keep-white-glass cursor-pointer hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white`}
                 aria-pressed={selected}
                 aria-label={labels[id]}
               >
@@ -278,7 +278,7 @@ export default function ProfileVisibilityHub() {
   if (!canUseHub) {
     return (
       <div className="pb-content pt-6 app-horizontal-pad">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-neutral-300">
           {tv.profile_visibility_forbidden ?? 'Non hai permesso di accedere a questa sezione.'}
         </p>
       </div>
@@ -289,10 +289,10 @@ export default function ProfileVisibilityHub() {
     <>
     <div className="pb-content pt-6 w-full app-horizontal-pad font-sans max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-slate-900 text-xl font-bold tracking-tight">
+        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-neutral-50">
           {tv.profile_visibility_title ?? 'Cosa vede chi'}
         </h1>
-        <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+        <p className="text-slate-500 dark:text-neutral-300 text-sm mt-1 max-w-2xl">
           {tv.profile_visibility_subtitle ??
             'Template di ruolo (tab Permessi ruoli) + eccezioni per singolo profilo. Scegli un utente, controlla l’anteprima della barra e attiva o disattiva i widget.'}
         </p>
@@ -302,13 +302,13 @@ export default function ProfileVisibilityHub() {
         {/* Lista profili */}
         <div className={`space-y-3 ${selected ? 'lg:max-w-2xl' : 'lg:col-span-4'}`}>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-neutral-400" />
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={tv.profile_visibility_search_ph ?? 'Cerca nome o email…'}
-              className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-accent/25 focus:border-accent outline-none"
+              className="w-full rounded-xl border border-slate-200 py-2.5 pr-3 pl-10 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500"
             />
           </div>
           <div className="flex flex-wrap gap-2">
@@ -317,10 +317,10 @@ export default function ProfileVisibilityHub() {
                 key={k}
                 type="button"
                 onClick={() => setRoleFilter(k)}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
                   roleFilter === k
-                    ? 'bg-accent text-white border-accent'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                    ? 'border-accent bg-accent text-white'
+                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-neutral-500'
                 }`}
               >
                 {k === 'all'
@@ -331,19 +331,19 @@ export default function ProfileVisibilityHub() {
               </button>
             ))}
           </div>
-          <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
+          <label className="flex cursor-pointer select-none items-center gap-2 text-xs text-slate-600 dark:text-neutral-300">
             <input
               type="checkbox"
               checked={showSuspended}
               onChange={(e) => setShowSuspended(e.target.checked)}
-              className="rounded border-slate-300 text-accent focus:ring-accent/30"
+              className="rounded border-slate-300 text-accent focus:ring-accent/30 dark:border-neutral-600 dark:bg-neutral-900"
             />
             {tv.profile_visibility_show_suspended ?? 'Mostra sospesi / inattivi'}
           </label>
 
-          <ul className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 max-h-[min(52vh,28rem)] overflow-y-auto shadow-sm">
+          <ul className="max-h-[min(52vh,28rem)] divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:divide-white/10 dark:border-white/10 dark:bg-neutral-900">
             {filteredList.length === 0 && (
-              <li className="px-4 py-8 text-center text-sm text-slate-400">
+              <li className="px-4 py-8 text-center text-sm text-slate-400 dark:text-neutral-400">
                 {tv.profile_visibility_empty_list ?? 'Nessun profilo corrisponde ai filtri.'}
               </li>
             )}
@@ -354,20 +354,20 @@ export default function ProfileVisibilityHub() {
                   <button
                     type="button"
                     onClick={() => setSelectedId(u.id)}
-                    className={`w-full text-left px-4 py-3 transition-colors flex items-start gap-3 ${
-                      active ? 'bg-accent/8' : 'hover:bg-slate-50'
+                    className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors ${
+                      active ? 'bg-accent/8 dark:bg-accent/15' : 'hover:bg-slate-50 dark:hover:bg-white/[0.06]'
                     }`}
                   >
-                    <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 text-sm font-bold shrink-0">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-600 dark:bg-neutral-800 dark:text-neutral-300">
                       {(u.first_name?.[0] ?? '?').toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-slate-900 truncate">
+                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-neutral-50">
                         {u.first_name} {u.last_name ?? ''}
                       </p>
-                      <p className="text-[11px] text-slate-500 truncate">{translateRole(u.role, currentUser.language)}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-neutral-300 truncate">{translateRole(u.role, currentUser.language)}</p>
                       {u.status !== 'active' && (
-                        <span className="inline-block mt-1 text-[10px] font-bold uppercase text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">
+                        <span className="mt-1 inline-block rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 uppercase dark:border-amber-800/50 dark:bg-amber-950/50 dark:text-amber-200">
                           {u.status}
                         </span>
                       )}
@@ -381,9 +381,9 @@ export default function ProfileVisibilityHub() {
 
         {!selected && (
         <div className="lg:col-span-8 space-y-6">
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-16 text-center">
-              <LayoutList className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600 font-medium text-sm">
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-16 text-center dark:border-white/15 dark:bg-neutral-900/40">
+              <LayoutList className="mx-auto mb-3 h-10 w-10 text-slate-300 dark:text-neutral-600" />
+              <p className="text-sm font-medium text-slate-600 dark:text-neutral-400">
                 {tv.profile_visibility_pick_user ?? 'Seleziona un profilo dall’elenco.'}
               </p>
             </div>
@@ -394,16 +394,16 @@ export default function ProfileVisibilityHub() {
 
     {selected && (
         <div
-          className="fixed inset-0 z-[200] flex flex-col bg-slate-100 touch-manipulation overscroll-contain"
+          className="fixed inset-0 z-[200] flex touch-manipulation flex-col overscroll-contain bg-slate-100 dark:bg-neutral-950"
           role="dialog"
           aria-modal="true"
           aria-labelledby="profile-visibility-fs-title"
         >
-          <header className="shrink-0 flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-slate-200 bg-white shadow-sm safe-area-pad pt-[max(12px,env(safe-area-inset-top,0px))]">
+          <header className="safe-area-pad flex shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))] shadow-sm sm:px-5 dark:border-white/10 dark:bg-neutral-900">
             <button
               type="button"
               onClick={closePreview}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 transition-colors hover:bg-slate-100 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
               aria-label={tv.profile_visibility_close_preview ?? 'Chiudi anteprima'}
             >
               <X className="w-5 h-5" strokeWidth={2} />
@@ -411,39 +411,39 @@ export default function ProfileVisibilityHub() {
             <div className="min-w-0 flex-1">
               <p
                 id="profile-visibility-fs-title"
-                className="text-[10px] font-bold text-slate-500 uppercase tracking-wider"
+                className="text-[10px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wider"
               >
                 {tv.profile_visibility_fullscreen_title ?? 'Anteprima profilo'}
               </p>
-              <p className="text-base font-bold text-slate-900 truncate">
+              <p className="truncate text-base font-bold text-slate-900 dark:text-neutral-50">
                 {selected.first_name} {selected.last_name ?? ''}
               </p>
-              <p className="text-[11px] text-slate-500 truncate">{translateRole(selected.role, currentUser.language)}</p>
+              <p className="text-[11px] text-slate-500 dark:text-neutral-300 truncate">{translateRole(selected.role, currentUser.language)}</p>
             </div>
-            <span className="hidden sm:inline-flex text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-1 rounded-lg shrink-0">
+            <span className="hidden shrink-0 rounded-lg border border-accent/20 bg-accent/10 px-2 py-1 text-[10px] font-bold tracking-wider text-accent uppercase dark:border-accent/30 dark:bg-accent/15 sm:inline-flex">
               {tv.profile_visibility_readonly_preview ?? 'Solo lettura'}
             </span>
           </header>
 
           <div className="flex-1 min-h-0 overflow-y-auto app-horizontal-pad py-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
             <div className="mx-auto w-full max-w-6xl xl:max-w-7xl space-y-4">
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <div className="px-3 py-2 bg-slate-50 border-b border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900">
+                <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 dark:border-white/10 dark:bg-neutral-800/80">
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wider">
                     {tv.profile_visibility_preview_banner ?? 'Anteprima navigazione'}
                   </p>
                 </div>
                 <div className="p-3 sm:p-4 space-y-2">
                   {isSelectedAdmin && (
-                    <p className="text-[11px] leading-snug text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5">
+                    <p className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] leading-snug text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200">
                       {tv.profile_visibility_admin_note ??
                         'Profilo Amministratore: tutte le funzioni restano attive; non si applicano eccezioni qui.'}
                     </p>
                   )}
-                  <p className="text-xs leading-snug text-slate-600">
+                  <p className="text-xs leading-snug text-slate-600 dark:text-neutral-300">
                     {tv.profile_visibility_pick_tab_hint ??
                       'Tocca una scheda nella barra: qui sotto compaiono solo i permessi e i blocchi di interfaccia collegati a quella schermata.'}{' '}
-                    <span className="text-slate-500">
+                    <span className="text-slate-500 dark:text-neutral-300">
                       {tv.profile_visibility_ferie_hint ??
                         'La scheda Ferie può non essere in barra: resta raggiungibile da Home quando è attiva.'}
                     </span>
@@ -465,7 +465,7 @@ export default function ProfileVisibilityHub() {
                   <button
                     type="button"
                     onClick={handleResetUiSections}
-                    className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50"
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-neutral-50"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     {tv.profile_visibility_reset_ui_sections ?? 'Ripristina tutte le sezioni'}
@@ -473,7 +473,7 @@ export default function ProfileVisibilityHub() {
                   <button
                     type="button"
                     onClick={handleResetOverrides}
-                    className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50"
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-neutral-50"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     {tv.profile_visibility_reset_features ?? 'Rimuovi eccezioni permessi (eredita template)'}
@@ -483,8 +483,8 @@ export default function ProfileVisibilityHub() {
 
               <div className="space-y-4">
                   {activeTabPanelEmpty && (
-                    <div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-                      <p className="text-sm text-slate-500">
+                    <div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm dark:border-white/10 dark:bg-neutral-900">
+                      <p className="text-sm text-slate-500 dark:text-neutral-300">
                         {tv.profile_visibility_tab_empty ??
                           'Nessun permesso o blocco configurabile per questa scheda. Scegli un’altra scheda o attiva prima il permesso della scheda (es. Tabellone team).'}
                       </p>
@@ -508,8 +508,8 @@ export default function ProfileVisibilityHub() {
                               {!isManagementRole(selected.role) &&
                                 !isPurelyManagementRole(selected.role) &&
                                 staffModulesForActiveTab.length > 0 && (
-                                  <div className="space-y-1 border-t border-slate-300/80 pt-1.5">
-                                    <p className="px-1 text-[8px] font-bold uppercase tracking-wider text-slate-500">
+                                  <div className="space-y-1 border-t border-slate-300/80 pt-1.5 dark:border-white/15">
+                                    <p className="px-1 text-[8px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
                                       {tv.profile_visibility_tab_staff_modules ?? 'Moduli area personale'}
                                     </p>
                                     {staffModulesForActiveTab.map((mod) => {
@@ -519,18 +519,20 @@ export default function ProfileVisibilityHub() {
                                           key={mod}
                                           className={`flex min-h-[44px] items-stretch gap-0 rounded-lg border-2 ${
                                             enabled
-                                              ? 'border-slate-200 bg-white shadow-sm'
-                                              : 'border-dashed border-slate-400/70 bg-slate-300/40'
+                                              ? 'border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none'
+                                              : 'border-dashed border-slate-400/70 bg-slate-300/40 dark:border-neutral-600 dark:bg-neutral-800/50'
                                           }`}
                                         >
                                           <div
-                                            className={`w-[3px] shrink-0 ${enabled ? 'bg-violet-500' : 'bg-slate-400'}`}
+                                            className={`w-[3px] shrink-0 ${enabled ? 'bg-violet-500' : 'bg-slate-400 dark:bg-neutral-600'}`}
                                             aria-hidden
                                           />
                                           <div className="flex min-w-0 flex-1 items-center justify-between gap-2 py-1.5 pl-2 pr-1.5">
                                             <p
                                               className={`text-xs font-semibold ${
-                                                enabled ? 'text-slate-900' : 'text-slate-500 line-through'
+                                                enabled
+                                                  ? 'text-slate-900 dark:text-neutral-50'
+                                                  : 'text-slate-500 line-through dark:text-neutral-500'
                                               }`}
                                             >
                                               {getModuleLabel(mod, effectiveLanguage)}
@@ -542,11 +544,11 @@ export default function ProfileVisibilityHub() {
                                                 aria-checked={enabled}
                                                 onClick={() => handleModuleToggle(selected, mod, !enabled)}
                                                 className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-                                                  enabled ? 'bg-accent' : 'bg-slate-300'
+                                                  enabled ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'
                                                 }`}
                                               >
                                                 <span
-                                                  className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                                                  className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white toggle-knob shadow transition-transform ${
                                                     enabled ? 'translate-x-4' : 'translate-x-0'
                                                   }`}
                                                 />
@@ -562,7 +564,7 @@ export default function ProfileVisibilityHub() {
                       )}
 
                       {!showScreenMock && featuresForActiveTab.length > 0 && (
-                        <p className="text-center text-xs text-slate-500">
+                        <p className="text-center text-xs text-slate-500 dark:text-neutral-300">
                           {tv.profile_visibility_mock_no_blocks ??
                             'Su questa scheda non ci sono blocchi layout da mostrare: solo i permessi di accesso (apri sotto).'}
                         </p>
@@ -571,20 +573,20 @@ export default function ProfileVisibilityHub() {
                       {featuresForActiveTab.length > 0 && (
                         <details
                           key={`perm-${selected.id}-${activeHubTab}`}
-                          className="group rounded-xl border border-slate-200 bg-slate-50/90 open:border-slate-300 open:bg-white"
+                          className="group rounded-xl border border-slate-200 bg-slate-50/90 open:border-slate-300 open:bg-white dark:border-white/10 dark:bg-neutral-800/60 dark:open:border-white/15 dark:open:bg-neutral-900"
                           open={permDetailsOpen}
                           onToggle={(e) => setPermDetailsOpen(e.currentTarget.open)}
                         >
-                          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-xs font-bold text-slate-800 [&::-webkit-details-marker]:hidden">
+                          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 [&::-webkit-details-marker]:hidden">
                             <span>
                               {(tv.profile_visibility_perm_expand ?? 'Permessi di accesso ({n})').replace(
                                 '{n}',
                                 String(featuresForActiveTab.length)
                               )}
                             </span>
-                            <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
+                            <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-400 transition-transform group-open:rotate-180" />
                           </summary>
-                          <p className="border-t border-slate-100 px-4 pt-2 text-[11px] text-slate-500">
+                          <p className="border-t border-slate-100 px-4 pt-2 text-[11px] text-slate-500 dark:border-white/10 dark:text-neutral-300">
                             {tv.profile_visibility_tab_permissions_hint ??
                               'Attivano o disattivano funzioni e spesso la presenza della scheda in app.'}
                           </p>
@@ -603,9 +605,9 @@ export default function ProfileVisibilityHub() {
                               return (
                                 <AdminRow
                                   key={key}
-                                  className={`rounded-lg border border-slate-200 bg-white !p-2 shadow-sm !border-b-0 ${
+                                  className={`rounded-lg border border-slate-200 bg-white !border-b-0 !p-2 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none ${
                                     key === 'view_estimated_cost'
-                                      ? '[&_.font-bold]:border-l-2 [&_.font-bold]:border-violet-200 [&_.font-bold]:pl-2'
+                                      ? '[&_.font-bold]:border-l-2 [&_.font-bold]:border-violet-200 [&_.font-bold]:pl-2 dark:[&_.font-bold]:border-violet-500/40'
                                       : ''
                                   }`}
                                   label={FEATURE_LABELS[key]}
@@ -624,11 +626,11 @@ export default function ProfileVisibilityHub() {
                                         if (!isSelectedAdmin) handleFeatureToggle(selected, key, !eff);
                                       }}
                                       className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                                        eff ? 'bg-accent' : 'bg-slate-200'
+                                        eff ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
                                       } ${isSelectedAdmin ? 'cursor-default opacity-100' : ''}`}
                                     >
                                       <span
-                                        className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                                        className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white toggle-knob shadow transition-transform ${
                                           eff ? 'translate-x-5' : 'translate-x-0'
                                         }`}
                                       />

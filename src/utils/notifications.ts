@@ -38,6 +38,53 @@ export interface AppNotification {
 // ── Storage helpers ───────────────────────────────────────────────────────────
 
 const KEY = (userId: string) => `notif_seen_${userId}`;
+const FEED_KEY = (userId: string) => `notif_feed_${userId}`;
+
+const MAX_FEED_ITEMS = 200;
+
+function loadNotificationFeed(userId: string): AppNotification[] {
+  try {
+    const raw = localStorage.getItem(FEED_KEY(userId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (x): x is AppNotification =>
+        x &&
+        typeof x === 'object' &&
+        typeof (x as AppNotification).id === 'string' &&
+        typeof (x as AppNotification).title === 'string' &&
+        typeof (x as AppNotification).body === 'string' &&
+        typeof (x as AppNotification).timestamp === 'string'
+    );
+  } catch {
+    return [];
+  }
+}
+
+function saveNotificationFeed(userId: string, items: AppNotification[]): void {
+  try {
+    localStorage.setItem(FEED_KEY(userId), JSON.stringify(items));
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Unisce le notifiche appena calcolate con la cronologia salvata in localStorage
+ * (stesso utente), così restano visibili dopo refresh anche se i criteri attuali
+ * non generano più voci. Le voci con stesso `id` vengono aggiornate da `fresh`.
+ */
+export function syncNotificationFeed(userId: string, fresh: AppNotification[]): AppNotification[] {
+  const persisted = loadNotificationFeed(userId);
+  const map = new Map<string, AppNotification>();
+  for (const p of persisted) map.set(p.id, p);
+  for (const f of fresh) map.set(f.id, f);
+  const merged = [...map.values()].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  const trimmed = merged.slice(0, MAX_FEED_ITEMS);
+  saveNotificationFeed(userId, trimmed);
+  return trimmed;
+}
 
 export function getSeenIds(userId: string): Set<string> {
   try {
@@ -209,7 +256,7 @@ export function generateNotifications(
   return notifications.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 }
 
-/** Conteggio notifiche non segnate come lette (stessa logica di NotificationCenter). */
+/** Conteggio non lette sul feed persistito + aggiornato (stessa logica di NotificationCenter). */
 export function countUnreadNotifications(
   currentUser: User | null,
   shifts: Shift[],
@@ -219,7 +266,8 @@ export function countUnreadNotifications(
   language: Language
 ): number {
   if (!currentUser) return 0;
-  const all = generateNotifications(currentUser, shifts, holidays, users, t, language);
+  const fresh = generateNotifications(currentUser, shifts, holidays, users, t, language);
+  const merged = syncNotificationFeed(currentUser.id, fresh);
   const seen = getSeenIds(currentUser.id);
-  return all.filter((n) => !seen.has(n.id)).length;
+  return merged.filter((n) => !seen.has(n.id)).length;
 }

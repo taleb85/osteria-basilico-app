@@ -93,13 +93,13 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t.home_label_planned}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300 mb-1">{t.home_label_planned}</p>
                 <p className="font-bold tabular-nums text-slate-800 dark:text-gray-100">
                   {pair.plannedStart} → {pair.plannedEnd}
                 </p>
               </div>
-              <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-sky-50/80 dark:bg-sky-900/20 px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t.ts_label_punched}</p>
+              <div className="rounded-xl border border-slate-200 bg-teal-50/90 px-3 py-2 dark:border-white/10 dark:bg-teal-950/35">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300 mb-1">{t.ts_label_punched}</p>
                 <p className="font-bold tabular-nums text-slate-800 dark:text-gray-100">
                   {pair.actualStart ?? '—'} → {pair.actualEnd ?? '—'}
                 </p>
@@ -143,14 +143,14 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
             </div>
 
             {canRevertToPending && (
-              <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-500/30 rounded-xl p-4 mb-4">
-                <p className="text-blue-700 dark:text-blue-300 text-sm font-bold mb-3">
+              <div className="mb-4 rounded-xl border border-slate-200 bg-slate-100 p-4 dark:border-white/10 dark:bg-neutral-800/90">
+                <p className="mb-3 text-sm font-bold text-slate-800 dark:text-neutral-100">
                   Questo turno è già approvato. Vuoi riportarlo in sospeso?
                 </p>
                 <button
                   type="button"
                   onClick={handleRevert}
-                  className="w-full bg-blue-600 text-white rounded-xl py-3 font-black uppercase tracking-wider hover:bg-blue-500 transition-all flex items-center justify-center space-x-2"
+                  className="flex w-full items-center justify-center space-x-2 rounded-xl bg-slate-700 py-3 font-black uppercase tracking-wider text-white transition-all hover:bg-slate-600 dark:bg-neutral-600 dark:hover:bg-neutral-500"
                 >
                   <RotateCcw className="w-5 h-5" />
                   <span>Riporta in Sospeso</span>

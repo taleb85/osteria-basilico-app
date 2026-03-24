@@ -44,7 +44,7 @@ export function CenteredModalPortal({
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm dark:bg-black/75"
         aria-label={backdropAriaLabel}
         onClick={onClose}
       />
@@ -53,7 +53,7 @@ export function CenteredModalPortal({
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
-        className={`relative z-10 w-full ${maxWidthClass} ${maxHeightClass} overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white shadow-2xl ${panelClassName}`.trim()}
+        className={`relative z-10 w-full ${maxWidthClass} ${maxHeightClass} overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100 ${panelClassName}`.trim()}
         onClick={(e) => e.stopPropagation()}
       >
         {children}

@@ -51,7 +51,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
           <h1 className="font-logo-snell text-[22px] text-accent tracking-tight leading-tight truncate">
             Osteria Basilico
           </h1>
-          <p className="text-[9px] text-slate-400 font-semibold uppercase tracking-widest leading-none">
+          <p className="text-[9px] text-slate-400 dark:text-neutral-400 font-semibold uppercase tracking-widest leading-none">
             {t.header_tagline}
           </p>
         </div>
@@ -70,7 +70,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
             >
               <span>{langFlags[effectiveLanguage]}</span>
               <span className="hidden sm:inline ml-0.5">{langLabels[effectiveLanguage]}</span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
+              <ChevronDown className="w-3 h-3 text-slate-400 dark:text-neutral-400" />
             </button>
             {langOpen && (
               <CenteredModalPortal
@@ -117,7 +117,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
             </button>
           )}
 
-          <span className="hidden sm:block text-slate-400 text-xs font-medium tabular-nums">
+          <span className="hidden sm:block text-slate-400 dark:text-neutral-400 text-xs font-medium tabular-nums">
             {format(now, 'HH:mm', { locale })}
           </span>
         </div>

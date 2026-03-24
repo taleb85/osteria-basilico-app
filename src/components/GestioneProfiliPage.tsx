@@ -29,7 +29,7 @@ export default function GestioneProfiliPage() {
           </div>
           <div>
             <h1 className="text-slate-800 text-xl font-bold leading-tight">Gestione Profili</h1>
-            <p className="text-slate-500 text-sm mt-0.5">
+            <p className="text-slate-500 dark:text-neutral-300 text-sm mt-0.5">
               Anteprima permessi (ruolo + template). Ruolo singolo: Impostazioni → team. Template{' '}
               <strong>Manager·Assistant</strong> / <strong>Capo</strong> / <strong>Staff</strong> e moduli scheda Admin globali: tab{' '}
               <strong>Permessi ruoli</strong> (solo Admin).
@@ -61,16 +61,16 @@ export default function GestioneProfiliPage() {
                       <span className="font-semibold text-slate-800 block">
                         {user.first_name} {user.last_name}
                       </span>
-                      <span className="text-xs text-slate-500 uppercase tracking-wider">
+                      <span className="text-xs text-slate-500 dark:text-neutral-300 uppercase tracking-wider">
                         {translateRole(user.role, currentUser?.language)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-semibold text-slate-400 uppercase">Permessi</span>
+                      <span className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400 uppercase">Permessi</span>
                       {isExpanded ? (
-                        <ChevronUp className="w-4 h-4 text-slate-400" />
+                        <ChevronUp className="w-4 h-4 text-slate-400 dark:text-neutral-400" />
                       ) : (
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                        <ChevronDown className="w-4 h-4 text-slate-400 dark:text-neutral-400" />
                       )}
                     </div>
                   </button>
@@ -90,7 +90,7 @@ export default function GestioneProfiliPage() {
                               <strong>Amministratore:</strong> tutti i permessi sono sempre attivi (ruolo fisso).
                             </p>
                           )}
-                          <p className="text-[11px] text-slate-500 px-1">
+                          <p className="text-[11px] text-slate-500 dark:text-neutral-300 px-1">
                             Ruolo: <strong>{translateRole(user.role, currentUser?.language)}</strong> — stessi permessi per tutti con questo ruolo.
                           </p>
                           <div className="rounded-xl bg-white border border-slate-200 p-4">

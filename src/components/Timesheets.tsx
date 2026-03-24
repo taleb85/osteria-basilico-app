@@ -155,6 +155,51 @@ interface DrawerData {
   shiftEdits: HistoryEntry[];
 }
 
+/** Categorie visive allineate a `getShiftCardStyle` (ordine di precedenza identico). */
+function getShiftVisualCategory(
+  s: ShiftRow,
+  punchAuditCount: number
+): 'approved' | 'critical' | 'manual' | 'in_shift' | 'complete' | 'unpunched' {
+  if (s.status === 'approved') return 'approved';
+  if (s.hasMissingOut || (s.isLate && Math.abs(s.deltaMins) > 15)) return 'critical';
+  if (punchAuditCount > 0) return 'manual';
+  if (s.punched && !s.actualEnd) return 'in_shift';
+  if (s.punched && s.actualEnd) return 'complete';
+  return 'unpunched';
+}
+
+function shiftMatchesTimesheetFilter(
+  s: ShiftRow,
+  filter: string,
+  punchAuditCount: number
+): boolean {
+  if (filter === 'unpunched') return !s.punched;
+  if (filter === 'approved' || filter === 'confirmed' || filter === 'draft') {
+    return s.status === filter;
+  }
+  if (filter === 'punched') return s.punched;
+  if (filter === 'punch_open') return s.punched && !s.actualEnd;
+  const cat = getShiftVisualCategory(s, punchAuditCount);
+  if (filter === 'vis_critical') return cat === 'critical';
+  if (filter === 'vis_manual') return cat === 'manual';
+  if (filter === 'vis_complete') return cat === 'complete';
+  if (filter === 'vis_validated') return cat === 'approved';
+  return false;
+}
+
+const TIMESHEET_GRID_FILTER_KEYS = new Set([
+  'approved',
+  'confirmed',
+  'draft',
+  'unpunched',
+  'punched',
+  'punch_open',
+  'vis_critical',
+  'vis_manual',
+  'vis_complete',
+  'vis_validated',
+]);
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function Timesheets() {
@@ -252,7 +297,7 @@ export default function Timesheets() {
       const v = sessionStorage.getItem('osteria_timesheet_filter');
       if (!v) return;
       sessionStorage.removeItem('osteria_timesheet_filter');
-      if (v === 'confirmed' || v === 'approved' || v === 'draft' || v === 'unpunched') {
+      if (TIMESHEET_GRID_FILTER_KEYS.has(v)) {
         setFilterStatus(v);
       }
     } catch {
@@ -1049,65 +1094,65 @@ export default function Timesheets() {
     if (s.status === 'approved') {
       return {
         border: 'border-l-accent',
-        bg: 'bg-accent/5',
-        ring: 'ring-1 ring-accent/20',
+        bg: 'bg-accent/5 dark:bg-accent/15',
+        ring: 'ring-1 ring-accent/20 dark:ring-accent/35',
         dot: 'bg-accent',
         label: t.ts_status_approved,
-        labelCls: 'text-accent-dark bg-accent/10',
+        labelCls: 'text-accent-dark bg-accent/10 dark:text-accent-light dark:bg-accent/20',
       };
     }
     // Rosso — anomalia critica (uscita mancante o ritardo > 15 min)
     if (s.hasMissingOut || (s.isLate && Math.abs(s.deltaMins) > 15)) {
       return {
         border: 'border-l-red-500',
-        bg: 'bg-red-50',
-        ring: 'ring-1 ring-red-200',
+        bg: 'bg-red-50 dark:bg-red-950/40',
+        ring: 'ring-1 ring-red-200 dark:ring-red-900/50',
         dot: 'bg-red-500',
         label: s.hasMissingOut ? t.ts_status_missing_out : t.ts_status_late,
-        labelCls: 'text-red-700 bg-red-100',
+        labelCls: 'text-red-700 bg-red-100 dark:text-red-200 dark:bg-red-950/50',
       };
     }
     // Arancione — modifiche manuali non ancora approvate
     if (punchAuditCount > 0) {
       return {
         border: 'border-l-orange-500',
-        bg: 'bg-orange-50',
-        ring: 'ring-1 ring-orange-200',
+        bg: 'bg-orange-50 dark:bg-orange-950/40',
+        ring: 'ring-1 ring-orange-200 dark:ring-orange-900/45',
         dot: 'bg-orange-500',
         label: t.ts_status_modified,
-        labelCls: 'text-orange-700 bg-orange-100',
+        labelCls: 'text-orange-700 bg-orange-100 dark:text-orange-200 dark:bg-orange-950/50',
       };
     }
     // Giallo/Ambra — IN timbrato ma OUT ancora mancante
     if (s.punched && !s.actualEnd) {
       return {
         border: 'border-l-amber-500',
-        bg: 'bg-amber-50',
-        ring: 'ring-1 ring-amber-200',
+        bg: 'bg-amber-50 dark:bg-amber-950/40',
+        ring: 'ring-1 ring-amber-200 dark:ring-amber-900/45',
         dot: 'bg-amber-500',
         label: t.ts_status_in_shift,
-        labelCls: 'text-amber-700 bg-amber-100',
+        labelCls: 'text-amber-700 bg-amber-100 dark:text-amber-200 dark:bg-amber-950/50',
       };
     }
-    // Blu — completo, in attesa di approvazione
+    // Teal — IN/OUT presenti, in attesa di approvazione (evitiamo il blu “generico”)
     if (s.punched && s.actualEnd) {
       return {
-        border: 'border-l-blue-500',
-        bg: 'bg-blue-50',
-        ring: 'ring-1 ring-blue-200',
-        dot: 'bg-blue-500',
+        border: 'border-l-teal-600',
+        bg: 'bg-teal-50 dark:bg-teal-950/40',
+        ring: 'ring-1 ring-teal-200 dark:ring-teal-900/45',
+        dot: 'bg-teal-600',
         label: t.ts_status_to_approve,
-        labelCls: 'text-blue-700 bg-blue-100',
+        labelCls: 'text-teal-800 bg-teal-100 dark:text-teal-200 dark:bg-teal-950/50',
       };
     }
     // Grigio — non timbrato
     return {
-      border: 'border-l-slate-300',
-      bg: 'bg-slate-50',
+      border: 'border-l-slate-300 dark:border-l-neutral-600',
+      bg: 'bg-slate-50 dark:bg-neutral-800/80',
       ring: '',
-      dot: 'bg-slate-300',
+      dot: 'bg-slate-300 dark:bg-neutral-500',
       label: t.ts_status_unpunched,
-      labelCls: 'text-slate-500 bg-slate-100',
+      labelCls: 'text-slate-500 bg-slate-100 dark:text-neutral-200 dark:bg-neutral-800',
     };
   };
 
@@ -1133,13 +1178,13 @@ export default function Timesheets() {
                 <div className="ui-toolbar-row-tight min-w-0 shrink-0 gap-1.5 sm:gap-1.5">
                   <div className="ui-toolbar-group">
                     <button type="button" onClick={() => setViewMode('week')}
-                      className={`ui-toolbar-tab ${viewMode === 'week' ? 'bg-accent text-white' : 'text-slate-500 hover:bg-slate-100'}`}>
+                      className={`ui-toolbar-tab ${viewMode === 'week' ? 'bg-accent text-white' : 'text-slate-500 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800'}`}>
                       {t.ts_period_week}
                     </button>
                     <button
                       type="button"
                       onClick={() => setViewMode('month')}
-                      className={`ui-toolbar-tab ${viewMode === 'month' ? 'bg-accent text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+                      className={`ui-toolbar-tab ${viewMode === 'month' ? 'bg-accent text-white' : 'text-slate-500 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800'}`}
                       title={monthTabTitle}
                       aria-label={`${t.ts_period_month}${payrollStripForToolbar ? `. ${formatTrans(tv.ts_timesheet_month_payroll_strip ?? '', { dates: payrollStripForToolbar })}` : ''}`}
                     >
@@ -1149,7 +1194,7 @@ export default function Timesheets() {
 
                   {viewMode === 'month' && payrollStripForToolbar && (
                     <span
-                      className="hidden min-[400px]:inline-flex h-[22px] max-w-[min(100%,22rem)] shrink-0 items-center truncate rounded-lg border border-emerald-200/90 bg-emerald-50 px-2 text-[10px] font-semibold text-emerald-900"
+                      className="hidden min-[400px]:inline-flex h-[22px] max-w-[min(100%,22rem)] shrink-0 items-center truncate rounded-lg border border-emerald-200/90 bg-emerald-50 px-2 text-[10px] font-semibold text-emerald-900 dark:border-emerald-800/50 dark:bg-emerald-950/40 dark:text-emerald-100"
                       title={tv.ts_timesheet_month_tab_hint}
                     >
                       {formatTrans(tv.ts_timesheet_month_payroll_strip ?? 'Pagamento stipendi previsto: {dates}', { dates: payrollStripForToolbar })}
@@ -1159,15 +1204,15 @@ export default function Timesheets() {
                   {viewMode === 'week' && (
                     <div className="ui-toolbar-group">
                       <button type="button" onClick={goPrevWeek} disabled={weekIndex <= 0}
-                        className="ui-toolbar-icon-btn hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40">
-                        <ChevronLeft className="h-3 w-3 text-slate-600" />
+                        className="ui-toolbar-icon-btn hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-neutral-800">
+                        <ChevronLeft className="h-3 w-3 text-slate-600 dark:text-neutral-300" />
                       </button>
                       <span className="ui-toolbar-segment-static min-w-[52px]">
                         {weekIndex + 1} / {displayPeriodConfig.numWeeks}
                       </span>
                       <button type="button" onClick={goNextWeek} disabled={weekIndex >= maxWeekIndex}
-                        className="ui-toolbar-icon-btn hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40">
-                        <ChevronRight className="h-3 w-3 text-slate-600" />
+                        className="ui-toolbar-icon-btn hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-neutral-800">
+                        <ChevronRight className="h-3 w-3 text-slate-600 dark:text-neutral-300" />
                       </button>
                     </div>
                   )}
@@ -1179,7 +1224,7 @@ export default function Timesheets() {
                   <button
                     type="button"
                     onClick={() => setTimesheetActionsOpen((o) => !o)}
-                    className={`ui-toolbar-chip border-slate-200 text-slate-600 hover:bg-slate-100 ${!periodSaved ? 'border-amber-300/80 bg-amber-50/50' : ''}`}
+                    className={`ui-toolbar-chip border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 ${!periodSaved ? 'border-amber-300/80 bg-amber-50/50 dark:border-amber-600/50 dark:bg-amber-950/35 dark:text-amber-100 dark:hover:bg-amber-950/50' : ''}`}
                     aria-label={(t as { wst_actions?: string }).wst_actions ?? 'Azioni'}
                     title={(t as { wst_actions?: string }).wst_actions ?? 'Azioni'}
                   >
@@ -1203,19 +1248,19 @@ export default function Timesheets() {
                     panelClassName="py-2"
                   >
                     <div className="px-3 pb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
                         {(t as { stats_preset_period?: string }).stats_preset_period ?? 'Periodo Presenze'}
                       </p>
                     </div>
-                    <div className="space-y-2.5 border-b border-slate-100 px-3 pb-2.5">
+                    <div className="space-y-2.5 border-b border-slate-100 px-3 pb-2.5 dark:border-white/10">
                       <div>
-                        <label className="mb-1 block text-[10px] font-bold text-slate-500">{t.ts_period_start}</label>
+                        <label className="mb-1 block text-[10px] font-bold text-slate-500 dark:text-neutral-300">{t.ts_period_start}</label>
                         <DatePickerField
                           value={periodStart}
                           onChange={(v) => { setPeriodStart(v); setPeriodSaved(false); setWeekIndex(0); }}
                           allowClear={false}
                           aria-label={t.ts_period_start}
-                          className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2 text-[13px] shadow-sm [&_svg]:h-3 [&_svg]:w-3"
+                          className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2 text-[13px] shadow-sm dark:border-white/10 dark:bg-neutral-800 [&_svg]:h-3 [&_svg]:w-3"
                         />
                       </div>
                       <div className="flex gap-1">
@@ -1223,7 +1268,9 @@ export default function Timesheets() {
                           type="button"
                           onClick={() => { setPeriodNumWeeks(4); setPeriodSaved(false); setWeekIndex(0); }}
                           className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
-                            periodNumWeeks === 4 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            periodNumWeeks === 4
+                              ? 'bg-accent text-white'
+                              : 'bg-slate-200 text-slate-600 hover:bg-slate-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600'
                           }`}
                         >
                           {t.ts_preset_4weeks}
@@ -1232,7 +1279,9 @@ export default function Timesheets() {
                           type="button"
                           onClick={() => { setPeriodNumWeeks(5); setPeriodSaved(false); setWeekIndex(0); }}
                           className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
-                            periodNumWeeks === 5 ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            periodNumWeeks === 5
+                              ? 'bg-accent text-white'
+                              : 'bg-slate-200 text-slate-600 hover:bg-slate-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600'
                           }`}
                         >
                           {t.ts_preset_5weeks}
@@ -1246,7 +1295,9 @@ export default function Timesheets() {
                         }}
                         disabled={periodSaved}
                         className={`w-full rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
-                          periodSaved ? 'cursor-not-allowed bg-slate-200 text-slate-500' : 'bg-accent text-white hover:bg-accent-hover'
+                          periodSaved
+                            ? 'cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-neutral-800 dark:text-neutral-500'
+                            : 'bg-accent text-white hover:bg-accent-hover'
                         }`}
                       >
                         {t.ts_save_period}
@@ -1267,54 +1318,64 @@ export default function Timesheets() {
                   label: t.ts_stat_in_shift,
                   value: todayStats.inTurno,
                   Icon: Users,
-                  color: 'text-blue-600',
-                  bg: 'bg-blue-50',
-                  border: 'border-blue-100',
+                  iconColor: 'text-teal-600 dark:text-teal-400',
+                  bg: 'bg-teal-50 dark:bg-teal-950/35',
+                  border: 'border-teal-100 dark:border-teal-800/40',
+                  iconWell: 'bg-teal-100/80 dark:bg-teal-950/50',
                   kind: 'in_turno' as const,
                 },
                 {
                   label: t.ts_stat_delays,
                   value: todayStats.ritardi,
                   Icon: Clock,
-                  color: todayStats.ritardi > 0 ? 'text-red-600' : 'text-slate-400',
-                  bg: todayStats.ritardi > 0 ? 'bg-red-50' : 'bg-slate-50',
-                  border: todayStats.ritardi > 0 ? 'border-red-100' : 'border-slate-100',
+                  iconColor: 'text-red-600 dark:text-red-400',
+                  bg: todayStats.ritardi > 0 ? 'bg-red-50 dark:bg-red-950/35' : 'bg-slate-50 dark:bg-neutral-800/80',
+                  border: todayStats.ritardi > 0 ? 'border-red-100 dark:border-red-900/40' : 'border-slate-100 dark:border-white/10',
+                  iconWell:
+                    todayStats.ritardi > 0
+                      ? 'bg-red-100/80 dark:bg-red-950/45'
+                      : 'bg-red-50/90 dark:bg-red-950/25',
                   kind: 'ritardi' as const,
                 },
                 {
                   label: t.ts_stat_missing_out,
                   value: todayStats.outMancanti,
                   Icon: AlertCircle,
-                  color: todayStats.outMancanti > 0 ? 'text-red-600' : 'text-slate-400',
-                  bg: todayStats.outMancanti > 0 ? 'bg-red-50' : 'bg-slate-50',
-                  border: todayStats.outMancanti > 0 ? 'border-red-100' : 'border-slate-100',
+                  iconColor: 'text-orange-600 dark:text-orange-400',
+                  bg: todayStats.outMancanti > 0 ? 'bg-orange-50 dark:bg-orange-950/35' : 'bg-slate-50 dark:bg-neutral-800/80',
+                  border: todayStats.outMancanti > 0 ? 'border-orange-100 dark:border-orange-900/40' : 'border-slate-100 dark:border-white/10',
+                  iconWell:
+                    todayStats.outMancanti > 0
+                      ? 'bg-orange-100/80 dark:bg-orange-950/45'
+                      : 'bg-orange-50/90 dark:bg-orange-950/25',
                   kind: 'out' as const,
                 },
                 {
                   label: t.ts_stat_approved_today,
                   value: todayStats.approvati,
                   Icon: UserCheck,
-                  color: todayStats.approvati > 0 ? 'text-accent' : 'text-slate-400',
-                  bg: todayStats.approvati > 0 ? 'bg-accent/8' : 'bg-slate-50',
-                  border: todayStats.approvati > 0 ? 'border-accent/20' : 'border-slate-100',
+                  iconColor: 'text-accent dark:text-accent-light',
+                  bg: todayStats.approvati > 0 ? 'bg-accent/8 dark:bg-accent/15' : 'bg-slate-50 dark:bg-neutral-800/80',
+                  border: todayStats.approvati > 0 ? 'border-accent/20 dark:border-accent/35' : 'border-slate-100 dark:border-white/10',
+                  iconWell: 'bg-accent/15 dark:bg-accent/25',
                   kind: 'approvati' as const,
                 },
-              ] as const).map(({ label, value, Icon, color, bg, border, kind }) => (
+              ] as const).map(({ label, value, Icon, iconColor, bg, border, iconWell, kind }) => (
                 <button
                   key={label}
                   type="button"
                   title={t.ts_stat_card_hint}
                   onClick={() => handleStatCardClick(kind)}
-                  className={`group w-full rounded-xl border ${border} ${bg} px-2.5 py-2 shadow-sm flex items-center gap-2 text-left transition-all hover:shadow-md hover:border-slate-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2`}
+                  className={`group w-full rounded-xl border ${border} ${bg} px-2.5 py-2 shadow-sm flex items-center gap-2 text-left transition-all hover:shadow-md hover:border-slate-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 dark:hover:border-white/20 dark:focus-visible:ring-offset-neutral-900`}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-white/60 border ${border}`}>
-                    <Icon className={`w-4 h-4 ${color}`} />
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
+                    <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xl font-bold text-slate-900 leading-none tabular-nums">{value}</p>
-                    <p className="text-[10px] text-slate-500 mt-0.5 leading-tight pr-1">{label}</p>
+                    <p className="text-xl font-bold text-slate-900 dark:text-neutral-100 leading-none tabular-nums">{value}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-tight pr-1">{label}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 shrink-0 opacity-70 group-hover:text-accent group-hover:opacity-100 transition-colors" aria-hidden />
+                  <ChevronRight className="w-4 h-4 text-slate-300 dark:text-neutral-500 shrink-0 opacity-70 group-hover:text-accent group-hover:opacity-100 transition-colors" aria-hidden />
                 </button>
               ))}
             </div>
@@ -1338,10 +1399,10 @@ export default function Timesheets() {
               animate={{ opacity: 1, y: 0 }}
               className="mb-5 scroll-mt-24"
             >
-              <div className="flex items-center gap-2 mb-3">
-                <Moon className="w-4 h-4 text-indigo-500" />
-                <h3 className="text-sm font-bold text-slate-800">{t.ts_dinner_close_required}</h3>
-                <span className="ml-auto text-[11px] font-bold text-indigo-600 bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-full">
+              <div className="mb-3 flex items-center gap-2">
+                <Moon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <h3 className="text-sm font-bold text-slate-800 dark:text-neutral-100">{t.ts_dinner_close_required}</h3>
+                <span className="ml-auto rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/50 dark:text-amber-200">
                   {dinnerShiftsNeedingClose.length}
                 </span>
               </div>
@@ -1349,32 +1410,32 @@ export default function Timesheets() {
                 {dinnerShiftsNeedingClose.map((item) => (
                   <div
                     key={item.shift.id}
-                    className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 shadow-sm"
+                    className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm dark:border-amber-800/40 dark:bg-amber-950/35"
                   >
                     {/* Employee header */}
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-9 h-9 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-700 font-bold text-sm flex-shrink-0">
+                    <div className="mb-3 flex items-center gap-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-amber-200 text-sm font-bold text-amber-900 dark:bg-amber-900/60 dark:text-amber-100">
                         {item.user?.first_name?.[0] ?? '?'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-slate-800 text-sm">{item.user?.first_name ?? '—'}</p>
-                        <p className="text-[11px] text-slate-500 truncate">{item.user?.department ?? ''}</p>
+                        <p className="text-sm font-bold text-slate-800 dark:text-neutral-100">{item.user?.first_name ?? '—'}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-neutral-300 truncate">{item.user?.department ?? ''}</p>
                       </div>
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-sky-700 bg-sky-100 border border-sky-200 px-2 py-0.5 rounded-full flex-shrink-0">
-                        <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" /> {t.ts_badge_in_shift}
+                      <span className="flex flex-shrink-0 items-center gap-1 rounded-full border border-teal-200 bg-teal-100 px-2 py-0.5 text-[10px] font-bold text-teal-800 dark:border-teal-800/50 dark:bg-teal-950/50 dark:text-teal-200">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-teal-500" /> {t.ts_badge_in_shift}
                       </span>
                     </div>
                     {/* Times */}
                     <div className="grid grid-cols-2 gap-2 mb-3">
-                      <div className="bg-white/70 rounded-xl px-2.5 py-2 text-center">
-                        <p className="text-[9px] text-slate-400 uppercase font-semibold mb-0.5">{t.ts_label_planned}</p>
-                        <p className="text-sm font-bold text-slate-700 tabular-nums">
+                      <div className="rounded-xl bg-white/70 px-2.5 py-2 text-center dark:bg-neutral-950/50">
+                        <p className="mb-0.5 text-[9px] font-semibold uppercase text-slate-400 dark:text-neutral-400">{t.ts_label_planned}</p>
+                        <p className="text-sm font-bold text-slate-700 tabular-nums dark:text-neutral-200">
                           {item.scheduledStart}–{item.scheduledEnd}
                         </p>
                       </div>
-                      <div className="bg-white/70 rounded-xl px-2.5 py-2 text-center">
-                        <p className="text-[9px] text-slate-400 uppercase font-semibold mb-0.5">{t.ts_label_actual_entry}</p>
-                        <p className="text-sm font-bold text-slate-800 tabular-nums">{item.actualStart}</p>
+                      <div className="rounded-xl bg-white/70 px-2.5 py-2 text-center dark:bg-neutral-950/50">
+                        <p className="mb-0.5 text-[9px] font-semibold uppercase text-slate-400 dark:text-neutral-400">{t.ts_label_actual_entry}</p>
+                        <p className="text-sm font-bold text-slate-800 tabular-nums dark:text-neutral-100">{item.actualStart}</p>
                       </div>
                     </div>
                     {/* Close button */}
@@ -1435,7 +1496,7 @@ export default function Timesheets() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-slate-800 text-sm truncate">{item.user?.first_name ?? '—'}</p>
-                          <p className="text-[11px] text-slate-400">
+                          <p className="text-[11px] text-slate-400 dark:text-neutral-400">
                             {format(parseISO(item.dateStr), 'EEEE d MMM', { locale })}
                           </p>
                         </div>
@@ -1467,11 +1528,11 @@ export default function Timesheets() {
                             {item.auditEntries.map((e) => (
                               <li key={e.id} className="leading-snug border-b border-orange-100/80 pb-1.5 last:border-0 last:pb-0">
                                 <span className="font-semibold text-slate-800">{punchAuditFieldLabel(e.field)}</span>
-                                <span className="text-slate-500"> · </span>
+                                <span className="text-slate-500 dark:text-neutral-300"> · </span>
                                 <span className="tabular-nums">{formatAuditValue(e.old_value)}</span>
-                                <span className="text-slate-400"> → </span>
+                                <span className="text-slate-400 dark:text-neutral-400"> → </span>
                                 <span className="tabular-nums font-medium">{formatAuditValue(e.new_value)}</span>
-                                <span className="block text-[9px] text-slate-500 mt-0.5">{e.actor_name}</span>
+                                <span className="block text-[9px] text-slate-500 dark:text-neutral-300 mt-0.5">{e.actor_name}</span>
                               </li>
                             ))}
                           </ul>
@@ -1481,14 +1542,14 @@ export default function Timesheets() {
                       {/* Pianificato vs Timbrato */}
                       <div className="grid grid-cols-2 gap-2 mb-3">
                         <div className="bg-slate-50 rounded-xl px-2.5 py-2">
-                          <p className="text-[9px] text-slate-400 uppercase font-semibold mb-0.5">{t.ts_label_planned}</p>
+                          <p className="text-[9px] text-slate-400 dark:text-neutral-400 uppercase font-semibold mb-0.5">{t.ts_label_planned}</p>
                           <p className="text-sm font-semibold text-slate-600 tabular-nums">
                             {item.plannedStart} → {item.plannedEnd}
                           </p>
-                          <p className="text-[10px] text-slate-400 mt-0.5">{fmtHM(item.plannedMins)}</p>
+                          <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-0.5">{fmtHM(item.plannedMins)}</p>
                         </div>
                         <div className="bg-accent/5 rounded-xl px-2.5 py-2">
-                          <p className="text-[9px] text-slate-400 uppercase font-semibold mb-0.5">{t.ts_label_punched}</p>
+                          <p className="text-[9px] text-slate-400 dark:text-neutral-400 uppercase font-semibold mb-0.5">{t.ts_label_punched}</p>
                           <p className="text-sm font-bold text-slate-800 tabular-nums">
                             {item.actualStart} → {item.actualEnd}
                           </p>
@@ -1499,7 +1560,7 @@ export default function Timesheets() {
                             )}
                           </p>
                           {item.breakDeductionMins > 0 && (
-                            <p className="mt-0.5 text-[9px] font-normal leading-tight text-slate-400">
+                            <p className="mt-0.5 text-[9px] font-normal leading-tight text-slate-400 dark:text-neutral-400">
                               {t.ts_break_hint_ready_card}
                             </p>
                           )}
@@ -1560,47 +1621,73 @@ export default function Timesheets() {
           {uiW('timesheet.main_grid') && (
           <>
           <div id="timesheet-section-main-grid" className="ui-toolbar-row mb-4 w-full scroll-mt-24">
-            <span className="inline-flex h-[22px] shrink-0 items-center text-[10px] font-bold uppercase tracking-wide text-slate-400">
+            <span className="inline-flex h-[22px] shrink-0 items-center text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-neutral-400">
               {t.ts_filter_label}
             </span>
             {[
-              { key: 'approved',  label: t.ts_status_approved,   dot: 'bg-accent' },
-              { key: 'confirmed', label: t.ts_status_confirmed,  dot: 'bg-blue-400'    },
-              { key: 'draft',     label: t.ts_status_draft,      dot: 'bg-slate-300'   },
-              { key: 'unpunched', label: t.ts_status_unpunched,  dot: 'bg-red-400'     },
+              { key: 'approved', label: t.ts_status_approved, dot: 'bg-accent' },
+              { key: 'confirmed', label: t.ts_status_confirmed, dot: 'bg-slate-500 dark:bg-neutral-400' },
+              { key: 'draft', label: t.ts_status_draft, dot: 'bg-slate-300 dark:bg-neutral-500' },
+              { key: 'unpunched', label: t.ts_status_unpunched, dot: 'bg-slate-400 dark:bg-neutral-500' },
             ].map(({ key, label, dot }) => {
               const active = filterStatus === key;
               return (
-                <button key={key} type="button"
+                <button
+                  key={key}
+                  type="button"
                   onClick={() => setFilterStatus(active ? null : key)}
                   className={`ui-toolbar-chip shrink-0 gap-1 transition-all ${
                     active
-                      ? 'border-slate-800 bg-slate-800 text-white shadow-sm hover:bg-slate-800'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                  }`}>
-                  <span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-white' : dot}`} />
+                      ? 'border-slate-800 bg-slate-800 text-white shadow-sm hover:bg-slate-800 dark:border-neutral-200 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-neutral-700'
+                  }`}
+                >
+                  <span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-white dark:bg-neutral-800' : dot}`} />
+                  {label}
+                </button>
+              );
+            })}
+            <span className="inline-flex h-[22px] shrink-0 items-center text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-neutral-400 max-sm:basis-full">
+              {t.ts_filter_punches_label}
+            </span>
+            {[
+              { key: 'punched', label: t.ts_filter_punched, dot: 'bg-emerald-500' },
+              { key: 'punch_open', label: t.ts_status_in_shift, dot: 'bg-amber-500' },
+              { key: 'vis_validated', label: t.ts_legend_validated, dot: 'bg-accent' },
+              { key: 'vis_critical', label: t.ts_legend_critical, dot: 'bg-red-500' },
+              { key: 'vis_manual', label: t.ts_legend_manual_edit, dot: 'bg-orange-500' },
+              { key: 'vis_complete', label: t.ts_legend_complete, dot: 'bg-teal-600' },
+            ].map(({ key, label, dot }) => {
+              const active = filterStatus === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setFilterStatus(active ? null : key)}
+                  className={`ui-toolbar-chip shrink-0 gap-1 transition-all ${
+                    active
+                      ? 'border-slate-800 bg-slate-800 text-white shadow-sm hover:bg-slate-800 dark:border-neutral-200 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-neutral-700'
+                  }`}
+                >
+                  <span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-white dark:bg-neutral-800' : dot}`} />
                   {label}
                 </button>
               );
             })}
             {filterStatus && (
-              <button type="button" onClick={() => setFilterStatus(null)}
-                className="ui-toolbar-chip shrink-0 border-transparent bg-transparent shadow-none text-slate-500 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-800">
+              <button
+                type="button"
+                onClick={() => setFilterStatus(null)}
+                className="ui-toolbar-chip shrink-0 border-transparent bg-transparent shadow-none text-slate-500 dark:text-neutral-300 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-800 dark:hover:border-white/10 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+              >
                 <X className="h-3 w-3 shrink-0" /> {t.filter_all}
               </button>
             )}
-
-            {/* Legenda colori */}
-            <div className="ml-auto hidden h-[22px] items-center gap-2.5 sm:flex text-[10px] leading-none text-slate-400">
-              <span className="inline-flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-accent" /> {t.ts_legend_validated}</span>
-              <span className="inline-flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-red-400" /> {t.ts_legend_critical}</span>
-              <span className="inline-flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-orange-400" /> {t.ts_legend_manual_edit}</span>
-              <span className="inline-flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-blue-400" /> {t.ts_legend_complete}</span>
-            </div>
           </div>
 
           {/* ── Tabella principale ──────────────────────────────────────── */}
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-sm overflow-hidden">
             <HorizontalScrollArea
               variant="overlay"
               remeasureKey={`${viewMode}-${weekStr}-${weekDays.length}`}
@@ -1610,8 +1697,8 @@ export default function Timesheets() {
             >
             <table className="w-full border-collapse min-w-[700px]">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="sticky left-0 bg-slate-50 pl-4 pr-3 py-3.5 text-left text-slate-500 text-[11px] uppercase tracking-wider font-semibold min-w-[130px] border-r border-slate-100 z-10">
+                <tr className="border-b border-slate-100 dark:border-white/10">
+                  <th className="sticky left-0 bg-slate-50 dark:bg-neutral-800 pl-4 pr-3 py-3.5 text-left text-slate-500 dark:text-neutral-100 text-[11px] uppercase tracking-wider font-semibold min-w-[130px] border-r border-slate-100 dark:border-white/10 z-10">
                     {t.employee}
                   </th>
                   {weekDays.map((day, dayIdx) => {
@@ -1638,15 +1725,37 @@ export default function Timesheets() {
                               : undefined
                         }
                         className={`px-2 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap min-w-[92px] transition-colors ${
-                          weekEndCol ? 'border-r-2 border-r-slate-200' : 'border-r border-slate-100'
+                          weekEndCol ? 'border-r-2 border-r-slate-200 dark:border-r-white/10' : 'border-r border-slate-100 dark:border-white/10'
                         } ${
-                          payrollHighlight ? 'bg-emerald-50 ring-1 ring-inset ring-emerald-200/90' : todayDate ? 'bg-accent/5' : 'bg-slate-50'
-                        } ${viewMode === 'month' && !inP ? '!bg-slate-100/90 opacity-70' : ''} ${canReview ? 'cursor-pointer hover:bg-accent/10 group' : ''}`}
+                          payrollHighlight
+                            ? 'bg-emerald-50 dark:bg-emerald-950/45 ring-1 ring-inset ring-emerald-200/90 dark:ring-emerald-800/50'
+                            : todayDate
+                              ? 'bg-accent/5 dark:bg-accent/15'
+                              : 'bg-slate-50 dark:bg-neutral-800'
+                        } ${viewMode === 'month' && !inP ? '!bg-slate-100/90 dark:!bg-neutral-900/90 opacity-70' : ''} ${canReview ? 'cursor-pointer hover:bg-accent/10 dark:hover:bg-accent/20 group' : ''}`}
                       >
-                        <div className={todayDate && inP ? 'text-accent' : !inP ? 'text-slate-400' : 'text-slate-400'}>{format(day, 'EEE', { locale })}</div>
-                        <div className={`font-bold mt-0.5 text-sm ${todayDate && inP ? 'text-accent' : !inP ? 'text-slate-500' : payrollHighlight ? 'text-emerald-900' : 'text-slate-700'}`}>{format(day, 'd MMM', { locale })}</div>
+                        <div
+                          className={
+                            todayDate && inP ? 'text-accent' : !inP ? 'text-slate-400 dark:text-neutral-400' : 'text-slate-400 dark:text-neutral-200'
+                          }
+                        >
+                          {format(day, 'EEE', { locale })}
+                        </div>
+                        <div
+                          className={`font-bold mt-0.5 text-sm ${
+                            todayDate && inP
+                              ? 'text-accent'
+                              : !inP
+                                ? 'text-slate-500 dark:text-neutral-400'
+                                : payrollHighlight
+                                  ? 'text-emerald-900 dark:text-emerald-100'
+                                  : 'text-slate-700 dark:text-white'
+                          }`}
+                        >
+                          {format(day, 'd MMM', { locale })}
+                        </div>
                         {payrollHighlight && (
-                          <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-800">
+                          <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
                             {tv.ts_payroll_day_abbr ?? 'Paga'}
                           </div>
                         )}
@@ -1658,7 +1767,7 @@ export default function Timesheets() {
                       </th>
                     );
                   })}
-                  <th className="px-3 py-3.5 text-center text-slate-500 text-[11px] uppercase tracking-wider font-semibold bg-slate-50 border-l border-slate-100 min-w-[80px]">
+                  <th className="px-3 py-3.5 text-center text-slate-500 dark:text-neutral-100 text-[11px] uppercase tracking-wider font-semibold bg-slate-50 dark:bg-neutral-800 border-l border-slate-100 dark:border-white/10 min-w-[80px]">
                     {t.stats_total}
                   </th>
                 </tr>
@@ -1668,12 +1777,17 @@ export default function Timesheets() {
                 {visibleUsers.map((user, userIdx) => {
                   const totals = userTotals[user.id];
                   return (
-                    <tr key={user.id} className={`border-b border-slate-100 last:border-0 ${userIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
+                    <tr
+                      key={user.id}
+                      className={`border-b border-slate-100 dark:border-white/10 last:border-0 ${
+                        userIdx % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-slate-50/30 dark:bg-neutral-800/40'
+                      }`}
+                    >
                       {/* Nome dipendente */}
-                      <td className="sticky left-0 bg-inherit pl-4 pr-3 py-3 border-r border-slate-100 z-10">
-                        <div className="font-semibold text-sm text-slate-800">{user.first_name}</div>
+                      <td className="sticky left-0 bg-inherit pl-4 pr-3 py-3 border-r border-slate-100 dark:border-white/10 z-10">
+                        <div className="font-semibold text-sm text-slate-800 dark:text-neutral-100">{user.first_name}</div>
                         {user.department && (
-                          <div className="text-[10px] text-slate-400 mt-0.5">{user.department}</div>
+                          <div className="text-[10px] text-slate-400 dark:text-neutral-400 mt-0.5">{user.department}</div>
                         )}
                       </td>
 
@@ -1686,34 +1800,36 @@ export default function Timesheets() {
                         const isPayrollDay = dateStr === weekViewPayrollDayStr;
                         const payrollHighlight = isPayrollDay && (viewMode === 'week' || inP);
                         const weekEndCol = viewMode === 'month' && (dayIdx + 1) % 7 === 0;
-                        const tdBorder = weekEndCol ? 'border-r-2 border-r-slate-200' : 'border-r border-slate-100';
+                        const tdBorder = weekEndCol ? 'border-r-2 border-r-slate-200 dark:border-r-white/10' : 'border-r border-slate-100 dark:border-white/10';
                         const tdMuted = viewMode === 'month' && !inP;
                         const tdBg =
                           payrollHighlight
-                            ? 'bg-emerald-50/50'
+                            ? 'bg-emerald-50/50 dark:bg-emerald-950/25'
                             : todayDate && inP
-                              ? 'bg-accent/5'
+                              ? 'bg-accent/5 dark:bg-accent/10'
                               : tdMuted
-                                ? 'bg-slate-100/90 opacity-70'
+                                ? 'bg-slate-100/90 dark:bg-neutral-900/80 opacity-70'
                                 : '';
 
                         if (!dayData || dayData.shifts.length === 0) {
                           return (
                             <td key={dateStr} className={`px-2 py-3 text-center ${tdBorder} ${tdBg}`}>
-                              <span className={`text-sm ${tdMuted ? 'text-slate-300' : 'text-slate-200'}`}>–</span>
+                              <span className={`text-sm ${tdMuted ? 'text-slate-300 dark:text-neutral-600' : 'text-slate-200 dark:text-neutral-600'}`}>–</span>
                             </td>
                           );
                         }
 
-                        const filteredShifts = filterStatus ? dayData.shifts.filter((s) => {
-                          if (filterStatus === 'unpunched') return !s.punched;
-                          return s.status === filterStatus;
-                        }) : dayData.shifts;
+                        const filteredShifts = filterStatus
+                          ? dayData.shifts.filter((s) => {
+                              const auditN = s.punchInId ? (punchAudits[s.punchInId]?.length ?? 0) : 0;
+                              return shiftMatchesTimesheetFilter(s, filterStatus, auditN);
+                            })
+                          : dayData.shifts;
 
                         if (filteredShifts.length === 0) {
                           return (
                             <td key={dateStr} className={`px-2 py-3 text-center ${tdBorder} ${tdBg}`}>
-                              <span className={`text-sm ${tdMuted ? 'text-slate-300' : 'text-slate-200'}`}>–</span>
+                              <span className={`text-sm ${tdMuted ? 'text-slate-300 dark:text-neutral-600' : 'text-slate-200 dark:text-neutral-600'}`}>–</span>
                             </td>
                           );
                         }
@@ -1724,7 +1840,8 @@ export default function Timesheets() {
                               {filteredShifts.map((s) => {
                                 const punchAuditCount = s.punchInId ? (punchAudits[s.punchInId]?.length ?? 0) : 0;
                                 const { border, bg, ring, dot } = getShiftCardStyle(s, punchAuditCount);
-                                const deltaColor = s.deltaMins > 5 ? 'text-accent' : s.deltaMins < -5 ? 'text-red-500' : 'text-slate-500';
+                                const deltaColor =
+                                  s.deltaMins > 5 ? 'text-accent' : s.deltaMins < -5 ? 'text-red-500' : 'text-slate-500 dark:text-neutral-300';
 
                                 return (
                                   <button
@@ -1735,7 +1852,7 @@ export default function Timesheets() {
                                   >
                                     {/* Planned times */}
                                     <div className="flex items-center justify-between gap-1 mb-0.5">
-                                      <span className="text-[11px] font-semibold text-slate-600 tabular-nums">
+                                      <span className="text-[11px] font-semibold text-slate-600 dark:text-white tabular-nums">
                                         {s.plannedStart}–{s.plannedEnd || '?'}
                                       </span>
                                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dot}`} />
@@ -1744,7 +1861,7 @@ export default function Timesheets() {
                                     {s.punched ? (
                                       s.actualEnd ? (
                                         <div className="flex items-center justify-between">
-                                          <span className="text-[11px] font-bold text-slate-800 tabular-nums">
+                                          <span className="text-[11px] font-bold text-slate-800 dark:text-white tabular-nums">
                                             {s.actualStart}–{s.actualEnd}
                                           </span>
                                           <span className={`text-[10px] font-semibold ${deltaColor} tabular-nums`}>
@@ -1758,17 +1875,17 @@ export default function Timesheets() {
                                         </div>
                                       )
                                     ) : (
-                                      <div className="text-[10px] text-slate-400 italic">{t.ts_status_unpunched}</div>
+                                      <div className="text-[10px] text-slate-400 dark:text-neutral-400 italic">{t.ts_status_unpunched}</div>
                                     )}
                                     {/* Badge icone */}
                                     <div className="flex items-center gap-1 mt-1">
                                       {punchAuditCount > 0 && (
-                                        <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-orange-600 bg-orange-100 rounded-xl px-1 py-0.5">
+                                        <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-orange-600 dark:text-orange-200 bg-orange-100 dark:bg-orange-950/55 rounded-xl px-1 py-0.5">
                                           <ShieldAlert className="w-2.5 h-2.5" />{punchAuditCount}
                                         </span>
                                       )}
                                       {getShiftHistory(s.id).length > 0 && (
-                                        <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-600 bg-amber-100 rounded-xl px-1 py-0.5">
+                                        <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-600 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/50 rounded-xl px-1 py-0.5">
                                           <History className="w-2.5 h-2.5" />{getShiftHistory(s.id).length}
                                         </span>
                                       )}
@@ -1777,13 +1894,13 @@ export default function Timesheets() {
                                           <Lock className="w-2.5 h-2.5" />OK
                                         </span>
                                       )}
-                                      <ArrowRight className="w-2.5 h-2.5 text-slate-300 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                                      <ArrowRight className="w-2.5 h-2.5 text-slate-300 dark:text-neutral-500 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </div>
                                   </button>
                                 );
                               })}
                               {dayData.shifts.length > 1 && (
-                                <div className="text-[10px] font-semibold text-slate-500 text-right px-1 mt-0.5">
+                                <div className="text-[10px] font-semibold text-slate-500 dark:text-neutral-300 text-right px-1 mt-0.5">
                                   {fmtHM(dayData.totalPlannedMins)} / {dayData.totalActualMins > 0 ? fmtHM(dayData.totalActualMins) : '?'}
                                 </div>
                               )}
@@ -1793,13 +1910,13 @@ export default function Timesheets() {
                       })}
 
                       {/* Totale settimana */}
-                      <td className="px-3 py-3 text-center border-l border-slate-100 bg-slate-50/50">
-                        <div className="text-xs font-semibold text-slate-500">
+                      <td className="px-3 py-3 text-center border-l border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-neutral-800/60">
+                        <div className="text-xs font-semibold text-slate-500 dark:text-neutral-200">
                           {formatMinutesToHoursAndMinutes(totals?.plannedMins ?? 0)}
                         </div>
                         {(totals?.actualMins ?? 0) > 0 && (
                           <>
-                            <div className="text-sm font-bold text-slate-900">{formatMinutesToHoursAndMinutes(totals?.actualMins ?? 0)}</div>
+                            <div className="text-sm font-bold text-slate-900 dark:text-white">{formatMinutesToHoursAndMinutes(totals?.actualMins ?? 0)}</div>
                             <div className={`text-[10px] font-semibold ${(totals?.deltaMins ?? 0) >= 0 ? 'text-accent' : 'text-red-500'}`}>
                               {(totals?.deltaMins ?? 0) >= 0 ? '+' : ''}{fmtHM(totals?.deltaMins ?? 0)}
                             </div>
@@ -1815,11 +1932,11 @@ export default function Timesheets() {
                   <tr>
                     <td colSpan={weekDays.length + 2} className="py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
-                          <Calendar className="w-6 h-6 text-slate-300" />
+                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-neutral-800 flex items-center justify-center">
+                          <Calendar className="w-6 h-6 text-slate-300 dark:text-neutral-500" />
                         </div>
-                        <p className="text-slate-600 font-semibold text-sm">{t.ts_no_data}</p>
-                        <p className="text-slate-400 text-xs">{t.ts_no_employees_this_week}</p>
+                        <p className="text-slate-600 dark:text-white font-semibold text-sm">{t.ts_no_data}</p>
+                        <p className="text-slate-400 dark:text-neutral-400 text-xs">{t.ts_no_employees_this_week}</p>
                       </div>
                     </td>
                   </tr>
@@ -1831,11 +1948,11 @@ export default function Timesheets() {
                   <tr>
                     <td colSpan={weekDays.length + 2} className="py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
-                          <Calendar className="w-6 h-6 text-slate-300" />
+                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-neutral-800 flex items-center justify-center">
+                          <Calendar className="w-6 h-6 text-slate-300 dark:text-neutral-500" />
                         </div>
-                        <p className="text-slate-600 font-semibold text-sm">{t.ts_no_shifts_this_week}</p>
-                        <p className="text-slate-400 text-xs">{t.ts_no_shifts_description}</p>
+                        <p className="text-slate-600 dark:text-white font-semibold text-sm">{t.ts_no_shifts_this_week}</p>
+                        <p className="text-slate-400 dark:text-neutral-400 text-xs">{t.ts_no_shifts_description}</p>
                       </div>
                     </td>
                   </tr>
@@ -1845,8 +1962,8 @@ export default function Timesheets() {
               {/* Footer totali */}
               {canTeamTimesheetOps && (
                 <tfoot>
-                  <tr className="bg-slate-50 border-t border-slate-200">
-                    <td className="sticky left-0 bg-slate-50 pl-4 pr-3 py-3 text-slate-600 font-bold text-xs uppercase border-r border-slate-100 z-10">
+                  <tr className="bg-slate-50 dark:bg-neutral-800 border-t border-slate-200 dark:border-white/10">
+                    <td className="sticky left-0 bg-slate-50 dark:bg-neutral-800 pl-4 pr-3 py-3 text-slate-600 dark:text-white font-bold text-xs uppercase border-r border-slate-100 dark:border-white/10 z-10">
                       {t.stats_total}
                     </td>
                     {weekDays.map((day, dayIdx) => {
@@ -1857,36 +1974,38 @@ export default function Timesheets() {
                       const isPayrollDay = dateStr === weekViewPayrollDayStr;
                       const payrollHighlight = isPayrollDay && (viewMode === 'week' || inP);
                       const weekEndCol = viewMode === 'month' && (dayIdx + 1) % 7 === 0;
-                      const tdBorder = weekEndCol ? 'border-r-2 border-r-slate-200' : 'border-r border-slate-100';
+                      const tdBorder = weekEndCol ? 'border-r-2 border-r-slate-200 dark:border-r-white/10' : 'border-r border-slate-100 dark:border-white/10';
                       const tdMuted = viewMode === 'month' && !inP;
                       const tdBg =
                         payrollHighlight
-                          ? 'bg-emerald-50/50'
+                          ? 'bg-emerald-50/50 dark:bg-emerald-950/25'
                           : tdMuted
-                            ? 'bg-slate-100/90 opacity-70'
+                            ? 'bg-slate-100/90 dark:bg-neutral-900/80 opacity-70'
                             : '';
                       return (
                         <td key={dateStr} className={`px-2 py-3 text-center ${tdBorder} text-xs ${tdBg}`}>
                           {planned > 0 ? (
                             <>
-                              <div className={tdMuted ? 'text-slate-400' : 'text-slate-500'}>{formatMinutesToHoursAndMinutes(planned)}</div>
+                              <div className={tdMuted ? 'text-slate-400 dark:text-neutral-500' : 'text-slate-500 dark:text-neutral-200'}>
+                                {formatMinutesToHoursAndMinutes(planned)}
+                              </div>
                               {actual > 0 && (
-                                <div className={`font-semibold ${tdMuted ? 'text-slate-500' : 'text-slate-800'}`}>
+                                <div className={`font-semibold ${tdMuted ? 'text-slate-500 dark:text-neutral-300' : 'text-slate-800 dark:text-white'}`}>
                                   {formatMinutesToHoursAndMinutes(actual)}
                                 </div>
                               )}
                             </>
                           ) : (
-                            <span className={tdMuted ? 'text-slate-300' : 'text-slate-300'}>–</span>
+                            <span className={tdMuted ? 'text-slate-300 dark:text-neutral-600' : 'text-slate-300 dark:text-neutral-600'}>–</span>
                           )}
                         </td>
                       );
                     })}
-                    <td className="px-3 py-3 text-center bg-slate-50 border-l border-slate-100">
-                      <div className="text-xs text-slate-500">
+                    <td className="px-3 py-3 text-center bg-slate-50 dark:bg-neutral-800 border-l border-slate-100 dark:border-white/10">
+                      <div className="text-xs text-slate-500 dark:text-neutral-200">
                         {formatMinutesToHoursAndMinutes(visibleUsers.reduce((s, u) => s + (userTotals[u.id]?.plannedMins ?? 0), 0))}
                       </div>
-                      <div className="text-xs font-bold text-slate-900">
+                      <div className="text-xs font-bold text-slate-900 dark:text-white">
                         {(() => { const act = visibleUsers.reduce((s, u) => s + (userTotals[u.id]?.actualMins ?? 0), 0); return act > 0 ? formatMinutesToHoursAndMinutes(act) : ''; })()}
                       </div>
                     </td>
@@ -1901,8 +2020,8 @@ export default function Timesheets() {
 
           {/* Box personale per staff */}
           {!canTeamTimesheetOps && currentUser && uiW('timesheet.staff_summary_box') && (
-            <div className="mt-4 bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <p className="text-xs uppercase tracking-wider text-slate-400 mb-3 font-semibold">
+            <div className="mt-4 bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm p-5">
+              <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-3 font-semibold">
                 {t.timesheet_my_week}
               </p>
               <div className="grid grid-cols-3 gap-4">
@@ -1912,7 +2031,7 @@ export default function Timesheets() {
                   { label: t.ts_kpi_delta, val: `${(userTotals[currentUser.id]?.deltaMins ?? 0) >= 0 ? '+' : ''}${fmtHM(userTotals[currentUser.id]?.deltaMins ?? 0)}`, color: (userTotals[currentUser.id]?.deltaMins ?? 0) >= 0 ? 'text-accent' : 'text-red-500' },
                 ].map(({ label, val, color }) => (
                   <div key={label}>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">{label}</p>
+                    <p className="text-[10px] text-slate-400 dark:text-neutral-400 uppercase tracking-wide mb-1">{label}</p>
                     <p className={`text-2xl font-bold ${color}`}>{val}</p>
                   </div>
                 ))}
@@ -1936,7 +2055,8 @@ export default function Timesheets() {
           const punchAuditEntries = drawerData.punchAuditEntries;
           const shiftEdits = drawerData.shiftEdits;
           const { dot, border, bg, ring, label, labelCls } = getShiftCardStyle(s, punchAuditEntries.length);
-          const deltaColor = s.deltaMins > 5 ? 'text-accent' : s.deltaMins < -5 ? 'text-red-500' : 'text-slate-500';
+          const deltaColor =
+            s.deltaMins > 5 ? 'text-accent' : s.deltaMins < -5 ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-neutral-400';
 
           return (
             <>
@@ -1945,16 +2065,16 @@ export default function Timesheets() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px]"
+                className="fixed inset-0 z-[55] bg-black/30 backdrop-blur-[2px] dark:bg-black/55"
                 onClick={() => setDrawerData(null)}
               />
-              {/* Drawer panel */}
+              {/* Drawer panel — z sopra BottomNav (z-50) così il footer non resta coperto */}
               <motion.div
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm bg-white shadow-2xl flex flex-col"
+                className="fixed top-0 right-0 bottom-0 z-[60] flex w-full max-w-sm flex-col border-l border-transparent bg-white shadow-2xl dark:border-white/10 dark:bg-neutral-900"
               >
                 {/* Drawer header — strip colorato in base allo stato */}
                 <div className={`border-l-4 ${border} ${bg} ${ring}`}>
@@ -1966,21 +2086,26 @@ export default function Timesheets() {
                           {label}
                         </span>
                         {drawerData.department && (
-                          <span className="text-[10px] font-medium text-slate-400 bg-white/70 px-2 py-0.5 rounded-full border border-slate-200 truncate">
+                          <span className="truncate rounded-full border border-slate-200 bg-white/70 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:border-white/10 dark:bg-neutral-800/80 dark:text-neutral-300">
                             {drawerData.department}
                           </span>
                         )}
                         {isApproved && <Lock className="w-3.5 h-3.5 text-accent ml-auto flex-shrink-0" />}
                       </div>
-                      <h3 className="font-bold text-slate-900 text-xl leading-tight truncate">{drawerData.employeeName}</h3>
-                      <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                      <h3 className="truncate text-xl font-bold leading-tight text-slate-900 dark:text-neutral-100">
+                        {drawerData.employeeName}
+                      </h3>
+                      <p className="text-sm text-slate-500 dark:text-neutral-300 mt-1 flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
                         {format(parseISO(drawerData.dateStr), 'EEEE d MMMM yyyy', { locale })}
                       </p>
                     </div>
-                    <button type="button" onClick={() => setDrawerData(null)}
-                      className="ml-3 flex-shrink-0 p-2 rounded-xl hover:bg-white/80 transition-colors">
-                      <X className="w-4 h-4 text-slate-500" />
+                    <button
+                      type="button"
+                      onClick={() => setDrawerData(null)}
+                      className="ml-3 flex-shrink-0 rounded-xl p-2 transition-colors hover:bg-white/80 dark:hover:bg-white/10"
+                    >
+                      <X className="h-4 w-4 text-slate-500 dark:text-neutral-300" />
                     </button>
                   </div>
                 </div>
@@ -1988,30 +2113,36 @@ export default function Timesheets() {
                 {/* Drawer body */}
                 <div className="flex-1 overflow-y-auto">
                   {/* Riepilogo ore */}
-                  <div className="p-5 border-b border-slate-100">
-                    <div className="grid grid-cols-2 gap-3 mb-3">
-                      <div className="bg-slate-50 rounded-xl p-3">
-                        <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1">{t.ts_label_planned}</p>
-                        <p className="text-base font-bold text-slate-800 tabular-nums">{s.plannedStart}–{s.plannedEnd}</p>
-                        <p className="text-[11px] text-slate-500 mt-0.5">{fmtHM(s.plannedMins)}</p>
+                  <div className="border-b border-slate-100 p-5 dark:border-white/10">
+                    <div className="mb-3 grid grid-cols-2 gap-3">
+                      <div className="rounded-xl bg-slate-50 p-3 dark:bg-neutral-800/60">
+                        <p className="mb-1 text-[10px] font-semibold uppercase text-slate-400 dark:text-neutral-400">{t.ts_label_planned}</p>
+                        <p className="text-base font-bold text-slate-800 tabular-nums dark:text-neutral-100">{s.plannedStart}–{s.plannedEnd}</p>
+                        <p className="mt-0.5 text-[11px] text-slate-500 dark:text-neutral-300">{fmtHM(s.plannedMins)}</p>
                       </div>
-                      <div className={`rounded-xl p-3 ${s.punched ? (s.isCrossDay ? 'bg-red-50' : 'bg-blue-50') : 'bg-red-50'}`}>
-                        <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1">{t.ts_label_punched}</p>
+                      <div
+                        className={`rounded-xl p-3 ${
+                          s.punched ? (s.isCrossDay ? 'bg-red-50 dark:bg-red-950/35' : 'bg-teal-50 dark:bg-teal-950/35') : 'bg-red-50 dark:bg-red-950/35'
+                        }`}
+                      >
+                        <p className="mb-1 text-[10px] font-semibold uppercase text-slate-400 dark:text-neutral-400">{t.ts_label_punched}</p>
                         {s.punched ? (
                           <>
-                            <p className="text-base font-bold text-slate-800 tabular-nums">
+                            <p className="text-base font-bold tabular-nums text-slate-800 dark:text-neutral-100">
                               {s.actualStart}
                               {s.actualEnd ? `–${s.actualEnd}` : ''}
                             </p>
                             {s.isCrossDay && s.actualEndFull && (
-                              <p className="text-[10px] font-bold text-red-600 mt-0.5 flex items-center gap-1">
+                              <p className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400">
                                 <AlertTriangle className="w-3 h-3 flex-shrink-0" />
                                 {formatTrans(t.ts_crossday_out_label, {
                                   time: format(new Date(s.actualEndFull), 'dd/MM HH:mm'),
                                 })}
                               </p>
                             )}
-                            <p className={`text-[11px] font-semibold mt-0.5 ${s.actualMins > 0 && !s.isCrossDay ? deltaColor : 'text-amber-600'}`}>
+                            <p
+                              className={`mt-0.5 text-[11px] font-semibold ${s.actualMins > 0 && !s.isCrossDay ? deltaColor : 'text-amber-600 dark:text-amber-400'}`}
+                            >
                               {s.isCrossDay
                                 ? t.ts_fix_exit_time_label
                                 : s.actualMins > 0
@@ -2020,7 +2151,7 @@ export default function Timesheets() {
                             </p>
                           </>
                         ) : (
-                          <p className="text-sm font-semibold text-red-500">{t.ts_status_unpunched}</p>
+                          <p className="text-sm font-semibold text-red-500 dark:text-red-400">{t.ts_status_unpunched}</p>
                         )}
                       </div>
                     </div>
@@ -2028,7 +2159,7 @@ export default function Timesheets() {
                     {/* Ore effettive summary se complete */}
                     {s.punched && s.actualEnd && (
                       <div className="flex items-center gap-2 mt-1">
-                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-neutral-700">
                           <div
                             className={`h-full rounded-full transition-all ${s.deltaMins >= 0 ? 'bg-accent' : 'bg-red-400'}`}
                             style={{ width: `${Math.min(100, Math.max(5, (s.actualMins / Math.max(s.plannedMins, 1)) * 100))}%` }}
@@ -2043,26 +2174,24 @@ export default function Timesheets() {
 
                   {/* ── Blocco Approvazione (sempre visibile se approvato) ── */}
                   {isApproved && (
-                    <div className="p-5 border-b border-slate-100 bg-accent/5">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 rounded-xl bg-accent/15 flex items-center justify-center flex-shrink-0">
-                          <Lock className="w-4 h-4 text-accent" />
+                    <div className="border-b border-slate-100 bg-accent/5 p-5 dark:border-white/10 dark:bg-accent/10">
+                      <div className="mb-3 flex items-center gap-2">
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-accent/15">
+                          <Lock className="h-4 w-4 text-accent" />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-accent-dark">{t.ts_drawer_approved_frozen}</p>
-                          <p className="text-[11px] text-accent">{t.ts_drawer_no_further_edits}</p>
+                          <p className="text-sm font-bold text-accent-dark dark:text-accent-light">{t.ts_drawer_approved_frozen}</p>
+                          <p className="text-[11px] text-accent dark:text-accent-light/90">{t.ts_drawer_no_further_edits}</p>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <div className="bg-white/80 rounded-xl p-3">
-                          <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wide mb-1">{t.ts_drawer_approved_by}</p>
-                          <p className="text-sm font-bold text-slate-800 truncate">
-                            {s.approved_by ?? '—'}
-                          </p>
+                        <div className="rounded-xl bg-white/80 p-3 dark:bg-neutral-800/90">
+                          <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_drawer_approved_by}</p>
+                          <p className="truncate text-sm font-bold text-slate-800 dark:text-neutral-100">{s.approved_by ?? '—'}</p>
                         </div>
-                        <div className="bg-white/80 rounded-xl p-3">
-                          <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wide mb-1">{t.ts_drawer_approval_date}</p>
-                          <p className="text-sm font-bold text-slate-800">
+                        <div className="rounded-xl bg-white/80 p-3 dark:bg-neutral-800/90">
+                          <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_drawer_approval_date}</p>
+                          <p className="text-sm font-bold text-slate-800 dark:text-neutral-100">
                             {s.approved_at
                               ? format(new Date(s.approved_at), 'dd/MM/yyyy HH:mm')
                               : '—'}
@@ -2074,27 +2203,34 @@ export default function Timesheets() {
 
                   {/* Audit log timbrature */}
                   {punchAuditEntries.length > 0 && (
-                    <div className="p-5 border-b border-slate-100">
-                      <div className="flex items-center gap-2 mb-3">
-                        <ShieldAlert className="w-4 h-4 text-orange-500" />
-                        <h4 className="text-sm font-bold text-slate-800">{t.ts_drawer_punch_edits}</h4>
-                        <span className="ml-auto text-[10px] font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
+                    <div className="border-b border-slate-100 p-5 dark:border-white/10">
+                      <div className="mb-3 flex items-center gap-2">
+                        <ShieldAlert className="h-4 w-4 text-orange-500 dark:text-orange-400" />
+                        <h4 className="text-sm font-bold text-slate-800 dark:text-neutral-100">{t.ts_drawer_punch_edits}</h4>
+                        <span className="ml-auto rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700 dark:bg-orange-950/50 dark:text-orange-200">
                           {punchAuditEntries.length}
                         </span>
                       </div>
                       <div className="flex flex-col gap-2">
                         {punchAuditEntries.map((e) => (
-                          <div key={e.id} className="bg-orange-50 border border-orange-100 rounded-xl p-3">
-                            <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1.5">
-                              <span className="font-semibold uppercase tracking-wide text-orange-600">{e.field}</span>
+                          <div
+                            key={e.id}
+                            className="rounded-xl border border-orange-100 bg-orange-50/90 p-3 dark:border-orange-900/40 dark:bg-orange-950/35"
+                          >
+                            <div className="mb-1.5 flex items-center justify-between text-[10px] text-slate-500 dark:text-neutral-400">
+                              <span className="font-semibold uppercase tracking-wide text-orange-700 dark:text-orange-300">{e.field}</span>
                               <span>{format(new Date(e.changed_at), 'dd/MM HH:mm')}</span>
                             </div>
                             <div className="flex items-center gap-2 text-xs">
-                              <span className="text-red-500 line-through bg-red-50 px-1.5 py-0.5 rounded-xl">{fmtAuditValue(e.old_value)}</span>
-                              <ArrowRight className="w-3 h-3 text-slate-400 flex-shrink-0" />
-                              <span className="text-accent-dark font-semibold bg-accent/5 px-1.5 py-0.5 rounded-xl">{fmtAuditValue(e.new_value)}</span>
+                              <span className="rounded-xl bg-red-50 px-1.5 py-0.5 text-red-600 line-through dark:bg-red-950/50 dark:text-red-300">
+                                {fmtAuditValue(e.old_value)}
+                              </span>
+                              <ArrowRight className="h-3 w-3 flex-shrink-0 text-slate-400 dark:text-neutral-500" />
+                              <span className="rounded-xl bg-accent/10 px-1.5 py-0.5 font-semibold text-accent-dark dark:bg-accent/20 dark:text-accent-light">
+                                {fmtAuditValue(e.new_value)}
+                              </span>
                             </div>
-                            <p className="text-[10px] text-slate-400 mt-1.5">da {e.actor_name}</p>
+                            <p className="mt-1.5 text-[10px] text-slate-500 dark:text-neutral-400">da {e.actor_name}</p>
                           </div>
                         ))}
                       </div>
@@ -2103,27 +2239,34 @@ export default function Timesheets() {
 
                   {/* Storico modifiche turno */}
                   {shiftEdits.length > 0 && (
-                    <div className="p-5 border-b border-slate-100">
-                      <div className="flex items-center gap-2 mb-3">
-                        <History className="w-4 h-4 text-amber-500" />
-                        <h4 className="text-sm font-bold text-slate-800">{t.ts_drawer_shift_edits}</h4>
-                        <span className="ml-auto text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+                    <div className="border-b border-slate-100 p-5 dark:border-white/10">
+                      <div className="mb-3 flex items-center gap-2">
+                        <History className="h-4 w-4 text-amber-500 dark:text-amber-400" />
+                        <h4 className="text-sm font-bold text-slate-800 dark:text-neutral-100">{t.ts_drawer_shift_edits}</h4>
+                        <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950/50 dark:text-amber-200">
                           {shiftEdits.length}
                         </span>
                       </div>
                       <div className="flex flex-col gap-2">
                         {shiftEdits.map((e) => (
-                          <div key={e.id} className="bg-amber-50 border border-amber-100 rounded-xl p-3">
-                            <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1.5">
-                              <span className="font-semibold uppercase tracking-wide text-amber-600">{e.field}</span>
+                          <div
+                            key={e.id}
+                            className="rounded-xl border border-amber-100 bg-amber-50/90 p-3 dark:border-amber-900/40 dark:bg-amber-950/35"
+                          >
+                            <div className="mb-1.5 flex items-center justify-between text-[10px] text-slate-500 dark:text-neutral-400">
+                              <span className="font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">{e.field}</span>
                               <span>{format(new Date(e.timestamp), 'dd/MM HH:mm')}</span>
                             </div>
                             <div className="flex items-center gap-2 text-xs">
-                              <span className="text-red-500 line-through bg-red-50 px-1.5 py-0.5 rounded-xl">{e.oldValue}</span>
-                              <ArrowRight className="w-3 h-3 text-slate-400 flex-shrink-0" />
-                              <span className="text-accent-dark font-semibold bg-accent/5 px-1.5 py-0.5 rounded-xl">{e.newValue}</span>
+                              <span className="rounded-xl bg-red-50 px-1.5 py-0.5 text-red-600 line-through dark:bg-red-950/50 dark:text-red-300">
+                                {e.oldValue}
+                              </span>
+                              <ArrowRight className="h-3 w-3 flex-shrink-0 text-slate-400 dark:text-neutral-500" />
+                              <span className="rounded-xl bg-accent/10 px-1.5 py-0.5 font-semibold text-accent-dark dark:bg-accent/20 dark:text-accent-light">
+                                {e.newValue}
+                              </span>
                             </div>
-                            <p className="text-[10px] text-slate-400 mt-1.5">da {e.actorName}</p>
+                            <p className="mt-1.5 text-[10px] text-slate-500 dark:text-neutral-400">da {e.actorName}</p>
                           </div>
                         ))}
                       </div>
@@ -2131,8 +2274,8 @@ export default function Timesheets() {
                   )}
 
                   {punchAuditEntries.length === 0 && shiftEdits.length === 0 && (
-                    <div className="p-5 text-center text-slate-400 text-sm">
-                      <FileEdit className="w-8 h-8 mx-auto mb-2 text-slate-200" />
+                    <div className="p-5 text-center text-sm text-slate-400 dark:text-neutral-400">
+                      <FileEdit className="mx-auto mb-2 h-8 w-8 text-slate-200 dark:text-neutral-600" />
                       {t.ts_drawer_no_edits}
                     </div>
                   )}
@@ -2140,24 +2283,23 @@ export default function Timesheets() {
 
                 {/* Drawer footer – azioni */}
                 {canTeamTimesheetOps && !isApproved && (
-                  <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-col gap-3">
-
+                  <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] dark:border-white/10 dark:bg-neutral-900">
                     {/* ── Modifica orario turno ── */}
                     <div>
-                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">{t.ts_drawer_shift_time}</p>
+                      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_drawer_shift_time}</p>
                       <div className="flex items-center gap-2">
                         <input
                           type="time"
                           value={drawerEditStart}
                           onChange={(e) => setDrawerEditStart(e.target.value)}
-                          className="flex-1 px-2 py-2 rounded-xl border border-slate-200 text-slate-900 font-bold text-sm text-center focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                          className="flex-1 rounded-xl border border-slate-200 bg-white px-2 py-2 text-center text-sm font-bold text-slate-900 outline-none focus:border-transparent focus:ring-2 focus:ring-accent dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100"
                         />
-                        <span className="text-slate-400 font-bold text-sm">–</span>
+                        <span className="text-sm font-bold text-slate-400 dark:text-neutral-400">–</span>
                         <input
                           type="time"
                           value={drawerEditEnd}
                           onChange={(e) => setDrawerEditEnd(e.target.value)}
-                          className="flex-1 px-2 py-2 rounded-xl border border-slate-200 text-slate-900 font-bold text-sm text-center focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                          className="flex-1 rounded-xl border border-slate-200 bg-white px-2 py-2 text-center text-sm font-bold text-slate-900 outline-none focus:border-transparent focus:ring-2 focus:ring-accent dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100"
                         />
                         <button
                           type="button"
@@ -2176,7 +2318,9 @@ export default function Timesheets() {
                     {/* ── Correggi orario uscita (quando OUT già esiste ma è sbagliato) ── */}
                     {s.punched && s.punchOutId && (
                       <div>
-                        <p className={`text-[10px] font-semibold uppercase tracking-wide mb-1.5 ${s.isCrossDay ? 'text-red-500' : 'text-slate-400'}`}>
+                        <p
+                          className={`mb-1.5 text-[10px] font-semibold uppercase tracking-wide ${s.isCrossDay ? 'text-red-500 dark:text-red-400' : 'text-slate-400 dark:text-neutral-400'}`}
+                        >
                           {s.isCrossDay ? t.ts_drawer_fix_exit_datetime : t.ts_drawer_exit_time_punched}
                         </p>
                         <div className="flex items-center gap-2">
@@ -2184,13 +2328,13 @@ export default function Timesheets() {
                             type="date"
                             value={drawerEditOutDate}
                             onChange={(e) => setDrawerEditOutDate(e.target.value)}
-                            className="w-[130px] px-2 py-2 rounded-xl border border-slate-200 text-slate-900 text-xs text-center focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                            className="w-[130px] rounded-xl border border-slate-200 bg-white px-2 py-2 text-center text-xs text-slate-900 outline-none focus:border-transparent focus:ring-2 focus:ring-accent dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100"
                           />
                           <input
                             type="time"
                             value={drawerEditOutTime}
                             onChange={(e) => setDrawerEditOutTime(e.target.value)}
-                            className="flex-1 px-2 py-2 rounded-xl border border-slate-200 text-slate-900 font-bold text-sm text-center focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                            className="flex-1 rounded-xl border border-slate-200 bg-white px-2 py-2 text-center text-sm font-bold text-slate-900 outline-none focus:border-transparent focus:ring-2 focus:ring-accent dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100"
                           />
                           <button
                             type="button"
@@ -2230,9 +2374,15 @@ export default function Timesheets() {
                     )}
                     {canApprove && (
                       <>
-                        <div className="flex items-center justify-between text-xs text-slate-500 px-1">
-                          <span>{t.ts_kpi_planned}: <strong className="text-slate-700">{fmtHM(s.plannedMins)}</strong></span>
-                          <span>{t.ts_kpi_actual}: <strong className="text-slate-700">{fmtHM(s.actualMins)}</strong></span>
+                        <div className="flex items-center justify-between px-1 text-xs text-slate-500 dark:text-neutral-300">
+                          <span>
+                            {t.ts_kpi_planned}:{' '}
+                            <strong className="text-slate-700 dark:text-neutral-200">{fmtHM(s.plannedMins)}</strong>
+                          </span>
+                          <span>
+                            {t.ts_kpi_actual}:{' '}
+                            <strong className="text-slate-700 dark:text-neutral-200">{fmtHM(s.actualMins)}</strong>
+                          </span>
                           <span className={`font-bold ${deltaColor}`}>{s.deltaMins >= 0 ? '+' : ''}{fmtHM(s.deltaMins)}</span>
                         </div>
                         <button type="button"
@@ -2259,7 +2409,7 @@ export default function Timesheets() {
                       </>
                     )}
                     {!canClose && !canApprove && (
-                      <p className="text-xs text-slate-400 text-center py-1">
+                      <p className="text-xs text-slate-400 dark:text-neutral-400 text-center py-1">
                         {!s.punched
                           ? t.ts_drawer_not_punched_yet
                           : drawerData.dateStr >= todayStr
@@ -2272,26 +2422,24 @@ export default function Timesheets() {
                 {isApproved && (() => {
                   const fullShift = shifts.find((sh) => sh.id === s.id);
                   return (
-                    <div className="p-4 border-t border-accent/20 bg-accent/5">
-                      <div className="flex items-center gap-2 text-accent-dark text-sm font-semibold mb-1">
-                        <Lock className="w-4 h-4 flex-shrink-0" />
+                    <div className="border-t border-accent/20 bg-accent/5 p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] dark:border-accent/30 dark:bg-accent/10">
+                      <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-accent-dark dark:text-accent-light">
+                        <Lock className="h-4 w-4 flex-shrink-0" />
                         {t.ts_shift_approved_frozen}
                       </div>
                       {fullShift?.approved_by && (
-                        <p className="text-[11px] text-accent pl-6">
+                        <p className="pl-6 text-[11px] text-accent dark:text-accent-light/95">
                           da <strong>{fullShift.approved_by}</strong>
                           {fullShift.approved_at && (
                             <> · {format(new Date(fullShift.approved_at), 'dd/MM/yyyy HH:mm')}</>
                           )}
                         </p>
                       )}
-                      <p className="text-[10px] text-accent/70 pl-6 mt-0.5">
-                        {t.ts_no_edits_allowed}
-                      </p>
+                      <p className="mt-0.5 pl-6 text-[10px] text-accent/70 dark:text-accent-light/70">{t.ts_no_edits_allowed}</p>
                       {canTeamTimesheetOps && featureFlags['unlock_with_pin'] !== false && (
                         unlockModalShiftId === s.id ? (
                           <div className="mt-3">
-                            <p className="text-[11px] text-slate-500 mb-1.5 text-center">{t.ts_enter_manager_pin}</p>
+                            <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-1.5 text-center">{t.ts_enter_manager_pin}</p>
                             <input
                               type="password"
                               inputMode="numeric"
@@ -2305,12 +2453,12 @@ export default function Timesheets() {
                                 setUnlockError('');
                                 if (val.length === 4) handleUnlockShift(val);
                               }}
-                              className={`w-full text-center text-2xl tracking-[0.5em] font-bold px-3 py-2.5 rounded-xl border focus:outline-none focus:ring-2 transition-all ${unlockError ? 'border-red-400 ring-red-200 bg-red-50 text-red-600' : 'border-slate-300 ring-accent/30 bg-white text-slate-900'}`}
+                              className={`w-full rounded-xl border px-3 py-2.5 text-center text-2xl font-bold tracking-[0.5em] transition-all focus:outline-none focus:ring-2 ${unlockError ? 'border-red-400 bg-red-50 text-red-600 ring-red-200 dark:bg-red-950/40 dark:text-red-300' : 'border-slate-300 bg-white text-slate-900 ring-accent/30 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100'}`}
                             />
                             {unlockError && <p className="text-[11px] text-red-500 text-center mt-1 font-semibold">{unlockError}</p>}
                             {unlocking && <p className="text-[11px] text-accent text-center mt-1">{t.ts_unlocking}</p>}
                             <button type="button" onClick={() => { setUnlockModalShiftId(null); setUnlockPin(''); setUnlockError(''); }}
-                              className="mt-2 w-full text-[11px] text-slate-400 hover:text-slate-600 transition-colors">
+                              className="mt-2 w-full text-[11px] text-slate-400 dark:text-neutral-400 hover:text-slate-600 transition-colors">
                               {t.cancel}
                             </button>
                           </div>
@@ -2318,7 +2466,7 @@ export default function Timesheets() {
                           <button
                             type="button"
                             onClick={() => { setUnlockModalShiftId(s.id); setUnlockPin(''); setUnlockError(''); }}
-                            className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors"
+                            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/40"
                           >
                             <Unlock className="w-3.5 h-3.5" />
                             {t.ts_btn_unlock_to_edit}
@@ -2360,18 +2508,18 @@ export default function Timesheets() {
                       <LogOut className="w-4 h-4 text-amber-500" />
                       {t.ts_modal_close_shift_title}
                     </h3>
-                    <p className="text-sm text-slate-500 mt-0.5">
+                    <p className="text-sm text-slate-500 dark:text-neutral-300 mt-0.5">
                       {closingShift.employeeName} · {format(parseISO(closingShift.dateStr), 'd MMM', { locale })}
                     </p>
                   </div>
                   <button type="button" onClick={() => { setClosingShift(null); setClockOutTime(''); }}
                     className="p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
-                    <X className="w-4 h-4 text-slate-500" />
+                    <X className="w-4 h-4 text-slate-500 dark:text-neutral-300" />
                   </button>
                 </div>
 
                 <div className="bg-slate-50 rounded-xl px-3 py-2.5 mb-4 flex items-center justify-between text-sm">
-                  <span className="text-slate-500">{t.ts_modal_entry_registered}</span>
+                  <span className="text-slate-500 dark:text-neutral-300">{t.ts_modal_entry_registered}</span>
                   <span className="font-bold text-slate-800">{closingShift.actualStart}</span>
                 </div>
 
@@ -2380,25 +2528,25 @@ export default function Timesheets() {
                   <input type="time" value={clockOutTime} onChange={(e) => setClockOutTime(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-slate-900 font-bold text-2xl focus:ring-2 focus:ring-accent focus:border-transparent outline-none text-center"
                     autoFocus />
-                  <p className="text-[11px] text-slate-400 mt-1 text-center">
+                  <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-1 text-center">
                     {t.ts_label_planned}: {closingShift.plannedStart}–{closingShift.plannedEnd}
                   </p>
                 </div>
 
                 {clockOutTime && previewMins > 0 && (
                   <div className="bg-slate-50 rounded-xl p-3 mb-4">
-                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">{t.ts_modal_hours_preview}</p>
+                    <p className="text-[10px] font-semibold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-2">{t.ts_modal_hours_preview}</p>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
-                        <p className="text-[10px] text-slate-400">{t.ts_kpi_planned}</p>
+                        <p className="text-[10px] text-slate-400 dark:text-neutral-400">{t.ts_kpi_planned}</p>
                         <p className="font-bold text-slate-700 text-sm">{fmtHM(closingShift.plannedMins)}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-slate-400">{t.ts_kpi_actual}</p>
+                        <p className="text-[10px] text-slate-400 dark:text-neutral-400">{t.ts_kpi_actual}</p>
                         <p className="font-bold text-slate-800 text-sm">{fmtHM(previewMins)}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-slate-400">{t.ts_kpi_delta}</p>
+                        <p className="text-[10px] text-slate-400 dark:text-neutral-400">{t.ts_kpi_delta}</p>
                         <p className={`font-bold text-sm ${previewDeltaColor}`}>{previewDelta >= 0 ? '+' : ''}{fmtHM(previewDelta)}</p>
                       </div>
                     </div>
@@ -2456,12 +2604,12 @@ export default function Timesheets() {
                           onClick={() => { setDayReview((p) => p ? { ...p, currentIdx: i } : null); initDayReviewFields(dayReview.items[i], dayReview.dateStr); }}
                           className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-5 bg-accent' : 'w-2 bg-slate-200 hover:bg-slate-300'}`} />
                       ))}
-                      <span className="ml-1 text-[10px] text-slate-400 font-medium">{idx + 1}/{total}</span>
+                      <span className="ml-1 text-[10px] text-slate-400 dark:text-neutral-400 font-medium">{idx + 1}/{total}</span>
                     </div>
                   </div>
                   <button type="button" onClick={() => setDayReview(null)}
                     className="p-1.5 rounded-xl hover:bg-slate-100 transition-colors ml-2 flex-shrink-0">
-                    <X className="w-4 h-4 text-slate-500" />
+                    <X className="w-4 h-4 text-slate-500 dark:text-neutral-300" />
                   </button>
                 </div>
 
@@ -2474,10 +2622,10 @@ export default function Timesheets() {
                     </div>
                     <div>
                       <p className="font-bold text-slate-900">{item.employeeName}</p>
-                      {item.department && <p className="text-[11px] text-slate-400">{item.department}</p>}
+                      {item.department && <p className="text-[11px] text-slate-400 dark:text-neutral-400">{item.department}</p>}
                     </div>
                     <div className="ml-auto text-right">
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold">{t.ts_label_planned}</p>
+                      <p className="text-[10px] text-slate-400 dark:text-neutral-400 uppercase font-semibold">{t.ts_label_planned}</p>
                       <p className="text-sm font-bold text-slate-700 tabular-nums">{s.plannedStart}–{s.plannedEnd}</p>
                     </div>
                   </div>
@@ -2505,7 +2653,7 @@ export default function Timesheets() {
                   {/* Campi IN / OUT */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                      <label className="block text-[10px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-1.5">
                         {t.ts_label_entry} {hasMissingIn && <span className="text-red-500">{t.ts_label_absent}</span>}
                       </label>
                       <input type="time" value={dayReviewIn}
@@ -2515,7 +2663,7 @@ export default function Timesheets() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                      <label className="block text-[10px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-1.5">
                         {t.ts_label_exit}
                       </label>
                       <input type="time" value={dayReviewOut}
@@ -2531,7 +2679,7 @@ export default function Timesheets() {
                   {/* Data uscita (solo se cross-day o diversa dal turno) */}
                   {(s.isCrossDay || (s.actualEndFull && format(new Date(s.actualEndFull), 'yyyy-MM-dd') !== dayReview.dateStr)) && (
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                      <label className="block text-[10px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-1.5">
                         {t.ts_label_exit_date}
                       </label>
                       <input type="date" value={dayReviewOutDate}
@@ -2544,7 +2692,7 @@ export default function Timesheets() {
                   {/* Preview ore nette */}
                   {dayReviewIn && dayReviewOut && !hasMissingIn && (
                     <div className="bg-slate-50 rounded-xl px-3 py-2 flex items-center justify-between text-xs">
-                      <span className="text-slate-500">{t.ts_net_hours}</span>
+                      <span className="text-slate-500 dark:text-neutral-300">{t.ts_net_hours}</span>
                       <span className={`font-bold tabular-nums ${deltaColor}`}>
                         {fmtHM(Math.max(0, calculateShiftMinutesGross(dayReviewIn, dayReviewOut) - s.breakMinutes))}
                       </span>
@@ -2576,7 +2724,7 @@ export default function Timesheets() {
                     )}
                   </div>
                   <button type="button" onClick={() => handleDayReviewNavigate(1)}
-                    className="text-[11px] text-slate-400 hover:text-slate-600 text-center transition-colors py-0.5">
+                    className="text-[11px] text-slate-400 dark:text-neutral-400 hover:text-slate-600 text-center transition-colors py-0.5">
                     {idx < total - 1 ? t.ts_btn_skip : t.ts_btn_close_without_saving}
                   </button>
                 </div>
@@ -2611,13 +2759,13 @@ export default function Timesheets() {
                       <Lock className="w-4 h-4 text-accent flex-shrink-0" />
                       <h3 className="font-bold text-slate-900 text-base">{t.ts_modal_confirm_approval}</h3>
                     </div>
-                    <p className="text-sm text-slate-500 pl-6">
+                    <p className="text-sm text-slate-500 dark:text-neutral-300 pl-6">
                       {ac.employeeName} · {format(parseISO(ac.dateStr), 'EEEE d MMMM', { locale })}
                     </p>
                   </div>
                   <button type="button" onClick={() => setApprovalConfirm(null)}
                     className="p-1.5 rounded-xl hover:bg-slate-100 transition-colors ml-2 flex-shrink-0">
-                    <X className="w-4 h-4 text-slate-500" />
+                    <X className="w-4 h-4 text-slate-500 dark:text-neutral-300" />
                   </button>
                 </div>
 
@@ -2625,22 +2773,26 @@ export default function Timesheets() {
                 <div className="p-5 space-y-3">
                   {/* Pianificato vs Effettivo */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">{t.ts_label_planned}</p>
-                      <p className="text-sm font-bold text-slate-700 tabular-nums">{ac.plannedStart} – {ac.plannedEnd}</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">{fmtHM(ac.plannedMins)}</p>
+                    <div className="rounded-xl bg-slate-50 p-3 dark:bg-neutral-800/60">
+                      <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_label_planned}</p>
+                      <p className="text-sm font-bold text-slate-700 tabular-nums dark:text-neutral-100">{ac.plannedStart} – {ac.plannedEnd}</p>
+                      <p className="mt-0.5 text-[11px] text-slate-500 dark:text-neutral-300">{fmtHM(ac.plannedMins)}</p>
                     </div>
-                    <div className={`rounded-xl p-3 ${ac.actualEnd ? 'bg-blue-50' : 'bg-red-50'}`}>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">{t.ts_label_punched}</p>
+                    <div
+                      className={`rounded-xl p-3 ${ac.actualEnd ? 'bg-teal-50 dark:bg-teal-950/35' : 'bg-red-50 dark:bg-red-950/35'}`}
+                    >
+                      <p className="text-[9px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wide mb-1.5">{t.ts_label_punched}</p>
                       {ac.actualEnd ? (
                         <>
-                          <p className="text-sm font-bold text-slate-800 tabular-nums">{ac.actualStart} – {ac.actualEnd}</p>
-                          <p className={`text-[11px] font-semibold mt-0.5 ${deltaColor}`}>
+                          <p className="text-sm font-bold tabular-nums text-slate-800 dark:text-neutral-100">
+                            {ac.actualStart} – {ac.actualEnd}
+                          </p>
+                          <p className={`mt-0.5 text-[11px] font-semibold ${deltaColor}`}>
                             {fmtHM(ac.actualMins)} ({ac.deltaMins >= 0 ? '+' : ''}{fmtHM(ac.deltaMins)})
                           </p>
                         </>
                       ) : (
-                        <p className="text-sm font-semibold text-red-500">{t.ts_status_missing_out}</p>
+                        <p className="text-sm font-semibold text-red-500 dark:text-red-400">{t.ts_status_missing_out}</p>
                       )}
                     </div>
                   </div>
@@ -2648,7 +2800,7 @@ export default function Timesheets() {
                   {/* Barra visiva delta */}
                   {ac.actualMins > 0 && (
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-neutral-700">
                         <div
                           className={`h-full rounded-full ${ac.deltaMins >= 0 ? 'bg-accent' : 'bg-red-400'}`}
                           style={{ width: `${Math.min(100, Math.max(4, (ac.actualMins / Math.max(ac.plannedMins, 1)) * 100))}%` }}
@@ -2672,7 +2824,7 @@ export default function Timesheets() {
                     </div>
                   )}
 
-                  <p className="text-[11px] text-slate-400 text-center">
+                  <p className="text-[11px] text-slate-400 dark:text-neutral-400 text-center">
                     {t.ts_approval_freeze_notice}
                   </p>
                 </div>

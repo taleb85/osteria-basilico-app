@@ -26,7 +26,7 @@ export default function GenericWidgetsColumn({
         const sub = applicable[0]?.screenLabel ?? groupKey;
         return (
           <div key={groupKey} className="space-y-2">
-            <p className="px-1 text-[9px] font-bold uppercase tracking-wider text-slate-500">{sub}</p>
+            <p className="px-1 text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">{sub}</p>
             <div className="space-y-3">
               {applicable
                 .filter((w) => widgetAppliesToUser(w, previewUser.role))

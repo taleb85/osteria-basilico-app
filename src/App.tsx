@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
 import { ProfileLeaveGuardRefContext, type ProfileLeaveGuard } from './context/ProfileLeaveGuardContext';
 import { LayoutPresetProvider } from './context/LayoutPresetContext';
-import { forceLightTheme } from './utils/theme';
+import { applyUnauthenticatedDocumentTheme } from './utils/theme';
 import { getTranslations } from './utils/translations';
 import BottomNav from './components/BottomNav';
 import MobileProfileHeader from './components/MobileProfileHeader';
@@ -46,10 +46,10 @@ function MaintenancePage() {
         <Wrench className="w-10 h-10 text-amber-500" />
       </div>
       <h1 className="text-2xl font-bold text-slate-800 mb-2">In Manutenzione</h1>
-      <p className="text-slate-500 text-base max-w-xs leading-relaxed mb-1">
+      <p className="text-slate-500 dark:text-neutral-300 text-base max-w-xs leading-relaxed mb-1">
         L'app è temporaneamente in manutenzione.
       </p>
-      <p className="text-slate-400 text-sm mb-8">Torneremo attivi tra poco. 👨‍🍳</p>
+      <p className="text-slate-400 dark:text-neutral-400 text-sm mb-8">Torneremo attivi tra poco. 👨‍🍳</p>
       <div className="text-[11px] text-slate-300 bg-white border border-slate-100 rounded-xl px-4 py-2 shadow-xs">
         Per assistenza contatta il responsabile.
       </div>
@@ -62,13 +62,13 @@ function KioskOffPage() {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-900 px-6 text-center font-sans antialiased">
       <div className="w-20 h-20 rounded-2xl bg-slate-800 flex items-center justify-center mb-6 shadow-inner">
-        <MonitorOff className="w-10 h-10 text-slate-400" />
+        <MonitorOff className="w-10 h-10 text-slate-400 dark:text-neutral-400" />
       </div>
       <h1 className="text-2xl font-bold text-white mb-2">Terminal unavailable</h1>
-      <p className="text-slate-400 text-base max-w-xs leading-relaxed">
+      <p className="text-slate-400 dark:text-neutral-400 text-base max-w-xs leading-relaxed">
         The punch clock terminal is temporarily disabled.
       </p>
-      <p className="text-slate-500 text-sm mt-2">Contact a manager for assistance.</p>
+      <p className="text-slate-500 dark:text-neutral-300 text-sm mt-2">Contact a manager for assistance.</p>
     </div>
   );
 }
@@ -411,7 +411,11 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
             activeTab={activeTab}
             showOnDesktop
             parentProvidesCardShell
-            hideHeaderLogout={!isManagement}
+            hideHeaderLogout={
+              !isManagement ||
+              currentUser?.role === 'manager' ||
+              currentUser?.role === 'assistant_manager'
+            }
             hideToolbarAvatar={Boolean(currentUser && !isAdminOnly(currentUser))}
           />
         </div>
@@ -496,7 +500,7 @@ function ProtectedApp() {
   }, [location.state, location.pathname, navigate, showError, effectiveLanguage]);
 
   const handleLogout = () => {
-    forceLightTheme();
+    applyUnauthenticatedDocumentTheme();
     try {
       localStorage.removeItem(APP_SESSION_STORAGE_KEY);
     } catch {
@@ -512,7 +516,7 @@ function ProtectedApp() {
   useEffect(() => {
     if (forceLogoutRequested) {
       if (currentUser?.id) clearMainViewState(currentUser.id);
-      forceLightTheme();
+      applyUnauthenticatedDocumentTheme();
       try {
         localStorage.removeItem(APP_SESSION_STORAGE_KEY);
       } catch {

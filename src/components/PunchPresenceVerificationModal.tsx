@@ -122,7 +122,7 @@ export default function PunchPresenceVerificationModal({
               <h2 id="punch-presence-title" className="pr-10 text-base font-bold text-slate-900">
                 {title}
               </h2>
-              <p className="mt-1 text-xs text-slate-500 leading-snug">{subtitle}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-neutral-300 leading-snug">{subtitle}</p>
 
               {mode === 'choice' && (
                 <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">

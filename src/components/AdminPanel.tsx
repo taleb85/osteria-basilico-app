@@ -139,7 +139,7 @@ export default function AdminPanel() {
               <button
                 type="button"
                 onClick={() => setShowCreateStaff(true)}
-                className="inline-flex items-center gap-2 rounded-2xl border-2 border-white/35 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/15 transition-colors font-sans"
+                className="keep-white-glass inline-flex items-center gap-2 rounded-2xl border-2 border-white/35 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/15 transition-colors font-sans"
               >
                 <UserPlus className="w-4 h-4" aria-hidden />
                 {t.admin_add_employee}

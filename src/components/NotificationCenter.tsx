@@ -1,16 +1,25 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Bell, X, CheckCheck, Calendar, Clock, CheckCircle, AlertCircle, Info } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { generateNotifications, getSeenIds, markAllSeen, AppNotification, NotifSeverity } from '../utils/notifications';
+import {
+  generateNotifications,
+  getSeenIds,
+  markAllSeen,
+  syncNotificationFeed,
+  AppNotification,
+  NotifSeverity,
+} from '../utils/notifications';
 import { getTranslations } from '../utils/translations';
+import { CenteredModalPortal } from './ui/CenteredModalPortal';
 
 // ── Icon + colour helpers ─────────────────────────────────────────────────────
 
 function severityRing(s: NotifSeverity): string {
-  if (s === 'success') return 'bg-emerald-50 border-emerald-100';
-  if (s === 'warning') return 'bg-amber-50 border-amber-100';
-  return 'bg-accent/5 border-accent/10';
+  if (s === 'success')
+    return 'bg-emerald-50 border-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-800/50';
+  if (s === 'warning')
+    return 'bg-amber-50 border-amber-100 dark:bg-amber-950/40 dark:border-amber-800/50';
+  return 'bg-accent/5 border-accent/10 dark:bg-accent/15 dark:border-accent/25';
 }
 
 function SeverityIcon({ s }: { s: NotifSeverity }) {
@@ -20,8 +29,8 @@ function SeverityIcon({ s }: { s: NotifSeverity }) {
 }
 
 function TypeIcon({ type }: { type: AppNotification['type'] }) {
-  if (type === 'new_shift') return <Clock size={13} className="opacity-50" />;
-  return <Calendar size={13} className="opacity-50" />;
+  if (type === 'new_shift') return <Clock size={13} className="text-slate-500 dark:text-neutral-400 shrink-0" />;
+  return <Calendar size={13} className="text-slate-500 dark:text-neutral-400 shrink-0" />;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -32,9 +41,25 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
   const [seenIds, setSeenIds] = useState<Set<string>>(() =>
     currentUser ? getSeenIds(currentUser.id) : new Set()
   );
+  const [mergedFeed, setMergedFeed] = useState<AppNotification[]>([]);
   const ref = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  // Re-sync seen IDs when user changes
+  const t = useMemo(() => getTranslations(effectiveLanguage), [effectiveLanguage]);
+
+  const fresh = useMemo(() => {
+    if (!currentUser) return [];
+    return generateNotifications(currentUser, shifts, holidays, users, t, effectiveLanguage);
+  }, [currentUser, shifts, holidays, users, t, effectiveLanguage]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setMergedFeed([]);
+      return;
+    }
+    setMergedFeed(syncNotificationFeed(currentUser.id, fresh));
+  }, [currentUser, fresh]);
+
   useEffect(() => {
     if (!currentUser) {
       setSeenIds(new Set());
@@ -43,25 +68,9 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
     setSeenIds(getSeenIds(currentUser.id));
   }, [currentUser]);
 
-  // Close on outside click
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  const allNotifs = useMemo(() => {
-    if (!currentUser) return [];
-    const t = getTranslations(effectiveLanguage);
-    return generateNotifications(currentUser, shifts, holidays, users, t, effectiveLanguage);
-  }, [currentUser, shifts, holidays, users, effectiveLanguage]);
-
   const unread = useMemo(
-    () => allNotifs.filter((n) => !seenIds.has(n.id)),
-    [allNotifs, seenIds]
+    () => mergedFeed.filter((n) => !seenIds.has(n.id)),
+    [mergedFeed, seenIds]
   );
 
   const handleOpen = () => {
@@ -70,20 +79,25 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
 
   const handleMarkAll = () => {
     if (!currentUser) return;
-    const ids = allNotifs.map((n) => n.id);
+    const ids = mergedFeed.map((n) => n.id);
     markAllSeen(currentUser.id, ids);
-    setSeenIds(new Set(ids));
+    setSeenIds(getSeenIds(currentUser.id));
+    try {
+      window.dispatchEvent(new Event('notifications-seen'));
+    } catch {
+      /* ignore */
+    }
   };
 
   if (!currentUser) return null;
 
   return (
     <div ref={ref} className="relative flex-shrink-0">
-      {/* Bell button */}
       <button
         type="button"
         onClick={handleOpen}
-        aria-label="Notifiche"
+        aria-label={t.notif_aria_open}
+        aria-expanded={open}
         className={`relative flex items-center justify-center border transition-colors touch-manipulation ${
           denseTrigger
             ? 'min-h-[40px] min-w-[40px] rounded-lg'
@@ -102,92 +116,94 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
         )}
       </button>
 
-      {/* Panel */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: -6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: -6 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-1.5rem)] bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-              <span className="text-sm font-semibold text-slate-800">Notifiche</span>
-              <div className="flex items-center gap-2">
-                {unread.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleMarkAll}
-                    title="Segna tutte come lette"
-                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-accent transition-colors"
-                  >
-                    <CheckCheck size={14} />
-                    <span className="hidden sm:inline">Tutte lette</span>
-                  </button>
-                )}
+      {open && (
+        <CenteredModalPortal
+          open
+          onClose={() => setOpen(false)}
+          panelRef={panelRef}
+          backdropAriaLabel={t.close}
+          ariaLabel={t.profile_notifications}
+          maxWidthClass="max-w-md"
+          maxHeightClass="max-h-[min(85dvh,560px)]"
+          panelClassName="flex flex-col overflow-hidden p-0 dark:bg-neutral-900 dark:border-white/10"
+        >
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/10 shrink-0">
+            <span className="text-sm font-semibold text-slate-800 dark:text-neutral-100">
+              {t.profile_notifications}
+            </span>
+            <div className="flex items-center gap-2">
+              {unread.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
-                  className="text-slate-400 hover:text-slate-700 transition-colors"
+                  onClick={handleMarkAll}
+                  title={t.notif_mark_all_title}
+                  className="flex items-center gap-1 text-xs text-slate-500 dark:text-neutral-400 hover:text-accent transition-colors"
                 >
-                  <X size={15} />
+                  <CheckCheck size={14} />
+                  <span className="hidden sm:inline">{t.notif_mark_all_short}</span>
                 </button>
-              </div>
-            </div>
-
-            {/* List */}
-            <div className="max-h-80 overflow-y-auto overscroll-contain">
-              {allNotifs.length === 0 ? (
-                <div className="py-10 text-center">
-                  <Bell size={28} className="mx-auto mb-2 text-slate-200" />
-                  <p className="text-sm text-slate-400">Nessuna notifica</p>
-                </div>
-              ) : (
-                <ul className="divide-y divide-slate-50">
-                  {allNotifs.map((n) => {
-                    const isNew = !seenIds.has(n.id);
-                    return (
-                      <li
-                        key={n.id}
-                        className={`flex items-start gap-3 px-4 py-3 transition-colors ${
-                          isNew ? 'bg-slate-50/80' : 'bg-white'
-                        }`}
-                      >
-                        <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${severityRing(n.severity)}`}>
-                          <SeverityIcon s={n.severity} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className={`text-xs font-semibold text-slate-800 ${isNew ? '' : 'opacity-70'}`}>
-                              {n.title}
-                            </p>
-                            {isNew && (
-                              <span className="shrink-0 h-1.5 w-1.5 rounded-full bg-accent" />
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
-                            <TypeIcon type={n.type} />
-                            {n.body}
-                          </p>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
               )}
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-neutral-200 transition-colors"
+                aria-label={t.close}
+              >
+                <X size={15} />
+              </button>
             </div>
+          </div>
 
-            {/* Footer */}
-            {allNotifs.length > 0 && unread.length === 0 && (
-              <div className="px-4 py-2.5 border-t border-slate-50 text-center">
-                <p className="text-xs text-slate-400">Sei aggiornato ✓</p>
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+            {mergedFeed.length === 0 ? (
+              <div className="py-10 text-center px-4">
+                <Bell size={28} className="mx-auto mb-2 text-slate-200 dark:text-neutral-500" />
+                <p className="text-sm text-slate-500 dark:text-neutral-400">{t.notif_empty}</p>
               </div>
+            ) : (
+              <ul className="divide-y divide-slate-50 dark:divide-white/5">
+                {mergedFeed.map((n) => {
+                  const isNew = !seenIds.has(n.id);
+                  return (
+                    <li
+                      key={n.id}
+                      className={`flex items-start gap-3 px-4 py-3 transition-colors ${
+                        isNew ? 'bg-slate-50/80 dark:bg-white/[0.04]' : 'bg-white dark:bg-transparent'
+                      }`}
+                    >
+                      <div
+                        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${severityRing(n.severity)}`}
+                      >
+                        <SeverityIcon s={n.severity} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p
+                            className={`text-xs font-semibold text-slate-800 dark:text-neutral-100 ${isNew ? '' : 'opacity-70'}`}
+                          >
+                            {n.title}
+                          </p>
+                          {isNew && <span className="shrink-0 h-1.5 w-1.5 rounded-full bg-accent" />}
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5 flex items-center gap-1">
+                          <TypeIcon type={n.type} />
+                          {n.body}
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+
+          {mergedFeed.length > 0 && unread.length === 0 && (
+            <div className="px-4 py-2.5 border-t border-slate-50 dark:border-white/10 text-center shrink-0">
+              <p className="text-xs text-slate-500 dark:text-neutral-400">{t.notif_all_caught_up}</p>
+            </div>
+          )}
+        </CenteredModalPortal>
+      )}
     </div>
   );
 }

@@ -104,7 +104,7 @@ export function ProfileFormSelf({
       ? ' opacity-70 cursor-not-allowed bg-slate-50 dark:bg-neutral-900/50'
       : ' opacity-70 cursor-not-allowed');
   const labelClass = appearance === 'light' ? labelClassLight : 'block text-xs font-medium text-white/80 mb-1.5';
-  const iconMuted = appearance === 'light' ? 'text-slate-400 dark:text-neutral-500' : 'text-white/40';
+  const iconMuted = appearance === 'light' ? 'text-slate-500 dark:text-neutral-400' : 'text-white/40';
 
   const canEditRole = !readOnly && !roleLocked;
   const pinShownValue = readOnly ? (formData.pin.replace(/\D/g, '').length > 0 ? '••••' : '') : formData.pin;
@@ -386,9 +386,9 @@ export function ProfileFormSelf({
                 key={th}
                 type="button"
                 onClick={() => setUiTheme(th)}
-                className={`relative flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                className={`keep-white-glass relative flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${
                   activeTheme === th
-                    ? 'border-white/30 bg-white text-black'
+                    ? 'border-white/30 bg-white text-black preserve-on-dark'
                     : 'border-white/10 bg-black/20 text-white/90 hover:bg-white/10'
                 }`}
               >
@@ -491,7 +491,7 @@ export function ProfileFormAdmin({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>
-              <User className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+              <User className="w-3.5 h-3.5 inline mr-1.5 text-slate-400 dark:text-neutral-400" />
               {t.first_name}
             </label>
             <input
@@ -505,7 +505,7 @@ export function ProfileFormAdmin({
           </div>
           <div>
             <label className={labelClass}>
-              <User className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+              <User className="w-3.5 h-3.5 inline mr-1.5 text-slate-400 dark:text-neutral-400" />
               {t.last_name_optional}
             </label>
             <input
@@ -520,7 +520,7 @@ export function ProfileFormAdmin({
 
         <div>
           <label className={labelClass}>
-            <Mail className="w-4 h-4 inline mr-2 text-slate-400" />
+            <Mail className="w-4 h-4 inline mr-2 text-slate-400 dark:text-neutral-400" />
             {t.email}
           </label>
           <input
@@ -536,7 +536,7 @@ export function ProfileFormAdmin({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>
-              <Shield className="w-4 h-4 inline mr-2 text-slate-400" />
+              <Shield className="w-4 h-4 inline mr-2 text-slate-400 dark:text-neutral-400" />
               {t.role}
             </label>
             <select
@@ -559,7 +559,7 @@ export function ProfileFormAdmin({
           </div>
           <div>
             <label className={labelClass}>
-              <Lock className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+              <Lock className="w-3.5 h-3.5 inline mr-1.5 text-slate-400 dark:text-neutral-400" />
               {t.pin_4_digits}
             </label>
             <input
@@ -608,7 +608,7 @@ export function ProfileFormAdmin({
 
         <div>
           <label className={labelClass}>
-            <Euro className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+            <Euro className="w-3.5 h-3.5 inline mr-1.5 text-slate-400 dark:text-neutral-400" />
             {(t as { profile_hourly_rate_label?: string }).profile_hourly_rate_label ?? 'Tariffa oraria (€/h)'}
           </label>
           <input
@@ -622,14 +622,14 @@ export function ProfileFormAdmin({
             className={inputClass}
             placeholder={(t as { profile_hourly_rate_placeholder?: string }).profile_hourly_rate_placeholder ?? 'es. 12,50'}
           />
-          <p className="text-[11px] text-slate-500 mt-1 font-sans">
+          <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-1 font-sans">
             {(t as { profile_hourly_rate_hint?: string }).profile_hourly_rate_hint ?? ''}
           </p>
         </div>
 
         <div>
           <label className={labelClass}>
-            <CheckCircle className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+            <CheckCircle className="w-3.5 h-3.5 inline mr-1.5 text-slate-400 dark:text-neutral-400" />
             {t.account_status}
           </label>
           <select
@@ -656,11 +656,11 @@ export function ProfileFormAdmin({
               onClick={() => void handleCopyAccessLink()}
               className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-800 hover:bg-slate-50 transition-colors font-sans"
             >
-              <Copy className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+              <Copy className="w-4 h-4 shrink-0 text-slate-500 dark:text-neutral-300" aria-hidden />
               {tv.admin_employee_access_link_btn ?? 'Copia link accesso'}
             </button>
             <p className="text-[11px] text-slate-600 leading-snug font-sans flex gap-1.5">
-              <Link2 className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" aria-hidden />
+              <Link2 className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400 dark:text-neutral-400" aria-hidden />
               <span>{tv.admin_employee_access_link_hint ?? ''}</span>
             </p>
             <p className="text-[11px] font-medium text-slate-800 font-sans pl-5">
@@ -678,11 +678,11 @@ export function ProfileFormAdmin({
                 {tv.admin_employee_access_link_pin_incomplete ?? ''}
               </p>
             )}
-            <p className="text-[10px] text-slate-400 font-mono break-all pl-5">{accessLink}</p>
+            <p className="text-[10px] text-slate-400 dark:text-neutral-400 font-mono break-all pl-5">{accessLink}</p>
           </div>
         )}
 
-        <p className="text-[11px] text-slate-500 mt-2">
+        <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-2">
           {(t as { permissions_in_settings?: string }).permissions_in_settings ??
             'Funzionalità, moduli e visibilità schede: Impostazioni → Team → Permessi sul dipendente (template ruoli + anteprima).'}
         </p>

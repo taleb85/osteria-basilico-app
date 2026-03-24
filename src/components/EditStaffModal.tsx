@@ -116,7 +116,7 @@ export default function EditStaffModal({ isOpen, onClose, user }: EditStaffModal
               <h2 className="text-base font-bold text-slate-900 tracking-wide font-sans">
                 {t.edit_employee_title}
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5 font-sans">
+              <p className="text-xs text-slate-500 dark:text-neutral-300 mt-0.5 font-sans">
                 <span className="font-semibold">{user.first_name}</span>
               </p>
             </div>

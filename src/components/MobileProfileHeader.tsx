@@ -57,7 +57,7 @@ export default function MobileProfileHeader({
   const body = compact ? (
     <div className="flex items-start justify-between gap-2">
       <div className="min-w-0 flex-1 pr-1">
-        <h1 className="font-logo-snell text-[15px] sm:text-[18px] text-accent tracking-tight leading-tight truncate">
+        <h1 className="font-logo-snell text-[15px] sm:text-[18px] text-accent dark:text-accent-light tracking-tight leading-tight truncate">
           Osteria Basilico
         </h1>
         <h2 className="text-[14px] font-bold text-slate-900 dark:text-neutral-100 tracking-tight leading-tight truncate mt-0.5">
@@ -66,7 +66,7 @@ export default function MobileProfileHeader({
       </div>
       <p className="flex-shrink-0 text-[10px] text-slate-500 dark:text-neutral-400 tabular-nums text-right leading-tight">
         {timeStr}
-        <span className="text-slate-300 mx-0.5">·</span>
+        <span className="text-slate-300 dark:text-neutral-600 mx-0.5">·</span>
         {dateStr}
       </p>
     </div>
@@ -75,7 +75,7 @@ export default function MobileProfileHeader({
       <div className="px-3 py-2.5">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1 pr-1">
-            <h1 className="font-logo-snell text-[16px] sm:text-[18px] text-accent tracking-tight leading-tight truncate">
+            <h1 className="font-logo-snell text-[16px] sm:text-[18px] text-accent dark:text-accent-light tracking-tight leading-tight truncate">
               Osteria Basilico
             </h1>
             <h2 className="text-[14px] font-bold text-slate-900 dark:text-neutral-100 tracking-tight leading-tight truncate mt-0.5">
@@ -85,7 +85,7 @@ export default function MobileProfileHeader({
           <div className="flex items-center gap-2 shrink-0">
             <div className="text-right min-w-0">
               <p className="text-base font-semibold text-slate-800 dark:text-neutral-200 tabular-nums leading-none">{timeStr}</p>
-              <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate max-w-[6.5rem]" title={dateLong}>
+              <p className="text-[10px] text-slate-500 dark:text-neutral-400 mt-0.5 truncate max-w-[6.5rem]" title={dateLong}>
                 {dateStr}
               </p>
             </div>
@@ -95,7 +95,7 @@ export default function MobileProfileHeader({
             <NotificationCenter denseTrigger />
             {showDataSyncIndicator && (
               <span
-                className="flex shrink-0 items-center justify-center min-h-[40px] min-w-[40px] rounded-lg border border-accent/20 bg-accent/[0.06] text-accent"
+                className="flex shrink-0 items-center justify-center min-h-[40px] min-w-[40px] rounded-lg border border-accent/20 dark:border-accent-light/25 bg-accent/[0.06] dark:bg-accent-light/10 text-accent dark:text-accent-light"
                 role="status"
                 aria-live="polite"
                 aria-atomic="true"
