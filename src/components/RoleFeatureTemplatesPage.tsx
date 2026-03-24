@@ -231,7 +231,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     if (variant === 'embedded') return null;
     return (
       <div className="pb-content pt-6 app-horizontal-pad">
-        <p className="text-sm text-slate-600">{t.role_templates_forbidden_body}</p>
+        <p className="text-sm text-slate-600 dark:text-neutral-300">{t.role_templates_forbidden_body}</p>
       </div>
     );
   }
@@ -255,15 +255,15 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   };
 
   const switchRowClass =
-    'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+    'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-neutral-900';
 
   const renderAdminModulesBlock = () => (
-    <div className="pt-3 border-t border-slate-100">
-      <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-2">
+    <div className="border-t border-slate-100 pt-3 dark:border-white/10">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-400">
         {t.role_templates_admin_modules_heading}
       </p>
-      <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-2">{t.role_templates_admin_modules_hint}</p>
-      <div className="rounded-xl border border-slate-200 bg-white">
+      <p className="mb-2 text-[11px] text-slate-500 dark:text-neutral-300">{t.role_templates_admin_modules_hint}</p>
+      <div className="rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900">
         {ADMIN_MODULE_KEYS.map((key) => {
           const enabled = mods[key] === true;
           return (
@@ -276,11 +276,12 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                   role="switch"
                   aria-checked={enabled}
                   onClick={() => toggleMod(key)}
-                  className={switchRowClass}
-                  style={{
-                    backgroundColor: enabled ? ACCENT : 'rgb(226 232 240)',
-                    ['--tw-ring-color' as string]: `${ACCENT}40`,
-                  }}
+                  className={`${switchRowClass} ${enabled ? '' : 'bg-slate-200 dark:bg-neutral-600'}`}
+                  style={
+                    enabled
+                      ? { backgroundColor: ACCENT, ['--tw-ring-color' as string]: `${ACCENT}40` }
+                      : { ['--tw-ring-color' as string]: `${ACCENT}40` }
+                  }
                 >
                   <span
                     className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
@@ -296,7 +297,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
       <button
         type="button"
         onClick={resetMods}
-        className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-neutral-300 hover:text-slate-800 px-2 py-1 rounded-lg border border-slate-200 hover:bg-slate-50"
+        className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:border-white/10 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
       >
         <RotateCcw className="w-3 h-3" />
         Moduli: tutti attivi
@@ -307,10 +308,10 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const renderOperationalBlock = (group: RoleTemplateGroup) => {
     const op = getOp(group);
     return (
-      <div className="pt-3 border-t border-slate-100">
+      <div className="border-t border-slate-100 pt-3 dark:border-white/10">
         <p className="ui-section-title mb-2 text-slate-400 dark:text-neutral-400">{t.role_templates_operational_heading}</p>
-        <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-2">{t.role_templates_operational_hint}</p>
-        <div className="rounded-xl border border-slate-200 bg-white">
+        <p className="mb-2 text-[11px] text-slate-500 dark:text-neutral-300">{t.role_templates_operational_hint}</p>
+        <div className="rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900">
           {permRows.map((perm) => {
             const enabled = op[perm.key] === true;
             return (
@@ -331,11 +332,12 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                     role="switch"
                     aria-checked={enabled}
                     onClick={() => toggleOperational(group, perm.key)}
-                    className={switchRowClass}
-                    style={{
-                      backgroundColor: enabled ? ACCENT : 'rgb(226 232 240)',
-                      ['--tw-ring-color' as string]: `${ACCENT}40`,
-                    }}
+                    className={`${switchRowClass} ${enabled ? '' : 'bg-slate-200 dark:bg-neutral-600'}`}
+                    style={
+                      enabled
+                        ? { backgroundColor: ACCENT, ['--tw-ring-color' as string]: `${ACCENT}40` }
+                        : { ['--tw-ring-color' as string]: `${ACCENT}40` }
+                    }
                   >
                     <span
                       className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
@@ -355,19 +357,24 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const renderGroup = (group: RoleTemplateGroup, state: EnabledFeatures) => {
     const expanded = roleGroupExpanded[group];
     return (
-      <div key={group} className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-        <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+      <div
+        key={group}
+        className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none"
+      >
+        <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-neutral-800/70">
           <button
             type="button"
             onClick={() => toggleRoleGroupExpanded(group)}
             aria-expanded={expanded}
-            className="flex w-full items-center gap-2 min-w-0 text-left rounded-lg -m-1 p-1 hover:bg-white/60 transition-colors"
+            className="-m-1 flex min-w-0 items-center gap-2 rounded-lg p-1 text-left transition-colors hover:bg-white/60 dark:hover:bg-white/[0.06]"
           >
             <ChevronDown
-              className={`w-4 h-4 shrink-0 text-slate-500 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+              className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 dark:text-neutral-400 ${expanded ? 'rotate-180' : ''}`}
               aria-hidden
             />
-            <h2 className="ui-section-title text-slate-700">{groupTitle(group, t as Record<string, string>)}</h2>
+            <h2 className="ui-section-title text-slate-700 dark:text-neutral-200">
+              {groupTitle(group, t as Record<string, string>)}
+            </h2>
           </button>
         </div>
         <AnimatePresence initial={false}>
@@ -380,7 +387,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
               className="overflow-hidden"
             >
               <div className="p-4 space-y-4">
-                <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/50 p-3 sm:p-4 shadow-sm ring-1 ring-slate-100/60">
+                <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/50 p-3 shadow-sm ring-1 ring-slate-100/60 sm:p-4 dark:border-white/10 dark:from-neutral-900 dark:to-neutral-950/80 dark:ring-white/10">
                   <RoleFeatureSectionsBlock
                     mode="toggles"
                     features={state}
@@ -389,8 +396,8 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                     onToggle={(key) => toggleRole(group, key)}
                   />
                 </div>
-                <div className="pt-3 border-t border-slate-100">
-                  <div className="rounded-xl border border-slate-200 bg-white">
+                <div className="border-t border-slate-100 pt-3 dark:border-white/10">
+                  <div className="rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900">
                     <AdminRow
                       icon={<Users className="h-4 w-4 text-slate-500 dark:text-neutral-300" aria-hidden />}
                       label={t.settings_visible_on_schedule_row}
@@ -405,11 +412,12 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                           role="switch"
                           aria-checked={getTeamScheduleVisible(group)}
                           onClick={() => setTeamScheduleVisible(group, !getTeamScheduleVisible(group))}
-                          className={switchRowClass}
-                          style={{
-                            backgroundColor: getTeamScheduleVisible(group) ? ACCENT : 'rgb(226 232 240)',
-                            ['--tw-ring-color' as string]: `${ACCENT}40`,
-                          }}
+                          className={`${switchRowClass} ${getTeamScheduleVisible(group) ? '' : 'bg-slate-200 dark:bg-neutral-600'}`}
+                          style={
+                            getTeamScheduleVisible(group)
+                              ? { backgroundColor: ACCENT, ['--tw-ring-color' as string]: `${ACCENT}40` }
+                              : { ['--tw-ring-color' as string]: `${ACCENT}40` }
+                          }
                         >
                           <span
                             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
@@ -424,7 +432,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 {renderAdminModulesBlock()}
                 {renderOperationalBlock(group)}
               </div>
-              <div className="border-t border-slate-100 bg-slate-50/80 px-4 py-3 flex justify-end">
+              <div className="flex justify-end border-t border-slate-100 bg-slate-50/80 px-4 py-3 dark:border-white/10 dark:bg-neutral-800/60">
                 <button
                   type="button"
                   disabled={saving}
@@ -444,13 +452,19 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   };
 
   const introDescription = (
-    <p className="text-slate-500 dark:text-neutral-300 text-sm mt-1 leading-snug">
+    <p className="mt-1 text-sm leading-snug text-slate-500 dark:text-neutral-300">
       {t.role_templates_intro_p1}{' '}
-      <strong className="text-slate-700">{t.role_templates_save_all}</strong>{' '}
+      <strong className="font-bold text-slate-800 dark:text-neutral-100">{t.role_templates_save_all}</strong>{' '}
       {t.role_templates_intro_p2}{' '}
       {t.role_templates_intro_files_label}{' '}
-      <code className="text-xs bg-slate-100 px-1 rounded">role_feature_templates.json</code>,{' '}
-      <code className="text-xs bg-slate-100 px-1 rounded">admin_sheet_modules.json</code>.
+      <code className="rounded bg-slate-100 px-1 text-xs dark:bg-neutral-800 dark:text-neutral-200">
+        role_feature_templates.json
+      </code>
+      ,{' '}
+      <code className="rounded bg-slate-100 px-1 text-xs dark:bg-neutral-800 dark:text-neutral-200">
+        admin_sheet_modules.json
+      </code>
+      .
     </p>
   );
 
@@ -469,7 +483,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
           <SlidersHorizontal className="w-5 h-5" style={{ color: ACCENT }} />
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-slate-800 text-xl font-bold leading-tight">{t.role_templates_page_title}</h1>
+          <h1 className="text-xl font-bold leading-tight text-slate-800 dark:text-neutral-100">{t.role_templates_page_title}</h1>
           {introDescription}
         </div>
       </div>
@@ -484,14 +498,14 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm"
+          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none"
         >
           <button
             type="button"
             onClick={toggleEmbeddedPanel}
             aria-expanded={embeddedExpanded}
             aria-label={t.role_templates_embedded_toggle_aria}
-            className="w-full flex items-center gap-3 px-4 py-3 text-left bg-slate-50 hover:bg-slate-100/90 transition-colors border-b border-slate-200"
+            className="flex w-full items-center gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100/90 dark:border-white/10 dark:bg-neutral-800/80 dark:hover:bg-neutral-800"
           >
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -500,13 +514,13 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
               <SlidersHorizontal className="w-5 h-5" style={{ color: ACCENT }} />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-slate-800 text-base font-bold leading-tight">{t.role_templates_page_title}</h2>
+              <h2 className="text-base font-bold leading-tight text-slate-800 dark:text-neutral-100">{t.role_templates_page_title}</h2>
               <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-snug">
                 {embeddedExpanded ? t.role_templates_embedded_expanded_hint : t.role_templates_embedded_collapsed_hint}
               </p>
             </div>
             <ChevronDown
-              className={`w-5 h-5 text-slate-400 flex-shrink-0 transition-transform duration-200 ${embeddedExpanded ? 'rotate-180' : ''}`}
+              className={`h-5 w-5 flex-shrink-0 text-slate-400 transition-transform duration-200 dark:text-neutral-400 ${embeddedExpanded ? 'rotate-180' : ''}`}
               aria-hidden
             />
           </button>
@@ -519,7 +533,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
                 className="overflow-hidden"
               >
-                <div className="px-4 pb-4 pt-3 border-t border-slate-100">
+                <div className="border-t border-slate-100 px-4 pt-3 pb-4 dark:border-white/10">
                   <div className="mb-4">{introDescription}</div>
                   {groupsBlock}
                 </div>

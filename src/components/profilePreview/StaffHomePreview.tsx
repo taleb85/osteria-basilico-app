@@ -29,9 +29,11 @@ export default function StaffHomePreview({
         hiddenBadge={hiddenBadge}
       >
         <div>
-          <h2 className="text-xl font-bold text-slate-900">{t.home_greeting.replace('{name}', name)}</h2>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-neutral-50">
+            {t.home_greeting.replace('{name}', name)}
+          </h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+            <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-300">
               24h {t.approved_hours_summary?.toLowerCase() ?? 'approvate'}
             </span>
             <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold text-accent">
@@ -48,10 +50,10 @@ export default function StaffHomePreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-neutral-400">{t.hours_this_month}</p>
-            <p className="text-2xl font-bold text-slate-900">32:00</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-neutral-50">32:00</p>
           </div>
           <TrendingUp className="h-8 w-8 text-accent/40" />
         </div>
@@ -102,18 +104,18 @@ export default function StaffHomePreview({
         <button
           type="button"
           tabIndex={-1}
-          className="flex w-full min-h-[52px] items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left shadow-sm"
+          className="flex min-h-[52px] w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none"
         >
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
               <Palmtree className="h-5 w-5 text-accent" />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-700">{t.sidebar_holidays}</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-neutral-200">{t.sidebar_holidays}</p>
               <p className="text-sm text-slate-500 dark:text-neutral-300">{t.holiday_management}</p>
             </div>
           </div>
-          <ChevronRight className="h-5 w-5 text-slate-300" />
+          <ChevronRight className="h-5 w-5 text-slate-300 dark:text-neutral-600" />
         </button>
       </WidgetChrome>
     </div>

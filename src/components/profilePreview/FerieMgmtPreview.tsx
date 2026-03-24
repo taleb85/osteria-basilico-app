@@ -29,7 +29,7 @@ export default function FerieMgmtPreview({
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">{t.sidebar_holidays}</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-neutral-50">{t.sidebar_holidays}</h2>
             <p className="text-xs text-slate-500 dark:text-neutral-300">{t.holiday_management}</p>
           </div>
           <button
@@ -50,8 +50,8 @@ export default function FerieMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-          <p className="mb-2 text-center text-xs font-bold text-slate-600">Marzo 2026</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+          <p className="mb-2 text-center text-xs font-bold text-slate-600 dark:text-neutral-300">Marzo 2026</p>
           <div className="grid grid-cols-7 gap-1 text-center text-[10px]">
             {['L', 'M', 'M', 'G', 'V', 'S', 'D'].map((d, i) => (
               <span key={`h-${i}`} className="font-bold text-slate-400 dark:text-neutral-400">
@@ -61,7 +61,7 @@ export default function FerieMgmtPreview({
             {Array.from({ length: 28 }, (_, i) => (
               <span
                 key={i}
-                className={`rounded-lg py-1 ${i === 10 ? 'bg-accent/20 font-bold text-accent-dark ring-1 ring-accent/30' : 'text-slate-600'}`}
+                className={`rounded-lg py-1 ${i === 10 ? 'bg-accent/20 font-bold text-accent-dark ring-1 ring-accent/30 dark:bg-accent/25' : 'text-slate-600 dark:text-neutral-400'}`}
               >
                 {i + 1}
               </span>
@@ -77,18 +77,18 @@ export default function FerieMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-3 py-2 text-xs font-bold text-slate-600">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+          <div className="border-b border-slate-100 px-3 py-2 text-xs font-bold text-slate-600 dark:border-white/10 dark:text-neutral-300">
             {t.mod_vacation_requests}
           </div>
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-slate-50 dark:divide-white/10">
             <div className="flex items-center gap-3 px-3 py-3">
               <Palmtree className="h-8 w-8 shrink-0 text-accent/60" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-slate-800">Jean · Ferie</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Jean · Ferie</p>
                 <p className="text-xs text-slate-500 dark:text-neutral-300">15–19 mar</p>
               </div>
-              <span className="shrink-0 rounded-lg bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+              <span className="shrink-0 rounded-lg bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950/50 dark:text-amber-200">
                 {t.pending ?? 'In attesa'}
               </span>
             </div>

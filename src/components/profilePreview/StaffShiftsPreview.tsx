@@ -27,9 +27,9 @@ export default function StaffShiftsPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-400">{t.approved_hours_summary}</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">24:00</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-neutral-50">24:00</p>
           <p className="mt-1 text-xs text-slate-500 dark:text-neutral-300">{t.hours_this_month}</p>
         </div>
       </WidgetChrome>
@@ -52,8 +52,8 @@ export default function StaffShiftsPreview({
               { d: 'Gio 14', h: '18:00 – 23:00' },
             ].map((row) => (
               <div key={row.d} className="flex items-center justify-between gap-2 px-2 py-2.5 text-sm">
-                <span className="font-semibold text-slate-800">{row.d}</span>
-                <span className="flex items-center gap-1 text-slate-600">
+                <span className="font-semibold text-slate-800 dark:text-neutral-100">{row.d}</span>
+                <span className="flex items-center gap-1 text-slate-600 dark:text-neutral-400">
                   <Clock className="h-3.5 w-3.5" />
                   {row.h}
                 </span>

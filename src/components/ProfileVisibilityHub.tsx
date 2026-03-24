@@ -406,7 +406,7 @@ export default function ProfileVisibilityHub() {
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 transition-colors hover:bg-slate-100 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
               aria-label={tv.profile_visibility_close_preview ?? 'Chiudi anteprima'}
             >
-              <X className="w-5 h-5" strokeWidth={2} />
+              <X className="h-5 w-5 text-slate-800 dark:text-neutral-200" strokeWidth={2} />
             </button>
             <div className="min-w-0 flex-1">
               <p

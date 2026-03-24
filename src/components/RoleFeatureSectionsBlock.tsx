@@ -19,7 +19,7 @@ import AdminRow from './ui/AdminRow';
 
 /** Liste permessi: niente overflow-hidden sul contenitore (evita tagli verticali su testi lunghi). */
 export const PERMISSION_SUMMARY_LIST_CLASS =
-  'space-y-0 rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-100/70';
+  'space-y-0 rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-100/70 dark:border-white/10 dark:bg-neutral-900 dark:shadow-none dark:ring-white/10';
 
 function rowLabel(sectionId: RoleTemplateSectionId, key: EnabledFeatureKey): string {
   if (sectionId === 'tabs_nav') return FEATURE_LABELS_TAB_FIRST[key];
@@ -63,11 +63,21 @@ export default function RoleFeatureSectionsBlock(props: Props) {
         <AdminRow
           key={key}
           className="!pl-8"
-          label={<span className={enabled ? 'text-slate-800' : 'text-slate-600'}>{label}</span>}
+          label={
+            <span
+              className={
+                enabled ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-600 dark:text-neutral-400'
+              }
+            >
+              {label}
+            </span>
+          }
           action={
             <span
-              className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
-                enabled ? 'bg-accent text-white shadow-sm' : 'bg-slate-100 text-slate-500'
+              className={`shrink-0 rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                enabled
+                  ? 'bg-accent text-white shadow-sm'
+                  : 'bg-slate-100 text-slate-500 dark:bg-neutral-800 dark:text-neutral-400'
               }`}
             >
               {enabled ? (tv.role_template_yes ?? 'Sì') : (tv.role_template_no ?? 'No')}
@@ -87,7 +97,7 @@ export default function RoleFeatureSectionsBlock(props: Props) {
         description={lockedOn ? homeHint : undefined}
         badge={
           lockedOn ? (
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300 bg-slate-100 border border-slate-200 rounded-lg px-1.5 py-0.5">
+            <span className="rounded-lg border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-300">
               {tv.role_template_always_on ?? 'Sempre'}
             </span>
           ) : undefined
@@ -103,9 +113,9 @@ export default function RoleFeatureSectionsBlock(props: Props) {
               if (lockedOn) return;
               props.onToggle(key);
             }}
-            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 ${
+            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 ${
               lockedOn ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
-            } ${enabled ? 'bg-accent' : 'bg-slate-200'}`}
+            } ${enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
           >
             <span
               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
@@ -127,7 +137,7 @@ export default function RoleFeatureSectionsBlock(props: Props) {
           <p className="ui-section-title mb-2">{sectionTitle}</p>
           <div className={PERMISSION_SUMMARY_LIST_CLASS}>
             {ROLE_TEMPLATE_TAB_SHEET_GROUPS.map((group) => (
-              <div key={group.id} className="border-b border-gray-100 last:border-b-0">
+              <div key={group.id} className="border-b border-gray-100 last:border-b-0 dark:border-white/10">
                 <div className="px-5 pt-3 pb-1">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
                     {tv[group.titleKey] ?? group.id}
@@ -150,7 +160,7 @@ export default function RoleFeatureSectionsBlock(props: Props) {
             const panelId = `role-tab-sheet-panel-${group.id}`;
             const label = tv[group.titleKey] ?? group.id;
             return (
-              <div key={group.id} className="border-b border-gray-100 last:border-b-0">
+              <div key={group.id} className="border-b border-gray-100 last:border-b-0 dark:border-white/10">
                 <button
                   type="button"
                   id={`role-tab-sheet-trigger-${group.id}`}
@@ -158,20 +168,22 @@ export default function RoleFeatureSectionsBlock(props: Props) {
                   aria-controls={panelId}
                   aria-label={`${tv.role_template_tab_expand_aria ?? ''} — ${label}`}
                   onClick={() => toggleTabGroup(group.id)}
-                  className="flex w-full min-h-[56px] items-center gap-2 px-5 py-3 text-left transition-colors hover:bg-gray-50/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 focus-visible:ring-inset"
+                  className="flex min-h-[56px] w-full items-center gap-2 px-5 py-3 text-left transition-colors hover:bg-gray-50/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 focus-visible:ring-inset dark:hover:bg-white/[0.06]"
                 >
                   <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 dark:text-neutral-400 ${open ? 'rotate-180' : ''}`}
                     aria-hidden
                   />
-                  <span className="min-w-0 flex-1 font-bold leading-tight text-gray-900">{label}</span>
+                  <span className="min-w-0 flex-1 font-bold leading-tight text-gray-900 dark:text-neutral-100">
+                    {label}
+                  </span>
                 </button>
                 {open ? (
                   <div
                     id={panelId}
                     role="region"
                     aria-labelledby={`role-tab-sheet-trigger-${group.id}`}
-                    className="border-t border-slate-100 bg-slate-50/40"
+                    className="border-t border-slate-100 bg-slate-50/40 dark:border-white/10 dark:bg-neutral-950/60"
                   >
                     {group.keys.map((key) => renderFeatureRow(key))}
                   </div>

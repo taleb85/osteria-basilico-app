@@ -180,14 +180,14 @@ export default function ProfileTabRichPreview({
   /** Vista come scheda app reale: niente cornice “telefono”, solo contenuto a tutta larghezza con dati dimostrativi. */
   return (
     <div className="w-full">
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-900/[0.04]">
-        <div className="border-b border-slate-200 bg-white px-4 py-3 sm:px-5 sm:py-3.5">
-          <h3 className="text-base font-bold tracking-tight text-slate-900 sm:text-lg">{navLabel}</h3>
-          <p className="mt-1.5 text-xs leading-relaxed text-slate-600 sm:text-sm">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-900/[0.04] dark:border-white/10 dark:bg-neutral-900 dark:shadow-none dark:ring-white/10">
+        <div className="border-b border-slate-200 bg-white px-4 py-3 sm:px-5 sm:py-3.5 dark:border-white/10 dark:bg-neutral-900">
+          <h3 className="text-base font-bold tracking-tight text-slate-900 sm:text-lg dark:text-neutral-100">{navLabel}</h3>
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-600 sm:text-sm dark:text-neutral-400">
             {tv.profile_visibility_mock_hint_realistic ?? tv.profile_visibility_mock_hint ?? ''}
           </p>
         </div>
-        <div className="bg-[#f8fafc] app-horizontal-pad py-4 sm:py-6">
+        <div className="bg-[#f8fafc] app-horizontal-pad py-4 sm:py-6 dark:bg-[#0a0a0a]">
           <div className="mx-auto w-full max-w-6xl space-y-5">
             {blocks}
             {children}

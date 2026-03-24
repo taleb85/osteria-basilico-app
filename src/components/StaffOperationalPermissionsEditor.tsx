@@ -68,7 +68,15 @@ export default function StaffOperationalPermissionsEditor({ user, currentUser }:
             <AdminRow
               key={perm.key}
               className="!py-2.5 !px-4"
-              label={<span className={enabled ? 'text-slate-800' : 'text-slate-500'}>{perm.label}</span>}
+              label={
+                <span
+                  className={
+                    enabled ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-500 dark:text-neutral-400'
+                  }
+                >
+                  {perm.label}
+                </span>
+              }
               description={perm.description}
               badge={
                 perm.adminOnly ? (
@@ -86,9 +94,9 @@ export default function StaffOperationalPermissionsEditor({ user, currentUser }:
                     aria-label={perm.label}
                     disabled={busyKey !== null}
                     onClick={() => void handleToggle(perm.key, perm.adminOnly)}
-                    className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
-                      enabled ? 'bg-accent' : 'bg-slate-200'
-                    } ${busyKey !== null ? 'opacity-60 cursor-wait' : ''}`}
+                    className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${
+                      enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
+                    } ${busyKey !== null ? 'cursor-wait opacity-60' : ''}`}
                   >
                     <span
                       className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${

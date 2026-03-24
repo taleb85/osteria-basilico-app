@@ -31,21 +31,33 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
           <div className="min-w-0">
-            <h2 className="text-base font-bold text-slate-900">{t.timesheet_title}</h2>
+            <h2 className="text-base font-bold text-slate-900 dark:text-neutral-50">{t.timesheet_title}</h2>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
               {t.stats_preset_current_week}
             </p>
           </div>
           <div className="flex items-center gap-1">
-            <button type="button" tabIndex={-1} className="rounded-lg border border-slate-200 p-1.5 text-slate-600">
+            <button
+              type="button"
+              tabIndex={-1}
+              className="rounded-lg border border-slate-200 p-1.5 text-slate-600 dark:border-white/10 dark:text-neutral-300"
+            >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <button type="button" tabIndex={-1} className="rounded-lg border border-slate-200 p-1.5 text-slate-600">
+            <button
+              type="button"
+              tabIndex={-1}
+              className="rounded-lg border border-slate-200 p-1.5 text-slate-600 dark:border-white/10 dark:text-neutral-300"
+            >
               <ChevronRight className="h-4 w-4" />
             </button>
-            <button type="button" tabIndex={-1} className="rounded-lg border border-slate-200 p-1.5 text-slate-600">
+            <button
+              type="button"
+              tabIndex={-1}
+              className="rounded-lg border border-slate-200 p-1.5 text-slate-600 dark:border-white/10 dark:text-neutral-300"
+            >
               <FileDown className="h-4 w-4" />
             </button>
           </div>
@@ -67,8 +79,11 @@ export default function TimesheetTabPreview({
             { v: '1', l: t.home_stat_delays },
             { v: '12', l: t.home_stat_approved },
           ].map((c) => (
-            <div key={c.l} className="rounded-xl border border-slate-100 bg-white p-3 text-center shadow-sm">
-              <p className="text-xl font-bold text-slate-900">{c.v}</p>
+            <div
+              key={c.l}
+              className="rounded-xl border border-slate-100 bg-white p-3 text-center shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none"
+            >
+              <p className="text-xl font-bold text-slate-900 dark:text-neutral-50">{c.v}</p>
               <p className="mt-0.5 text-[10px] font-medium text-slate-500 dark:text-neutral-300">{c.l}</p>
             </div>
           ))}
@@ -85,17 +100,17 @@ export default function TimesheetTabPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
+          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
             <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.stats_approved_hours}</p>
-            <p className="text-xl font-bold text-slate-900">128:30</p>
+            <p className="text-xl font-bold text-slate-900 dark:text-neutral-50">128:30</p>
           </div>
-          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
+          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
             <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.stats_estimated_cost}</p>
-            <p className="text-xl font-bold text-slate-900">—</p>
+            <p className="text-xl font-bold text-slate-900 dark:text-neutral-50">—</p>
           </div>
-          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
+          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
             <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.pending}</p>
-            <p className="text-xl font-bold text-amber-800">3</p>
+            <p className="text-xl font-bold text-amber-800 dark:text-amber-300">3</p>
           </div>
         </div>
       </WidgetChrome>
@@ -110,11 +125,11 @@ export default function TimesheetTabPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="space-y-2">
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800">
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 dark:border-white/10 dark:bg-neutral-800/60 dark:text-neutral-100">
             <span>{t.mod_stats_hours}</span>
             <ChevronDown className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
           </div>
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800">
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100">
             <span>{t.sidebar_shifts}</span>
             <ChevronDown className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
           </div>
@@ -145,7 +160,7 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2.5 text-xs font-semibold text-amber-900">
+        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2.5 text-xs font-semibold text-amber-900 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200">
           <UserCheck className="h-4 w-4 shrink-0" />
           {t.timesheet_approve_all}
         </div>
@@ -193,10 +208,10 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="rounded-xl border border-accent/25 bg-accent/5 p-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-accent-dark/80">{t.timesheet_my_week}</p>
-          <p className="mt-1 text-lg font-bold text-slate-900">32:00</p>
-          <p className="text-xs text-slate-600">{t.shifts_week}</p>
+        <div className="rounded-xl border border-accent/25 bg-accent/5 p-4 dark:border-accent/35 dark:bg-accent/10">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-accent-dark/80 dark:text-accent-light/90">{t.timesheet_my_week}</p>
+          <p className="mt-1 text-lg font-bold text-slate-900 dark:text-neutral-50">32:00</p>
+          <p className="text-xs text-slate-600 dark:text-neutral-400">{t.shifts_week}</p>
         </div>
       </WidgetChrome>
       )}

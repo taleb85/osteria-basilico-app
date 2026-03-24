@@ -29,7 +29,7 @@ export default function StaffHolidaysPreview({
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">{t.sidebar_holidays}</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-neutral-50">{t.sidebar_holidays}</h2>
             <p className="text-xs text-slate-500 dark:text-neutral-300">{t.holiday_management}</p>
           </div>
           <button
@@ -50,14 +50,14 @@ export default function StaffHolidaysPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-3 py-2 text-xs font-bold text-slate-600">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+          <div className="border-b border-slate-100 px-3 py-2 text-xs font-bold text-slate-600 dark:border-white/10 dark:text-neutral-300">
             {t.mod_vacation_requests}
           </div>
           <div className="flex items-center gap-3 px-3 py-4">
             <Palmtree className="h-8 w-8 shrink-0 text-accent/50" />
             <div>
-              <p className="text-sm font-semibold text-slate-800">Ferie estive</p>
+              <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Ferie estive</p>
               <p className="text-xs text-slate-500 dark:text-neutral-300">1–7 ago · {t.approved ?? 'Approvata'}</p>
             </div>
           </div>
