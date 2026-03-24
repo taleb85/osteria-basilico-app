@@ -119,7 +119,7 @@ export interface AppContextType {
   geofenceEffectiveConfig: GeofenceConfig | null;
   /** Salva `geofence.json` su Storage e aggiorna la cache locale (solo Admin da UI). */
   saveGeofenceConfig: (config: GeofenceConfig) => Promise<void>;
-  /** Config verifica presenza NFC/QR (`presence_verification.json` + env). */
+  /** Config verifica presenza QR (`presence_verification.json` + env). */
   presenceVerificationConfig: PresenceVerificationConfig;
   savePresenceVerificationConfig: (config: PresenceVerificationConfig) => Promise<void>;
   workRules: WorkRules;

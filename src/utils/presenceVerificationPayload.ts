@@ -8,7 +8,7 @@ export function readOsteriaAuthKeyFromEnv(): string {
   return typeof k === 'string' ? k.trim() : '';
 }
 
-/** Payload canonico salvato su QR/NFC quando si usa solo la chiave .env. */
+/** Payload canonico nel QR quando si usa solo la chiave .env. */
 export function buildVerificationPayloadFromAuthKey(secret: string): string {
   const s = secret.trim();
   return s ? `${PREFIX}${s}` : '';

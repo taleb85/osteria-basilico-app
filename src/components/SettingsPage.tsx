@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, LocateFixed, Nfc, QrCode, UploadCloud, PenLine } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, LocateFixed, QrCode, UploadCloud } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { User, UserRole } from '../types';
 import { translateRole } from '../utils/roles';
@@ -31,7 +31,6 @@ import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage';
 import type { WorkRules } from '../utils/workRules';
 import { getCurrentPositionCoords } from '../utils/geo';
-import { readNfcTagOnce, writeNfcVerificationText, isNfcWriteSupported } from '../utils/nfc';
 import { resolveEffectiveVerificationToken, generateRandomVerificationToken } from '../utils/presenceVerificationPayload';
 import { generatePresenceQrDataUrl, openPresenceQrPrintWindow } from '../utils/qrPresence';
 
@@ -169,8 +168,6 @@ export default function SettingsPage() {
   const [geoRadius, setGeoRadius] = useState('120');
   const [geoSaving, setGeoSaving] = useState(false);
   const [geoAcquiring, setGeoAcquiring] = useState(false);
-  const [presenceNfcBusy, setPresenceNfcBusy] = useState(false);
-  const [presenceNfcWriteBusy, setPresenceNfcWriteBusy] = useState(false);
   const [presenceQrBusy, setPresenceQrBusy] = useState(false);
 
   useEffect(() => {
@@ -1074,7 +1071,7 @@ export default function SettingsPage() {
 
         {isManager && (
           <SettingsAccordionSection
-            storageKey="osteria_settings_acc_presence_nfc_qr"
+            storageKey="osteria_settings_acc_presence_qr"
             title={t.settings_presence_accordion_title}
             subtitle={t.settings_presence_accordion_subtitle}
             defaultOpen={true}
@@ -1095,13 +1092,6 @@ export default function SettingsPage() {
                     </p>
                     {!diskTok && effectiveTok ? (
                       <p className="text-[10px] text-slate-500 dark:text-neutral-300 leading-snug">{t.settings_presence_token_env_only}</p>
-                    ) : null}
-                    {presenceVerificationConfig.nfcLastRegisteredAt ? (
-                      <p className="text-[10px] text-slate-500 dark:text-neutral-300">
-                        {formatTrans(t.settings_presence_nfc_last, {
-                          date: new Date(presenceVerificationConfig.nfcLastRegisteredAt).toLocaleString(),
-                        })}
-                      </p>
                     ) : null}
                   </div>
                 );
@@ -1137,91 +1127,7 @@ export default function SettingsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  disabled={presenceNfcBusy || presenceNfcWriteBusy}
-                  onClick={async () => {
-                    setPresenceNfcBusy(true);
-                    try {
-                      const res = await readNfcTagOnce();
-                      if (!res.ok) {
-                        showError?.(t.settings_presence_nfc_error);
-                        return;
-                      }
-                      const text = res.text.trim();
-                      if (!text) {
-                        showError?.(t.settings_presence_nfc_error);
-                        return;
-                      }
-                      await savePresenceVerificationConfig({
-                        ...presenceVerificationConfig,
-                        verificationToken: text,
-                        nfcLastRegisteredAt: new Date().toISOString(),
-                      });
-                      showSuccess?.(t.settings_presence_nfc_saved);
-                    } catch (e) {
-                      showError?.(e instanceof Error ? e.message : t.settings_presence_nfc_error);
-                    } finally {
-                      setPresenceNfcBusy(false);
-                    }
-                  }}
-                  className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-50 disabled:opacity-60 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
-                >
-                  <Nfc className="h-4 w-4 shrink-0 text-accent" aria-hidden />
-                  {presenceNfcBusy ? t.ui_ellipsis : t.settings_presence_register_nfc}
-                </button>
-                <button
-                  type="button"
-                  disabled={
-                    presenceNfcBusy ||
-                    presenceNfcWriteBusy ||
-                    !isNfcWriteSupported() ||
-                    !resolveEffectiveVerificationToken(presenceVerificationConfig)
-                  }
-                  title={
-                    !isNfcWriteSupported()
-                      ? t.settings_presence_nfc_write_unsupported
-                      : !resolveEffectiveVerificationToken(presenceVerificationConfig)
-                        ? t.settings_presence_token_none
-                        : undefined
-                  }
-                  onClick={async () => {
-                    const token = resolveEffectiveVerificationToken(presenceVerificationConfig);
-                    if (!token) {
-                      showError?.(t.settings_presence_token_none);
-                      return;
-                    }
-                    setPresenceNfcWriteBusy(true);
-                    try {
-                      const res = await writeNfcVerificationText(token);
-                      if (!res.ok) {
-                        if (res.error === 'unsupported') {
-                          showError?.(t.settings_presence_nfc_write_unsupported);
-                        } else if (res.error === 'denied') {
-                          showError?.(t.punch_presence_nfc_denied);
-                        } else {
-                          showError?.(t.settings_presence_nfc_error);
-                        }
-                        return;
-                      }
-                      await savePresenceVerificationConfig({
-                        ...presenceVerificationConfig,
-                        verificationToken: token,
-                        nfcLastRegisteredAt: new Date().toISOString(),
-                      });
-                      showSuccess?.(t.settings_presence_nfc_write_success);
-                    } catch (e) {
-                      showError?.(e instanceof Error ? e.message : t.settings_presence_nfc_error);
-                    } finally {
-                      setPresenceNfcWriteBusy(false);
-                    }
-                  }}
-                  className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-accent/35 bg-accent/[0.08] px-4 text-xs font-bold uppercase tracking-wider text-accent hover:bg-accent/[0.14] disabled:opacity-60"
-                >
-                  <PenLine className="h-4 w-4 shrink-0" aria-hidden />
-                  {presenceNfcWriteBusy ? t.ui_ellipsis : t.settings_presence_write_nfc}
-                </button>
-                <button
-                  type="button"
-                  disabled={presenceQrBusy || presenceNfcBusy || presenceNfcWriteBusy}
+                  disabled={presenceQrBusy}
                   onClick={async () => {
                     setPresenceQrBusy(true);
                     try {

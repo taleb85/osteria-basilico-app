@@ -6,7 +6,7 @@ import { resolveEffectiveVerificationToken } from '../utils/presenceVerification
 import PunchPresenceVerificationModal from '../components/PunchPresenceVerificationModal';
 
 /**
- * Se la verifica NFC/QR è attiva, apre la modale e restituisce il payload letto; altrimenti `undefined`.
+ * Se la verifica QR è attiva, apre la modale e restituisce il payload letto; altrimenti stringa vuota.
  * Il manager che timbra per un altro dipendente è escluso (come per il geofence).
  */
 export function usePunchPresenceVerification(language: Language) {

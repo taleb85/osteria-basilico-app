@@ -8,10 +8,11 @@ const FILE_PATH = 'presence_verification.json';
 const STORAGE_KEY = 'osteria_presence_verification_v1';
 
 export type PresenceVerificationConfig = {
-  /** Se true, timbratura richiede QR o NFC valido (salvo manager che timbra per altri). */
+  /** Se true, timbratura richiede QR valido (salvo manager che timbra per altri). */
   requireVerification: boolean;
-  /** Payload atteso: stesso testo nel QR stampato e sul tag NFC. */
+  /** Payload atteso: stesso testo codificato nel QR stampato in sala. */
   verificationToken: string;
+  /** Opzionale: legacy da sync precedenti (NFC rimosso dall’UI). */
   nfcLastRegisteredAt?: string;
 };
 
