@@ -91,7 +91,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
         } ${
           open
             ? 'bg-accent/10 border-accent/20 text-accent'
-            : 'border-slate-100 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+            : 'border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-700 hover:text-slate-800 dark:hover:text-neutral-100'
         }`}
       >
         <Bell size={denseTrigger ? 16 : 17} strokeWidth={2} />

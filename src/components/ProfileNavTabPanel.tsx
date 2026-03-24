@@ -1,0 +1,355 @@
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { LogOut, Camera } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { useProfileLeaveGuardRef } from '../context/ProfileLeaveGuardContext';
+import { getTranslations } from '../utils/translations';
+import { ProfileFormSelf, type ProfileFormSelfData } from './UserProfile';
+import ProfilePhotoSourceSheet from './profile/ProfilePhotoSourceSheet';
+import ProfilePhotoCropperModal from './profile/ProfilePhotoCropperModal';
+import {
+  readProfileAvatarFromStorage,
+  writeProfileAvatarToStorage,
+  readAvatarFocus,
+  writeAvatarFocus,
+  avatarFocusToObjectPosition,
+  type AvatarFocus,
+} from '../utils/profilePhotoStorage';
+import { splitPhoneForForm, joinPhone, DEFAULT_PHONE_PREFIX } from '../utils/phonePrefix';
+import type { Language } from '../types';
+
+function serializeProfileForm(fd: ProfileFormSelfData): string {
+  return JSON.stringify({
+    first_name: fd.first_name.trim(),
+    last_name: fd.last_name.trim(),
+    email: fd.email.trim(),
+    phone: joinPhone(fd.phone_prefix, fd.phone_national),
+    language: fd.language,
+    role: fd.role,
+    pin: fd.pin.replace(/\D/g, '').slice(0, 4),
+  });
+}
+
+/**
+ * Scheda bottom bar “Profilo”: hero + form impostazioni sempre visibile + riga Esci.
+ */
+export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void }) {
+  const { currentUser, effectiveLanguage, updateUser, showError } = useApp();
+  const profileLeaveGuardRef = useProfileLeaveGuardRef();
+  const t = getTranslations(effectiveLanguage);
+  const tv = t as Record<string, string>;
+  const [formData, setFormData] = useState<ProfileFormSelfData>({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone_prefix: DEFAULT_PHONE_PREFIX,
+    phone_national: '',
+    language: 'it',
+    department: undefined,
+    role: 'server',
+    pin: '',
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoSourceSheetOpen, setPhotoSourceSheetOpen] = useState(false);
+  const [cropObjectUrl, setCropObjectUrl] = useState<string | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const filesInputRef = useRef<HTMLInputElement>(null);
+  const [avatarFocus, setAvatarFocus] = useState<AvatarFocus>({ x: 50, y: 50 });
+  const focusRef = useRef<AvatarFocus>({ x: 50, y: 50 });
+  const savedSnapshotRef = useRef('');
+  const photoMenuWrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const ph = splitPhoneForForm(currentUser.phone);
+    const fd: ProfileFormSelfData = {
+      first_name: currentUser.first_name ?? '',
+      last_name: currentUser.last_name ?? '',
+      email: currentUser.email ?? '',
+      phone_prefix: ph.prefix,
+      phone_national: ph.national,
+      language: (currentUser.language ?? 'it') as Language,
+      department: currentUser.department,
+      role: currentUser.role,
+      pin: currentUser.pin ?? '',
+    };
+    setFormData(fd);
+    savedSnapshotRef.current = serializeProfileForm(fd);
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    const f = readAvatarFocus(currentUser.id);
+    focusRef.current = f;
+    setAvatarFocus(f);
+  }, [currentUser?.id]);
+
+  const resolvedAvatar =
+    currentUser &&
+    (readProfileAvatarFromStorage(currentUser.id) ?? currentUser.avatar_url ?? null);
+
+  useEffect(() => {
+    if (!photoSourceSheetOpen) return;
+    const onDown = (e: PointerEvent) => {
+      if (photoMenuWrapRef.current?.contains(e.target as Node)) return;
+      setPhotoSourceSheetOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown, true);
+    return () => document.removeEventListener('pointerdown', onDown, true);
+  }, [photoSourceSheetOpen]);
+
+  const onPickedFileForCrop = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = '';
+      if (!file || !file.type.startsWith('image/')) {
+        showError?.(tv.profile_tab_photo_error ?? 'Impossibile elaborare la foto.');
+        return;
+      }
+      const url = URL.createObjectURL(file);
+      setCropObjectUrl(url);
+    },
+    [showError, tv.profile_tab_photo_error]
+  );
+
+  const closePhotoCropper = useCallback(() => {
+    setCropObjectUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }, []);
+
+  const persistCroppedAvatar = useCallback(
+    async (dataUrl: string) => {
+      if (!currentUser?.id) return;
+      setPhotoBusy(true);
+      try {
+        writeProfileAvatarToStorage(currentUser.id, dataUrl);
+        const center: AvatarFocus = { x: 50, y: 50 };
+        writeAvatarFocus(currentUser.id, center);
+        focusRef.current = center;
+        setAvatarFocus(center);
+        const ok = await updateUser(currentUser.id, { avatar_url: dataUrl });
+        if (!ok) throw new Error('avatar save failed');
+      } finally {
+        setPhotoBusy(false);
+      }
+    },
+    [currentUser?.id, updateUser]
+  );
+
+  const onCropConfirm = useCallback(
+    async (dataUrl: string) => {
+      setCropObjectUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      try {
+        await persistCroppedAvatar(dataUrl);
+      } catch {
+        showError?.(tv.profile_tab_photo_error ?? 'Impossibile elaborare la foto.');
+      }
+    },
+    [persistCroppedAvatar, showError, tv.profile_tab_photo_error]
+  );
+
+  const performProfileSave = useCallback(async () => {
+    if (!currentUser) return;
+    const pinDigits = formData.pin.replace(/\D/g, '').slice(0, 4);
+    setIsSaving(true);
+    try {
+      const ok = await updateUser(currentUser.id, {
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim() || undefined,
+        email: formData.email,
+        phone: joinPhone(formData.phone_prefix, formData.phone_national),
+        language: formData.language,
+        ...(pinDigits.length === 4 ? { pin: pinDigits } : {}),
+      });
+      if (!ok) throw new Error('save failed');
+      savedSnapshotRef.current = serializeProfileForm(formData);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [currentUser, formData, updateUser]);
+
+  const handleProfileSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await performProfileSave();
+    } catch {
+      /* updateUser notifica */
+    }
+  };
+
+  const isDirty = useCallback(
+    () => serializeProfileForm(formData) !== savedSnapshotRef.current,
+    [formData]
+  );
+
+  useEffect(() => {
+    const ref = profileLeaveGuardRef;
+    if (!ref) return;
+    ref.current = {
+      isDirty,
+      save: performProfileSave,
+    };
+    return () => {
+      ref.current = null;
+    };
+  }, [profileLeaveGuardRef, isDirty, performProfileSave]);
+
+  if (!currentUser) return null;
+
+  const displayName =
+    (currentUser.first_name?.trim() || currentUser.email?.split('@')[0] || 'Utente').trim() || 'Utente';
+  const profileInitial = (displayName.charAt(0) || '?').toUpperCase();
+
+  const sectionLabel = tv.profile_tab_group_settings ?? 'Impostazioni';
+  const changePhoto = tv.profile_tab_change_photo ?? 'Cambia foto';
+  const logoutConfirm = tv.profile_logout_confirm ?? 'Uscire dall’account?';
+
+  const sourceLabels = {
+    sheetAria: tv.profile_photo_source_sheet_aria ?? '',
+    gallery: tv.profile_photo_source_gallery ?? 'Galleria',
+    camera: tv.profile_photo_source_camera ?? 'Fotocamera',
+    files: tv.profile_photo_source_files ?? 'File',
+  };
+  const cropLabels = {
+    close: tv.profile_photo_crop_close ?? 'Chiudi',
+    title: tv.profile_photo_crop_title ?? 'Modifica foto',
+    crop: tv.profile_photo_crop_action ?? 'Ritaglia',
+    hint: tv.profile_photo_crop_hint ?? '',
+  };
+
+  const confirmLogout = () => {
+    if (window.confirm(logoutConfirm)) onLogout();
+  };
+
+  return (
+    <div className="w-full max-w-lg mx-auto pb-content pt-2 font-sans">
+      {cropObjectUrl ? (
+        <ProfilePhotoCropperModal
+          imageSrc={cropObjectUrl}
+          labels={cropLabels}
+          onClose={closePhotoCropper}
+          onConfirm={onCropConfirm}
+        />
+      ) : null}
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        aria-hidden
+        onChange={onPickedFileForCrop}
+      />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="user"
+        className="sr-only"
+        aria-hidden
+        onChange={onPickedFileForCrop}
+      />
+      <input
+        ref={filesInputRef}
+        type="file"
+        accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
+        className="sr-only"
+        aria-hidden
+        onChange={onPickedFileForCrop}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="space-y-3"
+      >
+        {/* Hero */}
+        <div className="flex flex-col items-center px-4 pt-1 pb-0">
+          <div className="relative inline-block">
+            <div className="relative rounded-2xl outline-none" aria-label={displayName}>
+              <div className="flex h-[8.5rem] w-[8.5rem] items-center justify-center overflow-hidden rounded-2xl border-2 border-accent/25 bg-accent/10 text-[2.35rem] font-bold text-accent shadow-sm sm:h-40 sm:w-40 sm:text-[2.5rem]">
+                {resolvedAvatar ? (
+                  <img
+                    src={resolvedAvatar}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    style={{ objectPosition: avatarFocusToObjectPosition(avatarFocus) }}
+                    draggable={false}
+                  />
+                ) : (
+                  profileInitial
+                )}
+              </div>
+            </div>
+            <div ref={photoMenuWrapRef} className="absolute bottom-1 right-1 z-20">
+              <button
+                type="button"
+                onClick={(ev) => {
+                  ev.stopPropagation();
+                  setPhotoSourceSheetOpen((o) => !o);
+                }}
+                disabled={photoBusy}
+                aria-expanded={photoSourceSheetOpen}
+                aria-haspopup="menu"
+                aria-controls="profile-photo-source-menu"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent text-white shadow-sm outline-none transition-colors hover:bg-accent-hover active:scale-[0.96] disabled:opacity-50 touch-manipulation focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-0"
+                title={changePhoto}
+                aria-label={changePhoto}
+              >
+                <Camera className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+              </button>
+              <ProfilePhotoSourceSheet
+                open={photoSourceSheetOpen}
+                labels={sourceLabels}
+                onClose={() => setPhotoSourceSheetOpen(false)}
+                onPickGallery={() => galleryInputRef.current?.click()}
+                onPickCamera={() => cameraInputRef.current?.click()}
+                onPickFiles={() => filesInputRef.current?.click()}
+                menuId="profile-photo-source-menu"
+              />
+            </div>
+          </div>
+          <h2 className="mt-4 text-center text-xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
+            {displayName}
+          </h2>
+        </div>
+
+        <p className="px-4 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">{sectionLabel}</p>
+
+        {/* Form impostazioni profilo */}
+        <div className="overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-sm">
+          <div className="bg-slate-50/70 dark:bg-neutral-950/50 px-4 py-4 text-slate-900 dark:text-neutral-100">
+            <ProfileFormSelf
+              formData={formData}
+              setFormData={setFormData}
+              onSave={handleProfileSave}
+              isSaving={isSaving}
+              readOnly={false}
+              appearance="light"
+              departmentLocked
+              roleLocked
+            />
+          </div>
+        </div>
+
+        {/* Esci — tutto rosso, conferma */}
+        <button
+          type="button"
+          onClick={confirmLogout}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-700 bg-red-600 px-4 py-3.5 min-h-[52px] touch-manipulation font-semibold text-white shadow-sm transition-colors hover:bg-red-700 active:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 dark:border-red-800 dark:focus-visible:ring-offset-neutral-950"
+        >
+          <LogOut className="h-[18px] w-[18px] shrink-0 text-white" strokeWidth={2} aria-hidden />
+          <span>{t.header_logout}</span>
+        </button>
+      </motion.div>
+    </div>
+  );
+}

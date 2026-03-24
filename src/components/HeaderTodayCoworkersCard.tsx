@@ -63,21 +63,21 @@ export default function HeaderTodayCoworkersCard() {
           <Users className="h-4 w-4" strokeWidth={2.25} aria-hidden />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{title}</p>
-          <p className="truncate text-[10px] text-slate-400 capitalize" title={todayLabel}>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400">{title}</p>
+          <p className="truncate text-[10px] text-slate-400 dark:text-neutral-500 capitalize" title={todayLabel}>
             {todayLabel}
           </p>
         </div>
       </div>
       {rows.length === 0 ? (
-        <p className="pl-10 text-xs leading-snug text-slate-500">{empty}</p>
+        <p className="pl-10 text-xs leading-snug text-slate-500 dark:text-neutral-400">{empty}</p>
       ) : (
         <ul className="max-h-[min(40vh,220px)] space-y-2 overflow-y-auto overscroll-contain pl-10 pr-0.5 smooth-touch">
           {rows.map((r) => (
-            <li key={r.userId} className="flex min-w-0 flex-col gap-0.5 border-b border-slate-100/90 pb-2 last:border-0 last:pb-0">
-              <span className="truncate text-xs font-semibold uppercase tracking-wide text-slate-800">{r.name}</span>
+            <li key={r.userId} className="flex min-w-0 flex-col gap-0.5 border-b border-slate-100/90 dark:border-white/10 pb-2 last:border-0 last:pb-0">
+              <span className="truncate text-xs font-semibold uppercase tracking-wide text-slate-800 dark:text-neutral-100">{r.name}</span>
               {r.slots ? (
-                <span className="font-mono text-[11px] tabular-nums text-slate-600">{r.slots}</span>
+                <span className="font-mono text-[11px] tabular-nums text-slate-600 dark:text-neutral-400">{r.slots}</span>
               ) : null}
             </li>
           ))}

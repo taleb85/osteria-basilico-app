@@ -1122,7 +1122,7 @@ export default function Timesheets() {
 
   return (
     <>
-      <div className="pb-content pt-6 w-full max-w-full font-sans min-h-full">
+      <div className="pb-content pt-6 w-full max-w-full font-sans">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
 
           {/* ── Header: periodo, vista, navigazione ── */}

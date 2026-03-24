@@ -257,6 +257,7 @@ export const database = {
         'can_edit_staff_pins', 'can_manage_drafts',
         'can_request_holidays', 'can_punch_from_app',
         'hide_from_team_schedule',
+        'avatar_url',
       ];
       const rawPayload: Record<string, unknown> = {};
       for (const key of safeKeys) {
@@ -269,7 +270,15 @@ export const database = {
       const payload = sanitizeUserUpdatePayload(rawPayload);
 
       const permKeys = ['can_request_holidays', 'can_punch_from_app', 'can_edit_staff_pins', 'can_create_shifts', 'can_approve_shifts', 'can_view_total_hours', 'can_manage_drafts'];
-      const optionalCols = ['enabled_modules', 'enabled_features', 'ui_section_overrides', 'monthly_confirmed', 'hourly_rate_eur', 'hide_from_team_schedule'];
+      const optionalCols = [
+        'enabled_modules',
+        'enabled_features',
+        'ui_section_overrides',
+        'monthly_confirmed',
+        'hourly_rate_eur',
+        'hide_from_team_schedule',
+        'avatar_url',
+      ];
 
       const onlyOptionalCols = (keys: string[]) =>
         keys.every((k) => permKeys.includes(k) || optionalCols.includes(k));

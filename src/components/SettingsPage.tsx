@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, LocateFixed, Nfc, QrCode, UploadCloud } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, LocateFixed, Nfc, QrCode, UploadCloud, PenLine } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { User, UserRole } from '../types';
 import { translateRole } from '../utils/roles';
@@ -20,6 +20,7 @@ import {
   BUILTIN_DEPARTMENTS,
   DEPARTMENT_COLOR_PRESETS,
 } from '../utils/departments';
+import { translateDepartmentValue } from '../utils/departmentLabels';
 import type { Department, PermissionCategory } from '../utils/departments';
 import { FEATURE_DEFINITIONS } from '../utils/featureFlags';
 import { getEnabledFeatures, ADMIN_MODULE_KEYS, getAdminModuleEnabled, isAdminModuleEnabled } from '../utils/enabledFeatures';
@@ -30,7 +31,7 @@ import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage';
 import type { WorkRules } from '../utils/workRules';
 import { getCurrentPositionCoords } from '../utils/geo';
-import { readNfcTagOnce } from '../utils/nfc';
+import { readNfcTagOnce, writeNfcVerificationText, isNfcWriteSupported } from '../utils/nfc';
 import { resolveEffectiveVerificationToken, generateRandomVerificationToken } from '../utils/presenceVerificationPayload';
 import { generatePresenceQrDataUrl, openPresenceQrPrintWindow } from '../utils/qrPresence';
 
@@ -169,6 +170,7 @@ export default function SettingsPage() {
   const [geoSaving, setGeoSaving] = useState(false);
   const [geoAcquiring, setGeoAcquiring] = useState(false);
   const [presenceNfcBusy, setPresenceNfcBusy] = useState(false);
+  const [presenceNfcWriteBusy, setPresenceNfcWriteBusy] = useState(false);
   const [presenceQrBusy, setPresenceQrBusy] = useState(false);
 
   useEffect(() => {
@@ -304,14 +306,14 @@ export default function SettingsPage() {
 
   if (!isManager) {
     return (
-      <div className="pb-content pt-6 w-full px-4 sm:px-6 font-sans min-h-full">
+      <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
         <p className="text-slate-600 text-sm">{t.no_access_settings}</p>
       </div>
     );
   }
 
   return (
-    <div className="pb-content pt-6 w-full px-4 sm:px-6 font-sans min-h-full">
+    <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -624,7 +626,9 @@ export default function SettingsPage() {
                       }`}
                       style={{ backgroundColor: badgeColor }}
                     >
-                      <span className="truncate max-w-[10rem]">{d.label}</span>
+                      <span className="truncate max-w-[10rem]">
+                        {translateDepartmentValue(d.value, effectiveLanguage)}
+                      </span>
                       {!isBuiltin && d.permissionCategory && (
                         <span
                           className="text-[9px] font-semibold normal-case opacity-90 border-l border-white/35 pl-1.5 shrink-0 max-w-[5.5rem] truncate"
@@ -1119,7 +1123,7 @@ export default function SettingsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  disabled={presenceNfcBusy}
+                  disabled={presenceNfcBusy || presenceNfcWriteBusy}
                   onClick={async () => {
                     setPresenceNfcBusy(true);
                     try {
@@ -1152,7 +1156,58 @@ export default function SettingsPage() {
                 </button>
                 <button
                   type="button"
-                  disabled={presenceQrBusy}
+                  disabled={
+                    presenceNfcBusy ||
+                    presenceNfcWriteBusy ||
+                    !isNfcWriteSupported() ||
+                    !resolveEffectiveVerificationToken(presenceVerificationConfig)
+                  }
+                  title={
+                    !isNfcWriteSupported()
+                      ? t.settings_presence_nfc_write_unsupported
+                      : !resolveEffectiveVerificationToken(presenceVerificationConfig)
+                        ? t.settings_presence_token_none
+                        : undefined
+                  }
+                  onClick={async () => {
+                    const token = resolveEffectiveVerificationToken(presenceVerificationConfig);
+                    if (!token) {
+                      showError?.(t.settings_presence_token_none);
+                      return;
+                    }
+                    setPresenceNfcWriteBusy(true);
+                    try {
+                      const res = await writeNfcVerificationText(token);
+                      if (!res.ok) {
+                        if (res.error === 'unsupported') {
+                          showError?.(t.settings_presence_nfc_write_unsupported);
+                        } else if (res.error === 'denied') {
+                          showError?.(t.punch_presence_nfc_denied);
+                        } else {
+                          showError?.(t.settings_presence_nfc_error);
+                        }
+                        return;
+                      }
+                      await savePresenceVerificationConfig({
+                        ...presenceVerificationConfig,
+                        verificationToken: token,
+                        nfcLastRegisteredAt: new Date().toISOString(),
+                      });
+                      showSuccess?.(t.settings_presence_nfc_write_success);
+                    } catch (e) {
+                      showError?.(e instanceof Error ? e.message : t.settings_presence_nfc_error);
+                    } finally {
+                      setPresenceNfcWriteBusy(false);
+                    }
+                  }}
+                  className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-accent/35 bg-accent/[0.08] px-4 text-xs font-bold uppercase tracking-wider text-accent hover:bg-accent/[0.14] disabled:opacity-60"
+                >
+                  <PenLine className="h-4 w-4 shrink-0" aria-hidden />
+                  {presenceNfcWriteBusy ? t.ui_ellipsis : t.settings_presence_write_nfc}
+                </button>
+                <button
+                  type="button"
+                  disabled={presenceQrBusy || presenceNfcBusy || presenceNfcWriteBusy}
                   onClick={async () => {
                     setPresenceQrBusy(true);
                     try {
@@ -1193,8 +1248,8 @@ export default function SettingsPage() {
                 <UploadCloud className="h-5 w-5" aria-hidden />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t.settings_cloud_sync_heading}</p>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">{t.settings_cloud_sync_hint}</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.settings_cloud_sync_heading}</p>
+                <p className="text-xs text-slate-600 dark:text-neutral-400 mt-0.5 leading-relaxed">{t.settings_cloud_sync_hint}</p>
                 <p className="text-[11px] font-medium text-emerald-800/90 dark:text-emerald-300/90 mt-1.5">
                   {settingsCloudLastSyncedAt
                     ? formatTrans(t.settings_cloud_synced_at, {
@@ -1815,7 +1870,7 @@ function BreakRuleModal({
                       onClick={() => setDepartments((prev) => toggleChip(prev, d.value))}
                       className={chipClass(departments.includes(d.value))}
                     >
-                      {d.label}
+                      {translateDepartmentValue(d.value, effectiveLanguage)}
                     </button>
                   ))}
                 </div>

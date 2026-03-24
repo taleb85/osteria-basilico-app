@@ -31,7 +31,7 @@ const UI_SCREEN_GROUP_TO_PREVIEW_TAB: Record<string, AppNavTab> = {
   staff_holidays: 'ferie',
   timesheet: 'timesheet',
   stats: 'reports',
-  staff_profile: 'settings',
+  staff_profile: 'profile',
 };
 
 export function screenGroupToPreviewTab(screenGroup: string): AppNavTab {

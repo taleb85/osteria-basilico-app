@@ -56,7 +56,7 @@ export default function ProfileTabRichPreview({
   if (activeHubTab === 'ferie' && !isMgmt && gm.has('staff_holidays')) omitKeys.add(OMIT_STAFF_FERIE);
   if (activeHubTab === 'timesheet' && gm.has('timesheet')) omitKeys.add('timesheet');
   if (activeHubTab === 'reports' && gm.has('stats')) omitKeys.add('stats');
-  if (activeHubTab === 'settings' && gm.has('staff_profile')) omitKeys.add('staff_profile');
+  if ((activeHubTab === 'settings' || activeHubTab === 'profile') && gm.has('staff_profile')) omitKeys.add('staff_profile');
 
   const remainder = layoutGroups.filter((g) => !omitKeys.has(g.groupKey));
 
@@ -152,10 +152,10 @@ export default function ProfileTabRichPreview({
       />
     );
   }
-  if (activeHubTab === 'settings' && gm.has('staff_profile')) {
+  if ((activeHubTab === 'settings' || activeHubTab === 'profile') && gm.has('staff_profile')) {
     blocks.push(
       <SettingsTabPreview
-        key="settings"
+        key={activeHubTab === 'profile' ? 'profile' : 'settings'}
         previewUser={previewUser}
         language={language}
         isSelectedAdmin={isSelectedAdmin}
@@ -187,7 +187,7 @@ export default function ProfileTabRichPreview({
             {tv.profile_visibility_mock_hint_realistic ?? tv.profile_visibility_mock_hint ?? ''}
           </p>
         </div>
-        <div className="bg-[#f8fafc] px-4 py-4 sm:px-6 sm:py-6">
+        <div className="bg-[#f8fafc] app-horizontal-pad py-4 sm:py-6">
           <div className="mx-auto w-full max-w-6xl space-y-5">
             {blocks}
             {children}

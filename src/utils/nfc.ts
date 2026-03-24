@@ -1,5 +1,5 @@
 /**
- * Web NFC (NDEFReader) — principalmente Chrome su Android con HTTPS.
+ * Web NFC (NDEFReader / NDEFWriter) — principalmente Chrome su Android con HTTPS.
  */
 
 export type NfcReadResult =
@@ -37,6 +37,75 @@ function decodeNdefText(record: NdefRecordLike): string | null {
 
 export function isNfcSupported(): boolean {
   return typeof window !== 'undefined' && 'NDEFReader' in window;
+}
+
+export function isNfcWriteSupported(): boolean {
+  return typeof window !== 'undefined' && 'NDEFWriter' in window;
+}
+
+export type NfcWriteResult =
+  | { ok: true }
+  | { ok: false; error: 'unsupported' | 'denied' | 'unknown'; message?: string };
+
+type NdefWriterWindow = {
+  NDEFWriter: new () => {
+    write: (
+      message: {
+        records: Array<{
+          recordType: string;
+          data: string;
+          encoding?: string;
+          lang?: string;
+          id?: string;
+        }>;
+      },
+      options?: { overwrite?: boolean },
+    ) => Promise<void>;
+  };
+};
+
+/**
+ * Scrive un record NDEF Text (UTF-8) sul tag; richiede tag formattabile e permesso utente.
+ * Usa `overwrite: true` per sovrascrivere un messaggio già presente.
+ */
+export async function writeNfcVerificationText(text: string): Promise<NfcWriteResult> {
+  const payload = text.trim();
+  if (!payload) {
+    return { ok: false, error: 'unknown', message: 'empty' };
+  }
+  if (!isNfcWriteSupported()) {
+    return { ok: false, error: 'unsupported' };
+  }
+
+  try {
+    const Writer = (window as unknown as NdefWriterWindow).NDEFWriter;
+    const writer = new Writer();
+    await writer.write(
+      {
+        records: [
+          {
+            recordType: 'text',
+            data: payload,
+            encoding: 'utf-8',
+            lang: 'en',
+            id: '',
+          },
+        ],
+      },
+      { overwrite: true },
+    );
+    return { ok: true };
+  } catch (err: unknown) {
+    const name = err && typeof err === 'object' && 'name' in err ? String((err as { name: string }).name) : '';
+    if (name === 'NotAllowedError') {
+      return { ok: false, error: 'denied' };
+    }
+    return {
+      ok: false,
+      error: 'unknown',
+      message: err instanceof Error ? err.message : String(err),
+    };
+  }
 }
 
 /**

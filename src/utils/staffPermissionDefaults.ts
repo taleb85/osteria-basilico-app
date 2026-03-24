@@ -111,5 +111,6 @@ export function userRowToSessionUser(row: User): User {
     phone: row.phone,
     last_name: row.last_name,
     hide_from_team_schedule: row.hide_from_team_schedule,
+    avatar_url: row.avatar_url,
   };
 }

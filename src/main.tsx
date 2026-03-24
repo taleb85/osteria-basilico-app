@@ -49,25 +49,34 @@ function dismissPwaSplash() {
   }, 600);
 }
 
-// Ricarica la pagina al termine del deploy quando è disponibile una nuova versione
+// autoUpdate: workbox-window ricarica su `activated` se c’è un aggiornamento (vedi vite-plugin-pwa register.js).
+// `onNeedRefresh` vale solo con registerType: 'prompt', qui non viene chiamato.
 registerSW({
-  onNeedRefresh: () => window.location.reload(),
+  immediate: true,
   onRegisteredSW(_swUrl, registration) {
-    // Check periodico ogni 5 minuti
-    if (registration) {
-      setInterval(() => {
-        if (registration.installing || !navigator.onLine) return;
-        registration.update();
-      }, 5 * 60 * 1000);
-    }
+    if (!registration) return;
+    const tick = () => {
+      if (registration.installing || !navigator.onLine) return;
+      void registration.update();
+    };
+    // Primi minuti dopo apertura: deploy frequenti (staff al telefono)
+    const fast = window.setInterval(tick, 60 * 1000);
+    window.setTimeout(() => window.clearInterval(fast), 15 * 60 * 1000);
+    window.setInterval(tick, 5 * 60 * 1000);
   },
 });
 
-// Check aggiornamenti quando l'utente torna sulla scheda (dopo un deploy)
+function requestServiceWorkerUpdate() {
+  void navigator.serviceWorker?.ready.then((r) => r.update());
+}
+
+// Torna in app / finestra → controlla subito nuovo SW (dopo un deploy)
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    navigator.serviceWorker?.ready.then((r) => r.update());
-  }
+  if (document.visibilityState === 'visible') requestServiceWorkerUpdate();
+});
+window.addEventListener('focus', requestServiceWorkerUpdate);
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) requestServiceWorkerUpdate();
 });
 
 // Dopo login il gate PWA richiede standalone in produzione; in dev è disattivato (vedi PwaGate)

@@ -1,6 +1,11 @@
 import { useState, useRef, ReactNode, useEffect, useCallback, useMemo } from 'react';
 import { persistStoredUiLanguage, readStoredUiLanguage } from '../utils/uiLanguagePreference';
 import {
+  applyDocumentTheme,
+  readStoredThemePreference,
+  persistThemePreference,
+} from '../utils/theme';
+import {
   User,
   Shift,
   HolidayRequest,
@@ -434,12 +439,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    document.documentElement.classList.remove('dark');
-    localStorage.removeItem('userTheme');
-    localStorage.removeItem('theme');
+    applyDocumentTheme(readStoredThemePreference() ?? 'light');
     loadInitialData();
   // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once; loadInitialData omitted intentionally
   }, []);
+
+  useEffect(() => {
+    if (!currentUser) {
+      applyDocumentTheme(readStoredThemePreference() ?? 'light');
+      return;
+    }
+    const th = currentUser.theme ?? 'light';
+    applyDocumentTheme(th);
+    persistThemePreference(th);
+  }, [currentUser?.id, currentUser?.theme]);
 
   useEffect(() => {
     const unsubPunches = database.realtime.subscribeToPunchRecords(null, setPunchRecords);
@@ -1126,9 +1139,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPunchRecords(prev => prev.filter(p => p.shift_id !== shiftId));
   }, []);
 
-  const updateUser = useCallback(async (id: string, updates: Partial<User>) => {
+  const updateUser = useCallback(async (id: string, updates: Partial<User>): Promise<boolean> => {
     const prevUser = users.find((u) => u.id === id);
-    if (!prevUser) return;
+    if (!prevUser) return false;
 
     const mergedStatus = updates.status !== undefined ? updates.status : prevUser.status;
     const mergedPinRaw = updates.pin !== undefined ? String(updates.pin) : String(prevUser.pin ?? '');
@@ -1138,7 +1151,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const tr = getTranslations(effectiveLanguage);
         const name = `${other.first_name ?? ''} ${other.last_name ?? ''}`.trim() || other.email;
         showError(formatTrans(tr.employee_pin_taken_by_active, { name }));
-        return;
+        return false;
       }
     }
 
@@ -1198,6 +1211,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           updatesRemoteConfig || shouldBumpClientSyncRevision;
         await silentRefreshDataRef.current(pullRemote ? { pullRemoteConfig: true } : undefined);
       }
+      return true;
     } catch (err) {
       // Ripristino in caso di errore
       setUsers((prev) => prev.map((u) => (u.id === id ? prevUser : u)));
@@ -1210,6 +1224,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ? formatTrans(tr.app_save_failed_detail, { detail: detail.slice(0, 120) })
           : tr.app_save_failed_profile
       );
+      return false;
     }
   }, [currentUser, users, showError, effectiveLanguage]);
 
@@ -1361,6 +1376,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (pref.language) updates.language = pref.language;
     if (pref.theme) updates.theme = pref.theme;
     if (Object.keys(updates).length > 0) {
+      if (pref.theme) {
+        applyDocumentTheme(pref.theme);
+        persistThemePreference(pref.theme);
+      }
       updateUser(currentUser.id, updates);
       setCurrentUser({ ...currentUser, ...updates });
     }
@@ -2074,7 +2093,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#121212]">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0a0a0a]">
         <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-xl animate-spin"></div>
       </div>
     );

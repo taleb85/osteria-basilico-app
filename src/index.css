@@ -30,6 +30,41 @@
     /** Offset sotto l’header sticky app (MainApp lo aggiorna in px via ResizeObserver). */
     --app-sticky-header-offset: calc(max(6px, env(safe-area-inset-top, 0px)) + 5rem);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /** Densità UI (margini contenuti): `LayoutPresetProvider` + `data-layout-effective` su `<html>`. */
+    --layout-app-px: 1rem;
+    --layout-main-pt: 0.75rem;
+  }
+
+  html[data-layout-effective='comfortable'] {
+    --layout-app-px: 1.5rem;
+    --layout-main-pt: 1rem;
+  }
+
+  /**
+   * Telefono stretto: anche in modalità "comodo" non allargare i margini orizzontali
+   * (il contenuto resta leggibile; tablet/desktop restano a 1.5rem).
+   */
+  html[data-layout-effective='comfortable'][data-viewport-class='phone'] {
+    --layout-app-px: 1rem;
+  }
+
+  /**
+   * `data-viewport-class` è impostato da `LayoutPresetProvider` + script in `index.html`.
+   * Per scheda: `html[data-viewport-class='phone'] .tua-root` oppure `useLayoutPreset().viewportClass`.
+   */
+
+  html.dark {
+    background: #0a0a0a !important;
+  }
+
+  html.dark body {
+    background-color: #0a0a0a !important;
+    color: #e5e5e5;
+  }
+
+  html.dark #root {
+    color: #e5e5e5;
   }
 
   html {
@@ -79,11 +114,22 @@
   }
 }
 
+@layer utilities {
+  .app-horizontal-pad {
+    padding-left: var(--layout-app-px);
+    padding-right: var(--layout-app-px);
+  }
+
+  .app-main-top-pad {
+    padding-top: var(--layout-main-pt);
+  }
+}
+
 /* Card / Panel — Clean Minimal: bianco solido, niente vetro */
 @layer components {
   /** Titoli sezione unificati (Admin, permessi, impostazioni) */
   .ui-section-title {
-    @apply text-xs font-bold uppercase tracking-widest text-slate-500;
+    @apply text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-neutral-400;
   }
 
   .panel {
@@ -95,10 +141,23 @@
     color: #1a1a1a;
   }
 
+  html.dark .panel {
+    background: #171717;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+    color: #f5f5f5;
+  }
+
   .panel h1,
   .panel h2,
   .panel h3 {
     color: #1a1a1a;
+  }
+
+  html.dark .panel h1,
+  html.dark .panel h2,
+  html.dark .panel h3 {
+    color: #fafafa;
   }
 
   /* Nessun `.panel span`: altrimenti sovrascrive utility tipo `text-white` sui badge (specificità .panel span > .text-white). */
@@ -109,12 +168,27 @@
     color: #1a1a1a;
   }
 
+  html.dark .panel p,
+  html.dark .panel label,
+  html.dark .panel td,
+  html.dark .panel th {
+    color: #e5e5e5;
+  }
+
   .panel input,
   .panel textarea,
   .panel select {
     background: #ffffff;
     border: 1px solid rgb(226 232 240);
     color: #1a1a1a;
+  }
+
+  html.dark .panel input,
+  html.dark .panel textarea,
+  html.dark .panel select {
+    background: #0a0a0a;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #fafafa;
   }
 
   .panel input::placeholder,
@@ -154,7 +228,7 @@
 
   /* Card Factorial — Clean Minimal: bianco, rounded-2xl (16px), ombra soft unificata */
   .card-factorial {
-    @apply bg-white rounded-2xl border border-slate-100 p-5 sm:p-6 transition-all duration-200 shadow-card-soft;
+    @apply bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 p-5 sm:p-6 transition-all duration-200 shadow-card-soft;
   }
 
   /**
@@ -298,9 +372,19 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Altezza BottomNav ~56px + margine piccolo; safe-area per home indicator / notch */
+  /**
+   * Spazio sotto il contenuto scrollabile: altezza BottomNav + respiro come `gap-3` (0.75rem) tra le card KPI staff.
+   * Nav: `max(10px, safe)` + py-2 + riga min 52px (~68px) + margine per ombra/etichette su device reali (≈+12px).
+   * Niente `min-h-full` sul wrapper scheda o si crea vuoto enorme.
+   */
   .pb-content {
-    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 80px + 0.75rem);
+  }
+
+  @media (min-width: 640px) {
+    .pb-content {
+      padding-bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 84px + 0.75rem);
+    }
   }
 
   /* Touch target minimo ~44px per accessibilità mobile */

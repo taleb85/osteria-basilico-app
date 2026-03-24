@@ -37,7 +37,7 @@ export default function HolidayRequests() {
 
   if (featureFlags['staff_requests'] === false) {
     return (
-      <div className="pb-content w-full px-4 sm:px-6 font-sans min-h-[40vh] flex items-center justify-center">
+      <div className="pb-content w-full app-horizontal-pad font-sans min-h-[40vh] flex items-center justify-center">
         <div className="rounded-2xl border border-slate-200 bg-slate-50 px-6 py-8 max-w-md text-center">
           <Palmtree className="w-10 h-10 text-slate-400 mx-auto mb-3" />
           <p className="text-slate-700 font-semibold text-sm">{t.staff_requests_feature_off}</p>
@@ -169,7 +169,7 @@ export default function HolidayRequests() {
   const labelCls = 'block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1';
 
   return (
-    <div className="pb-content pt-6 w-full max-w-full font-sans min-h-full">
+    <div className="pb-content pt-6 w-full max-w-full font-sans">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}

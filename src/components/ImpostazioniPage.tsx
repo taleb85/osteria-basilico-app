@@ -94,7 +94,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
   if (!currentUser) return null;
   if (!isAdminOnly(currentUser)) {
     return (
-      <div className="pb-content pt-6 w-full px-4 sm:px-6 font-sans min-h-full">
+      <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
         <p className="text-slate-600 text-sm">{t.no_access_settings}</p>
       </div>
     );
@@ -189,7 +189,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
   };
 
   return (
-    <div className="pb-content pt-6 w-full px-4 sm:px-6 font-sans min-h-full">
+    <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}

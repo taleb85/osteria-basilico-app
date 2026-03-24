@@ -11,6 +11,7 @@ import {
   X,
   Palmtree,
   ChevronDown,
+  User as UserIconLucide,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { User } from '../types';
@@ -54,6 +55,7 @@ const PREVIEW_TAB_ICONS: Record<AppNavTab, typeof Home> = {
   ferie: Palmtree,
   timesheet: ClipboardList,
   reports: BarChart3,
+  profile: UserIconLucide,
   settings: ShieldCheck,
 };
 
@@ -175,6 +177,7 @@ export default function ProfileVisibilityHub() {
     ferie: t.sidebar_holidays,
     timesheet: t.sidebar_attendance,
     reports: t.sidebar_statistics,
+    profile: (t as Record<string, string>).bottom_nav_profile ?? t.sidebar_profile,
     settings: (t as { bottom_nav_settings_short?: string }).bottom_nav_settings_short || t.sidebar_admin,
   };
 
@@ -274,7 +277,7 @@ export default function ProfileVisibilityHub() {
 
   if (!canUseHub) {
     return (
-      <div className="pb-content pt-6 px-4 sm:px-6">
+      <div className="pb-content pt-6 app-horizontal-pad">
         <p className="text-sm text-slate-600">
           {tv.profile_visibility_forbidden ?? 'Non hai permesso di accedere a questa sezione.'}
         </p>
@@ -284,7 +287,7 @@ export default function ProfileVisibilityHub() {
 
   return (
     <>
-    <div className="pb-content pt-6 w-full px-4 sm:px-6 font-sans min-h-full max-w-6xl mx-auto">
+    <div className="pb-content pt-6 w-full app-horizontal-pad font-sans max-w-6xl mx-auto">
       <div className="mb-6">
         <h1 className="text-slate-900 text-xl font-bold tracking-tight">
           {tv.profile_visibility_title ?? 'Cosa vede chi'}
@@ -422,7 +425,7 @@ export default function ProfileVisibilityHub() {
             </span>
           </header>
 
-          <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
+          <div className="flex-1 min-h-0 overflow-y-auto app-horizontal-pad py-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
             <div className="mx-auto w-full max-w-6xl xl:max-w-7xl space-y-4">
               <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <div className="px-3 py-2 bg-slate-50 border-b border-slate-100">

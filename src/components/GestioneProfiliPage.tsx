@@ -17,7 +17,7 @@ export default function GestioneProfiliPage() {
     .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 
   return (
-    <div className="pb-content pt-6 w-full px-4 sm:px-6 font-sans min-h-full">
+    <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}

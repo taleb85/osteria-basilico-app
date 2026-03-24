@@ -14,6 +14,18 @@
         }
       })();
     </script>
+    <script>
+      (function () {
+        try {
+          var w = typeof window.innerWidth === 'number' ? window.innerWidth : 800;
+          var eff = w < 768 ? 'compact' : 'comfortable';
+          var vc = w < 480 ? 'phone' : w < 1024 ? 'tablet' : 'desktop';
+          document.documentElement.setAttribute('data-layout-preset', 'auto');
+          document.documentElement.setAttribute('data-layout-effective', eff);
+          document.documentElement.setAttribute('data-viewport-class', vc);
+        } catch (e) {}
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 

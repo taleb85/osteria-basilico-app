@@ -122,7 +122,7 @@ export function getVisibleStaffTabs(
 }
 
 /** Tab principali app (bottom bar unificata PWA — stessi id per gestione e staff). */
-export type AppNavTab = 'home' | 'turni' | 'ferie' | 'reports' | 'timesheet' | 'settings';
+export type AppNavTab = 'home' | 'turni' | 'ferie' | 'reports' | 'timesheet' | 'settings' | 'profile';
 
 /** Titolo principale della schermata (sticky header / h1) in base alla tab. */
 export function getAppNavTabTitle(t: Record<string, string>, tab: AppNavTab): string {
@@ -139,16 +139,18 @@ export function getAppNavTabTitle(t: Record<string, string>, tab: AppNavTab): st
       return t.timesheet_title;
     case 'settings':
       return t.sidebar_admin;
+    case 'profile':
+      return (t as Record<string, string>).bottom_nav_profile ?? t.sidebar_profile;
   }
 }
 
 /** Ordine bottom bar / PWA: allineato all’anteprima “Cosa vede chi”. */
-const UNIFIED_NAV_ORDER: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'settings'];
+const UNIFIED_NAV_ORDER: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'profile', 'settings'];
 
 /**
  * Staff mobile: ferie prima dei turni; Statistiche in barra se `view_stats` (stesso set di tab di `getUnifiedNavTabs`, solo ordine diverso).
  */
-const STAFF_BOTTOM_NAV_ORDER: AppNavTab[] = ['home', 'ferie', 'turni', 'timesheet', 'reports', 'settings'];
+const STAFF_BOTTOM_NAV_ORDER: AppNavTab[] = ['home', 'ferie', 'turni', 'timesheet', 'reports', 'profile', 'settings'];
 
 /**
  * Voci bottom bar: stessa struttura per tutti i profili (come PWA).
@@ -169,6 +171,7 @@ export function getUnifiedNavTabs(
     else if (id === 'ferie' && ferieOk) out.push('ferie');
     else if (id === 'timesheet' && timesheetOk) out.push('timesheet');
     else if (id === 'reports' && feat.view_stats) out.push('reports');
+    else if (id === 'profile' && user.role !== 'admin') out.push('profile');
     else if (id === 'settings' && feat.admin_tab) out.push('settings');
   }
   return out;
@@ -186,7 +189,7 @@ export function getBottomNavTabsForMainApp(
   return STAFF_BOTTOM_NAV_ORDER.filter((id) => set.has(id));
 }
 
-const APP_NAV_TAB_IDS: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'settings'];
+const APP_NAV_TAB_IDS: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'profile', 'settings'];
 
 export function isTabEnabledForUser(
   user: UnifiedNavUser,
@@ -194,7 +197,7 @@ export function isTabEnabledForUser(
   isManagement: boolean,
   featureFlags?: FeatureFlags | null
 ): boolean {
-  if (tabId === 'profile') return true;
+  if (tabId === 'profile') return user.role !== 'admin';
   if (APP_NAV_TAB_IDS.includes(tabId as AppNavTab)) {
     return getUnifiedNavTabs(user, isManagement, featureFlags).includes(tabId as AppNavTab);
   }

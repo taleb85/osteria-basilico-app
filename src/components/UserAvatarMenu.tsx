@@ -5,32 +5,53 @@ import { ChevronRight, LogOut } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations } from '../utils/translations';
 import { ProfileFormSelf, type ProfileFormSelfData } from './UserProfile';
+import { splitPhoneForForm, joinPhone, DEFAULT_PHONE_PREFIX } from '../utils/phonePrefix';
 import type { Language } from '../types';
 import { isManagementRole } from '../utils/permissions';
 interface UserAvatarMenuProps {
-  /** `pill` = sidebar/desktop; `profileRow` = riga lista; `toolbar` = icona affiancata a ora/notifiche (mobile header). */
-  variant?: 'pill' | 'profileRow' | 'toolbar';
+  /** `pill` = sidebar/desktop; `profileRow` = riga lista; `toolbar` = icona affiancata a ora/notifiche; `modalOnly` = solo modale (trigger esterno). */
+  variant?: 'pill' | 'profileRow' | 'toolbar' | 'modalOnly';
   /** Tipografia e padding ridotti (header PWA compatto) */
   dense?: boolean;
   /** Se impostato, il pulsante «Esci» appare nel modal profilo (non nell’header). */
   onLogout?: () => void;
+  /** Incrementare (es. `setSeq((n) => n + 1)`) per aprire il modale da un altro componente. */
+  openRequestId?: number;
 }
 
-export default function UserAvatarMenu({ variant = 'pill', dense = false, onLogout }: UserAvatarMenuProps) {
+export default function UserAvatarMenu({
+  variant = 'pill',
+  dense = false,
+  onLogout,
+  openRequestId,
+}: UserAvatarMenuProps) {
   const { currentUser, updateUser, effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const [isOpen, setIsOpen] = useState(false);
   const [showPortal, setShowPortal] = useState(false);
   const [formData, setFormData] = useState<ProfileFormSelfData>({
+    first_name: '',
+    last_name: '',
     email: '',
-    phone: '',
+    phone_prefix: DEFAULT_PHONE_PREFIX,
+    phone_national: '',
     language: 'it',
     department: undefined,
+    role: 'server',
+    pin: '',
   });
   const [isSaving, setIsSaving] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const lastOpenRequestRef = useRef(0);
+
+  useEffect(() => {
+    if (openRequestId === undefined || openRequestId <= 0) return;
+    if (openRequestId === lastOpenRequestRef.current) return;
+    lastOpenRequestRef.current = openRequestId;
+    setIsOpen(true);
+  }, [openRequestId]);
 
   const roleKeyMap: Record<string, string> = {
     admin: 'Admin', proprietario: 'Manager', manager: 'Manager', assistant_manager: 'Ass. Manager',
@@ -50,11 +71,17 @@ export default function UserAvatarMenu({ variant = 'pill', dense = false, onLogo
 
   useEffect(() => {
     if (isOpen && currentUser) {
+      const ph = splitPhoneForForm(currentUser.phone);
       setFormData({
+        first_name: currentUser.first_name ?? '',
+        last_name: currentUser.last_name ?? '',
         email: currentUser.email ?? '',
-        phone: currentUser.phone ?? '',
+        phone_prefix: ph.prefix,
+        phone_national: ph.national,
         language: currentLang,
         department: currentUser.department,
+        role: currentUser.role,
+        pin: currentUser.pin ?? '',
       });
     }
   }, [isOpen, currentUser, currentLang]);
@@ -81,11 +108,16 @@ export default function UserAvatarMenu({ variant = 'pill', dense = false, onLogo
     if (!currentUser) return;
     setIsSaving(true);
     try {
+      const pinDigits = formData.pin.replace(/\D/g, '').slice(0, 4);
       await updateUser(currentUser.id, {
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim() || undefined,
         email: formData.email,
-        phone: formData.phone || undefined,
+        phone: joinPhone(formData.phone_prefix, formData.phone_national),
         language: formData.language,
         department: formData.department || undefined,
+        role: formData.role,
+        pin: pinDigits.length === 4 ? pinDigits : currentUser.pin,
       });
       setIsOpen(false);
     } catch (err) {
@@ -98,14 +130,17 @@ export default function UserAvatarMenu({ variant = 'pill', dense = false, onLogo
   const titleHint = displayRole ? `${displayName} · ${displayRole}` : displayName;
 
   return (
-    <div className={`relative ${variant === 'toolbar' ? 'shrink-0' : 'min-w-0'}`} ref={menuRef}>
-      {variant === 'toolbar' ? (
+    <div
+      className={`relative ${variant === 'modalOnly' ? 'hidden' : variant === 'toolbar' ? 'shrink-0' : 'min-w-0'}`}
+      ref={menuRef}
+    >
+      {variant === 'modalOnly' ? null : variant === 'toolbar' ? (
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           title={titleHint}
           aria-label={`${t.sidebar_profile}: ${titleHint}`}
-          className="relative min-h-[40px] min-w-[44px] max-w-[88px] px-1.5 flex flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-100 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+          className="relative flex min-h-[40px] min-w-[40px] max-w-[88px] flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-neutral-800 px-1.5 text-slate-700 dark:text-neutral-200 transition-colors hover:bg-slate-100 dark:hover:bg-neutral-700 hover:text-slate-900 dark:hover:text-neutral-50 touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
         >
           <span className="text-[14px] font-bold leading-none select-none" aria-hidden>
             {profileInitial}

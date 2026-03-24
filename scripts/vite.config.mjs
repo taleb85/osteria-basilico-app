@@ -62,6 +62,13 @@ export default defineConfig({
         ],
       },
       workbox: {
+        /**
+         * Senza skipWaiting il nuovo SW resta in "waiting" finché non chiudi tutte le schede:
+         * su PWA iOS sembra "bloccata" e l’unica via è disinstallare. clientsClaim fa prendere
+         * il controllo subito; il client (workbox-window) ricarica su `activated` in autoUpdate.
+         */
+        skipWaiting: true,
+        clientsClaim: true,
         /** Background Sync: evento `sync` → postMessage alle finestre (`src/utils/backgroundSync.ts`). */
         importScripts: ['pwa-background-sync.js'],
         // Precache: icone/manifest + index.html (obbligatorio se navigateFallback punta a index.html,
@@ -100,6 +107,8 @@ export default defineConfig({
     }),
   ],
   build: {
+    /** Chunk principale ~1.7MB (app + lazy routes); sopra il default 500 kB di Rollup. */
+    chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {
         manualChunks: {

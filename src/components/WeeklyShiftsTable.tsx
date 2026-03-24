@@ -26,6 +26,7 @@ import { exportSchedulePDF } from '../utils/exportSchedulePDF';
 import { getHiddenDates, toggleHiddenDate } from '../utils/hiddenPeriods';
 import { getHistory, type HistoryEntry } from '../utils/scheduleHistory';
 import { getDepartments, getDeptColor } from '../utils/departments';
+import { translateDepartmentValue } from '../utils/departmentLabels';
 import {
   loadPeriodConfig,
   savePeriodConfig as persistPeriodConfig,
@@ -1186,7 +1187,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   if (!currentUser) return null;
 
   return (
-    <div ref={tableContainerRef} className="pb-content pt-6 w-full max-w-full font-sans min-h-full">
+    <div ref={tableContainerRef} className="pb-content pt-6 w-full max-w-full font-sans">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -1513,8 +1514,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
                       {t.department_filter_label}
                     </div>
-                    {[{ value: '', label: t.department_filter_all }, ...getDepartments()].map(
-                      ({ value: dept, label }) => (
+                    {[
+                      { value: '', label: t.department_filter_all },
+                      ...getDepartments().map((d) => ({
+                        value: d.value,
+                        label: translateDepartmentValue(d.value, effectiveLanguage),
+                      })),
+                    ].map(({ value: dept, label }) => (
                         <button
                           key={dept || 'all'}
                           type="button"
@@ -3643,11 +3649,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         return (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9998] p-4" onClick={() => setEditPunchShiftId(null)}>
             <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl max-w-sm w-full p-5" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-neutral-100 mb-3 flex items-center gap-2">
                 <Clock className="w-5 h-5 text-amber-500" />
                 {t.edit_punch_time_title}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+              <p className="text-xs text-slate-500 dark:text-neutral-400 mb-3">
                 {users.find((u) => u.id === shift.user_id)?.first_name ?? '-'} · {shift.date}
               </p>
               <input
@@ -3655,10 +3661,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 value={editPunchTimeValue}
                 onChange={(e) => setEditPunchTimeValue(e.target.value.slice(0, 5))}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSavePunchTime(); } if (e.key === 'Escape') { e.preventDefault(); setEditPunchShiftId(null); } }}
-                className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-slate-100 font-semibold text-center focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-neutral-100 font-semibold text-center focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
               <div className="flex gap-2 mt-4">
-                <button type="button" onClick={() => setEditPunchShiftId(null)} className="flex-1 py-2.5 rounded-xl bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold text-sm">
+                <button type="button" onClick={() => setEditPunchShiftId(null)} className="flex-1 py-2.5 rounded-xl bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-neutral-300 font-semibold text-sm">
                   {t.cancel}
                 </button>
                 <button type="button" onClick={handleSavePunchTime} className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm">

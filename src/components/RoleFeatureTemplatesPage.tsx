@@ -230,7 +230,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   if (!canEditRoleFeatureTemplates(currentUser)) {
     if (variant === 'embedded') return null;
     return (
-      <div className="pb-content pt-6 px-4 sm:px-6">
+      <div className="pb-content pt-6 app-horizontal-pad">
         <p className="text-sm text-slate-600">{t.role_templates_forbidden_body}</p>
       </div>
     );
@@ -532,7 +532,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   }
 
   return (
-    <div className="pb-content pt-6 w-full px-4 sm:px-6 font-sans min-h-full max-w-3xl mx-auto">
+    <div className="pb-content pt-6 w-full app-horizontal-pad font-sans max-w-3xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
         {pageBody}
       </motion.div>

@@ -36,7 +36,7 @@ export default function UserMenu({ user }: UserMenuProps) {
   };
 
   const getInitial = () => user.first_name.charAt(0).toUpperCase();
-  const currentTheme = user.theme ?? 'dark';
+  const currentTheme = user.theme ?? 'light';
   const t = translations[user.language ?? 'it'];
 
   return (

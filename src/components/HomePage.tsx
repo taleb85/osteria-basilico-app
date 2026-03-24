@@ -286,7 +286,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
   if (!showTeamHome) {
     const todayShiftsMine = shifts.filter((s) => s.date === todayStr && s.user_id === currentUser.id);
     return (
-      <div className="pb-content pt-6 w-full px-4 sm:px-6 font-sans min-h-full">
+      <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           className="mx-auto flex max-w-lg flex-col gap-4">
           {/* Saluto */}
@@ -416,7 +416,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
   // ── MANAGER VIEW ────────────────────────────────────────────────────────────
   return (
     <>
-      <div className="pb-content pt-6 w-full px-4 sm:px-6 font-sans min-h-full">
+      <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
           className="flex flex-col gap-5">
 

@@ -2,6 +2,8 @@ import { useState, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallb
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
+import { ProfileLeaveGuardRefContext, type ProfileLeaveGuard } from './context/ProfileLeaveGuardContext';
+import { LayoutPresetProvider } from './context/LayoutPresetContext';
 import { forceLightTheme } from './utils/theme';
 import { getTranslations } from './utils/translations';
 import BottomNav from './components/BottomNav';
@@ -14,6 +16,7 @@ import HomePage from './components/HomePage';
 import PunchInKiosk from './components/PunchInKiosk';
 import LoginPage from './components/LoginPage';
 import StaffPersonalDashboard from './components/StaffPersonalDashboard';
+import ProfileNavTabPanel from './components/ProfileNavTabPanel';
 import { Wrench, MonitorOff } from 'lucide-react';
 import { persistStoredUiLanguage } from './utils/uiLanguagePreference';
 import { PATH_TIMBRATURA, PATH_PROFILO } from './config/appPaths';
@@ -136,7 +139,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     currentUser,
     effectiveLanguage,
     isGlobalRefreshing,
-    dataSyncInProgress,
     postRefreshLocked,
     silentRefreshData,
     featureFlags,
@@ -189,8 +191,9 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   /** Allinea staff a Storage (template/flag) senza burst: stesso ordine di grandezza del throttle in AppContext. */
   const storagePullThrottleRef = useRef(0);
   const STORAGE_PULL_THROTTLE_MS = 5000;
+  const profileLeaveGuardRef = useRef<ProfileLeaveGuard | null>(null);
 
-  const handleTabChange = useCallback(
+  const applyTabChange = useCallback(
     (id: AppNavTab) => {
       if (isManagement && id === 'settings' && currentUser && isAdminOnly(currentUser)) {
         void silentRefreshData({ pullRemoteConfig: true });
@@ -204,6 +207,30 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       void silentRefreshData(pullRemote ? { pullRemoteConfig: true } : undefined);
     },
     [currentUser, isManagement, navigate, silentRefreshData]
+  );
+
+  const handleTabChange = useCallback(
+    (id: AppNavTab) => {
+      void (async () => {
+        const tv = tr as Record<string, string>;
+        if (activeTab === 'profile' && id !== 'profile') {
+          const g = profileLeaveGuardRef.current;
+          if (g?.isDirty()) {
+            const msg =
+              tv.profile_leave_unsaved_confirm ??
+              'Ci sono modifiche non salvate nel profilo. OK per salvare e cambiare scheda, Annulla per restare.';
+            if (!window.confirm(msg)) return;
+            try {
+              await g.save();
+            } catch {
+              return;
+            }
+          }
+        }
+        applyTabChange(id);
+      })();
+    },
+    [activeTab, tr, applyTabChange]
   );
 
   useEffect(() => {
@@ -299,22 +326,39 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       const tab = ce.detail?.tab;
       const anchor = ce.detail?.anchor;
       if (!tab || !visibleNavTabs.includes(tab)) return;
-      setActiveTab(tab);
-      const now = Date.now();
-      const pullRemote = now - storagePullThrottleRef.current >= STORAGE_PULL_THROTTLE_MS;
-      if (pullRemote) storagePullThrottleRef.current = now;
-      void silentRefreshData(pullRemote ? { pullRemoteConfig: true } : undefined);
-      const scrollTo = () => {
-        if (!anchor) return;
-        document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      };
-      requestAnimationFrame(() => requestAnimationFrame(scrollTo));
-      window.setTimeout(scrollTo, 400);
-      window.setTimeout(scrollTo, 800);
+      void (async () => {
+        const tv = tr as Record<string, string>;
+        if (activeTab === 'profile' && tab !== 'profile') {
+          const g = profileLeaveGuardRef.current;
+          if (g?.isDirty()) {
+            const msg =
+              tv.profile_leave_unsaved_confirm ??
+              'Ci sono modifiche non salvate nel profilo. OK per salvare e cambiare scheda, Annulla per restare.';
+            if (!window.confirm(msg)) return;
+            try {
+              await g.save();
+            } catch {
+              return;
+            }
+          }
+        }
+        setActiveTab(tab);
+        const now = Date.now();
+        const pullRemote = now - storagePullThrottleRef.current >= STORAGE_PULL_THROTTLE_MS;
+        if (pullRemote) storagePullThrottleRef.current = now;
+        void silentRefreshData(pullRemote ? { pullRemoteConfig: true } : undefined);
+        const scrollTo = () => {
+          if (!anchor) return;
+          document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+        requestAnimationFrame(() => requestAnimationFrame(scrollTo));
+        window.setTimeout(scrollTo, 400);
+        window.setTimeout(scrollTo, 800);
+      })();
     };
     window.addEventListener('osteria-navigate', onNavigate as EventListener);
     return () => window.removeEventListener('osteria-navigate', onNavigate as EventListener);
-  }, [visibleNavTabs, isManagement, silentRefreshData]);
+  }, [visibleNavTabs, silentRefreshData, activeTab, tr]);
 
   const renderManagementContent = () => {
     switch (activeTab) {
@@ -336,27 +380,30 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         return <Timesheets />;
       case 'settings':
         return <SettingsPage />;
+      case 'profile':
+        return <ProfileNavTabPanel onLogout={onLogout} />;
       default:
         return null;
     }
   };
 
   const appHeaderCardClass =
-    'w-full rounded-2xl border border-slate-100 bg-white/95 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] overflow-hidden supports-[backdrop-filter]:backdrop-blur-md';
+    'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/95 dark:bg-neutral-900/95 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-hidden supports-[backdrop-filter]:backdrop-blur-md';
 
   return (
-    <div className="min-h-screen min-h-[100dvh] w-full bg-[#f8fafc] text-[#1a1a1a] font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
+    <ProfileLeaveGuardRefContext.Provider value={profileLeaveGuardRef}>
+    <div className="min-h-screen min-h-[100dvh] w-full bg-[#f8fafc] dark:bg-[#0a0a0a] text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
       <BodyPullToRefresh
         onRefresh={() => silentRefreshData({ pullRemoteConfig: true })}
         disabled={!!(isGlobalRefreshing || postRefreshLocked)}
       />
 
       {/*
-        Sticky: solo safe-area + padding come il main (px-4 sm:px-6). Un’unica card definisce i bordi visibili.
+        Sticky: solo safe-area + padding come il main (`app-horizontal-pad`). Un’unica card definisce i bordi visibili.
       */}
       <header
         ref={appStickyHeaderRef}
-        className="sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] px-4 sm:px-6 pb-2"
+        className="sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2"
       >
         <div className={appHeaderCardClass}>
           <MobileProfileHeader
@@ -365,27 +412,22 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
             showOnDesktop
             parentProvidesCardShell
             hideHeaderLogout={!isManagement}
+            hideToolbarAvatar={Boolean(currentUser && !isAdminOnly(currentUser))}
           />
         </div>
-        {currentUser && (
+        {currentUser && activeTab === 'home' && (
           <div className={`${appHeaderCardClass} mt-2`}>
             <HeaderTodayCoworkersCard />
           </div>
         )}
       </header>
 
-      {currentUser && dataSyncInProgress && !isGlobalRefreshing && !postRefreshLocked && (
-        <div className="shrink-0 z-30 px-4 sm:px-6 pt-1">
-          <DataSyncBanner language={effectiveLanguage} />
-        </div>
-      )}
-
       <main
         className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked ? 'blur-md pointer-events-none' : ''}`}
       >
-        <div className="w-full flex-1 pt-3 sm:pt-4 pb-content px-4 sm:px-6">
+        <div className="w-full flex-1 app-main-top-pad app-horizontal-pad">
           {noNavTabs ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-10 text-center text-sm text-amber-950 max-w-lg mx-auto">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-10 pb-content text-center text-sm text-amber-950 max-w-lg mx-auto">
               {(tr as Record<string, string>).app_all_nav_tabs_disabled}
             </div>
           ) : isManagement ? (
@@ -435,6 +477,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         <BottomNav activeTab={activeTab} onTabChange={handleTabChange} visibleTabs={bottomNavTabs} />
       )}
     </div>
+    </ProfileLeaveGuardRefContext.Provider>
   );
 }
 
@@ -523,7 +566,9 @@ function AppContent() {
 function App() {
   return (
     <AppProvider>
-      <AppContent />
+      <LayoutPresetProvider>
+        <AppContent />
+      </LayoutPresetProvider>
     </AppProvider>
   );
 }

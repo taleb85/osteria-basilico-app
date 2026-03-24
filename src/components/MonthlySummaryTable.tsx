@@ -71,7 +71,7 @@ export default function MonthlySummaryTable() {
     .sort((a, b) => a.sort_order - b.sort_order);
 
   return (
-    <div className="pb-content pt-6 w-full max-w-full px-4 sm:px-6 font-sans mx-auto">
+    <div className="pb-content pt-6 w-full max-w-full app-horizontal-pad font-sans mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -107,8 +107,8 @@ export default function MonthlySummaryTable() {
           <div className="inline-block min-w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] shadow-sm overflow-hidden">
             <table className="w-full border-collapse min-w-full">
               <thead className="sticky top-0 z-20">
-                <tr className="bg-slate-100 dark:bg-[#2a2a2a]">
-                  <th className="sticky left-0 bg-slate-100 dark:bg-[#2a2a2a] px-4 py-3 text-left border-b border-r border-slate-200 dark:border-white/5 z-30 w-[120px] min-w-[120px]">
+                <tr className="bg-slate-100 dark:bg-[#262626]">
+                  <th className="sticky left-0 bg-slate-100 dark:bg-[#262626] px-4 py-3 text-left border-b border-r border-slate-200 dark:border-white/5 z-30 w-[120px] min-w-[120px]">
                     <span className="text-slate-600 dark:text-gray-400 text-xs uppercase tracking-[0.2em] font-bold">
                       {t.personnel}
                     </span>
@@ -138,8 +138,8 @@ export default function MonthlySummaryTable() {
 
                   return (
                     <>
-                      <tr key={`${user.id}-header`} className="bg-slate-100 dark:bg-[#2a2a2a]">
-                        <td className="sticky left-0 bg-slate-100 dark:bg-[#2a2a2a] px-4 py-2 border-r border-slate-200 dark:border-white/5 z-10" colSpan={weeks.length + 2}>
+                      <tr key={`${user.id}-header`} className="bg-slate-100 dark:bg-[#262626]">
+                        <td className="sticky left-0 bg-slate-100 dark:bg-[#262626] px-4 py-2 border-r border-slate-200 dark:border-white/5 z-10" colSpan={weeks.length + 2}>
                           <p className="text-slate-900 dark:text-gray-100 font-bold text-sm">
                             <span className="uppercase">{user.first_name}</span>
                           </p>

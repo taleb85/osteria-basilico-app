@@ -94,7 +94,7 @@ export interface AppContextType {
   ) => Promise<{ error?: string } | void>;
   updatePunchRecord: (id: string, updates: { timestamp?: string; calculated_time?: string; clock_out_time?: string | null }) => Promise<void>;
   deletePunchRecordsForShift: (shiftId: string) => Promise<void>;
-  updateUser: (id: string, updates: Partial<User>) => void;
+  updateUser: (id: string, updates: Partial<User>) => Promise<boolean>;
   /** Inserisce un nuovo dipendente in `users` (gestione: admin, manager, assistente, capo). */
   createUser: (payload: {
     first_name: string;

@@ -216,18 +216,12 @@ export default function Statistics() {
   const staffRangeTotalMins = Object.values(minutesByUserByWeek[staffSelfId] ?? {}).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="pb-content pt-6 w-full max-w-full font-sans min-h-full">
+    <div className="pb-content pt-6 w-full max-w-full font-sans">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        {showManagementStatsChrome && uiW('stats.title') && (
-          <div className="mb-5 px-1 sm:px-0">
-            <h1 className="text-slate-900 font-bold text-xl sm:text-2xl tracking-tight">{t.stats_title}</h1>
-          </div>
-        )}
-
         {/* ── Filtro Temporale (gestione + view_stats) ───────────────── */}
         {showManagementStatsChrome && uiW('stats.mgmt_filters') && (
           <>
