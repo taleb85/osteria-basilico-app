@@ -127,6 +127,13 @@ export default function RefreshLockOverlay() {
           {message}
         </p>
 
+        <form
+          className="contents"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (pin.length === 4 && !busy) void handleUnlock();
+          }}
+        >
         <div className="flex flex-col items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
           <div className="flex items-center gap-2 text-slate-500">
             <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-accent" strokeWidth={2} />
@@ -134,12 +141,13 @@ export default function RefreshLockOverlay() {
           </div>
           <input
             type="password"
+            name="pin"
             inputMode="numeric"
             maxLength={4}
             value={pin}
-            onChange={(e) => (setPin(e.target.value), setError(''))}
-            onKeyDown={(e) => e.key === 'Enter' && pin.length === 4 && handleUnlock()}
+            onChange={(e) => (setPin(e.target.value.replace(/\D/g, '').slice(0, 4)), setError(''))}
             autoFocus
+            autoComplete="current-password"
             className="w-full px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl bg-slate-50 border-2 border-slate-200 focus:ring-2 focus:ring-accent/40 focus:border-accent outline-none font-semibold text-2xl sm:text-3xl text-center tracking-[0.35em] sm:tracking-[0.4em] text-slate-900 min-h-[52px] placeholder:text-slate-400"
             placeholder="••••"
           />
@@ -222,14 +230,14 @@ export default function RefreshLockOverlay() {
             {t.sync_lock_cancel}
           </button>
           <button
-            type="button"
-            onClick={handleUnlock}
+            type="submit"
             disabled={pin.length !== 4 || busy}
             className="flex-1 min-h-[48px] py-3 sm:py-3.5 rounded-xl bg-accent text-white font-semibold hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed active:bg-accent-dark transition-colors touch-target"
           >
             {loading ? '...' : t.confirm}
           </button>
         </div>
+        </form>
       </motion.div>
     </motion.div>
   );

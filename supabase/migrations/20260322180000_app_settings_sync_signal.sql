@@ -13,6 +13,10 @@ ON CONFLICT (id) DO NOTHING;
 
 ALTER TABLE public.app_settings_sync_signal ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "app_settings_sync_signal_select_all" ON public.app_settings_sync_signal;
+DROP POLICY IF EXISTS "app_settings_sync_signal_insert_all" ON public.app_settings_sync_signal;
+DROP POLICY IF EXISTS "app_settings_sync_signal_update_all" ON public.app_settings_sync_signal;
+
 CREATE POLICY "app_settings_sync_signal_select_all"
   ON public.app_settings_sync_signal FOR SELECT
   USING (true);
@@ -25,5 +29,15 @@ CREATE POLICY "app_settings_sync_signal_update_all"
   ON public.app_settings_sync_signal FOR UPDATE
   USING (true);
 
--- Realtime: consente subscribe postgres_changes su questa tabella (Supabase Dashboard → Realtime già attivo sul progetto).
-ALTER PUBLICATION supabase_realtime ADD TABLE public.app_settings_sync_signal;
+-- Realtime: idempotente se la tabella è già nella publication (replay / db push dopo SQL manuale).
+DO $sync$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'app_settings_sync_signal'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.app_settings_sync_signal;
+  END IF;
+END $sync$;

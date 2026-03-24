@@ -58,18 +58,31 @@ Usala **in ordine**. Non incollare mai in chat **chiavi, token o `.env`**: se se
 
 3. **Database → Migrations / SQL**  
    - [ ] Tutte le migrazioni in `supabase/migrations/` applicate su questo DB (o equivalente).  
+   - [ ] Da repo (CLI già linkata): `npx supabase db push` — se chiede migrazioni “fuori ordine”: `npx supabase db push --include-all` (vedi messaggio CLI).  
+   - [ ] Se la cronologia remota ha versioni orfane: `npx supabase migration list --linked` poi `npx supabase migration repair --status reverted <versione>` solo per le righe indicate dalla CLI (non inventare il numero).  
+   - [ ] Alternativa senza CLI: incolla in **SQL Editor** lo script unico `supabase/manual_paste_sql_editor_rls.sql` (RLS/policy recenti) dopo aver verificato l’ordine rispetto a migrazioni già eseguite.  
    - [ ] Edge function `send-holiday-notification` deployata se usi notifiche mail da lì.
 
 4. **RLS e sicurezza (controllo consigliato)**  
    - [ ] In **Table Editor** o **SQL**: verifica che le tabelle usate dall’app abbiano policy coerenti con come l’app chiama PostgREST (anon key + sessione custom).  
+   - [ ] In dashboard: **Advisors** (sicurezza) — “RLS disabled” / “multiple permissive policies”: allinea con migrazioni `20260324160000_*`, `20260324170000_*` e script `supabase/manual_paste_sql_editor_rls.sql` se serve.  
+   - [ ] Avviso **“RLS Policy Always True”** con policy `TO anon` e `USING (true)`: per questo progetto è spesso **voluto** (client solo anon + controllo accessi in app con PIN); non è di per sé un bug finché accetti il modello di minaccia.  
    - [ ] Documentazione interna: `RLS_POLICIES_DOCUMENTATION.md`, `SECURITY_NOTES.md`.
 
-5. **Storage** (se usi `app-config` / geofence in Storage)  
-   - [ ] Bucket e policy come in `docs/SUPABASE_STORAGE_APP_CONFIG.md`.
+5. **Storage** (multi-dispositivo: flag, template ruoli, geofence JSON, ecc.)  
+   - [ ] Bucket **`app-config`** creato (Supabase → **Storage**).  
+   - [ ] Migrazioni applicate in ordine: `20260317220000_storage_app_config_bucket.sql` poi **`20260317230000_storage_app_config_anon_policies.sql`** (necessaria per client con sola **anon key**).  
+   - [ ] MIME: consenti `application/json` sul bucket o nessun filtro troppo stretto (altrimenti upload 400).  
+   - [ ] Dettagli e troubleshooting: [docs/SUPABASE_STORAGE_APP_CONFIG.md](./SUPABASE_STORAGE_APP_CONFIG.md).  
+   - [ ] Per disattivare del tutto i GET verso Storage: `VITE_APP_CONFIG_STORAGE_ENABLED=false` in `.env` / Vercel (vedi `.env.example`).
 
 6. **Realtime (aggiornamenti tra dispositivi senza refresh)**  
-   L’app si iscrive ai cambiamenti su `shifts`, `users`, `holiday_requests`, `punch_records`. In Supabase: **Database → Replication** → le tabelle usate devono essere nella publication Realtime.  
-   **Dati su Storage** (`app-config`: template ruoli, feature flags, …): non passano da Realtime; l’app li riallinea al **ritorno in primo piano**, al **pull-to-refresh**, al cambio tab in **gestione**, e in **Area admin** (vedi codice: throttle ~5s + pull forzato a foreground). Se PC e telefono sembrano diversi, verifica bucket/policy in `docs/SUPABASE_STORAGE_APP_CONFIG.md`.  
+   L’app si iscrive in codice a queste tabelle (`src/lib/database.ts` → `postgres_changes`):  
+   `shifts`, `users`, `punch_records`, `holiday_requests`, **`app_settings_sync_signal`** (pull config cloud dopo bump revisione / bundle).  
+   In Supabase: **Database → Publications** (o **Replication**, a seconda della UI) → publication tipicamente **`supabase_realtime`** → devono comparire **tutte** le tabelle sopra (altrimenti i client non ricevono eventi e restano solo pull manuali / foreground).  
+   La tabella `app_settings_sync_signal` è creata dalla migrazione `20260322180000_app_settings_sync_signal.sql` (e publication idempotente in `20260324130000_*` se applicata).  
+   Migrazione dedicata che aggiunge **tutte** e cinque le tabelle alla publication se mancano: `20260325200000_realtime_publication_operational_tables.sql` (stesso blocco anche in `supabase/manual_paste_sql_editor_rls.sql` in coda).  
+   **Dati su Storage** (`app-config`: template ruoli, feature flags, …): non passano da Realtime; l’app li riallinea al **ritorno in primo piano**, al **pull-to-refresh**, al cambio tab in **gestione**, e in **Area admin** (throttle pull config in foreground ~12s + pull forzato a visibility/focus). Se PC e telefono sembrano diversi, verifica bucket/policy in `docs/SUPABASE_STORAGE_APP_CONFIG.md`.  
    **Background Sync** (Chrome/Edge/Android): in **offline** viene registrato un sync one-shot; alla **riconnessione** il service worker può risvegliarsi e far partire un refresh dati (`silentRefreshData` + Storage) sulle finestre ancora aperte — su Safari iOS non è disponibile; restano foreground/online già gestiti dall’app.
 
 ---
@@ -121,4 +134,6 @@ Apri `https://osteria-basilico-app.vercel.app` (o dominio custom).
 - Git + Vercel: [CONNESSIONE_GIT_VERCEL.md](./CONNESSIONE_GIT_VERCEL.md)  
 - Stato sintetico: [STATO_PROGETTO.md](./STATO_PROGETTO.md)  
 - Variabili esempio: [`.env.example`](../.env.example)  
+- Storage bucket `app-config`: [SUPABASE_STORAGE_APP_CONFIG.md](./SUPABASE_STORAGE_APP_CONFIG.md)  
+- SQL RLS incollabile (senza CLI): `supabase/manual_paste_sql_editor_rls.sql`  
 - **Sincronizzazione multi-dispositivo (QA manuale):** [SYNC_VERIFICATION_CHECKLIST.md](./SYNC_VERIFICATION_CHECKLIST.md)

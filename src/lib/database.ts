@@ -1202,7 +1202,7 @@ export const database = {
             debounceTimer = setTimeout(() => {
               debounceTimer = null;
               onSignal();
-            }, 300);
+            }, 900);
           }
         )
         .subscribe((status) => {

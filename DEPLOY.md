@@ -13,18 +13,26 @@ L’app usa **Supabase** per dati e auth. In produzione servono:
 | Variabile | Dove prenderla | Obbligatoria |
 |-----------|-----------------|--------------|
 | `VITE_SUPABASE_URL` | Supabase → Project Settings → API → Project URL | Sì |
-| `VITE_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon public | Sì |
+| `VITE_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon public | Sì* |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Stesso valore se la dashboard mostra “publishable” al posto di anon | Sì* |
 | `VITE_GEMINI_API_KEY` | Google AI Studio (per Scan Foto turni) | No (opzionale) |
 
-- **Non** mettere mai la **service role key** nel frontend (solo in script server-side se serve).
+\* Serve **una** tra `VITE_SUPABASE_ANON_KEY` e `VITE_SUPABASE_PUBLISHABLE_KEY` (in `src/lib/supabase.ts` la publishable ha priorità se entrambe fossero impostate).
+
+- **Non** mettere mai la **service role** nel bundle frontend: non aggiungerla come `VITE_*` su Vercel. Per script in `scripts/` vedi `.env.example` (ideale: variabile **senza** prefisso `VITE_` solo in locale).
 - Il file `.env` **non** va committato: usalo solo in locale. In hosting imposti le variabili dalla dashboard.
 
 ### 1.2 Supabase in produzione
 
 - Crea un **progetto Supabase** (o usa quello già usato in sviluppo).
-- Esegui tutte le **migrazioni** SQL sul database (tabelle, RLS, policy, funzioni tipo `send-holiday-notification`).
-- Controlla che le **policy RLS** siano corrette (anon/authenticated per le tabelle usate dall’app).
+- **Migrazioni:** dalla root del repo, con CLI collegata al progetto: `npx supabase db push` (se richiesto: `npx supabase db push --include-all`). Senza CLI: incolla in SQL Editor gli script in `supabase/migrations/` in ordine, oppure lo script riepilogativo `supabase/manual_paste_sql_editor_rls.sql` dove applicabile. Dettagli e repair cronologia: [docs/CHECKLIST_VERIFICA_COMPLETA.md](docs/CHECKLIST_VERIFICA_COMPLETA.md) sezione **B**.
+- **RLS / Advisor:** allinea policy alle migrazioni recenti (es. `20260324160000_*`, `20260324170000_*`) così PostgREST con chiave anon non riceve 401/403 inattesi.
+- **Realtime:** l’app (`src/lib/database.ts`) si iscrive a `postgres_changes` su queste tabelle — devono essere nella publication **`supabase_realtime`**:  
+  `shifts`, `users`, `punch_records`, `holiday_requests`, **`app_settings_sync_signal`**.  
+  Se manca una tabella, i client non si aggiornano in tempo reale (restano pull manuali / ritorno in app).
+- **Storage** bucket `app-config` (e policy): [docs/SUPABASE_STORAGE_APP_CONFIG.md](docs/SUPABASE_STORAGE_APP_CONFIG.md).
 - Se usi **Supabase Auth**, configura email/dominio; l’app al momento usa solo PIN su tabella `users`.
+- Edge function **`send-holiday-notification`** se usi notifiche mail da lì.
 
 ### 1.3 Build locale
 
@@ -127,11 +135,13 @@ Stessi comandi di build; in `dist` è incluso `public/_redirects` per le route S
 
 - [ ] Repository Git con `main` e remoto (GitHub/GitLab) collegato a Vercel se usi deploy da push
 - [ ] Progetto Supabase creato e migrazioni eseguite
-- [ ] Variabili `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` impostate in produzione
+- [ ] **Realtime:** le cinque tabelle in §1.2 presenti in `supabase_realtime`
+- [ ] Variabili `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` **oppure** `VITE_SUPABASE_PUBLISHABLE_KEY` in produzione (Vercel → Environment Variables)
 - [ ] `npm run build` eseguito senza errori
 - [ ] `npm run preview` testato con le stesse variabili
 - [ ] Deploy su Vercel (o altro host) con variabili d’ambiente
 - [ ] Test su URL di produzione (login, turni, ferie, report)
+- [ ] Checklist estesa operativa: [docs/CHECKLIST_VERIFICA_COMPLETA.md](docs/CHECKLIST_VERIFICA_COMPLETA.md)
 - [ ] (Opzionale) Dominio personalizzato e HTTPS
 - [ ] (Opzionale) `VITE_GEMINI_API_KEY` se usi Scan Foto turni
 

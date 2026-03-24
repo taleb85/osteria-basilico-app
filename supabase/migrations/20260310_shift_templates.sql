@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS public.shift_templates (
 -- Allow all authenticated users to read templates
 ALTER TABLE public.shift_templates ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow authenticated read" ON public.shift_templates;
+DROP POLICY IF EXISTS "Allow authenticated write" ON public.shift_templates;
+
 CREATE POLICY "Allow authenticated read"
   ON public.shift_templates FOR SELECT
   TO authenticated USING (true);
@@ -28,6 +31,8 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS set_shift_templates_updated_at ON public.shift_templates;
 
 CREATE TRIGGER set_shift_templates_updated_at
   BEFORE UPDATE ON public.shift_templates

@@ -128,6 +128,7 @@ import { getDefaultApprovalClockHHMM } from '../utils/shiftResolvedClockTimes';
 import { pinMatchesStored, findActiveUserWithSamePin } from '../utils/loginIdentifier';
 import { isAppCloudSyncEnabled } from '../utils/appCloudSync';
 import { AppContext } from './appContextCore';
+import type { AppContextType } from './appContextTypes';
 
 /** Una tantum: flag geofence senza VITE_RESTAURANT_LAT/LNG. */
 let geofenceMissingEnvWarned = false;
@@ -157,6 +158,26 @@ const initialStaff: Omit<User, 'id'>[] = [
 ];
 
 const MAX_SHIFTS_PER_DAY = 2;
+
+type SilentRefreshOpts = {
+  pullRemoteConfig?: boolean;
+  skipRemoteRevisionCheck?: boolean;
+  throwOnError?: boolean;
+  forceSettingsBundle?: boolean;
+};
+
+/** Unisce richieste di refresh sovrapposte (Realtime + focus + tab + polling) in un’unica esecuzione. */
+function mergeSilentRefreshOpts(prev: SilentRefreshOpts | null, next?: SilentRefreshOpts): SilentRefreshOpts {
+  const a = prev ?? {};
+  const b = next ?? {};
+  return {
+    pullRemoteConfig: !!(a.pullRemoteConfig || b.pullRemoteConfig),
+    /** Se un solo caller chiede di saltare il check revisione (es. Realtime dopo signal), va rispettato. */
+    skipRemoteRevisionCheck: !!(a.skipRemoteRevisionCheck || b.skipRemoteRevisionCheck),
+    throwOnError: !!(a.throwOnError || b.throwOnError),
+    forceSettingsBundle: !!(a.forceSettingsBundle || b.forceSettingsBundle),
+  };
+}
 
 /**
  * Dopo ogni fetch della tabella `users` (realtime, pull-to-refresh, sync in foreground):
@@ -200,6 +221,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isGlobalRefreshing, setIsGlobalRefreshing] = useState(false);
   const [dataSyncInProgress, setDataSyncInProgress] = useState(false);
   const silentSyncDepthRef = useRef(0);
+  /** Opzioni accumulate mentre un refresh è in coda (evita depth>1 e banner “infinito”). */
+  const silentRefreshPendingOptsRef = useRef<SilentRefreshOpts | null>(null);
+  const silentRefreshQueueRef = useRef(Promise.resolve());
   /** In browser `setTimeout` restituisce `number` (non `NodeJS.Timeout`). */
   const dataSyncBarDelayTimerRef = useRef<number | null>(null);
   const [postRefreshLocked, setPostRefreshLocked] = useState(false);
@@ -1352,9 +1376,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     i18n.changeLanguage(lang);
   }, [currentUser, updateUser]);
 
-  const DATA_SYNC_UI_DELAY_MS = 220;
+  /** Ritardo prima di mostrare il banner: sync veloci non lampeggiano (focus, tab, polling ravvicinati). */
+  const DATA_SYNC_UI_DELAY_MS = 600;
   /** Se PostgREST/Storage non rispondono, senza timeout il `finally` non gira e il banner sync resta ore. */
   const SILENT_REFRESH_MAX_MS = 90_000;
+  /** Evita loop se pending si riempie più velocemente di quanto si svuota (signal Realtime + mount Admin, ecc.). */
+  const SILENT_REFRESH_MAX_ITERATIONS = 24;
   const PUSH_SETTINGS_CLOUD_MAX_MS = 120_000;
 
   const enterSilentDataSync = useCallback(() => {
@@ -1389,127 +1416,160 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * Refresh silenzioso: sempre DB + allineamento utente loggato.
    * Con `pullRemoteConfig: true` (dopo toggle permessi/flag/regole) ricarica anche Storage.
    * Feature flag: remoto vince sul local (allineamento multi-dispositivo); il toggle locale salva già su Storage prima del refresh.
+   *
+   * Le chiamate sovrapposte (Realtime, focus, tab, polling) vanno in **coda** con opzioni unite.
+   * Un solo `enterSilentDataSync` / `leaveSilentDataSync` per ondata + ciclo che drena le richieste
+   * arrivate durante il refresh: evita banner “infinito” e lampeggi intermittenti tra job in serie.
    */
-  const silentRefreshData = useCallback(async (opts?: {
-    pullRemoteConfig?: boolean;
-    skipRemoteRevisionCheck?: boolean;
-    throwOnError?: boolean;
-    forceSettingsBundle?: boolean;
-  }) => {
-    enterSilentDataSync();
-    const runSilentRefreshInner = async () => {
-      const safeLoad = async <T,>(label: string, fn: () => Promise<T[]>): Promise<T[] | null> => {
-        try {
-          return await fn();
-        } catch (e) {
-          console.warn(`[silentRefreshData] ${label} non caricato, stato UI invariato`, e);
-          return null;
-        }
-      };
+  const silentRefreshData = useCallback(async (opts?: SilentRefreshOpts) => {
+    silentRefreshPendingOptsRef.current = mergeSilentRefreshOpts(silentRefreshPendingOptsRef.current, opts);
 
-      const [loadedUsers, loadedShifts, loadedHolidays, loadedPunchRecords, loadedAvailability] = await Promise.all([
-        safeLoad('users', () => database.users.getAll()),
-        safeLoad('shifts', () => database.shifts.getAll()),
-        safeLoad('holidays', () => database.holidays.getAll()),
-        safeLoad('punchRecords', () => database.punchRecords.getAll()),
-        safeLoad('availability', () => database.availability.getAll()),
-      ]);
+    const queued = silentRefreshQueueRef.current.then(async () => {
+      let merged = silentRefreshPendingOptsRef.current;
+      silentRefreshPendingOptsRef.current = null;
+      if (merged === null) return;
 
-      if (loadedUsers !== null) setUsers(loadedUsers);
-      if (loadedShifts !== null) setShifts(loadedShifts);
-      if (loadedHolidays !== null) setHolidays(loadedHolidays);
-      if (loadedPunchRecords !== null) setPunchRecords(loadedPunchRecords);
-      if (loadedAvailability !== null) setAvailability(loadedAvailability);
+      enterSilentDataSync();
+      const runSilentRefreshInner = async (iterationOpts: SilentRefreshOpts) => {
+        const safeLoad = async <T,>(label: string, fn: () => Promise<T[]>): Promise<T[] | null> => {
+          try {
+            return await fn();
+          } catch (e) {
+            console.warn(`[silentRefreshData] ${label} non caricato, stato UI invariato`, e);
+            return null;
+          }
+        };
 
-      if (loadedUsers !== null) {
-        setCurrentUser((prev) => sessionUserFromLoadedUsersList(prev, loadedUsers));
-      }
-
-      const pullRemoteConfig = Boolean(opts?.pullRemoteConfig && isAppCloudSyncEnabled());
-      if (pullRemoteConfig) {
-        const [sbFlags, periodRemote] = await Promise.all([
-          loadFeatureFlagsFromSupabase().catch(() => null),
-          loadTimesheetPeriodFromSupabase().catch(() => null),
+        const [loadedUsers, loadedShifts, loadedHolidays, loadedPunchRecords, loadedAvailability] = await Promise.all([
+          safeLoad('users', () => database.users.getAll()),
+          safeLoad('shifts', () => database.shifts.getAll()),
+          safeLoad('holidays', () => database.holidays.getAll()),
+          safeLoad('punchRecords', () => database.punchRecords.getAll()),
+          safeLoad('availability', () => database.availability.getAll()),
         ]);
-        if (periodRemote) {
-          applyRemoteTimesheetPeriod(periodRemote);
+
+        if (loadedUsers !== null) setUsers(loadedUsers);
+        if (loadedShifts !== null) setShifts(loadedShifts);
+        if (loadedHolidays !== null) setHolidays(loadedHolidays);
+        if (loadedPunchRecords !== null) setPunchRecords(loadedPunchRecords);
+        if (loadedAvailability !== null) setAvailability(loadedAvailability);
+
+        if (loadedUsers !== null) {
+          setCurrentUser((prev) => sessionUserFromLoadedUsersList(prev, loadedUsers));
         }
 
-        const bundle = await fetchGlobalSettingsBundleFromSupabase({
-          force: opts?.forceSettingsBundle === true,
-        }).catch(() => null);
-        if (bundle) {
-          if (!bundle.featureFlags) {
+        const pullRemoteConfig = Boolean(iterationOpts.pullRemoteConfig && isAppCloudSyncEnabled());
+        if (pullRemoteConfig) {
+          const [sbFlags, periodRemote] = await Promise.all([
+            loadFeatureFlagsFromSupabase().catch(() => null),
+            loadTimesheetPeriodFromSupabase().catch(() => null),
+          ]);
+          if (periodRemote) {
+            applyRemoteTimesheetPeriod(periodRemote);
+          }
+
+          const bundle = await fetchGlobalSettingsBundleFromSupabase({
+            force: iterationOpts.forceSettingsBundle === true,
+          }).catch(() => null);
+          if (bundle) {
+            if (!bundle.featureFlags) {
+              const localFlags = getLocalFeatureFlags();
+              const mergedFlags = sbFlags ? { ...localFlags, ...sbFlags } : localFlags;
+              setFeatureFlagsState(mergedFlags);
+              writeFeatureFlagsToStorage(mergedFlags);
+            }
+            applyAppSettingsBundle(bundle);
+            await refreshGeofenceEffectiveConfig();
+            if (!bundle.presenceVerification) {
+              await refreshPresenceVerificationConfig();
+            }
+          } else {
             const localFlags = getLocalFeatureFlags();
             const mergedFlags = sbFlags ? { ...localFlags, ...sbFlags } : localFlags;
             setFeatureFlagsState(mergedFlags);
             writeFeatureFlagsToStorage(mergedFlags);
-          }
-          applyAppSettingsBundle(bundle);
-          await refreshGeofenceEffectiveConfig();
-          if (!bundle.presenceVerification) {
+            const rtRemote = await loadRoleFeatureTemplatesFromSupabase().catch(() => null);
+            const rtLocal = getLocalRoleFeatureTemplates();
+            const rtMerged = loadAndMergeRoleTemplates(rtRemote, rtLocal);
+            setRoleFeatureTemplatesCache(rtMerged);
+            if (rtMerged) writeRoleFeatureTemplatesLocal(rtMerged);
+            setRoleTemplatesRevision((n) => n + 1);
+            const amRemote = await loadAdminModulesGlobalFromSupabase().catch(() => null);
+            const amLocal = getLocalAdminModulesGlobal();
+            const amMerged = loadAndMergeAdminModulesGlobal(amRemote, amLocal);
+            setAdminModulesGlobalCache(amMerged);
+            if (amMerged) writeAdminModulesGlobalLocal(amMerged);
+            setAdminModulesRevision((n) => n + 1);
+            await refreshGeofenceEffectiveConfig();
             await refreshPresenceVerificationConfig();
+            const [wrSb, brSb] = await Promise.all([
+              loadWorkRulesFromSupabase().catch(() => null),
+              loadBreakRulesFromSupabase().catch(() => null),
+            ]);
+            if (wrSb) setWorkRulesState(wrSb);
+            if (brSb) setBreakRulesState(brSb);
+            setSettingsCloudLastSyncedAt(new Date().toISOString());
           }
-        } else {
-          const localFlags = getLocalFeatureFlags();
-          const mergedFlags = sbFlags ? { ...localFlags, ...sbFlags } : localFlags;
-          setFeatureFlagsState(mergedFlags);
-          writeFeatureFlagsToStorage(mergedFlags);
-          const rtRemote = await loadRoleFeatureTemplatesFromSupabase().catch(() => null);
-          const rtLocal = getLocalRoleFeatureTemplates();
-          const rtMerged = loadAndMergeRoleTemplates(rtRemote, rtLocal);
-          setRoleFeatureTemplatesCache(rtMerged);
-          if (rtMerged) writeRoleFeatureTemplatesLocal(rtMerged);
-          setRoleTemplatesRevision((n) => n + 1);
-          const amRemote = await loadAdminModulesGlobalFromSupabase().catch(() => null);
-          const amLocal = getLocalAdminModulesGlobal();
-          const amMerged = loadAndMergeAdminModulesGlobal(amRemote, amLocal);
-          setAdminModulesGlobalCache(amMerged);
-          if (amMerged) writeAdminModulesGlobalLocal(amMerged);
-          setAdminModulesRevision((n) => n + 1);
-          await refreshGeofenceEffectiveConfig();
-          await refreshPresenceVerificationConfig();
-          const [wrSb, brSb] = await Promise.all([
-            loadWorkRulesFromSupabase().catch(() => null),
-            loadBreakRulesFromSupabase().catch(() => null),
-          ]);
-          if (wrSb) setWorkRulesState(wrSb);
-          if (brSb) setBreakRulesState(brSb);
-          setSettingsCloudLastSyncedAt(new Date().toISOString());
         }
-      }
 
-      /* Cross-device: la revisione va controllata a ogni sync DB, non solo con pullRemoteConfig
-         (altrimenti pull-to-refresh, mount, cambio tab non leggono mai Storage). */
-      if (!opts?.skipRemoteRevisionCheck && isAppCloudSyncEnabled()) {
-        /* Evita loop: con rev remota > ack si apre overlay PIN; altre `silentRefreshData` (focus, tab, Admin…)
-           non devono richiamare `forceGlobalRefresh` di nuovo o la sync sembra non finire mai. */
-        if (!postRefreshLockedRef.current && pendingClientSyncRevRef.current === null) {
-          const remoteRev = await fetchClientSyncRevisionFromSupabase().catch(() => null);
-          if (remoteRev != null && remoteRev > getAckClientSyncRevision()) {
-            if (currentUserRef.current) {
-              pendingClientSyncRevRef.current = remoteRev;
-              await forceGlobalRefreshRef.current();
-            } else {
-              writeAckClientSyncRevision(remoteRev);
+        /* Cross-device: la revisione va controllata a ogni sync DB, non solo con pullRemoteConfig
+           (altrimenti pull-to-refresh, mount, cambio tab non leggono mai Storage). */
+        if (!iterationOpts.skipRemoteRevisionCheck && isAppCloudSyncEnabled()) {
+          /* Evita loop: con rev remota > ack si apre overlay PIN; altre `silentRefreshData` (focus, tab, Admin…)
+             non devono richiamare `forceGlobalRefresh` di nuovo o la sync sembra non finire mai. */
+          if (!postRefreshLockedRef.current && pendingClientSyncRevRef.current === null) {
+            const remoteRev = await fetchClientSyncRevisionFromSupabase().catch(() => null);
+            if (remoteRev != null && remoteRev > getAckClientSyncRevision()) {
+              if (currentUserRef.current) {
+                pendingClientSyncRevRef.current = remoteRev;
+                await forceGlobalRefreshRef.current();
+              } else {
+                writeAckClientSyncRevision(remoteRev);
+              }
             }
           }
         }
-      }
-    };
+      };
 
-    try {
-      await withTimeout(runSilentRefreshInner(), SILENT_REFRESH_MAX_MS, 'silentRefreshData');
-    } catch (err) {
-      if (err instanceof TimeoutError) {
-        console.warn('[silentRefreshData]', err.message, '— banner sync chiuso; controlla rete e credenziali Supabase.');
-      } else {
-        console.error('Errore durante il refresh silenzioso:', err);
+      try {
+        let iterationCount = 0;
+        while (merged !== null) {
+          iterationCount += 1;
+          if (iterationCount > SILENT_REFRESH_MAX_ITERATIONS) {
+            console.warn(
+              '[silentRefreshData] interrotto dopo troppe iterazioni in coda (probabilmente burst Realtime/tab); il resto viene riaccodato.'
+            );
+            const tail = silentRefreshPendingOptsRef.current;
+            silentRefreshPendingOptsRef.current = null;
+            if (tail) {
+              window.setTimeout(() => {
+                void silentRefreshDataRef.current(tail);
+              }, 400);
+            }
+            break;
+          }
+          const iterationOpts = merged;
+          try {
+            await withTimeout(runSilentRefreshInner(iterationOpts), SILENT_REFRESH_MAX_MS, 'silentRefreshData');
+          } catch (err) {
+            if (err instanceof TimeoutError) {
+              console.warn('[silentRefreshData]', err.message, '— banner sync chiuso; controlla rete e credenziali Supabase.');
+            } else {
+              console.error('Errore durante il refresh silenzioso:', err);
+            }
+            if (iterationOpts.throwOnError) throw err;
+            break;
+          }
+          merged = silentRefreshPendingOptsRef.current;
+          silentRefreshPendingOptsRef.current = null;
+        }
+      } finally {
+        leaveSilentDataSync();
       }
-      if (opts?.throwOnError) throw err;
-    } finally {
-      leaveSilentDataSync();
-    }
+    });
+
+    silentRefreshQueueRef.current = queued.catch(() => {});
+    await queued;
   }, [
     enterSilentDataSync,
     leaveSilentDataSync,
@@ -1555,7 +1615,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let lastConfigPull = 0;
     /** Tra un pull Storage e l’altro mentre l’app resta in primo piano (evita burst su Supabase). */
-    const CONFIG_PULL_THROTTLE_MS = 5_000;
+    const CONFIG_PULL_THROTTLE_MS = 12_000;
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     const runForegroundSync = () => {
@@ -1815,7 +1875,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
    */
   useEffect(() => {
     if (!currentUser?.id) return;
-    const POLL_MS = 60_000;
+    const POLL_MS = 120_000;
     const check = () => {
       if (document.visibilityState !== 'visible') return;
       if (isGlobalRefreshingRef.current || postRefreshLockedRef.current) return;
@@ -1824,7 +1884,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       );
     };
     const id = window.setInterval(check, POLL_MS);
-    const t0 = window.setTimeout(check, 8_000);
+    const t0 = window.setTimeout(check, 25_000);
     return () => {
       window.clearInterval(id);
       window.clearTimeout(t0);
@@ -2021,19 +2081,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AppContext.Provider value={{
-      currentUser, setCurrentUser, users, shifts, holidays, punchRecords, availability, toggleAvailability,
-      addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift,
-      publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
-      updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing, dataSyncInProgress,
-      postRefreshLocked, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest,
-      featureFlags, setFeatureFlag, geofenceEffectiveConfig, saveGeofenceConfig,
-      presenceVerificationConfig, savePresenceVerificationConfig,
-      workRules, setWorkRules, breakRules, setBreakRules,
-      roleTemplatesRevision, saveRoleFeatureTemplates,
-      adminModulesRevision, saveAdminModulesGlobal,
-      pushSettingsToCloud, settingsCloudLastSyncedAt, settingsCloudPushBusy,
-    }}>
+    <AppContext.Provider
+      value={{
+        currentUser, setCurrentUser, users, shifts, holidays, punchRecords, availability, toggleAvailability,
+        addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift,
+        publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
+        updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing, dataSyncInProgress,
+        postRefreshLocked, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest,
+        featureFlags, setFeatureFlag, geofenceEffectiveConfig, saveGeofenceConfig,
+        presenceVerificationConfig, savePresenceVerificationConfig,
+        workRules, setWorkRules, breakRules, setBreakRules,
+        roleTemplatesRevision, saveRoleFeatureTemplates,
+        adminModulesRevision, saveAdminModulesGlobal,
+        pushSettingsToCloud, settingsCloudLastSyncedAt, settingsCloudPushBusy,
+      } satisfies AppContextType}
+    >
       <PwaGate>{children}</PwaGate>
       <AnimatePresence mode="sync">
         {toastMessage && (
