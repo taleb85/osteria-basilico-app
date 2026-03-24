@@ -1,5 +1,5 @@
 import { User } from '../types';
-import { getTemplateDefaultTeamScheduleVisible } from './enabledFeatures';
+import { getTemplateDefaultTeamScheduleVisible, getRolePermissionGroup } from './enabledFeatures';
 
 /** Ruoli puramente gestionali: non compaiono nelle liste operative (turni, presenze, PDF). Solo Admin. */
 export const PURELY_MANAGEMENT_ROLES = ['admin'] as const;
@@ -78,6 +78,20 @@ export function canViewAllTeamHours(user: User | null): boolean {
 export function canEditOtherStaffPins(user: User | null): boolean {
   if (!user) return false;
   return user.role === 'admin' || user.can_edit_staff_pins === true;
+}
+
+/**
+ * Manager / Assistant manager: scheda Impostazioni limitata (solo dipendenti operativi:
+ * elenco profilo in lettura, creazione, sospensione). L’admin resta su vista completa.
+ */
+export function canManageDelegatedStaff(user: User | null): boolean {
+  if (!user) return false;
+  return user.role === 'manager' || user.role === 'assistant_manager';
+}
+
+/** Dipendente “di sala/cucina/bar” (esclusi admin, manager, assistant, capo) per elenco delegato. */
+export function isOperationalStaffRole(role: string): boolean {
+  return getRolePermissionGroup(role) === 'staff';
 }
 
 /**

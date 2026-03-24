@@ -25,6 +25,20 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
 
   const visible = new Set(visibleTabs);
   const tv = t as Record<string, string>;
+  /** Solo nome di battesimo sotto l’icona (fallback email se manca il nome). */
+  const profileNavLabel = currentUser
+    ? (currentUser.first_name ?? '').trim() || currentUser.email
+    : '';
+  const profileFullName =
+    currentUser &&
+    [currentUser.first_name, currentUser.last_name].filter(Boolean).join(' ').trim();
+  const profileTabTitle =
+    currentUser && profileNavLabel
+      ? profileFullName
+        ? `${t.sidebar_profile}: ${profileFullName} (${currentUser.email})`
+        : `${t.sidebar_profile}: ${currentUser.email}`
+      : '';
+
   const defs: { id: AppNavTab; icon: typeof Home; label: string }[] = [
     { id: 'home', icon: Home, label: t.sidebar_dashboard },
     { id: 'turni', icon: Calendar, label: t.sidebar_shifts },
@@ -57,14 +71,26 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
           <div className="flex justify-between items-stretch gap-0.5 min-h-[48px] sm:min-h-[54px]">
             {tabs.map(({ id, icon: Icon, label }) => {
               const isActive = activeTab === id;
-              const displayLabel = id === 'settings' && settingsShort ? settingsShort : label;
+              const displayLabel =
+                id === 'settings' && settingsShort
+                  ? settingsShort
+                  : id === 'profile' && profileNavLabel
+                    ? profileNavLabel
+                    : label;
               const showProfilePic = id === 'profile' && profileThumb;
+              const buttonTitle =
+                id === 'profile' && profileTabTitle ? profileTabTitle : label;
+              const profileAriaLabel =
+                id === 'profile' && profileNavLabel
+                  ? `${t.sidebar_profile}, ${profileNavLabel}`
+                  : undefined;
               return (
                 <button
                   key={id}
                   type="button"
                   onClick={() => onTabChange(id)}
-                  title={label}
+                  title={buttonTitle}
+                  aria-label={profileAriaLabel}
                   className="keep-white-glass flex-1 min-w-0 min-h-[46px] sm:min-h-[50px] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center gap-0.5 sm:gap-1 px-0.5 py-1 text-white/[0.78] transition-all duration-200 hover:bg-white/10 hover:text-white/95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D5A27] active:scale-[0.97]"
                 >
                   {showProfilePic ? (

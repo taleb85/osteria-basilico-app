@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
 import { findActiveUserWithSamePin } from '../utils/loginIdentifier';
-import { ProfileFormAdmin, type ProfileFormAdminData } from './UserProfile';
+import { ProfileFormAdmin, type ProfileFormAdminData, OPERATIONAL_STAFF_ROLES_FOR_DELEGATE } from './UserProfile';
 
 const PHANTOM_USER: UserType = {
   id: '00000000-0000-4000-8000-000000000001',
@@ -41,9 +41,16 @@ interface CreateStaffModalProps {
   onClose: () => void;
   /** Dopo creazione: es. aprire modifica per copiare il link invito. */
   onCreated?: (user: UserType) => void;
+  /** Solo ruoli operativi (scheda team delegata Manager/Assistant). */
+  operationalRolesOnly?: boolean;
 }
 
-export default function CreateStaffModal({ isOpen, onClose, onCreated }: CreateStaffModalProps) {
+export default function CreateStaffModal({
+  isOpen,
+  onClose,
+  onCreated,
+  operationalRolesOnly = false,
+}: CreateStaffModalProps) {
   const { createUser, currentUser, effectiveLanguage, showError, users } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [formData, setFormData] = useState<ProfileFormAdminData>(emptyForm);
@@ -55,6 +62,15 @@ export default function CreateStaffModal({ isOpen, onClose, onCreated }: CreateS
       setIsSaving(false);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !operationalRolesOnly) return;
+    setFormData((prev) =>
+      OPERATIONAL_STAFF_ROLES_FOR_DELEGATE.includes(prev.role)
+        ? prev
+        : { ...prev, role: 'server' }
+    );
+  }, [isOpen, operationalRolesOnly]);
 
   const phantom = useMemo(() => ({ ...PHANTOM_USER, role: formData.role }), [formData.role]);
 
@@ -153,6 +169,7 @@ export default function CreateStaffModal({ isOpen, onClose, onCreated }: CreateS
               isSaving={isSaving}
               variant="create"
               activePinConflictMessage={activePinConflictMessage}
+              operationalRolesOnly={operationalRolesOnly}
             />
           </div>
         </motion.div>

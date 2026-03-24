@@ -190,7 +190,7 @@ const DEFAULT_MANAGER_FEATURES: EnabledFeatures = {
   view_estimated_cost: false,
   desktop_access: true,
   ferie_tab: true,
-  /** Solo il ruolo `admin` vede la scheda Impostazioni / profili in barra (ignora template e JSONB). */
+  /** Scheda in barra per Manager/Assistant viene forzata attiva in `getEnabledFeatures` (team delegato). */
   admin_tab: false,
 };
 
@@ -322,7 +322,12 @@ export function getEnabledFeatures(user: { role: string; enabled_features?: unkn
   const grp = getRolePermissionGroup(user.role);
   if (grp === 'admin') return base;
   const merged = mergeUserFeatureOverrides(applyDiskTemplateToBase(base, grp), user.enabled_features);
-  merged.admin_tab = false;
+  /** In barra: Manager / Assistant aprono la scheda team delegata (solo dipendenti operativi). Altri non-admin: mai. */
+  if (user.role === 'manager' || user.role === 'assistant_manager') {
+    merged.admin_tab = true;
+  } else {
+    merged.admin_tab = false;
+  }
   applyLegacyTimesheetTabWhenUnset(merged, grp, user.enabled_features);
   return merged;
 }

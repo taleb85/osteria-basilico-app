@@ -25,6 +25,20 @@ const baseIt = {
   data_restored: 'Dati ripristinati con successo.',
   import_error: 'Errore durante l\'importazione.',
   no_access_settings: 'Non hai accesso alle impostazioni.',
+  settings_delegated_intro:
+    'Gestisci i dipendenti operativi: consulta le schede, aggiungi profili, sospendi o riattiva (con «Mostra sospesi»). Per altre impostazioni contatta un amministratore.',
+  settings_delegated_view_profile: 'Scheda',
+  settings_delegated_suspend: 'Sospendi',
+  settings_delegated_suspend_confirm:
+    'Sospendere {name}? Non potrà accedere fino a riattivazione da un amministratore.',
+  settings_delegated_suspended_toast: 'Dipendente sospeso.',
+  settings_delegated_reactivate: 'Riattiva',
+  settings_delegated_reactivate_confirm:
+    'Riattivare {name}? Potrà di nuovo accedere con il proprio PIN.',
+  settings_delegated_reactivated_toast: 'Dipendente riattivato.',
+  settings_delegated_readonly_hint: 'Solo lettura. Per modificare anagrafica o permessi contatta un amministratore.',
+  settings_delegated_view_title: 'Profilo dipendente',
+  settings_delegated_empty_list: 'Nessun dipendente operativo in elenco.',
   settings_title: 'Impostazioni',
   version: 'Versione',
   hide_suspended: 'Nascondi sospesi',
@@ -1272,6 +1286,20 @@ const baseEn: Record<string, string> = {
   data_restored: 'Data restored successfully.',
   import_error: 'Error during import.',
   no_access_settings: 'You do not have access to settings.',
+  settings_delegated_intro:
+    'Manage operational staff: view profiles, add employees, suspend or reactivate (use «Show suspended»). For other settings, contact an administrator.',
+  settings_delegated_view_profile: 'Profile',
+  settings_delegated_suspend: 'Suspend',
+  settings_delegated_suspend_confirm:
+    'Suspend {name}? They cannot sign in until an administrator reactivates the account.',
+  settings_delegated_suspended_toast: 'Employee suspended.',
+  settings_delegated_reactivate: 'Reactivate',
+  settings_delegated_reactivate_confirm:
+    'Reactivate {name}? They will be able to sign in again with their PIN.',
+  settings_delegated_reactivated_toast: 'Employee reactivated.',
+  settings_delegated_readonly_hint: 'Read-only. To change details or permissions, contact an administrator.',
+  settings_delegated_view_title: 'Employee profile',
+  settings_delegated_empty_list: 'No operational staff to show.',
   settings_title: 'Settings',
   hide_suspended: 'Hide suspended',
   show_suspended: 'Show suspended',
@@ -2464,6 +2492,20 @@ const baseEs: Record<string, string> = {
   data_restored: 'Datos restaurados correctamente.',
   import_error: 'Error durante la importación.',
   no_access_settings: 'No tienes acceso a la configuración.',
+  settings_delegated_intro:
+    'Gestiona el personal operativo: consulta fichas, añade empleados, suspende o reactiva («Mostrar suspendidos»). Para más ajustes, contacta con un administrador.',
+  settings_delegated_view_profile: 'Ficha',
+  settings_delegated_suspend: 'Suspender',
+  settings_delegated_suspend_confirm:
+    '¿Suspender a {name}? No podrá iniciar sesión hasta que un administrador reactive la cuenta.',
+  settings_delegated_suspended_toast: 'Empleado suspendido.',
+  settings_delegated_reactivate: 'Reactivar',
+  settings_delegated_reactivate_confirm:
+    '¿Reactivar a {name}? Podrá volver a iniciar sesión con su PIN.',
+  settings_delegated_reactivated_toast: 'Empleado reactivado.',
+  settings_delegated_readonly_hint: 'Solo lectura. Para cambiar datos o permisos, contacta con un administrador.',
+  settings_delegated_view_title: 'Perfil del empleado',
+  settings_delegated_empty_list: 'No hay personal operativo en la lista.',
   settings_title: 'Configuración',
   hide_suspended: 'Ocultar suspendidos',
   show_suspended: 'Mostrar suspendidos',
@@ -3702,6 +3744,21 @@ const baseFr: Record<string, string> = {
   osteria_fine_turno: 'Fin de Service',
   // Override key French strings from baseIt
   settings_title: 'Paramètres',
+  settings_delegated_intro:
+    'Gérez le personnel opérationnel : fiches, ajout, suspension ou réactivation (« Afficher suspendus »). Pour le reste, contactez un administrateur.',
+  settings_delegated_view_profile: 'Fiche',
+  settings_delegated_suspend: 'Suspendre',
+  settings_delegated_suspend_confirm:
+    'Suspendre {name} ? Connexion impossible tant qu’un administrateur n’a pas réactivé le compte.',
+  settings_delegated_suspended_toast: 'Employé suspendu.',
+  settings_delegated_reactivate: 'Réactiver',
+  settings_delegated_reactivate_confirm:
+    'Réactiver {name} ? Il pourra se reconnecter avec son PIN.',
+  settings_delegated_reactivated_toast: 'Employé réactivé.',
+  settings_delegated_readonly_hint:
+    'Lecture seule. Pour modifier les données ou les permissions, contactez un administrateur.',
+  settings_delegated_view_title: 'Profil employé',
+  settings_delegated_empty_list: 'Aucun employé opérationnel à afficher.',
   status_active: 'Actif',
   status_inactive: 'Inactif',
   status_suspended: 'Suspendu',

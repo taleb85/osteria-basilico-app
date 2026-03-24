@@ -13,6 +13,7 @@ import { getTranslations, formatTrans } from '../utils/translations';
 import { buildProfiloAccessLink } from '../config/appPaths';
 import type { User as UserType, Language, Department, Theme } from '../types';
 import { isPurelyManagementRole, isAdminOnly } from '../utils/permissions';
+import { translateRole } from '../utils/roles';
 import { getDepartments } from '../utils/departments';
 import { formatDepartmentDisplayForProfile, translateDepartmentValue } from '../utils/departmentLabels';
 import { DEFAULT_PHONE_PREFIX, PHONE_PREFIX_OPTIONS } from '../utils/phonePrefix';
@@ -430,6 +431,16 @@ const inputClass =
 const labelClass = 'block text-xs font-semibold text-slate-700 mb-1 font-sans';
 
 /** Form modale "Modifica dipendente" (manager): layout con Reparto sopra Stato account. Tutte le etichette tradotte. */
+/** Ruoli assegnabili quando Manager/Assistant creano un dipendente dalla scheda delegata. */
+export const OPERATIONAL_STAFF_ROLES_FOR_DELEGATE: UserType['role'][] = [
+  'server',
+  'waiter',
+  'cook',
+  'chef',
+  'bartender',
+  'dishwasher',
+];
+
 export function ProfileFormAdmin({
   user,
   currentUser,
@@ -440,6 +451,8 @@ export function ProfileFormAdmin({
   isSaving,
   variant = 'edit',
   activePinConflictMessage = null,
+  readOnly = false,
+  operationalRolesOnly = false,
 }: {
   user: UserType;
   currentUser: UserType;
@@ -452,6 +465,10 @@ export function ProfileFormAdmin({
   variant?: 'edit' | 'create';
   /** Se valorizzato: stesso PIN di un altro dipendente attivo (blocco salvataggio + hint sotto il campo). */
   activePinConflictMessage?: string | null;
+  /** Solo consultazione (Manager/Assistant: scheda team delegata). */
+  readOnly?: boolean;
+  /** Creazione dipendente da delegato: solo ruoli operativi sala/cucina/bar. */
+  operationalRolesOnly?: boolean;
 }) {
   const { effectiveLanguage, showSuccess, showError } = useApp();
   const t = getTranslations(effectiveLanguage);
@@ -479,15 +496,27 @@ export function ProfileFormAdmin({
     }
   }, [accessLink, showSuccess, showError, tv.admin_employee_access_link_copied, tv.copy_failed]);
 
+  const roleSelectDisabled =
+    readOnly || (isPurelyManagementRole(user.role) && !isAdminOnly(currentUser));
+
   return (
     <>
+      {readOnly && (
+        <p className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600 dark:border-white/10 dark:bg-neutral-800/80 dark:text-neutral-300 font-sans">
+          {(t as { settings_delegated_readonly_hint?: string }).settings_delegated_readonly_hint ??
+            'Solo lettura. Per modifiche contatta un amministratore.'}
+        </p>
+      )}
       {isSuspended && (
         <div className="mb-6 flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-amber-700">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
           <p className="text-sm font-medium font-sans">{t.employee_suspended_warning}</p>
         </div>
       )}
-      <form onSubmit={onSubmit} className="space-y-6">
+      <form
+        onSubmit={readOnly ? (e) => e.preventDefault() : onSubmit}
+        className="space-y-6"
+      >
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>
@@ -500,7 +529,8 @@ export function ProfileFormAdmin({
               onChange={(e) => setFormData((prev) => ({ ...prev, first_name: e.target.value.toUpperCase() }))}
               className={inputClass}
               placeholder={t.placeholder_first_name}
-              required
+              required={!readOnly}
+              disabled={readOnly}
             />
           </div>
           <div>
@@ -514,6 +544,7 @@ export function ProfileFormAdmin({
               onChange={(e) => setFormData((prev) => ({ ...prev, last_name: e.target.value.toUpperCase() }))}
               className={inputClass}
               placeholder={t.placeholder_last_name}
+              disabled={readOnly}
             />
           </div>
         </div>
@@ -529,7 +560,8 @@ export function ProfileFormAdmin({
             onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
             className={inputClass}
             placeholder={t.email_placeholder}
-            required
+            required={!readOnly}
+            disabled={readOnly}
           />
         </div>
 
@@ -543,18 +575,28 @@ export function ProfileFormAdmin({
               value={formData.role}
               onChange={(e) => setFormData((prev) => ({ ...prev, role: e.target.value as UserType['role'] }))}
               className={inputClass}
-              disabled={isPurelyManagementRole(user.role) && !isAdminOnly(currentUser)}
+              disabled={roleSelectDisabled}
             >
-              <option value="server">{t.waiter_role}</option>
-              <option value="cook">{t.cook_role}</option>
-              <option value="bartender">{t.bartender_role}</option>
-              <option value="dishwasher">{t.dishwasher_role}</option>
-              <option value="capo">{t.capo_role}</option>
-              <option value="assistant_manager">{t.assistant_manager_role}</option>
-              {(currentUser.role === 'admin' || currentUser.role === 'manager') && (
-                <option value="manager">{t.manager_role}</option>
-              )}
-              {isAdminOnly(currentUser) && <option value="admin">{t.admin_role}</option>}
+              {operationalRolesOnly
+                ? OPERATIONAL_STAFF_ROLES_FOR_DELEGATE.map((r) => (
+                    <option key={r} value={r}>
+                      {translateRole(r, effectiveLanguage)}
+                    </option>
+                  ))
+                : (
+                <>
+                  <option value="server">{t.waiter_role}</option>
+                  <option value="cook">{t.cook_role}</option>
+                  <option value="bartender">{t.bartender_role}</option>
+                  <option value="dishwasher">{t.dishwasher_role}</option>
+                  <option value="capo">{t.capo_role}</option>
+                  <option value="assistant_manager">{t.assistant_manager_role}</option>
+                  {(currentUser.role === 'admin' || currentUser.role === 'manager') && (
+                    <option value="manager">{t.manager_role}</option>
+                  )}
+                  {isAdminOnly(currentUser) && <option value="admin">{t.admin_role}</option>}
+                </>
+                  )}
             </select>
           </div>
           <div>
@@ -573,8 +615,9 @@ export function ProfileFormAdmin({
               placeholder="1234"
               maxLength={4}
               aria-invalid={activePinConflictMessage ? true : undefined}
+              disabled={readOnly}
             />
-            {activePinConflictMessage ? (
+            {activePinConflictMessage && !readOnly ? (
               <p className="mt-1.5 text-[11px] font-medium text-red-600 font-sans leading-snug">
                 {activePinConflictMessage}
               </p>
@@ -595,6 +638,7 @@ export function ProfileFormAdmin({
                 }))
               }
               className={inputClass}
+              disabled={readOnly}
             >
               <option value="">— {t.department_none} —</option>
               {getDepartments().map((d) => (
@@ -621,6 +665,7 @@ export function ProfileFormAdmin({
             }}
             className={inputClass}
             placeholder={(t as { profile_hourly_rate_placeholder?: string }).profile_hourly_rate_placeholder ?? 'es. 12,50'}
+            disabled={readOnly}
           />
           <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-1 font-sans">
             {(t as { profile_hourly_rate_hint?: string }).profile_hourly_rate_hint ?? ''}
@@ -636,6 +681,7 @@ export function ProfileFormAdmin({
             value={formData.status}
             onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value as UserType['status'] }))}
             className={inputClass}
+            disabled={readOnly}
           >
             <option value="active">{t.status_active}</option>
             <option value="suspended">{t.status_suspended}</option>
@@ -643,13 +689,13 @@ export function ProfileFormAdmin({
           </select>
         </div>
 
-        {variant === 'edit' && !isPurelyManagementRole(layoutRole) && (
+        {variant === 'edit' && !isPurelyManagementRole(layoutRole) && !readOnly && (
           <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
             <StaffOperationalPermissionsEditor user={user} currentUser={currentUser} />
           </div>
         )}
 
-        {variant === 'edit' && (
+        {variant === 'edit' && !readOnly && (
           <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-3 space-y-2">
             <button
               type="button"
@@ -682,10 +728,12 @@ export function ProfileFormAdmin({
           </div>
         )}
 
-        <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-2">
-          {(t as { permissions_in_settings?: string }).permissions_in_settings ??
-            'Funzionalità, moduli e visibilità schede: Impostazioni → Team → Permessi sul dipendente (template ruoli + anteprima).'}
-        </p>
+        {!readOnly && (
+          <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-2">
+            {(t as { permissions_in_settings?: string }).permissions_in_settings ??
+              'Funzionalità, moduli e visibilità schede: Impostazioni → Team → Permessi sul dipendente (template ruoli + anteprima).'}
+          </p>
+        )}
 
         <div className="flex space-x-2 pt-3">
           <button
@@ -693,15 +741,17 @@ export function ProfileFormAdmin({
             onClick={onClose}
             className="flex-1 px-4 py-2 rounded-xl text-sm bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors font-sans"
           >
-            {t.cancel}
+            {readOnly ? t.close ?? t.cancel : t.cancel}
           </button>
-          <button
-            type="submit"
-            disabled={isSaving || Boolean(activePinConflictMessage)}
-            className="flex-1 px-4 py-2 rounded-xl text-sm bg-accent text-white font-semibold hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-sans"
-          >
-            {isSaving ? t.saving : variant === 'create' ? t.create_employee_submit : t.save_changes}
-          </button>
+          {!readOnly && (
+            <button
+              type="submit"
+              disabled={isSaving || Boolean(activePinConflictMessage)}
+              className="flex-1 px-4 py-2 rounded-xl text-sm bg-accent text-white font-semibold hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-sans"
+            >
+              {isSaving ? t.saving : variant === 'create' ? t.create_employee_submit : t.save_changes}
+            </button>
+          )}
         </div>
       </form>
     </>

@@ -11,9 +11,11 @@ interface EditStaffModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: UserType;
+  /** Profilo dipendente solo consultazione (Manager / Assistant manager delegati). */
+  readOnly?: boolean;
 }
 
-export default function EditStaffModal({ isOpen, onClose, user }: EditStaffModalProps) {
+export default function EditStaffModal({ isOpen, onClose, user, readOnly = false }: EditStaffModalProps) {
   const { updateUser, currentUser, effectiveLanguage, showError, users } = useApp();
   const t = getTranslations(effectiveLanguage);
   const hourlyStr =
@@ -114,7 +116,10 @@ export default function EditStaffModal({ isOpen, onClose, user }: EditStaffModal
           <div className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between z-10">
             <div>
               <h2 className="text-base font-bold text-slate-900 tracking-wide font-sans">
-                {t.edit_employee_title}
+                {readOnly
+                  ? ((t as { settings_delegated_view_title?: string }).settings_delegated_view_title ??
+                    t.edit_employee_title)
+                  : t.edit_employee_title}
               </h2>
               <p className="text-xs text-slate-500 dark:text-neutral-300 mt-0.5 font-sans">
                 <span className="font-semibold">{user.first_name}</span>
@@ -138,6 +143,7 @@ export default function EditStaffModal({ isOpen, onClose, user }: EditStaffModal
               onClose={onClose}
               isSaving={isSaving}
               activePinConflictMessage={activePinConflictMessage}
+              readOnly={readOnly}
             />
           </div>
         </motion.div>

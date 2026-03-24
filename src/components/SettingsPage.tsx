@@ -1,11 +1,21 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, LocateFixed, QrCode, UploadCloud } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { User, UserRole } from '../types';
 import { translateRole } from '../utils/roles';
 import { getAdminModuleLabel, getTranslations, formatTrans, getFeatureStrings } from '../utils/translations';
-import { canUserEdit, isAdminOnly, canViewSuspended, isPurelyManagementRole, isManagementRole, isUserVisibleOnTeamSchedule, canEditRoleFeatureTemplates } from '../utils/permissions';
+import {
+  canUserEdit,
+  isAdminOnly,
+  canViewSuspended,
+  isPurelyManagementRole,
+  isManagementRole,
+  isUserVisibleOnTeamSchedule,
+  canEditRoleFeatureTemplates,
+  canManageDelegatedStaff,
+  isOperationalStaffRole,
+} from '../utils/permissions';
 import StaffOperationalPermissionsEditor from './StaffOperationalPermissionsEditor';
 import { exportToJSON, exportToCSV } from '../utils/exportData';
 import { importDataToSupabase, clearAllData } from '../utils/importData';
@@ -305,6 +315,148 @@ export default function SettingsPage() {
     return (
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
         <p className="text-sm text-slate-600 dark:text-neutral-300">{t.no_access_settings}</p>
+      </div>
+    );
+  }
+
+  const staffDelegationMode = canManageDelegatedStaff(currentUser) && !adminOnly;
+
+  if (staffDelegationMode) {
+    const displayUsersDelegated = users
+      .filter((u) => {
+        if (!isOperationalStaffRole(u.role)) return false;
+        if (u.status === 'active') return true;
+        return showSuspended && (u.status === 'suspended' || u.status === 'inactive');
+      })
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+    const handleDelegateSuspend = (user: User) => {
+      const name = `${user.first_name} ${user.last_name ?? ''}`.trim() || user.email;
+      if (!window.confirm(formatTrans(t.settings_delegated_suspend_confirm, { name }))) return;
+      void updateUser(user.id, { status: 'suspended' });
+      showSuccess?.(t.settings_delegated_suspended_toast);
+    };
+
+    const handleDelegateReactivate = (user: User) => {
+      const name = `${user.first_name} ${user.last_name ?? ''}`.trim() || user.email;
+      if (!window.confirm(formatTrans(t.settings_delegated_reactivate_confirm, { name }))) return;
+      void updateUser(user.id, { status: 'active' });
+      showSuccess?.(t.settings_delegated_reactivated_toast);
+    };
+
+    return (
+      <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <p className="mb-4 text-sm leading-relaxed text-slate-600 dark:text-neutral-300">
+            {t.settings_delegated_intro}
+          </p>
+          <section className="mb-6">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-700 dark:text-neutral-200">
+                {t.settings_team_section_title}
+              </h2>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSuspended(!showSuspended)}
+                  className="rounded-xl border border-slate-200 px-2 py-1 text-xs uppercase tracking-wider text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 dark:border-white/10 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+                >
+                  {showSuspended ? t.hide_suspended : t.show_suspended}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateStaff(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                >
+                  <UserPlus className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  {t.admin_add_employee}
+                </button>
+              </div>
+            </div>
+            <div className="panel divide-y divide-slate-100 overflow-hidden rounded-xl shadow-none dark:divide-white/10">
+              {displayUsersDelegated.length === 0 ? (
+                <p className="px-4 py-6 text-center text-sm text-slate-500 dark:text-neutral-400">
+                  {t.settings_delegated_empty_list}
+                </p>
+              ) : (
+                displayUsersDelegated.map((user) => {
+                  const isActiveRow = user.status === 'active';
+                  return (
+                    <div
+                      key={user.id}
+                      className={`flex flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-4 ${!isActiveRow ? 'opacity-70' : ''}`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold uppercase text-slate-900 dark:text-neutral-100">
+                          {user.first_name} {user.last_name ?? ''}
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-neutral-400">
+                          {translateRole(user.role, currentUser.language)}
+                          {!isActiveRow && (
+                            <span className="ml-1.5 font-semibold text-amber-700 dark:text-amber-400">
+                              ·{' '}
+                              {user.status === 'suspended'
+                                ? t.status_suspended
+                                : t.status_inactive}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex flex-shrink-0 items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setEditingUser(user)}
+                          className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                        >
+                          {t.settings_delegated_view_profile}
+                        </button>
+                        {isActiveRow ? (
+                          <button
+                            type="button"
+                            onClick={() => handleDelegateSuspend(user)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-red-700 transition-colors hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60"
+                          >
+                            <UserX className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                            {t.settings_delegated_suspend}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleDelegateReactivate(user)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-accent/35 bg-accent/10 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-accent transition-colors hover:bg-accent/15 dark:border-accent-light/40 dark:bg-accent-light/15 dark:text-accent-light dark:hover:bg-accent-light/20"
+                          >
+                            <UserCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                            {t.settings_delegated_reactivate}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </section>
+        </motion.div>
+
+        {showCreateStaff && (
+          <CreateStaffModal
+            isOpen
+            operationalRolesOnly
+            onClose={() => setShowCreateStaff(false)}
+          />
+        )}
+        {editingUser && (
+          <EditStaffModal
+            isOpen
+            readOnly
+            user={users.find((u) => u.id === editingUser.id) ?? editingUser}
+            onClose={() => setEditingUser(null)}
+          />
+        )}
       </div>
     );
   }
