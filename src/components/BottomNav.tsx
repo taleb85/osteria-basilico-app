@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from 'react';
-import { Home, Calendar, ClipboardList, BarChart3, ShieldCheck, Palmtree, User } from 'lucide-react';
+import { Home, Calendar, ClipboardList, Clock, ShieldCheck, Palmtree, User } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations } from '../utils/translations';
 import type { AppNavTab } from '../utils/enabledModules';
@@ -12,7 +12,7 @@ import {
 interface BottomNavProps {
   activeTab: AppNavTab;
   onTabChange: (tab: AppNavTab) => void;
-  /** Tab visibili (ordine: dashboard, turni, ferie, presenze, statistiche, impostazioni). */
+  /** Tab visibili (ordine: dashboard, turni, ferie, presenze, ore, impostazioni). */
   visibleTabs: AppNavTab[];
 }
 
@@ -68,7 +68,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
     { id: 'turni', icon: Calendar, label: t.sidebar_shifts },
     { id: 'ferie', icon: Palmtree, label: t.sidebar_holidays },
     { id: 'timesheet', icon: ClipboardList, label: t.sidebar_attendance },
-    { id: 'reports', icon: BarChart3, label: t.sidebar_statistics },
+    { id: 'reports', icon: Clock, label: t.sidebar_statistics },
     { id: 'profile', icon: User, label: tv.bottom_nav_profile_short ?? t.sidebar_profile },
     { id: 'settings', icon: ShieldCheck, label: t.sidebar_admin },
   ];

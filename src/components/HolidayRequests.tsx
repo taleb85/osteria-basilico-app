@@ -8,6 +8,7 @@ import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from 'date-fns';
 import { it } from 'date-fns/locale';
 import type { HolidayRequest } from '../types';
+import { safeFormatDate } from '../utils/safeDateFormat';
 
 // ─── Status helpers ────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -296,7 +297,7 @@ export default function HolidayRequests() {
                     <div className="surface-glass-sm mb-4 bg-slate-50/40 p-4 dark:bg-neutral-900/25">
                       <p className="text-slate-900 dark:text-neutral-100 font-semibold text-sm">{u?.first_name} {u?.last_name}</p>
                       <p className="text-slate-600 dark:text-neutral-300 text-xs mt-1">
-                        {format(parseISO(selectedH.start_date), 'd MMM', { locale: it })} – {format(parseISO(selectedH.end_date), 'd MMM yyyy', { locale: it })}
+                        {safeFormatDate(selectedH.start_date, 'd MMM', { locale: it })} – {safeFormatDate(selectedH.end_date, 'd MMM yyyy', { locale: it })}
                       </p>
                       {'reason' in selectedH && selectedH.reason && (
                         <p className="text-slate-500 dark:text-neutral-300 text-xs mt-1 italic">{String(selectedH.reason)}</p>
@@ -408,7 +409,7 @@ export default function HolidayRequests() {
                         <div key={h.id} className="flex items-center justify-between px-5 py-3.5">
                           <div>
                             <p className="text-slate-900 dark:text-neutral-100 text-[12px] font-medium">
-                              {format(parseISO(h.start_date), 'd MMM', { locale: it })} – {format(parseISO(h.end_date), 'd MMM', { locale: it })}
+                              {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM', { locale: it })}
                             </p>
                             <p className="text-slate-600 dark:text-neutral-300 text-xs mt-0.5 uppercase tracking-wider">
                               {h.type ?? 'Ferie'}
@@ -444,7 +445,7 @@ export default function HolidayRequests() {
                         <div className="min-w-0">
                           <p className="text-slate-900 text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
                           <p className="text-slate-600 text-xs">
-                            {format(parseISO(h.start_date), 'd MMM', { locale: it })} – {format(parseISO(h.end_date), 'd MMM yyyy', { locale: it })}
+                            {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                             {h.reason && ` · ${h.reason}`}
                           </p>
                         </div>
@@ -506,7 +507,7 @@ export default function HolidayRequests() {
                           <div className="min-w-0">
                             <p className="text-slate-900 dark:text-neutral-100 text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
                             <p className="text-slate-600 dark:text-neutral-300 text-xs">
-                              {format(parseISO(h.start_date), 'd MMM', { locale: it })} – {format(parseISO(h.end_date), 'd MMM yyyy', { locale: it })}
+                              {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                             </p>
                           </div>
                         </div>
@@ -543,7 +544,7 @@ export default function HolidayRequests() {
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-accent dark:text-accent-light" />
                         <span className="text-slate-900 dark:text-neutral-100 text-[12px] font-medium">
-                          {format(parseISO(h.start_date), 'd MMM', { locale: it })} – {format(parseISO(h.end_date), 'd MMM yyyy', { locale: it })}
+                          {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                         </span>
                       </div>
                       <span className="px-2 py-0.5 rounded-full bg-[#bbf7d0] dark:bg-emerald-900/55 text-[#1a1a1a] dark:text-emerald-100 text-xs font-semibold uppercase border border-emerald-200/80 dark:border-emerald-700/50">Approvata</span>

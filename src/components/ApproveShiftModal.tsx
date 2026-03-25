@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Clock, RotateCcw } from 'lucide-react';
+import { X, Check, RotateCcw } from 'lucide-react';
 import { Shift, User } from '../types';
 import { calculateShiftMinutes, formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getPunchPairForShift, getDefaultApprovalClockHHMM, type PunchRecordLike } from '../utils/shiftResolvedClockTimes';
 import { getTranslations } from '../utils/translations';
 import { useApp } from '../context/AppContext';
+import { TimeInputField } from './ui/TimeInputField';
 
 interface ApproveShiftModalProps {
   shift: Shift;
@@ -113,11 +114,11 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
                 <label className="block text-slate-600 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">
                   {t.entry}
                 </label>
-                <input
-                  type="time"
+                <TimeInputField
                   value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 focus:border-accent outline-none transition-all font-bold text-center text-slate-900 dark:text-gray-100"
+                  onChange={setStartTime}
+                  aria-label={t.entry}
+                  className="w-full border-slate-200 bg-slate-100 px-2 dark:border-white/5 dark:bg-white/5"
                 />
               </div>
 
@@ -125,20 +126,17 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
                 <label className="block text-slate-600 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">
                   {t.exit}
                 </label>
-                <input
-                  type="time"
+                <TimeInputField
                   value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 focus:border-accent outline-none transition-all font-bold text-center text-slate-900 dark:text-gray-100"
+                  onChange={setEndTime}
+                  aria-label={t.exit}
+                  className="w-full border-slate-200 bg-slate-100 px-2 dark:border-white/5 dark:bg-white/5"
                 />
               </div>
             </div>
 
             <div className="bg-accent/10 dark:bg-accent/20 border border-accent/30 dark:border-accent/40 rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Clock className="w-5 h-5 text-accent dark:text-accent-light" />
-                <span className="text-[#1a1a1a] dark:text-accent-light text-sm font-bold">{t.total_hours_label}</span>
-              </div>
+              <span className="text-[#1a1a1a] dark:text-accent-light text-sm font-bold">{t.total_hours_label}</span>
               <span className="text-accent dark:text-accent-light text-2xl font-black">{formattedTime}</span>
             </div>
 

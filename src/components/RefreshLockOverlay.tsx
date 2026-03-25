@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Delete, Lock, Fingerprint, Smartphone, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { getTranslations } from '../utils/translations';
+import { getTranslations, formatTrans } from '../utils/translations';
 import { supportsPinUnlockWebAuthn } from '../utils/pinUnlockWebAuthn';
 
 export default function RefreshLockOverlay() {
@@ -24,7 +24,20 @@ export default function RefreshLockOverlay() {
   const [deviceUnlockLoading, setDeviceUnlockLoading] = useState(false);
   const [linkDeviceLoading, setLinkDeviceLoading] = useState(false);
   const t = getTranslations(effectiveLanguage);
+  const tv = t as Record<string, string>;
   const webAuthnSupported = supportsPinUnlockWebAuthn();
+
+  const profileDisplayName = useMemo(() => {
+    if (!currentUser) return '';
+    const fn = (currentUser.first_name ?? '').trim();
+    const ln = (currentUser.last_name ?? '').trim();
+    const full = [fn, ln].filter(Boolean).join(' ').trim();
+    return full || currentUser.email?.split('@')[0] || currentUser.email || '—';
+  }, [currentUser]);
+
+  const pinProfileLabel = formatTrans(tv.pin_for_profile_named ?? t.pin_for_profile, {
+    name: profileDisplayName,
+  });
 
   const message = pendingPublishWeekStart
     ? t.publish_pin_prompt
@@ -135,9 +148,11 @@ export default function RefreshLockOverlay() {
           }}
         >
         <div className="flex flex-col items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-          <div className="flex items-center gap-2 text-slate-500 dark:text-neutral-300">
-            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-accent" strokeWidth={2} />
-            <span className="text-xs font-semibold uppercase tracking-wider">{t.pin_for_profile}</span>
+          <div className="flex max-w-full flex-col items-center gap-1 text-slate-500 dark:text-neutral-300 sm:flex-row sm:gap-2">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-accent sm:h-5 sm:w-5" strokeWidth={2} aria-hidden />
+            <span className="text-center text-xs font-semibold leading-snug tracking-wide sm:text-left">
+              {pinProfileLabel}
+            </span>
           </div>
           <input
             type="password"

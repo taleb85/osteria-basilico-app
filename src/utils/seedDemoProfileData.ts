@@ -191,6 +191,7 @@ export function punchRecordsFromSpecs(
       type: 'in',
       timestamp: isoLocal(spec.date, spec.inH, spec.inM),
       calculated_time: isoLocal(spec.date, spec.inH, spec.inM),
+      source: 'kiosk' as const,
     },
     {
       user_id: userId,
@@ -198,6 +199,7 @@ export function punchRecordsFromSpecs(
       type: 'out',
       timestamp: isoLocal(spec.date, spec.outH, spec.outM),
       calculated_time: isoLocal(spec.date, spec.outH, spec.outM),
+      source: 'kiosk' as const,
     },
   ];
 }

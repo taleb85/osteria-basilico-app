@@ -121,7 +121,16 @@ export interface ShiftViolation {
   severity: 'warn' | 'error';
 }
 
-type ShiftLike = { user_id: string; date: string; start_time: string; end_time: string; deduct_break?: boolean; break_minutes?: number; notes?: string };
+type ShiftLike = {
+  user_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  deduct_break?: boolean;
+  break_minutes?: number;
+  notes?: string;
+  approval_status?: string | null;
+};
 type UserLike = { id: string; department?: string | null; role: string };
 
 /** Opzioni violazioni: stesso criterio pausa dell’app (`auto_breaks` + regole attive prioritarie). */
@@ -162,7 +171,14 @@ export function weeklyMinutes(
 ): number {
   const user = users?.find((u) => u.id === userId);
   return allShifts
-    .filter((s) => s.user_id === userId && s.date >= weekStr && s.date < weekEnd && !s.notes?.startsWith('__OPEN__'))
+    .filter(
+      (s) =>
+        s.user_id === userId &&
+        s.date >= weekStr &&
+        s.date < weekEnd &&
+        !s.notes?.startsWith('__OPEN__') &&
+        String(s.approval_status ?? '').toLowerCase() !== 'absent'
+    )
     .reduce((sum, s) => {
       const gross = calculateShiftMinutesGross((s.start_time || '').slice(0, 5), (s.end_time || '').slice(0, 5));
       const breakMins = getBreakMinutesForShift(s, gross, user ?? undefined, breakRules ?? null, breakOpts);
@@ -180,8 +196,28 @@ function toMins(hhmm: string): number {
  * Restituisce lista di violazioni (può essere vuota).
  */
 export function getShiftViolations(
-  shift: { id: string; user_id: string; date: string; start_time: string; end_time: string; deduct_break?: boolean; break_minutes?: number; notes?: string },
-  allShifts: Array<{ id: string; user_id: string; date: string; start_time: string; end_time: string; deduct_break?: boolean; break_minutes?: number; notes?: string }>,
+  shift: {
+    id: string;
+    user_id: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+    deduct_break?: boolean;
+    break_minutes?: number;
+    notes?: string;
+    approval_status?: string | null;
+  },
+  allShifts: Array<{
+    id: string;
+    user_id: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+    deduct_break?: boolean;
+    break_minutes?: number;
+    notes?: string;
+    approval_status?: string | null;
+  }>,
   weekStr: string,
   weekEnd: string,
   rules: WorkRules,
@@ -190,6 +226,7 @@ export function getShiftViolations(
   const violations: ShiftViolation[] = [];
   /** Stessi default della UI; i tre layer usano solo valori truthy (`true`), non `!== false` (che con 0/null lascerebbe le regole “accese”). */
   const r: WorkRules = { ...DEFAULT_WORK_RULES, ...rules };
+  if (String(shift.approval_status ?? '').toLowerCase() === 'absent') return violations;
   const startNorm = (shift.start_time || '').slice(0, 5);
   const endNorm = (shift.end_time || '').trim().slice(0, 5);
   if (!startNorm || !endNorm || endNorm === startNorm) return violations;
@@ -204,12 +241,22 @@ export function getShiftViolations(
   const shiftMins = Math.max(0, gross - breakMins);
 
   // 0. Sovrapposizione (se abilitata)
-  if (!!r.overlapEnabled) {
+  if (r.overlapEnabled) {
     const othersSameDay = allShifts.filter(
-      (s) => s.user_id === shift.user_id && s.date === shift.date && s.id !== shift.id && !s.notes?.startsWith('__OPEN__')
+      (s) =>
+        s.user_id === shift.user_id &&
+        s.date === shift.date &&
+        s.id !== shift.id &&
+        !s.notes?.startsWith('__OPEN__') &&
+        String(s.approval_status ?? '').toLowerCase() !== 'absent'
     );
     const hasOverlap = hasShiftConflictSameDay(
-      othersSameDay.map((s) => ({ id: s.id, start_time: (s.start_time || '').slice(0, 5), end_time: (s.end_time || '').slice(0, 5) })),
+      othersSameDay.map((s) => ({
+        id: s.id,
+        start_time: (s.start_time || '').slice(0, 5),
+        end_time: (s.end_time || '').slice(0, 5),
+        approval_status: s.approval_status,
+      })),
       { start_time: startNorm, end_time: endNorm },
       shift.id
     );

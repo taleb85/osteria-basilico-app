@@ -1,7 +1,8 @@
-import { format, parseISO, subDays, startOfWeek, endOfWeek } from 'date-fns';
+import { format, parseISO, subDays, startOfWeek, endOfWeek, isValid } from 'date-fns';
 import type { Language, User, Shift, HolidayRequest } from '../types';
 import { isManagementRole } from './permissions';
 import { formatTrans, getDateLocale } from './translations';
+import { safeFormatDate } from './safeDateFormat';
 
 /** Se il manager ha un reparto, limita notifiche ai dipendenti dello stesso reparto (stesso `user.department`). Senza reparto = tutti. */
 function matchesManagerDepartment(manager: User, employeeUserId: string, users: User[]): boolean {
@@ -153,15 +154,11 @@ export function generateNotifications(
       const group = (byWeek.get(weekStart) ?? []).sort((a, b) => a.date.localeCompare(b.date));
       if (group.length === 0) continue;
       const startD = parseISO(weekStart);
+      if (!isValid(startD)) continue;
       const endD = endOfWeek(startD, { weekStartsOn: 1 });
       const rangeLabel = `${format(startD, 'd MMM', { locale: dateLocale })} – ${format(endD, 'd MMM', { locale: dateLocale })}`;
       const parts = group.map((s) => {
-        let day: string;
-        try {
-          day = format(parseISO(s.date), 'EEE d', { locale: dateLocale });
-        } catch {
-          day = s.date;
-        }
+        const day = safeFormatDate(s.date, 'EEE d', { locale: dateLocale });
         return `${day} ${(s.start_time || '').slice(0, 5)}–${(s.end_time || '').slice(0, 5)}`;
       });
       let body = `${rangeLabel}: ${parts.join(' · ')}`;

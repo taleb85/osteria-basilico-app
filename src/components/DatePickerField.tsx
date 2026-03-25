@@ -38,6 +38,8 @@ export type DatePickerFieldProps = {
   allowClear?: boolean;
   /** Data breve (es. 23/02/26) e padding ridotto — toolbar su una riga. */
   compact?: boolean;
+  /** Con `compact`: stessa altezza dei pulsanti toolbar grandi (es. Presenze). */
+  toolbarComfortable?: boolean;
   'aria-label'?: string;
 };
 
@@ -52,6 +54,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
     id,
     allowClear = true,
     compact = false,
+    toolbarComfortable = false,
     'aria-label': ariaLabel,
   },
   ref
@@ -148,6 +151,14 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
     ? format(selected, compact ? 'dd/MM/yy' : 'd MMM yyyy', { locale })
     : chooseLabel;
 
+  const toolbarH = compact && toolbarComfortable;
+  const btnSizeClass = toolbarH
+    ? 'h-9 min-h-9 max-h-9 gap-1.5 rounded-xl px-2.5 text-sm'
+    : 'h-[22px] min-h-[22px] max-h-[22px] gap-1 rounded-lg px-2 text-[13px]';
+  const iconClass = toolbarH
+    ? 'h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-400'
+    : 'h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-400';
+
   const panelInner = (
     <>
       <DayPicker
@@ -208,13 +219,11 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`inline-flex h-[22px] min-h-[22px] max-h-[22px] shrink-0 items-center gap-0.5 rounded-lg surface-glass-sm text-left font-medium leading-none tabular-nums text-slate-800 transition-colors surface-ghost-interactive hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-100 dark:hover:border-white/15 ${
-          compact ? 'px-1.5 text-[11px] sm:text-[12px]' : 'gap-1 px-2 text-[13px]'
-        } ${className}`}
+        className={`inline-flex shrink-0 items-center text-left font-semibold leading-none tabular-nums text-slate-800 transition-colors surface-glass-sm surface-ghost-interactive hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-100 dark:hover:border-white/15 ${btnSizeClass} ${className}`}
       >
-        <Calendar className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-400" aria-hidden />
+        <Calendar className={iconClass} aria-hidden />
         <span className="min-w-0 truncate tabular-nums">{label}</span>
-        <ChevronDown className="ml-0.5 h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-400" aria-hidden />
+        <ChevronDown className={`ml-0.5 ${iconClass}`} aria-hidden />
       </button>
       {open && !disabled && (
         <CenteredModalPortal
@@ -223,9 +232,10 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
           panelRef={popRef}
           backdropAriaLabel={tv.close ?? 'Chiudi'}
           ariaLabel={chooseLabel}
-          maxWidthClass="max-w-md"
+          panelWidthClass="w-max min-w-0"
+          maxWidthClass="max-w-[min(calc(100vw-2rem),20.5rem)]"
           maxHeightClass="max-h-[min(88dvh,560px)]"
-          panelClassName="p-3.5"
+          panelClassName="p-3 sm:p-3.5"
           markDatePickerPortal
         >
           {panelInner}

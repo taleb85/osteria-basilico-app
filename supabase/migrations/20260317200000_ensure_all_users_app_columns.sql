@@ -22,7 +22,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS enabled_features jsonb DEFAULT '{}'::
 ALTER TABLE users ADD COLUMN IF NOT EXISTS monthly_confirmed jsonb DEFAULT '{}'::jsonb;
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS hourly_rate_eur numeric(10, 2);
-COMMENT ON COLUMN users.hourly_rate_eur IS 'Euro/ora per stima costo (Statistiche)';
+COMMENT ON COLUMN users.hourly_rate_eur IS 'Euro/ora per stima costo (Ore)';
 
 UPDATE users SET can_bypass_pwa_check = true WHERE role = 'admin' AND (can_bypass_pwa_check IS NULL OR can_bypass_pwa_check = false);
 

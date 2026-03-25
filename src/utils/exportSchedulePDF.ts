@@ -25,6 +25,7 @@ const STATUS_COLOR: Record<string, [number, number, number]> = {
   approved: BASILICO,
   confirmed: BASILICO,
   draft: [203, 213, 225],
+  absent: [251, 113, 133],
 };
 
 // ── Helper ────────────────────────────────────────────────────────────────────
@@ -244,8 +245,9 @@ export function exportSchedulePDF(
 
         // Shift times
         dayShifts.slice(0, 2).forEach((s, si) => {
+          const isAbsent = String(s.approval_status).toLowerCase() === 'absent';
           const { start, end } = getResolvedStartEndForHours(s, punchRecords);
-          const timeStr = `${start}–${end}`;
+          const timeStr = isAbsent ? t.status_absent : `${start}–${end}`;
           const statusC = STATUS_COLOR[s.approval_status] ?? [148, 163, 184];
           doc.setFillColor(...statusC);
           doc.roundedRect(x + 2, y + 2 + si * 4.5, 2, 3, 0.5, 0.5, 'F');

@@ -3,6 +3,7 @@ import type {
   Shift,
   HolidayRequest,
   PunchRecord,
+  PunchRecordSource,
   Language,
   HolidayStatus,
   UserRole,
@@ -45,6 +46,8 @@ export interface AppContextType {
   /** True mentre `silentRefreshData` è in corso (lettura DB + eventuale Storage; senza overlay PIN). */
   dataSyncInProgress: boolean;
   postRefreshLocked: boolean;
+  /** Dopo PIN OK: schermata «aggiornamento» e reload pagina (stato resetta al reload). */
+  postUnlockReloadPending: boolean;
   unlockAfterRefresh: (pin: string) => Promise<boolean>;
   /** Sblocco con Face ID / Touch ID / impronta (se il dispositivo è stato collegato). */
   unlockAfterRefreshWithDevice: () => Promise<boolean>;
@@ -77,8 +80,17 @@ export interface AppContextType {
    * - se già soft-approved, aggiunge solo congelo (approved_at + orari congelati)
    * - scrive punch_audit_log per tracciabilità
    */
-  approveShift: (shiftId: string, opts?: { approvedStart: string; approvedEnd: string }) => Promise<void>;
-  /** Approva il turno senza congelarlo (nessun approved_at/approved_by). Il congelo avviene separatamente nelle Presenze. */
+  approveShift: (
+    shiftId: string,
+    opts?: {
+      approvedStart?: string;
+      approvedEnd?: string;
+      actorOverride?: User;
+      /** Se il turno è in bozza, pubblicalo (confirmed) prima del congelo. */
+      promoteFromDraft?: boolean;
+    }
+  ) => Promise<void>;
+  /** Approva il turno senza congelarlo (nessun approved_at/approved_by). Il congelo avviene da «Salva, approva e congela» + PIN. */
   approveShiftSoft: (shiftId: string) => Promise<void>;
   deleteShift: (id: string) => void;
   deleteShifts: (ids: string[]) => void;
@@ -90,7 +102,13 @@ export interface AppContextType {
   addPunchRecord: (
     userId: string,
     type: 'in' | 'out',
-    options?: { timestamp?: string; shift_id?: string; presenceProof?: string }
+    options?: {
+      timestamp?: string;
+      shift_id?: string;
+      presenceProof?: string;
+      /** Se omesso: `manager` se un responsabile timbra per un altro utente, altrimenti `kiosk`. */
+      source?: PunchRecordSource;
+    }
   ) => Promise<{ error?: string } | void>;
   updatePunchRecord: (id: string, updates: { timestamp?: string; calculated_time?: string; clock_out_time?: string | null }) => Promise<void>;
   deletePunchRecordsForShift: (shiftId: string) => Promise<void>;

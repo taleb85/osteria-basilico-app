@@ -14,7 +14,7 @@ export type UserStatus = 'active' | 'suspended' | 'inactive';
 
 export type ShiftType = 'lunch' | 'dinner';
 
-export type ApprovalStatus = 'draft' | 'approved' | 'confirmed';
+export type ApprovalStatus = 'draft' | 'approved' | 'confirmed' | 'absent';
 
 export type HolidayStatus = 'pending' | 'approved' | 'rejected';
 
@@ -56,13 +56,13 @@ export interface User {
   can_punch_from_app?: boolean;
   /** Ore e turni confermati per mese. Chiave: "YYYY-MM", valore: { minutes, shiftsCount } */
   monthly_confirmed?: Record<string, MonthlyConfirmedData>;
-  /** Euro/ora (lordo) per stima costo in Statistiche; assente = non configurato */
+  /** Euro/ora (lordo) per stima costo in Ore; assente = non configurato */
   hourly_rate_eur?: number | null;
   /** Reparto: valori fissi sala | kitchen | bar */
   department?: Department;
   /** Moduli abilitati per questo profilo. Se vuoto, si usano i default per ruolo. */
   enabled_modules?: string[];
-  /** Funzionalità abilitate (JSONB). Controlla visibilità dinamica: tabellone, PDF, statistiche, ecc. */
+  /** Funzionalità abilitate (JSONB). Controlla visibilità dinamica: tabellone, PDF, Ore, ecc. */
   enabled_features?: Record<string, boolean>;
   /** Sezioni UI nascoste per scheda (`false` = non mostrare). Chiavi dal registro `UI_SCREEN_WIDGETS`. */
   ui_section_overrides?: Record<string, boolean>;
@@ -92,10 +92,10 @@ export interface Shift {
   is_auto_break?: boolean;
   /** Competenze/task richieste per questo turno (es. "sommelier,cassa") */
   skills?: string;
-  /** Timestamp di quando il turno è stato approvato (ISO string) */
-  approved_at?: string;
-  /** Nome del manager che ha approvato */
-  approved_by?: string;
+  /** Timestamp di quando il turno è stato approvato (ISO string); null per svuotare in update */
+  approved_at?: string | null;
+  /** Nome del manager che ha approvato; null per svuotare in update */
+  approved_by?: string | null;
   /** Orari congelati alla approvazione definitiva (HH:mm), distinti dal pianificato su start_time/end_time */
   approved_start_time?: string | null;
   approved_end_time?: string | null;
@@ -116,6 +116,9 @@ export interface HolidayRequest {
   requester_email?: string;
 }
 
+/** Come è stata registrata la timbratura (persistita in `punch_records.source`). */
+export type PunchRecordSource = 'kiosk' | 'manual' | 'manager';
+
 export interface PunchRecord {
   id: string;
   user_id: string;
@@ -124,6 +127,8 @@ export interface PunchRecord {
   calculated_time?: string;
   clock_out_time?: string | null;
   type: 'in' | 'out';
+  /** kiosk = terminale / app self; manual = inserimento da Presenze; manager = responsabile per altro utente */
+  source?: PunchRecordSource | null;
 }
 
 /**

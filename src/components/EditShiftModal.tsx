@@ -5,19 +5,12 @@ import { useApp } from '../context/AppContext';
 import { Shift } from '../types';
 import { format, addDays, parseISO } from 'date-fns';
 import { getTranslations } from '../utils/translations';
-import { hasShiftConflictSameDay } from '../utils/timeCalculations';
+import { hasShiftConflictSameDay, normalizeTimeInputToHHmm as toHHmm } from '../utils/timeCalculations';
+import { TimeInputField } from './ui/TimeInputField';
 
 interface EditShiftModalProps {
   shift: Shift;
   onClose: () => void;
-}
-
-/** Normalizza a HH:mm. Non usa new Date(). */
-function toHHmm(val: string): string {
-  const trimmed = (val || '').trim().slice(0, 5);
-  if (/^\d{1,2}:\d{2}$/.test(trimmed)) return trimmed;
-  if (trimmed.length >= 4) return `${trimmed.slice(0, 2).padStart(2, '0')}:${trimmed.slice(-2)}`;
-  return trimmed || '';
 }
 
 export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) {
@@ -121,11 +114,11 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
                 <label className="text-slate-600 dark:text-gray-400 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
                   {t.start}
                 </label>
-                <input
-                  type="time"
+                <TimeInputField
                   value={tempShifts.start_time}
-                  onChange={(e) => setTempShifts((s) => ({ ...s, start_time: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 focus:border-accent outline-none font-bold text-slate-900 dark:text-gray-100"
+                  onChange={(next) => setTempShifts((s) => ({ ...s, start_time: next }))}
+                  aria-label={t.start}
+                  className="w-full rounded-2xl border-slate-200 bg-slate-100 px-2 dark:border-white/5 dark:bg-white/5"
                 />
               </div>
 
@@ -133,11 +126,11 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
                 <label className="text-slate-600 dark:text-gray-400 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
                   Fine {!tempShifts.end_time && <span className="text-amber-600">(da completare)</span>}
                 </label>
-                <input
-                  type="time"
+                <TimeInputField
                   value={tempShifts.end_time}
-                  onChange={(e) => setTempShifts((s) => ({ ...s, end_time: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 focus:border-accent outline-none font-bold text-slate-900 dark:text-gray-100"
+                  onChange={(next) => setTempShifts((s) => ({ ...s, end_time: next }))}
+                  aria-label={t.end}
+                  className="w-full rounded-2xl border-slate-200 bg-slate-100 px-2 dark:border-white/5 dark:bg-white/5"
                 />
               </div>
             </div>

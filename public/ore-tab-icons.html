@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Icone tab Ore — anteprima</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 1.25rem;
+      background: #0f172a;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
+    p { margin: 0 0 1rem; color: #94a3b8; font-size: 0.9rem; max-width: 42rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.75rem;
+      max-width: 900px;
+    }
+    a.card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 0.75rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #f8fafc;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    a.card:hover {
+      border-color: #2d5a27;
+      background: #243447;
+    }
+    a.card code {
+      font-size: 0.75rem;
+      color: #86efac;
+      font-weight: 600;
+    }
+    a.card img {
+      width: 40px;
+      height: 40px;
+      filter: brightness(0) invert(1);
+      opacity: 0.92;
+    }
+    .hint {
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+    .hint kbd {
+      background: #334155;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Icone per la tab «Ore» (bottom nav)</h1>
+  <p>
+    Apri questa pagina con il dev server attivo, ad es.
+    <kbd>http://localhost:5173/ore-tab-icons.html</kbd>
+    (la porta può variare). Clic su una card apre la scheda Lucide con il nome esatto da usare in codice
+    (<code>import { Nome } from 'lucide-react'</code>).
+  </p>
+  <div class="grid" id="grid"></div>
+  <p class="hint">
+    Icone da <a href="https://lucide.dev" style="color:#86efac">lucide.dev</a> (Lucide Icons, licenza ISC).
+  </p>
+  <script>
+    const icons = [
+      'clock',
+      'clock-3',
+      'clock-4',
+      'timer',
+      'hourglass',
+      'alarm-clock',
+      'calendar-clock',
+      'calendar-range',
+      'briefcase',
+      'pie-chart',
+      'line-chart',
+      'trending-up',
+      'list-checks',
+      'table',
+      'gauge',
+      'circle-dot',
+      'bar-chart-3',
+    ];
+    /* Allineato a lucide-react in package.json */
+    const ver = '0.344.0';
+    const base = 'https://cdn.jsdelivr.net/npm/lucide-static@' + ver + '/icons/';
+    const grid = document.getElementById('grid');
+    icons.forEach((slug) => {
+      const reactName = slug
+        .split('-')
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join('');
+      const a = document.createElement('a');
+      a.className = 'card';
+      a.href = 'https://lucide.dev/icons/' + slug;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      const img = document.createElement('img');
+      img.src = base + slug + '.svg';
+      img.alt = reactName;
+      a.appendChild(img);
+      const code = document.createElement('code');
+      code.textContent = reactName;
+      a.appendChild(code);
+      grid.appendChild(a);
+    });
+  </script>
+</body>
+</html>

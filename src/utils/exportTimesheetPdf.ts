@@ -42,7 +42,6 @@ export type TimesheetPdfShiftMeta = {
 export type ExportTimesheetPdfParams = {
   weekDays: Date[];
   weekStart: Date;
-  weekStr: string;
   locale: Locale;
   t: Record<string, string>;
   formatTrans: (template: string, vars: Record<string, string | number>) => string;
@@ -57,7 +56,6 @@ export function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams): void
   const {
     weekDays,
     weekStart,
-    weekStr,
     locale,
     t,
     formatTrans,
@@ -292,47 +290,63 @@ pdfUsers.forEach((user, rowIdx) => {
   y += H_ROW;
 });
 
-// ── RIGA TOTALI SETTIMANA ──────────────────────────────────────────
+// ── RIGA TOTALI PERIODO (pianificato + effettivo + delta, come colonna ORE TOT) ──
+const H_SUM_ROW = 14;
 doc.setFillColor(...C_HDR_BG);
-doc.rect(MG, y, CW, H_TOT, 'F');
-grid(); doc.rect(MG, y, CW, H_TOT, 'S');
+doc.rect(MG, y, CW, H_SUM_ROW, 'F');
+grid(); doc.rect(MG, y, CW, H_SUM_ROW, 'S');
 setTxt(6.5, 'bold', C_MID);
-doc.text(t.ts_pdf_row_total, MG + 2, y + 5);
-doc.line(MG + NAME_W, y, MG + NAME_W, y + H_TOT);
+doc.text(t.ts_pdf_row_total, MG + 2, y + 5.5);
+doc.line(MG + NAME_W, y, MG + NAME_W, y + H_SUM_ROW);
 
 weekDays.forEach((day, i) => {
   const ds = format(day,'yyyy-MM-dd');
   const gPlanned = pdfUsers.reduce((s,u)=>s+(timesheetData[u.id]?.[ds]?.totalPlannedMins??0),0);
   const gActual  = pdfUsers.reduce((s,u)=>s+(timesheetData[u.id]?.[ds]?.totalActualMins??0),0);
   const x = MG + NAME_W + i * DAY_W;
-  grid(); doc.line(x, y, x, y + H_TOT);
+  grid(); doc.line(x, y, x, y + H_SUM_ROW);
   if (gPlanned > 0) {
     setTxt(5.5, 'normal', C_MID);
-    doc.text(fmtHM(gPlanned), x + 1.5, y + 3.5);
+    doc.text(fmtHM(gPlanned), x + 1.5, y + 4);
   }
   if (gActual > 0) {
     setTxt(6, 'bold', C_TEAL);
-    doc.text(fmtHM(gActual), x + 1.5, y + 6.5);
+    doc.text(fmtHM(gActual), x + 1.5, y + 8.5);
   }
 });
 
 const pausaXf = MG + NAME_W + NUM_DAYS * DAY_W;
-grid(); doc.line(pausaXf, y, pausaXf, y + H_TOT);
+grid(); doc.line(pausaXf, y, pausaXf, y + H_SUM_ROW);
 const grandBreak = pdfUsers.reduce((s,u)=>s+weekDays.reduce((sd,d)=>{
   const dd = timesheetData[u.id]?.[format(d,'yyyy-MM-dd')];
   return sd + (dd?.shifts.reduce((sm,sh)=>sm+sh.breakMinutes,0)??0);
 },0),0);
 if (grandBreak > 0) {
   setTxt(5.5, 'normal', C_MID);
-  centerText(`−${grandBreak}m`, pausaXf, PAUSA_W, y + 5);
+  centerText(`−${grandBreak}m`, pausaXf, PAUSA_W, y + 7);
 }
 const totXf = pausaXf + PAUSA_W;
-grid(); doc.line(totXf, y, totXf, y + H_TOT);
+grid(); doc.line(totXf, y, totXf, y + H_SUM_ROW);
 const grandActual  = pdfUsers.reduce((s,u)=>s+(userTotals[u.id]?.actualMins??0),0);
 const grandPlanned = pdfUsers.reduce((s,u)=>s+(userTotals[u.id]?.plannedMins??0),0);
-setTxt(8, 'bold', C_TEAL);
-rightText(fmtHM(grandActual||grandPlanned), totXf + TOT_W - 2, y + 5.5);
-y += H_TOT;
+const grandDelta = grandActual - grandPlanned;
+if (grandPlanned > 0) {
+  setTxt(6.5, 'normal', C_MID);
+  rightText(fmtHM(grandPlanned), totXf + TOT_W - 2, y + 4.5);
+}
+if (grandActual > 0) {
+  setTxt(8.5, 'bold', C_TEAL);
+  rightText(fmtHM(grandActual), totXf + TOT_W - 2, y + grandPlanned > 0 ? 9 : 5.5);
+  if (grandPlanned > 0) {
+    const dc: [number,number,number] = grandDelta >= 0 ? C_GREEN : C_RED;
+    setTxt(5.5, 'bold', dc);
+    rightText(`${grandDelta >= 0 ? '+' : ''}${fmtHM(grandDelta)}`, totXf + TOT_W - 2, y + 12.5);
+  }
+} else if (grandPlanned > 0) {
+  setTxt(8, 'bold', C_MID);
+  rightText(fmtHM(grandPlanned), totXf + TOT_W - 2, y + 8);
+}
+y += H_SUM_ROW;
 
 // ── NOTA VALIDAZIONE (approved_by / approved_at) ──────────────────
 const approvedShifts = weekShifts.filter(s => s.approval_status==='approved' && s.approved_by);
@@ -384,5 +398,11 @@ for (let pg = 1; pg <= totalPages; pg++) {
   rightText(pgStr, PW - MG, PH - 4);
 }
 
-doc.save(`presenze_${weekStr}.pdf`);
+const rangeStartStr = format(weekStart, 'yyyy-MM-dd');
+const rangeEndStr = format(lastDay, 'yyyy-MM-dd');
+const fileBase =
+  rangeStartStr === rangeEndStr
+    ? `Osteria-Basilico_Presenze_${rangeStartStr}`
+    : `Osteria-Basilico_Presenze_${rangeStartStr}_${rangeEndStr}`;
+doc.save(`${fileBase}.pdf`);
 }

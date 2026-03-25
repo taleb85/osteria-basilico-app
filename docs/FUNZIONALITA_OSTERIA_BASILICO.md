@@ -34,7 +34,7 @@ Solo **Admin** è considerato profilo puramente gestionale (senza riga operativa
 | Ruolo | Tipo | Descrizione |
 |-------|------|-------------|
 | `proprietario` | Gestionale | Stessi default permessi e moduli del Manager (`enabledFeatures`); non è più trattato come Admin |
-| `manager` | Manager | Gestione turni, approvazioni, statistiche — permessi configurabili |
+| `manager` | Manager | Gestione turni, approvazioni, Ore — permessi configurabili |
 | `assistant_manager` | Manager | Stessi permessi del Manager — configurabili |
 | `waiter`, `server`, `bartender`, `cook`, `chef`, `dishwasher` | Staff | Ruoli operativi — permessi solo tramite `enabled_features` |
 
@@ -54,7 +54,7 @@ Solo **Admin** è considerato profilo puramente gestionale (senza riga operativa
 | `team_view` | Visualizza Tabellone Team | Accesso alla scheda Turni |
 | `edit_shifts` | Modifica Operativa Turni | Creazione/modifica turni in bozza |
 | `approve_shifts` | Approvazione Finale (Verde) | Pubblicazione e approvazione definitiva turni |
-| `view_stats` | Visualizzazione Statistiche | Accesso alla scheda Statistiche |
+| `view_stats` | Visualizzazione Ore | Accesso alla scheda Ore |
 | `export_pdf` | Esportazione Report PDF | Pulsante download PDF presenze (es. presenze_2026-03-16.pdf) |
 | `desktop_access` | Accesso Browser Desktop (Bypass PWA) | Accesso da PC/browser senza PWA installata |
 
@@ -82,7 +82,7 @@ Se `enabled_features` non è presente o è vuoto, usa le colonne legacy:
 | `team_view` | Tab "Turni" in sidebar (`getVisibleManagementTabs`) |
 | `edit_shifts` | `canManageDrafts` in `WeeklyShiftsTable` — modifica operativa turni |
 | `approve_shifts` | `canApproveShifts` — approvazione finale (verde) |
-| `view_stats` | Tab "Statistiche" |
+| `view_stats` | Tab "Ore" |
 | `export_pdf` | Pulsanti CSV/PDF in `Timesheets` (es. presenze_2026-03-16.pdf) |
 | `desktop_access` | Deprecato in UI; il gate PWA non usa questa chiave (vedi §3). |
 

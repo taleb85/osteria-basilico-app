@@ -47,7 +47,7 @@ export const UI_SCREEN_WIDGETS: UiScreenWidgetDef[] = [
     audience: 'management',
     screenGroup: 'home_mgmt',
     screenLabel: 'Home — Dashboard gestionale',
-    label: 'Barra statistiche (in turno, ritardi, OUT, approvati)',
+    label: 'Barra indicatori (in turno, ritardi, OUT, approvati)',
   },
   {
     key: 'home_mgmt.dinner_close',
@@ -237,47 +237,47 @@ export const UI_SCREEN_WIDGETS: UiScreenWidgetDef[] = [
     label: 'Griglia turni e contenuto principale',
   },
 
-  // ── Statistiche / Report ─────────────────────────────────────────────
+  // ── Ore ─────────────────────────────────────────────────────────────
   {
     key: 'stats.title',
     audience: 'all',
     screenGroup: 'stats',
-    screenLabel: 'Statistiche',
+    screenLabel: 'Ore',
     label: 'Titolo pagina',
   },
   {
     key: 'stats.mgmt_filters',
     audience: 'management',
     screenGroup: 'stats',
-    screenLabel: 'Statistiche',
+    screenLabel: 'Ore',
     label: 'Preset periodo, date, PDF',
   },
   {
     key: 'stats.mgmt_kpi_cards',
     audience: 'management',
     screenGroup: 'stats',
-    screenLabel: 'Statistiche',
+    screenLabel: 'Ore',
     label: 'Card KPI (ore approvate, costo, in attesa)',
   },
   {
     key: 'stats.detail_panels',
     audience: 'management',
     screenGroup: 'stats',
-    screenLabel: 'Statistiche',
+    screenLabel: 'Ore',
     label: 'Pannelli dettaglio espandibili',
   },
   {
     key: 'stats.table',
     audience: 'all',
     screenGroup: 'stats',
-    screenLabel: 'Statistiche',
+    screenLabel: 'Ore',
     label: 'Tabella ore per settimana',
   },
   {
     key: 'stats.staff_summary',
     audience: 'staff',
     screenGroup: 'stats',
-    screenLabel: 'Statistiche',
+    screenLabel: 'Ore',
     label: 'Riepilogo ore (vista staff)',
   },
 
@@ -294,7 +294,7 @@ export const UI_SCREEN_WIDGETS: UiScreenWidgetDef[] = [
     audience: 'management',
     screenGroup: 'timesheet',
     screenLabel: 'Presenze',
-    label: 'Card statistiche giornaliere',
+    label: 'Card indicatori giornalieri (Presenze)',
   },
   {
     key: 'timesheet.dinner_close',

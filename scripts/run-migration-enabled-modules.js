@@ -1,37 +1,23 @@
 /**
- * Esegue la migrazione per enabled_modules su users.
- * Richiede: DATABASE_URL in .env
- *
- * Uso: node scripts/run-migration-enabled-modules.js
+ * Migrazione enabled_modules su users.
+ * Uso: npm run db:migrate-enabled-modules
  */
 
-import { readFileSync, existsSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const envPath = resolve(__dirname, '../.env');
-if (existsSync(envPath)) {
-  readFileSync(envPath, 'utf8').split('\n').forEach((line) => {
-    const m = line.match(/^([^#=]+)=(.*)$/);
-    if (m) process.env[m[1].trim()] = m[2].trim().replace(/^["']|["']$/g, '');
-  });
-}
-
-const dbUrl = process.env.DATABASE_POOLER_URL || process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
-if (!dbUrl) {
-  console.error('❌ Imposta DATABASE_URL in .env');
-  process.exit(1);
-}
+import { getPostgresConnectionUrl, hintIfUnreachable, supabaseLocalPgSsl } from './pg-env.js';
 
 const sql = `ALTER TABLE users ADD COLUMN IF NOT EXISTS enabled_modules jsonb DEFAULT '[]'::jsonb;`;
 
 async function main() {
+  const res = getPostgresConnectionUrl();
+  if (!res.dbUrl) {
+    console.error('❌', res.error);
+    process.exit(1);
+  }
   try {
     const pg = (await import('pg')).default;
     const client = new pg.Client({
-      connectionString: dbUrl,
-      ssl: { rejectUnauthorized: true },
+      connectionString: res.dbUrl,
+      ssl: supabaseLocalPgSsl,
     });
     await client.connect();
     await client.query(sql);
@@ -40,6 +26,7 @@ async function main() {
     console.log('\n✅ Migrazione enabled_modules completata.');
   } catch (err) {
     console.error('❌ Errore:', err.message);
+    hintIfUnreachable(err);
     process.exit(1);
   }
 }

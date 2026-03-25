@@ -148,7 +148,7 @@ export function getAppNavTabTitle(t: Record<string, string>, tab: AppNavTab): st
 const UNIFIED_NAV_ORDER: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'profile', 'settings'];
 
 /**
- * Staff mobile: ferie prima dei turni; Statistiche in barra se `view_stats` (stesso set di tab di `getUnifiedNavTabs`, solo ordine diverso).
+ * Staff mobile: ferie prima dei turni; Ore in barra se `view_stats` (stesso set di tab di `getUnifiedNavTabs`, solo ordine diverso).
  */
 const STAFF_BOTTOM_NAV_ORDER: AppNavTab[] = ['home', 'ferie', 'turni', 'timesheet', 'reports', 'profile', 'settings'];
 

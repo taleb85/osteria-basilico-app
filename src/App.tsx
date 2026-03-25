@@ -10,6 +10,7 @@ import BottomNav from './components/BottomNav';
 import MobileProfileHeader from './components/MobileProfileHeader';
 import HeaderTodayCoworkersCard from './components/HeaderTodayCoworkersCard';
 import RefreshLockOverlay from './components/RefreshLockOverlay';
+import PostUnlockRestartOverlay from './components/PostUnlockRestartOverlay';
 import BodyPullToRefresh from './components/BodyPullToRefresh';
 import DataSyncBanner from './components/DataSyncBanner';
 import HomePage from './components/HomePage';
@@ -140,6 +141,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     effectiveLanguage,
     isGlobalRefreshing,
     postRefreshLocked,
+    postUnlockReloadPending,
     silentRefreshData,
     featureFlags,
     roleTemplatesRevision,
@@ -154,7 +156,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     return getUnifiedNavTabs(currentUser, isManagement, featureFlags);
   }, [currentUser, isManagement, featureFlags, roleTemplatesRevision]);
 
-  /** Bottom bar: staff con ordine ferie → turni (Statistiche in barra se abilitata). */
+  /** Bottom bar: staff con ordine ferie → turni (Ore in barra se abilitata). */
   const bottomNavTabs = useMemo((): AppNavTab[] => {
     void roleTemplatesRevision;
     if (!currentUser) return ['home'];
@@ -251,7 +253,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     const bundle = pendingScrollRestoreRef.current;
     if (!bundle || bundle.tab !== activeTab) return;
-    if (isGlobalRefreshing || postRefreshLocked) return;
+    if (isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending) return;
     pendingScrollRestoreRef.current = null;
     const y = bundle.y;
     const apply = () => applyWindowScrollY(y);
@@ -271,7 +273,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       window.clearTimeout(t2);
       window.clearTimeout(t3);
     };
-  }, [activeTab, isGlobalRefreshing, postRefreshLocked]);
+  }, [activeTab, isGlobalRefreshing, postRefreshLocked, postUnlockReloadPending]);
 
   const persistSkipFirstActiveTabRef = useRef(true);
   useEffect(() => {
@@ -307,7 +309,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     });
   }, [currentUser?.id, activeTab]);
 
-  /** Da NotificationCenter / Statistiche: apre tab (es. Presenze) e scroll ad ancoraggio. */
+  /** Da NotificationCenter / Ore: apre tab (es. Presenze) e scroll ad ancoraggio. */
   useEffect(() => {
     const onNavigate = (e: Event) => {
       const ce = e as CustomEvent<{ tab?: AppNavTab; anchor?: string }>;
@@ -388,7 +390,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     <div className="min-h-screen min-h-[100dvh] w-full bg-[#f8fafc] dark:bg-[#0a0a0a] text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
       <BodyPullToRefresh
         onRefresh={() => silentRefreshData({ pullRemoteConfig: true })}
-        disabled={!!(isGlobalRefreshing || postRefreshLocked)}
+        disabled={!!(isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending)}
       />
 
       {/*
@@ -396,7 +398,9 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       */}
       <header
         ref={appStickyHeaderRef}
-        className="sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2"
+        className={`sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2 ${
+          isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''
+        }`}
       >
         <div className={appHeaderMainCardClass}>
           <MobileProfileHeader
@@ -413,14 +417,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           />
         </div>
         {currentUser && activeTab === 'home' && (
-          <div className={`${appHeaderCardClass} mt-2`}>
+          <div className={`${appHeaderCardClass} mt-1.5`}>
             <HeaderTodayCoworkersCard />
           </div>
         )}
       </header>
 
       <main
-        className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked ? 'blur-md pointer-events-none' : ''}`}
+        className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
       >
         <div className="w-full flex-1 app-main-top-pad app-horizontal-pad">
           {noNavTabs ? (
@@ -468,10 +472,17 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
-      <AnimatePresence mode="wait">{postRefreshLocked && <RefreshLockOverlay key="refresh-lock" />}</AnimatePresence>
+      <AnimatePresence mode="wait">
+        {postRefreshLocked && <RefreshLockOverlay key="refresh-lock" />}
+        {postUnlockReloadPending && !postRefreshLocked && (
+          <PostUnlockRestartOverlay key="post-unlock-restart" language={effectiveLanguage} />
+        )}
+      </AnimatePresence>
 
       {!noNavTabs && (
-        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} visibleTabs={bottomNavTabs} />
+        <div className={postUnlockReloadPending ? 'pointer-events-none' : undefined}>
+          <BottomNav activeTab={activeTab} onTabChange={handleTabChange} visibleTabs={bottomNavTabs} />
+        </div>
       )}
     </div>
     </ProfileLeaveGuardRefContext.Provider>

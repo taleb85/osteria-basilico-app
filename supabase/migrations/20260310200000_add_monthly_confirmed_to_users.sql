@@ -1,5 +1,5 @@
 /*
-  # Aggiunta colonna monthly_confirmed per statistiche mensili confermate
+  # Aggiunta colonna monthly_confirmed per ore mensili confermate
 
   Permette di salvare le ore e i turni confermati per ogni mese,
   visibili nelle dashboard personali dei dipendenti.

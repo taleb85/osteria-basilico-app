@@ -31,7 +31,7 @@ Tutte le funzionalità richieste sono state implementate e testate con successo.
 - **Componenti Aggiornati**:
   - ✅ HomePage - Tema dark completo
   - ✅ WeeklyShiftsTable - Tutte le celle e controlli
-  - ✅ MonthlySummaryTable - Tabella e statistiche
+  - ✅ MonthlySummaryTable - Tabella e ore
   - ✅ AdminPanel - Lista staff e permessi
   - ✅ BottomNav - Navigazione con tema dark
   - ✅ LoginPage - Schermata login con dark mode
@@ -55,7 +55,7 @@ Tutte le funzionalità richieste sono state implementate e testate con successo.
 
 ## 3. HOME PAGE POTENZIATA ✅
 
-### Statistiche Settimana Corrente:
+### Ore (settimana corrente):
 - **Widget "Ore Settimana"**:
   - Mostra totale ore in formato HH:mm (es: "35:30")
   - Calcola solo turni approvati
@@ -184,7 +184,7 @@ dist/assets/index-CQxykvYI.js   553.92 kB │ gzip: 158.06 kB
 - Contrasti perfetti per leggibilità
 
 ### Dashboard Potenziata:
-- Statistiche tempo reale settimana corrente
+- Ore tempo reale settimana corrente
 - Formato ore HH:mm professionale
 - Widget informativi chiari
 - Dati sempre aggiornati

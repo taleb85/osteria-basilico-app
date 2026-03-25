@@ -533,31 +533,39 @@ export const database = {
     },
 
     async insert(record: Omit<PunchRecord, 'id'>) {
-      const { data, error } = await supabase!
-        .from('punch_records')
-        .insert(record)
-        .select()
-        .maybeSingle();
-      if (error) {
-        // Fallback: se la colonna calculated_time o clock_out_time non esiste ancora
-        // (migration non ancora eseguita), riprova senza quei campi
-        const msg = (error as { message?: string }).message ?? '';
-        if (msg.includes('calculated_time') || msg.includes('clock_out_time')) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { calculated_time, clock_out_time, ...safeRecord } = record as any;
-          void calculated_time;
-          void clock_out_time;
-          const { data: d2, error: e2 } = await supabase!
-            .from('punch_records')
-            .insert(safeRecord)
-            .select()
-            .maybeSingle();
-          if (!e2) return d2;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let payload: Record<string, any> = { ...record };
+      let lastError: { message?: string; details?: string } | null = null;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const { data, error } = await supabase!
+          .from('punch_records')
+          .insert(payload)
+          .select()
+          .maybeSingle();
+        if (!error) return data;
+        lastError = error as { message?: string; details?: string };
+        const msg = lastError.message ?? '';
+        if (msg.includes('source') && 'source' in payload) {
+          const { source: _s, ...rest } = payload;
+          void _s;
+          payload = rest;
+          continue;
+        }
+        if (
+          (msg.includes('calculated_time') || msg.includes('clock_out_time')) &&
+          ('calculated_time' in payload || 'clock_out_time' in payload)
+        ) {
+          const { calculated_time: _ct, clock_out_time: _cot, ...rest } = payload;
+          void _ct;
+          void _cot;
+          payload = rest;
+          continue;
         }
         console.error('ERRORE SUPABASE:', error.message, (error as { details?: string }).details);
         throw error;
       }
-      return data;
+      console.error('ERRORE SUPABASE (punch_records insert):', lastError?.message, lastError?.details);
+      throw lastError ?? new Error('punch_records insert failed');
     },
 
     async update(id: string, updates: { timestamp?: string; calculated_time?: string; clock_out_time?: string | null }) {
@@ -985,11 +993,29 @@ export const database = {
   shiftTemplates: {
     async save(name: string, entries: Array<{ day_of_week: number; user_id: string; start_time: string; end_time: string; type: string }>) {
       if (!supabase) throw new Error('Supabase non configurato');
-      const { data, error } = await supabase!
+      const key = name.trim();
+      const row = { name: key, data: entries };
+      let { data, error } = await supabase!
         .from('shift_templates')
-        .upsert({ name, data: entries }, { onConflict: 'name' })
+        .upsert(row, { onConflict: 'name' })
         .select()
         .maybeSingle();
+      // DB senza UNIQUE su name → Postgres 42P10: fallback update / insert
+      const errCode = (error as { code?: string })?.code;
+      const errMsg = String((error as { message?: string })?.message || '');
+      if (error && (errCode === '42P10' || errMsg.includes('42P10') || errMsg.includes('ON CONFLICT'))) {
+        const { data: existing } = await supabase!.from('shift_templates').select('id').eq('name', key).maybeSingle();
+        if (existing?.id) {
+          ({ data, error } = await supabase!
+            .from('shift_templates')
+            .update({ data: entries })
+            .eq('name', key)
+            .select()
+            .maybeSingle());
+        } else {
+          ({ data, error } = await supabase!.from('shift_templates').insert(row).select().maybeSingle());
+        }
+      }
       if (error) throw error;
       return data;
     },

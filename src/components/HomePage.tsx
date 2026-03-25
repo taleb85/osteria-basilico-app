@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
-import { format, isToday, isTomorrow, parseISO, addDays, startOfWeek } from 'date-fns';
+import { format, isToday, isTomorrow, isValid, parseISO, addDays, startOfWeek } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
@@ -24,7 +24,9 @@ import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import type { Shift } from '../types';
 import ApproveShiftModal from './ApproveShiftModal';
-import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
+import { getResolvedStartEndForHours, shiftPastPlannedEndWithoutClockIn } from '../utils/shiftResolvedClockTimes';
+import { safeFormatDate } from '../utils/safeDateFormat';
+import { TimeInputField } from './ui/TimeInputField';
 
 // ── Board helpers ────────────────────────────────────────────────────────────
 const BOARD_KEY = 'manager_board_note';
@@ -45,6 +47,7 @@ function punchTimeHHMM(ts: string | null | undefined): string | null {
   if (!ts) return null;
   try {
     const d = new Date(ts);
+    if (!isValid(d)) return null;
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   } catch { return null; }
 }
@@ -162,16 +165,21 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
   const upcomingShifts = myShifts.filter((s) => {
     if (s.date < todayStr) return false;
     if (isMgmtUser && showTeamHome) return true;
-    return s.approval_status === 'approved' || s.approval_status === 'confirmed';
+    return s.approval_status === 'approved' || s.approval_status === 'confirmed' || s.approval_status === 'absent';
   });
 
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
   const weekEnd = addDays(weekStart, 7);
   const thisWeekShifts = myShifts.filter((s) => {
     const d = parseISO(s.date);
-    return d >= weekStart && d < weekEnd && (s.approval_status === 'approved' || s.approval_status === 'confirmed');
+    return (
+      d >= weekStart &&
+      d < weekEnd &&
+      (s.approval_status === 'approved' || s.approval_status === 'confirmed' || s.approval_status === 'absent')
+    );
   });
   const weeklyMinutes = thisWeekShifts.reduce((sum, s) => {
+    if (s.approval_status === 'absent') return sum;
     const u = users.find((x) => x.id === s.user_id) ?? currentUser;
     if (s.approved_at && s.approved_start_time && s.approved_end_time) {
       const { start, end } = getResolvedStartEndForHours(s, punchRecords);
@@ -191,6 +199,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
 
   const getDateLabel = (dateStr: string) => {
     const date = parseISO(dateStr);
+    if (!isValid(date)) return dateStr;
     if (isToday(date)) return t.home_today;
     if (isTomorrow(date)) return t.home_tomorrow;
     return format(date, 'EEEE d MMMM', { locale });
@@ -202,6 +211,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
       if (shiftId && p.shift_id) return p.shift_id === shiftId;
       if (p.user_id !== userId) return false;
       const d = new Date(p.timestamp);
+      if (!isValid(d)) return false;
       return format(d, 'yyyy-MM-dd') === dateStr && (isLunchShift ? d.getHours() < 16 : d.getHours() >= 16);
     });
     const punchOut = punchRecords.find((p) => {
@@ -209,6 +219,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
       if (shiftId && p.shift_id) return p.shift_id === shiftId;
       if (p.user_id !== userId) return false;
       const d = new Date(p.timestamp);
+      if (!isValid(d)) return false;
       return format(d, 'yyyy-MM-dd') === dateStr && (isLunchShift ? d.getHours() < 16 : d.getHours() >= 16);
     });
     return { punchIn, punchOut };
@@ -260,28 +271,55 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
     return { shift: s, user, isDinner, punchIn, punchOut, actualStart, actualEnd, scheduledStart, scheduledEnd, scheduledMins, actualMins, deltaMins, isLate, hasMissingOut, isApproved, canApprove, canClose };
   });
 
-  // Stats per oggi
+  // Stats oggi — stessa logica delle card riepilogo Presenze (Timesheets)
   const inTurnoCount = todayAllShifts.filter((s) => {
+    if (s.approval_status === 'absent') return false;
     const start = timeToMins((s.start_time || '').slice(0, 5));
     const end = timeToMins((s.end_time || '23:59').slice(0, 5));
     return nowMins >= start - 30 && nowMins <= end;
   }).length;
   const ritardiCount = todayShiftsEnriched.filter((e) => e.isLate).length;
-  const outMancantiCount = todayShiftsEnriched.filter((e) => e.hasMissingOut && nowMins > timeToMins(e.scheduledEnd || '23:00')).length;
-  const approvatiCount = todayShiftsEnriched.filter((e) => e.isApproved).length;
+  const senzaTimbraturaCount = todayAllShifts.filter((s) => {
+    if (s.approval_status === 'absent') return false;
+    const isDinner = timeToMins((s.start_time || '').slice(0, 5)) >= 16 * 60;
+    const { punchIn } = getPunchForShift(s.id, s.user_id, todayStr, !isDinner);
+    return !punchIn;
+  }).length;
+  const approvatiCount = todayAllShifts.filter((s) => s.approval_status === 'approved').length;
 
   // Sections: critical = rosso/giallo
   const criticalShifts = todayShiftsEnriched.filter((e) => e.hasMissingOut || e.isLate || e.canApprove);
   const dinnerNeedsClose = todayShiftsEnriched.filter((e) => e.canClose);
 
   // Attendance
-  const todayShiftsWithPunch = todayAllShifts.filter((s) => punchRecords.some((p) => p.shift_id === s.id && p.type === 'in'));
+  const todayShiftsWithPunch = todayAllShifts.filter((s) => {
+    const isDinner = timeToMins((s.start_time || '').slice(0, 5)) >= 16 * 60;
+    const { punchIn } = getPunchForShift(s.id, s.user_id, todayStr, !isDinner);
+    return !!punchIn;
+  });
   const attendancePercent = todayAllShifts.length > 0 ? Math.round((todayShiftsWithPunch.length / todayAllShifts.length) * 100) : 100;
   const hoursPercent = Math.min(100, Math.round((weeklyMinutes / (40 * 60)) * 100));
 
-  // ── Shift card color helper ────────────────────────────────────────────────
+  // ── Shift card color helper (palette WeeklyShiftsTable VARIANT_CLASSES) ───
   const getCardStyle = (e: typeof todayShiftsEnriched[0]) => {
-    if (e.isApproved)
+    const startMins = timeToMins(e.scheduledStart);
+    const endMins = timeToMins((e.scheduledEnd || '00:00').slice(0, 5));
+    const inTodayKpiWindow = nowMins >= startMins - 30 && nowMins <= endMins;
+    const punchMissingHome = shiftPastPlannedEndWithoutClockIn(e.shift, punchRecords);
+    const publishedHome =
+      e.shift.approval_status === 'confirmed' ||
+      (e.shift.approval_status === 'approved' && !e.shift.approved_at);
+
+    if (e.shift.approval_status === 'absent') {
+      return {
+        border: 'border-l-rose-400 dark:border-l-rose-500',
+        bg: 'bg-rose-50 dark:bg-rose-950/35',
+        badge: 'bg-rose-100 text-rose-900 border-rose-400/85 dark:bg-rose-950/45 dark:text-rose-100 dark:border-rose-500/65',
+        dot: 'bg-rose-500',
+        label: t.status_absent,
+      };
+    }
+    if (e.isApproved) {
       return {
         border: 'border-l-accent',
         bg: 'bg-accent/5 dark:bg-accent/15',
@@ -289,43 +327,93 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
         dot: 'bg-accent',
         label: t.home_status_approved,
       };
-    if (e.hasMissingOut || (e.isLate && Math.abs(e.deltaMins) > 15))
+    }
+    if (e.shift.approval_status === 'draft') {
       return {
-        border: 'border-l-red-500',
-        bg: 'bg-red-50/60 dark:bg-red-950/35',
-        badge: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800/60',
-        dot: 'bg-red-500',
+        border: 'border-l-slate-400 dark:border-l-white/75',
+        bg: 'bg-slate-50 dark:bg-neutral-950/85',
+        badge: 'bg-slate-100 text-slate-800 border-slate-400 dark:bg-neutral-800/70 dark:text-neutral-100 dark:border-white/40',
+        dot: 'bg-slate-400 dark:bg-neutral-500',
+        label: t.status_draft,
+      };
+    }
+    if (e.hasMissingOut || e.isLate) {
+      return {
+        border: 'border-l-red-500 dark:border-l-red-400',
+        bg: 'bg-red-50 dark:bg-red-950/35',
+        badge: 'bg-red-100 text-red-800 border-red-300 dark:bg-red-950/50 dark:text-red-100 dark:border-red-800/60',
+        dot: 'bg-red-500 dark:bg-red-400',
         label: t.home_status_anomaly,
       };
-    if (e.canApprove)
+    }
+    if (e.canApprove) {
       return {
-        border: 'border-l-amber-500',
-        bg: 'bg-amber-50/60 dark:bg-amber-950/30',
-        badge: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/45 dark:text-amber-300 dark:border-amber-800/50',
-        dot: 'bg-amber-500',
+        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
+        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
+        badge: 'bg-emerald-100 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/50 dark:text-emerald-50 dark:border-emerald-500/50',
+        dot: 'bg-emerald-500 dark:bg-emerald-400',
         label: t.home_status_to_approve,
       };
-    if (e.punchIn && e.actualEnd)
+    }
+    if (!e.punchIn) {
+      if (punchMissingHome) {
+        return {
+          border: 'border-l-amber-400 dark:border-l-amber-500',
+          bg: 'bg-amber-50 dark:bg-amber-950/45',
+          badge: 'bg-amber-100 text-amber-950 border-amber-400/70 dark:bg-amber-950/55 dark:text-amber-100 dark:border-amber-500/50',
+          dot: 'bg-amber-400 dark:bg-amber-500',
+          label: t.home_status_not_punched,
+        };
+      }
+      if (publishedHome) {
+        return {
+          border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
+          bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
+          badge: 'bg-emerald-100 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/50 dark:text-emerald-50 dark:border-emerald-500/50',
+          dot: 'bg-emerald-500 dark:bg-emerald-400',
+          label: t.home_status_not_punched,
+        };
+      }
       return {
-        border: 'border-l-emerald-500',
-        bg: 'bg-emerald-50/40 dark:bg-emerald-950/30',
-        badge: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/45 dark:text-emerald-300 dark:border-emerald-800/50',
-        dot: 'bg-emerald-500',
-        label: t.home_status_complete,
+        border: 'border-l-amber-400 dark:border-l-amber-500',
+        bg: 'bg-amber-50 dark:bg-amber-950/45',
+        badge: 'bg-amber-100 text-amber-950 border-amber-400/70 dark:bg-amber-950/55 dark:text-amber-100 dark:border-amber-500/50',
+        dot: 'bg-amber-400 dark:bg-amber-500',
+        label: t.home_status_not_punched,
       };
-    if (e.punchIn)
+    }
+    if (inTodayKpiWindow && e.punchIn && !e.isLate && !e.hasMissingOut) {
       return {
-        border: 'border-l-teal-500',
-        bg: 'bg-teal-50/40 dark:bg-teal-950/30',
-        badge: 'border border-teal-200 bg-teal-100 text-teal-800 dark:border-teal-800/50 dark:bg-teal-950/45 dark:text-teal-200',
-        dot: 'animate-pulse bg-teal-500',
+        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
+        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
+        badge: 'bg-emerald-100 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/50 dark:text-emerald-50 dark:border-emerald-500/50',
+        dot: 'bg-emerald-500 dark:bg-emerald-400',
         label: t.home_status_in_shift,
       };
+    }
+    if (e.punchIn && !e.actualEnd) {
+      return {
+        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
+        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
+        badge: 'bg-emerald-100 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/50 dark:text-emerald-50 dark:border-emerald-500/50',
+        dot: 'animate-pulse bg-emerald-500 dark:bg-emerald-400',
+        label: t.home_status_in_shift,
+      };
+    }
+    if (e.punchIn && e.actualEnd) {
+      return {
+        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
+        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
+        badge: 'bg-emerald-100 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/50 dark:text-emerald-50 dark:border-emerald-500/50',
+        dot: 'bg-emerald-500 dark:bg-emerald-400',
+        label: t.home_status_complete,
+      };
+    }
     return {
-      border: 'border-l-slate-300 dark:border-l-neutral-600',
-      bg: 'bg-slate-50/35 dark:bg-neutral-900/25',
-      badge: 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-white/10',
-      dot: 'bg-slate-300 dark:bg-neutral-500',
+      border: 'border-l-amber-400 dark:border-l-amber-500',
+      bg: 'bg-amber-50 dark:bg-amber-950/45',
+      badge: 'bg-amber-100 text-amber-950 border-amber-400/70 dark:bg-amber-950/55 dark:text-amber-100 dark:border-amber-500/50',
+      dot: 'bg-amber-400 dark:bg-amber-500',
       label: t.home_status_not_punched,
     };
   };
@@ -407,7 +495,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                   )}
                   {boardNote && !editingBoard && (
                     <p className="text-[10px] text-amber-600 dark:text-amber-400/90 mt-1">
-                      Da {boardNote.author} · {format(parseISO(boardNote.updatedAt), 'd MMM HH:mm', { locale: it })}
+                      Da {boardNote.author} · {safeFormatDate(boardNote.updatedAt, 'd MMM HH:mm', { locale: it })}
                     </p>
                   )}
                 </div>
@@ -450,13 +538,13 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                 const { punchIn } = getPunchForShift(s.id, s.user_id, todayStr, !isDinner);
                 const punched = !!punchIn;
                 return (
-                  <div key={s.id} className={`rounded-2xl border-l-4 p-4 shadow-sm ${punched ? 'border-l-accent bg-accent/5 dark:bg-accent/15' : 'border-l-amber-400 bg-amber-50/50 dark:bg-amber-950/35'}`}>
+                  <div key={s.id} className={`rounded-2xl border-l-4 p-4 shadow-sm ${punched ? 'border-l-accent bg-accent/5 dark:bg-accent/15' : 'border-l-amber-400 dark:border-l-amber-500 bg-amber-50 dark:bg-amber-950/45'}`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         {isDinner ? <Moon className="w-4 h-4 text-amber-600 dark:text-amber-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
                         <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-neutral-400">{isDinner ? t.dinner : t.lunch}</span>
                       </div>
-                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${punched ? 'bg-accent/10 text-accent-dark border-accent/20 dark:bg-accent/20 dark:text-accent dark:border-accent/35' : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/50'}`}>
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${punched ? 'bg-accent/10 text-accent-dark border-accent/20 dark:bg-accent/20 dark:text-accent dark:border-accent/35' : 'bg-amber-100 text-amber-950 border-amber-400/70 dark:bg-amber-950/55 dark:text-amber-100 dark:border-amber-500/50'}`}>
                         {punched ? t.home_punched : t.home_not_punched}
                       </span>
                     </div>
@@ -503,11 +591,11 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                   <motion.div key={dateStr} initial={{ x: -8, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 + idx * 0.04 }}
                     className="flex items-center py-2.5 border-b border-slate-50 dark:border-white/5 last:border-0 gap-3">
                     <p className="text-slate-500 dark:text-neutral-400 font-semibold text-xs uppercase tracking-wide w-[72px] flex-shrink-0">
-                      {format(parseISO(dateStr), 'EEE d', { locale })}
+                      {safeFormatDate(dateStr, 'EEE d', { locale })}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {grouped[dateStr].sort((a, b) => a.start_time.localeCompare(b.start_time)).map((s) => (
-                        <span key={s.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${s.approval_status === 'draft' ? 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-white/10' : 'bg-accent/10 text-accent border-accent/20 dark:bg-accent/15 dark:border-accent/30'}`}>
+                        <span key={s.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${s.approval_status === 'draft' ? 'bg-slate-100 text-slate-600 border-slate-400 dark:bg-neutral-800 dark:text-neutral-300 dark:border-white/25' : 'bg-emerald-50/95 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/40 dark:text-emerald-50 dark:border-emerald-500/50'}`}>
                           {s.start_time.slice(0, 5)}–{s.end_time?.slice(0, 5) ?? '…'}
                         </span>
                       ))}
@@ -528,7 +616,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
               {myApprovedHolidays.map((h) => (
                 <div key={h.id} className="flex items-center justify-between py-1.5 border-b border-slate-50 dark:border-white/5 last:border-0">
                   <span className="text-slate-600 dark:text-neutral-300 text-xs font-medium">
-                    {format(parseISO(h.start_date), 'd MMM', { locale })} – {format(parseISO(h.end_date), 'd MMM yyyy', { locale })}
+                    {safeFormatDate(h.start_date, 'd MMM', { locale })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale })}
                   </span>
                   <span className="px-2 py-0.5 rounded-full bg-accent/10 text-accent-dark text-xs font-bold border border-accent/20 dark:bg-accent/15 dark:text-accent dark:border-accent/30">{t.home_holiday_approved}</span>
                 </div>
@@ -613,7 +701,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                     <p className="text-xs text-slate-500 dark:text-neutral-400 italic">{t.home_board_empty}</p>
                   )}
                   {boardNote && !editingBoard && (
-                    <p className="text-[10px] text-amber-600 dark:text-amber-400/90 mt-1">Da {boardNote.author} · {format(parseISO(boardNote.updatedAt), 'd MMM HH:mm', { locale: it })}</p>
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400/90 mt-1">Da {boardNote.author} · {safeFormatDate(boardNote.updatedAt, 'd MMM HH:mm', { locale: it })}</p>
                   )}
                 </div>
                 {canEditTeamBoard && !editingBoard && (
@@ -635,28 +723,28 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                 label: t.home_stat_in_shift,
                 value: inTurnoCount,
                 Icon: Users,
-                iconColor: 'text-teal-600 dark:text-teal-400',
+                iconColor: 'text-emerald-600 dark:text-emerald-400',
                 bg: 'bg-transparent dark:bg-transparent',
-                border: 'border-teal-100 dark:border-teal-800/40',
-                iconWell: 'bg-teal-100/80 dark:bg-teal-950/50',
+                border: 'border-emerald-200 dark:border-emerald-800/40',
+                iconWell: 'bg-emerald-100/80 dark:bg-emerald-950/50',
               },
               {
                 label: t.home_stat_delays,
                 value: ritardiCount,
                 Icon: Clock,
-                iconColor: 'text-red-600 dark:text-red-400',
+                iconColor: 'text-red-500 dark:text-red-400',
                 bg: 'bg-transparent dark:bg-transparent',
-                border: 'border-red-100 dark:border-red-900/40',
-                iconWell: 'bg-red-100/80 dark:bg-red-950/45',
+                border: 'border-red-200 dark:border-red-900/40',
+                iconWell: 'bg-red-100/80 dark:bg-red-950/40',
               },
               {
                 label: t.home_stat_missing_out,
-                value: outMancantiCount,
+                value: senzaTimbraturaCount,
                 Icon: AlertCircle,
-                iconColor: 'text-orange-600 dark:text-orange-400',
+                iconColor: 'text-amber-500 dark:text-amber-400',
                 bg: 'bg-transparent dark:bg-transparent',
-                border: 'border-orange-100 dark:border-orange-900/40',
-                iconWell: 'bg-orange-100/80 dark:bg-orange-950/45',
+                border: 'border-amber-400/45 dark:border-amber-500/35',
+                iconWell: 'bg-amber-400/15 dark:bg-amber-500/20',
               },
               {
                 label: t.home_stat_approved,
@@ -705,8 +793,8 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                         <p className="font-bold text-slate-800 dark:text-neutral-100 text-sm">{e.user?.first_name ?? '—'}</p>
                         <p className="text-[11px] text-slate-500 dark:text-neutral-400">{e.user?.department ?? e.user?.role ?? ''}</p>
                       </div>
-                      <span className="ml-auto flex items-center gap-1 rounded-full border border-teal-200 bg-teal-100 px-2 py-0.5 text-[10px] font-bold text-teal-800 dark:border-teal-800/50 dark:bg-teal-950/50 dark:text-teal-200">
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-teal-500" /> {t.home_badge_in_shift}
+                      <span className="ml-auto flex items-center gap-1 rounded-full border border-emerald-500/80 bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900 dark:border-emerald-500/50 dark:bg-emerald-950/50 dark:text-emerald-50">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500 dark:bg-emerald-400" /> {t.home_badge_in_shift}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mb-3">
@@ -895,7 +983,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                     <h3 className="font-bold text-slate-900 dark:text-neutral-100 text-lg flex items-center gap-2">
                       <Moon className="h-5 w-5 text-amber-600 dark:text-amber-400" /> {t.home_modal_close_dinner}
                     </h3>
-                    <p className="text-sm text-slate-500 dark:text-neutral-400 mt-0.5">{closeModal.employeeName} · {format(parseISO(closeModal.dateStr), 'd MMM', { locale })}</p>
+                    <p className="text-sm text-slate-500 dark:text-neutral-400 mt-0.5">{closeModal.employeeName} · {safeFormatDate(closeModal.dateStr, 'd MMM', { locale })}</p>
                   </div>
                   <button type="button" onClick={() => { setCloseModal(null); setClockOutInput(''); }} className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors">
                     <X className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
@@ -915,9 +1003,14 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
 
                 <div className="mb-4">
                   <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5 uppercase tracking-wide">{t.home_label_exit_time}</label>
-                  <input type="time" value={clockOutInput} onChange={(e) => setClockOutInput(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-950 px-4 py-3 text-slate-900 dark:text-neutral-100 font-bold text-3xl focus:ring-2 focus:ring-accent focus:border-transparent outline-none text-center tabular-nums"
-                    autoFocus />
+                  <TimeInputField
+                    size="hero"
+                    value={clockOutInput}
+                    onChange={setClockOutInput}
+                    aria-label={t.home_label_exit_time}
+                    className="w-full tabular-nums"
+                    autoFocus
+                  />
                 </div>
 
                 {clockOutInput && previewMins > 0 && (
@@ -997,6 +1090,15 @@ export interface HomeManagementShiftCardProps {
 export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprove, approvingId, t }: HomeManagementShiftCardProps) {
   const deltaColor =
     e.deltaMins > 5 ? 'text-accent' : e.deltaMins < -5 ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-neutral-400';
+  const notPunchedLineCls = style.border.includes('emerald')
+    ? 'text-emerald-900 dark:text-emerald-50'
+    : style.border.includes('slate-400')
+      ? 'text-slate-700 dark:text-neutral-200'
+      : style.border.includes('rose-')
+        ? 'text-rose-900 dark:text-rose-100'
+        : style.border.includes('red-')
+          ? 'text-red-800 dark:text-red-100'
+          : 'text-amber-950 dark:text-amber-100';
 
   return (
     <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-4 shadow-sm`}>
@@ -1010,7 +1112,7 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
           <p className="text-[10px] text-slate-500 dark:text-neutral-400 truncate">{e.user?.department ?? e.user?.role ?? ''}</p>
           {e.shift.date && (
             <p className="text-[10px] font-semibold text-slate-500 dark:text-neutral-400 tabular-nums">
-              {format(parseISO(e.shift.date), 'EEE d MMM', { locale: it })}
+              {safeFormatDate(e.shift.date, 'EEE d MMM', { locale: it })}
             </p>
           )}
         </div>
@@ -1033,10 +1135,10 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
           <p className="text-[9px] text-slate-500 dark:text-neutral-400 uppercase font-semibold mb-0.5">{t.ts_label_punched}</p>
           {e.actualStart ? (
             <p className="text-sm font-bold text-slate-800 dark:text-neutral-100 tabular-nums">
-              {e.actualStart} → {e.actualEnd ?? <span className="text-amber-500 dark:text-amber-400">…</span>}
+              {e.actualStart} → {e.actualEnd ?? <span className="text-red-500 dark:text-red-400">…</span>}
             </p>
           ) : (
-            <p className="text-sm font-semibold text-slate-500 dark:text-neutral-400 italic">{t.home_status_not_punched}</p>
+            <p className={`text-sm font-semibold italic ${notPunchedLineCls}`}>{t.home_status_not_punched}</p>
           )}
         </div>
       </div>

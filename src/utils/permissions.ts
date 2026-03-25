@@ -62,6 +62,21 @@ export function canApproveShiftActions(user: User | null): boolean {
   return user.role === 'admin' || user.can_approve_shifts === true;
 }
 
+const FREEZE_PIN_ROLES = new Set(['admin', 'manager', 'assistant_manager', 'capo']);
+
+/**
+ * PIN inserito per congelare il turno: deve corrispondere a un utente attivo con permesso di approvazione
+ * e ruolo manager / assistant manager / admin / capo.
+ */
+export function findFreezeVerifierByPin(users: User[], pin: string): User | null {
+  const p = (pin || '').trim();
+  if (!p) return null;
+  const u = users.find((x) => x.pin === p && x.status === 'active');
+  if (!u || !canApproveShiftActions(u)) return null;
+  if (!FREEZE_PIN_ROLES.has(u.role)) return null;
+  return u;
+}
+
 /** Pubblicazione settimana / bozze → confermati: Admin o `can_manage_drafts`. */
 export function canPublishScheduleDrafts(user: User | null): boolean {
   if (!user) return false;

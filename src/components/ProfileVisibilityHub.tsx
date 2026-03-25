@@ -4,7 +4,7 @@ import {
   Home,
   Calendar,
   ClipboardList,
-  BarChart3,
+  Clock,
   ShieldCheck,
   LayoutList,
   RotateCcw,
@@ -54,7 +54,7 @@ const PREVIEW_TAB_ICONS: Record<AppNavTab, typeof Home> = {
   turni: Calendar,
   ferie: Palmtree,
   timesheet: ClipboardList,
-  reports: BarChart3,
+  reports: Clock,
   profile: UserIconLucide,
   settings: ShieldCheck,
 };

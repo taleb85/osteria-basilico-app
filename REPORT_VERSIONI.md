@@ -54,7 +54,7 @@
    - Il selettore lingua è `hidden sm:flex` → non visibile su mobile
    - **Suggerimento:** spostare il cambio lingua nel menu utente o in Impostazioni
 
-4. **Statistiche – date picker**
+4. **Ore – date picker**
    - I selettori data inizio/fine potrebbero essere stretti su schermi piccoli
    - **Suggerimento:** usare input `type="date"` nativi o modal full-screen su mobile
 

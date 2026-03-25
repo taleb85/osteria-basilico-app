@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   startOfMonth,
   endOfMonth,
@@ -13,7 +13,9 @@ import {
   getISOWeek,
   getISOWeekYear,
   parseISO,
+  parse,
   isSameDay,
+  eachDayOfInterval,
 } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useApp } from '../context/AppContext';
@@ -32,9 +34,10 @@ import {
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { motion } from 'framer-motion';
-import { Calendar } from 'lucide-react';
+import { Calendar, FileDown } from 'lucide-react';
 import DatePickerField from './DatePickerField';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
+import { exportAttendancePdfFromGrid } from '../utils/timesheetPdfFromRange';
 
 function toDateOnly(d: Date): string {
   return format(d, 'yyyy-MM-dd');
@@ -43,6 +46,13 @@ function toDateOnly(d: Date): string {
 function formatStatsChipDate(iso: string, locale: typeof it): string {
   const d = parseISO(iso.slice(0, 10));
   return Number.isNaN(d.getTime()) ? '—' : format(d, 'dd/MM/yy', { locale });
+}
+
+/** `YYYY-MM-DD` a mezzanotte locale — evita settimane ISO sbagliate con `new Date('YYYY-MM-DD')` (UTC). */
+function parseShiftLocalDate(ymd: string): Date {
+  const raw = (ymd || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return new Date(NaN);
+  return parse(raw, 'yyyy-MM-dd', new Date());
 }
 
 type WeekKey = string; // "2026-W10"
@@ -54,7 +64,17 @@ function getInitialPeriodRange(): { start: string; end: string } {
 }
 
 export default function Statistics() {
-  const { users, shifts, currentUser, effectiveLanguage, breakRules, featureFlags, punchRecords } = useApp();
+  const {
+    users,
+    shifts,
+    currentUser,
+    effectiveLanguage,
+    breakRules,
+    featureFlags,
+    punchRecords,
+    showSuccess,
+    showError,
+  } = useApp();
   const t = getTranslations(effectiveLanguage);
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
@@ -126,6 +146,11 @@ export default function Statistics() {
     return endOfDay(s <= e ? e : s);
   }, [dateStart, dateEnd]);
 
+  const statsWeekDaysForPdf = useMemo(
+    () => eachDayOfInterval({ start: rangeStart, end: rangeEnd }),
+    [rangeStart, rangeEnd]
+  );
+
   /** Mese civile intero selezionato → data pagamento stipendi (lun dopo ultima dom. sett. completa nel mese). */
   const payrollForCalendarMonth = useMemo(() => {
     try {
@@ -155,20 +180,35 @@ export default function Statistics() {
     });
   }, [rangeStart, rangeEnd]);
 
-  /** Minuti confermati per utente per settimana (solo turni confirmed) */
+  /**
+   * Minuti per utente per settimana: turni confermati o approvati, ore da orari congelati / timbrature / pianificato.
+   * Date turno parse-ate in locale (stesso calendario delle card settimana).
+   */
   const minutesByUserByWeek = useMemo(() => {
     const byUser: Record<string, Record<WeekKey, number>> = {};
-    const rangeShifts = shifts.filter(
-      (s) =>
-        (s.approval_status === 'confirmed' || s.approval_status === 'approved') &&
-        isWithinInterval(new Date(s.date), { start: rangeStart, end: rangeEnd })
-    );
+    const rangeShifts = shifts.filter((s) => {
+      if (s.approval_status === 'absent') return false;
+      if (s.approval_status !== 'confirmed' && s.approval_status !== 'approved') return false;
+      const sd = parseShiftLocalDate(s.date);
+      if (Number.isNaN(sd.getTime())) return false;
+      return isWithinInterval(sd, { start: rangeStart, end: rangeEnd });
+    });
     for (const s of rangeShifts) {
-      const { start, end } = getResolvedStartEndForHours(s, punchRecords);
-      if (!start || !end || start === end) continue;
+      let { start, end } = getResolvedStartEndForHours(s, punchRecords);
+      if (!start || !end || start === end) {
+        const ps = (s.start_time || '').slice(0, 5);
+        const pe = (s.end_time || '').slice(0, 5);
+        if (ps && pe && ps !== pe) {
+          start = ps;
+          end = pe;
+        } else {
+          continue;
+        }
+      }
       const u = users.find((x) => x.id === s.user_id);
       const mins = getNetShiftMinutes(s, start, end, u ?? undefined, breakRules, breakComputeOpts);
-      const d = new Date(s.date);
+      const d = parseShiftLocalDate(s.date);
+      if (Number.isNaN(d.getTime())) continue;
       const w = getISOWeek(d);
       const y = getISOWeekYear(d);
       const weekKey = `${y}-W${String(w).padStart(2, '0')}` as WeekKey;
@@ -189,6 +229,45 @@ export default function Statistics() {
       })
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   }, [users, currentUser, showManagementStatsChrome]);
+
+  const statsLocForPdf = getDateLocale(effectiveLanguage) ?? it;
+  const handleExportStatsPdf = useCallback(() => {
+    if (!currentUser || !isFeatureEnabled(currentUser, 'export_pdf')) return;
+    try {
+      const result = exportAttendancePdfFromGrid({
+        weekDays: statsWeekDaysForPdf,
+        visibleUsers: displayUsers,
+        shifts,
+        punchRecords,
+        breakRules,
+        breakComputeOpts,
+        locale: statsLocForPdf,
+        t: t as Record<string, string>,
+        formatTrans,
+        fmtHM: formatMinutesToHoursAndMinutes,
+        onlyConfirmedOrApproved: true,
+      });
+      if (result === 'no_days' || result === 'no_users') {
+        showError?.((t as { ts_pdf_no_data?: string }).ts_pdf_no_data ?? 'Nessun dato da esportare');
+        return;
+      }
+      showSuccess?.((t as { mod_pdf_export?: string }).mod_pdf_export ?? 'PDF presenze esportato');
+    } catch (e) {
+      showError?.(e instanceof Error ? e.message : 'Export PDF non riuscito');
+    }
+  }, [
+    currentUser,
+    statsWeekDaysForPdf,
+    displayUsers,
+    shifts,
+    punchRecords,
+    breakRules,
+    breakComputeOpts,
+    statsLocForPdf,
+    t,
+    showSuccess,
+    showError,
+  ]);
 
   const totalMinutesAll = useMemo(() => {
     return displayUsers.reduce((sum, u) => {
@@ -258,6 +337,18 @@ export default function Statistics() {
                       {formatStatsChipDate(dateStart, statsLoc)} → {formatStatsChipDate(dateEnd, statsLoc)}
                     </span>
                   </button>
+                  {isFeatureEnabled(currentUser, 'export_pdf') && (
+                    <button
+                      type="button"
+                      onClick={() => void handleExportStatsPdf()}
+                      className="ui-toolbar-chip shrink-0 border-slate-200 text-slate-600 hover:bg-slate-50/90 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/[0.06]"
+                      title={t.download_pdf}
+                      aria-label={t.download_pdf}
+                    >
+                      <FileDown className="h-3 w-3 shrink-0" aria-hidden />
+                      <span className="hidden min-[380px]:inline">{t.download_pdf}</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -268,41 +359,51 @@ export default function Statistics() {
                 backdropAriaLabel={tv.close ?? 'Chiudi'}
                 ariaLabel={t.stats_date_range}
                 maxWidthClass="max-w-md"
-                panelClassName="p-4 sm:p-5"
+                maxHeightClass="max-h-[min(90dvh,720px)]"
+                panelClassName="py-2 sm:p-4"
               >
-                <h3 className="mb-4 border-b border-slate-100 pb-3 text-base font-bold text-slate-900">{t.stats_date_range}</h3>
-                <div className="flex flex-wrap items-center gap-2">
-                  <DatePickerField
-                    value={dateStart}
-                    max={dateEnd}
-                    allowClear={false}
-                    onChange={(v) => {
-                      setDateStart(v);
-                      setPreset('custom');
-                    }}
-                    aria-label={tv.stats_aria_date_start ?? t.stats_date_range}
-                  />
-                  <span className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-medium leading-none text-slate-400 dark:text-neutral-400" aria-hidden>
-                    →
-                  </span>
-                  <DatePickerField
-                    value={dateEnd}
-                    min={dateStart}
-                    allowClear={false}
-                    onChange={(v) => {
-                      setDateEnd(v);
-                      setPreset('custom');
-                    }}
-                    aria-label={tv.stats_aria_date_end ?? t.stats_date_range}
-                  />
+                <div className="px-3 sm:px-4">
+                  <h3 className="mb-4 border-b border-slate-100 pb-3 text-base font-bold text-slate-900 dark:text-neutral-100">
+                    {t.stats_date_range}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <DatePickerField
+                      value={dateStart}
+                      max={dateEnd}
+                      allowClear={false}
+                      onChange={(v) => {
+                        setDateStart(v);
+                        setPreset('custom');
+                      }}
+                      aria-label={tv.stats_aria_date_start ?? t.stats_date_range}
+                    />
+                    <span
+                      className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-medium leading-none text-slate-400 dark:text-neutral-400"
+                      aria-hidden
+                    >
+                      →
+                    </span>
+                    <DatePickerField
+                      value={dateEnd}
+                      min={dateStart}
+                      allowClear={false}
+                      onChange={(v) => {
+                        setDateEnd(v);
+                        setPreset('custom');
+                      }}
+                      aria-label={tv.stats_aria_date_end ?? t.stats_date_range}
+                    />
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setMgmtRangeModalOpen(false)}
-                  className="mt-5 w-full rounded-xl bg-accent py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-accent-hover"
-                >
-                  {tv.close ?? 'Chiudi'}
-                </button>
+                <div className="px-3 pb-1 pt-2 sm:px-4">
+                  <button
+                    type="button"
+                    onClick={() => setMgmtRangeModalOpen(false)}
+                    className="w-full rounded-xl bg-accent py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-accent-hover"
+                  >
+                    {tv.close ?? 'Chiudi'}
+                  </button>
+                </div>
               </CenteredModalPortal>
             )}
           </>
@@ -323,7 +424,7 @@ export default function Statistics() {
               }}
               aria-label={tv.stats_aria_date_start}
             />
-            <span className="inline-flex shrink-0 items-center text-[11px] font-semibold text-slate-400 dark:text-neutral-400 sm:text-[12px]" aria-hidden>
+            <span className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-semibold leading-none text-slate-400 dark:text-neutral-400" aria-hidden>
               →
             </span>
             <DatePickerField

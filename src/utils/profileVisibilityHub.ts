@@ -151,7 +151,7 @@ export function toggleStaffModule(user: User, module: EnabledModule, enable: boo
 const MODULE_LABELS_IT: Record<EnabledModule, string> = {
   my_shifts: 'I miei turni',
   team_schedule: 'Tabellone team',
-  stats_hours: 'Statistiche ore',
+  stats_hours: 'Ore',
   financial_reports: 'Report / finanziari',
   vacation_requests: 'Ferie e permessi',
   pdf_export: 'Scheda Presenze (modulo legacy)',
@@ -162,7 +162,7 @@ export function getModuleLabel(module: EnabledModule, lang: string): string {
     const en: Record<EnabledModule, string> = {
       my_shifts: 'My shifts',
       team_schedule: 'Team schedule',
-      stats_hours: 'Hours stats',
+      stats_hours: 'Hours',
       financial_reports: 'Reports',
       vacation_requests: 'Time off',
       pdf_export: 'Attendance sheet (legacy module)',

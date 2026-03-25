@@ -1,30 +1,9 @@
 /**
- * Esegue la migrazione per le colonne permessi users.
- * Richiede: DATABASE_URL in .env (Supabase > Settings > Database > Connection string URI)
- *
- * Uso: node scripts/run-migration-users-permissions.js
+ * Migrazione colonne permessi su users.
+ * Uso: npm run db:migrate-permissions
  */
 
-import { readFileSync, existsSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const envPath = resolve(__dirname, '../.env');
-if (existsSync(envPath)) {
-  readFileSync(envPath, 'utf8').split('\n').forEach((line) => {
-    const m = line.match(/^([^#=]+)=(.*)$/);
-    if (m) process.env[m[1].trim()] = m[2].trim().replace(/^["']|["']$/g, '');
-  });
-}
-
-let dbUrl = process.env.DATABASE_POOLER_URL || process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
-if (!dbUrl) {
-  console.error('❌ Imposta DATABASE_URL o DATABASE_POOLER_URL in .env');
-  process.exit(1);
-}
-// Se DATABASE_URL fallisce con IPv6, usa il pooler (Session mode)
-// Formato pooler: postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres
+import { getPostgresConnectionUrl, hintIfUnreachable, supabaseLocalPgSsl } from './pg-env.js';
 
 const sql = `
 ALTER TABLE users ADD COLUMN IF NOT EXISTS can_create_shifts boolean DEFAULT false;
@@ -37,11 +16,16 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS can_punch_from_app boolean DEFAULT tr
 `.trim();
 
 async function main() {
+  const res = getPostgresConnectionUrl();
+  if (!res.dbUrl) {
+    console.error('❌', res.error);
+    process.exit(1);
+  }
   try {
     const pg = (await import('pg')).default;
     const client = new pg.Client({
-      connectionString: dbUrl,
-      ssl: { rejectUnauthorized: true },
+      connectionString: res.dbUrl,
+      ssl: supabaseLocalPgSsl,
     });
     await client.connect();
     for (const stmt of sql.split(';').filter(Boolean)) {
@@ -51,14 +35,13 @@ async function main() {
     await client.end();
     console.log('\n✅ Migrazione completata.');
   } catch (err) {
-    if (err.message.includes('EHOSTUNREACH') && process.env.DATABASE_URL && !process.env.DATABASE_POOLER_URL) {
-      console.error('❌ Connessione IPv6 non raggiungibile. Usa il Connection Pooler:\n');
-      console.error('   1. Supabase Dashboard → Settings → Database');
-      console.error('   2. Copia "Connection string" con toggle "Use connection pooling" = ON (Session mode)');
-      console.error('   3. Aggiungi in .env: DATABASE_POOLER_URL=postgresql://postgres.xxx:...@aws-0-xx.pooler.supabase.com:5432/postgres');
-      console.error('\n   Oppure esegui il SQL manualmente in SQL Editor.');
-    } else {
-      console.error('❌ Errore:', err.message);
+    console.error('❌ Errore:', err.message);
+    hintIfUnreachable(err);
+    if (/EHOSTUNREACH|ENETUNREACH/i.test(String(err.message)) && process.env.DATABASE_URL && !process.env.DATABASE_POOLER_URL) {
+      console.error(
+        '\n   Supabase → Settings → Database → Connection string con “Use connection pooling” (Session).'
+      );
+      console.error('   Aggiungi DATABASE_POOLER_URL=postgresql://postgres.REF:…@aws-0-….pooler.supabase.com:5432/postgres');
     }
     process.exit(1);
   }

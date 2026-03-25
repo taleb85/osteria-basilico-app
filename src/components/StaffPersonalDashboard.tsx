@@ -148,7 +148,9 @@ export default function StaffPersonalDashboard({
   }, [loadUserData]);
   const dateLocale = getDateLocale(effectiveLanguage);
 
-  const visibleShifts = shifts.filter(s => s.approval_status === 'approved' || s.approval_status === 'confirmed');
+  const visibleShifts = shifts.filter(
+    (s) => s.approval_status === 'approved' || s.approval_status === 'confirmed' || s.approval_status === 'absent'
+  );
   const todayShifts = visibleShifts.filter((shift) => isToday(new Date(shift.date)));
   const upcomingShifts = visibleShifts.filter((shift) => isFuture(new Date(shift.date)));
   const approvedShifts = visibleShifts;

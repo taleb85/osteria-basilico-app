@@ -242,11 +242,16 @@ function toMinutes(t: string): number {
  * newShift: { start_time, end_time } del turno da creare/modificare
  */
 export function hasShiftConflictSameDay(
-  shifts: { id?: string; start_time: string; end_time: string }[],
+  shifts: { id?: string; start_time: string; end_time: string; approval_status?: string | null }[],
   newShift: { start_time: string; end_time: string },
   excludeId?: string
 ): boolean {
-  const others = shifts.filter((s) => s.id !== excludeId);
+  const others = shifts.filter((s) => {
+    if (s.id === excludeId) return false;
+    const st = (s.approval_status ?? '').toString().trim().toLowerCase();
+    if (st === 'absent') return false;
+    return true;
+  });
   if (others.length === 0) return false;
   const all = [...others, { ...newShift }];
   all.sort((a, b) => toMinutes(a.start_time) - toMinutes(b.start_time));
@@ -260,4 +265,39 @@ export function hasShiftConflictSameDay(
     if (nextStart < currEnd) return true;
   }
   return false;
+}
+
+/**
+ * Normalizza testo orario libero (campi ore/minuti, incolla, solo ore) in HH:mm.
+ * - "10:30", "9:5" → ore e minuti espliciti
+ * - "14" o "9" → solo ore → minuti :00
+ * - "1030" / prime 4 cifre → HH:mm compatto
+ */
+export function normalizeTimeInputToHHmm(val: string): string {
+  const s = (val || '').trim();
+  if (!s) return '';
+
+  const colon = s.match(/^(\d{1,2}):(\d{0,2})$/);
+  if (colon) {
+    const h = Math.min(23, Math.max(0, parseInt(colon[1], 10) || 0));
+    const mr = colon[2];
+    let m = 0;
+    if (mr.length >= 2) m = Math.min(59, parseInt(mr.slice(0, 2), 10) || 0);
+    else if (mr.length === 1) m = Math.min(59, parseInt(mr, 10) || 0);
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  const digits = s.replace(/\D/g, '');
+  if (digits.length >= 4) {
+    const h = Math.min(23, parseInt(digits.slice(0, 2), 10) || 0);
+    const m = Math.min(59, parseInt(digits.slice(2, 4), 10) || 0);
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  if (/^\d{1,2}$/.test(s)) {
+    const h = Math.min(23, parseInt(s, 10) || 0);
+    return `${String(h).padStart(2, '0')}:00`;
+  }
+
+  return '';
 }

@@ -12,6 +12,7 @@ import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { getTranslations, getDateLocale, formatTrans } from '../utils/translations';
 import { it } from 'date-fns/locale';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
+import { safeFormatDate } from '../utils/safeDateFormat';
 
 export default function MonthlySummaryTable() {
   const { users, shifts, currentUser, punchRecords, effectiveLanguage, breakRules, featureFlags } = useApp();
@@ -41,10 +42,9 @@ export default function MonthlySummaryTable() {
 
     const weekShifts = shifts.filter((s) => {
       if (s.user_id !== userId || (s.approval_status !== 'approved' && s.approval_status !== 'confirmed')) return false;
-      const shiftDate = new Date(s.date);
-      return daysInWeek.some((day) =>
-        format(day, 'yyyy-MM-dd') === format(shiftDate, 'yyyy-MM-dd')
-      );
+      const shiftDayStr = safeFormatDate(s.date, 'yyyy-MM-dd');
+      if (shiftDayStr === '—') return false;
+      return daysInWeek.some((day) => format(day, 'yyyy-MM-dd') === shiftDayStr);
     });
 
     const user = users.find((u) => u.id === userId);
@@ -91,7 +91,7 @@ export default function MonthlySummaryTable() {
               </span>
               {formatTrans(
                 (t as { stats_payroll_date_line?: string }).stats_payroll_date_line ?? 'Data prevista: {date}',
-                { date: format(payrollPayDate, 'EEEE d MMMM yyyy', { locale: getLocale() }) }
+                { date: safeFormatDate(payrollPayDate, 'EEEE d MMMM yyyy', { locale: getLocale() }) }
               )}
               <span className="block mt-1 text-slate-500 dark:text-gray-500 font-normal">
                 {(t as { stats_payroll_hint?: string }).stats_payroll_hint}

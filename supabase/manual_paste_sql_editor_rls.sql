@@ -71,6 +71,10 @@ BEGIN
     DROP POLICY IF EXISTS "Anon can update shift_templates" ON public.shift_templates;
     DROP POLICY IF EXISTS "Anon can delete shift_templates" ON public.shift_templates;
     DROP POLICY IF EXISTS "Anon can select shift_templates" ON public.shift_templates;
+    DROP POLICY IF EXISTS "Authenticated can insert shift_templates" ON public.shift_templates;
+    DROP POLICY IF EXISTS "Authenticated can update shift_templates" ON public.shift_templates;
+    DROP POLICY IF EXISTS "Authenticated can delete shift_templates" ON public.shift_templates;
+    DROP POLICY IF EXISTS "Authenticated can select shift_templates" ON public.shift_templates;
     CREATE POLICY "Anon can insert shift_templates"
       ON public.shift_templates FOR INSERT TO anon WITH CHECK (true);
     CREATE POLICY "Anon can update shift_templates"
@@ -79,6 +83,14 @@ BEGIN
       ON public.shift_templates FOR DELETE TO anon USING (true);
     CREATE POLICY "Anon can select shift_templates"
       ON public.shift_templates FOR SELECT TO anon USING (true);
+    CREATE POLICY "Authenticated can insert shift_templates"
+      ON public.shift_templates FOR INSERT TO authenticated WITH CHECK (true);
+    CREATE POLICY "Authenticated can update shift_templates"
+      ON public.shift_templates FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+    CREATE POLICY "Authenticated can delete shift_templates"
+      ON public.shift_templates FOR DELETE TO authenticated USING (true);
+    CREATE POLICY "Authenticated can select shift_templates"
+      ON public.shift_templates FOR SELECT TO authenticated USING (true);
   END IF;
 END $rls$;
 

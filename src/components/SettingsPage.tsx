@@ -33,6 +33,7 @@ import {
 import { translateDepartmentValue } from '../utils/departmentLabels';
 import type { Department, PermissionCategory } from '../utils/departments';
 import { FEATURE_DEFINITIONS } from '../utils/featureFlags';
+import { TimeInputField } from './ui/TimeInputField';
 import { getEnabledFeatures, ADMIN_MODULE_KEYS, getAdminModuleEnabled, isAdminModuleEnabled } from '../utils/enabledFeatures';
 import RoleFeatureSectionsBlock, { PERMISSION_SUMMARY_LIST_CLASS } from './RoleFeatureSectionsBlock';
 import AdminRow from './ui/AdminRow';
@@ -1896,11 +1897,21 @@ function BreakRuleModal({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass}>{t.settings_break_label_start}</label>
-                  <input type="time" value={breakStart} onChange={(e) => setBreakStart(e.target.value)} required className={inputClass} />
+                  <TimeInputField
+                    value={breakStart}
+                    onChange={setBreakStart}
+                    aria-label={t.settings_break_label_start}
+                    className="w-full border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900"
+                  />
                 </div>
                 <div>
                   <label className={labelClass}>{t.settings_break_label_end}</label>
-                  <input type="time" value={breakEnd} onChange={(e) => setBreakEnd(e.target.value)} required className={inputClass} />
+                  <TimeInputField
+                    value={breakEnd}
+                    onChange={setBreakEnd}
+                    aria-label={t.settings_break_label_end}
+                    className="w-full border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900"
+                  />
                 </div>
               </div>
 

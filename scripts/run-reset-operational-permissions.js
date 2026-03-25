@@ -8,21 +8,16 @@
  * Uso: node scripts/run-reset-operational-permissions.js
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
+import { getPostgresConnectionUrl, hintIfUnreachable, supabaseLocalPgSsl } from './pg-env.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const envPath = resolve(__dirname, '../.env');
-if (existsSync(envPath)) {
-  readFileSync(envPath, 'utf8').split('\n').forEach((line) => {
-    const m = line.match(/^([^#=]+)=(.*)$/);
-    if (m) process.env[m[1].trim()] = m[2].trim().replace(/^["']|["']$/g, '');
-  });
-}
 
-const dbUrl = process.env.DATABASE_POOLER_URL || process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
+const urlRes = getPostgresConnectionUrl({ warnIfDirectDbHost: true });
+const dbUrl = urlRes.dbUrl ?? null;
 const sqlPath = resolve(__dirname, '../supabase/migrations/20260323200000_reset_non_admin_operational_permissions.sql');
 
 const OFF = {
@@ -58,7 +53,7 @@ async function tryPostgres() {
   const pg = (await import('pg')).default;
   const client = new pg.Client({
     connectionString: dbUrl,
-    ssl: { rejectUnauthorized: true },
+    ssl: supabaseLocalPgSsl,
   });
   try {
     await client.connect();
@@ -97,16 +92,15 @@ async function main() {
   if (pg.ok) return;
 
   if (pg.err && !isNetworkish(pg.err) && dbUrl) {
-    if (pg.err.message?.includes('EHOSTUNREACH') && process.env.DATABASE_URL && !process.env.DATABASE_POOLER_URL) {
-      console.error('⚠️ Postgres: connessione non riuscita (spesso IPv6). Provo via API…\n');
-    } else {
-      console.error('❌ Postgres:', pg.err.message);
-      if (!process.env.VITE_SUPABASE_SERVICE_ROLE_KEY) process.exit(1);
-    }
+    console.error('❌ Postgres:', pg.err.message);
+    hintIfUnreachable(pg.err);
+    if (!process.env.VITE_SUPABASE_SERVICE_ROLE_KEY) process.exit(1);
   } else if (pg.skip && !dbUrl) {
     /* niente URI, solo API */
   } else if (pg.err && isNetworkish(pg.err)) {
-    console.error('⚠️ Postgres non raggiungibile, provo via API Supabase…\n');
+    console.error('⚠️ Postgres non raggiungibile, provo via API Supabase…');
+    hintIfUnreachable(pg.err);
+    console.error('');
   }
 
   const api = await tryApi();

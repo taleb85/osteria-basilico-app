@@ -343,7 +343,7 @@
     @apply flex h-full items-center justify-center rounded-none px-2 text-[13px] font-semibold leading-none transition-colors;
   }
 
-  /** Pill singola (preset statistiche) */
+  /** Pill singola (preset periodo Ore) */
   .ui-toolbar-pill {
     @apply flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 px-2.5 text-center text-[13px] font-medium leading-none shadow-none transition-colors;
   }
@@ -384,7 +384,7 @@
     @apply sm:h-[22px] sm:max-h-[22px] sm:flex-nowrap;
   }
 
-  /** Intestazione pagina (Presenze, Statistiche mgmt) — gap ridotto per evitare “buchi” laterali tra blocchi */
+  /** Intestazione pagina (Presenze, Ore gestione) — gap ridotto per evitare “buchi” laterali tra blocchi */
   .ui-toolbar-page-band {
     @apply mb-5 box-border flex w-full min-h-[22px] max-w-full flex-col flex-wrap gap-2;
     @apply sm:h-[22px] sm:max-h-[22px] sm:flex-row sm:flex-nowrap sm:items-center sm:gap-2 sm:overflow-x-auto-safe;
@@ -402,6 +402,48 @@
    */
   .ui-toolbar-dropdown-root {
     @apply relative inline-flex h-[22px] max-h-[22px] min-h-[22px] shrink-0 items-center;
+  }
+
+  /**
+   * Presenze (Timesheets): controlli periodo più leggibili; bordi `slate-200` / `white/10` come i gruppi.
+   */
+  .ui-toolbar-page-band-presences {
+    @apply mb-5 box-border flex w-full min-h-0 max-w-full flex-col flex-wrap gap-2.5;
+    @apply sm:flex-row sm:flex-nowrap sm:items-center sm:gap-3 sm:overflow-x-auto-safe;
+  }
+
+  .ui-toolbar-page-band-presences .ui-toolbar-row-tight {
+    @apply min-h-9 items-center justify-start gap-2;
+    @apply max-sm:flex-wrap max-sm:gap-y-2.5;
+    @apply sm:h-9 sm:max-h-9 sm:flex-nowrap;
+  }
+
+  .ui-toolbar-page-band-presences .ui-toolbar-group {
+    @apply flex h-9 items-stretch gap-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900;
+    @apply divide-x divide-slate-200 dark:divide-white/10;
+  }
+
+  /**
+   * I tab globali sono h-20px: senza override lo sfondo attivo non riempie il gruppo h-9.
+   */
+  .ui-toolbar-page-band-presences .ui-toolbar-tab {
+    @apply flex h-full min-h-0 w-auto min-w-0 flex-none items-center justify-center self-stretch rounded-none px-3 text-center text-sm font-semibold leading-none transition-colors;
+  }
+
+  .ui-toolbar-page-band-presences .ui-toolbar-icon-btn {
+    @apply box-border flex h-full min-h-0 w-9 min-w-9 max-w-none shrink-0 items-center justify-center self-stretch rounded-none transition-colors;
+  }
+
+  .ui-toolbar-page-band-presences .ui-toolbar-segment-static {
+    @apply flex h-full min-h-0 shrink-0 items-center justify-center self-stretch px-2 text-center text-sm font-semibold tabular-nums leading-none text-slate-600 dark:text-neutral-300;
+  }
+
+  .ui-toolbar-page-band-presences .ui-toolbar-chip {
+    @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium leading-none text-slate-700 shadow-sm transition-colors dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-200;
+  }
+
+  .ui-toolbar-page-band-presences .ui-toolbar-accent {
+    @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-accent px-3 text-sm font-semibold leading-none text-white shadow-sm transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60;
   }
 }
 
@@ -536,6 +578,8 @@
 .rdp-modern.rdp-root {
   --rdp-accent-color: #2d5a27;
   --rdp-accent-background-color: rgba(45, 90, 39, 0.14);
+  /* Default RDP: solo bordo — poco contrasto; il fill è sotto con .rdp-selected .rdp-day_button */
+  --rdp-selected-border: 2px solid #1a3a17;
   --rdp-day_button-border-radius: 0.5rem;
   --rdp-day-height: 2rem;
   --rdp-day-width: 2rem;
@@ -545,6 +589,9 @@
   font-family: inherit;
   font-size: 0.8125rem;
   color: #1e293b;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
 }
 
 .rdp-modern.rdp-root .rdp-dropdown_root select {
@@ -571,6 +618,38 @@
   letter-spacing: 0.06em;
   color: rgb(100 116 139);
   opacity: 1;
+}
+
+/* Giorno selezionato: riempimento brand + testo bianco (il tema RDP di default usa quasi solo il bordo). */
+.rdp-modern.rdp-root td.rdp-day.rdp-selected {
+  font-size: inherit;
+  font-weight: normal;
+}
+
+.rdp-modern.rdp-root .rdp-selected .rdp-day_button {
+  background-color: var(--rdp-accent-color);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  border: 2px solid #142c12;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.rdp-modern.rdp-root .rdp-selected .rdp-day_button:hover {
+  background-color: #356b2d;
+  color: #ffffff;
+  border-color: #0f2410;
+}
+
+.rdp-modern.rdp-root .rdp-today:not(.rdp-selected) .rdp-day_button {
+  color: var(--rdp-accent-color);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px rgba(45, 90, 39, 0.45);
+}
+
+.rdp-modern.rdp-root .rdp-day_button:focus-visible {
+  outline: 2px solid var(--rdp-accent-color);
+  outline-offset: 2px;
 }
 
 /* ── Dark: niente sfondo bianco su utility Tailwind bg-white* (card, tabelle, pulsanti) ──
@@ -693,6 +772,30 @@ html.dark .rdp-modern.rdp-root .rdp-button_next {
 }
 html.dark .rdp-modern.rdp-root .rdp-weekday {
   color: rgb(163 163 163);
+}
+
+html.dark .rdp-modern.rdp-root {
+  --rdp-selected-border: 2px solid rgb(134 239 172);
+}
+
+html.dark .rdp-modern.rdp-root .rdp-selected .rdp-day_button {
+  background-color: rgb(52 120 44);
+  color: #ffffff;
+  border-color: rgb(134 239 172);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+html.dark .rdp-modern.rdp-root .rdp-selected .rdp-day_button:hover {
+  background-color: rgb(62 140 52);
+  color: #ffffff;
+  border-color: rgb(167 243 188);
+}
+
+html.dark .rdp-modern.rdp-root .rdp-today:not(.rdp-selected) .rdp-day_button {
+  color: rgb(167 243 188);
+  box-shadow: inset 0 0 0 2px rgba(74 222 128, 0.55);
 }
 
 /** Dark: slate-600 (#475569 = rgb(71,85,105)) → bianco per testi secondari */

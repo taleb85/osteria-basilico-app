@@ -21,7 +21,7 @@ export const PERMISSION_MATRIX_KEYS = [
   'approve_shifts',
   'export_pdf',
   'view_stats',
-  /** KPI “Costo stimato” (€/h × ore approvate) in Statistiche — utile soprattutto a chi cura contabilità / costi. */
+  /** KPI “Costo stimato” (€/h × ore approvate) in Ore — utile soprattutto a chi cura contabilità / costi. */
   'view_estimated_cost',
   'desktop_access',
 ] as const;
@@ -49,8 +49,8 @@ export const FEATURE_LABELS: Record<EnabledFeatureKey, string> = {
   edit_shifts: 'Modifica Operativa Turni',
   approve_shifts: 'Approvazione Finale (Verde)',
   export_pdf: 'Esportazione PDF tabellone turni',
-  view_stats: 'Visualizzazione Statistiche',
-  view_estimated_cost: 'Costo stimato del lavoro (Statistiche)',
+  view_stats: 'Visualizzazione Ore',
+  view_estimated_cost: 'Costo stimato del lavoro (scheda Ore)',
   desktop_access: 'Accesso Browser Desktop (deprecato — il gate PWA è unificato)',
   home_tab: 'Visualizza scheda Dashboard',
   ferie_tab: 'Visualizza scheda Ferie',
@@ -65,7 +65,7 @@ export const FEATURE_LABELS_TAB_FIRST: Record<EnabledFeatureKey, string> = {
   team_view: 'Scheda Turni — tabellone team',
   timesheet_tab: 'Scheda Presenze — foglio ore',
   export_pdf: 'Download PDF — tabellone turni',
-  view_stats: 'Scheda Statistiche',
+  view_stats: 'Scheda Ore',
   ferie_tab: 'Scheda Ferie',
   admin_tab: 'Scheda Admin — impostazioni e profili',
 };
@@ -130,7 +130,7 @@ export const ROLE_TEMPLATE_TAB_SHEET_GROUPS = [
   { id: 'ferie', titleKey: 'role_template_tab_group_ferie' as const, keys: ['ferie_tab'] as const },
   { id: 'presenze', titleKey: 'role_template_tab_group_presenze' as const, keys: ['timesheet_tab'] as const },
   {
-    id: 'statistiche',
+    id: 'ore',
     titleKey: 'role_template_tab_group_statistiche' as const,
     keys: ['view_stats', 'view_estimated_cost'] as const,
   },

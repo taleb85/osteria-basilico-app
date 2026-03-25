@@ -10,6 +10,7 @@ import {
   Shift,
   HolidayRequest,
   PunchRecord,
+  PunchRecordSource,
   PunchAuditEntry,
   Language,
   HolidayStatus,
@@ -17,7 +18,7 @@ import {
   UserStatus,
   Department,
 } from '../types';
-import { format, addDays, parseISO } from 'date-fns';
+import { format, addDays, parseISO, isValid } from 'date-fns';
 import { database, formatSupabaseError } from '../lib/database';
 import { supabase } from '../lib/supabase';
 import { hasShiftConflictSameDay, computeEffectivePunchIn, calculateShiftMinutesGross } from '../utils/timeCalculations';
@@ -27,6 +28,7 @@ import { formatTrans, getTranslations } from '../utils/translations';
 import { countUnreadNotifications } from '../utils/notifications';
 import { setAppLauncherBadgeUnreadCountAsync } from '../utils/appIconBadge';
 import { logHistory, logShiftEdit } from '../utils/scheduleHistory';
+import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
 import {
   canOperateTeamSchedule,
   canApproveShiftActions,
@@ -239,6 +241,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /** In browser `setTimeout` restituisce `number` (non `NodeJS.Timeout`). */
   const dataSyncBarDelayTimerRef = useRef<number | null>(null);
   const [postRefreshLocked, setPostRefreshLocked] = useState(false);
+  const [postUnlockReloadPending, setPostUnlockReloadPending] = useState(false);
   /** Allineato a `postRefreshLocked` ma aggiornato subito (prima del commit React) per evitare race nei refresh in foreground. */
   const postRefreshLockedRef = useRef(false);
   useEffect(() => {
@@ -789,7 +792,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logShiftEdit({ shiftId: id, actorName: actor, field: 'Fine', oldValue: (existing.end_time || '').slice(0,5), newValue: (updates.end_time || '').slice(0,5), description: `${date} — orario fine modificato` });
       }
       if (updates.approval_status !== undefined && updates.approval_status !== existing.approval_status) {
-        const statusLabel: Record<string, string> = { draft: 'Bozza', confirmed: 'Confermato', approved: 'Approvato' };
+        const statusLabel: Record<string, string> = {
+          draft: 'Bozza',
+          confirmed: 'Confermato',
+          approved: 'Approvato',
+          absent: 'Non ha lavorato',
+        };
         logShiftEdit({ shiftId: id, actorName: actor, field: 'Stato', oldValue: statusLabel[existing.approval_status] ?? existing.approval_status, newValue: statusLabel[updates.approval_status] ?? updates.approval_status, description: `${date} — stato turno modificato` });
       }
       if (updates.user_id !== undefined && updates.user_id !== existing.user_id) {
@@ -821,20 +829,79 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const op = currentUserRef.current;
     if (!op || !canApproveShiftActions(op)) return;
     const existing = shifts.find((s) => s.id === shiftId);
-    if (!existing || existing.approval_status === 'approved') return;
+    if (!existing || existing.approval_status === 'approved' || existing.approval_status === 'absent') return;
     await updateShift(shiftId, { approval_status: 'approved' });
   }, [shifts, updateShift]);
 
-  const approveShift = useCallback(async (shiftId: string, opts?: { approvedStart: string; approvedEnd: string }) => {
-    const op = currentUserRef.current;
-    if (!op || !canApproveShiftActions(op)) return;
-    const existing = shifts.find((s) => s.id === shiftId);
+  const approveShift = useCallback(async (
+    shiftId: string,
+    opts?: {
+      approvedStart?: string;
+      approvedEnd?: string;
+      actorOverride?: User;
+      promoteFromDraft?: boolean;
+    }
+  ) => {
+    const actor = opts?.actorOverride ?? currentUserRef.current;
+    if (!actor || !canApproveShiftActions(actor)) return;
+    let existing = shifts.find((s) => s.id === shiftId);
     if (!existing || existing.approved_at) return;
+
+    /** Assenza: sigilla con `approved_at` senza cambiare stato (resta `absent`). */
+    if (existing.approval_status === 'absent') {
+      const approvedAt = new Date().toISOString();
+      const approvedBy = `${actor.first_name} ${actor.last_name ?? ''}`.trim() || 'Manager';
+      const startHH = (existing.start_time || '').slice(0, 5);
+      const endHH = (existing.end_time || '').slice(0, 5);
+      const absentFreezePayload = {
+        approved_at: approvedAt,
+        approved_by: approvedBy,
+        approved_start_time: startHH,
+        approved_end_time: endHH,
+      };
+      try {
+        const res = await database.shifts.update(shiftId, absentFreezePayload);
+        const nextRow = (res ? { ...existing, ...res } : { ...existing, ...absentFreezePayload }) as Shift;
+        setShifts((prev) => prev.map((s) => (s.id === shiftId ? nextRow : s)));
+        markManagementDataTouched();
+        logShiftEdit({
+          shiftId,
+          actorName: approvedBy,
+          field: 'Stato',
+          oldValue: 'absent',
+          newValue: 'Assenza congelata',
+          description: `${existing.date} — assenza sigillata`,
+        });
+      } catch {
+        throw new Error('Impossibile congelare il turno (database).');
+      }
+      return;
+    }
+
+    if (existing.approval_status === 'draft') {
+      if (!opts?.promoteFromDraft) return;
+      try {
+        const res = await database.shifts.update(shiftId, { approval_status: 'confirmed' });
+        if (res) {
+          existing = { ...existing, ...res };
+          setShifts((prev) => prev.map((s) => (s.id === shiftId ? { ...s, ...res } : s)));
+        } else {
+          existing = { ...existing, approval_status: 'confirmed' };
+          setShifts((prev) =>
+            prev.map((s) => (s.id === shiftId ? { ...s, approval_status: 'confirmed' as const } : s))
+          );
+        }
+        markManagementDataTouched();
+      } catch {
+        return;
+      }
+    }
+
+    if (!existing) return;
     if (existing.approval_status !== 'confirmed' && existing.approval_status !== 'approved') return;
 
-    const actor = currentUserRef.current;
     const approvedAt = new Date().toISOString();
-    const approvedBy = actor ? `${actor.first_name} ${actor.last_name ?? ''}`.trim() : 'Manager';
+    const approvedBy = `${actor.first_name} ${actor.last_name ?? ''}`.trim() || 'Manager';
 
     let startHH = opts?.approvedStart?.trim().slice(0, 5) ?? '';
     let endHH = opts?.approvedEnd?.trim().slice(0, 5) ?? '';
@@ -844,13 +911,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
       endHH = def.end;
     }
 
-    await updateShift(shiftId, {
-      approval_status: 'approved',
+    /** Non usare `updateShift`: dopo promote da bozza lo stato React in chiusura può essere obsoleto e il guard su `confirmed` blocca il congelamento. */
+    const freezePayload = {
+      approval_status: 'approved' as const,
       approved_at: approvedAt,
       approved_by: approvedBy,
       approved_start_time: startHH,
       approved_end_time: endHH,
-    });
+    };
+
+    try {
+      const res = await database.shifts.update(shiftId, freezePayload);
+      const nextRow = (res ? { ...existing, ...res } : { ...existing, ...freezePayload }) as Shift;
+      setShifts((prev) => prev.map((s) => (s.id === shiftId ? nextRow : s)));
+      markManagementDataTouched();
+      logShiftEdit({
+        shiftId,
+        actorName: approvedBy,
+        field: 'Stato',
+        oldValue: existing.approval_status,
+        newValue: 'Approvato (congelato)',
+        description: `${existing.date} — turno congelato`,
+      });
+    } catch {
+      throw new Error('Impossibile congelare il turno (database).');
+    }
 
     const punchIn = punchRecordsRef.current.find(
       (p) => p.type === 'in' && (p.shift_id === shiftId || p.user_id === existing.user_id)
@@ -859,7 +944,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         await database.punchAuditLog.insert({
           punch_record_id: punchIn.id,
-          actor_id: actor?.id,
+          actor_id: actor.id,
           actor_name: approvedBy,
           field: 'approvazione_turno',
           old_value: 'confirmed',
@@ -869,7 +954,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // audit log non bloccante
       }
     }
-  }, [shifts, updateShift, punchRecordsRef]);
+  }, [shifts, punchRecordsRef, markManagementDataTouched]);
 
   const deleteShift = useCallback(async (id: string) => {
     const op = currentUserRef.current;
@@ -878,6 +963,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     const existing = shifts.find(s => s.id === id);
+    if (existing && isShiftPayrollFrozen(existing)) {
+      showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
+      return;
+    }
+    if (existing) {
+      const st = String(existing.approval_status ?? '').trim().toLowerCase();
+      if (st !== 'draft' && st !== '') {
+        showError(getTranslations(effectiveLanguage).shift_delete_blocked_published);
+        return;
+      }
+    }
     await database.shifts.delete(id);
     setShifts(prev => prev.filter(s => s.id !== id));
     markManagementDataTouched();
@@ -892,6 +988,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const op = currentUserRef.current;
     if (!op || !canOperateTeamSchedule(op)) {
       showError(getTranslations(effectiveLanguage).app_access_denied);
+      return;
+    }
+    const blockedFrozen = ids.some((id) => {
+      const s = shifts.find((x) => x.id === id);
+      return s ? isShiftPayrollFrozen(s) : false;
+    });
+    if (blockedFrozen) {
+      showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
+      return;
+    }
+    const blockedPublished = ids.some((id) => {
+      const s = shifts.find((x) => x.id === id);
+      if (!s) return false;
+      const st = String(s.approval_status ?? '').trim().toLowerCase();
+      return st !== 'draft' && st !== '';
+    });
+    if (blockedPublished) {
+      showError(getTranslations(effectiveLanguage).shift_delete_blocked_published);
       return;
     }
     const actor = currentUserRef.current?.first_name ?? 'Sistema';
@@ -1062,7 +1176,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async (
       userId: string,
       type: 'in' | 'out',
-      options?: { timestamp?: string; shift_id?: string; presenceProof?: string }
+      options?: { timestamp?: string; shift_id?: string; presenceProof?: string; source?: PunchRecordSource }
     ) => {
     const t = getTranslations(effectiveLanguage);
     if (punchInFlightRef.current || isPunching) return { error: t.punch_in_progress };
@@ -1128,10 +1242,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const rawTimestamp = options?.timestamp ? new Date(options.timestamp).toISOString() : new Date().toISOString();
 
+      const resolvedSource: PunchRecordSource =
+        options?.source ?? (managerPunchingForSomeoneElse ? 'manager' : 'kiosk');
+
       const record: Record<string, unknown> = {
         user_id: userId,
         type,
         timestamp: rawTimestamp,
+        source: resolvedSource,
       };
 
       if (shiftId && typeof shiftId === 'string') {
@@ -1964,12 +2082,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         markManagementDataTouched();
       }
       if (pendingPublishWeekStart) {
-        const weekEnd = format(addDays(parseISO(pendingPublishWeekStart), 7), 'yyyy-MM-dd');
-        const draftShifts = shifts.filter(
-          (s) => s.approval_status === 'draft' && s.date >= pendingPublishWeekStart && s.date < weekEnd
-        );
-        for (const shift of draftShifts) {
-          await database.shifts.update(shift.id, { approval_status: 'confirmed' });
+        const weekAnchor = parseISO(pendingPublishWeekStart);
+        if (isValid(weekAnchor)) {
+          const weekEnd = format(addDays(weekAnchor, 7), 'yyyy-MM-dd');
+          const draftShifts = shifts.filter(
+            (s) => s.approval_status === 'draft' && s.date >= pendingPublishWeekStart && s.date < weekEnd
+          );
+          for (const shift of draftShifts) {
+            await database.shifts.update(shift.id, { approval_status: 'confirmed' });
+          }
         }
         setPendingPublishWeekStart(null);
         showSuccess(getTranslations(effectiveLanguage).shifts_published);
@@ -2022,7 +2143,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const freshUser = users.find((u) => u.id === currentUser.id);
       /** Stesso criterio del login: `pin` da PostgREST può arrivare come numero → `!==` falliva sempre. */
       if (!freshUser || freshUser.status !== 'active' || !pinMatchesStored(freshUser, pin)) return false;
-      return runPostUnlockRefreshActions();
+      const ok = await runPostUnlockRefreshActions();
+      if (ok) setPostUnlockReloadPending(true);
+      return ok;
     },
     [currentUser, users, runPostUnlockRefreshActions]
   );
@@ -2032,7 +2155,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const ok = await authenticatePinUnlockCredential(currentUser.id);
       if (!ok) return false;
-      return runPostUnlockRefreshActions();
+      const done = await runPostUnlockRefreshActions();
+      if (done) setPostUnlockReloadPending(true);
+      return done;
     } catch {
       return false;
     }
@@ -2113,7 +2238,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift,
         publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
         updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing, dataSyncInProgress,
-        postRefreshLocked, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest,
+        postRefreshLocked, postUnlockReloadPending, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest,
         featureFlags, setFeatureFlag, geofenceEffectiveConfig, saveGeofenceConfig,
         presenceVerificationConfig, savePresenceVerificationConfig,
         workRules, setWorkRules, breakRules, setBreakRules,

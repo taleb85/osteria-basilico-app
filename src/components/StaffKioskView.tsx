@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, CheckCircle, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { User, Shift } from '../types';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { calculateRoundedPunchTime } from '../utils/timeCalculations';
 import { database } from '../lib/database';
 import { getTranslations } from '../utils/translations';
@@ -30,9 +30,10 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
 
     const relevantPunches = punchRecords.filter((record) => {
       if (record.user_id !== user.id || record.type !== 'in') return false;
-      if (format(new Date(record.timestamp), 'yyyy-MM-dd') !== today) return false;
+      const pDate = new Date(record.timestamp);
+      if (!isValid(pDate) || format(pDate, 'yyyy-MM-dd') !== today) return false;
 
-      const punchHour = parseInt(format(new Date(record.timestamp), 'HH'));
+      const punchHour = parseInt(format(pDate, 'HH'), 10);
       const isPunchDuringLunch = punchHour < 16;
       return isLunchShift === isPunchDuringLunch;
     });
@@ -50,6 +51,7 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
       type: 'in',
       timestamp: actualTime.toISOString(),
       shift_id: shift.id,
+      source: 'kiosk',
     });
 
     const actualTimeStr = format(actualTime, 'HH:mm');
