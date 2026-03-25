@@ -143,7 +143,7 @@ export interface AppContextType {
   settingsCloudLastSyncedAt: string | null;
   settingsCloudPushBusy: boolean;
   /**
-   * True dopo modifiche locali ai dati operativi; il pulsante «Sincronizza» in header gestione è attivo.
+   * True dopo modifiche locali ai dati operativi (es. push cloud / allineamento).
    * Si azzera dopo una `silentRefreshData` con `pullRemoteConfig: true` riuscita (o al logout).
    */
   managementDataTouchedSinceLastSync: boolean;

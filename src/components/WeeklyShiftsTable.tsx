@@ -10,7 +10,7 @@ import { Shift, type ApprovalStatus } from '../types';
 import { calculateShiftMinutesGross, getActualShiftTime, formatMinutesToHoursAndMinutes, roundToNext5Minutes, hasShiftConflictSameDay } from '../utils/timeCalculations';
 import { getPunchPairForShift, getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
 import { getTranslations, getDateLocale, getIntlLocale, formatTrans } from '../utils/translations';
-import { getShiftViolations } from '../utils/workRules';
+import { getShiftViolations, DEFAULT_WORK_RULES } from '../utils/workRules';
 import { getBreakMinutesForShift, getNetShiftMinutes } from '../utils/breakRules';
 import {
   isPurelyManagementRole,
@@ -400,6 +400,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
     [featureFlags]
+  );
+
+  /** Merge con default: stessi valori della UI Impostazioni; niente `!== false` su 0/null che tengono il chrome acceso con switch spenti. */
+  const effectiveWorkRules = useMemo(
+    () => ({ ...DEFAULT_WORK_RULES, ...workRules }),
+    [workRules]
   );
 
   /** Auto-refresh silenzioso quando la scheda Turni viene montata (utente ci clicca sopra). */
@@ -874,12 +880,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   /** Restituisce le violazioni per uno shift (usa regole da context, sync su tutti i profili). */
   const getViolations = useCallback((shift: Shift) => {
-    return getShiftViolations(shift, shifts, weekStr, format(addDays(weekStart, 7), 'yyyy-MM-dd'), workRules, {
+    return getShiftViolations(shift, shifts, weekStr, format(addDays(weekStart, 7), 'yyyy-MM-dd'), effectiveWorkRules, {
       users,
       breakRules,
       autoBreaksFeatureEnabled: breakComputeOpts.autoBreaksFeatureEnabled,
     });
-  }, [shifts, weekStr, weekStart, workRules, users, breakRules, breakComputeOpts]);
+  }, [shifts, weekStr, weekStart, effectiveWorkRules, users, breakRules, breakComputeOpts]);
 
   /** Converte "HH:mm" in minuti dal mezzanotte. */
   const toMinutes = (t: string) => {
@@ -914,13 +920,27 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     return 'planned';
   };
 
-  /** Bozza: tratteggio + testo bianco in dark. Pubblicato: bordo chiaro + testo verde (accent), no tinte smeraldo. */
+  /**
+   * Chrome violazioni: flag globale + modulo profilo + almeno un layer **truthy** (solo `true` conta dopo merge default).
+   * Evita `!== false` che lasciava il chrome acceso con valori come `0` o `null` mentre gli switch risultano spenti.
+   */
+  const violationChromeEnabled =
+    (featureFlags?.violation_rules !== false) &&
+    !!currentUser &&
+    isAdminModuleEnabled(currentUser, 'violation_rules') &&
+    (!!effectiveWorkRules.criticEnabled ||
+      !!effectiveWorkRules.attentionEnabled ||
+      !!effectiveWorkRules.overlapEnabled);
+
+  /** Bozza: tratteggio solo se il chrome violazioni è attivo; altrimenti bordo pieno (stesso stato, aspetto neutro). */
   const VARIANT_CLASSES: Record<ShiftColorVariant, { bg: string; text: string; selRing: string; border?: string; borderBottom?: string }> = {
     planned: {
       bg: 'bg-slate-50 hover:bg-slate-100 dark:bg-neutral-950/85 dark:hover:bg-neutral-900/90',
       text: 'text-slate-900 dark:text-white',
       selRing: 'ring-white/40',
-      border: 'border-2 border-dashed border-slate-400 dark:border-white/75 rounded-xl shadow-sm',
+      border: violationChromeEnabled
+        ? 'border-2 border-dashed border-slate-400 dark:border-white/75 rounded-xl shadow-sm'
+        : 'border-2 border-slate-300 dark:border-white/60 rounded-xl shadow-sm',
     },
     inprogress: {
       bg: 'bg-slate-50 hover:bg-slate-100 dark:bg-neutral-950/90 dark:hover:bg-neutral-900',
@@ -937,16 +957,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     },
   };
 
-  const showViolations =
-    (featureFlags?.violation_rules !== false) &&
-    !!currentUser &&
-    isAdminModuleEnabled(currentUser, 'violation_rules');
   const getCellStyle = (shift: Shift, isSelected: boolean, _hasAnySelected: boolean, colorVariant: ShiftColorVariant = 'planned') => {
     const v = VARIANT_CLASSES[colorVariant];
     let base = `relative group flex flex-col items-start justify-start ${v.bg} ${v.text} shadow-sm transition-shadow `;
     if (v.border) base += `${v.border} `;
     if (v.borderBottom) base += `${v.borderBottom} `;
-    if (showViolations) {
+    if (violationChromeEnabled) {
       const viol = getViolations(shift);
       if (viol.some(x => x.severity === 'error')) base += 'ring-2 ring-red-500 ';
       else if (viol.some(x => x.severity === 'warn')) base += 'ring-2 ring-amber-400 ';
@@ -1476,7 +1492,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       },
                       {
                         bg: 'bg-white dark:bg-neutral-900',
-                        border: 'border-dashed border-slate-300 dark:border-neutral-500',
+                        border: violationChromeEnabled
+                          ? 'border-dashed border-slate-300 dark:border-neutral-500'
+                          : 'border border-slate-200 dark:border-white/15',
                         textCls: 'text-black dark:text-neutral-100',
                         label: t.status_draft,
                         sub: t.wst_status_sub_draft,
@@ -1496,43 +1514,45 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         </span>
                       </div>
                     ))}
-                    <div className="mt-1.5 border-t border-slate-100 dark:border-white/10 pt-1.5">
-                      <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
-                        {t.wst_violations_legend}
-                      </div>
-                      {[
-                        {
-                          ringCls: 'ring-2 ring-red-500',
-                          dot: 'bg-red-500',
-                          label: t.wst_violation_critical,
-                          sub: t.wst_violation_critical_sub,
-                        },
-                        {
-                          ringCls: 'ring-2 ring-amber-400',
-                          dot: 'bg-amber-400',
-                          label: t.wst_violation_attention,
-                          sub: t.wst_violation_attention_sub,
-                        },
-                        {
-                          ringCls: 'shadow-[0_0_8px_rgba(239,68,68,0.6)]',
-                          dot: 'bg-red-300',
-                          label: t.wst_violation_overlap,
-                          sub: t.wst_violation_overlap_sub,
-                        },
-                      ].map(({ ringCls, dot, label, sub }) => (
-                        <div key={label} className="flex items-center gap-3 px-3 py-2">
-                          <span
-                            className={`flex h-8 w-[3.25rem] shrink-0 items-center justify-center surface-glass-sm ${ringCls}`}
-                          >
-                            <span className={`h-2.5 w-2.5 rounded-full ${dot} shadow-sm`} />
-                          </span>
-                          <span className="min-w-0">
-                            <p className="text-xs font-semibold text-slate-700 leading-snug">{label}</p>
-                            <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-0.5 leading-snug">{sub}</p>
-                          </span>
+                    {violationChromeEnabled && (
+                      <div className="mt-1.5 border-t border-slate-100 dark:border-white/10 pt-1.5">
+                        <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
+                          {t.wst_violations_legend}
                         </div>
-                      ))}
-                    </div>
+                        {[
+                          {
+                            ringCls: 'ring-2 ring-red-500',
+                            dot: 'bg-red-500',
+                            label: t.wst_violation_critical,
+                            sub: t.wst_violation_critical_sub,
+                          },
+                          {
+                            ringCls: 'ring-2 ring-amber-400',
+                            dot: 'bg-amber-400',
+                            label: t.wst_violation_attention,
+                            sub: t.wst_violation_attention_sub,
+                          },
+                          {
+                            ringCls: 'shadow-[0_0_8px_rgba(239,68,68,0.6)]',
+                            dot: 'bg-red-300',
+                            label: t.wst_violation_overlap,
+                            sub: t.wst_violation_overlap_sub,
+                          },
+                        ].map(({ ringCls, dot, label, sub }) => (
+                          <div key={label} className="flex items-center gap-3 px-3 py-2">
+                            <span
+                              className={`flex h-8 w-[3.25rem] shrink-0 items-center justify-center surface-glass-sm ${ringCls}`}
+                            >
+                              <span className={`h-2.5 w-2.5 rounded-full ${dot} shadow-sm`} />
+                            </span>
+                            <span className="min-w-0">
+                              <p className="text-xs font-semibold text-slate-700 leading-snug">{label}</p>
+                              <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-0.5 leading-snug">{sub}</p>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2603,7 +2623,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
                         const dayShift = dayShifts.find((s) => parseInt(s.start_time.split(':')[0]) < 16);
                         const eveningShift = dayShifts.find((s) => parseInt(s.start_time.split(':')[0]) >= 16);
-                        const hasOverlap = !!(dayShift && eveningShift && shiftsOverlap(dayShift, eveningShift));
+                        /** Stesso criterio di `getShiftViolations` (overlap). */
+                        const hasOverlap =
+                          violationChromeEnabled &&
+                          !!effectiveWorkRules.overlapEnabled &&
+                          !!(dayShift && eveningShift && shiftsOverlap(dayShift, eveningShift));
                         const dayVariant: ShiftColorVariant = dayShift ? getShiftColorVariant(dayShift) : 'planned';
                         const eveningVariant: ShiftColorVariant = eveningShift ? getShiftColorVariant(eveningShift) : 'planned';
 
@@ -2705,7 +2729,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 onDragLeave={() => setDropTargetKey(null)}
                                 onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { handleDropShift(draggedShiftId, user.id, dayStr); setDraggedShiftId(null); setDropTargetKey(null); } }}
                                 title={dayShift && needsCambioWarning(dayShift) ? t.no_change_at_16 : undefined}
-                                className={`flex flex-col ${dayShift && dayVariant === 'planned' ? 'border-b-2 border-dashed border-slate-300 dark:border-white/55' : 'border-b-2 border-slate-400 dark:border-white/45'} relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600' : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
+                                className={`flex flex-col ${dayShift && dayVariant === 'planned' && violationChromeEnabled ? 'border-b-2 border-dashed border-slate-300 dark:border-white/55' : 'border-b-2 border-slate-400 dark:border-white/45'} relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600' : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
                               >
                                 {dayShift ? (() => {
                                   const actualTimes = getActualShiftTime(dayShift, punchRecords);

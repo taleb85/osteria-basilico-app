@@ -13,8 +13,6 @@ import {
   ChevronDown,
   Users,
   MapPin,
-  RefreshCw,
-  RotateCcw,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getFeatureStrings, formatTrans } from '../utils/translations';
@@ -55,18 +53,11 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     effectiveLanguage,
     showSuccess,
     showError,
-    silentRefreshData,
-    hardReloadFromDatabase,
-    isGlobalRefreshing,
-    dataSyncInProgress,
     seedDemoProfileForUser,
   } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [howOpen, setHowOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState<Record<string, boolean>>({});
-  const [cloudSyncing, setCloudSyncing] = useState(false);
-  const [hardReloading, setHardReloading] = useState(false);
-  const syncBusy = cloudSyncing || hardReloading || isGlobalRefreshing || dataSyncInProgress;
 
   const toggleDetail = useCallback((slug: string) => {
     setDetailOpen((prev) => ({ ...prev, [slug]: !prev[slug] }));
@@ -218,42 +209,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
                 {t.impostazioni_open_profiles}
               </button>
             )}
-            <button
-              type="button"
-              disabled={syncBusy}
-              onClick={async () => {
-                setCloudSyncing(true);
-                try {
-                  await silentRefreshData({ pullRemoteConfig: true });
-                  showSuccess?.(t.settings_cloud_sync_success);
-                } finally {
-                  setCloudSyncing(false);
-                }
-              }}
-              className="inline-flex items-center justify-center gap-2 self-start surface-glass-sm px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 surface-ghost-interactive disabled:pointer-events-none disabled:opacity-50 dark:text-neutral-100"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${cloudSyncing ? 'animate-spin' : ''}`} aria-hidden />
-              {t.settings_cloud_sync_button}
-            </button>
-            <button
-              type="button"
-              disabled={syncBusy}
-              onClick={async () => {
-                if (!window.confirm(t.hard_reload_confirm)) return;
-                setHardReloading(true);
-                try {
-                  await hardReloadFromDatabase();
-                } finally {
-                  setHardReloading(false);
-                }
-              }}
-              className="inline-flex items-center justify-center gap-2 self-start rounded-lg border border-amber-200/90 bg-amber-50/90 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-900 hover:border-amber-300 hover:bg-amber-100/90 disabled:pointer-events-none disabled:opacity-50 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:border-amber-700 dark:hover:bg-amber-950/55"
-            >
-              <RotateCcw className={`w-3.5 h-3.5 ${hardReloading ? 'animate-spin' : ''}`} aria-hidden />
-              {t.hard_reload_button}
-            </button>
           </div>
-          <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-2 max-w-3xl leading-relaxed">{t.hard_reload_hint}</p>
           {onOpenProfilesTab && (
             <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-1.5 max-w-3xl">{t.impostazioni_master_panel_scroll_hint}</p>
           )}

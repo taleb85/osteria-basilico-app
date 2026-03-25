@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Settings, LayoutList, RefreshCw, RotateCcw, Menu, X } from 'lucide-react';
+import { ArrowLeft, Users, Settings, LayoutList, Menu, X } from 'lucide-react';
 import DataSyncBanner from './DataSyncBanner';
 import { useApp } from '../context/AppContext';
 import { isAdminOnly, canEditRoleFeatureTemplates } from '../utils/permissions';
@@ -20,20 +20,15 @@ export default function AdminLayout() {
   const {
     currentUser,
     silentRefreshData,
-    hardReloadFromDatabase,
     effectiveLanguage,
-    showSuccess,
     isGlobalRefreshing,
     dataSyncInProgress,
   } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [activeTab, setActiveTab] = useState<AdminTab>('profili');
   const [adminNavOpen, setAdminNavOpen] = useState(false);
-  const [cloudSyncing, setCloudSyncing] = useState(false);
-  const [hardReloading, setHardReloading] = useState(false);
   const fullAdminNav = currentUser && isAdminOnly(currentUser);
   const showAdminNav = fullAdminNav || (currentUser && canEditRoleFeatureTemplates(currentUser));
-  const syncBusy = cloudSyncing || hardReloading || isGlobalRefreshing || dataSyncInProgress;
 
   const handleTabChange = useCallback((tab: AdminTab) => {
     setActiveTab(tab);
@@ -129,71 +124,6 @@ export default function AdminLayout() {
                       aria-label={t.admin_nav_menu_aria}
                       className="absolute right-0 top-[calc(100%+0.5rem)] z-[2] flex max-h-[min(70vh,32rem)] w-[min(calc(100vw-2rem),22rem)] flex-col gap-1 overflow-y-auto surface-glass-sm bg-slate-50/95 p-2 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.25)] backdrop-blur-md dark:bg-neutral-900/95 dark:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.5)]"
                     >
-                      {fullAdminNav && (
-                        <>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            disabled={syncBusy}
-                            aria-busy={syncBusy}
-                            onClick={async () => {
-                              setCloudSyncing(true);
-                              try {
-                                await silentRefreshData({ pullRemoteConfig: true });
-                                showSuccess?.(t.settings_cloud_sync_success);
-                              } finally {
-                                setCloudSyncing(false);
-                              }
-                            }}
-                            className={`relative flex w-full min-h-[44px] items-center gap-2 overflow-hidden rounded-lg border px-3 text-left text-xs font-semibold transition-all duration-200 disabled:pointer-events-none ${
-                              syncBusy
-                                ? 'border-accent/25 bg-slate-100/90 text-slate-700 shadow-[inset_0_0_0_1px_rgba(45,90,39,0.08)] dark:bg-neutral-800 dark:text-neutral-100'
-                                : 'border-transparent text-slate-600 hover:border-slate-200/80 hover:bg-slate-50 hover:text-slate-900 dark:text-neutral-300 dark:hover:border-white/10 dark:hover:bg-neutral-800 dark:hover:text-neutral-50'
-                            } disabled:opacity-60`}
-                          >
-                            {syncBusy && (
-                              <span
-                                className="pointer-events-none absolute inset-x-2 bottom-1 h-[3px] overflow-hidden rounded-full bg-slate-200/70 dark:bg-neutral-600/80"
-                                aria-hidden
-                              >
-                                <span className="block h-full w-[42%] rounded-full bg-gradient-to-r from-accent/75 to-accent shadow-[0_0_8px_rgba(45,90,39,0.35)] animate-admin-sync-bar" />
-                              </span>
-                            )}
-                            <RefreshCw
-                              className={`relative z-[1] h-3.5 w-3.5 shrink-0 transition-transform ${cloudSyncing ? 'animate-spin text-accent' : ''}`}
-                              aria-hidden
-                            />
-                            <span className="relative z-[1]">{t.settings_cloud_sync_button}</span>
-                          </button>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            disabled={syncBusy}
-                            title={t.hard_reload_hint}
-                            onClick={async () => {
-                              if (!window.confirm(t.hard_reload_confirm)) return;
-                              setHardReloading(true);
-                              try {
-                                await hardReloadFromDatabase();
-                              } finally {
-                                setHardReloading(false);
-                              }
-                            }}
-                            className={`relative flex w-full min-h-[44px] items-center gap-2 overflow-hidden rounded-lg border px-3 text-left text-xs font-semibold transition-all duration-200 disabled:pointer-events-none ${
-                              hardReloading
-                                ? 'border-amber-300/80 bg-amber-50 text-amber-950 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.2)] dark:border-amber-700/50 dark:bg-amber-950/40 dark:text-amber-100'
-                                : 'border-amber-200/90 bg-amber-50/95 text-amber-950 hover:border-amber-300 hover:bg-amber-100 dark:border-amber-800/40 dark:bg-amber-950/35 dark:text-amber-100 dark:hover:border-amber-700 dark:hover:bg-amber-950/50'
-                            } disabled:opacity-60`}
-                          >
-                            <RotateCcw
-                              className={`relative z-[1] h-3.5 w-3.5 shrink-0 ${hardReloading ? 'animate-spin' : ''}`}
-                              aria-hidden
-                            />
-                            <span className="relative z-[1]">{t.hard_reload_button}</span>
-                          </button>
-                          <div className="my-1 h-px bg-slate-200/80 dark:bg-white/10" aria-hidden />
-                        </>
-                      )}
                       <button
                         type="button"
                         role="menuitem"

@@ -65,6 +65,7 @@ import {
 import {
   type WorkRules,
   getWorkRules,
+  saveWorkRules,
   saveWorkRulesToSupabase,
   DEFAULT_WORK_RULES,
   loadWorkRulesFromSupabase,
@@ -327,7 +328,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const applyAppSettingsBundle = useCallback((bundle: AppGlobalSettingsBundle) => {
     if (bundle.workRules) {
-      setWorkRulesState({ ...DEFAULT_WORK_RULES, ...bundle.workRules });
+      const mergedWr = { ...DEFAULT_WORK_RULES, ...bundle.workRules };
+      setWorkRulesState(mergedWr);
+      saveWorkRules(mergedWr);
     }
     if (bundle.breakRules) {
       setBreakRulesState(bundle.breakRules);
@@ -648,8 +651,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
               loadWorkRulesFromSupabase().catch(() => null),
               loadBreakRulesFromSupabase().catch(() => null),
             ]);
-            if (wrSb) setWorkRulesState(wrSb);
-            else setWorkRulesState(getWorkRules());
+            if (wrSb) {
+              setWorkRulesState(wrSb);
+              saveWorkRules(wrSb);
+            } else setWorkRulesState(getWorkRules());
             if (brSb) setBreakRulesState(brSb);
             else setBreakRulesState(getBreakRules());
             const deptRemoteBootElse = await loadDepartmentsFromSupabase().catch(() => null);
@@ -1585,7 +1590,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
               loadWorkRulesFromSupabase().catch(() => null),
               loadBreakRulesFromSupabase().catch(() => null),
             ]);
-            if (wrSb) setWorkRulesState(wrSb);
+            if (wrSb) {
+              setWorkRulesState(wrSb);
+              saveWorkRules(wrSb);
+            }
             if (brSb) setBreakRulesState(brSb);
             const deptRemoteSrElse = await loadDepartmentsFromSupabase().catch(() => null);
             mergeDepartmentsRemoteAfterPull(deptRemoteSrElse);
@@ -1752,6 +1760,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setWorkRules = useCallback(async (rules: WorkRules) => {
     setWorkRulesState(rules);
+    saveWorkRules(rules);
     markManagementDataTouched();
     await saveWorkRulesToSupabase(rules).catch(() => {});
     const rev = await bumpClientSyncRevisionOnSupabase();

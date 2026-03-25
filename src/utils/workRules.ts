@@ -188,6 +188,8 @@ export function getShiftViolations(
   options?: ShiftViolationComputeOptions
 ): ShiftViolation[] {
   const violations: ShiftViolation[] = [];
+  /** Stessi default della UI; i tre layer usano solo valori truthy (`true`), non `!== false` (che con 0/null lascerebbe le regole “accese”). */
+  const r: WorkRules = { ...DEFAULT_WORK_RULES, ...rules };
   const startNorm = (shift.start_time || '').slice(0, 5);
   const endNorm = (shift.end_time || '').trim().slice(0, 5);
   if (!startNorm || !endNorm || endNorm === startNorm) return violations;
@@ -202,7 +204,7 @@ export function getShiftViolations(
   const shiftMins = Math.max(0, gross - breakMins);
 
   // 0. Sovrapposizione (se abilitata)
-  if (rules.overlapEnabled !== false) {
+  if (!!r.overlapEnabled) {
     const othersSameDay = allShifts.filter(
       (s) => s.user_id === shift.user_id && s.date === shift.date && s.id !== shift.id && !s.notes?.startsWith('__OPEN__')
     );
@@ -221,30 +223,30 @@ export function getShiftViolations(
   }
 
   // 1. Turno lungo (singolo) — Critico
-  if (rules.criticEnabled !== false && rules.maxDailyHoursEnabled !== false && shiftMins > rules.maxDailyHours * 60) {
+  if (!!r.criticEnabled && r.maxDailyHoursEnabled !== false && shiftMins > r.maxDailyHours * 60) {
     violations.push({
       type: 'long_shift',
-      message: `Turno di ${Math.round(shiftMins / 60 * 10) / 10}h (max ${rules.maxDailyHours}h)`,
+      message: `Turno di ${Math.round(shiftMins / 60 * 10) / 10}h (max ${r.maxDailyHours}h)`,
       severity: 'error',
     });
   }
 
   // 2. Ore giornaliere totali — Attenzione
   const dayMins = dailyMinutes(shift.user_id, shift.date, allShifts, options?.users, options?.breakRules, breakOpts);
-  if (rules.attentionEnabled !== false && rules.maxDailyHoursEnabled !== false && dayMins > rules.maxDailyHours * 60 && shiftMins <= rules.maxDailyHours * 60) {
+  if (!!r.attentionEnabled && r.maxDailyHoursEnabled !== false && dayMins > r.maxDailyHours * 60 && shiftMins <= r.maxDailyHours * 60) {
     violations.push({
       type: 'max_daily',
-      message: `Totale giorno: ${Math.round(dayMins / 60 * 10) / 10}h (max ${rules.maxDailyHours}h)`,
+      message: `Totale giorno: ${Math.round(dayMins / 60 * 10) / 10}h (max ${r.maxDailyHours}h)`,
       severity: 'warn',
     });
   }
 
   // 3. Ore settimanali — Attenzione
   const wMins = weeklyMinutes(shift.user_id, weekStr, weekEnd, allShifts, options?.users, options?.breakRules, breakOpts);
-  if (rules.attentionEnabled !== false && rules.maxWeeklyHoursEnabled !== false && wMins > rules.maxWeeklyHours * 60) {
+  if (!!r.attentionEnabled && r.maxWeeklyHoursEnabled !== false && wMins > r.maxWeeklyHours * 60) {
     violations.push({
       type: 'max_weekly',
-      message: `Settimana: ${Math.round(wMins / 60 * 10) / 10}h (max ${rules.maxWeeklyHours}h)`,
+      message: `Settimana: ${Math.round(wMins / 60 * 10) / 10}h (max ${r.maxWeeklyHours}h)`,
       severity: 'warn',
     });
   }
@@ -277,10 +279,10 @@ export function getShiftViolations(
       const currStartTotal = currStartH * 60 + currStartM;
       gapMins = (24 * 60 - prevEndTotal) + currStartTotal;
     }
-    if (rules.criticEnabled !== false && rules.minRestHoursEnabled !== false && gapMins >= 0 && gapMins < rules.minRestHours * 60) {
+    if (!!r.criticEnabled && r.minRestHoursEnabled !== false && gapMins >= 0 && gapMins < r.minRestHours * 60) {
       violations.push({
         type: 'min_rest',
-        message: `Riposo ${Math.round(gapMins / 60 * 10) / 10}h (min ${rules.minRestHours}h)`,
+        message: `Riposo ${Math.round(gapMins / 60 * 10) / 10}h (min ${r.minRestHours}h)`,
         severity: 'error',
       });
       break;

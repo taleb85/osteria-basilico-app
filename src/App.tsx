@@ -141,8 +141,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     isGlobalRefreshing,
     postRefreshLocked,
     silentRefreshData,
-    showSuccess,
-    showError,
     featureFlags,
     roleTemplatesRevision,
   } = useApp();
@@ -191,16 +189,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const mainViewRestoredUserIdRef = useRef<string | null>(null);
   const pendingScrollRestoreRef = useRef<{ y: number; tab: AppNavTab } | null>(null);
   const profileLeaveGuardRef = useRef<ProfileLeaveGuard | null>(null);
-
-  /** Sync manuale: niente `throwOnError` (timeout/rete non devono bloccare l’app). */
-  const runMainAppManualSync = useCallback(async () => {
-    try {
-      await silentRefreshData({ pullRemoteConfig: true });
-      showSuccess(tr.settings_cloud_sync_success);
-    } catch {
-      showError(tr.app_sync_failed_retry);
-    }
-  }, [silentRefreshData, showSuccess, showError, tr]);
 
   const applyTabChange = useCallback(
     (id: AppNavTab) => {
@@ -389,7 +377,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     }
   };
 
-  /** `overflow-visible` così popover sync / menu non vengono tagliati dal bordo arrotondato della card. */
+  /** `overflow-visible` così popover / menu non vengono tagliati dal bordo arrotondato della card. */
   const appHeaderMainCardClass =
     'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/80 dark:bg-neutral-900/80 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-visible supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
   const appHeaderCardClass =
@@ -422,8 +410,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
               currentUser?.role === 'assistant_manager'
             }
             hideToolbarAvatar={isManagement}
-            managementSyncToolbar={isManagement}
-            onMainAppManualSync={runMainAppManualSync}
           />
         </div>
         {currentUser && activeTab === 'home' && (

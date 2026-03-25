@@ -1,8 +1,8 @@
-import { useState, useCallback, useId } from 'react';
+import { useId } from 'react';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { LogOut, Loader2, RefreshCw } from 'lucide-react';
+import { LogOut, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { getRoleScopeHint } from '../utils/roleScopeHint';
@@ -100,11 +100,6 @@ interface MobileProfileHeaderProps {
   hideHeaderLogout?: boolean;
   /** Se true, nasconde il pulsante profilo (es. non-admin: profilo solo in bottom bar). */
   hideToolbarAvatar?: boolean;
-  /** MainApp gestione: pulsante Sincronizza (come menu admin) + popover blocco navigazione. */
-  managementSyncToolbar?: boolean;
-  mainAppSyncNavBlockOpen?: boolean;
-  onCancelMainAppSyncNavBlock?: () => void;
-  onMainAppManualSync?: () => Promise<void>;
 }
 
 export default function MobileProfileHeader({
@@ -116,8 +111,6 @@ export default function MobileProfileHeader({
   parentProvidesCardShell = false,
   hideHeaderLogout = false,
   hideToolbarAvatar = false,
-  managementSyncToolbar = false,
-  onMainAppManualSync,
 }: MobileProfileHeaderProps) {
   const {
     currentUser,
@@ -125,7 +118,6 @@ export default function MobileProfileHeader({
     dataSyncInProgress,
     isGlobalRefreshing,
     postRefreshLocked,
-    managementDataTouchedSinceLastSync,
     updateUserPreferences,
   } = useApp();
   const showDataSyncIndicator =
@@ -134,23 +126,6 @@ export default function MobileProfileHeader({
   const tr = t as Record<string, string>;
   const locale = getDateLocale(effectiveLanguage) ?? it;
   const now = useWallAlignedMinuteClock();
-
-  const [mainSyncBusy, setMainSyncBusy] = useState(false);
-  const mainSyncDisabled =
-    mainSyncBusy ||
-    !!postRefreshLocked ||
-    isGlobalRefreshing ||
-    dataSyncInProgress ||
-    !managementDataTouchedSinceLastSync;
-  const runMainSync = useCallback(async () => {
-    if (!onMainAppManualSync || mainSyncDisabled) return;
-    setMainSyncBusy(true);
-    try {
-      await onMainAppManualSync();
-    } finally {
-      setMainSyncBusy(false);
-    }
-  }, [onMainAppManualSync, mainSyncDisabled]);
 
   if (!currentUser) return null;
 
@@ -228,43 +203,6 @@ export default function MobileProfileHeader({
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-              {managementSyncToolbar && onMainAppManualSync ? (
-                <button
-                  type="button"
-                  onClick={() => void runMainSync()}
-                  disabled={mainSyncDisabled}
-                  aria-busy={mainSyncBusy}
-                  title={
-                    managementDataTouchedSinceLastSync
-                      ? t.settings_cloud_sync_button
-                      : tr.management_sync_inactive_hint ?? t.settings_cloud_sync_button
-                  }
-                  aria-label={
-                    managementDataTouchedSinceLastSync
-                      ? t.settings_cloud_sync_button
-                      : tr.management_sync_inactive_hint ?? t.settings_cloud_sync_button
-                  }
-                  className={`relative flex min-h-[40px] min-w-[40px] shrink-0 items-center justify-center gap-1.5 overflow-hidden rounded-lg border px-2 sm:px-2.5 text-left text-[11px] font-semibold transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 ${
-                    managementDataTouchedSinceLastSync
-                      ? 'border-slate-300/90 bg-slate-100 text-slate-800 shadow-sm shadow-slate-200/40 hover:border-slate-400 hover:bg-white dark:border-white/15 dark:bg-neutral-800 dark:text-neutral-100 dark:shadow-none dark:hover:border-white/20 dark:hover:bg-neutral-700'
-                      : 'border-slate-300/70 bg-slate-100 text-slate-600 cursor-not-allowed dark:border-white/10 dark:bg-neutral-800/90 dark:text-neutral-400'
-                  }`}
-                >
-                  {mainSyncBusy ? (
-                    <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-slate-700 dark:text-neutral-200" aria-hidden />
-                  ) : (
-                    <RefreshCw
-                      className={`h-3.5 w-3.5 shrink-0 ${
-                        managementDataTouchedSinceLastSync
-                          ? 'text-slate-700 dark:text-neutral-200'
-                          : 'text-slate-500 dark:text-neutral-500'
-                      }`}
-                      aria-hidden
-                    />
-                  )}
-                  <span className="hidden min-[520px]:inline">{t.settings_cloud_sync_button}</span>
-                </button>
-              ) : null}
               {!hideToolbarAvatar && (
                 <UserAvatarMenu variant="toolbar" onLogout={hideHeaderLogout ? onLogout : undefined} />
               )}
