@@ -932,15 +932,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       !!effectiveWorkRules.attentionEnabled ||
       !!effectiveWorkRules.overlapEnabled);
 
-  /** Bozza: tratteggio solo se il chrome violazioni è attivo; altrimenti bordo pieno (stesso stato, aspetto neutro). */
+  /** Bozza: sempre tratteggiato (stato draft), indipendente dai toggle violazioni. */
   const VARIANT_CLASSES: Record<ShiftColorVariant, { bg: string; text: string; selRing: string; border?: string; borderBottom?: string }> = {
     planned: {
       bg: 'bg-slate-50 hover:bg-slate-100 dark:bg-neutral-950/85 dark:hover:bg-neutral-900/90',
       text: 'text-slate-900 dark:text-white',
       selRing: 'ring-white/40',
-      border: violationChromeEnabled
-        ? 'border-2 border-dashed border-slate-400 dark:border-white/75 rounded-xl shadow-sm'
-        : 'border-2 border-slate-300 dark:border-white/60 rounded-xl shadow-sm',
+      border: 'border-2 border-dashed border-slate-400 dark:border-white/75 rounded-xl shadow-sm',
     },
     inprogress: {
       bg: 'bg-slate-50 hover:bg-slate-100 dark:bg-neutral-950/90 dark:hover:bg-neutral-900',
@@ -962,13 +960,20 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     let base = `relative group flex flex-col items-start justify-start ${v.bg} ${v.text} shadow-sm transition-shadow `;
     if (v.border) base += `${v.border} `;
     if (v.borderBottom) base += `${v.borderBottom} `;
+    const selectedStyle = isSelected ? `ring-2 ${v.selRing} shadow-md ` : '';
+    /** Box-shadow invece di `ring-*`: su desktop la stessa cella ha `hover:ring-2` (canEditInApp) che in Tailwind mascherava anelli rosso/ambra. */
+    let violationGlow = '';
     if (violationChromeEnabled) {
       const viol = getViolations(shift);
-      if (viol.some(x => x.severity === 'error')) base += 'ring-2 ring-red-500 ';
-      else if (viol.some(x => x.severity === 'warn')) base += 'ring-2 ring-amber-400 ';
+      if (viol.some(x => x.severity === 'error')) {
+        violationGlow =
+          'shadow-[0_0_0_2px_rgb(239,68,68)] dark:shadow-[0_0_0_2px_rgb(248,113,113)] ';
+      } else if (viol.some(x => x.severity === 'warn')) {
+        violationGlow =
+          'shadow-[0_0_0_2px_rgb(245,158,11)] dark:shadow-[0_0_0_2px_rgb(251,191,36)] ';
+      }
     }
-    const selectedStyle = isSelected ? `ring-2 ${v.selRing} shadow-md ` : '';
-    return `${base}${selectedStyle}rounded-xl px-1.5 py-1 my-0.5 mx-0.5 cursor-default min-h-[44px] sm:min-h-[44px]`;
+    return `${base}${selectedStyle}${violationGlow}rounded-xl px-1.5 py-1 my-0.5 mx-0.5 cursor-default min-h-[44px] sm:min-h-[44px]`;
   };
 
   /** Ore in settimana (bozza + confermato + approvato), esclusi turni aperti; stessi orari risolti e pause del resto dell’app. */
@@ -1492,9 +1497,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       },
                       {
                         bg: 'bg-white dark:bg-neutral-900',
-                        border: violationChromeEnabled
-                          ? 'border-dashed border-slate-300 dark:border-neutral-500'
-                          : 'border border-slate-200 dark:border-white/15',
+                        border: 'border-2 border-dashed border-slate-300 dark:border-neutral-500',
                         textCls: 'text-black dark:text-neutral-100',
                         label: t.status_draft,
                         sub: t.wst_status_sub_draft,
@@ -2729,7 +2732,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 onDragLeave={() => setDropTargetKey(null)}
                                 onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { handleDropShift(draggedShiftId, user.id, dayStr); setDraggedShiftId(null); setDropTargetKey(null); } }}
                                 title={dayShift && needsCambioWarning(dayShift) ? t.no_change_at_16 : undefined}
-                                className={`flex flex-col ${dayShift && dayVariant === 'planned' && violationChromeEnabled ? 'border-b-2 border-dashed border-slate-300 dark:border-white/55' : 'border-b-2 border-slate-400 dark:border-white/45'} relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600' : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
+                                className={`flex flex-col ${dayShift && dayVariant === 'planned' ? 'border-b-2 border-dashed border-slate-300 dark:border-white/55' : 'border-b-2 border-slate-400 dark:border-white/45'} relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600' : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
                               >
                                 {dayShift ? (() => {
                                   const actualTimes = getActualShiftTime(dayShift, punchRecords);

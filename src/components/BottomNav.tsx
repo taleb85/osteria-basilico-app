@@ -107,6 +107,18 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
                 id === 'profile' && profileNavLabel
                   ? `${t.sidebar_profile}, ${profileNavLabel}`
                   : displayLabel;
+              const isProfileTab = id === 'profile' && currentUser;
+              const profileNameLine =
+                isProfileTab && profileNavLabel ? (
+                  <span
+                    className={`max-w-[4.25rem] sm:max-w-[7.5rem] truncate text-center text-[9px] sm:text-[11px] font-bold uppercase leading-tight tracking-tight ${
+                      isActive ? 'text-white' : 'text-white/85'
+                    }`}
+                  >
+                    {profileNavLabel}
+                  </span>
+                ) : null;
+
               return (
                 <button
                   key={id}
@@ -114,13 +126,17 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
                   onClick={() => onTabChange(id)}
                   title={buttonTitle}
                   aria-label={ariaLabel}
-                  className="keep-white-glass flex flex-1 min-w-0 min-h-[44px] sm:min-h-[48px] items-center justify-center rounded-xl sm:rounded-2xl px-0.5 py-1.5 text-white/[0.78] transition-all duration-200 hover:bg-white/10 hover:text-white/95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D5A27] active:scale-[0.97]"
+                  className={`keep-white-glass flex flex-1 min-w-0 min-h-[44px] sm:min-h-[48px] rounded-xl sm:rounded-2xl text-white/[0.78] transition-all duration-200 hover:bg-white/10 hover:text-white/95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[rgb(45,90,39)] active:scale-[0.97] ${
+                    isProfileTab
+                      ? 'flex-col items-center justify-center gap-0.5 px-0.5 py-1 sm:flex-row sm:gap-1.5 sm:px-1.5 sm:py-1.5'
+                      : 'items-center justify-center px-0.5 py-1.5'
+                  }`}
                 >
                   {showProfilePic ? (
                     <span
                       className={`flex h-[22px] w-[22px] sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md transition-transform duration-200 ${
                         isActive
-                          ? 'scale-110 ring-2 ring-white ring-offset-1 ring-offset-transparent'
+                          ? 'scale-110 ring-2 ring-white ring-offset-1 ring-offset-[rgb(45,90,39)]'
                           : 'opacity-90 ring-1 ring-white/20'
                       }`}
                     >
@@ -134,9 +150,9 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
                     </span>
                   ) : showProfileInitial ? (
                     <span
-                      className={`flex h-[22px] w-[22px] sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/35 bg-white/12 text-[11px] sm:text-xs font-bold text-white transition-transform duration-200 ${
+                      className={`flex h-[22px] w-[22px] sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/35 bg-white/10 text-[11px] sm:text-xs font-bold text-white transition-transform duration-200 ${
                         isActive
-                          ? 'scale-110 ring-2 ring-white ring-offset-1 ring-offset-transparent'
+                          ? 'scale-110 ring-2 ring-white ring-offset-1 ring-offset-[rgb(45,90,39)]'
                           : 'opacity-95 ring-1 ring-white/25'
                       }`}
                       aria-hidden
@@ -152,6 +168,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
                       aria-hidden
                     />
                   )}
+                  {profileNameLine}
                 </button>
               );
             })}
