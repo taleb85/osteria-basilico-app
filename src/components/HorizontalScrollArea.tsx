@@ -22,7 +22,7 @@ type Props = {
 };
 
 const overlayBtnClass =
-  'absolute top-3 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200/70 bg-white/95 text-slate-500 shadow-sm backdrop-blur-[2px] transition-[color,box-shadow,transform] hover:border-slate-300 hover:text-slate-800 active:scale-95 disabled:pointer-events-none disabled:opacity-0';
+  'absolute top-3 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200/80 dark:border-white/12 bg-slate-50/55 text-slate-500 shadow-sm backdrop-blur-md transition-[color,box-shadow,transform] hover:border-slate-300 hover:bg-slate-50/90 hover:text-slate-800 dark:bg-neutral-900/45 dark:hover:border-white/18 dark:hover:bg-neutral-800/55 dark:hover:text-neutral-100 active:scale-95 disabled:pointer-events-none disabled:opacity-0';
 
 export function HorizontalScrollArea({
   children,
@@ -80,7 +80,7 @@ export function HorizontalScrollArea({
             type="button"
             disabled={!canLeft}
             onClick={() => scrollBy(-delta)}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-35"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center surface-glass-sm text-slate-600 transition-colors surface-ghost-interactive disabled:pointer-events-none disabled:opacity-35 dark:text-neutral-300"
             aria-label={ariaLabelPrev}
           >
             <ChevronLeft className="h-4 w-4" aria-hidden />
@@ -89,7 +89,7 @@ export function HorizontalScrollArea({
             type="button"
             disabled={!canRight}
             onClick={() => scrollBy(delta)}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-35"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center surface-glass-sm text-slate-600 transition-colors surface-ghost-interactive disabled:pointer-events-none disabled:opacity-35 dark:text-neutral-300"
             aria-label={ariaLabelNext}
           >
             <ChevronRight className="h-4 w-4" aria-hidden />

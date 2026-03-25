@@ -40,7 +40,7 @@ export default function GenericWidgetsColumn({
                     hiddenBadge={hiddenBadge}
                   >
                     <div
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none"
+                      className="surface-glass-sm px-4 py-3"
                       title={w.key}
                     >
                       <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{w.label}</p>

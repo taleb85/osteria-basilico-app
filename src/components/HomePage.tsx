@@ -17,6 +17,7 @@ import {
   canOperateTeamSchedule,
   canApproveShiftActions,
 } from '../utils/permissions';
+import { getRoleScopeHint } from '../utils/roleScopeHint';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
@@ -322,7 +323,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
       };
     return {
       border: 'border-l-slate-300 dark:border-l-neutral-600',
-      bg: 'bg-white dark:bg-neutral-900/70',
+      bg: 'bg-slate-50/35 dark:bg-neutral-900/25',
       badge: 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-white/10',
       dot: 'bg-slate-300 dark:bg-neutral-500',
       label: t.home_status_not_punched,
@@ -339,7 +340,15 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
           {/* Saluto */}
           {uiW('home_compact.greeting') && (
           <div>
-            <h1 className="text-slate-900 font-bold text-2xl">{t.home_greeting.replace('{name}', currentUser.first_name)}</h1>
+            <h1 className="text-slate-900 dark:text-neutral-100 font-bold text-2xl">{t.home_greeting.replace('{name}', currentUser.first_name)}</h1>
+            {(() => {
+              const scope = getRoleScopeHint(currentUser.role, t as Record<string, string>);
+              return scope ? (
+                <p className="text-[11px] text-slate-600 dark:text-neutral-400 mt-2 max-w-md leading-snug border-l-2 border-accent/30 pl-2.5">
+                  {scope}
+                </p>
+              ) : null;
+            })()}
           </div>
           )}
 
@@ -464,7 +473,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
           {uiW('home_compact.next_shift') && upcomingShifts.filter((s) => s.date !== todayStr)[0] && (() => {
             const next = upcomingShifts.filter((s) => s.date !== todayStr)[0];
             return (
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm p-5">
+              <div className="surface-glass p-5">
                 <p className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider mb-2">{t.home_next_shift}</p>
                 <p className="text-lg font-bold text-slate-800 dark:text-neutral-100 mb-1">{getDateLabel(next.date)}</p>
                 <div className="flex items-center gap-2">
@@ -477,7 +486,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
 
           {/* Lista turni */}
           {uiW('home_compact.shift_list') && (
-          <div ref={shiftsListRef} className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm p-5">
+          <div ref={shiftsListRef} className="surface-glass p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">{t.home_my_shifts}</h3>
               <button type="button" onClick={() => onNavigateToShifts?.()} className="text-xs font-semibold text-accent flex items-center gap-1 hover:underline">
@@ -512,7 +521,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
 
           {/* Ferie approvate */}
           {uiW('home_compact.approved_holidays') && staffRequestsEnabled && myApprovedHolidays.length > 0 && (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm p-5">
+            <div className="surface-glass p-5">
               <h3 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <Palmtree className="w-4 h-4 text-accent dark:text-accent-light" /> {t.home_upcoming_holidays}
               </h3>
@@ -538,15 +547,29 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
           className="flex flex-col gap-5">
 
-          {/* ── Profilo Gestionale (solo Admin) ───────────────────── */}
+          {currentUser.role !== 'admin' &&
+            (() => {
+              const scope = getRoleScopeHint(currentUser.role, t as Record<string, string>);
+              return scope ? (
+                <p className="text-[11px] text-slate-600 dark:text-neutral-400 leading-snug border-l-2 border-accent/35 pl-3 py-0.5 -mt-1">
+                  {scope}
+                </p>
+              ) : null;
+            })()}
+
+          {/* ── Profilo amministratore (solo Admin) ───────────────────── */}
           {uiW('home_mgmt.admin_banner') && isPurelyManagementRole(currentUser.role) && (
-            <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-900/80 px-4 py-3 flex items-center gap-3">
+            <div className="surface-glass flex items-center gap-3 bg-slate-50/40 px-4 py-3 dark:bg-neutral-900/30">
               <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-neutral-800 flex items-center justify-center flex-shrink-0">
                 <Users className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Profilo Gestionale</p>
-                <p className="text-xs text-slate-500 dark:text-neutral-400">Nessun turno assegnato — accesso solo alla gestione</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">
+                  {(t as Record<string, string>).home_admin_profile_banner_title}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-neutral-400">
+                  {(t as Record<string, string>).home_admin_profile_banner_body}
+                </p>
               </div>
             </div>
           )}
@@ -555,7 +578,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
           {uiW('home_mgmt.team_board') && (
           <AnimatePresence>
             <motion.div key="board" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'bg-amber-50 border-amber-200 dark:bg-amber-950/40 dark:border-amber-800/50' : 'border-dashed border-slate-200 dark:border-white/15 bg-slate-50/80 dark:bg-neutral-900/60'}`}>
+              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'border-amber-200 bg-amber-50 dark:border-amber-800/50 dark:bg-amber-950/40' : 'surface-glass border-dashed border-slate-200/90 dark:border-white/15'}`}>
               <div className="flex items-start gap-3">
                 <Megaphone size={15} className={`mt-0.5 shrink-0 ${boardNote ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-neutral-400'}`} />
                 <div className="flex-1 min-w-0">
@@ -613,7 +636,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                 value: inTurnoCount,
                 Icon: Users,
                 iconColor: 'text-teal-600 dark:text-teal-400',
-                bg: 'bg-teal-50 dark:bg-teal-950/35',
+                bg: 'bg-transparent dark:bg-transparent',
                 border: 'border-teal-100 dark:border-teal-800/40',
                 iconWell: 'bg-teal-100/80 dark:bg-teal-950/50',
               },
@@ -622,26 +645,26 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                 value: ritardiCount,
                 Icon: Clock,
                 iconColor: 'text-red-600 dark:text-red-400',
-                bg: ritardiCount > 0 ? 'bg-red-50 dark:bg-red-950/35' : 'bg-slate-50 dark:bg-neutral-900/60',
-                border: ritardiCount > 0 ? 'border-red-100 dark:border-red-900/40' : 'border-slate-100 dark:border-white/10',
-                iconWell: ritardiCount > 0 ? 'bg-red-100/80 dark:bg-red-950/45' : 'bg-red-50/90 dark:bg-red-950/25',
+                bg: 'bg-transparent dark:bg-transparent',
+                border: 'border-red-100 dark:border-red-900/40',
+                iconWell: 'bg-red-100/80 dark:bg-red-950/45',
               },
               {
                 label: t.home_stat_missing_out,
                 value: outMancantiCount,
                 Icon: AlertCircle,
                 iconColor: 'text-orange-600 dark:text-orange-400',
-                bg: outMancantiCount > 0 ? 'bg-orange-50 dark:bg-orange-950/35' : 'bg-slate-50 dark:bg-neutral-900/60',
-                border: outMancantiCount > 0 ? 'border-orange-100 dark:border-orange-900/40' : 'border-slate-100 dark:border-white/10',
-                iconWell: outMancantiCount > 0 ? 'bg-orange-100/80 dark:bg-orange-950/45' : 'bg-orange-50/90 dark:bg-orange-950/25',
+                bg: 'bg-transparent dark:bg-transparent',
+                border: 'border-orange-100 dark:border-orange-900/40',
+                iconWell: 'bg-orange-100/80 dark:bg-orange-950/45',
               },
               {
                 label: t.home_stat_approved,
                 value: approvatiCount,
                 Icon: UserCheck,
                 iconColor: 'text-accent dark:text-accent-light',
-                bg: approvatiCount > 0 ? 'bg-accent/8 dark:bg-accent/15' : 'bg-slate-50 dark:bg-neutral-900/60',
-                border: approvatiCount > 0 ? 'border-accent/20 dark:border-accent/30' : 'border-slate-100 dark:border-white/10',
+                bg: 'bg-transparent dark:bg-transparent',
+                border: 'border-accent/20 dark:border-accent/30',
                 iconWell: 'bg-accent/15 dark:bg-accent/25',
               },
             ].map(({ label, value, Icon, iconColor, bg, border, iconWell }) => (
@@ -776,7 +799,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Reports */}
             {uiW('home_mgmt.card_presenze') && (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm p-5 cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigateToReports?.()}>
+            <div className="surface-glass surface-ghost-interactive cursor-pointer p-5" onClick={() => onNavigateToReports?.()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-slate-800 dark:text-neutral-50">{t.home_section_attendance}</h3>
                 <TrendingUp className="w-4 h-4 text-slate-400 dark:text-neutral-400" />
@@ -803,7 +826,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
 
             {/* Holidays — nascosto se funzione disattivata globalmente */}
             {uiW('home_mgmt.card_ferie') && staffRequestsEnabled && (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm p-5 cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigateToHolidays?.()}>
+            <div className="surface-glass surface-ghost-interactive cursor-pointer p-5" onClick={() => onNavigateToHolidays?.()}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-slate-800 dark:text-neutral-100">{t.home_holidays_section}</h3>
                 <Palmtree className="w-4 h-4 text-accent dark:text-accent-light" />
@@ -834,14 +857,14 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
             {/* KPI */}
             {uiW('home_mgmt.card_kpi') && (
             <div className="flex flex-col gap-3">
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigateToShifts?.()}>
+              <div className="surface-glass surface-ghost-interactive cursor-pointer p-4" onClick={() => onNavigateToShifts?.()}>
                 <div className="flex items-center justify-between mb-2">
                   <TrendingUp className="w-4 h-4 text-slate-400 dark:text-neutral-400" />
                   <span className="text-[10px] text-slate-500 dark:text-neutral-300 font-semibold uppercase">{t.home_kpi_hours_week}</span>
                 </div>
                 <p className="text-2xl font-bold text-slate-900 dark:text-neutral-50 tabular-nums">{formatMinutesToHoursAndMinutes(weeklyMinutes)}</p>
               </div>
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigateToShifts?.()}>
+              <div className="surface-glass surface-ghost-interactive cursor-pointer p-4" onClick={() => onNavigateToShifts?.()}>
                 <div className="flex items-center justify-between mb-2">
                   <Calendar className="w-4 h-4 text-slate-400 dark:text-neutral-400" />
                   <span className="text-[10px] text-slate-500 dark:text-neutral-300 font-semibold uppercase">{t.home_kpi_shifts_week}</span>
@@ -866,7 +889,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
               className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
               onClick={(e) => { if (e.target === e.currentTarget) { setCloseModal(null); setClockOutInput(''); } }}>
               <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                transition={{ duration: 0.15 }} className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-slate-200/80 dark:border-white/10 p-6 w-full max-w-sm">
+                transition={{ duration: 0.15 }} className="modal-glass-panel w-full max-w-sm rounded-2xl p-6">
                 <div className="flex items-start justify-between mb-5">
                   <div>
                     <h3 className="font-bold text-slate-900 dark:text-neutral-100 text-lg flex items-center gap-2">
@@ -1002,11 +1025,11 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
 
       {/* Scheduled vs Actual */}
       <div className="grid grid-cols-2 gap-2 mb-3">
-        <div className="bg-white/60 dark:bg-neutral-950/45 rounded-xl px-2.5 py-2">
+        <div className="surface-glass-sm bg-slate-50/35 px-2.5 py-2 dark:bg-neutral-900/25">
           <p className="text-[9px] text-slate-500 dark:text-neutral-400 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
           <p className="text-sm font-bold text-slate-600 dark:text-neutral-200 tabular-nums">{e.scheduledStart} → {e.scheduledEnd}</p>
         </div>
-        <div className="bg-white/60 dark:bg-neutral-950/45 rounded-xl px-2.5 py-2">
+        <div className="surface-glass-sm bg-slate-50/35 px-2.5 py-2 dark:bg-neutral-900/25">
           <p className="text-[9px] text-slate-500 dark:text-neutral-400 uppercase font-semibold mb-0.5">{t.ts_label_punched}</p>
           {e.actualStart ? (
             <p className="text-sm font-bold text-slate-800 dark:text-neutral-100 tabular-nums">

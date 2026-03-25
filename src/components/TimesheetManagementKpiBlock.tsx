@@ -125,10 +125,10 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
           onClick={() => setActiveWidget(activeWidget === 'approved' ? null : 'approved')}
-          className={`bg-white dark:bg-neutral-900 rounded-2xl border shadow-sm p-5 flex items-center gap-4 text-left transition-all cursor-pointer hover:shadow-md ${
+          className={`surface-glass surface-ghost-interactive flex cursor-pointer items-center gap-4 p-5 text-left transition-all ${
             activeWidget === 'approved'
               ? 'border-accent ring-2 ring-accent/20 dark:border-accent dark:ring-accent/30'
-              : 'border-slate-200 dark:border-white/10 hover:border-accent/40 dark:hover:border-accent/50'
+              : 'hover:border-accent/40 dark:hover:border-accent/50'
           }`}
         >
           <div className="w-10 h-10 rounded-xl bg-accent/10 dark:bg-accent/20 flex items-center justify-center flex-shrink-0">
@@ -151,7 +151,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm p-5 flex items-center gap-4 ${
+            className={`rounded-2xl border border-slate-200 bg-transparent p-5 shadow-none flex items-center gap-4 dark:border-white/10 dark:bg-transparent ${
               estimatedCostStats.shiftsWithRate === 0 ? 'opacity-75' : ''
             }`}
           >
@@ -212,12 +212,12 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
               setActiveWidget(activeWidget === 'pending' ? null : 'pending');
             }
           }}
-          className={`bg-white dark:bg-neutral-900 rounded-2xl border shadow-sm p-5 flex items-center gap-4 text-left transition-all cursor-pointer hover:shadow-md ${
+          className={`surface-glass surface-ghost-interactive flex cursor-pointer items-center gap-4 p-5 text-left transition-all ${
             activeWidget === 'pending' && pendingCount === 0
               ? 'border-amber-400 ring-2 ring-amber-200 dark:border-amber-500 dark:ring-amber-900/50'
               : pendingCount > 0
                 ? 'border-amber-200 dark:border-amber-800/50 hover:border-amber-400 dark:hover:border-amber-600'
-                : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                : 'hover:border-slate-300 dark:hover:border-white/20'
           }`}
         >
           <div

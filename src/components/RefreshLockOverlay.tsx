@@ -114,16 +114,16 @@ export default function RefreshLockOverlay() {
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-        className="w-full max-w-sm rounded-2xl bg-white p-4 sm:p-6 border border-slate-200 shadow-2xl text-slate-900"
+        className="modal-glass-panel w-full max-w-sm rounded-2xl p-4 sm:p-6"
       >
         <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
           <Lock className="w-5 h-5 sm:w-6 sm:h-6 text-accent flex-shrink-0" strokeWidth={2} />
-          <span className="text-slate-900 font-semibold uppercase tracking-wider text-xs sm:text-sm">
+          <span className="text-slate-900 dark:text-neutral-100 font-semibold uppercase tracking-wider text-xs sm:text-sm">
             {t.sync_lock_title}
           </span>
         </div>
 
-        <p className="text-slate-600 text-center text-sm sm:text-base mb-4 sm:mb-6 font-sans px-1 leading-snug">
+        <p className="text-slate-600 dark:text-neutral-300 text-center text-sm sm:text-base mb-4 sm:mb-6 font-sans px-1 leading-snug">
           {message}
         </p>
 
@@ -183,14 +183,14 @@ export default function RefreshLockOverlay() {
                     disabled={busy}
                     title={t.sync_lock_link_device_title}
                     aria-label={t.sync_lock_link_device_title}
-                    className="h-14 sm:h-[3.75rem] min-h-[52px] w-full rounded-xl sm:rounded-2xl flex flex-col items-center justify-center gap-0.5 border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 active:bg-slate-200 disabled:opacity-50 transition-colors touch-manipulation px-1"
+                    className="h-14 sm:h-[3.75rem] min-h-[52px] w-full rounded-xl sm:rounded-2xl flex flex-col items-center justify-center gap-0.5 border border-slate-200 dark:border-white/15 bg-slate-50 dark:bg-neutral-800 text-slate-700 dark:text-neutral-100 hover:bg-slate-100 dark:hover:bg-neutral-700 active:bg-slate-200 dark:active:bg-neutral-600 disabled:opacity-50 transition-colors touch-manipulation px-1"
                   >
                     {linkDeviceLoading ? (
                       <Loader2 className="w-6 h-6 animate-spin shrink-0" strokeWidth={2} aria-hidden />
                     ) : (
                       <Smartphone className="w-5 h-5 shrink-0 text-accent" strokeWidth={2} aria-hidden />
                     )}
-                    <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-tight leading-none text-center">
+                    <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-tight leading-none text-center text-slate-800 dark:text-neutral-100">
                       {t.sync_lock_link_device}
                     </span>
                   </motion.button>
@@ -207,32 +207,36 @@ export default function RefreshLockOverlay() {
                 disabled={(typeof n === 'number' && pin.length >= 4) || busy}
                 className={`h-14 sm:h-[3.75rem] min-h-[52px] w-full rounded-xl sm:rounded-2xl flex items-center justify-center font-semibold text-xl sm:text-2xl tabular-nums transition-colors font-sans border touch-manipulation ${
                   n === 'del'
-                    ? 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 active:bg-slate-300'
-                    : 'bg-white text-slate-900 border-slate-200 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50'
+                    ? 'bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-100 border-slate-200 dark:border-white/15 hover:bg-slate-200 dark:hover:bg-neutral-700 active:bg-slate-300 dark:active:bg-neutral-600'
+                    : 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-neutral-100 border-slate-200 dark:border-white/15 hover:bg-slate-50 dark:hover:bg-neutral-700 active:bg-slate-100 dark:active:bg-neutral-600 disabled:opacity-50'
                 }`}
               >
-                {n === 'del' ? <Delete className="w-6 h-6 text-slate-600" strokeWidth={2} /> : n}
+                {n === 'del' ? (
+                  <Delete className="w-6 h-6 text-slate-600 dark:text-neutral-200" strokeWidth={2} />
+                ) : (
+                  n
+                )}
               </motion.button>
             )
           )}
         </div>
 
         {error && (
-          <p className="text-red-600 text-xs sm:text-sm font-medium text-center mb-2 sm:mb-3">{error}</p>
+          <p className="text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium text-center mb-2 sm:mb-3">{error}</p>
         )}
 
         <div className="flex gap-2 sm:gap-3">
           <button
             type="button"
             onClick={handleCancel}
-            className="flex-1 min-h-[48px] py-3 sm:py-3.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 font-semibold hover:bg-slate-200 active:bg-slate-300 transition-colors touch-target"
+            className="flex-1 min-h-[48px] py-3 sm:py-3.5 rounded-xl bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-white/15 text-slate-800 dark:text-neutral-100 font-semibold hover:bg-slate-200 dark:hover:bg-neutral-700 active:bg-slate-300 dark:active:bg-neutral-600 transition-colors touch-target"
           >
             {t.sync_lock_cancel}
           </button>
           <button
             type="submit"
             disabled={pin.length !== 4 || busy}
-            className="flex-1 min-h-[48px] py-3 sm:py-3.5 rounded-xl bg-accent text-white font-semibold hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed active:bg-accent-dark transition-colors touch-target"
+            className="flex-1 min-h-[48px] py-3 sm:py-3.5 rounded-xl bg-accent text-white font-semibold shadow-sm shadow-black/20 hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed active:brightness-95 transition-colors touch-target"
           >
             {loading ? '...' : t.confirm}
           </button>

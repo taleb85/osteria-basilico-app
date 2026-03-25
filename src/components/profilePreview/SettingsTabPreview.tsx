@@ -28,7 +28,7 @@ export default function SettingsTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+        <div className="surface-glass overflow-hidden">
           <div className="border-b border-slate-100 bg-slate-50 px-4 py-4 dark:border-white/10 dark:bg-neutral-800/80">
             <div className="flex items-center gap-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15 text-lg font-bold text-accent">

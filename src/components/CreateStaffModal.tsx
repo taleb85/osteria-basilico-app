@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
 import { findActiveUserWithSamePin } from '../utils/loginIdentifier';
-import { ProfileFormAdmin, type ProfileFormAdminData, OPERATIONAL_STAFF_ROLES_FOR_DELEGATE } from './UserProfile';
+import { ProfileFormAdmin, type ProfileFormAdminData } from './UserProfile';
+import { OPERATIONAL_STAFF_ROLES_FOR_DELEGATE } from '../utils/operationalStaffRoles';
 
 const PHANTOM_USER: UserType = {
   id: '00000000-0000-4000-8000-000000000001',
@@ -142,19 +143,20 @@ export default function CreateStaffModal({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="bg-white rounded-xl border border-slate-200 shadow-xl w-full max-w-md overflow-hidden"
+          className="modal-glass-panel w-full max-w-md overflow-hidden rounded-xl"
         >
-          <div className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between z-10">
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4 dark:border-white/10 dark:bg-neutral-900">
             <div>
-              <h2 className="text-base font-bold text-slate-900 tracking-wide font-sans">{t.create_employee_title}</h2>
-              <p className="text-xs text-slate-500 dark:text-neutral-300 mt-0.5 font-sans">{t.create_employee_subtitle}</p>
+              <h2 className="text-base font-bold tracking-wide text-slate-900 dark:text-neutral-100 font-sans">{t.create_employee_title}</h2>
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-neutral-300 font-sans">{t.create_employee_subtitle}</p>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors border border-slate-200"
+              aria-label={t.close}
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 transition-colors hover:bg-slate-200 dark:border-white/10 dark:bg-neutral-800 dark:hover:bg-neutral-700"
             >
-              <X className="w-4 h-4 text-slate-600" />
+              <X className="h-4 w-4 text-slate-600 dark:text-neutral-300" aria-hidden />
             </button>
           </div>
 

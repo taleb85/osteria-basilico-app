@@ -8,6 +8,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
 import App from './App.tsx';
+import { RootErrorBoundary } from './components/RootErrorBoundary';
 import './index.css';
 
 /** Durata minima splash così si vede sempre logo + titolo (come schermata nativa). `?nosplash=1` la salta. */
@@ -79,13 +80,20 @@ window.addEventListener('pageshow', (e) => {
   if (e.persisted) requestServiceWorkerUpdate();
 });
 
-// Dopo login il gate PWA richiede standalone in produzione; in dev è disattivato (vedi PwaGate)
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </StrictMode>
-);
+const rootEl = document.getElementById('root');
+if (!rootEl) {
+  document.body.innerHTML =
+    '<p style="font-family:system-ui;padding:1rem">Manca l’elemento #root in index.html.</p>';
+} else {
+  createRoot(rootEl).render(
+    <StrictMode>
+      <RootErrorBoundary>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </RootErrorBoundary>
+    </StrictMode>
+  );
+}
 
 void Promise.all([waitNextPaint(), waitMinSplashVisible()]).then(() => dismissPwaSplash());

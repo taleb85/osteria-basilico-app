@@ -62,10 +62,10 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-white/5 max-w-md w-full overflow-hidden"
+          className="modal-glass-panel flex max-h-[min(90vh,40rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 dark:from-yellow-600 dark:to-yellow-700 p-6 flex items-center justify-between">
+          <div className="flex flex-shrink-0 items-center justify-between bg-gradient-to-br from-yellow-400 to-yellow-500 p-6 dark:from-yellow-600 dark:to-yellow-700">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
                 <Check className="w-6 h-6 text-white" strokeWidth={2.5} />
@@ -83,7 +83,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
             </button>
           </div>
 
-          <div className="p-6 space-y-5">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-6">
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-500/30 rounded-xl p-4">
               <p className="text-yellow-800 dark:text-yellow-200 text-sm font-bold mb-2">{t.check_and_edit_times}</p>
               <p className="text-yellow-700 dark:text-yellow-300/80 text-xs">

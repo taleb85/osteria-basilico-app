@@ -111,7 +111,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     return (
       <div
         key={slug}
-        className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm transition-colors hover:border-slate-300/90 dark:border-white/10 dark:bg-neutral-900 sm:p-4"
+        className="surface-glass-sm flex h-full flex-col p-3.5 transition-colors surface-ghost-interactive hover:border-slate-300/90 dark:hover:border-white/15 sm:p-4"
       >
         <div className="flex items-start gap-3 min-w-0">
           <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
@@ -167,7 +167,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
                       transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
                       className="overflow-hidden"
                     >
-                      <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50/90 px-2.5 py-2 dark:border-white/10 dark:bg-neutral-800/80">
+                      <div className="surface-glass-sm mt-2 bg-slate-50/40 px-2.5 py-2 dark:bg-neutral-900/30">
                         <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
                           {t.impostazioni_detail_label}
                         </p>
@@ -202,6 +202,9 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
           </p>
           <h1 className="text-slate-800 text-xl font-semibold tracking-tight">{t.settings_title}</h1>
           <p className="text-slate-600 text-sm mt-2 leading-relaxed max-w-3xl">{t.impostazioni_page_lead}</p>
+          <p className="text-[11px] text-slate-600 dark:text-neutral-300 mt-2 max-w-3xl leading-relaxed border-l-2 border-accent/35 pl-3">
+            {(t as Record<string, string>).settings_admin_structure_intro}
+          </p>
 
           <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-2 sm:gap-3 max-w-3xl">
             <p className="text-xs text-slate-500 dark:text-neutral-300">{t.impostazioni_duplicate_hint}</p>
@@ -227,7 +230,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
                   setCloudSyncing(false);
                 }
               }}
-              className="inline-flex items-center justify-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 hover:border-slate-300 hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:border-white/15 dark:hover:bg-neutral-700"
+              className="inline-flex items-center justify-center gap-2 self-start surface-glass-sm px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 surface-ghost-interactive disabled:pointer-events-none disabled:opacity-50 dark:text-neutral-100"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${cloudSyncing ? 'animate-spin' : ''}`} aria-hidden />
               {t.settings_cloud_sync_button}
@@ -255,7 +258,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-1.5 max-w-3xl">{t.impostazioni_master_panel_scroll_hint}</p>
           )}
 
-          <div className="mt-4 max-w-3xl overflow-hidden rounded-xl border border-slate-200/90 bg-white/80 dark:border-white/10 dark:bg-neutral-900/80">
+          <div className="surface-glass-sm mt-4 max-w-3xl overflow-hidden">
             <button
               type="button"
               aria-expanded={howOpen}

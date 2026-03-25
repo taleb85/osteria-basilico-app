@@ -208,7 +208,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`inline-flex h-[22px] min-h-[22px] max-h-[22px] shrink-0 items-center gap-0.5 rounded-lg border border-slate-200 bg-white text-left font-medium leading-none tabular-nums text-slate-800 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50/80 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:border-white/15 dark:hover:bg-neutral-700 ${
+        className={`inline-flex h-[22px] min-h-[22px] max-h-[22px] shrink-0 items-center gap-0.5 rounded-lg surface-glass-sm text-left font-medium leading-none tabular-nums text-slate-800 transition-colors surface-ghost-interactive hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-100 dark:hover:border-white/15 ${
           compact ? 'px-1.5 text-[11px] sm:text-[12px]' : 'gap-1 px-2 text-[13px]'
         } ${className}`}
       >

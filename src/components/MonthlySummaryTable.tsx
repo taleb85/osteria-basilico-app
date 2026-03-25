@@ -104,7 +104,7 @@ export default function MonthlySummaryTable() {
         </div>
 
         <div className="overflow-x-auto-safe scrollbar-hide snap-x snap-mandatory">
-          <div className="inline-block min-w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] shadow-sm overflow-hidden">
+          <div className="inline-block min-w-full surface-ghost-sm overflow-hidden">
             <table className="w-full border-collapse min-w-full">
               <thead className="sticky top-0 z-20">
                 <tr className="bg-slate-100 dark:bg-[#262626]">
@@ -191,7 +191,7 @@ export default function MonthlySummaryTable() {
           transition={{ delay: 0.3 }}
           className="mt-6 grid grid-cols-2 gap-4 px-4"
         >
-          <div className="bg-white dark:bg-[#1a1a1a] rounded-[24px] p-5 border border-slate-200 dark:border-white/5">
+          <div className="surface-glass p-5">
             <p className="text-slate-500 dark:text-gray-400 text-xs uppercase tracking-widest font-bold mb-2">
               {t.total_hours}
             </p>
@@ -200,7 +200,7 @@ export default function MonthlySummaryTable() {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-[#1a1a1a] rounded-[24px] p-5 border border-slate-200 dark:border-white/5">
+          <div className="surface-glass p-5">
             <p className="text-slate-500 dark:text-gray-400 text-xs uppercase tracking-widest font-bold mb-2">
               {hasManagementAccess ? t.personnel : t.hours_this_month}
             </p>

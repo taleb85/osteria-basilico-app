@@ -115,7 +115,7 @@ export default function PunchClockTerminal({ isOpen, onClose }: PunchClockTermin
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-[#1A1A1A] rounded-[56px] w-full max-w-md shadow-2xl overflow-hidden"
+            className="modal-glass-panel w-full max-w-md overflow-hidden rounded-[56px]"
           >
             <div className="bg-accent dark:bg-accent/90 p-8 relative">
               <button
@@ -201,7 +201,7 @@ export default function PunchClockTerminal({ isOpen, onClose }: PunchClockTermin
                     <button
                       key={btn}
                       onClick={() => handleNumber(btn)}
-                      className="aspect-square rounded-2xl bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center hover:border-accent hover:bg-accent/5 transition-all active:scale-95"
+                      className="aspect-square rounded-2xl surface-glass-sm flex items-center justify-center border-2 border-gray-200 dark:border-gray-700 hover:border-accent hover:bg-accent/5 dark:hover:bg-accent/10 transition-all active:scale-95"
                     >
                       <span className="text-[#1A1A1A] dark:text-white text-2xl font-black">{btn}</span>
                     </button>

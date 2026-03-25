@@ -50,7 +50,7 @@ function MaintenancePage() {
         L'app è temporaneamente in manutenzione.
       </p>
       <p className="text-slate-400 dark:text-neutral-400 text-sm mb-8">Torneremo attivi tra poco. 👨‍🍳</p>
-      <div className="text-[11px] text-slate-300 bg-white border border-slate-100 rounded-xl px-4 py-2 shadow-xs">
+      <div className="surface-glass-sm px-4 py-2 text-[11px] text-slate-500 dark:text-neutral-400">
         Per assistenza contatta il responsabile.
       </div>
     </div>
@@ -95,7 +95,7 @@ function KioskRoute() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col safe-area-pad bg-surface font-sans antialiased">
+    <div className="min-h-screen w-full flex flex-col safe-area-pad bg-[#f8fafc] dark:bg-[#0a0a0a] font-sans antialiased text-slate-900 dark:text-neutral-100">
       {dataSyncInProgress && !isGlobalRefreshing && (
         <div className="shrink-0 px-4 pt-2">
           <DataSyncBanner language={effectiveLanguage} />
@@ -141,6 +141,8 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     isGlobalRefreshing,
     postRefreshLocked,
     silentRefreshData,
+    showSuccess,
+    showError,
     featureFlags,
     roleTemplatesRevision,
   } = useApp();
@@ -188,25 +190,27 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const [activeTab, setActiveTab] = useState<AppNavTab>('home');
   const mainViewRestoredUserIdRef = useRef<string | null>(null);
   const pendingScrollRestoreRef = useRef<{ y: number; tab: AppNavTab } | null>(null);
-  /** Allinea staff a Storage (template/flag) senza burst: stesso ordine di grandezza del throttle in AppContext. */
-  const storagePullThrottleRef = useRef(0);
-  const STORAGE_PULL_THROTTLE_MS = 5000;
   const profileLeaveGuardRef = useRef<ProfileLeaveGuard | null>(null);
+
+  /** Sync manuale: niente `throwOnError` (timeout/rete non devono bloccare l’app). */
+  const runMainAppManualSync = useCallback(async () => {
+    try {
+      await silentRefreshData({ pullRemoteConfig: true });
+      showSuccess(tr.settings_cloud_sync_success);
+    } catch {
+      showError(tr.app_sync_failed_retry);
+    }
+  }, [silentRefreshData, showSuccess, showError, tr]);
 
   const applyTabChange = useCallback(
     (id: AppNavTab) => {
       if (isManagement && id === 'settings' && currentUser && isAdminOnly(currentUser)) {
-        void silentRefreshData({ pullRemoteConfig: true });
         navigate('/admin');
         return;
       }
       setActiveTab(id);
-      const now = Date.now();
-      const pullRemote = now - storagePullThrottleRef.current >= STORAGE_PULL_THROTTLE_MS;
-      if (pullRemote) storagePullThrottleRef.current = now;
-      void silentRefreshData(pullRemote ? { pullRemoteConfig: true } : undefined);
     },
-    [currentUser, isManagement, navigate, silentRefreshData]
+    [currentUser, isManagement, navigate]
   );
 
   const handleTabChange = useCallback(
@@ -232,10 +236,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     },
     [activeTab, tr, applyTabChange]
   );
-
-  useEffect(() => {
-    silentRefreshData();
-  }, [silentRefreshData]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -343,10 +343,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           }
         }
         setActiveTab(tab);
-        const now = Date.now();
-        const pullRemote = now - storagePullThrottleRef.current >= STORAGE_PULL_THROTTLE_MS;
-        if (pullRemote) storagePullThrottleRef.current = now;
-        void silentRefreshData(pullRemote ? { pullRemoteConfig: true } : undefined);
         const scrollTo = () => {
           if (!anchor) return;
           document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -358,16 +354,22 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     };
     window.addEventListener('osteria-navigate', onNavigate as EventListener);
     return () => window.removeEventListener('osteria-navigate', onNavigate as EventListener);
-  }, [visibleNavTabs, silentRefreshData, activeTab, tr]);
+  }, [visibleNavTabs, activeTab, tr]);
 
   const renderManagementContent = () => {
     switch (activeTab) {
       case 'home':
         return (
           <HomePage
-            onNavigateToHolidays={() => setActiveTab('ferie')}
-            onNavigateToShifts={() => setActiveTab('turni')}
-            onNavigateToReports={() => setActiveTab('timesheet')}
+            onNavigateToHolidays={() => {
+              void handleTabChange('ferie');
+            }}
+            onNavigateToShifts={() => {
+              void handleTabChange('turni');
+            }}
+            onNavigateToReports={() => {
+              void handleTabChange('timesheet');
+            }}
           />
         );
       case 'turni':
@@ -387,8 +389,11 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     }
   };
 
+  /** `overflow-visible` così popover sync / menu non vengono tagliati dal bordo arrotondato della card. */
+  const appHeaderMainCardClass =
+    'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/80 dark:bg-neutral-900/80 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-visible supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
   const appHeaderCardClass =
-    'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/95 dark:bg-neutral-900/95 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-hidden supports-[backdrop-filter]:backdrop-blur-md';
+    'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/80 dark:bg-neutral-900/80 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-hidden supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
 
   return (
     <ProfileLeaveGuardRefContext.Provider value={profileLeaveGuardRef}>
@@ -405,7 +410,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         ref={appStickyHeaderRef}
         className="sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2"
       >
-        <div className={appHeaderCardClass}>
+        <div className={appHeaderMainCardClass}>
           <MobileProfileHeader
             onLogout={onLogout}
             activeTab={activeTab}
@@ -416,7 +421,9 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
               currentUser?.role === 'manager' ||
               currentUser?.role === 'assistant_manager'
             }
-            hideToolbarAvatar={Boolean(currentUser && !isAdminOnly(currentUser))}
+            hideToolbarAvatar={isManagement}
+            managementSyncToolbar={isManagement}
+            onMainAppManualSync={runMainAppManualSync}
           />
         </div>
         {currentUser && activeTab === 'home' && (

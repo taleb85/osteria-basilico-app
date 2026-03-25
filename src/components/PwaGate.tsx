@@ -7,7 +7,7 @@
  * - Dev, localhost, `VITE_ALLOW_BROWSER_APP`: anteprima senza installazione.
  * Nessun bypass per utente: regola unica qui.
  */
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/appContextCore';
 import { isPWAStandalone } from '../utils/pwaStandalone';
 import PWAInstallRequired from './PWAInstallRequired';
 

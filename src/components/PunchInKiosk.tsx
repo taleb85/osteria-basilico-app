@@ -60,7 +60,7 @@ function BrandLogo({ className = '', light }: { className?: string; light?: bool
 /** Logo Osteria Basilico - Snell Roundhand Bold, extra large, centrato (font preservato) + ombra nera chic */
 function StraightLogo() {
   return (
-    <h1 className="font-logo-snell text-7xl sm:text-8xl text-accent text-center mt-6 sm:mt-8 tracking-tight w-full drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] [text-shadow:0_2px_8px_rgba(0,0,0,0.2),0_4px_16px_rgba(0,0,0,0.12)]">
+    <h1 className="font-logo-snell text-7xl sm:text-8xl text-accent dark:text-white text-center mt-6 sm:mt-8 tracking-tight w-full drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] [text-shadow:0_2px_8px_rgba(0,0,0,0.2),0_4px_16px_rgba(0,0,0,0.12)] dark:drop-shadow-none dark:[text-shadow:none]">
       Osteria Basilico
     </h1>
   );
@@ -76,7 +76,7 @@ function GiantBrandHeader({ now, locale, children }: { now: Date; locale: Return
         className="flex flex-col items-center w-full"
       >
         <StraightLogo />
-        <p className="text-sm sm:text-base text-slate-600 font-sans font-semibold tracking-tight mt-2">
+        <p className="text-sm sm:text-base text-slate-600 dark:text-neutral-200 font-sans font-semibold tracking-tight mt-2">
           {format(now, 'EEEE d MMMM · HH:mm', { locale })}
         </p>
         {children && <div className="mt-3 flex justify-center">{children}</div>}
@@ -455,12 +455,12 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-surface flex flex-col p-6 sm:p-8 relative">
+    <div className="min-h-screen overflow-hidden bg-[#f8fafc] text-slate-900 dark:bg-[#0a0a0a] dark:text-neutral-100 flex flex-col p-6 sm:p-8 relative">
       <GiantBrandHeader now={now} locale={dateLocale}>
         <button
           type="button"
           onClick={onGoToLogin}
-          className="group flex items-center gap-2 rounded-xl border-2 border-slate-300 bg-transparent px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.08),0_1px_3px_-1px_rgba(15,23,42,0.05)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-accent/60 hover:bg-accent/10 hover:text-accent hover:shadow-[0_4px_12px_-3px_rgba(15,23,42,0.1),0_2px_5px_-2px_rgba(45,90,39,0.06)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
+          className="group flex items-center gap-2 rounded-xl border-2 border-slate-300 bg-white/80 dark:border-white/20 dark:bg-white/[0.06] px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-neutral-100 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.08),0_1px_3px_-1px_rgba(15,23,42,0.05)] dark:shadow-[0_2px_12px_-2px_rgba(0,0,0,0.4)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-accent/60 hover:bg-accent/10 hover:text-accent hover:shadow-[0_4px_12px_-3px_rgba(15,23,42,0.1),0_2px_5px_-2px_rgba(45,90,39,0.06)] dark:hover:bg-accent/15 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0a0a0a]"
         >
           <User className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300 transition-colors group-hover:text-accent" strokeWidth={2} />
           {t.area_personale}
@@ -475,7 +475,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
       >
         {employeesWithShifts.length === 0 ? (
           <div className="flex flex-col items-center justify-center">
-            <p className="text-sm font-sans font-semibold text-slate-600">{t.waiting_publication}</p>
+            <p className="text-sm font-sans font-semibold text-slate-600 dark:text-neutral-200">{t.waiting_publication}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-3 w-full max-w-md mx-auto">
@@ -541,7 +541,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                   animate="visible"
                   onClick={() => setSelectedUser(user)}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex w-full cursor-pointer flex-col rounded-2xl border border-slate-100 border-l-4 bg-white px-5 py-3.5 font-sans text-left shadow-sm transition-all hover:shadow-md dark:border-white/10 dark:bg-neutral-900 ${borderColor}`}
+                  className={`surface-glass surface-ghost-interactive flex w-full flex-col border-l-4 px-5 py-3.5 font-sans text-left transition-colors ${borderColor}`}
                 >
                   {/* Riga 1: nome + badge azione */}
                   <div className="flex items-center justify-between gap-2 w-full">
@@ -611,7 +611,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55"
             onClick={() => !selectedShift && !isLoading && closeOverlay()}
           >
             <motion.div
@@ -620,7 +620,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
               exit={{ scale: 0.92, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 320, damping: 28 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md card-factorial overflow-hidden !p-0"
+              className="modal-glass-panel w-full max-w-md overflow-hidden !p-0 rounded-2xl"
             >
               <div className="flex items-center justify-between p-4 border-b border-slate-50">
                 <h2 className="text-lg font-semibold text-slate-900 uppercase font-sans tracking-wider">
@@ -837,14 +837,14 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 z-[110] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-              className="card-factorial p-8 text-center"
+              className="modal-glass-panel rounded-2xl p-8 text-center"
             >
               <motion.div
                 initial={{ scale: 0 }}

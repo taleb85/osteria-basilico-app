@@ -80,7 +80,7 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
     };
     setFormData(fd);
     savedSnapshotRef.current = serializeProfileForm(fd);
-  }, [currentUser?.id]);
+  }, [currentUser?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- solo cambio utente (id), non ogni sync di currentUser
 
   useEffect(() => {
     if (!currentUser?.id) return;
@@ -354,7 +354,7 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
         <p className="px-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-neutral-400">{sectionLabel}</p>
 
         {/* Form impostazioni profilo */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-sm">
+        <div className="surface-glass overflow-hidden">
           <div className="bg-slate-50/70 dark:bg-neutral-950/50 px-4 py-4 text-slate-900 dark:text-neutral-100">
             <ProfileFormSelf
               formData={formData}

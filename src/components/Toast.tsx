@@ -40,7 +40,9 @@ export default function Toast({ message, type = 'error', onClose, duration = 350
       transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
       className={`fixed left-1/2 z-[9999] flex max-w-[min(90vw,28rem)] -translate-x-1/2 items-center gap-3 rounded-[12px] px-4 py-3 sm:max-w-md ${barClass}`}
       style={{
-        bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))',
+        // Sopra la bottom nav quando montata (`--app-bottom-nav-offset` da BottomNav), altrimenti come prima.
+        bottom:
+          'max(calc(var(--app-bottom-nav-offset, 0px) + 12px), calc(1.5rem + env(safe-area-inset-bottom, 0px)))',
       }}
     >
       {isSuccess ? (

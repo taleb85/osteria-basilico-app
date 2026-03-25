@@ -244,24 +244,24 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         {/* Logo — protagonista visivo: più spazio e tipografia grande */}
         <div className="flex flex-col items-center mb-5 sm:mb-6 min-h-[min(260px,46vh)] sm:min-h-[min(300px,50vh)] justify-center py-8 sm:py-10">
           <div className="w-[7.25rem] h-[7.25rem] sm:w-32 sm:h-32 rounded-[1.75rem] bg-accent/10 dark:bg-accent/15 flex items-center justify-center mb-7 sm:mb-8 shadow-md ring-1 ring-accent/10 dark:ring-accent/20">
-            <Clock className="w-[2.35rem] h-[2.35rem] sm:w-16 sm:h-16 text-accent" strokeWidth={1.65} />
+            <Clock className="w-[2.35rem] h-[2.35rem] sm:w-16 sm:h-16 text-accent dark:text-white" strokeWidth={1.65} />
           </div>
-          <h1 className="font-logo-snell text-[2.1rem] leading-none sm:text-6xl text-accent tracking-tight mb-3 sm:mb-4 text-center px-1">
+          <h1 className="font-logo-snell text-[2.1rem] leading-none sm:text-6xl text-accent dark:text-white tracking-tight mb-3 sm:mb-4 text-center px-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.12)] dark:drop-shadow-none dark:[text-shadow:none]">
             Osteria Basilico
           </h1>
-          <p className="text-slate-500 dark:text-neutral-300 text-lg sm:text-xl font-medium text-center px-3 max-w-md">
+          <p className="text-slate-500 dark:text-neutral-200 text-lg sm:text-xl font-medium text-center px-3 max-w-md">
             {t.header_tagline ?? 'Staff Management'}
           </p>
         </div>
 
         {/* Scheda login — compatta e più stretta del blocco superiore */}
-        <div className="w-full max-w-[17.5rem] sm:max-w-xs mx-auto bg-white dark:bg-neutral-900 rounded-xl shadow-md border border-slate-100/90 dark:border-white/10 p-3 sm:p-3.5 space-y-2.5">
+        <div className="surface-glass-sm mx-auto w-full max-w-[17.5rem] space-y-2.5 p-3 sm:max-w-xs sm:p-3.5">
 
           <div className="mb-0">
             <h2 className="text-sm font-bold text-slate-800 dark:text-neutral-100 leading-tight">
               {t.login_welcome ?? 'Bentornato'}
             </h2>
-            <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-snug">
+            <p className="text-[11px] text-slate-500 dark:text-neutral-200 mt-0.5 leading-snug">
               {t.login_subtitle ?? 'Accedi con le tue credenziali'}
             </p>
           </div>
@@ -300,7 +300,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 placeholder={t.login_name_ph}
                 autoComplete="name"
                 autoFocus={!isInviteLink}
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-950 text-slate-800 dark:text-neutral-100 text-xs uppercase placeholder:text-[11px] placeholder:normal-case placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent/25 focus:border-accent/50 transition-all"
+                className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 dark:border-white/15 bg-slate-50 dark:bg-neutral-900 text-slate-800 dark:text-neutral-100 text-xs uppercase placeholder:text-[11px] placeholder:normal-case placeholder:text-slate-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/35 focus:shadow-[0_0_0_3px_rgba(45,90,39,0.2)] dark:focus:border-accent-light dark:focus:ring-accent-light/40 dark:focus:shadow-[0_0_0_3px_rgba(208,222,206,0.22),0_0_14px_rgba(208,222,206,0.15)] transition-all"
               />
             </div>
           </div>
@@ -330,7 +330,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 ref={pinInputRef}
                 placeholder="••••"
                 style={!showPassword ? ({ WebkitTextSecurity: 'disc' } as CSSProperties) : undefined}
-                className="w-full pl-9 pr-9 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-950 text-slate-800 dark:text-neutral-100 text-xs placeholder-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent/25 focus:border-accent/50 transition-all"
+                className="w-full pl-9 pr-9 py-2 rounded-lg border border-slate-200 dark:border-white/15 bg-slate-50 dark:bg-neutral-900 text-slate-800 dark:text-neutral-100 text-xs placeholder-slate-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/35 focus:shadow-[0_0_0_3px_rgba(45,90,39,0.2)] dark:focus:border-accent-light dark:focus:ring-accent-light/40 dark:focus:shadow-[0_0_0_3px_rgba(208,222,206,0.22),0_0_14px_rgba(208,222,206,0.15)] transition-all"
               />
               <button
                 type="button"

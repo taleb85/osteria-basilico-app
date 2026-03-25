@@ -33,7 +33,7 @@ export default function StaffHomePreview({
             {t.home_greeting.replace('{name}', name)}
           </h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-300">
+            <span className="surface-glass-sm !rounded-full px-3 py-1 text-xs font-semibold text-slate-600 dark:text-neutral-300">
               24h {t.approved_hours_summary?.toLowerCase() ?? 'approvate'}
             </span>
             <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold text-accent">
@@ -50,7 +50,7 @@ export default function StaffHomePreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+        <div className="surface-glass flex items-center justify-between p-4">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-neutral-400">{t.hours_this_month}</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-neutral-50">32:00</p>
@@ -82,7 +82,7 @@ export default function StaffHomePreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="surface-glass overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-600">{t.upcoming_shifts}</span>
             <ChevronRight className="h-4 w-4 text-slate-300" />
@@ -104,7 +104,7 @@ export default function StaffHomePreview({
         <button
           type="button"
           tabIndex={-1}
-          className="flex min-h-[52px] w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none"
+          className="surface-glass surface-ghost-interactive flex min-h-[52px] w-full items-center justify-between gap-3 px-4 py-3 text-left"
         >
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">

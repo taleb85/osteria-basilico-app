@@ -17,6 +17,8 @@ type CenteredModalPortalProps = {
   panelClassName?: string;
   /** Per `isDatePickerPortalClick`: attributo sull’overlay root. */
   markDatePickerPortal?: boolean;
+  /** Sopra bottom bar (z-50), overlay sync header, ecc. */
+  overlayZClass?: string;
 };
 
 /**
@@ -33,12 +35,13 @@ export function CenteredModalPortal({
   maxHeightClass = 'max-h-[min(90dvh,720px)]',
   panelClassName = '',
   markDatePickerPortal = false,
+  overlayZClass = 'z-[10050]',
 }: CenteredModalPortalProps) {
   if (!open || typeof document === 'undefined') return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 font-sans"
+      className={`fixed inset-0 ${overlayZClass} flex items-center justify-center p-4 font-sans`}
       role="presentation"
       {...(markDatePickerPortal ? { 'data-osteria-date-picker-portal': '' } : {})}
     >
@@ -53,7 +56,7 @@ export function CenteredModalPortal({
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
-        className={`relative z-10 w-full ${maxWidthClass} ${maxHeightClass} overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100 ${panelClassName}`.trim()}
+        className={`relative z-10 w-full ${maxWidthClass} ${maxHeightClass} overflow-y-auto overscroll-contain rounded-2xl modal-glass-panel ${panelClassName}`.trim()}
         onClick={(e) => e.stopPropagation()}
       >
         {children}

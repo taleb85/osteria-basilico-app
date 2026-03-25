@@ -105,7 +105,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
         } ${
           open
             ? 'bg-accent/10 border-accent/20 text-accent'
-            : 'border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-700 hover:text-slate-800 dark:hover:text-neutral-100'
+            : 'border-slate-200/80 text-slate-600 hover:border-slate-300 hover:bg-slate-50/90 dark:border-white/10 dark:text-neutral-300 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:hover:text-neutral-100'
         }`}
       >
         <Bell size={denseTrigger ? 16 : 17} strokeWidth={2} />
@@ -125,7 +125,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
           ariaLabel={t.profile_notifications}
           maxWidthClass="max-w-md"
           maxHeightClass="max-h-[min(85dvh,560px)]"
-          panelClassName="flex flex-col overflow-hidden p-0 dark:bg-neutral-900 dark:border-white/10"
+          panelClassName="flex flex-col overflow-hidden p-0"
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/10 shrink-0">
             <span className="text-sm font-semibold text-slate-800 dark:text-neutral-100">
@@ -168,7 +168,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
                     <li
                       key={n.id}
                       className={`flex items-start gap-3 px-4 py-3 transition-colors ${
-                        isNew ? 'bg-slate-50/80 dark:bg-white/[0.04]' : 'bg-white dark:bg-transparent'
+                        isNew ? 'bg-slate-50/80 dark:bg-white/[0.04]' : 'bg-transparent'
                       }`}
                     >
                       <div

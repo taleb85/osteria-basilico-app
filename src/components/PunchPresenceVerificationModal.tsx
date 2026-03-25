@@ -83,7 +83,7 @@ export default function PunchPresenceVerificationModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/55 p-4 sm:items-center"
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/55 p-4 backdrop-blur-sm dark:bg-black/65 sm:items-center"
           role="dialog"
           aria-modal="true"
           aria-labelledby="punch-presence-title"
@@ -92,7 +92,7 @@ export default function PunchPresenceVerificationModal({
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 20, opacity: 0 }}
-            className="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-white/10 dark:bg-neutral-900"
+            className="modal-glass-panel relative w-full max-w-md overflow-hidden rounded-2xl"
           >
             <button
               type="button"

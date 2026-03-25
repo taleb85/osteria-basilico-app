@@ -166,7 +166,7 @@ export default function ManagementHomePreview({
                 value: 0,
                 Icon: Users,
                 iconColor: 'text-teal-600 dark:text-teal-400',
-                bg: 'bg-teal-50 dark:bg-teal-950/35',
+                bg: 'bg-transparent dark:bg-transparent',
                 border: 'border-teal-100 dark:border-teal-800/40',
                 iconWell: 'bg-teal-100/80 dark:bg-teal-950/50',
               },
@@ -175,25 +175,25 @@ export default function ManagementHomePreview({
                 value: 0,
                 Icon: Clock,
                 iconColor: 'text-red-600 dark:text-red-400',
-                bg: 'bg-slate-50 dark:bg-neutral-900/60',
-                border: 'border-slate-100 dark:border-white/10',
-                iconWell: 'bg-red-50/90 dark:bg-red-950/25',
+                bg: 'bg-transparent dark:bg-transparent',
+                border: 'border-red-100 dark:border-red-900/40',
+                iconWell: 'bg-red-100/80 dark:bg-red-950/45',
               },
               {
                 label: t.home_stat_missing_out,
                 value: 0,
                 Icon: AlertCircle,
                 iconColor: 'text-orange-600 dark:text-orange-400',
-                bg: 'bg-slate-50 dark:bg-neutral-900/60',
-                border: 'border-slate-100 dark:border-white/10',
-                iconWell: 'bg-orange-50/90 dark:bg-orange-950/25',
+                bg: 'bg-transparent dark:bg-transparent',
+                border: 'border-orange-100 dark:border-orange-900/40',
+                iconWell: 'bg-orange-100/80 dark:bg-orange-950/45',
               },
               {
                 label: t.home_stat_approved,
                 value: 2,
                 Icon: UserCheck,
                 iconColor: 'text-accent dark:text-accent-light',
-                bg: 'bg-accent/8 dark:bg-accent/15',
+                bg: 'bg-transparent dark:bg-transparent',
                 border: 'border-accent/20 dark:border-accent/30',
                 iconWell: 'bg-accent/15 dark:bg-accent/25',
               },
@@ -284,7 +284,7 @@ export default function ManagementHomePreview({
             onUiToggle={onUiToggle}
             hiddenBadge={hiddenBadge}
           >
-            <div className="cursor-default rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+            <div className="surface-glass cursor-default p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-bold text-slate-800 dark:text-neutral-100">{t.home_section_attendance}</h3>
                 <TrendingUp className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
@@ -320,7 +320,7 @@ export default function ManagementHomePreview({
             onUiToggle={onUiToggle}
             hiddenBadge={hiddenBadge}
           >
-            <div className="cursor-default rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+            <div className="surface-glass cursor-default p-5">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="font-bold text-slate-800 dark:text-neutral-100">{t.home_holidays_section}</h3>
                 <Palmtree className="h-4 w-4 text-accent" />
@@ -343,14 +343,14 @@ export default function ManagementHomePreview({
             hiddenBadge={hiddenBadge}
           >
             <div className="flex flex-col gap-3">
-              <div className="cursor-default rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+              <div className="surface-glass cursor-default p-4">
                 <div className="mb-2 flex items-center justify-between">
                   <TrendingUp className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
                   <span className="text-[10px] font-semibold uppercase text-slate-400 dark:text-neutral-400">{t.home_kpi_hours_week}</span>
                 </div>
                 <p className="text-2xl font-bold text-slate-900 dark:text-neutral-50">{formatMinutesToHoursAndMinutes(weeklyMinutesDemo)}</p>
               </div>
-              <div className="cursor-default rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+              <div className="surface-glass cursor-default p-4">
                 <div className="mb-2 flex items-center justify-between">
                   <Calendar className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
                   <span className="text-[10px] font-semibold uppercase text-slate-400 dark:text-neutral-400">{t.home_kpi_shifts_week}</span>

@@ -91,7 +91,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55"
         onClick={handleClose}
       >
         <motion.form
@@ -100,7 +100,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
           exit={{ scale: 0.95, opacity: 0, y: 12 }}
           onSubmit={handleSubmit}
           onClick={(e) => e.stopPropagation()}
-          className="card-factorial p-6 w-full max-w-md bg-white"
+          className="modal-glass-panel w-full max-w-md rounded-2xl p-6"
         >
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-slate-900 font-semibold text-base">Nuova richiesta</h3>

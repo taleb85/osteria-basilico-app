@@ -13,7 +13,7 @@ type AdminTab = 'profili' | 'visibilita' | 'impostazioni';
 
 /** `overflow-visible` così il pannello del menu hamburger non viene tagliato dal bordo arrotondato. */
 const adminHeaderCardClass =
-  'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/95 dark:bg-neutral-900/95 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-visible supports-[backdrop-filter]:backdrop-blur-md';
+  'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/80 dark:bg-neutral-900/80 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-visible supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -117,7 +117,7 @@ export default function AdminLayout() {
                   className={`flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border px-3 text-slate-700 transition-colors dark:text-neutral-200 ${
                     adminNavOpen
                       ? 'border-accent/30 bg-accent/[0.08] text-accent dark:bg-accent/15 dark:text-accent-light'
-                      : 'border-slate-200/70 bg-slate-100/90 hover:border-slate-200 hover:bg-white/95 dark:border-white/10 dark:bg-neutral-800 dark:hover:border-white/15 dark:hover:bg-neutral-700'
+                      : 'border-slate-200/70 bg-slate-100/90 hover:border-slate-200 hover:bg-slate-50/95 dark:border-white/10 dark:bg-neutral-800 dark:hover:border-white/15 dark:hover:bg-neutral-700'
                   }`}
                 >
                   {adminNavOpen ? <X className="h-5 w-5 shrink-0" aria-hidden /> : <Menu className="h-5 w-5 shrink-0" aria-hidden />}
@@ -127,7 +127,7 @@ export default function AdminLayout() {
                       id="admin-layout-nav-menu"
                       role="menu"
                       aria-label={t.admin_nav_menu_aria}
-                      className="absolute right-0 top-[calc(100%+0.5rem)] z-[2] flex max-h-[min(70vh,32rem)] w-[min(calc(100vw-2rem),22rem)] flex-col gap-1 overflow-y-auto rounded-xl border border-slate-200/80 bg-white p-2 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.25)] dark:border-white/10 dark:bg-neutral-900 dark:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.5)]"
+                      className="absolute right-0 top-[calc(100%+0.5rem)] z-[2] flex max-h-[min(70vh,32rem)] w-[min(calc(100vw-2rem),22rem)] flex-col gap-1 overflow-y-auto surface-glass-sm bg-slate-50/95 p-2 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.25)] backdrop-blur-md dark:bg-neutral-900/95 dark:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.5)]"
                     >
                       {fullAdminNav && (
                         <>
@@ -147,7 +147,7 @@ export default function AdminLayout() {
                             }}
                             className={`relative flex w-full min-h-[44px] items-center gap-2 overflow-hidden rounded-lg border px-3 text-left text-xs font-semibold transition-all duration-200 disabled:pointer-events-none ${
                               syncBusy
-                                ? 'border-accent/25 bg-white text-slate-700 shadow-[inset_0_0_0_1px_rgba(45,90,39,0.08)] dark:bg-neutral-800 dark:text-neutral-100'
+                                ? 'border-accent/25 bg-slate-100/90 text-slate-700 shadow-[inset_0_0_0_1px_rgba(45,90,39,0.08)] dark:bg-neutral-800 dark:text-neutral-100'
                                 : 'border-transparent text-slate-600 hover:border-slate-200/80 hover:bg-slate-50 hover:text-slate-900 dark:text-neutral-300 dark:hover:border-white/10 dark:hover:bg-neutral-800 dark:hover:text-neutral-50'
                             } disabled:opacity-60`}
                           >

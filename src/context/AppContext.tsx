@@ -88,10 +88,7 @@ import {
   getAckClientSyncRevision,
   writeAckClientSyncRevision,
 } from '../utils/clientSyncRevision';
-import {
-  OSTERIA_BACKGROUND_SYNC_MESSAGE,
-  registerOsteriaBackgroundSync,
-} from '../utils/backgroundSync';
+import { registerOsteriaBackgroundSync } from '../utils/backgroundSync';
 import {
   readGeofenceEnvConfig,
   getCurrentPositionCoords,
@@ -132,8 +129,17 @@ import {
 import { getDefaultApprovalClockHHMM } from '../utils/shiftResolvedClockTimes';
 import { pinMatchesStored, findActiveUserWithSamePin } from '../utils/loginIdentifier';
 import { isAppCloudSyncEnabled } from '../utils/appCloudSync';
+import { loadDepartmentsFromSupabase, saveDepartmentsToSupabase } from '../utils/departmentsCloud';
+import {
+  getDepartmentsCloudSnapshot,
+  applyDepartmentsCloudSnapshot,
+  type DepartmentsCloudV1,
+} from '../utils/departments';
 import { AppContext } from './appContextCore';
 import type { AppContextType } from './appContextTypes';
+
+/** Dopo aver caricato `departments.json`, ignora merge da pull per questo intervallo (stesso browser). */
+const DEPARTMENTS_OWN_PUSH_GRACE_MS = 20000;
 
 /** Una tantum: flag geofence senza VITE_RESTAURANT_LAT/LNG. */
 let geofenceMissingEnvWarned = false;
@@ -244,6 +250,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [pinUnlockDeviceTick, setPinUnlockDeviceTick] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'error' | 'success'>('error');
+  const [managementDataTouchedSinceLastSync, setManagementDataTouchedSinceLastSync] = useState(false);
+  const markManagementDataTouched = useCallback(() => {
+    setManagementDataTouchedSinceLastSync(true);
+  }, []);
   const [isPunching, setIsPunching] = useState(false);
   const punchInFlightRef = useRef(false);
   const punchRecordsRef = useRef<PunchRecord[]>([]);
@@ -255,6 +265,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [settingsCloudPushBusy, setSettingsCloudPushBusy] = useState(false);
   const [roleTemplatesRevision, setRoleTemplatesRevision] = useState(0);
   const [adminModulesRevision, setAdminModulesRevision] = useState(0);
+  const [departmentsRevision, setDepartmentsRevision] = useState(0);
   const [geofenceEffectiveConfig, setGeofenceEffectiveConfig] = useState<GeofenceConfig | null>(null);
   const geofenceEffectiveConfigRef = useRef<GeofenceConfig | null>(null);
   useEffect(() => {
@@ -300,8 +311,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       writeLocalPresenceVerificationConfig(config);
       await savePresenceVerificationToSupabase(config);
       await refreshPresenceVerificationConfig();
+      markManagementDataTouched();
     },
-    [refreshPresenceVerificationConfig]
+    [refreshPresenceVerificationConfig, markManagementDataTouched]
   );
 
   const refreshGeofenceEffectiveConfig = useCallback(async () => {
@@ -347,6 +359,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setPresenceVerificationConfig(merged);
     }
     setSettingsCloudLastSyncedAt(bundle.updatedAt);
+  }, []);
+
+  const departmentsOwnPushGraceUntilRef = useRef(0);
+
+  const mergeDepartmentsRemoteAfterPull = useCallback((remote: DepartmentsCloudV1 | null) => {
+    if (!remote) return;
+    if (Date.now() < departmentsOwnPushGraceUntilRef.current) return;
+    if (applyDepartmentsCloudSnapshot(remote)) {
+      setDepartmentsRevision((n) => n + 1);
+    }
+  }, []);
+
+  const beginDepartmentsOwnPushGracePeriod = useCallback(() => {
+    departmentsOwnPushGraceUntilRef.current = Date.now() + DEPARTMENTS_OWN_PUSH_GRACE_MS;
   }, []);
 
   /** Permette a updateUser (definito prima) di innescare il refresh dopo permessi. */
@@ -397,6 +423,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await saveRoleFeatureTemplatesToSupabase(data);
       const rev = await bumpClientSyncRevisionOnSupabase();
       if (rev != null) writeAckClientSyncRevision(rev);
+      markManagementDataTouched();
     } catch (e) {
       setRoleFeatureTemplatesCache(previous ?? null);
       try {
@@ -411,7 +438,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setRoleTemplatesRevision((n) => n + 1);
       throw e;
     }
-  }, []);
+  }, [markManagementDataTouched]);
 
   const saveAdminModulesGlobal = useCallback(async (data: AdminModulesGlobalOnDisk) => {
     const previous = getAdminModulesGlobalCache();
@@ -422,6 +449,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await saveAdminModulesGlobalToSupabase(data);
       const rev = await bumpClientSyncRevisionOnSupabase();
       if (rev != null) writeAckClientSyncRevision(rev);
+      markManagementDataTouched();
     } catch (e) {
       setAdminModulesGlobalCache(previous ?? null);
       try {
@@ -436,7 +464,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setAdminModulesRevision((n) => n + 1);
       throw e;
     }
-  }, []);
+  }, [markManagementDataTouched]);
 
   useEffect(() => {
     applyDocumentTheme(readStoredThemePreference() ?? 'light');
@@ -452,7 +480,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const th = currentUser.theme ?? 'light';
     applyDocumentTheme(th);
     persistThemePreference(th);
-  }, [currentUser?.id, currentUser?.theme]);
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) setManagementDataTouchedSinceLastSync(false);
+  }, [currentUser]);
 
   useEffect(() => {
     const unsubPunches = database.realtime.subscribeToPunchRecords(null, setPunchRecords);
@@ -588,6 +620,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (!bundle.presenceVerification) {
               await refreshPresenceVerificationConfig();
             }
+            const deptRemoteBoot = await loadDepartmentsFromSupabase().catch(() => null);
+            mergeDepartmentsRemoteAfterPull(deptRemoteBoot);
           } else {
             const sbFlags = await loadFeatureFlagsFromSupabase().catch(() => null);
             if (sbFlags) {
@@ -618,6 +652,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             else setWorkRulesState(getWorkRules());
             if (brSb) setBreakRulesState(brSb);
             else setBreakRulesState(getBreakRules());
+            const deptRemoteBootElse = await loadDepartmentsFromSupabase().catch(() => null);
+            mergeDepartmentsRemoteAfterPull(deptRemoteBootElse);
             setSettingsCloudLastSyncedAt(new Date().toISOString());
           }
         } else {
@@ -694,9 +730,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setShifts(prev => [...prev, res]);
       const actor = currentUserRef.current?.first_name ?? 'Sistema';
       logHistory('create', actor, `Turno creato: ${shift.date} ${shift.start_time}–${endTime || '?'}`);
+      markManagementDataTouched();
     }
     return res;
-  }, [shifts, showError, computePersistedAutoBreak, effectiveLanguage]);
+  }, [shifts, showError, computePersistedAutoBreak, effectiveLanguage, markManagementDataTouched]);
 
   const updateShift = useCallback(async (id: string, updates: Partial<Shift>) => {
     const existing = shifts.find((s) => s.id === id);
@@ -760,12 +797,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     try {
       const res = await database.shifts.update(id, updates);
-      if (res) setShifts(prev => prev.map(s => s.id === id ? { ...res, ...updates } : s));
+      if (res) {
+        setShifts(prev => prev.map(s => s.id === id ? { ...res, ...updates } : s));
+        markManagementDataTouched();
+      }
     } catch (err) {
       setShifts(prev => prev.map(s => s.id === id ? existing : s));
       throw err;
     }
-  }, [shifts, showError, computePersistedAutoBreak, effectiveLanguage]);
+  }, [shifts, showError, computePersistedAutoBreak, effectiveLanguage, markManagementDataTouched]);
 
   /**
    * Approva definitivamente un turno.
@@ -835,11 +875,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const existing = shifts.find(s => s.id === id);
     await database.shifts.delete(id);
     setShifts(prev => prev.filter(s => s.id !== id));
+    markManagementDataTouched();
     if (existing) {
       const actor = currentUserRef.current?.first_name ?? 'Sistema';
       logHistory('delete', actor, `Turno eliminato: ${existing.date} ${existing.start_time}–${existing.end_time}`);
     }
-  }, [shifts, showError, effectiveLanguage]);
+  }, [shifts, showError, effectiveLanguage, markManagementDataTouched]);
 
   const deleteShifts = useCallback(async (ids: string[]) => {
     if (ids.length === 0) return;
@@ -859,6 +900,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       // deleteMany gestisce già la cascade sui punch_records — nessuna chiamata duplicata
       await database.shifts.deleteMany(ids);
+      markManagementDataTouched();
     } catch (err: unknown) {
       console.error('Errore eliminazione turni su Supabase:', ids, err);
       // Rollback: ripristina stato locale
@@ -866,7 +908,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setPunchRecords(prev => [...prev, ...removedPunchRecords]);
       showError(getTranslations(effectiveLanguage).shift_delete_bulk_error);
     }
-  }, [shifts, punchRecords, showError, effectiveLanguage]);
+  }, [shifts, punchRecords, showError, effectiveLanguage, markManagementDataTouched]);
 
   const copyShift = useCallback(
     (shift: Shift, newDate: string) => {
@@ -902,11 +944,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (draftShifts.length > 0) {
         const actor = currentUserRef.current?.first_name ?? 'Sistema';
         logHistory('publish', actor, `Settimana ${weekStartStr} pubblicata (${draftShifts.length} turni)`);
+        markManagementDataTouched();
       }
     } catch (error) {
       console.error('Errore durante la pubblicazione dei turni della settimana:', error);
     }
-  }, [shifts, showError, effectiveLanguage]);
+  }, [shifts, showError, effectiveLanguage, markManagementDataTouched]);
 
   const publishDayShifts = useCallback(async (dateStr: string) => {
     const op = currentUserRef.current;
@@ -920,15 +963,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const res = await database.shifts.update(shift.id, { approval_status: 'confirmed' });
         if (res) setShifts((prev) => prev.map((s) => (s.id === shift.id ? res : s)));
       }
+      if (draftShifts.length > 0) markManagementDataTouched();
     } catch (error) {
       console.error('Errore durante la pubblicazione dei turni del giorno:', error);
     }
-  }, [shifts, showError, effectiveLanguage]);
+  }, [shifts, showError, effectiveLanguage, markManagementDataTouched]);
 
   const addHolidayRequest = useCallback(async (req: Omit<HolidayRequest, 'id' | 'created_at' | 'status'>): Promise<{ ok: boolean; emailSent?: boolean; error?: string }> => {
     const payload = { ...req, status: 'pending' as const };
     const res = await database.holidays.insert(payload);
-    if (res) setHolidays(prev => [...prev, res]);
+    if (res) {
+      setHolidays(prev => [...prev, res]);
+      markManagementDataTouched();
+    }
 
     const requester = users.find(u => u.id === req.user_id);
     if (!requester || !supabase) return { ok: true, emailSent: false };
@@ -957,7 +1004,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     return { ok: true, emailSent };
-  }, [users, effectiveLanguage]);
+  }, [users, effectiveLanguage, markManagementDataTouched]);
 
   const updateHolidayStatus = useCallback(async (id: string, status: HolidayStatus): Promise<{ ok: boolean; emailSent?: boolean; error?: string }> => {
     if (status === 'approved' || status === 'rejected') {
@@ -970,7 +1017,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const user = holiday ? users.find((u) => u.id === holiday.user_id) : null;
 
     const res = await database.holidays.update(id, { status });
-    if (res) setHolidays(prev => prev.map(h => h.id === id ? res : h));
+    if (res) {
+      setHolidays(prev => prev.map(h => h.id === id ? res : h));
+      markManagementDataTouched();
+    }
 
     if (!holiday || !user) return { ok: true };
 
@@ -1001,7 +1051,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       console.warn('[HolidayStatus] Errore invio email:', msg);
       return { ok: true, emailSent: false, error: msg };
     }
-  }, [holidays, users, effectiveLanguage]);
+  }, [holidays, users, effectiveLanguage, markManagementDataTouched]);
 
   const addPunchRecord = useCallback(
     async (
@@ -1095,12 +1145,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const res = await database.punchRecords.insert(record as Omit<PunchRecord, 'id'>);
       if (res) {
         setPunchRecords((prev) => [res, ...prev]);
+        markManagementDataTouched();
       }
     } finally {
       punchInFlightRef.current = false;
       setIsPunching(false);
     }
-  }, [isPunching, shifts, effectiveLanguage, featureFlags]);
+  }, [isPunching, shifts, effectiveLanguage, featureFlags, markManagementDataTouched]);
 
   const updatePunchRecord = useCallback(async (id: string, updates: { timestamp?: string; calculated_time?: string; clock_out_time?: string | null }) => {
     // Legge il record corrente dal ref (senza dipendenza da punchRecords nello state)
@@ -1131,13 +1182,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
         }
       }
+      markManagementDataTouched();
     }
-  }, []);
+  }, [markManagementDataTouched]);
 
   const deletePunchRecordsForShift = useCallback(async (shiftId: string) => {
     await database.punchRecords.deleteByShiftId(shiftId);
     setPunchRecords(prev => prev.filter(p => p.shift_id !== shiftId));
-  }, []);
+    markManagementDataTouched();
+  }, [markManagementDataTouched]);
 
   const updateUser = useCallback(async (id: string, updates: Partial<User>): Promise<boolean> => {
     const prevUser = users.find((u) => u.id === id);
@@ -1166,6 +1219,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUsers((prev) => prev.map((u) => (u.id === id ? res : u)));
         if (currentUser?.id === id) setCurrentUser(userRowToSessionUser(res as User));
       }
+      markManagementDataTouched();
       const updatesRemoteConfig =
         'enabled_features' in updates ||
         'enabled_modules' in updates ||
@@ -1226,14 +1280,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       );
       return false;
     }
-  }, [currentUser, users, showError, effectiveLanguage]);
+  }, [currentUser, users, showError, effectiveLanguage, markManagementDataTouched]);
 
   const deleteUser = useCallback(async (id: string) => {
     await database.users.delete(id);
     setUsers(prev => prev.filter(u => u.id !== id));
+    markManagementDataTouched();
     const rev = await bumpClientSyncRevisionOnSupabase();
     if (rev != null) writeAckClientSyncRevision(rev);
-  }, []);
+  }, [markManagementDataTouched]);
 
   const createUser = useCallback(
     async (payload: {
@@ -1288,6 +1343,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const others = prev.filter((u) => u.id !== created.id);
           return [...others, created].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
         });
+        markManagementDataTouched();
         const rev = await bumpClientSyncRevisionOnSupabase();
         if (rev != null) writeAckClientSyncRevision(rev);
         try {
@@ -1329,7 +1385,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return null;
       }
     },
-    [users, effectiveLanguage, showError, showSuccess]
+    [users, effectiveLanguage, showError, showSuccess, markManagementDataTouched]
   );
 
   const reorderUsers = useCallback(async (userId: string, direction: 'up' | 'down') => {
@@ -1352,10 +1408,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           )
           .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
       );
+      markManagementDataTouched();
     } catch (error) {
       console.error('Errore durante il riordino del personale:', error);
     }
-  }, [users]);
+  }, [users, markManagementDataTouched]);
 
   /** Aggiorna solo lo stato: assegna sort_order 1,2,3,... in base a orderedIds. Nessuna chiamata al DB. */
   const setUsersSortOrder = useCallback((orderedIds: string[]) => {
@@ -1368,7 +1425,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         })
         .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
     );
-  }, []);
+    markManagementDataTouched();
+  }, [markManagementDataTouched]);
 
   const updateUserPreferences = useCallback((pref: { language?: Language; theme?: 'light' | 'dark' }) => {
     if (!currentUser) return;
@@ -1502,6 +1560,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (!bundle.presenceVerification) {
               await refreshPresenceVerificationConfig();
             }
+            const deptRemoteSr = await loadDepartmentsFromSupabase().catch(() => null);
+            mergeDepartmentsRemoteAfterPull(deptRemoteSr);
           } else {
             const localFlags = getLocalFeatureFlags();
             const mergedFlags = sbFlags ? { ...localFlags, ...sbFlags } : localFlags;
@@ -1527,6 +1587,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ]);
             if (wrSb) setWorkRulesState(wrSb);
             if (brSb) setBreakRulesState(brSb);
+            const deptRemoteSrElse = await loadDepartmentsFromSupabase().catch(() => null);
+            mergeDepartmentsRemoteAfterPull(deptRemoteSrElse);
             setSettingsCloudLastSyncedAt(new Date().toISOString());
           }
         }
@@ -1534,7 +1596,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         /* Cross-device: la revisione va controllata a ogni sync DB, non solo con pullRemoteConfig
            (altrimenti pull-to-refresh, mount, cambio tab non leggono mai Storage). */
         if (!iterationOpts.skipRemoteRevisionCheck && isAppCloudSyncEnabled()) {
-          /* Evita loop: con rev remota > ack si apre overlay PIN; altre `silentRefreshData` (focus, tab, Admin…)
+          /* Evita loop: con rev remota > ack si apre overlay PIN; altre `silentRefreshData` in coda
              non devono richiamare `forceGlobalRefresh` di nuovo o la sync sembra non finire mai. */
           if (!postRefreshLockedRef.current && pendingClientSyncRevRef.current === null) {
             const remoteRev = await fetchClientSyncRevisionFromSupabase().catch(() => null);
@@ -1556,7 +1618,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           iterationCount += 1;
           if (iterationCount > SILENT_REFRESH_MAX_ITERATIONS) {
             console.warn(
-              '[silentRefreshData] interrotto dopo troppe iterazioni in coda (probabilmente burst Realtime/tab); il resto viene riaccodato.'
+              '[silentRefreshData] interrotto dopo troppe iterazioni in coda; il resto viene riaccodato.'
             );
             const tail = silentRefreshPendingOptsRef.current;
             silentRefreshPendingOptsRef.current = null;
@@ -1570,6 +1632,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const iterationOpts = merged;
           try {
             await withTimeout(runSilentRefreshInner(iterationOpts), SILENT_REFRESH_MAX_MS, 'silentRefreshData');
+            if (iterationOpts.pullRemoteConfig) {
+              setManagementDataTouchedSinceLastSync(false);
+            }
           } catch (err) {
             if (err instanceof TimeoutError) {
               console.warn('[silentRefreshData]', err.message, '— banner sync chiuso; controlla rete e credenziali Supabase.');
@@ -1595,6 +1660,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshGeofenceEffectiveConfig,
     refreshPresenceVerificationConfig,
     applyAppSettingsBundle,
+    mergeDepartmentsRemoteAfterPull,
   ]);
 
   silentRefreshDataRef.current = silentRefreshData;
@@ -1626,81 +1692,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [silentRefreshData, showError, showSuccess, effectiveLanguage]);
 
-  /**
-   * Ritorno in primo piano (PWA ↔ browser, cambio app su mobile) e **rete di nuovo disponibile**:
-   * - DB (turni, utenti, timbrature…): sempre refresh anche **senza login** (kiosk / login usano gli stessi dati).
-   * - Storage (flag, template ruoli): throttling + **pull forzato** a ogni ritorno in primo piano (meno lag PC↔telefono).
-   */
+  /** Background Sync API: registra il tag in background; niente refresh automatico alla riconnessione (sync solo su comando). */
   useEffect(() => {
-    let lastConfigPull = 0;
-    /** Tra un pull Storage e l’altro mentre l’app resta in primo piano (evita burst su Supabase). */
-    const CONFIG_PULL_THROTTLE_MS = 12_000;
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const runForegroundSync = () => {
-      if (document.visibilityState !== 'visible') {
-        if (debounceTimer) {
-          clearTimeout(debounceTimer);
-          debounceTimer = null;
-        }
-        return;
-      }
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        debounceTimer = null;
-        if (postRefreshLockedRef.current) return;
-        const now = Date.now();
-        const pullRemote = isAppCloudSyncEnabled() && now - lastConfigPull >= CONFIG_PULL_THROTTLE_MS;
-        if (pullRemote) lastConfigPull = now;
-        void silentRefreshDataRef.current(pullRemote ? { pullRemoteConfig: true } : undefined);
-      }, 200);
-    };
-
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        lastConfigPull = 0;
-      }
-      runForegroundSync();
-    };
-    const onOnline = () => {
-      lastConfigPull = 0;
-      runForegroundSync();
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('focus', runForegroundSync);
-    window.addEventListener('online', onOnline);
-    const onPageShow = (e: PageTransitionEvent) => {
-      if (e.persisted || document.visibilityState === 'visible') {
-        lastConfigPull = 0;
-        runForegroundSync();
-      }
-    };
-    window.addEventListener('pageshow', onPageShow);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('focus', runForegroundSync);
-      window.removeEventListener('online', onOnline);
-      window.removeEventListener('pageshow', onPageShow);
-      if (debounceTimer) clearTimeout(debounceTimer);
-    };
-  }, []);
-
-  /** Background Sync API: dopo riconnessione lo SW può notificare le finestre (Chrome/Edge/Android). */
-  const lastBackgroundSyncRefreshRef = useRef(0);
-  useEffect(() => {
-    const throttleMs = 4000;
-    const onSwMessage = (event: MessageEvent) => {
-      if (event.data?.type !== OSTERIA_BACKGROUND_SYNC_MESSAGE) return;
-      const now = Date.now();
-      if (now - lastBackgroundSyncRefreshRef.current < throttleMs) return;
-      lastBackgroundSyncRefreshRef.current = now;
-      if (postRefreshLockedRef.current) return;
-      if (isAppCloudSyncEnabled()) {
-        void silentRefreshDataRef.current({ pullRemoteConfig: true });
-      }
-    };
-    navigator.serviceWorker?.addEventListener('message', onSwMessage);
-
     const onOffline = () => {
       void registerOsteriaBackgroundSync();
     };
@@ -1713,7 +1706,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
-      navigator.serviceWorker?.removeEventListener('message', onSwMessage);
       window.removeEventListener('offline', onOffline);
     };
   }, []);
@@ -1724,51 +1716,57 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setHolidays([]);
     setPunchRecords([]);
     setAvailability([]);
+    markManagementDataTouched();
     return result;
-  }, []);
+  }, [markManagementDataTouched]);
 
   const seedDemoProfileForUser = useCallback(
     async (userId: string) => {
       const result = await database.seedDemoProfileForUser(userId);
+      markManagementDataTouched();
       await silentRefreshData({ skipRemoteRevisionCheck: true });
       return result;
     },
-    [silentRefreshData]
+    [silentRefreshData, markManagementDataTouched]
   );
 
   const setFeatureFlag = useCallback(async (name: string, enabled: boolean) => {
     setFeatureFlagsState((prev) => ({ ...prev, [name]: enabled }));
     saveLocalFeatureFlag(name, enabled);
+    markManagementDataTouched();
     await updateFeatureFlagInSupabase(name, enabled).catch(() => {});
     const rev = await bumpClientSyncRevisionOnSupabase();
     if (rev != null) writeAckClientSyncRevision(rev);
     await silentRefreshData({ pullRemoteConfig: true });
-  }, [silentRefreshData]);
+  }, [silentRefreshData, markManagementDataTouched]);
 
   const saveGeofenceConfig = useCallback(
     async (config: GeofenceConfig) => {
       writeLocalGeofenceConfig(config);
       await saveGeofenceConfigToSupabase(config);
       await refreshGeofenceEffectiveConfig();
+      markManagementDataTouched();
     },
-    [refreshGeofenceEffectiveConfig]
+    [refreshGeofenceEffectiveConfig, markManagementDataTouched]
   );
 
   const setWorkRules = useCallback(async (rules: WorkRules) => {
     setWorkRulesState(rules);
+    markManagementDataTouched();
     await saveWorkRulesToSupabase(rules).catch(() => {});
     const rev = await bumpClientSyncRevisionOnSupabase();
     if (rev != null) writeAckClientSyncRevision(rev);
     await silentRefreshData({ pullRemoteConfig: true });
-  }, [silentRefreshData]);
+  }, [silentRefreshData, markManagementDataTouched]);
 
   const setBreakRules = useCallback(async (rules: BreakRule[]) => {
     setBreakRulesState(rules);
+    markManagementDataTouched();
     await saveBreakRulesToSupabase(rules).catch(() => {});
     const rev = await bumpClientSyncRevisionOnSupabase();
     if (rev != null) writeAckClientSyncRevision(rev);
     await silentRefreshData({ pullRemoteConfig: true });
-  }, [silentRefreshData]);
+  }, [silentRefreshData, markManagementDataTouched]);
 
   const pushSettingsToCloud = useCallback(async () => {
     if (!isAppCloudSyncEnabled()) {
@@ -1800,11 +1798,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
             disk ? saveGeofenceConfigToSupabase(disk).catch(() => {}) : Promise.resolve(),
             rt && Object.keys(rt).length > 0 ? saveRoleFeatureTemplatesToSupabase(rt).catch(() => {}) : Promise.resolve(),
             am && Object.keys(am).length > 0 ? saveAdminModulesGlobalToSupabase(am).catch(() => {}) : Promise.resolve(),
+            saveDepartmentsToSupabase(getDepartmentsCloudSnapshot()).catch(() => {}),
           ]);
+          beginDepartmentsOwnPushGracePeriod();
           await bumpAppSettingsSyncSignal();
           const rev = await bumpClientSyncRevisionOnSupabase();
           if (rev != null) writeAckClientSyncRevision(rev);
           setSettingsCloudLastSyncedAt(new Date().toISOString());
+          markManagementDataTouched();
           showSuccess(getTranslations(effectiveLanguage).settings_cloud_save_all_success);
         })(),
         PUSH_SETTINGS_CLOUD_MAX_MS,
@@ -1829,7 +1830,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     effectiveLanguage,
     showSuccess,
     showError,
+    markManagementDataTouched,
+    beginDepartmentsOwnPushGracePeriod,
   ]);
+
+  const notifyDepartmentsChanged = useCallback(async () => {
+    setDepartmentsRevision((n) => n + 1);
+    markManagementDataTouched();
+    if (!isAppCloudSyncEnabled() || import.meta.env.VITE_APP_CONFIG_STORAGE_ENABLED === 'false') {
+      return;
+    }
+    try {
+      await saveDepartmentsToSupabase(getDepartmentsCloudSnapshot());
+      beginDepartmentsOwnPushGracePeriod();
+      await bumpAppSettingsSyncSignal().catch(() => {});
+      const rev = await bumpClientSyncRevisionOnSupabase();
+      if (rev != null) writeAckClientSyncRevision(rev);
+    } catch (e) {
+      console.error(e);
+      showError(
+        e instanceof Error ? e.message : getTranslations(effectiveLanguage).settings_cloud_save_all_error
+      );
+    }
+  }, [markManagementDataTouched, showError, effectiveLanguage, beginDepartmentsOwnPushGracePeriod]);
 
   const toggleAvailability = useCallback(async (userId: string, date: string) => {
     const existing = availability.find(
@@ -1841,7 +1864,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } else if (result) {
       setAvailability((prev) => [...prev, result]);
     }
-  }, [availability]);
+    markManagementDataTouched();
+  }, [availability, markManagementDataTouched]);
 
   const forceGlobalRefresh = useCallback(async () => {
     setIsGlobalRefreshing(true);
@@ -1881,34 +1905,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [showError, effectiveLanguage]);
 
   forceGlobalRefreshRef.current = forceGlobalRefresh;
-
-  const isGlobalRefreshingRef = useRef(false);
-  useEffect(() => {
-    isGlobalRefreshingRef.current = isGlobalRefreshing;
-  }, [isGlobalRefreshing]);
-
-  /**
-   * Sync periodico con sessione + schermo visibile: stesso percorso di `silentRefreshData({ pullRemoteConfig })`.
-   * Così allineiamo **DB** (profili, permessi JSONB) e **Storage** (template ruoli, flag, periodo presenze…).
-   * Il solo `users.getAll` non bastava: le matrici permesso vivono anche su `role_feature_templates.json`, ecc.
-   */
-  useEffect(() => {
-    if (!currentUser?.id) return;
-    const POLL_MS = 120_000;
-    const check = () => {
-      if (document.visibilityState !== 'visible') return;
-      if (isGlobalRefreshingRef.current || postRefreshLockedRef.current) return;
-      void silentRefreshDataRef.current(
-        isAppCloudSyncEnabled() ? { pullRemoteConfig: true } : undefined
-      );
-    };
-    const id = window.setInterval(check, POLL_MS);
-    const t0 = window.setTimeout(check, 25_000);
-    return () => {
-      window.clearInterval(id);
-      window.clearTimeout(t0);
-    };
-  }, [currentUser?.id]);
 
   /**
    * Dopo login Admin: un upload `settings_bundle.json` mantiene il file su Storage (backup).
@@ -1956,6 +1952,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           await database.users.update(pendingOrderIds[i], { sort_order: i + 1 });
         }
         setPendingOrderIds(null);
+        markManagementDataTouched();
       }
       if (pendingPublishWeekStart) {
         const weekEnd = format(addDays(parseISO(pendingPublishWeekStart), 7), 'yyyy-MM-dd');
@@ -1967,6 +1964,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         setPendingPublishWeekStart(null);
         showSuccess(getTranslations(effectiveLanguage).shifts_published);
+        markManagementDataTouched();
       }
       const [loadedUsers, loadedShifts, loadedHolidays, loadedPunchRecords, loadedAvailability] = await Promise.all([
         database.users.getAll().catch(() => []),
@@ -2112,7 +2110,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         workRules, setWorkRules, breakRules, setBreakRules,
         roleTemplatesRevision, saveRoleFeatureTemplates,
         adminModulesRevision, saveAdminModulesGlobal,
+        departmentsRevision, notifyDepartmentsChanged,
         pushSettingsToCloud, settingsCloudLastSyncedAt, settingsCloudPushBusy,
+        managementDataTouchedSinceLastSync,
       } satisfies AppContextType}
     >
       <PwaGate>{children}</PwaGate>

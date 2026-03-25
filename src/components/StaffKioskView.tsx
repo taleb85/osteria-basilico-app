@@ -107,7 +107,7 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-12 text-center"
+              className="surface-glass p-12 text-center"
             >
               <p className="text-2xl font-bold text-gray-900 mb-6">
                 {t.no_shift_today}
@@ -132,7 +132,7 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8"
+                    className="surface-glass p-8"
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -177,12 +177,12 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="fixed inset-0 flex items-center justify-center z-50 bg-black/50"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm dark:bg-black/60"
           >
             <motion.div
               initial={{ y: 20 }}
               animate={{ y: 0 }}
-              className="bg-white rounded-2xl shadow-2xl p-12 text-center max-w-md"
+              className="modal-glass-panel max-w-md rounded-2xl p-12 text-center"
             >
               <motion.div
                 initial={{ scale: 0 }}

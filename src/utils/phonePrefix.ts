@@ -36,6 +36,6 @@ export function splitPhoneForForm(full: string | undefined | null): { prefix: st
 export function joinPhone(prefix: string, national: string): string | undefined {
   const n = national.replace(/\D/g, '');
   if (!n) return undefined;
-  let p = (prefix.trim() || DEFAULT_PHONE_PREFIX).replace(/^\+/, '');
+  const p = (prefix.trim() || DEFAULT_PHONE_PREFIX).replace(/^\+/, '');
   return `+${p}${n}`;
 }

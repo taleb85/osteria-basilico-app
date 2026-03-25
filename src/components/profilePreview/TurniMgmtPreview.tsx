@@ -28,7 +28,7 @@ export default function TurniMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+        <div className="surface-glass-sm flex flex-wrap items-center justify-between gap-2 p-2">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="rounded-xl border border-accent/30 px-2 py-1 text-xs font-semibold text-accent">{t.today}</span>
             <div className="flex rounded-xl border border-slate-200 p-0.5 dark:border-white/10">
@@ -76,7 +76,7 @@ export default function TurniMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+        <div className="surface-glass-sm overflow-hidden">
           <div className="grid grid-cols-[minmax(4rem,1fr)_repeat(7,minmax(0,1fr))] gap-px bg-slate-200 text-[10px] dark:bg-white/10">
             <div className="flex items-center gap-1 bg-slate-50 px-2 py-2 font-bold text-slate-500 dark:bg-neutral-800 dark:text-neutral-300">
               <Users className="h-3 w-3" /> Team
@@ -88,9 +88,9 @@ export default function TurniMgmtPreview({
             ))}
             {['Jean', 'John', 'Marie'].map((nm) => (
               <div key={nm} className="contents">
-                <div className="bg-white px-2 py-3 font-semibold text-slate-700 dark:bg-neutral-900 dark:text-neutral-200">{nm}</div>
+                <div className="bg-slate-50 px-2 py-3 font-semibold text-slate-700 dark:bg-neutral-900 dark:text-neutral-200">{nm}</div>
                 {days.map((d, di) => (
-                  <div key={`${nm}-${d}`} className="min-h-[52px] bg-white p-0.5 dark:bg-neutral-900">
+                  <div key={`${nm}-${d}`} className="min-h-[52px] bg-slate-50 p-0.5 dark:bg-neutral-900">
                     {di === 2 && nm === 'Jean' && (
                       <div className="rounded-lg bg-accent/10 px-1 py-1 text-center text-[9px] font-bold text-accent ring-1 ring-accent/25">
                         10–16

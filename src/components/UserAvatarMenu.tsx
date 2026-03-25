@@ -140,7 +140,7 @@ export default function UserAvatarMenu({
           onClick={() => setIsOpen(!isOpen)}
           title={titleHint}
           aria-label={`${t.sidebar_profile}: ${titleHint}`}
-          className="relative flex min-h-[40px] min-w-[40px] max-w-[88px] flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-neutral-800 px-1.5 text-slate-700 dark:text-neutral-200 transition-colors hover:bg-slate-100 dark:hover:bg-neutral-700 hover:text-slate-900 dark:hover:text-neutral-50 touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+          className="relative flex min-h-[40px] min-w-[40px] max-w-[88px] flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 text-slate-700 surface-ghost-interactive dark:text-neutral-200 hover:text-slate-900 dark:hover:text-neutral-50 touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
         >
           <span className="text-[14px] font-bold leading-none select-none" aria-hidden>
             {profileInitial}
@@ -222,7 +222,7 @@ export default function UserAvatarMenu({
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="relative z-[9999] w-full max-w-sm mx-4 rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-visible font-sans p-5 text-slate-900"
+                  className="relative z-[9999] mx-4 w-full max-w-sm overflow-visible rounded-2xl modal-glass-panel p-5 font-sans dark:text-neutral-100"
                 >
                   <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                     <h3 className="text-base font-bold text-slate-900">{t.profile_settings}</h3>

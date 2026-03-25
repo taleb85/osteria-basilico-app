@@ -1224,7 +1224,7 @@ export default function Timesheets() {
                   <button
                     type="button"
                     onClick={() => setTimesheetActionsOpen((o) => !o)}
-                    className={`ui-toolbar-chip border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 ${!periodSaved ? 'border-amber-300/80 bg-amber-50/50 dark:border-amber-600/50 dark:bg-amber-950/35 dark:text-amber-100 dark:hover:bg-amber-950/50' : ''}`}
+                    className={`ui-toolbar-chip border-slate-200 text-slate-600 hover:bg-slate-50/90 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/[0.06] ${!periodSaved ? 'border-amber-300/80 bg-amber-50/50 dark:border-amber-600/50 dark:bg-amber-950/35 dark:text-amber-100 dark:hover:bg-amber-950/50' : ''}`}
                     aria-label={(t as { wst_actions?: string }).wst_actions ?? 'Azioni'}
                     title={(t as { wst_actions?: string }).wst_actions ?? 'Azioni'}
                   >
@@ -1260,7 +1260,7 @@ export default function Timesheets() {
                           onChange={(v) => { setPeriodStart(v); setPeriodSaved(false); setWeekIndex(0); }}
                           allowClear={false}
                           aria-label={t.ts_period_start}
-                          className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2 text-[13px] shadow-sm dark:border-white/10 dark:bg-neutral-800 [&_svg]:h-3 [&_svg]:w-3"
+                          className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 surface-glass-sm px-2 text-[13px] dark:border-white/10 surface-ghost-interactive dark:hover:border-white/15 [&_svg]:h-3 [&_svg]:w-3"
                         />
                       </div>
                       <div className="flex gap-1">
@@ -1319,7 +1319,7 @@ export default function Timesheets() {
                   value: todayStats.inTurno,
                   Icon: Users,
                   iconColor: 'text-teal-600 dark:text-teal-400',
-                  bg: 'bg-teal-50 dark:bg-teal-950/35',
+                  bg: 'bg-transparent dark:bg-transparent',
                   border: 'border-teal-100 dark:border-teal-800/40',
                   iconWell: 'bg-teal-100/80 dark:bg-teal-950/50',
                   kind: 'in_turno' as const,
@@ -1329,12 +1329,9 @@ export default function Timesheets() {
                   value: todayStats.ritardi,
                   Icon: Clock,
                   iconColor: 'text-red-600 dark:text-red-400',
-                  bg: todayStats.ritardi > 0 ? 'bg-red-50 dark:bg-red-950/35' : 'bg-slate-50 dark:bg-neutral-800/80',
-                  border: todayStats.ritardi > 0 ? 'border-red-100 dark:border-red-900/40' : 'border-slate-100 dark:border-white/10',
-                  iconWell:
-                    todayStats.ritardi > 0
-                      ? 'bg-red-100/80 dark:bg-red-950/45'
-                      : 'bg-red-50/90 dark:bg-red-950/25',
+                  bg: 'bg-transparent dark:bg-transparent',
+                  border: 'border-red-100 dark:border-red-900/40',
+                  iconWell: 'bg-red-100/80 dark:bg-red-950/45',
                   kind: 'ritardi' as const,
                 },
                 {
@@ -1342,12 +1339,9 @@ export default function Timesheets() {
                   value: todayStats.outMancanti,
                   Icon: AlertCircle,
                   iconColor: 'text-orange-600 dark:text-orange-400',
-                  bg: todayStats.outMancanti > 0 ? 'bg-orange-50 dark:bg-orange-950/35' : 'bg-slate-50 dark:bg-neutral-800/80',
-                  border: todayStats.outMancanti > 0 ? 'border-orange-100 dark:border-orange-900/40' : 'border-slate-100 dark:border-white/10',
-                  iconWell:
-                    todayStats.outMancanti > 0
-                      ? 'bg-orange-100/80 dark:bg-orange-950/45'
-                      : 'bg-orange-50/90 dark:bg-orange-950/25',
+                  bg: 'bg-transparent dark:bg-transparent',
+                  border: 'border-orange-100 dark:border-orange-900/40',
+                  iconWell: 'bg-orange-100/80 dark:bg-orange-950/45',
                   kind: 'out' as const,
                 },
                 {
@@ -1355,8 +1349,8 @@ export default function Timesheets() {
                   value: todayStats.approvati,
                   Icon: UserCheck,
                   iconColor: 'text-accent dark:text-accent-light',
-                  bg: todayStats.approvati > 0 ? 'bg-accent/8 dark:bg-accent/15' : 'bg-slate-50 dark:bg-neutral-800/80',
-                  border: todayStats.approvati > 0 ? 'border-accent/20 dark:border-accent/35' : 'border-slate-100 dark:border-white/10',
+                  bg: 'bg-transparent dark:bg-transparent',
+                  border: 'border-accent/20 dark:border-accent/35',
                   iconWell: 'bg-accent/15 dark:bg-accent/25',
                   kind: 'approvati' as const,
                 },
@@ -1366,7 +1360,7 @@ export default function Timesheets() {
                   type="button"
                   title={t.ts_stat_card_hint}
                   onClick={() => handleStatCardClick(kind)}
-                  className={`group w-full rounded-xl border ${border} ${bg} px-2.5 py-2 shadow-sm flex items-center gap-2 text-left transition-all hover:shadow-md hover:border-slate-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 dark:hover:border-white/20 dark:focus-visible:ring-offset-neutral-900`}
+                  className={`group w-full rounded-xl border ${border} ${bg} px-2.5 py-2 shadow-none flex items-center gap-2 text-left transition-colors hover:bg-slate-50/90 dark:hover:bg-white/[0.05] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
                     <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
@@ -1487,7 +1481,7 @@ export default function Timesheets() {
                   return (
                     <div
                       key={item.shift.id}
-                      className="bg-white border border-accent/20 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
+                      className="surface-glass surface-ghost-interactive border-accent/25 p-4 transition-colors hover:border-accent/40 dark:hover:border-accent/35"
                     >
                       {/* Employee + date */}
                       <div className="flex items-center gap-3 mb-3">
@@ -1639,7 +1633,7 @@ export default function Timesheets() {
                   className={`ui-toolbar-chip shrink-0 gap-1 transition-all ${
                     active
                       ? 'border-slate-800 bg-slate-800 text-white shadow-sm hover:bg-slate-800 dark:border-neutral-200 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-neutral-700'
+                      : 'text-slate-600 hover:border-slate-300 hover:bg-slate-50/90 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-white/[0.06]'
                   }`}
                 >
                   <span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-white dark:bg-neutral-800' : dot}`} />
@@ -1667,7 +1661,7 @@ export default function Timesheets() {
                   className={`ui-toolbar-chip shrink-0 gap-1 transition-all ${
                     active
                       ? 'border-slate-800 bg-slate-800 text-white shadow-sm hover:bg-slate-800 dark:border-neutral-200 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-neutral-700'
+                      : 'text-slate-600 hover:border-slate-300 hover:bg-slate-50/90 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-white/[0.06]'
                   }`}
                 >
                   <span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-white dark:bg-neutral-800' : dot}`} />
@@ -1687,7 +1681,7 @@ export default function Timesheets() {
           </div>
 
           {/* ── Tabella principale ──────────────────────────────────────── */}
-          <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-sm overflow-hidden">
+          <div className="surface-glass overflow-hidden">
             <HorizontalScrollArea
               variant="overlay"
               remeasureKey={`${viewMode}-${weekStr}-${weekDays.length}`}
@@ -2020,7 +2014,7 @@ export default function Timesheets() {
 
           {/* Box personale per staff */}
           {!canTeamTimesheetOps && currentUser && uiW('timesheet.staff_summary_box') && (
-            <div className="mt-4 bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm p-5">
+            <div className="mt-4 rounded-2xl border border-slate-100 bg-transparent p-5 shadow-none dark:border-white/10 dark:bg-transparent">
               <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-3 font-semibold">
                 {t.timesheet_my_week}
               </p>
@@ -2074,7 +2068,7 @@ export default function Timesheets() {
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                className="fixed top-0 right-0 bottom-0 z-[60] flex w-full max-w-sm flex-col border-l border-transparent bg-white shadow-2xl dark:border-white/10 dark:bg-neutral-900"
+                className="drawer-glass-panel fixed top-0 right-0 bottom-0 z-[60] flex w-full max-w-sm flex-col border-l border-slate-100 dark:border-white/10"
               >
                 {/* Drawer header — strip colorato in base allo stato */}
                 <div className={`border-l-4 ${border} ${bg} ${ring}`}>
@@ -2086,7 +2080,7 @@ export default function Timesheets() {
                           {label}
                         </span>
                         {drawerData.department && (
-                          <span className="truncate rounded-full border border-slate-200 bg-white/70 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:border-white/10 dark:bg-neutral-800/80 dark:text-neutral-300">
+                          <span className="truncate rounded-full border border-slate-200/90 bg-slate-50/50 px-2 py-0.5 text-[10px] font-medium text-slate-600 backdrop-blur-[1px] dark:border-white/12 dark:bg-neutral-800/40 dark:text-neutral-300">
                             {drawerData.department}
                           </span>
                         )}
@@ -2185,11 +2179,11 @@ export default function Timesheets() {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <div className="rounded-xl bg-white/80 p-3 dark:bg-neutral-800/90">
+                        <div className="surface-glass-sm bg-slate-50/40 p-3 dark:bg-neutral-900/35">
                           <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_drawer_approved_by}</p>
                           <p className="truncate text-sm font-bold text-slate-800 dark:text-neutral-100">{s.approved_by ?? '—'}</p>
                         </div>
-                        <div className="rounded-xl bg-white/80 p-3 dark:bg-neutral-800/90">
+                        <div className="surface-glass-sm bg-slate-50/40 p-3 dark:bg-neutral-900/35">
                           <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_drawer_approval_date}</p>
                           <p className="text-sm font-bold text-slate-800 dark:text-neutral-100">
                             {s.approved_at
@@ -2501,7 +2495,7 @@ export default function Timesheets() {
               onClick={(e) => { if (e.target === e.currentTarget) { setClosingShift(null); setClockOutTime(''); } }}>
               <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ duration: 0.15 }}
-                className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+                className="modal-glass-panel w-full max-w-sm rounded-2xl p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
@@ -2586,10 +2580,10 @@ export default function Timesheets() {
               onClick={(e) => { if (e.target === e.currentTarget) setDayReview(null); }}>
               <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }} transition={{ duration: 0.15 }}
-                className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+                className="modal-glass-panel w-full max-w-sm overflow-hidden rounded-2xl">
 
                 {/* Header */}
-                <div className="bg-slate-50 border-b border-slate-100 px-5 py-4 flex items-start justify-between">
+                <div className="border-b border-slate-100 bg-slate-50/90 px-5 py-4 backdrop-blur-sm dark:border-white/10 dark:bg-neutral-900/60 flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-0.5">
                       <Calendar className="w-4 h-4 text-accent" />
@@ -2750,10 +2744,10 @@ export default function Timesheets() {
               <motion.div
                 initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }} transition={{ duration: 0.15 }}
-                className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+                className="modal-glass-panel w-full max-w-sm overflow-hidden rounded-2xl"
               >
                 {/* Header */}
-                <div className="bg-accent/8 border-b border-accent/15 px-5 py-4 flex items-start justify-between">
+                <div className="border-b border-accent/15 bg-accent/8 px-5 py-4 backdrop-blur-sm dark:bg-accent/10 flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-0.5">
                       <Lock className="w-4 h-4 text-accent flex-shrink-0" />

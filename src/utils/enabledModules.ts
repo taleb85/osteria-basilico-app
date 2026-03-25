@@ -171,7 +171,7 @@ export function getUnifiedNavTabs(
     else if (id === 'ferie' && ferieOk) out.push('ferie');
     else if (id === 'timesheet' && timesheetOk) out.push('timesheet');
     else if (id === 'reports' && feat.view_stats) out.push('reports');
-    else if (id === 'profile' && user.role !== 'admin') out.push('profile');
+    else if (id === 'profile') out.push('profile');
     else if (id === 'settings' && feat.admin_tab) out.push('settings');
   }
   return out;
@@ -197,7 +197,6 @@ export function isTabEnabledForUser(
   isManagement: boolean,
   featureFlags?: FeatureFlags | null
 ): boolean {
-  if (tabId === 'profile') return user.role !== 'admin';
   if (APP_NAV_TAB_IDS.includes(tabId as AppNavTab)) {
     return getUnifiedNavTabs(user, isManagement, featureFlags).includes(tabId as AppNavTab);
   }

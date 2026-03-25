@@ -24,8 +24,6 @@ import { buildSettingsPermissionRows } from '../utils/settingsPermissionRows';
 import { operationalPayloadForUser } from '../utils/roleTemplateUserSync';
 
 const ACCENT = '#2D5A27';
-const EMBEDDED_COLLAPSE_KEY = 'osteria_role_templates_embedded_collapsed';
-
 function roleGroupExpandedStorageKey(g: RoleTemplateGroup) {
   return `osteria_rtg_expanded_${g}`;
 }
@@ -96,30 +94,6 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const templatePanelDirtyRef = useRef(false);
   const markTemplatePanelDirty = useCallback(() => {
     templatePanelDirtyRef.current = true;
-  }, []);
-
-  /** Prima visita: compresso (meno scroll). Dopo, ricorda espanso (`0`) / compresso (`1`). */
-  const [embeddedExpanded, setEmbeddedExpanded] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      const v = window.localStorage.getItem(EMBEDDED_COLLAPSE_KEY);
-      if (v === null) return false;
-      return v !== '1';
-    } catch {
-      return false;
-    }
-  });
-
-  const toggleEmbeddedPanel = useCallback(() => {
-    setEmbeddedExpanded((prev) => {
-      const next = !prev;
-      try {
-        window.localStorage.setItem(EMBEDDED_COLLAPSE_KEY, next ? '0' : '1');
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
   }, []);
 
   const [roleGroupExpanded, setRoleGroupExpanded] = useState<Record<RoleTemplateGroup, boolean>>(() => ({
@@ -263,7 +237,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
         {t.role_templates_admin_modules_heading}
       </p>
       <p className="mb-2 text-[11px] text-slate-500 dark:text-neutral-300">{t.role_templates_admin_modules_hint}</p>
-      <div className="rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900">
+      <div className="surface-glass-sm overflow-hidden">
         {ADMIN_MODULE_KEYS.map((key) => {
           const enabled = mods[key] === true;
           return (
@@ -311,7 +285,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
       <div className="border-t border-slate-100 pt-3 dark:border-white/10">
         <p className="ui-section-title mb-2 text-slate-400 dark:text-neutral-400">{t.role_templates_operational_heading}</p>
         <p className="mb-2 text-[11px] text-slate-500 dark:text-neutral-300">{t.role_templates_operational_hint}</p>
-        <div className="rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900">
+        <div className="surface-glass-sm overflow-hidden">
           {permRows.map((perm) => {
             const enabled = op[perm.key] === true;
             return (
@@ -359,7 +333,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     return (
       <div
         key={group}
-        className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none"
+        className="surface-glass-sm overflow-hidden"
       >
         <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-neutral-800/70">
           <button
@@ -387,7 +361,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
               className="overflow-hidden"
             >
               <div className="p-4 space-y-4">
-                <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/50 p-3 shadow-sm ring-1 ring-slate-100/60 sm:p-4 dark:border-white/10 dark:from-neutral-900 dark:to-neutral-950/80 dark:ring-white/10">
+                <div className="surface-glass p-3 sm:p-4">
                   <RoleFeatureSectionsBlock
                     mode="toggles"
                     features={state}
@@ -397,7 +371,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                   />
                 </div>
                 <div className="border-t border-slate-100 pt-3 dark:border-white/10">
-                  <div className="rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900">
+                  <div className="surface-glass-sm overflow-hidden">
                     <AdminRow
                       icon={<Users className="h-4 w-4 text-slate-500 dark:text-neutral-300" aria-hidden />}
                       label={t.settings_visible_on_schedule_row}
@@ -491,57 +465,13 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     </>
   );
 
+  /* In Impostazioni il collapse è solo `SettingsAccordionSection`: niente secondo accordion qui. */
   if (variant === 'embedded') {
     return (
-      <section className="mb-6">
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none"
-        >
-          <button
-            type="button"
-            onClick={toggleEmbeddedPanel}
-            aria-expanded={embeddedExpanded}
-            aria-label={t.role_templates_embedded_toggle_aria}
-            className="flex w-full items-center gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100/90 dark:border-white/10 dark:bg-neutral-800/80 dark:hover:bg-neutral-800"
-          >
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${ACCENT}20` }}
-            >
-              <SlidersHorizontal className="w-5 h-5" style={{ color: ACCENT }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-base font-bold leading-tight text-slate-800 dark:text-neutral-100">{t.role_templates_page_title}</h2>
-              <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-snug">
-                {embeddedExpanded ? t.role_templates_embedded_expanded_hint : t.role_templates_embedded_collapsed_hint}
-              </p>
-            </div>
-            <ChevronDown
-              className={`h-5 w-5 flex-shrink-0 text-slate-400 transition-transform duration-200 dark:text-neutral-400 ${embeddedExpanded ? 'rotate-180' : ''}`}
-              aria-hidden
-            />
-          </button>
-          <AnimatePresence initial={false}>
-            {embeddedExpanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
-                className="overflow-hidden"
-              >
-                <div className="border-t border-slate-100 px-4 pt-3 pb-4 dark:border-white/10">
-                  <div className="mb-4">{introDescription}</div>
-                  {groupsBlock}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      </section>
+      <div className="pb-1">
+        <div className="mb-4">{introDescription}</div>
+        {groupsBlock}
+      </div>
     );
   }
 

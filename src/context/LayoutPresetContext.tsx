@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- contesto: Provider + hook nello stesso file */
 import {
   createContext,
   useContext,

@@ -89,15 +89,8 @@ const baseIt = {
   punch_geofence_unavailable: 'Impossibile rilevare la posizione. Riprova o verifica il GPS.',
   punch_presence_modal_title: 'Verifica in sede',
   punch_presence_modal_subtitle: 'Inquadra il QR esposto in locale per completare la timbratura.',
-  punch_presence_btn_nfc: 'NFC',
-  punch_presence_btn_camera: 'Fotocamera / QR',
   punch_presence_point_camera: 'Inquadra il codice QR',
-  punch_presence_hold_tag: 'Avvicina il tag NFC al dispositivo…',
   punch_presence_try_again: 'Riprova',
-  punch_presence_nfc_unsupported: 'NFC non disponibile su questo dispositivo o browser.',
-  punch_presence_nfc_denied: 'Permesso NFC negato. Abilitalo nelle impostazioni del browser.',
-  punch_presence_nfc_timeout: 'Timeout NFC. Riprova tenendo il tag fermo.',
-  punch_presence_tag_unrecognized: 'Tag non riconosciuto o vuoto.',
   punch_presence_camera_denied: 'Permesso fotocamera negato. Consenti l’accesso alla fotocamera.',
   punch_presence_qr_failed: 'Lettura QR non riuscita. Riprova.',
   punch_presence_not_configured:
@@ -112,20 +105,13 @@ const baseIt = {
   settings_presence_section_hint:
     'Stesso bucket app-config: `presence_verification.json`. Il dipendente inquadra il QR stampato per timbrare.',
   settings_presence_require_label: 'Richiedi QR per timbrare',
-  settings_presence_register_nfc: 'Registra tag NFC',
-  settings_presence_write_nfc: 'Scrivi token sul tag',
-  settings_presence_nfc_write_success: 'Token scritto sul tag NFC.',
-  settings_presence_nfc_write_unsupported: 'Scrittura NFC non disponibile su questo browser.',
   settings_presence_generate_qr: 'Genera e stampa QR code',
   settings_presence_effective_token_preview: 'Token in uso (anteprima): {preview}',
   settings_presence_token_env_only:
     'Fallback da variabile VITE_OSTERIA_BASILICO_AUTH_KEY (nessun token salvato su cloud).',
   settings_presence_token_none: 'Nessun token definito: usa «Genera e stampa QR code».',
-  settings_presence_nfc_last: 'Ultima registrazione NFC: {date}',
   settings_presence_saved: 'Impostazioni verifica presenza salvate.',
   settings_presence_save_error: 'Errore salvataggio verifica presenza.',
-  settings_presence_nfc_saved: 'Tag NFC registrato: il contenuto del tag è il token atteso alle timbrature.',
-  settings_presence_nfc_error: 'Lettura NFC non riuscita.',
   settings_presence_qr_print_subtitle: 'Da esporre in sala; il dipendente lo inquadra alla timbratura.',
   settings_presence_qr_need_token: 'Impossibile generare il QR: configura un token o la chiave in .env.',
   already_punched: 'Già timbrato.',
@@ -165,7 +151,7 @@ const baseIt = {
   login_welcome: 'Bentornato',
   login_subtitle: 'Inserisci il tuo nome e il PIN a 4 cifre',
   login_name_label: 'Nome',
-  login_name_ph: 'Nome e cognome (es. Mario Rossi)',
+  login_name_ph: 'Nome',
   login_password_label: 'PIN',
   login_google: 'Accedi con Google',
   login_or: 'oppure',
@@ -195,6 +181,11 @@ const baseIt = {
   data_sync_banner_line1: 'Aggiornamento dati dal server…',
   data_sync_banner_line2:
     'Stiamo leggendo il database e la configurazione cloud (turni, timbrature, flag, template…).',
+  main_app_sync_nav_block_title: 'Sincronizza prima di proseguire',
+  main_app_sync_nav_block_hint:
+    'Hai modificato i dati in questa scheda. Tocca Sincronizza per allineare database e cloud; poi potrai cambiare scheda.',
+  main_app_sync_now: 'Sincronizza ora',
+  main_app_sync_cancel_nav: 'Annulla',
 
   // HolidayRequests
   email_sent: 'Email inviata.',
@@ -704,6 +695,14 @@ const baseIt = {
   home_today: 'Oggi',
   home_tomorrow: 'Domani',
   home_greeting: 'Ciao, {name}!',
+  role_scope_admin:
+    'Gestione struttura: configuri l’app, le regole e i profili del team — non sei in pianta come dipendente in turno.',
+  role_scope_operational:
+    'Operatività sul campo: pianifichi e confermi turni, presenze e comunicazione con lo staff.',
+  home_admin_profile_banner_title: 'Profilo amministratore',
+  home_admin_profile_banner_body:
+    'Gestione struttura: nessun turno in pianta — da qui controlli app, regole e anagrafica.',
+  profile_role_scope_label: 'Ambito del ruolo',
   home_next_shift: 'Prossimo turno',
   home_my_shifts: 'I miei turni',
   home_see_all: 'Vedi tutti',
@@ -973,6 +972,10 @@ const baseIt = {
   wst_no_hidden_days: 'Nessun giorno nascosto.',
   wst_day_visible_tooltip: 'Giorno nascosto ai dipendenti — tasto destro per rendere visibile',
   wst_day_hide_tooltip: 'Tasto destro per nascondere questo giorno ai dipendenti',
+  wst_day_menu_hint: 'Apri modifiche turni',
+  wst_day_menu_edit_shifts: 'Modifica turni',
+  wst_day_menu_hide_staff: 'Nascondi agli addetti',
+  wst_day_menu_show_staff: 'Mostra agli addetti',
   wst_month_prev_aria: 'Mese precedente',
   wst_month_next_aria: 'Mese successivo',
   wst_month_payroll_chip: 'Pagamento stipendi previsto: {date}',
@@ -999,6 +1002,7 @@ const baseIt = {
   wst_confirm_delete_btn: 'Conferma elimina',
   wst_bulk_apply_title: 'Applica a tutti i {n} turni',
   wst_bulk_empty_fields_hint: 'I campi lasciati vuoti non verranno modificati.',
+  wst_drawer_times_section: 'Orari',
   wst_sync_saved: 'Salvato',
   notes_label: 'Note',
   notes_optional_paren: '(opzionale)',
@@ -1090,6 +1094,8 @@ const baseIt = {
   settings_master_panel_title: 'Master Control Panel',
   settings_master_panel_sub: 'Le modifiche sono immediate · salvate in DB o localStorage',
   settings_cloud_sync_button: 'Sincronizza',
+  management_sync_inactive_hint:
+    'Nessuna modifica locale. Il pulsante si attiva dopo aver salvato turni, ferie, personale o impostazioni.',
   settings_cloud_sync_success:
     'Sincronizzazione completata: turni, utenti e configurazione cloud (flag, geofence, template…).',
   hard_reload_button: 'Ricarica tutto dal server',
@@ -1152,6 +1158,8 @@ const baseIt = {
   impostazioni_page_subtitle: 'Interruttori globali',
   impostazioni_page_lead:
     'Stessi interruttori che trovi in Profili → Master Control Panel: qui li gestisci in modo compatto. Le modifiche sono immediate e salvate nella configurazione dell’app (Storage cloud se attivo, altrimenti browser).',
+  settings_admin_structure_intro:
+    'Ambito amministratore: definisci qui la struttura dell’app per tutti. Responsabili e Vice lavorano su turni, conferme e staff in campo dalle schede operative (Home, Turni, Presenze).',
   impostazioni_duplicate_hint:
     'Duplicato voluto: puoi intervenire da qui o dal pannello Master in Profili (stessi flag).',
   impostazioni_open_profiles: 'Apri Profili',
@@ -1201,6 +1209,8 @@ const baseIt = {
   settings_operational_perm_saved: 'Permesso salvato.',
   settings_badge_admin: 'Admin',
   settings_departments_section_title: 'Reparti',
+  settings_departments_cloud_hint:
+    'Con la sincronizzazione cloud attiva, colori ed elenco reparti si allineano su tutti i dispositivi dopo ogni modifica qui o con «Salva su tutti i dispositivi» (`departments.json` su Storage).',
   settings_dept_delete_title: 'Elimina reparto',
   settings_break_no_shift_threshold: 'senza soglia turno',
   settings_break_new_rule: 'Nuova regola pausa',
@@ -1345,15 +1355,8 @@ const baseEn: Record<string, string> = {
   punch_geofence_unavailable: 'Could not get your position. Try again or check GPS.',
   punch_presence_modal_title: 'On-site verification',
   punch_presence_modal_subtitle: 'Scan the QR code displayed on site to complete your punch.',
-  punch_presence_btn_nfc: 'NFC',
-  punch_presence_btn_camera: 'Camera / QR',
   punch_presence_point_camera: 'Point the camera at the QR code',
-  punch_presence_hold_tag: 'Hold the NFC tag near the device…',
   punch_presence_try_again: 'Try again',
-  punch_presence_nfc_unsupported: 'NFC is not available on this device or browser.',
-  punch_presence_nfc_denied: 'NFC permission denied. Enable it in your browser settings.',
-  punch_presence_nfc_timeout: 'NFC timed out. Try again and hold the tag steady.',
-  punch_presence_tag_unrecognized: 'Unrecognised or empty tag.',
   punch_presence_camera_denied: 'Camera permission denied. Allow camera access for this site.',
   punch_presence_qr_failed: 'Could not read the QR code. Try again.',
   punch_presence_not_configured:
@@ -1367,19 +1370,12 @@ const baseEn: Record<string, string> = {
   settings_presence_section_hint:
     'Same app-config bucket: `presence_verification.json`. Staff scan the printed QR when punching.',
   settings_presence_require_label: 'Require QR scan to punch',
-  settings_presence_register_nfc: 'Register NFC tag',
-  settings_presence_write_nfc: 'Write token to tag',
-  settings_presence_nfc_write_success: 'Token written to the NFC tag.',
-  settings_presence_nfc_write_unsupported: 'NFC writing is not available in this browser.',
   settings_presence_generate_qr: 'Generate and print QR code',
   settings_presence_effective_token_preview: 'Active token (preview): {preview}',
   settings_presence_token_env_only: 'Using fallback from VITE_OSTERIA_BASILICO_AUTH_KEY (no token saved to cloud).',
   settings_presence_token_none: 'No token yet: use Generate and print QR code.',
-  settings_presence_nfc_last: 'Last NFC registration: {date}',
   settings_presence_saved: 'Presence verification settings saved.',
   settings_presence_save_error: 'Could not save presence verification.',
-  settings_presence_nfc_saved: 'NFC tag registered: its text is now the expected punch token.',
-  settings_presence_nfc_error: 'NFC read failed.',
   settings_presence_qr_print_subtitle: 'Display on site; staff scan it when punching.',
   settings_presence_qr_need_token: 'Cannot generate QR: configure a token or .env key.',
   already_punched: 'Already punched.',
@@ -1415,7 +1411,7 @@ const baseEn: Record<string, string> = {
   login_welcome: 'Welcome back',
   login_subtitle: 'Enter your name and 4-digit PIN',
   login_name_label: 'Name',
-  login_name_ph: 'First and last name (e.g. Jane Doe)',
+  login_name_ph: 'Name',
   login_password_label: 'PIN',
   login_google: 'Sign in with Google',
   login_or: 'or',
@@ -1442,6 +1438,11 @@ const baseEn: Record<string, string> = {
   sync_total_in_progress: 'Syncing…',
   data_sync_banner_line1: 'Updating data from the server…',
   data_sync_banner_line2: 'Reading the database and cloud settings (shifts, punches, flags, templates…).',
+  main_app_sync_nav_block_title: 'Sync before you continue',
+  main_app_sync_nav_block_hint:
+    'You changed data on this tab. Tap Sync to align the database and cloud; then you can switch tabs.',
+  main_app_sync_now: 'Sync now',
+  main_app_sync_cancel_nav: 'Cancel',
   email_sent: 'Email sent.',
   holiday_saved_email_sent: 'Request saved and email sent.',
   request_holiday: 'Request Holiday',
@@ -1898,6 +1899,14 @@ const baseEn: Record<string, string> = {
   home_today: 'Today',
   home_tomorrow: 'Tomorrow',
   home_greeting: 'Hello, {name}!',
+  role_scope_admin:
+    'Structure: you configure the app, rules and team profiles — you are not floor staff on shift.',
+  role_scope_operational:
+    'On-the-floor operations: you plan and confirm shifts, attendance and communication with staff.',
+  home_admin_profile_banner_title: 'Administrator profile',
+  home_admin_profile_banner_body:
+    'Structure management: no floor shifts — you control the app, rules and directory from here.',
+  profile_role_scope_label: 'Role scope',
   home_next_shift: 'Next shift',
   home_my_shifts: 'My shifts',
   home_see_all: 'See all',
@@ -2165,6 +2174,10 @@ const baseEn: Record<string, string> = {
   wst_no_hidden_days: 'No hidden days.',
   wst_day_visible_tooltip: 'Day hidden from staff — right-click to make visible',
   wst_day_hide_tooltip: 'Right-click to hide this day from staff',
+  wst_day_menu_hint: 'Open shift editor',
+  wst_day_menu_edit_shifts: 'Edit shifts',
+  wst_day_menu_hide_staff: 'Hide from staff',
+  wst_day_menu_show_staff: 'Show to staff',
   wst_month_prev_aria: 'Previous month',
   wst_month_next_aria: 'Next month',
   wst_month_payroll_chip: 'Expected payroll payment: {date}',
@@ -2191,6 +2204,7 @@ const baseEn: Record<string, string> = {
   wst_confirm_delete_btn: 'Confirm delete',
   wst_bulk_apply_title: 'Apply to all {n} shifts',
   wst_bulk_empty_fields_hint: 'Empty fields will not be changed.',
+  wst_drawer_times_section: 'Hours',
   wst_sync_saved: 'Saved',
   notes_label: 'Notes',
   notes_optional_paren: '(optional)',
@@ -2282,6 +2296,8 @@ const baseEn: Record<string, string> = {
   settings_master_panel_title: 'Master Control Panel',
   settings_master_panel_sub: 'Changes are immediate · saved to DB or localStorage',
   settings_cloud_sync_button: 'Sync',
+  management_sync_inactive_hint:
+    'No local changes yet. The button enables after you save shifts, leave, staff or settings.',
   settings_cloud_sync_success:
     'Sync complete: shifts, users and cloud config (flags, geofence, templates…).',
   hard_reload_button: 'Reload everything from server',
@@ -2343,6 +2359,8 @@ const baseEn: Record<string, string> = {
   impostazioni_page_subtitle: 'Global toggles',
   impostazioni_page_lead:
     'Same switches as in Profiles → Master Control Panel: manage them here in a compact view. Changes apply immediately and are saved in app configuration (cloud Storage when set up, otherwise the browser).',
+  settings_admin_structure_intro:
+    'Administrator scope: define the app structure for everyone here. Managers and assistants run shifts, approvals and on-the-floor staff from operational tabs (Home, Shifts, Attendance).',
   impostazioni_duplicate_hint:
     'Intentional duplicate: you can change these here or in the Master panel under Profiles (same flags).',
   impostazioni_open_profiles: 'Open Profiles',
@@ -2391,6 +2409,8 @@ const baseEn: Record<string, string> = {
   settings_operational_perm_saved: 'Permission saved.',
   settings_badge_admin: 'Admin',
   settings_departments_section_title: 'Departments',
+  settings_departments_cloud_hint:
+    'With cloud sync on, department colours and the list align on every device after each change here or via «Save on all devices» (`departments.json` in Storage).',
   settings_dept_delete_title: 'Delete department',
   settings_break_no_shift_threshold: 'no shift length threshold',
   settings_break_new_rule: 'New break rule',
@@ -2551,15 +2571,8 @@ const baseEs: Record<string, string> = {
   punch_geofence_unavailable: 'No se pudo obtener la posición. Reintenta o revisa el GPS.',
   punch_presence_modal_title: 'Verificación en el local',
   punch_presence_modal_subtitle: 'Escanea el QR expuesto en el local para completar el fichaje.',
-  punch_presence_btn_nfc: 'NFC',
-  punch_presence_btn_camera: 'Cámara / QR',
   punch_presence_point_camera: 'Apunta la cámara al código QR',
-  punch_presence_hold_tag: 'Acerca la etiqueta NFC al dispositivo…',
   punch_presence_try_again: 'Reintentar',
-  punch_presence_nfc_unsupported: 'NFC no disponible en este dispositivo o navegador.',
-  punch_presence_nfc_denied: 'Permiso NFC denegado. Actívalo en la configuración del navegador.',
-  punch_presence_nfc_timeout: 'Tiempo de espera NFC. Reintenta manteniendo la etiqueta quieta.',
-  punch_presence_tag_unrecognized: 'Etiqueta no reconocida o vacía.',
   punch_presence_camera_denied: 'Permiso de cámara denegado. Permite el acceso a la cámara.',
   punch_presence_qr_failed: 'No se pudo leer el QR. Reintenta.',
   punch_presence_not_configured:
@@ -2574,20 +2587,13 @@ const baseEs: Record<string, string> = {
   settings_presence_section_hint:
     'Mismo bucket app-config: `presence_verification.json`. El empleado escanea el QR impreso al fichar.',
   settings_presence_require_label: 'Exigir QR para fichar',
-  settings_presence_register_nfc: 'Registrar etiqueta NFC',
-  settings_presence_write_nfc: 'Escribir token en la etiqueta',
-  settings_presence_nfc_write_success: 'Token escrito en la etiqueta NFC.',
-  settings_presence_nfc_write_unsupported: 'La escritura NFC no está disponible en este navegador.',
   settings_presence_generate_qr: 'Generar e imprimir código QR',
   settings_presence_effective_token_preview: 'Token en uso (vista previa): {preview}',
   settings_presence_token_env_only:
     'Respaldo desde VITE_OSTERIA_BASILICO_AUTH_KEY (sin token guardado en la nube).',
   settings_presence_token_none: 'Sin token: usa Generar e imprimir código QR.',
-  settings_presence_nfc_last: 'Último registro NFC: {date}',
   settings_presence_saved: 'Ajustes de verificación de presencia guardados.',
   settings_presence_save_error: 'Error al guardar la verificación de presencia.',
-  settings_presence_nfc_saved: 'Etiqueta NFC registrada: su texto es ahora el token esperado al fichar.',
-  settings_presence_nfc_error: 'Lectura NFC fallida.',
   settings_presence_qr_print_subtitle: 'Mostrar en sala; el empleado lo escanea al fichar.',
   settings_presence_qr_need_token: 'No se puede generar el QR: configura un token o la clave en .env.',
   already_punched: 'Ya fichado.',
@@ -2651,6 +2657,11 @@ const baseEs: Record<string, string> = {
   data_sync_banner_line1: 'Actualizando datos del servidor…',
   data_sync_banner_line2:
     'Leyendo la base de datos y la configuración en la nube (turnos, fichajes, flags, plantillas…).',
+  main_app_sync_nav_block_title: 'Sincroniza antes de continuar',
+  main_app_sync_nav_block_hint:
+    'Has cambiado datos en esta pestaña. Pulsa Sincronizar para alinear base de datos y nube; luego podrás cambiar de pestaña.',
+  main_app_sync_now: 'Sincronizar ahora',
+  main_app_sync_cancel_nav: 'Cancelar',
   email_sent: 'Email enviado.',
   holiday_saved_email_sent: 'Solicitud guardada y email enviado.',
   request_holiday: 'Solicitar vacaciones',
@@ -3104,6 +3115,14 @@ const baseEs: Record<string, string> = {
   home_today: 'Hoy',
   home_tomorrow: 'Mañana',
   home_greeting: '¡Hola, {name}!',
+  role_scope_admin:
+    'Gestión de estructura: configuras la app, las reglas y los perfiles del equipo — no estás en sala como empleado en turno.',
+  role_scope_operational:
+    'Operativa en sala: planificas y confirmas turnos, presencias y comunicación con el personal.',
+  home_admin_profile_banner_title: 'Perfil de administrador',
+  home_admin_profile_banner_body:
+    'Gestión de estructura: sin turnos en sala — desde aquí controlas la app, las reglas y el equipo.',
+  profile_role_scope_label: 'Ámbito del rol',
   home_next_shift: 'Próximo turno',
   home_my_shifts: 'Mis turnos',
   home_see_all: 'Ver todos',
@@ -3371,6 +3390,10 @@ const baseEs: Record<string, string> = {
   wst_no_hidden_days: 'Ningún día oculto.',
   wst_day_visible_tooltip: 'Día oculto al personal — clic derecho para mostrar',
   wst_day_hide_tooltip: 'Clic derecho para ocultar este día al personal',
+  wst_day_menu_hint: 'Abrir edición de turnos',
+  wst_day_menu_edit_shifts: 'Editar turnos',
+  wst_day_menu_hide_staff: 'Ocultar al personal',
+  wst_day_menu_show_staff: 'Mostrar al personal',
   wst_month_prev_aria: 'Mes anterior',
   wst_month_next_aria: 'Mes siguiente',
   wst_month_payroll_chip: 'Pago de nómina previsto: {date}',
@@ -3397,6 +3420,7 @@ const baseEs: Record<string, string> = {
   wst_confirm_delete_btn: 'Confirmar eliminación',
   wst_bulk_apply_title: 'Aplicar a los {n} turnos',
   wst_bulk_empty_fields_hint: 'Los campos vacíos no se modificarán.',
+  wst_drawer_times_section: 'Horarios',
   wst_sync_saved: 'Guardado',
   notes_label: 'Notas',
   notes_optional_paren: '(opcional)',
@@ -3488,6 +3512,8 @@ const baseEs: Record<string, string> = {
   settings_master_panel_title: 'Panel de control maestro',
   settings_master_panel_sub: 'Los cambios son inmediatos · guardados en BD o localStorage',
   settings_cloud_sync_button: 'Sincronizar',
+  management_sync_inactive_hint:
+    'Sin cambios locales. El botón se activa al guardar turnos, ausencias, personal o ajustes.',
   settings_cloud_sync_success:
     'Sincronización completada: turnos, usuarios y configuración en la nube (flags, geocerca, plantillas…).',
   hard_reload_button: 'Recargar todo desde el servidor',
@@ -3548,6 +3574,8 @@ const baseEs: Record<string, string> = {
   impostazioni_page_subtitle: 'Interruptores globales',
   impostazioni_page_lead:
     'Los mismos interruptores que en Perfiles → Panel de control maestro: aquí los gestionas de forma compacta. Los cambios son inmediatos y se guardan en la configuración de la app (Storage en la nube si está configurado; si no, en el navegador).',
+  settings_admin_structure_intro:
+    'Ámbito de administrador: define aquí la estructura de la app para todos. Encargados y subencargados gestionan turnos, confirmaciones y personal en sala desde las pestañas operativas (Inicio, Turnos, Presencias).',
   impostazioni_duplicate_hint:
     'Duplicado a propósito: puedes cambiarlos aquí o en el panel Maestro en Perfiles (mismos flags).',
   impostazioni_open_profiles: 'Abrir Perfiles',
@@ -3596,6 +3624,8 @@ const baseEs: Record<string, string> = {
   settings_operational_perm_saved: 'Permiso guardado.',
   settings_badge_admin: 'Admin',
   settings_departments_section_title: 'Departamentos',
+  settings_departments_cloud_hint:
+    'Con la sincronización en la nube activa, los colores y la lista de departamentos se alinean en todos los dispositivos tras cada cambio aquí o con «Guardar en todos los dispositivos» (`departments.json` en Storage).',
   settings_dept_delete_title: 'Eliminar departamento',
   settings_break_no_shift_threshold: 'sin umbral de duración de turno',
   settings_break_new_rule: 'Nueva regla de pausa',
@@ -3702,7 +3732,7 @@ const baseFr: Record<string, string> = {
   login_welcome: 'Bienvenue',
   login_subtitle: 'Saisissez votre nom et votre PIN à 4 chiffres',
   login_name_label: 'Nom',
-  login_name_ph: 'Prénom et nom (ex. Jean Dupont)',
+  login_name_ph: 'Nom',
   login_password_label: 'PIN',
   login_google: 'Se connecter avec Google',
   login_or: 'ou',
@@ -3742,6 +3772,14 @@ const baseFr: Record<string, string> = {
   osteria_coperti: 'Couverts',
   osteria_comande: 'Commandes',
   osteria_fine_turno: 'Fin de Service',
+  role_scope_admin:
+    'Structure : vous configurez l’app, les règles et les profils d’équipe — vous n’êtes pas en salle comme employé en service.',
+  role_scope_operational:
+    'Opérations sur le terrain : vous planifiez et confirmez les shifts, les présences et la communication avec l’équipe.',
+  home_admin_profile_banner_title: 'Profil administrateur',
+  home_admin_profile_banner_body:
+    'Gestion de la structure : pas de shift en salle — vous pilotez l’app, les règles et l’annuaire d’ici.',
+  profile_role_scope_label: 'Portée du rôle',
   // Override key French strings from baseIt
   settings_title: 'Paramètres',
   settings_delegated_intro:
@@ -3766,6 +3804,11 @@ const baseFr: Record<string, string> = {
   data_sync_banner_line1: 'Mise à jour des données depuis le serveur…',
   data_sync_banner_line2:
     'Lecture de la base de données et de la configuration cloud (shifts, pointages, options, modèles…).',
+  main_app_sync_nav_block_title: 'Synchronisez avant de continuer',
+  main_app_sync_nav_block_hint:
+    'Vous avez modifié des données dans cet onglet. Touchez Synchroniser pour aligner la base et le cloud, puis vous pourrez changer d’onglet.',
+  main_app_sync_now: 'Synchroniser maintenant',
+  main_app_sync_cancel_nav: 'Annuler',
   shifts_nav: 'Shifts',
   reports_nav: 'Rapports',
   holidays_nav: 'Congés',
@@ -4081,6 +4124,10 @@ const baseFr: Record<string, string> = {
   wst_no_hidden_days: 'Aucun jour masqué.',
   wst_day_visible_tooltip: 'Jour masqué au personnel — clic droit pour afficher',
   wst_day_hide_tooltip: 'Clic droit pour masquer ce jour au personnel',
+  wst_day_menu_hint: 'Ouvrir la modification des shifts',
+  wst_day_menu_edit_shifts: 'Modifier les shifts',
+  wst_day_menu_hide_staff: 'Masquer au personnel',
+  wst_day_menu_show_staff: 'Afficher au personnel',
   wst_month_prev_aria: 'Mois précédent',
   wst_month_next_aria: 'Mois suivant',
   wst_month_payroll_chip: 'Paie : {date}',
@@ -4107,6 +4154,7 @@ const baseFr: Record<string, string> = {
   wst_confirm_delete_btn: 'Confirmer la suppression',
   wst_bulk_apply_title: 'Appliquer aux {n} shifts',
   wst_bulk_empty_fields_hint: 'Les champs vides ne seront pas modifiés.',
+  wst_drawer_times_section: 'Horaires',
   wst_sync_saved: 'Enregistré',
   notes_label: 'Notes',
   notes_optional_paren: '(optionnel)',
@@ -4198,6 +4246,8 @@ const baseFr: Record<string, string> = {
   settings_master_panel_title: 'Panneau de contrôle principal',
   settings_master_panel_sub: 'Modifications immédiates · enregistrées en base ou localStorage',
   settings_cloud_sync_button: 'Synchroniser',
+  management_sync_inactive_hint:
+    'Aucune modification locale. Le bouton s’active après avoir enregistré shifts, absences, équipe ou réglages.',
   settings_cloud_sync_success:
     'Synchronisation terminée : plannings, utilisateurs et config cloud (drapeaux, géorepérage, modèles…).',
   hard_reload_button: 'Tout recharger depuis le serveur',
@@ -4239,6 +4289,8 @@ const baseFr: Record<string, string> = {
   impostazioni_page_subtitle: 'Interrupteurs globaux',
   impostazioni_page_lead:
     'Les mêmes interrupteurs que sous Profils → Master Control Panel : gérez-les ici en vue compacte. Les changements sont immédiats et enregistrés dans la configuration de l’app (Storage cloud si configuré, sinon navigateur).',
+  settings_admin_structure_intro:
+    'Périmètre administrateur : définissez ici la structure de l’app pour tous. Managers et adjoints gèrent les shifts, validations et équipe au sol depuis les onglets opérationnels (Accueil, Shifts, Présences).',
   impostazioni_duplicate_hint:
     'Doublon volontaire : modifiable ici ou dans le panneau Master sous Profils (mêmes indicateurs).',
   impostazioni_open_profiles: 'Ouvrir Profils',
@@ -4305,6 +4357,8 @@ const baseFr: Record<string, string> = {
   settings_operational_perm_saved: 'Permission enregistrée.',
   settings_badge_admin: 'Admin',
   settings_departments_section_title: 'Départements',
+  settings_departments_cloud_hint:
+    'Avec la synchronisation cloud activée, les couleurs et la liste des départements s’alignent sur tous les appareils après chaque modification ici ou via « Enregistrer sur tous les appareils » (`departments.json` dans Storage).',
   settings_dept_delete_title: 'Supprimer le département',
   settings_break_no_shift_threshold: 'sans seuil de durée de shift',
   settings_break_new_rule: 'Nouvelle règle de pause',
@@ -4388,15 +4442,8 @@ const baseFr: Record<string, string> = {
   punch_geofence_unavailable: 'Impossible d’obtenir la position. Réessayez ou vérifiez le GPS.',
   punch_presence_modal_title: 'Vérification sur place',
   punch_presence_modal_subtitle: 'Scannez le QR affiché sur place pour terminer le pointage.',
-  punch_presence_btn_nfc: 'NFC',
-  punch_presence_btn_camera: 'Appareil photo / QR',
   punch_presence_point_camera: 'Visez le code QR avec l’appareil photo',
-  punch_presence_hold_tag: 'Approchez l’étiquette NFC de l’appareil…',
   punch_presence_try_again: 'Réessayer',
-  punch_presence_nfc_unsupported: 'NFC indisponible sur cet appareil ou navigateur.',
-  punch_presence_nfc_denied: 'Autorisation NFC refusée. Activez-la dans les paramètres du navigateur.',
-  punch_presence_nfc_timeout: 'Délai NFC dépassé. Réessayez en maintenant l’étiquette immobile.',
-  punch_presence_tag_unrecognized: 'Étiquette non reconnue ou vide.',
   punch_presence_camera_denied: 'Accès à la caméra refusé. Autorisez la caméra pour ce site.',
   punch_presence_qr_failed: 'Lecture du QR impossible. Réessayez.',
   punch_presence_not_configured:
@@ -4411,20 +4458,13 @@ const baseFr: Record<string, string> = {
   settings_presence_section_hint:
     'Même bucket app-config : `presence_verification.json`. Le salarié scanne le QR imprimé au pointage.',
   settings_presence_require_label: 'Exiger le QR pour pointer',
-  settings_presence_register_nfc: 'Enregistrer une étiquette NFC',
-  settings_presence_write_nfc: 'Écrire le jeton sur l’étiquette',
-  settings_presence_nfc_write_success: 'Jeton écrit sur l’étiquette NFC.',
-  settings_presence_nfc_write_unsupported: 'L’écriture NFC n’est pas disponible dans ce navigateur.',
   settings_presence_generate_qr: 'Générer et imprimer le code QR',
   settings_presence_effective_token_preview: 'Jeton actif (aperçu) : {preview}',
   settings_presence_token_env_only:
     'Repli depuis VITE_OSTERIA_BASILICO_AUTH_KEY (aucun jeton enregistré sur le cloud).',
   settings_presence_token_none: 'Aucun jeton : utilisez Générer et imprimer le code QR.',
-  settings_presence_nfc_last: 'Dernier enregistrement NFC : {date}',
   settings_presence_saved: 'Paramètres de vérification de présence enregistrés.',
   settings_presence_save_error: 'Échec de l’enregistrement de la vérification de présence.',
-  settings_presence_nfc_saved: 'Étiquette NFC enregistrée : son texte est désormais le jeton attendu au pointage.',
-  settings_presence_nfc_error: 'Lecture NFC impossible.',
   settings_presence_qr_print_subtitle: 'À afficher sur place ; le salarié le scanne au pointage.',
   settings_presence_qr_need_token: 'Impossible de générer le QR : configurez un jeton ou la clé .env.',
   feature_geofence_punch_label: 'Géorepérage des pointages',

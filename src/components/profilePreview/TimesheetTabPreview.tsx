@@ -31,7 +31,7 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+        <div className="surface-glass-sm flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
           <div className="min-w-0">
             <h2 className="text-base font-bold text-slate-900 dark:text-neutral-50">{t.timesheet_title}</h2>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
@@ -73,16 +73,14 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { v: '4', l: t.home_stat_in_shift },
-            { v: '1', l: t.home_stat_delays },
-            { v: '12', l: t.home_stat_approved },
+            { v: '4', l: t.home_stat_in_shift, b: 'border-teal-100 dark:border-teal-800/40' },
+            { v: '1', l: t.home_stat_delays, b: 'border-red-100 dark:border-red-900/40' },
+            { v: '0', l: t.home_stat_missing_out, b: 'border-orange-100 dark:border-orange-900/40' },
+            { v: '12', l: t.home_stat_approved, b: 'border-accent/20 dark:border-accent/30' },
           ].map((c) => (
-            <div
-              key={c.l}
-              className="rounded-xl border border-slate-100 bg-white p-3 text-center shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none"
-            >
+            <div key={c.l} className={`surface-glass-sm p-3 text-center ${c.b}`}>
               <p className="text-xl font-bold text-slate-900 dark:text-neutral-50">{c.v}</p>
               <p className="mt-0.5 text-[10px] font-medium text-slate-500 dark:text-neutral-300">{c.l}</p>
             </div>
@@ -100,15 +98,15 @@ export default function TimesheetTabPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+          <div className="surface-glass-sm p-3">
             <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.stats_approved_hours}</p>
             <p className="text-xl font-bold text-slate-900 dark:text-neutral-50">128:30</p>
           </div>
-          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+          <div className="surface-glass-sm p-3">
             <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.stats_estimated_cost}</p>
             <p className="text-xl font-bold text-slate-900 dark:text-neutral-50">—</p>
           </div>
-          <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+          <div className="surface-glass-sm p-3">
             <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.pending}</p>
             <p className="text-xl font-bold text-amber-800 dark:text-amber-300">3</p>
           </div>
@@ -129,7 +127,7 @@ export default function TimesheetTabPreview({
             <span>{t.mod_stats_hours}</span>
             <ChevronDown className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
           </div>
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100">
+          <div className="flex items-center justify-between surface-glass-sm px-3 py-2.5 text-sm font-semibold text-slate-800 dark:text-neutral-100">
             <span>{t.sidebar_shifts}</span>
             <ChevronDown className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
           </div>
@@ -175,7 +173,7 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="surface-glass-sm overflow-hidden">
           <div className="grid grid-cols-[minmax(4rem,1fr)_repeat(4,minmax(0,1fr))] gap-px bg-slate-200 text-[9px]">
             <div className="bg-slate-50 px-1 py-2 font-bold text-slate-500 dark:text-neutral-300">Staff</div>
             {['Lun', 'Mar', 'Mer', 'Gio'].map((d) => (
@@ -185,9 +183,9 @@ export default function TimesheetTabPreview({
             ))}
             {['Jean', 'John'].map((nm) => (
               <div key={nm} className="contents">
-                <div className="bg-white px-2 py-2 font-semibold text-slate-700">{nm}</div>
+                <div className="bg-slate-50 px-2 py-2 font-semibold text-slate-700 dark:bg-neutral-900 dark:text-neutral-200">{nm}</div>
                 {[0, 1, 2, 3].map((i) => (
-                  <div key={i} className="min-h-[36px] bg-white p-0.5">
+                  <div key={i} className="min-h-[36px] bg-slate-50 p-0.5 dark:bg-neutral-900">
                     {i === 1 && (
                       <div className="rounded bg-accent/12 py-1 text-center text-[8px] font-bold text-accent">8h</div>
                     )}

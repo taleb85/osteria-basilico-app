@@ -97,11 +97,13 @@ function DepartmentColorPicker({
           panelRef={modalRef}
           backdropAriaLabel={tv.close ?? 'Chiudi'}
           ariaLabel={title}
-          maxWidthClass="max-w-xs"
-          panelClassName="p-3"
+          maxWidthClass="max-w-sm"
+          panelClassName="p-3.5"
         >
-          <p className="mb-2.5 px-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{title}</p>
-          <div className="grid grid-cols-6 gap-2">
+          <p className="mb-3 px-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-800 dark:text-neutral-100">
+            {title}
+          </p>
+          <div className="grid grid-cols-6 gap-2.5">
             {DEPARTMENT_COLOR_PRESETS.map((hex) => {
               const selected = value.toLowerCase() === hex.toLowerCase();
               return (
@@ -113,8 +115,10 @@ function DepartmentColorPicker({
                     onChange(hex);
                     setOpen(false);
                   }}
-                  className={`h-8 w-8 rounded-full border-2 border-white shadow-sm outline-none transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 ${
-                    selected ? 'ring-2 ring-accent ring-offset-2' : 'ring-1 ring-slate-200/70'
+                  className={`h-9 w-9 shrink-0 rounded-full outline-none transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-900 ${
+                    selected
+                      ? 'ring-2 ring-offset-2 ring-accent ring-offset-slate-100 dark:ring-offset-neutral-800 shadow-md'
+                      : 'ring-2 ring-slate-400/90 ring-offset-1 ring-offset-white dark:ring-neutral-500 dark:ring-offset-neutral-900 shadow-[inset_0_0_0_1px_rgba(15,23,42,0.12)]'
                   }`}
                   style={{ backgroundColor: hex }}
                 />
@@ -150,18 +154,14 @@ export default function SettingsPage() {
     saveGeofenceConfig,
     presenceVerificationConfig,
     savePresenceVerificationConfig,
-    silentRefreshData,
     pushSettingsToCloud,
     settingsCloudLastSyncedAt,
     settingsCloudPushBusy,
     dataSyncInProgress,
+    departmentsRevision,
+    notifyDepartmentsChanged,
   } = useApp();
   const t = getTranslations(effectiveLanguage);
-
-  useEffect(() => {
-    if (!currentUser || !isAdminOnly(currentUser)) return;
-    void silentRefreshData({ pullRemoteConfig: true });
-  }, [currentUser, silentRefreshData]);
 
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showCreateStaff, setShowCreateStaff] = useState(false);
@@ -190,6 +190,9 @@ export default function SettingsPage() {
   const [editingBreakRule, setEditingBreakRule] = useState<BreakRule | null>(null);
   const [creatingBreakRule, setCreatingBreakRule] = useState(false);
   const [departments, setDepts] = useState<Department[]>(() => getDepartments());
+  useEffect(() => {
+    setDepts(getDepartments());
+  }, [departmentsRevision]);
   const [newDeptName, setNewDeptName] = useState('');
   const [newDeptColor, setNewDeptColor] = useState('#2D5A27');
   const [editingDeptValue, setEditingDeptValue] = useState<string | null>(null);
@@ -767,6 +770,7 @@ export default function SettingsPage() {
             defaultOpen={false}
           >
             <div className="panel p-4 rounded-xl space-y-4">
+              <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-snug">{t.settings_departments_cloud_hint}</p>
               {/* Lista reparti */}
               <div className="flex flex-wrap gap-2">
                 {departments.map((d) => {
@@ -819,6 +823,7 @@ export default function SettingsPage() {
                           onClick={() => {
                             if (editingDeptValue === d.value) setEditingDeptValue(null);
                             setDepts(removeDepartment(d.value));
+                            void notifyDepartmentsChanged();
                           }}
                           className="text-white/70 hover:text-white transition-colors shrink-0"
                         >
@@ -868,6 +873,7 @@ export default function SettingsPage() {
                               );
                               showSuccess?.(t.settings_dept_saved);
                               setEditingDeptValue(null);
+                              void notifyDepartmentsChanged();
                             }
                           }}
                           className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100 sm:min-w-[12rem]"
@@ -905,6 +911,7 @@ export default function SettingsPage() {
                               );
                               showSuccess?.(t.settings_dept_saved);
                               setEditingDeptValue(null);
+                              void notifyDepartmentsChanged();
                             }}
                             className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-3 py-2 text-xs font-semibold text-white hover:bg-accent-hover transition-colors disabled:opacity-40"
                           >
@@ -914,7 +921,7 @@ export default function SettingsPage() {
                           <button
                             type="button"
                             onClick={() => setEditingDeptValue(null)}
-                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                            className="surface-glass-sm px-3 py-2 text-xs font-semibold text-slate-600 surface-ghost-interactive dark:text-neutral-200"
                           >
                             {t.cancel}
                           </button>
@@ -948,6 +955,7 @@ export default function SettingsPage() {
                         setNewDeptName('');
                         setNewDeptColor('#2D5A27');
                         setNewDeptPermissionCategory('sala');
+                        void notifyDepartmentsChanged();
                       }
                     }}
                     placeholder={t.settings_new_dept_placeholder}
@@ -964,6 +972,7 @@ export default function SettingsPage() {
                         setNewDeptName('');
                         setNewDeptColor('#2D5A27');
                         setNewDeptPermissionCategory('sala');
+                        void notifyDepartmentsChanged();
                       }
                     }}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-accent text-white text-xs font-semibold hover:bg-accent-hover transition-colors disabled:opacity-40"
@@ -1008,7 +1017,7 @@ export default function SettingsPage() {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {/* Critico */}
-              <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-neutral-900">
+              <div className="surface-glass-sm flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
                   <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-100 dark:bg-red-950/50">
                     <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
@@ -1057,7 +1066,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Attenzione */}
-              <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-neutral-900">
+              <div className="surface-glass-sm flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
                   <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950/45">
                     <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
@@ -1106,7 +1115,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Sovrapposizione */}
-              <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-neutral-900">
+              <div className="surface-glass-sm flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
                   <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-100 bg-red-50 shadow-[0_0_6px_rgba(239,68,68,0.3)] dark:border-red-900/40 dark:bg-red-950/35">
                     <span className="h-2.5 w-2.5 rounded-full bg-red-300" />
@@ -1155,10 +1164,10 @@ export default function SettingsPage() {
                 return (
                   <div
                     key={rule.id}
-                    className={`flex flex-col gap-3 rounded-2xl border p-4 transition-all ${
+                    className={`surface-glass flex flex-col gap-3 p-4 transition-all ${
                       isEnabled
-                        ? 'border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900'
-                        : 'border-slate-100 bg-slate-50 opacity-70 dark:border-white/5 dark:bg-neutral-900/50'
+                        ? ''
+                        : 'border-slate-100/90 opacity-70 bg-slate-50/45 dark:border-white/[0.06] dark:bg-neutral-900/25'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -1212,7 +1221,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => setCreatingBreakRule(true)}
-                className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-white/50 p-4 text-slate-500 transition-colors hover:border-accent hover:bg-accent/5 hover:text-accent dark:border-white/15 dark:bg-neutral-900/40 dark:text-neutral-300 dark:hover:bg-accent/10"
+                className="surface-glass surface-ghost-interactive flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200/90 p-4 text-slate-500 transition-colors hover:border-accent hover:bg-accent/5 hover:text-accent dark:border-white/15 dark:text-neutral-300 dark:hover:bg-accent/10"
               >
                 <Plus className="w-6 h-6" />
                 <span className="text-xs font-semibold">{t.settings_break_new_rule}</span>
@@ -1228,7 +1237,7 @@ export default function SettingsPage() {
             subtitle={t.settings_presence_accordion_subtitle}
             defaultOpen={true}
           >
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-neutral-900/50">
+            <div className="surface-glass bg-slate-50/50 p-4 dark:bg-neutral-900/20">
               <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-3 leading-snug">{t.settings_presence_section_hint}</p>
               {(() => {
                 const effectiveTok = resolveEffectiveVerificationToken(presenceVerificationConfig);
@@ -1236,7 +1245,7 @@ export default function SettingsPage() {
                 const preview =
                   effectiveTok.length > 20 ? `${effectiveTok.slice(0, 20)}…` : effectiveTok || '—';
                 return (
-                  <div className="mb-3 space-y-1.5 rounded-xl border border-slate-200/90 bg-white/90 px-3 py-2 dark:border-white/10 dark:bg-neutral-900/80">
+                  <div className="surface-glass-sm mb-3 space-y-1.5 px-3 py-2">
                     <p className="text-[11px] leading-snug text-slate-700 dark:text-neutral-200">
                       {effectiveTok
                         ? formatTrans(t.settings_presence_effective_token_preview, { preview })
@@ -1248,7 +1257,7 @@ export default function SettingsPage() {
                   </div>
                 );
               })()}
-              <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 dark:border-white/10 dark:bg-neutral-900">
+              <div className="surface-glass-sm mb-3 flex items-center justify-between gap-3 px-3 py-2.5">
                 <span className="text-xs font-semibold text-slate-800 dark:text-neutral-100">{t.settings_presence_require_label}</span>
                 <button
                   type="button"
@@ -1381,7 +1390,7 @@ export default function SettingsPage() {
                         ? enabled
                           ? 'border-red-300 bg-red-50 shadow-[0_0_0_3px_rgba(239,68,68,0.12)] dark:border-red-800/50 dark:bg-red-950/40 dark:shadow-[0_0_0_3px_rgba(239,68,68,0.2)]'
                           : 'border-amber-200 bg-amber-50/60 dark:border-amber-800/40 dark:bg-amber-950/35'
-                        : 'border-slate-100 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none'
+                        : 'surface-glass shadow-none'
                     }`}
                   >
                     {/* Card top */}
@@ -1460,7 +1469,7 @@ export default function SettingsPage() {
               })}
             </div>
 
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-neutral-900/70">
+            <div className="surface-glass mt-4 bg-slate-50/45 p-4 dark:bg-neutral-900/25">
               <div className="mb-2 flex items-center gap-2">
                 <MapPin className="h-4 w-4 flex-shrink-0 text-accent" />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-neutral-100">
@@ -1543,7 +1552,7 @@ export default function SettingsPage() {
                       setGeoAcquiring(false);
                     }
                   }}
-                  className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-50 disabled:opacity-60 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
+                  className="inline-flex min-h-[40px] items-center justify-center gap-2 surface-glass-sm px-4 text-xs font-bold uppercase tracking-wider text-slate-700 surface-ghost-interactive disabled:opacity-60 dark:text-neutral-100"
                 >
                   <LocateFixed className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                   {geoAcquiring ? t.ui_ellipsis : t.settings_geofence_acquire_gps}
@@ -1585,28 +1594,28 @@ export default function SettingsPage() {
             title={t.settings_advanced_tools_admin}
             defaultOpen={false}
           >
-            <div className="rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900">
+            <div className="surface-glass-sm overflow-hidden">
               <div className="space-y-3 p-4">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.settings_backup_data_section}</p>
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
                           onClick={handleImportClick}
-                          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium uppercase text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                          className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive dark:text-neutral-200"
                         >
                           {t.restore}
                         </button>
                         <button
                           type="button"
                           onClick={() => exportToJSON({ users, shifts, punchRecords, holidays })}
-                          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium uppercase text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                          className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive dark:text-neutral-200"
                         >
                           {t.backup_json}
                         </button>
                         <button
                           type="button"
                           onClick={() => exportToCSV({ users, shifts, punchRecords, holidays })}
-                          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium uppercase text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                          className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive dark:text-neutral-200"
                         >
                           {t.report_csv}
                         </button>
@@ -1725,8 +1734,8 @@ export default function SettingsPage() {
       )}
 
       {showImportConfirm && importFile && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-          <div className="panel w-full max-w-sm p-6">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm dark:bg-black/60">
+          <div className="modal-glass-panel w-full max-w-sm rounded-2xl p-6">
             <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-neutral-50">{t.attention}</h3>
             <p className="mb-4 text-sm text-slate-700 dark:text-neutral-300">{t.import_warning}</p>
             <p className="mb-4 break-all text-center font-sans text-xs tabular-nums text-slate-600 dark:text-neutral-400">{importFile.name}</p>
@@ -1831,15 +1840,15 @@ function BreakRuleModal({
   const inputClass =
     'w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100';
   const chipClass = (active: boolean) =>
-    `cursor-pointer rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors ${
+    `cursor-pointer px-2.5 py-1 text-xs font-semibold transition-colors ${
       active
-        ? 'border-accent bg-accent text-white'
-        : 'border-slate-200 bg-white text-slate-600 hover:border-accent hover:text-accent dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-accent'
+        ? 'rounded-full border border-accent bg-accent text-white'
+        : 'surface-glass-sm !rounded-full text-slate-600 surface-ghost-interactive hover:border-accent hover:text-accent dark:text-neutral-200 dark:hover:border-accent'
     }`;
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55 sm:items-center"
       onClick={onClose}
     >
       <motion.form
@@ -1849,10 +1858,10 @@ function BreakRuleModal({
         transition={{ type: 'spring', damping: 28, stiffness: 380 }}
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white font-sans shadow-2xl dark:border dark:border-white/10 dark:bg-neutral-900"
+        className="modal-glass-panel max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl font-sans"
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-5 pt-5 pb-4 dark:border-white/10 dark:bg-neutral-900">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100/90 bg-white/80 px-5 pt-5 pb-4 backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/80">
           <h2 className="text-base font-bold text-slate-900 dark:text-neutral-50">
             {isEdit ? t.settings_break_modal_edit_title : t.settings_break_modal_new_title}
           </h2>
@@ -1920,13 +1929,13 @@ function BreakRuleModal({
                     <button
                       type="button"
                       onClick={() => setMinHours((h) => Math.max(0.5, Math.round((h - 0.5) * 10) / 10))}
-                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
+                      className="flex h-8 w-8 items-center justify-center surface-glass-sm font-bold text-slate-700 surface-ghost-interactive dark:text-neutral-100"
                     >−</button>
                     <span className="w-16 text-center text-sm font-bold text-slate-800 dark:text-neutral-100">{minHours}h</span>
                     <button
                       type="button"
                       onClick={() => setMinHours((h) => Math.min(12, Math.round((h + 0.5) * 10) / 10))}
-                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
+                      className="flex h-8 w-8 items-center justify-center surface-glass-sm font-bold text-slate-700 surface-ghost-interactive dark:text-neutral-100"
                     >+</button>
                   </div>
                 )}

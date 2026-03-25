@@ -51,7 +51,7 @@ export default function HolidayRequests() {
   if (featureFlags['staff_requests'] === false) {
     return (
       <div className="pb-content w-full app-horizontal-pad font-sans min-h-[40vh] flex items-center justify-center">
-        <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-900 px-6 py-8 max-w-md text-center">
+        <div className="surface-glass max-w-md px-6 py-8 text-center">
           <Palmtree className="w-10 h-10 text-accent dark:text-accent-light mx-auto mb-3 opacity-90" />
           <p className="text-slate-700 dark:text-neutral-300 font-semibold text-sm">{t.staff_requests_feature_off}</p>
         </div>
@@ -214,7 +214,7 @@ export default function HolidayRequests() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55"
             onClick={() => setShowForm(false)}
           >
             <motion.form
@@ -223,7 +223,7 @@ export default function HolidayRequests() {
               exit={{ scale: 0.95, opacity: 0, y: 12 }}
               onSubmit={handleSubmit}
               onClick={(e) => e.stopPropagation()}
-              className="card-factorial p-6 w-full max-w-md"
+              className="modal-glass-panel w-full max-w-md rounded-2xl p-6"
             >
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-base">Nuova richiesta</h3>
@@ -272,7 +272,7 @@ export default function HolidayRequests() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55"
             onClick={() => setSelectedH(null)}
           >
             <motion.div
@@ -280,7 +280,7 @@ export default function HolidayRequests() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 12 }}
               onClick={(e) => e.stopPropagation()}
-              className="card-factorial p-6 w-full max-w-sm"
+              className="modal-glass-panel w-full max-w-sm rounded-2xl p-6"
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-slate-900 dark:text-neutral-100 font-semibold">Richiesta in attesa</h3>
@@ -293,7 +293,7 @@ export default function HolidayRequests() {
                 const u = users.find((u) => u.id === selectedH.user_id);
                 return (
                   <>
-                    <div className="bg-slate-50 dark:bg-neutral-900/70 rounded-xl p-4 mb-4 border border-slate-100/80 dark:border-white/10">
+                    <div className="surface-glass-sm mb-4 bg-slate-50/40 p-4 dark:bg-neutral-900/25">
                       <p className="text-slate-900 dark:text-neutral-100 font-semibold text-sm">{u?.first_name} {u?.last_name}</p>
                       <p className="text-slate-600 dark:text-neutral-300 text-xs mt-1">
                         {format(parseISO(selectedH.start_date), 'd MMM', { locale: it })} – {format(parseISO(selectedH.end_date), 'd MMM yyyy', { locale: it })}
@@ -348,7 +348,7 @@ export default function HolidayRequests() {
         {/* Left: calendar */}
         <div className="md:col-span-1 space-y-4">
           {uiW('ferie.calendar') && (
-          <div className="card-factorial p-4">
+          <div className="surface-glass p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">
                 {format(now, 'MMMM yyyy', { locale: it })}
@@ -393,7 +393,7 @@ export default function HolidayRequests() {
 
           {/* My requests list (staff only) */}
           {!isAdmin && uiW('ferie.list') && (
-            <div className="card-factorial overflow-hidden">
+            <div className="surface-glass overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-50 dark:border-white/10">
                 <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">Le mie richieste</h3>
               </div>
@@ -430,7 +430,7 @@ export default function HolidayRequests() {
 
           {/* Pending (manager) */}
           {isAdmin && uiW('ferie.list') && pendingAll.length > 0 && (
-            <div className="card-factorial overflow-hidden">
+            <div className="surface-glass overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-50 dark:border-white/10 flex items-center justify-between">
                 <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">Richieste in attesa</h3>
                 <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-200 text-xs font-bold border border-amber-200/80 dark:border-amber-800/50">{pendingAll.length}</span>
@@ -490,7 +490,7 @@ export default function HolidayRequests() {
 
           {/* Upcoming approved */}
           {isAdmin && uiW('ferie.list') && approvedFuture.length > 0 && (
-            <div className="card-factorial p-4 overflow-hidden">
+            <div className="surface-glass p-4 overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-50 dark:border-white/10">
                 <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">Prossime ferie approvate</h3>
               </div>
@@ -522,7 +522,7 @@ export default function HolidayRequests() {
 
           {/* Empty state */}
           {isAdmin && uiW('ferie.list') && pendingAll.length === 0 && approvedFuture.length === 0 && (
-            <div className="card-factorial p-12 flex flex-col items-center justify-center text-center">
+            <div className="surface-glass p-12 flex flex-col items-center justify-center text-center">
               <Palmtree className="w-10 h-10 text-accent dark:text-accent-light mb-3 opacity-90" />
               <p className="text-slate-600 dark:text-neutral-300 text-sm">Nessuna richiesta di ferie</p>
             </div>
@@ -530,7 +530,7 @@ export default function HolidayRequests() {
 
           {/* Staff: my upcoming approved */}
           {!isAdmin && uiW('ferie.list') && myHolidays.filter(h => h.status === 'approved' && new Date(h.end_date) >= new Date()).length > 0 && (
-            <div className="card-factorial overflow-hidden">
+            <div className="surface-glass overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-50">
                 <h3 className="text-slate-900 font-semibold text-xl">Prossime ferie</h3>
               </div>

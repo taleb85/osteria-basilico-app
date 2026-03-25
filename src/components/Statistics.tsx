@@ -239,7 +239,7 @@ export default function Statistics() {
                       className={`ui-toolbar-pill transition-all ${
                         preset === p.key
                           ? 'border-accent bg-accent text-white'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-neutral-700'
+                          : 'border-slate-200/90 bg-transparent text-slate-600 hover:border-slate-300 hover:bg-slate-50/90 dark:border-white/10 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-white/[0.06]'
                       }`}
                     >
                       {p.key === 'custom' && <Calendar className="h-3 w-3 shrink-0" aria-hidden />}
@@ -249,7 +249,7 @@ export default function Statistics() {
                   <button
                     type="button"
                     onClick={() => setMgmtRangeModalOpen(true)}
-                    className="ui-toolbar-chip max-w-full border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                    className="ui-toolbar-chip max-w-full text-slate-700 hover:border-slate-300 hover:bg-slate-50/90 dark:text-neutral-200 dark:hover:bg-white/[0.06]"
                     aria-label={t.stats_date_range}
                     title={t.stats_date_range}
                   >
@@ -373,7 +373,7 @@ export default function Statistics() {
         {/* ── Tabella ore: solo card (stesso stile “Le tue ore nell’intervallo…”), niente scroll orizzontale ─ */}
         {uiW('stats.table') && displayUsers.length <= 1 && (
           <div className="mb-8 space-y-4 md:mb-6">
-            <div className="card-factorial p-5 sm:p-6">
+            <div className="surface-glass p-5 sm:p-6">
               <p className="mb-2 text-xs font-medium uppercase tracking-widest text-slate-600">
                 {t.stats_your_hours_in_range}
               </p>
@@ -382,7 +382,7 @@ export default function Statistics() {
               </p>
             </div>
             {!hasDataInRange ? (
-              <div className="card-factorial flex flex-col items-center gap-3 p-8 pb-16 text-center sm:p-10">
+              <div className="surface-glass flex flex-col items-center gap-3 p-8 pb-16 text-center sm:p-10">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 dark:bg-neutral-800">
                   <Calendar className="h-6 w-6 text-slate-300 dark:text-neutral-500" />
                 </div>
@@ -397,7 +397,7 @@ export default function Statistics() {
                 {weeksInRange.map((w) => {
                   const wMins = minutesByUserByWeek[staffSelfId]?.[w.key] ?? 0;
                   return (
-                    <div key={w.key} className="card-factorial p-5 sm:p-6">
+                    <div key={w.key} className="surface-glass p-5 sm:p-6">
                       <p className="mb-2 text-xs font-medium uppercase tracking-widest text-slate-600">
                         {w.label}
                       </p>
@@ -418,7 +418,7 @@ export default function Statistics() {
         {uiW('stats.table') && displayUsers.length > 1 && (
           <div className="mb-6 space-y-4">
             {showManagementStatsChrome && (
-              <div className="card-factorial p-5 sm:p-6">
+              <div className="surface-glass p-5 sm:p-6">
                 <p className="mb-2 text-xs font-medium uppercase tracking-widest text-slate-600">
                   {tv.stats_team_hours_period ?? t.stats_total}
                 </p>
@@ -428,7 +428,7 @@ export default function Statistics() {
               </div>
             )}
             {!hasDataInRange ? (
-              <div className="card-factorial flex flex-col items-center gap-3 p-8 text-center sm:p-10">
+              <div className="surface-glass flex flex-col items-center gap-3 p-8 text-center sm:p-10">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 dark:bg-neutral-800">
                   <Calendar className="h-6 w-6 text-slate-300 dark:text-neutral-500" />
                 </div>
@@ -442,7 +442,7 @@ export default function Statistics() {
                   0
                 );
                 return (
-                  <div key={w.key} className="card-factorial p-5 sm:p-6">
+                  <div key={w.key} className="surface-glass p-5 sm:p-6">
                     <p className="mb-4 text-xs font-medium uppercase tracking-widest text-slate-600 dark:text-neutral-400">{w.label}</p>
                     <ul className="space-y-3">
                       {displayUsers.map((u) => {
@@ -475,7 +475,7 @@ export default function Statistics() {
         )}
 
         {!showManagementStatsChrome && uiW('stats.staff_summary') && !uiW('stats.table') && (
-          <div className="card-factorial p-5 sm:p-6">
+          <div className="surface-glass p-5 sm:p-6">
             <p className="text-slate-600 text-xs uppercase tracking-widest font-medium mb-2">
               {t.stats_your_hours_in_range}
             </p>

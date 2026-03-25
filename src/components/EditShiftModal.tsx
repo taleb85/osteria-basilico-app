@@ -85,7 +85,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white dark:bg-[#1a1a1a] rounded-[40px] w-full max-w-lg border border-slate-200 dark:border-white/5 overflow-hidden"
+          className="modal-glass-panel w-full max-w-lg overflow-hidden rounded-[40px]"
         >
           <div className="bg-accent p-6 relative">
             <button

@@ -50,7 +50,7 @@ export default function FerieMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+        <div className="surface-glass p-3">
           <p className="mb-2 text-center text-xs font-bold text-slate-600 dark:text-neutral-300">Marzo 2026</p>
           <div className="grid grid-cols-7 gap-1 text-center text-[10px]">
             {['L', 'M', 'M', 'G', 'V', 'S', 'D'].map((d, i) => (
@@ -77,7 +77,7 @@ export default function FerieMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none">
+        <div className="surface-glass overflow-hidden">
           <div className="border-b border-slate-100 px-3 py-2 text-xs font-bold text-slate-600 dark:border-white/10 dark:text-neutral-300">
             {t.mod_vacation_requests}
           </div>

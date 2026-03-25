@@ -133,9 +133,18 @@ export interface AppContextType {
   adminModulesRevision: number;
   /** Moduli scheda Impostazioni globali (locale + Storage). Solo Admin. */
   saveAdminModulesGlobal: (data: AdminModulesGlobalOnDisk) => Promise<void>;
+  /** Incrementata dopo pull cloud o modifica reparti — chi legge `getDepartments()` deve dipendere da questo per ridisegnare. */
+  departmentsRevision: number;
+  /** Dopo modifica reparti (colori/etichette/custom): upload `departments.json` + bump revisione sync. */
+  notifyDepartmentsChanged: () => Promise<void>;
   /** Salva il bundle completo su Storage + segnale Realtime (solo Admin da UI). */
   pushSettingsToCloud: () => Promise<void>;
   /** ISO timestamp ultimo pull/push riuscito del bundle impostazioni (null = mai). */
   settingsCloudLastSyncedAt: string | null;
   settingsCloudPushBusy: boolean;
+  /**
+   * True dopo modifiche locali ai dati operativi; il pulsante «Sincronizza» in header gestione è attivo.
+   * Si azzera dopo una `silentRefreshData` con `pullRemoteConfig: true` riuscita (o al logout).
+   */
+  managementDataTouchedSinceLastSync: boolean;
 }

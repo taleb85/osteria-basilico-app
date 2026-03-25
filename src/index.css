@@ -125,7 +125,7 @@
   }
 }
 
-/* Card / Panel — Clean Minimal: bianco solido, niente vetro */
+/* Card / Panel — fill solido per moduli densi in pagina; dialog su overlay → `modal-glass-panel` */
 @layer components {
   /** Titoli sezione unificati (Admin, permessi, impostazioni) */
   .ui-section-title {
@@ -226,9 +226,79 @@
     transition: transform 100ms ease;
   }
 
-  /* Card Factorial — Clean Minimal: bianco, rounded-2xl (16px), ombra soft unificata */
+  /**
+   * Card “solida” — modali, kiosk, overlay che devono staccarsi dallo sfondo.
+   * Per contenuto in pagina usare `.surface-ghost` (+ `.surface-ghost-interactive` se cliccabile).
+   */
   .card-factorial {
     @apply bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 p-5 sm:p-6 transition-all duration-200 shadow-card-soft;
+  }
+
+  /**
+   * Superficie ghost — bordo leggero, fill trasparente (stratificato sul bg pagina).
+   * Tabelle: guscio `surface-ghost-sm overflow-hidden`; celle/theader restano con propri bg.
+   * Card contenuti: preferire `.surface-glass` / `.surface-glass-sm` per allineamento al vetro app.
+   */
+  .surface-ghost {
+    @apply rounded-2xl border border-slate-200/85 bg-transparent shadow-none transition-colors duration-200 dark:border-white/10 dark:bg-transparent;
+  }
+
+  .surface-ghost-sm {
+    @apply rounded-xl border border-slate-200/85 bg-transparent shadow-none transition-colors duration-200 dark:border-white/10 dark:bg-transparent;
+  }
+
+  /** Da affiancare a `.surface-ghost` / `-sm` per card o righe cliccabili */
+  .surface-ghost-interactive {
+    @apply cursor-pointer hover:bg-slate-50/85 dark:hover:bg-white/[0.05];
+  }
+
+  /**
+   * Card in pagina “vetro” — tra ghost (trasparente) e modal-glass (dialog).
+   * Tabelle: tenere `surface-ghost` sul guscio; celle restano con bg propri.
+   */
+  .surface-glass {
+    @apply rounded-2xl border border-slate-200/85 bg-white/[0.88] text-slate-900 shadow-lg backdrop-blur-xl transition-colors duration-200 dark:border-white/10 dark:bg-neutral-900/[0.88] dark:text-neutral-100 supports-[backdrop-filter]:backdrop-saturate-150;
+  }
+
+  .surface-glass-sm {
+    @apply rounded-xl border border-slate-200/85 bg-white/[0.88] text-slate-900 shadow-md backdrop-blur-lg transition-colors duration-200 dark:border-white/10 dark:bg-neutral-900/[0.88] dark:text-neutral-100 supports-[backdrop-filter]:backdrop-saturate-150;
+  }
+
+  /**
+   * Modali / dialog centrati su backdrop scuro — vetro (blur + fill semi-opaco).
+   * Aggiungere `rounded-2xl` (o altro raggio) sullo stesso elemento.
+   */
+  .modal-glass-panel {
+    @apply border border-slate-200 bg-white/[0.95] text-slate-900 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-neutral-900/[0.95] dark:text-neutral-100 supports-[backdrop-filter]:backdrop-saturate-150;
+  }
+
+  /**
+   * Drawer laterale fullscreen-height — stesso linguaggio vetro (bordo es. `border-l` dal componente).
+   */
+  .drawer-glass-panel {
+    @apply bg-white/[0.92] text-slate-900 shadow-2xl backdrop-blur-xl dark:bg-neutral-950/[0.96] dark:text-neutral-100 supports-[backdrop-filter]:backdrop-saturate-150;
+  }
+
+  /**
+   * Bottom nav — vetro sul verde brand (#2D5A27), sfoca il contenuto sotto la barra.
+   */
+  .bottom-nav-glass {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(45, 90, 39, 0.78);
+    box-shadow:
+      0 12px 40px -4px rgba(0, 0, 0, 0.28),
+      0 4px 16px -4px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    -webkit-backdrop-filter: blur(18px) saturate(1.18);
+    backdrop-filter: blur(18px) saturate(1.18);
+  }
+  html.dark .bottom-nav-glass {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(45, 90, 39, 0.7);
+    box-shadow:
+      0 12px 40px -4px rgba(0, 0, 0, 0.5),
+      0 4px 16px -4px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   /**
@@ -273,17 +343,17 @@
 
   /** Pill singola (preset statistiche) */
   .ui-toolbar-pill {
-    @apply flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 px-2.5 text-center text-[13px] font-medium leading-none shadow-sm transition-colors;
+    @apply flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 px-2.5 text-center text-[13px] font-medium leading-none shadow-none transition-colors;
   }
 
-  /** Chip toolbar (filtri turni, ecc.) */
+  /** Chip toolbar (filtri turni, ecc.) — fill trasparente di default; stato attivo da classi in pagina */
   .ui-toolbar-chip {
-    @apply inline-flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 px-2 text-center text-[13px] font-medium leading-none shadow-sm transition-colors;
+    @apply inline-flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200/90 dark:border-white/10 bg-transparent px-2 text-center text-[13px] font-medium leading-none shadow-none transition-colors;
   }
 
   /** «Oggi» / outline accent */
   .ui-toolbar-ghost-accent {
-    @apply inline-flex h-[22px] items-center justify-center rounded-lg border border-accent/30 px-2 text-center text-[13px] font-semibold leading-none text-accent shadow-sm transition-colors hover:bg-accent/10 dark:text-accent-light dark:hover:bg-accent/15;
+    @apply box-border inline-flex h-[22px] min-h-[22px] max-h-[22px] items-center justify-center rounded-lg border border-accent/30 bg-transparent px-2 py-0 text-center text-[13px] font-semibold leading-none text-accent shadow-none transition-colors hover:bg-accent/10 dark:text-accent-light dark:hover:bg-accent/15;
   }
 
   /** Pulsante primario compatto in toolbar (accent) */
@@ -293,7 +363,7 @@
 
   /** Pulsante secondario bordo (CSV, outline) */
   .ui-toolbar-outline {
-    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 px-2.5 text-center text-[13px] font-semibold leading-none text-slate-600 dark:text-neutral-300 shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-neutral-800;
+    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-transparent px-2.5 text-center text-[13px] font-semibold leading-none text-slate-600 dark:text-neutral-300 shadow-none transition-colors hover:bg-slate-50/90 dark:hover:bg-white/[0.06];
   }
 
   /**
@@ -418,10 +488,11 @@
     font-weight: 600;
   }
 
-  /* Logo Osteria Basilico - Snell Roundhand Bold (sistema) */
+  /* Logo: Snell su macOS/iOS; Parisienne (Google Fonts in index.html) dove Snell non c’è (es. Windows) */
   .font-logo-snell {
-    font-family: 'Snell Roundhand', 'Snell Roundhand Bold', 'Brush Script MT', 'Apple Chancery', 'Segoe Script', cursive;
-    font-weight: bold;
+    font-family: 'Snell Roundhand', 'Snell Roundhand Bold', 'Parisienne', 'Brush Script MT', 'Apple Chancery', 'Segoe Script',
+      cursive;
+    font-weight: 400;
   }
 
   /* Alias storico: stessa stack dell’app (Inter + system UI) */

@@ -317,10 +317,10 @@ export default function ProfileVisibilityHub() {
                 key={k}
                 type="button"
                 onClick={() => setRoleFilter(k)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
                   roleFilter === k
-                    ? 'border-accent bg-accent text-white'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-neutral-500'
+                    ? 'rounded-full border border-accent bg-accent text-white'
+                    : 'surface-glass-sm !rounded-full text-slate-600 surface-ghost-interactive hover:border-slate-300 dark:text-neutral-200 dark:hover:border-neutral-500'
                 }`}
               >
                 {k === 'all'
@@ -341,7 +341,7 @@ export default function ProfileVisibilityHub() {
             {tv.profile_visibility_show_suspended ?? 'Mostra sospesi / inattivi'}
           </label>
 
-          <ul className="max-h-[min(52vh,28rem)] divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:divide-white/10 dark:border-white/10 dark:bg-neutral-900">
+          <ul className="max-h-[min(52vh,28rem)] divide-y divide-slate-100 overflow-y-auto surface-glass-sm dark:divide-white/10">
             {filteredList.length === 0 && (
               <li className="px-4 py-8 text-center text-sm text-slate-400 dark:text-neutral-400">
                 {tv.profile_visibility_empty_list ?? 'Nessun profilo corrisponde ai filtri.'}
@@ -394,12 +394,12 @@ export default function ProfileVisibilityHub() {
 
     {selected && (
         <div
-          className="fixed inset-0 z-[200] flex touch-manipulation flex-col overscroll-contain bg-slate-100 dark:bg-neutral-950"
+          className="fixed inset-0 z-[200] flex touch-manipulation flex-col overscroll-contain bg-slate-100/95 backdrop-blur-md dark:bg-neutral-950/95 supports-[backdrop-filter]:backdrop-saturate-125"
           role="dialog"
           aria-modal="true"
           aria-labelledby="profile-visibility-fs-title"
         >
-          <header className="safe-area-pad flex shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))] shadow-sm sm:px-5 dark:border-white/10 dark:bg-neutral-900">
+          <header className="safe-area-pad flex shrink-0 items-center gap-3 border-b border-slate-200/90 bg-white/90 px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))] shadow-sm backdrop-blur-lg sm:px-5 dark:border-white/10 dark:bg-neutral-900/90">
             <button
               type="button"
               onClick={closePreview}
@@ -427,7 +427,7 @@ export default function ProfileVisibilityHub() {
 
           <div className="flex-1 min-h-0 overflow-y-auto app-horizontal-pad py-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
             <div className="mx-auto w-full max-w-6xl xl:max-w-7xl space-y-4">
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900">
+              <div className="surface-glass-sm overflow-hidden">
                 <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 dark:border-white/10 dark:bg-neutral-800/80">
                   <p className="text-[10px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wider">
                     {tv.profile_visibility_preview_banner ?? 'Anteprima navigazione'}
@@ -465,7 +465,7 @@ export default function ProfileVisibilityHub() {
                   <button
                     type="button"
                     onClick={handleResetUiSections}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-neutral-50"
+                    className="inline-flex items-center gap-2 surface-glass-sm px-3 py-2 text-xs font-semibold text-slate-600 surface-ghost-interactive hover:text-slate-900 dark:text-neutral-200 dark:hover:text-neutral-50"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     {tv.profile_visibility_reset_ui_sections ?? 'Ripristina tutte le sezioni'}
@@ -473,7 +473,7 @@ export default function ProfileVisibilityHub() {
                   <button
                     type="button"
                     onClick={handleResetOverrides}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-neutral-50"
+                    className="inline-flex items-center gap-2 surface-glass-sm px-3 py-2 text-xs font-semibold text-slate-600 surface-ghost-interactive hover:text-slate-900 dark:text-neutral-200 dark:hover:text-neutral-50"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     {tv.profile_visibility_reset_features ?? 'Rimuovi eccezioni permessi (eredita template)'}
@@ -483,7 +483,7 @@ export default function ProfileVisibilityHub() {
 
               <div className="space-y-4">
                   {activeTabPanelEmpty && (
-                    <div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm dark:border-white/10 dark:bg-neutral-900">
+                    <div className="surface-glass-sm p-6 text-center">
                       <p className="text-sm text-slate-500 dark:text-neutral-300">
                         {tv.profile_visibility_tab_empty ??
                           'Nessun permesso o blocco configurabile per questa scheda. Scegli un’altra scheda o attiva prima il permesso della scheda (es. Tabellone team).'}
@@ -519,7 +519,7 @@ export default function ProfileVisibilityHub() {
                                           key={mod}
                                           className={`flex min-h-[44px] items-stretch gap-0 rounded-lg border-2 ${
                                             enabled
-                                              ? 'border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none'
+                                              ? 'border-slate-200 surface-glass-sm dark:border-white/10'
                                               : 'border-dashed border-slate-400/70 bg-slate-300/40 dark:border-neutral-600 dark:bg-neutral-800/50'
                                           }`}
                                         >
@@ -573,7 +573,7 @@ export default function ProfileVisibilityHub() {
                       {featuresForActiveTab.length > 0 && (
                         <details
                           key={`perm-${selected.id}-${activeHubTab}`}
-                          className="group rounded-xl border border-slate-200 bg-slate-50/90 open:border-slate-300 open:bg-white dark:border-white/10 dark:bg-neutral-800/60 dark:open:border-white/15 dark:open:bg-neutral-900"
+                          className="group surface-glass-sm open:border-slate-300/95 bg-slate-50/50 open:bg-slate-50/80 dark:border-white/10 dark:bg-neutral-900/25 dark:open:border-white/18 dark:open:bg-neutral-900/40"
                           open={permDetailsOpen}
                           onToggle={(e) => setPermDetailsOpen(e.currentTarget.open)}
                         >
@@ -605,7 +605,7 @@ export default function ProfileVisibilityHub() {
                               return (
                                 <AdminRow
                                   key={key}
-                                  className={`rounded-lg border border-slate-200 bg-white !border-b-0 !p-2 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none ${
+                                  className={`rounded-lg surface-glass !border-b-0 !p-2 dark:border-white/10 ${
                                     key === 'view_estimated_cost'
                                       ? '[&_.font-bold]:border-l-2 [&_.font-bold]:border-violet-200 [&_.font-bold]:pl-2 dark:[&_.font-bold]:border-violet-500/40'
                                       : ''

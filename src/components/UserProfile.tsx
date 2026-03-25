@@ -1,23 +1,25 @@
 /**
  * Unificazione layout profilo e traduzioni.
- * - ProfileFormSelf: "Il mio profilo" — griglia Nome/Cognome, Email, Ruolo/PIN, Reparto (+ Telefono, Lingua, Tema).
+ * - ProfileFormSelf: "Il mio profilo" — griglia Nome/Cognome, Email, Ruolo/PIN, Reparto (+ Telefono, Lingua). Tema: header app.
  * - ProfileFormAdmin: modale modifica dipendente (manager) — Nome, Cognome, Email, Ruolo, PIN, Reparto, Stato account, Permessi.
  * Layout: Reparto sopra Stato account (in admin). Tutte le etichette via t('chiave') per IT/EN/ES.
  * Persistenza: updateUser -> database.users.update (tabella `users`), campo `department` incluso.
  */
 import { useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone, Sun, Moon } from 'lucide-react';
+import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
 import { buildProfiloAccessLink } from '../config/appPaths';
-import type { User as UserType, Language, Department, Theme } from '../types';
+import type { User as UserType, Language, Department } from '../types';
 import { isPurelyManagementRole, isAdminOnly } from '../utils/permissions';
 import { translateRole } from '../utils/roles';
 import { getDepartments } from '../utils/departments';
 import { formatDepartmentDisplayForProfile, translateDepartmentValue } from '../utils/departmentLabels';
+import { getRoleScopeHint } from '../utils/roleScopeHint';
 import { DEFAULT_PHONE_PREFIX, PHONE_PREFIX_OPTIONS } from '../utils/phonePrefix';
 import StaffOperationalPermissionsEditor from './StaffOperationalPermissionsEditor';
+import { OPERATIONAL_STAFF_ROLES_FOR_DELEGATE } from '../utils/operationalStaffRoles';
 
 const LANGS: Language[] = ['it', 'en', 'es', 'fr'];
 
@@ -83,18 +85,14 @@ export function ProfileFormSelf({
   departmentLocked?: boolean;
   roleLocked?: boolean;
 }) {
-  const { effectiveLanguage, setLanguage, currentUser, updateUserPreferences } = useApp();
+  const { effectiveLanguage, setLanguage, currentUser, departmentsRevision } = useApp();
+  void departmentsRevision;
   const t = getTranslations(effectiveLanguage);
-  const activeTheme: Theme = (currentUser?.theme ?? 'light') as Theme;
 
   const applyLanguage = (l: Language) => {
     if (readOnly) return;
     setFormData((prev) => ({ ...prev, language: l }));
     setLanguage(l);
-  };
-
-  const setUiTheme = (th: Theme) => {
-    updateUserPreferences({ theme: th });
   };
 
   const inputClassDark = 'w-full px-3 py-2.5 rounded-xl bg-black/30 border border-white/10 text-white text-sm focus:border-white/20 focus:outline-none focus:ring-0';
@@ -228,6 +226,20 @@ export function ProfileFormSelf({
         </div>
       </div>
 
+      {(() => {
+        const tv = t as Record<string, string>;
+        const scope = getRoleScopeHint(formData.role, tv);
+        if (!scope) return null;
+        return (
+          <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 px-3 py-2.5 dark:border-white/10 dark:bg-neutral-900/45">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 mb-1">
+              {tv.profile_role_scope_label}
+            </p>
+            <p className="text-[11px] text-slate-600 dark:text-neutral-300 leading-snug">{scope}</p>
+          </div>
+        );
+      })()}
+
       <div>
         <label className={labelClass}>{t.department_label}</label>
         {departmentLocked || readOnly ? (
@@ -356,51 +368,6 @@ export function ProfileFormSelf({
         )}
       </div>
 
-      <div>
-        <label className={labelClass}>{t.theme}</label>
-        {appearance === 'light' ? (
-          <div className="grid grid-cols-2 gap-2">
-            {(['light', 'dark'] as const).map((th) => (
-              <button
-                key={th}
-                type="button"
-                onClick={() => setUiTheme(th)}
-                className={`relative flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${
-                  activeTheme === th
-                    ? 'border-accent bg-accent text-white shadow-sm'
-                    : 'border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-950 text-slate-800 dark:text-neutral-100 hover:border-accent/40'
-                }`}
-              >
-                {th === 'light' ? (
-                  <Sun className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-                ) : (
-                  <Moon className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-                )}
-                <span>{th === 'light' ? t.light : t.dark}</span>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2">
-            {(['light', 'dark'] as const).map((th) => (
-              <button
-                key={th}
-                type="button"
-                onClick={() => setUiTheme(th)}
-                className={`keep-white-glass relative flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${
-                  activeTheme === th
-                    ? 'border-white/30 bg-white text-black preserve-on-dark'
-                    : 'border-white/10 bg-black/20 text-white/90 hover:bg-white/10'
-                }`}
-              >
-                {th === 'light' ? <Sun className="h-4 w-4 shrink-0" aria-hidden /> : <Moon className="h-4 w-4 shrink-0" aria-hidden />}
-                <span>{th === 'light' ? t.light : t.dark}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
       {!readOnly && (
         <button
           type="submit"
@@ -427,20 +394,11 @@ export type ProfileFormAdminData = {
 };
 
 const inputClass =
-  'w-full px-3 py-2 rounded-xl text-sm bg-white border border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/20 focus:outline-none transition-colors font-sans';
-const labelClass = 'block text-xs font-semibold text-slate-700 mb-1 font-sans';
+  'w-full px-3 py-2 rounded-xl text-sm bg-white border border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/20 focus:outline-none transition-colors font-sans dark:bg-neutral-900 dark:border-white/10 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-500 dark:focus:ring-neutral-500/25 disabled:opacity-60 dark:disabled:opacity-50';
+const labelClass =
+  'block text-xs font-semibold text-slate-700 mb-1 font-sans dark:text-neutral-200';
 
 /** Form modale "Modifica dipendente" (manager): layout con Reparto sopra Stato account. Tutte le etichette tradotte. */
-/** Ruoli assegnabili quando Manager/Assistant creano un dipendente dalla scheda delegata. */
-export const OPERATIONAL_STAFF_ROLES_FOR_DELEGATE: UserType['role'][] = [
-  'server',
-  'waiter',
-  'cook',
-  'chef',
-  'bartender',
-  'dishwasher',
-];
-
 export function ProfileFormAdmin({
   user,
   currentUser,
@@ -470,7 +428,8 @@ export function ProfileFormAdmin({
   /** Creazione dipendente da delegato: solo ruoli operativi sala/cucina/bar. */
   operationalRolesOnly?: boolean;
 }) {
-  const { effectiveLanguage, showSuccess, showError } = useApp();
+  const { effectiveLanguage, showSuccess, showError, departmentsRevision } = useApp();
+  void departmentsRevision;
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
   const layoutRole = variant === 'create' ? formData.role : user.role;
@@ -508,8 +467,8 @@ export function ProfileFormAdmin({
         </p>
       )}
       {isSuspended && (
-        <div className="mb-6 flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-amber-700">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200">
+          <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden />
           <p className="text-sm font-medium font-sans">{t.employee_suspended_warning}</p>
         </div>
       )}
@@ -611,19 +570,33 @@ export function ProfileFormAdmin({
                 const value = e.target.value.replace(/\D/g, '').slice(0, 4);
                 setFormData((prev) => ({ ...prev, pin: value }));
               }}
-              className={`${inputClass} ${activePinConflictMessage ? 'border-red-400 ring-1 ring-red-200' : ''}`}
+              className={`${inputClass} ${activePinConflictMessage ? 'border-red-400 ring-1 ring-red-200 dark:border-red-500 dark:ring-red-900/60' : ''}`}
               placeholder="1234"
               maxLength={4}
               aria-invalid={activePinConflictMessage ? true : undefined}
               disabled={readOnly}
             />
             {activePinConflictMessage && !readOnly ? (
-              <p className="mt-1.5 text-[11px] font-medium text-red-600 font-sans leading-snug">
+              <p className="mt-1.5 text-[11px] font-medium text-red-600 dark:text-red-400 font-sans leading-snug">
                 {activePinConflictMessage}
               </p>
             ) : null}
           </div>
         </div>
+
+        {(() => {
+          const tv = t as Record<string, string>;
+          const scope = getRoleScopeHint(formData.role, tv);
+          if (!scope) return null;
+          return (
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 px-3 py-2.5 dark:border-white/10 dark:bg-neutral-900/45">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 mb-1">
+                {tv.profile_role_scope_label}
+              </p>
+              <p className="text-[11px] text-slate-600 dark:text-neutral-300 leading-snug">{scope}</p>
+            </div>
+          );
+        })()}
 
         {/* Reparto sopra Stato account (nascosto solo per Admin — profilo puramente gestionale) */}
         {!isPurelyManagementRole(layoutRole) && (
@@ -690,37 +663,37 @@ export function ProfileFormAdmin({
         </div>
 
         {variant === 'edit' && !isPurelyManagementRole(layoutRole) && !readOnly && (
-          <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
+          <div className="surface-glass-sm bg-slate-50/45 p-4 dark:bg-neutral-900/25">
             <StaffOperationalPermissionsEditor user={user} currentUser={currentUser} />
           </div>
         )}
 
         {variant === 'edit' && !readOnly && (
-          <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-3 space-y-2">
+          <div className="surface-glass-sm space-y-2 bg-slate-50/40 p-3 dark:bg-neutral-900/20">
             <button
               type="button"
               onClick={() => void handleCopyAccessLink()}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-800 hover:bg-slate-50 transition-colors font-sans"
+              className="flex w-full items-center justify-center gap-2 surface-glass-sm py-2.5 text-sm font-semibold text-slate-800 surface-ghost-interactive dark:text-neutral-100 font-sans"
             >
-              <Copy className="w-4 h-4 shrink-0 text-slate-500 dark:text-neutral-300" aria-hidden />
+              <Copy className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" aria-hidden />
               {tv.admin_employee_access_link_btn ?? 'Copia link accesso'}
             </button>
-            <p className="text-[11px] text-slate-600 leading-snug font-sans flex gap-1.5">
-              <Link2 className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400 dark:text-neutral-400" aria-hidden />
+            <p className="flex gap-1.5 text-[11px] leading-snug text-slate-600 dark:text-neutral-300 font-sans">
+              <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-neutral-400" aria-hidden />
               <span>{tv.admin_employee_access_link_hint ?? ''}</span>
             </p>
-            <p className="text-[11px] font-medium text-slate-800 font-sans pl-5">
+            <p className="pl-5 text-[11px] font-medium text-slate-800 dark:text-neutral-100 font-sans">
               {formatTrans(tv.admin_employee_access_link_preview ?? 'Nome al login: {name}', {
                 name: `${formData.first_name} ${formData.last_name ?? ''}`.trim() || '—',
               })}
             </p>
             {formData.status !== 'active' && (
-              <p className="text-[11px] text-amber-800 font-medium font-sans pl-5">
+              <p className="pl-5 text-[11px] font-medium text-amber-800 dark:text-amber-200 font-sans">
                 {tv.admin_employee_access_link_inactive ?? ''}
               </p>
             )}
             {!invitePinComplete && (
-              <p className="text-[11px] text-amber-800 font-medium font-sans pl-5">
+              <p className="pl-5 text-[11px] font-medium text-amber-800 dark:text-amber-200 font-sans">
                 {tv.admin_employee_access_link_pin_incomplete ?? ''}
               </p>
             )}
@@ -739,7 +712,7 @@ export function ProfileFormAdmin({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-2 rounded-xl text-sm bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors font-sans"
+            className="flex-1 surface-glass-sm px-4 py-2 text-sm font-semibold text-slate-700 surface-ghost-interactive dark:text-neutral-200 font-sans"
           >
             {readOnly ? t.close ?? t.cancel : t.cancel}
           </button>
@@ -747,7 +720,7 @@ export function ProfileFormAdmin({
             <button
               type="submit"
               disabled={isSaving || Boolean(activePinConflictMessage)}
-              className="flex-1 px-4 py-2 rounded-xl text-sm bg-accent text-white font-semibold hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-sans"
+              className="flex-1 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50 font-sans"
             >
               {isSaving ? t.saving : variant === 'create' ? t.create_employee_submit : t.save_changes}
             </button>

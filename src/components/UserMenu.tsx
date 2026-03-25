@@ -58,7 +58,7 @@ export default function UserMenu({ user }: UserMenuProps) {
           backdropAriaLabel={t.close}
           ariaLabel={t.theme}
           maxWidthClass="max-w-sm"
-          panelClassName="p-3 dark:border-white/10 dark:bg-[#1a1a1a]"
+          panelClassName="p-3"
         >
           <div className="mb-2 flex items-center space-x-2 px-3 py-2">
             <Sun className="h-4 w-4 text-gray-400" />

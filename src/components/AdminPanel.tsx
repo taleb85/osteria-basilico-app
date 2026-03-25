@@ -209,13 +209,13 @@ export default function AdminPanel() {
       {editingUser && <EditStaffModal isOpen={true} user={users.find((u) => u.id === editingUser.id) ?? editingUser} onClose={() => setEditingUser(null)} />}
       {showImportConfirm && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1a1a1a] rounded-[40px] w-full max-w-md border border-slate-200 dark:border-white/10 overflow-hidden shadow-2xl">
+          <div className="modal-glass-panel w-full max-w-md overflow-hidden rounded-[40px]">
             <div className="bg-red-600 p-8 text-center text-white">
               <h2 className="text-2xl font-medium uppercase tracking-tighter">{t.attention}</h2>
             </div>
             <div className="p-8 space-y-6 text-center">
               <p className="text-slate-600 dark:text-gray-300 font-medium">{t.import_warning}</p>
-              <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/5">
+              <div className="surface-glass-sm p-4">
                 <p className="text-slate-900 dark:text-white font-sans text-xs break-all text-center">{importFile?.name}</p>
               </div>
               <div className="flex space-x-3 pt-4">

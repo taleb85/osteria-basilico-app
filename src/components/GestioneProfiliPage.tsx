@@ -37,15 +37,15 @@ export default function GestioneProfiliPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-            <h2 className="text-xs font-bold text-slate-700 uppercase tracking-widest flex items-center gap-2">
+        <div className="surface-glass-sm overflow-hidden">
+          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-neutral-800/50">
+            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-neutral-200">
               <Users className="w-4 h-4" />
               Dipendenti
             </h2>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-white/10">
             {displayUsers.map((user) => {
               const isExpanded = expandedUserId === user.id;
               const features = getEnabledFeatures(user);

@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import { Home, Calendar, ClipboardList, BarChart3, ShieldCheck, Palmtree, User } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations } from '../utils/translations';
@@ -16,7 +17,27 @@ interface BottomNavProps {
 }
 
 export default function BottomNav({ activeTab, onTabChange, visibleTabs }: BottomNavProps) {
+  const navRef = useRef<HTMLElement>(null);
   const { effectiveLanguage, currentUser } = useApp();
+
+  /** Altezza barra → `--app-bottom-nav-offset` per toast / overlay sopra la bottom nav. */
+  useLayoutEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const apply = () => {
+      const h = Math.ceil(el.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--app-bottom-nav-offset', `${h}px`);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    window.addEventListener('resize', apply);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', apply);
+      document.documentElement.style.removeProperty('--app-bottom-nav-offset');
+    };
+  }, []);
   const t = getTranslations(effectiveLanguage);
   const profileThumb =
     currentUser &&
@@ -25,7 +46,6 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
 
   const visible = new Set(visibleTabs);
   const tv = t as Record<string, string>;
-  /** Solo nome di battesimo sotto l’icona (fallback email se manca il nome). */
   const profileNavLabel = currentUser
     ? (currentUser.first_name ?? '').trim() || currentUser.email
     : '';
@@ -38,6 +58,10 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
         ? `${t.sidebar_profile}: ${profileFullName} (${currentUser.email})`
         : `${t.sidebar_profile}: ${currentUser.email}`
       : '';
+
+  const profileDisplayName =
+    (currentUser?.first_name?.trim() || currentUser?.email?.split('@')[0] || 'Utente').trim() || 'Utente';
+  const profileInitialNav = (profileDisplayName.charAt(0) || '?').toUpperCase();
 
   const defs: { id: AppNavTab; icon: typeof Home; label: string }[] = [
     { id: 'home', icon: Home, label: t.sidebar_dashboard },
@@ -54,6 +78,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
 
   return (
     <nav
+      ref={navRef}
       className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none"
       style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 0px))',
@@ -63,12 +88,9 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
       aria-label="Navigazione principale"
     >
       <div className="w-full max-w-screen-xl mx-auto pointer-events-auto">
-        {/* Barra flottante: #2D5A27, angoli arrotondati ovunque, ombra sotto (come mock PWA) */}
-        <div
-          className="w-full rounded-[1.35rem] sm:rounded-[1.75rem] py-1.5 px-1 sm:py-2 sm:px-2.5 shadow-[0_12px_40px_-4px_rgba(0,0,0,0.28),0_4px_16px_-4px_rgba(0,0,0,0.15)]"
-          style={{ backgroundColor: '#2D5A27' }}
-        >
-          <div className="flex justify-between items-stretch gap-0.5 min-h-[48px] sm:min-h-[54px]">
+        {/* Barra flottante vetro sul brand — `.bottom-nav-glass` in index.css */}
+        <div className="bottom-nav-glass w-full rounded-[1.35rem] sm:rounded-[1.75rem] px-1 py-1.5 sm:px-2.5 sm:py-2">
+          <div className="flex min-h-[44px] items-stretch justify-between gap-0.5 sm:min-h-[48px]">
             {tabs.map(({ id, icon: Icon, label }) => {
               const isActive = activeTab === id;
               const displayLabel =
@@ -78,26 +100,27 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
                     ? profileNavLabel
                     : label;
               const showProfilePic = id === 'profile' && profileThumb;
+              const showProfileInitial = id === 'profile' && currentUser && !profileThumb;
               const buttonTitle =
-                id === 'profile' && profileTabTitle ? profileTabTitle : label;
-              const profileAriaLabel =
+                id === 'profile' && profileTabTitle ? profileTabTitle : displayLabel;
+              const ariaLabel =
                 id === 'profile' && profileNavLabel
                   ? `${t.sidebar_profile}, ${profileNavLabel}`
-                  : undefined;
+                  : displayLabel;
               return (
                 <button
                   key={id}
                   type="button"
                   onClick={() => onTabChange(id)}
                   title={buttonTitle}
-                  aria-label={profileAriaLabel}
-                  className="keep-white-glass flex-1 min-w-0 min-h-[46px] sm:min-h-[50px] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center gap-0.5 sm:gap-1 px-0.5 py-1 text-white/[0.78] transition-all duration-200 hover:bg-white/10 hover:text-white/95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D5A27] active:scale-[0.97]"
+                  aria-label={ariaLabel}
+                  className="keep-white-glass flex flex-1 min-w-0 min-h-[44px] sm:min-h-[48px] items-center justify-center rounded-xl sm:rounded-2xl px-0.5 py-1.5 text-white/[0.78] transition-all duration-200 hover:bg-white/10 hover:text-white/95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D5A27] active:scale-[0.97]"
                 >
                   {showProfilePic ? (
                     <span
                       className={`flex h-[22px] w-[22px] sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md transition-transform duration-200 ${
                         isActive
-                          ? 'scale-110 ring-2 ring-white ring-offset-1 ring-offset-[#2D5A27]'
+                          ? 'scale-110 ring-2 ring-white ring-offset-1 ring-offset-transparent'
                           : 'opacity-90 ring-1 ring-white/20'
                       }`}
                     >
@@ -109,6 +132,17 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
                         draggable={false}
                       />
                     </span>
+                  ) : showProfileInitial ? (
+                    <span
+                      className={`flex h-[22px] w-[22px] sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/35 bg-white/12 text-[11px] sm:text-xs font-bold text-white transition-transform duration-200 ${
+                        isActive
+                          ? 'scale-110 ring-2 ring-white ring-offset-1 ring-offset-transparent'
+                          : 'opacity-95 ring-1 ring-white/25'
+                      }`}
+                      aria-hidden
+                    >
+                      {profileInitialNav}
+                    </span>
                   ) : (
                     <Icon
                       className={`h-[22px] w-[22px] sm:h-6 sm:w-6 flex-shrink-0 transition-[transform,color] duration-200 ${
@@ -118,9 +152,6 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
                       aria-hidden
                     />
                   )}
-                  <span className="text-[7px] sm:text-[10px] font-semibold tracking-tight leading-[1.1] text-center normal-case max-w-full line-clamp-2 break-words hyphens-auto px-0.5 text-white/[0.72]">
-                    {displayLabel}
-                  </span>
                 </button>
               );
             })}
