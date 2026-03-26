@@ -126,9 +126,11 @@ export function calculateBreakDeductions(
   if (!rules.length) return 0;
 
   const shiftStart = toMinutes(shift.start_time);
-  const shiftEnd = toMinutes(shift.end_time);
-  let shiftDuration = shiftEnd - shiftStart;
+  const shiftEndRaw = toMinutes(shift.end_time);
+  let shiftDuration = shiftEndRaw - shiftStart;
   if (shiftDuration < 0) shiftDuration += 24 * 60;
+  /** Fine turno in minuti dalla mezzanotte del giorno del turno (notte: 16:00→00:00 ⇒ fino a 1440, non 0). */
+  const shiftSpanEnd = shiftEndRaw <= shiftStart ? shiftEndRaw + 24 * 60 : shiftEndRaw;
 
   let totalDeduction = 0;
 
@@ -167,11 +169,11 @@ export function calculateBreakDeductions(
     const breakDuration = Math.max(0, breakEnd - breakStart);
 
     const overlapStart = Math.max(shiftStart, breakStart);
-    const overlapEnd = Math.min(shiftEnd, breakEnd);
+    const overlapEnd = Math.min(shiftSpanEnd, breakEnd);
     if (overlapEnd <= overlapStart) continue;
 
     // La pausa scatta solo se il turno copre interamente la finestra
-    const shiftCoversBreak = shiftStart <= breakStart && shiftEnd >= breakEnd;
+    const shiftCoversBreak = shiftStart <= breakStart && shiftSpanEnd >= breakEnd;
     if (!shiftCoversBreak) continue;
 
     // Pausa non retribuita → detrae; retribuita → non detrae
@@ -228,9 +230,9 @@ export type BreakMinutesComputeOptions = {
 /**
  * Restituisce i minuti di pausa da detrarre per un turno.
  *
- * **Priorità assoluta — regole attive:** se esiste almeno una regola con `enabled !== false` e c’è un `user`
- * per valutare reparto/ruolo, l’importo è **solo** quello calcolato dalle regole (anche 0). Non si usano
- * `break_minutes` sul turno né il fallback automatico ≥6h.
+ * **Regole attive:** se c’è almeno una regola `enabled !== false` e un `user`, si calcola prima dalle regole.
+ * Se il risultato è **> 0**, quello è l’importo. Se è **0** (nessuna finestra applicabile al turno, es. solo pausa
+ * pranzo su turno cena senza sovrapposizione), si applicano `break_minutes` sul turno e il fallback ≥6h come senza regole.
  *
  * **Senza regole attive:** `break_minutes` sul turno, altrimenti fallback 30 min se durata lorda ≥6h
  * (solo se `autoBreaksFeatureEnabled !== false`).
@@ -257,7 +259,8 @@ export function getBreakMinutesForShift(
       user,
       activeRules
     );
-    return Math.max(0, fromRules);
+    if (fromRules > 0) return Math.max(0, fromRules);
+    // Regole presenti ma nessuna detrazione (turno fuori dalle finestre / notte mal calcolata prima): continua sotto
   }
 
   if (shift.break_minutes != null && shift.break_minutes > 0) {

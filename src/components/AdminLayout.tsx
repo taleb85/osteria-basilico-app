@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Settings, LayoutList, Menu, X } from 'lucide-react';
-import DataSyncBanner from './DataSyncBanner';
 import { useApp } from '../context/AppContext';
 import { isAdminOnly, canEditRoleFeatureTemplates } from '../utils/permissions';
 import { getTranslations } from '../utils/translations';
@@ -17,13 +16,7 @@ const adminHeaderCardClass =
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const {
-    currentUser,
-    silentRefreshData,
-    effectiveLanguage,
-    isGlobalRefreshing,
-    dataSyncInProgress,
-  } = useApp();
+  const { currentUser, silentRefreshData, effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [activeTab, setActiveTab] = useState<AdminTab>('profili');
   const [adminNavOpen, setAdminNavOpen] = useState(false);
@@ -174,12 +167,6 @@ export default function AdminLayout() {
           </div>
         </div>
       </header>
-
-      {dataSyncInProgress && !isGlobalRefreshing && (
-        <div className="shrink-0 app-horizontal-pad pt-1">
-          <DataSyncBanner language={effectiveLanguage} />
-        </div>
-      )}
 
       <main className="flex-1 overflow-y-auto">
         {/* Montate tutte e tre: evita reset di stato non salvato cambiando tab o uscendo/entrando dalla stessa scheda */}

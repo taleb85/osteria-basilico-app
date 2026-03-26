@@ -38,6 +38,65 @@ const cardVariants = {
   }),
 };
 
+/** Badge «CLOCK IN» e bordo evidenziazione: da 60 min prima dell’inizio turno (prima 15 min). */
+const KIOSK_CLOCK_IN_LEAD_MINUTES = 60;
+
+function startTimeToMinutes(hhmm: string): number {
+  const [h, m] = (hhmm || '0:0').split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+/**
+ * Con più turni ancora da timbrare (IN), ne mostra uno solo: quello con inizio più vicino all’ora attuale.
+ * Restano sempre visibili: completati, pranzo in attesa di OUT, cena con IN già registrato (stato kiosk).
+ * Se `showAll`, nessun filtro (es. dopo «Cambia turno»).
+ */
+function filterShiftsToClosestUnpunched(
+  shifts: Shift[],
+  now: Date,
+  opts: {
+    isPunched: (s: Shift) => boolean;
+    isPunchedOut: (s: Shift) => boolean;
+    isEmployeeDone: (s: Shift) => boolean;
+  },
+  showAll: boolean
+): Shift[] {
+  if (showAll || shifts.length <= 1) return shifts;
+
+  const nowM = now.getHours() * 60 + now.getMinutes();
+
+  const rows = shifts.map((shift) => {
+    const punched = opts.isPunched(shift);
+    const punchedOut = opts.isPunchedOut(shift);
+    const done = opts.isEmployeeDone(shift);
+    const awaitingLunchOut = shift.type === 'lunch' && punched && !punchedOut;
+    const dinnerInProgress = shift.type === 'dinner' && punched;
+    const unpunchedInCandidate = !done && !dinnerInProgress && !awaitingLunchOut && !punched;
+    return { shift, done, awaitingLunchOut, dinnerInProgress, unpunchedInCandidate };
+  });
+
+  const unpunchedCandidates = rows.filter((r) => r.unpunchedInCandidate).map((r) => r.shift);
+  if (unpunchedCandidates.length <= 1) return shifts;
+
+  const closest = unpunchedCandidates.reduce((best, s) => {
+    const dist = Math.abs(nowM - startTimeToMinutes(s.start_time.slice(0, 5)));
+    const bestDist = Math.abs(nowM - startTimeToMinutes(best.start_time.slice(0, 5)));
+    if (dist < bestDist) return s;
+    if (dist > bestDist) return best;
+    return startTimeToMinutes(s.start_time.slice(0, 5)) <= startTimeToMinutes(best.start_time.slice(0, 5))
+      ? s
+      : best;
+  });
+
+  return shifts.filter((s) => {
+    const r = rows.find((x) => x.shift.id === s.id);
+    if (!r) return true;
+    if (r.done || r.awaitingLunchOut || r.dinnerInProgress) return true;
+    if (r.unpunchedInCandidate) return s.id === closest.id;
+    return true;
+  });
+}
+
 /** Logo Osteria Basilico - layout orizzontale (per overlay) */
 function BrandLogo({ className = '', light }: { className?: string; light?: boolean }) {
   const textClass = light ? 'text-white' : 'text-slate-900';
@@ -174,6 +233,18 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
       .filter((s) => s.user_id === selectedUser.id)
       .sort((a, b) => new Date(`${a.date}T${a.start_time}`).getTime() - new Date(`${b.date}T${b.start_time}`).getTime());
   }, [selectedUser, todayShifts]);
+
+  /** In overlay: un solo turno «prossimo» salvo dopo «Cambia turno» (`userWantsShiftList`). */
+  const shiftsForPickList = useMemo(
+    () =>
+      filterShiftsToClosestUnpunched(
+        selectedUserShifts,
+        now,
+        { isPunched, isPunchedOut, isEmployeeDone },
+        userWantsShiftList
+      ),
+    [selectedUserShifts, now, isPunched, isPunchedOut, isEmployeeDone, userWantsShiftList]
+  );
 
   const unpunchedShifts = useMemo(
     () => selectedUserShifts.filter((s) => !isPunched(s)),
@@ -482,8 +553,15 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
             {employeesWithShifts.map(({ user, shifts: userShifts, allPunched }, i) => {
               const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-              // Calcola stato per ogni turno
-              const shiftStatuses = userShifts.map((shift) => {
+              const visibleShifts = filterShiftsToClosestUnpunched(
+                userShifts,
+                now,
+                { isPunched, isPunchedOut, isEmployeeDone },
+                false
+              );
+
+              // Calcola stato per ogni turno (solo quelli mostrati in elenco)
+              const shiftStatuses = visibleShifts.map((shift) => {
                 const [sh, sm] = shift.start_time.split(':').map(Number);
                 const [eh, em] = (shift.end_time || '00:00').split(':').map(Number);
                 const startM = sh * 60 + (sm || 0);
@@ -492,7 +570,8 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                 const inProgress = isOvernight
                   ? nowMinutes >= startM || nowMinutes < endM
                   : nowMinutes >= startM && nowMinutes < endM;
-                const nearStart = nowMinutes >= startM - 15 && nowMinutes < startM + 5;
+                const nearStart =
+                  nowMinutes >= startM - KIOSK_CLOCK_IN_LEAD_MINUTES && nowMinutes < startM + 5;
                 const punched = isPunched(shift);
                 const punchedOut = isPunchedOut(shift);
                 // "done" per il dipendente: pranzo = IN+OUT, cena = solo IN
@@ -517,7 +596,8 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                     }
                   : dinnerActive
                     ? { label: t.punch_in_shift_label, color: 'bg-teal-50 text-teal-800 border-teal-200 dark:bg-teal-950/40 dark:text-teal-200 dark:border-teal-800/50' }
-                    : nextShift
+                    : nextShift &&
+                        nowMinutes >= nextShift.startM - KIOSK_CLOCK_IN_LEAD_MINUTES
                       ? { label: t.punch_clock_in_label, color: 'bg-accent/10 text-accent border-accent/20' }
                       : null;
 
@@ -640,7 +720,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                 {!selectedShift ? (
                   /* Lista turni: mostra IN per turni non timbrati, OUT per pranzo in attesa, blocca cena in corso */
                   <div className="space-y-2">
-                    {selectedUserShifts.map((shift, i) => {
+                    {shiftsForPickList.map((shift, i) => {
                       const punched = isPunched(shift);
                       const punchedOut = isPunchedOut(shift);
                       const done = isEmployeeDone(shift);

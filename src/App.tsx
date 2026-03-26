@@ -12,7 +12,6 @@ import HeaderTodayCoworkersCard from './components/HeaderTodayCoworkersCard';
 import RefreshLockOverlay from './components/RefreshLockOverlay';
 import PostUnlockRestartOverlay from './components/PostUnlockRestartOverlay';
 import BodyPullToRefresh from './components/BodyPullToRefresh';
-import DataSyncBanner from './components/DataSyncBanner';
 import HomePage from './components/HomePage';
 import PunchInKiosk from './components/PunchInKiosk';
 import LoginPage from './components/LoginPage';
@@ -77,7 +76,7 @@ function KioskOffPage() {
 // ─── Kiosk Route ──────────────────────────────────────────────────────────────
 function KioskRoute() {
   const navigate = useNavigate();
-  const { currentUser, featureFlags, dataSyncInProgress, isGlobalRefreshing, effectiveLanguage } = useApp();
+  const { currentUser, featureFlags } = useApp();
 
   useEffect(() => {
     const prevLang = document.documentElement.lang;
@@ -97,11 +96,6 @@ function KioskRoute() {
 
   return (
     <div className="min-h-screen w-full flex flex-col safe-area-pad bg-[#f8fafc] dark:bg-[#0a0a0a] font-sans antialiased text-slate-900 dark:text-neutral-100">
-      {dataSyncInProgress && !isGlobalRefreshing && (
-        <div className="shrink-0 px-4 pt-2">
-          <DataSyncBanner language={effectiveLanguage} />
-        </div>
-      )}
       <PunchInKiosk onGoToLogin={() => navigate(PATH_PROFILO)} />
     </div>
   );
@@ -125,7 +119,7 @@ function safeInternalRedirectPath(state: unknown, fallback = '/app'): string {
 function LoginRoute() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, dataSyncInProgress, isGlobalRefreshing, effectiveLanguage } = useApp();
+  const { currentUser } = useApp();
   const postAuthPath = useMemo(() => safeInternalRedirectPath(location.state), [location.state]);
 
   useEffect(() => {
@@ -137,11 +131,6 @@ function LoginRoute() {
 
   return (
     <>
-      {dataSyncInProgress && !isGlobalRefreshing && (
-        <div className="px-4 pt-[max(12px,env(safe-area-inset-top,0px))] pb-1 max-w-lg mx-auto w-full">
-          <DataSyncBanner language={effectiveLanguage} />
-        </div>
-      )}
       <AnimatePresence mode="wait">
         <LoginPage key="login" onLogin={handleLogin} onBack={handleBack} />
       </AnimatePresence>
