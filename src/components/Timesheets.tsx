@@ -26,7 +26,12 @@ import {
   hasShiftConflictSameDay,
   normalizeTimeInputToHHmm,
 } from '../utils/timeCalculations';
-import { getBreakMinutesForShift, getNetShiftMinutes } from '../utils/breakRules';
+import {
+  getBreakMinutesForShift,
+  getNetShiftMinutes,
+  type BreakMinutesComputeOptions,
+  type BreakRule,
+} from '../utils/breakRules';
 import {
   isPurelyManagementRole,
   isUserVisibleOnTeamSchedule,
@@ -171,7 +176,10 @@ function buildReviewQueueFreezeApprovalPayload(args: {
   plannedStart: string;
   plannedEnd: string;
   plannedMins: number;
-  breakMinutes: number;
+  fullShift: Shift;
+  user: User;
+  breakRules: BreakRule[];
+  breakComputeOpts: BreakMinutesComputeOptions;
   inHm: string;
   outHm: string;
   resolvedOutDate: string;
@@ -197,11 +205,14 @@ function buildReviewQueueFreezeApprovalPayload(args: {
   };
   const inP = pad2(inNorm);
   const outP = pad2(outNorm);
-  const inIso = isoFromDateHHmm(args.shiftDateStr, inP);
-  const outIso = isoFromDateHHmm(args.resolvedOutDate, outP);
-  const elapsedMs = new Date(outIso).getTime() - new Date(inIso).getTime();
-  const grossActualMins = Math.max(0, Math.round(elapsedMs / 60_000));
-  const actualMins = Math.max(0, grossActualMins - args.breakMinutes);
+  const actualMins = getNetShiftMinutes(
+    args.fullShift,
+    inP,
+    outP,
+    args.user,
+    args.breakRules,
+    args.breakComputeOpts
+  );
   const deltaMins = actualMins - args.plannedMins;
   return {
     shiftId: args.shiftId,
@@ -324,7 +335,10 @@ interface ShiftRow {
   plannedStart: string;
   plannedEnd: string;
   plannedMins: number;
+  /** Detrazione pausa sul pianificato (regole / fallback sul turno pianificato). */
   breakMinutes: number;
+  /** Detrazione pausa sulle ore effettive (timbratura / congelato); 0 se effettivo incompleto. */
+  breakMinutesActual: number;
   actualStart: string | null;
   actualEnd: string | null;
   actualEndFull?: string;
@@ -812,6 +826,7 @@ export default function Timesheets() {
               plannedEnd,
               plannedMins,
               breakMinutes,
+              breakMinutesActual: 0,
               actualStart: null,
               actualEnd: null,
               actualEndFull: undefined,
@@ -914,7 +929,25 @@ export default function Timesheets() {
             );
           const isCrossDay =
             !frozen && !!actualEndFull && actualEndDate !== dateStr && !nightRolloverOk;
-          const actualMins = Math.max(0, grossActualMins - breakMinutes);
+          /** Pausa sulle ore effettive: regole / fallback usano timbratura (o orari congelati), non il pianificato. */
+          const actualMins =
+            displayActualStart && displayActualEnd
+              ? getNetShiftMinutes(
+                  s,
+                  displayActualStart,
+                  displayActualEnd,
+                  user,
+                  breakRules,
+                  breakComputeOpts
+                )
+              : Math.max(0, grossActualMins);
+          const breakMinutesActual =
+            displayActualStart && displayActualEnd
+              ? Math.max(
+                  0,
+                  calculateShiftMinutesGross(displayActualStart, displayActualEnd) - actualMins
+                )
+              : 0;
           const deltaMins = actualMins - plannedMins;
 
           const isLate = !!(
@@ -929,6 +962,7 @@ export default function Timesheets() {
             plannedEnd,
             plannedMins,
             breakMinutes,
+            breakMinutesActual,
             actualStart: displayActualStart,
             actualEnd: displayActualEnd,
             actualEndFull: actualEndFullForRow,
@@ -1021,6 +1055,7 @@ export default function Timesheets() {
         fresh.plannedStart === p.plannedStart &&
         fresh.plannedEnd === p.plannedEnd &&
         fresh.breakMinutes === p.breakMinutes &&
+        fresh.breakMinutesActual === p.breakMinutesActual &&
         fresh.deltaMins === p.deltaMins &&
         fresh.hasMissingOut === p.hasMissingOut &&
         fresh.isCrossDay === p.isCrossDay &&
@@ -1776,6 +1811,12 @@ export default function Timesheets() {
     }
     setReviewQueueSaving(true);
     try {
+      const fullShiftForBreak = shifts.find((x) => x.id === s.id);
+      const userForBreak = users.find((u) => u.id === drawerData.userId);
+      if (!fullShiftForBreak || !userForBreak) {
+        showError?.(t.save_error);
+        return;
+      }
       const isEmployeeWeek = drawerReviewQueue.reviewScope === 'employee_week';
       const requireFreezeAfterSave = canTimesheetApprove && !isEmployeeWeek;
       const silentIntermediateToast = canTimesheetApprove && isEmployeeWeek;
@@ -1793,7 +1834,10 @@ export default function Timesheets() {
               plannedStart: s.plannedStart,
               plannedEnd: s.plannedEnd,
               plannedMins: s.plannedMins,
-              breakMinutes: s.breakMinutes,
+              fullShift: fullShiftForBreak,
+              user: userForBreak,
+              breakRules,
+              breakComputeOpts,
               inHm,
               outHm,
               resolvedOutDate,
@@ -1822,7 +1866,10 @@ export default function Timesheets() {
             plannedStart: s.plannedStart,
             plannedEnd: s.plannedEnd,
             plannedMins: s.plannedMins,
-            breakMinutes: s.breakMinutes,
+            fullShift: fullShiftForBreak,
+            user: userForBreak,
+            breakRules,
+            breakComputeOpts,
             inHm,
             outHm,
             resolvedOutDate,
@@ -2548,16 +2595,16 @@ export default function Timesheets() {
                                             </span>
                                             <span
                                               className={`max-w-[min(100%,5.5rem)] shrink-0 text-right text-[10px] font-semibold leading-tight tabular-nums md:max-w-[4.75rem] md:text-[9px] ${
-                                                s.breakMinutes > 0 ? 'text-slate-500 dark:text-neutral-400' : deltaColor
+                                                s.breakMinutesActual > 0 ? 'text-slate-500 dark:text-neutral-400' : deltaColor
                                               }`}
                                               title={
-                                                s.breakMinutes > 0
+                                                s.breakMinutesActual > 0
                                                   ? `${t.ts_net_hours}: ${fmtHM(s.actualMins)}`
                                                   : undefined
                                               }
                                             >
-                                              {s.breakMinutes > 0
-                                                ? `−${fmtBreakDeductionShort(s.breakMinutes)}`
+                                              {s.breakMinutesActual > 0
+                                                ? `−${fmtBreakDeductionShort(s.breakMinutesActual)}`
                                                 : `${s.deltaMins >= 0 ? '+' : ''}${fmtHM(s.deltaMins)}`}
                                             </span>
                                           </div>
@@ -3213,8 +3260,8 @@ export default function Timesheets() {
                                   ) : null}
                                 </>
                               ) : s.actualMins > 0 ? (
-                                s.breakMinutes > 0 ? (
-                                  `${fmtHM(s.actualMins)} (−${fmtBreakDeductionShort(s.breakMinutes)})`
+                                s.breakMinutesActual > 0 ? (
+                                  `${fmtHM(s.actualMins)} (−${fmtBreakDeductionShort(s.breakMinutesActual)})`
                                 ) : (
                                   `${fmtHM(s.actualMins)} (${s.deltaMins >= 0 ? '+' : ''}${fmtHM(s.deltaMins)})`
                                 )

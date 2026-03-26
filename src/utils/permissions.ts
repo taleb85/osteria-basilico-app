@@ -60,6 +60,18 @@ export function canOperateTeamSchedule(user: User | null): boolean {
   return user.can_create_shifts === true;
 }
 
+/**
+ * Creazione, modifica orari/spostamento, eliminazione e copia turni sul planning.
+ * Il **capo** non modifica mai il planning (solo lettura tabellone; congela/approva resta su `approveShift` / permessi dedicati).
+ */
+export function canEditTeamShifts(user: User | null): boolean {
+  if (!user) return false;
+  if (user.role === 'capo') return false;
+  if (user.role === 'admin') return true;
+  if (user.role === 'manager' || user.role === 'assistant_manager') return true;
+  return user.can_create_shifts === true;
+}
+
 /** Approvazione turni (freeze) e ferie: Admin o `can_approve_shifts`. */
 export function canApproveShiftActions(user: User | null): boolean {
   if (!user) return false;

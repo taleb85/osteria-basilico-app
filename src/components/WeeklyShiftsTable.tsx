@@ -32,6 +32,7 @@ import {
   isManagementRole,
   isUserVisibleOnTeamSchedule,
   canOperateTeamSchedule,
+  canEditTeamShifts,
   canPublishScheduleDrafts,
   canApproveShiftActions,
 } from '../utils/permissions';
@@ -701,7 +702,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const canShiftOps =
     !!currentUser &&
-    canOperateTeamSchedule(currentUser) &&
+    canEditTeamShifts(currentUser) &&
     (currentUser.role === 'admin' || isFeatureEnabled(currentUser, 'edit_shifts'));
   const canEditShifts = canShiftOps;
   /** Tablet / desktop (≥768px): tabellone interattivo (drag, lasso, crea da cella). */
@@ -711,6 +712,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const canViewTotalHours = currentUser ? isFeatureEnabled(currentUser, 'view_stats') : false;
   const canManageDrafts =
     !!currentUser &&
+    canEditTeamShifts(currentUser) &&
     canPublishScheduleDrafts(currentUser) &&
     (currentUser.role === 'admin' || isFeatureEnabled(currentUser, 'edit_shifts'));
   const canApproveShifts =

@@ -6,7 +6,7 @@ import { format, addDays, isValid } from 'date-fns';
 import type { Locale } from 'date-fns';
 import type { Shift, PunchRecord, User } from '../types';
 import { calculateShiftMinutesGross } from './timeCalculations';
-import { getBreakMinutesForShift, type BreakRule } from './breakRules';
+import { getBreakMinutesForShift, getNetShiftMinutes, type BreakRule } from './breakRules';
 import { getResolvedStartEndForHours } from './shiftResolvedClockTimes';
 import {
   exportTimesheetPdfToFile,
@@ -34,6 +34,7 @@ type GridShiftRow = {
   plannedEnd: string;
   plannedMins: number;
   breakMinutes: number;
+  breakMinutesActual: number;
   actualStart: string | null;
   actualEnd: string | null;
   actualMins: number;
@@ -81,6 +82,7 @@ function computeTimesheetGridForPdf(
             plannedEnd,
             plannedMins,
             breakMinutes,
+            breakMinutesActual: 0,
             actualStart: null,
             actualEnd: null,
             actualMins: 0,
@@ -140,8 +142,25 @@ function computeTimesheetGridForPdf(
           grossActualMins = Math.max(0, Math.round(elapsedMs / 60_000));
         }
 
-        const actualMins = Math.max(0, grossActualMins - breakMinutes);
+        const actualMins =
+          displayActualStart && displayActualEnd
+            ? getNetShiftMinutes(
+                s,
+                displayActualStart,
+                displayActualEnd,
+                user,
+                breakRules,
+                breakComputeOpts
+              )
+            : Math.max(0, grossActualMins);
         const deltaMins = actualMins - plannedMins;
+        const breakMinutesActual =
+          displayActualStart && displayActualEnd
+            ? Math.max(
+                0,
+                calculateShiftMinutesGross(displayActualStart, displayActualEnd) - actualMins
+              )
+            : 0;
 
         const hasMissingOut = frozen ? false : !!(punchIn && !punchActualEnd);
 
@@ -150,6 +169,7 @@ function computeTimesheetGridForPdf(
           plannedEnd,
           plannedMins,
           breakMinutes,
+          breakMinutesActual,
           actualStart: displayActualStart,
           actualEnd: displayActualEnd,
           actualMins,
@@ -193,6 +213,7 @@ function gridToPdfDays(
               plannedEnd: s.plannedEnd,
               plannedMins: s.plannedMins,
               breakMinutes: s.breakMinutes,
+              breakMinutesActual: s.breakMinutesActual,
               actualStart: s.actualStart,
               actualEnd: s.actualEnd,
               actualMins: s.actualMins,

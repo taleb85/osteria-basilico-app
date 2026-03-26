@@ -3,6 +3,13 @@ import { format } from 'date-fns';
 import type { Locale } from 'date-fns';
 import { isPurelyManagementRole } from './permissions';
 
+function breakMinutesForPausaColumn(sh: TimesheetPdfShiftRow): number {
+  if (sh.actualStart && sh.actualEnd) {
+    return sh.breakMinutesActual ?? 0;
+  }
+  return sh.breakMinutes;
+}
+
 export type TimesheetPdfUser = {
   id: string;
   first_name: string;
@@ -17,6 +24,8 @@ export type TimesheetPdfShiftRow = {
   plannedEnd: string;
   plannedMins: number;
   breakMinutes: number;
+  /** Detrazione pausa sulle ore effettive (timbratura); se assente, i totali PAUSA usano breakMinutes. */
+  breakMinutesActual?: number;
   actualStart: string | null;
   actualEnd: string | null;
   actualMins: number;
@@ -255,7 +264,7 @@ pdfUsers.forEach((user, rowIdx) => {
   const pausaX2 = MG + NAME_W + NUM_DAYS * DAY_W;
   const userBreakTotal = weekDays.reduce((sum, d) => {
     const dd = timesheetData[user.id]?.[format(d, 'yyyy-MM-dd')];
-    return sum + (dd?.shifts.reduce((s, sh) => s + sh.breakMinutes, 0) ?? 0);
+    return sum + (dd?.shifts.reduce((s, sh) => s + breakMinutesForPausaColumn(sh), 0) ?? 0);
   }, 0);
   if (userBreakTotal > 0) {
     setTxt(6, 'normal', C_MID);
@@ -319,7 +328,7 @@ const pausaXf = MG + NAME_W + NUM_DAYS * DAY_W;
 grid(); doc.line(pausaXf, y, pausaXf, y + H_SUM_ROW);
 const grandBreak = pdfUsers.reduce((s,u)=>s+weekDays.reduce((sd,d)=>{
   const dd = timesheetData[u.id]?.[format(d,'yyyy-MM-dd')];
-  return sd + (dd?.shifts.reduce((sm,sh)=>sm+sh.breakMinutes,0)??0);
+  return sd + (dd?.shifts.reduce((sm, sh) => sm + breakMinutesForPausaColumn(sh), 0) ?? 0);
 },0),0);
 if (grandBreak > 0) {
   setTxt(5.5, 'normal', C_MID);

@@ -31,6 +31,7 @@ import { logHistory, logShiftEdit } from '../utils/scheduleHistory';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
 import {
   canOperateTeamSchedule,
+  canEditTeamShifts,
   canApproveShiftActions,
   canPublishScheduleDrafts,
   isAdminOnly,
@@ -705,7 +706,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addShift = useCallback(async (shift: Omit<Shift, 'id'>) => {
     const op = currentUserRef.current;
-    if (!op || !canOperateTeamSchedule(op)) {
+    if (!op || !canEditTeamShifts(op)) {
       showError(getTranslations(effectiveLanguage).app_access_denied);
       return null;
     }
@@ -748,6 +749,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateShift = useCallback(async (id: string, updates: Partial<Shift>) => {
     const existing = shifts.find((s) => s.id === id);
     if (!existing) return;
+
+    const op = currentUserRef.current;
+    if (op?.role === 'capo') {
+      showError(getTranslations(effectiveLanguage).app_access_denied);
+      return;
+    }
 
     const finalUserId = updates.user_id ?? existing.user_id;
     const finalDate = updates.date ?? existing.date;
@@ -1005,7 +1012,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const deleteShift = useCallback(async (id: string) => {
     const op = currentUserRef.current;
-    if (!op || !canOperateTeamSchedule(op)) {
+    if (!op || !canEditTeamShifts(op)) {
       showError(getTranslations(effectiveLanguage).app_access_denied);
       return;
     }
@@ -1033,7 +1040,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const deleteShifts = useCallback(async (ids: string[]) => {
     if (ids.length === 0) return;
     const op = currentUserRef.current;
-    if (!op || !canOperateTeamSchedule(op)) {
+    if (!op || !canEditTeamShifts(op)) {
       showError(getTranslations(effectiveLanguage).app_access_denied);
       return;
     }
@@ -1079,7 +1086,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const copyShift = useCallback(
     (shift: Shift, newDate: string) => {
       const op = currentUserRef.current;
-      if (!op || !canOperateTeamSchedule(op)) {
+      if (!op || !canEditTeamShifts(op)) {
         showError(getTranslations(effectiveLanguage).app_access_denied);
         return;
       }

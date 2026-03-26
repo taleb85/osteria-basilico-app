@@ -15,6 +15,7 @@ import {
   isPurelyManagementRole,
   isUserVisibleOnTeamSchedule,
   canOperateTeamSchedule,
+  canEditTeamShifts,
   canApproveShiftActions,
 } from '../utils/permissions';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -142,7 +143,9 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
   const showTeamHome = isMgmtUser && isFeatureEnabled(currentUser, 'team_view');
   const canEditShiftsHome =
     currentUser.role === 'admin' ||
-    (isFeatureEnabled(currentUser, 'edit_shifts') && canOperateTeamSchedule(currentUser));
+    (isFeatureEnabled(currentUser, 'edit_shifts') &&
+      canOperateTeamSchedule(currentUser) &&
+      canEditTeamShifts(currentUser));
   /** Bacheca team: manager e assistente possono sempre pubblicare (non solo se hanno `edit_shifts` nel template). */
   const canEditTeamBoard =
     currentUser.role === 'admin' ||

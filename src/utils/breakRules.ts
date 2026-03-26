@@ -217,6 +217,12 @@ export type BreakMinutesComputeOptions = {
    * Le **regole pausa attive** restano sempre prioritarie. Default: true (undefined = true).
    */
   autoBreaksFeatureEnabled?: boolean;
+  /**
+   * Finestra oraria (HH:mm) usata per **regole pausa** (sovrapposizione con breakStart/breakEnd, durata minima turno).
+   * Se assente, si usano `shift.start_time` / `shift.end_time` (pianificato).
+   * Per ore effettive: passare orari da timbratura / congelamento (es. da `getNetShiftMinutes`).
+   */
+  breakRuleWindow?: { start: string; end: string };
 };
 
 /**
@@ -241,8 +247,13 @@ export function getBreakMinutesForShift(
 
   const activeRules = getActiveBreakRules(rules);
   if (user && activeRules.length > 0) {
+    const w = options?.breakRuleWindow;
     const fromRules = calculateBreakDeductionsSafe(
-      { start_time: shift.start_time ?? '', end_time: shift.end_time ?? '', date: shift.date ?? '' },
+      {
+        start_time: (w?.start ?? shift.start_time ?? '').slice(0, 5),
+        end_time: (w?.end ?? shift.end_time ?? '').slice(0, 5),
+        date: shift.date ?? '',
+      },
       user,
       activeRules
     );
@@ -271,7 +282,10 @@ export function getNetShiftMinutes(
   options?: BreakMinutesComputeOptions
 ): number {
   const gross = calculateShiftMinutesGross(startTime, endTime);
-  const breakMins = getBreakMinutesForShift(shift, gross, user, rules, options);
+  const breakMins = getBreakMinutesForShift(shift, gross, user, rules, {
+    ...options,
+    breakRuleWindow: { start: startTime.slice(0, 5), end: endTime.slice(0, 5) },
+  });
   const bm = Number.isFinite(breakMins) ? breakMins : 0;
   const net = gross - bm;
   return Math.max(0, Number.isFinite(net) ? net : 0);
