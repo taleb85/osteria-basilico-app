@@ -37,7 +37,6 @@ import {
 } from '../utils/permissions';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { isFeatureEnabled, isAdminModuleEnabled } from '../utils/enabledFeatures';
-import { exportSchedulePDF } from '../utils/exportSchedulePDF';
 import { getHiddenDates, toggleHiddenDate } from '../utils/hiddenPeriods';
 import { getHistory, type HistoryEntry } from '../utils/scheduleHistory';
 import { getDepartments, getDeptColor } from '../utils/departments';
@@ -51,6 +50,7 @@ import {
   dispatchPeriodConfigUpdated,
   type PeriodConfig,
 } from '../utils/periodConfig';
+import { exportSchedulePDF } from '../utils/exportSchedulePDF';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
 import { safeFormatDate } from '../utils/safeDateFormat';
 import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
@@ -313,7 +313,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   const [wstToolbarDrawerOpen, setWstToolbarDrawerOpen] = useState(false);
   const [wstToolbarDrawerSection, setWstToolbarDrawerSection] = useState<
-    null | 'filters' | 'legend' | 'department' | 'actions'
+    null | 'filters' | 'legend' | 'department'
   >(null);
   const [templatesList, setTemplatesList] = useState<string[]>([]);
   const [saveTemplateName, setSaveTemplateName] = useState('');
@@ -474,9 +474,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     [workRules]
   );
 
-  /** Auto-refresh silenzioso quando la scheda Turni viene montata (utente ci clicca sopra). */
+  /** Stesso criterio di HolidayRequests: refresh DB senza check revisione cloud (niente blocco PIN aprendo la scheda). */
   useEffect(() => {
-    silentRefreshData();
+    void silentRefreshData({ skipRemoteRevisionCheck: true });
   }, [silentRefreshData]);
 
   /** Allo sblocco dopo conferma PIN (o annullamento), usa l'ordine dal server. */
@@ -545,12 +545,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     } catch { /* ignora */ }
   }, []);
 
-  const openWstToolbarActions = useCallback(() => {
-    void loadTemplatesList();
-    setWstToolbarDrawerSection('actions');
-    setWstToolbarDrawerOpen(true);
-  }, [loadTemplatesList]);
-
   /** Template: salva la settimana corrente come template */
   const handleSaveTemplate = useCallback(async (name: string) => {
     if (!name.trim()) return;
@@ -596,13 +590,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           if (res) created++; else skipped++;
         } catch { skipped++; }
       }
-      closeWstToolbarDrawer();
       const msg = skipped > 0
         ? formatTrans(t.template_applied_with_skipped, { base: t.template_applied, created, skipped })
         : formatTrans(t.template_applied_created_only, { base: t.template_applied, created });
       (showSuccess || showError)(msg);
     } catch { (showError ?? (() => {}))(t.template_apply_error); }
-  }, [allWeekDays, addShift, showSuccess, showError, t, closeWstToolbarDrawer]);
+  }, [allWeekDays, addShift, showSuccess, showError, t]);
 
   /** Template: elimina un template */
   const handleDeleteTemplate = useCallback(async (name: string) => {
@@ -725,6 +718,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     canApproveShiftActions(currentUser) &&
     (currentUser.role === 'admin' || isFeatureEnabled(currentUser, 'approve_shifts'));
   const isStaff = !isManagement;
+
+  useEffect(() => {
+    if (isStaff || !canManageDrafts) return;
+    void loadTemplatesList();
+  }, [isStaff, canManageDrafts, loadTemplatesList]);
 
   const closeShiftDetailPanel = useCallback(() => {
     setSidebarOpen(false);
@@ -1485,10 +1483,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       )}
       {wTurniToolbar && (
       <>
-      {/* Toolbar: [Oggi] [Vista] … [Azioni]  |  [☰ menu: filtri, legenda, reparto] */}
-      <div className="mb-2 flex w-full min-w-0 flex-wrap items-center justify-between gap-2 sm:gap-3 sm:mb-0">
-
-        {/* ── Sinistra: stesso pattern scroll della barra Presenze (flex-nowrap + overflow-x) ── */}
+      {/* Toolbar: navigazione + pubblica + ☰ */}
+      <div className="mb-2 flex w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 sm:mb-0 sm:h-[22px] sm:max-h-[22px] sm:flex-nowrap sm:gap-2 sm:overflow-x-auto-safe">
+        {/* ── Sinistra: navigazione periodo / vista ── */}
         <div className="flex min-w-0 max-w-full shrink-0 flex-wrap items-center gap-2 sm:h-[22px] sm:max-h-[22px] sm:flex-nowrap sm:gap-2 sm:overflow-x-auto-safe">
           <button
             type="button"
@@ -1538,31 +1535,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               {weekIndex + 1}/{periodConfig.numWeeks}
             </span>
           )}
-          {!isStaff && (
-            <button
-              type="button"
-              onClick={openWstToolbarActions}
-              className={`ui-toolbar-chip shrink-0 text-slate-600 dark:text-neutral-300 hover:bg-slate-50/90 dark:hover:bg-white/[0.06] ${
-                wstToolbarDrawerOpen && wstToolbarDrawerSection === 'actions'
-                  ? 'border-accent/35 bg-accent/8 ring-1 ring-accent/15'
-                  : ''
-              } ${
-                !periodDraftSaved
-                  ? 'border-amber-300/80 bg-amber-50/40 dark:border-amber-700/50 dark:bg-amber-950/30'
-                  : ''
-              }`}
-              aria-expanded={wstToolbarDrawerOpen && wstToolbarDrawerSection === 'actions'}
-              aria-haspopup="dialog"
-              aria-label={t.wst_actions}
-            >
-              <span className="text-[13px] font-semibold leading-none">{t.wst_actions}</span>
-              {!periodDraftSaved && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden />}
-            </button>
-          )}
         </div>
 
         {/* ── Destra: pubblica settimana (se bozze) + menu hamburger ── */}
-        <div className="ui-toolbar-row-tight shrink-0">
+        <div className="ui-toolbar-row-tight ml-auto shrink-0">
           {!isStaff && (
           <>
           {canManageDrafts && isWideShiftViewport && draftCountInWeek > 0 && (
@@ -1593,20 +1569,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               }}
               className={`ui-toolbar-chip shrink-0 text-slate-600 dark:text-neutral-300 hover:bg-slate-50/90 dark:hover:bg-white/[0.06] ${
                 wstToolbarDrawerOpen ? 'border-accent/35 bg-accent/8 ring-1 ring-accent/15' : ''
-              } ${localFilterStatus !== 'all' || localFilterDepartment !== '' ? 'border-accent/25 bg-accent/5 dark:bg-accent/10' : ''} ${
-                !periodDraftSaved ? 'border-amber-300/80 bg-amber-50/40 dark:border-amber-700/50 dark:bg-amber-950/30' : ''
-              }`}
+              } ${localFilterStatus !== 'all' || localFilterDepartment !== '' ? 'border-accent/25 bg-accent/5 dark:bg-accent/10' : ''}`}
               aria-expanded={wstToolbarDrawerOpen}
               aria-haspopup="true"
               title={(t as Record<string, string>).wst_toolbar_hamburger_title}
               aria-label={(t as Record<string, string>).wst_toolbar_hamburger_aria}
             >
               <Menu className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
-              {(localFilterStatus !== 'all' || localFilterDepartment !== '' || !periodDraftSaved) && (
-                <span
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${!periodDraftSaved ? 'bg-amber-500' : 'bg-accent'}`}
-                  aria-hidden
-                />
+              {(localFilterStatus !== 'all' || localFilterDepartment !== '') && (
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
               )}
             </button>
           </div>
@@ -1871,30 +1842,31 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   </div>
                 )}
 
-                {wstToolbarDrawerSection === 'actions' && (
-                  <div className="border-b border-slate-100 py-2 dark:border-white/10">
-                {canShiftOps && (
+                {!isStaff && canShiftOps && (
                   <>
-                    <div className="px-3 pb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
+                    <div className="border-b border-slate-100 px-3 py-2.5 dark:border-white/10">
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
                         {(t as { stats_preset_period?: string }).stats_preset_period ?? 'Periodo Presenze'}
                       </p>
-                    </div>
-                    <div className="space-y-2.5 border-b border-slate-100 px-3 pb-2.5 dark:border-white/10">
-                      <div>
-                        <label className="mb-1 block text-[10px] font-bold text-slate-500 dark:text-neutral-300">{t.ts_period_start}</label>
-                        <DatePickerField
-                          value={periodDraftStart}
-                          onChange={(v) => { setPeriodDraftStart(v); setPeriodDraftSaved(false); setWeekIndex(0); }}
-                          allowClear={false}
-                          aria-label={t.ts_period_start}
-                          className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 surface-glass-sm px-2 text-[13px] text-slate-800 dark:text-neutral-100 surface-ghost-interactive dark:hover:border-white/15 [&_svg]:h-3 [&_svg]:w-3"
-                        />
-                      </div>
-                      <div className="flex gap-1">
+                      <DatePickerField
+                        value={periodDraftStart}
+                        onChange={(v) => {
+                          setPeriodDraftStart(v);
+                          setPeriodDraftSaved(false);
+                          setWeekIndex(0);
+                        }}
+                        allowClear={false}
+                        aria-label={t.ts_period_start}
+                        className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 surface-glass-sm px-2 text-[13px] text-slate-800 dark:text-neutral-100 surface-ghost-interactive dark:hover:border-white/15 [&_svg]:h-3 [&_svg]:w-3"
+                      />
+                      <div className="mt-2 flex gap-1">
                         <button
                           type="button"
-                          onClick={() => { setPeriodDraftNumWeeks(4); setPeriodDraftSaved(false); setWeekIndex(0); }}
+                          onClick={() => {
+                            setPeriodDraftNumWeeks(4);
+                            setPeriodDraftSaved(false);
+                            setWeekIndex(0);
+                          }}
                           className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
                             periodDraftNumWeeks === 4
                               ? 'bg-accent text-white'
@@ -1905,7 +1877,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         </button>
                         <button
                           type="button"
-                          onClick={() => { setPeriodDraftNumWeeks(5); setPeriodDraftSaved(false); setWeekIndex(0); }}
+                          onClick={() => {
+                            setPeriodDraftNumWeeks(5);
+                            setPeriodDraftSaved(false);
+                            setWeekIndex(0);
+                          }}
                           className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
                             periodDraftNumWeeks === 5
                               ? 'bg-accent text-white'
@@ -1917,9 +1893,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       </div>
                       <button
                         type="button"
-                        onClick={() => { handleSavePeriodConfigWst(); closeWstToolbarDrawer(); }}
+                        onClick={() => {
+                          handleSavePeriodConfigWst();
+                          closeWstToolbarDrawer();
+                        }}
                         disabled={periodDraftSaved}
-                        className={`w-full rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
+                        className={`mt-2 w-full rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
                           periodDraftSaved
                             ? 'cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-neutral-800 dark:text-neutral-500'
                             : 'bg-accent text-white hover:bg-accent-hover'
@@ -1928,14 +1907,162 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         {t.ts_save_period}
                       </button>
                     </div>
+                    <div className="border-b border-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-white/10 dark:text-neutral-400">
+                      {t.wst_registry_section}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowHistoryModal(true);
+                        closeWstToolbarDrawer();
+                      }}
+                      className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                    >
+                      <History className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
+                      {t.wst_schedule_history_title}
+                    </button>
+                    <div className="border-b border-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-white/10 dark:text-neutral-400">
+                      {t.wst_view_section}
+                    </div>
+                    {canUseShiftManagementChrome && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowEditViewModal(true);
+                          closeWstToolbarDrawer();
+                        }}
+                        className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                      >
+                        <Pencil className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
+                        {t.edit_view}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowHiddenPeriodsModal(true);
+                        closeWstToolbarDrawer();
+                      }}
+                      className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                    >
+                      <EyeOff className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
+                      {t.wst_hidden_periods_short}
+                      {hiddenDates.size > 0 && (
+                        <span className="ml-auto rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700 dark:bg-neutral-700 dark:text-neutral-200">
+                          {hiddenDates.size}
+                        </span>
+                      )}
+                    </button>
+                    <div className="border-b border-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-white/10 dark:text-neutral-400">
+                      {t.wst_export_section}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const n = viewMode === 'day' ? 1 : viewMode === '2weeks' ? 14 : 7;
+                        const rangeStart = viewMode === 'day' ? allWeekDays[0] : weekStart;
+                        const weekStr = format(rangeStart, 'yyyy-MM-dd');
+                        const weekEnd = format(addDays(rangeStart, n), 'yyyy-MM-dd');
+                        const weekShifts = shifts.filter((s) => s.date >= weekStr && s.date < weekEnd);
+                        const header = `${t.wst_export_csv_header_row}\n`;
+                        const rows = weekShifts
+                          .map((s) => {
+                            const u = users.find((x) => x.id === s.user_id);
+                            return `${s.date};${u?.first_name ?? '-'};${s.start_time};${s.end_time};${s.approval_status}`;
+                          })
+                          .join('\n');
+                        const blob = new Blob(['\ufeff' + header + rows], { type: 'text/csv;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `turni_${weekStr}_${weekEnd}.csv`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        closeWstToolbarDrawer();
+                      }}
+                      className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                    >
+                      <Download className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
+                      {t.export_csv}
+                    </button>
+                    {currentUser && isFeatureEnabled(currentUser, 'export_pdf') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          exportSchedulePDF(weekStart, allWeekDays, activeUsers, shifts, {
+                            filterLabel: localFilterDepartment || undefined,
+                            breakRules,
+                            breakComputeOpts,
+                            punchRecords,
+                            language: effectiveLanguage,
+                          });
+                          closeWstToolbarDrawer();
+                        }}
+                        className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                      >
+                        <Download className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
+                        {t.download_pdf}
+                      </button>
+                    )}
                   </>
                 )}
 
-                {/* ▸ SEZIONE PIANIFICAZIONE (management only) */}
-                {canManageDrafts && isWideShiftViewport && (
+                {!isStaff && canManageDrafts && (
                   <>
-                    <div className="px-3 pb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.wst_planning_section}</p>
+                    <div className="border-b border-slate-100 px-3 py-2.5 dark:border-white/10">
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">Template</p>
+                      <div className="flex gap-1.5">
+                        <input
+                          type="text"
+                          value={saveTemplateName}
+                          onChange={(e) => setSaveTemplateName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') void handleSaveTemplate(saveTemplateName);
+                          }}
+                          placeholder={t.template_name_placeholder}
+                          className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-accent dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder:text-neutral-500"
+                        />
+                        <button
+                          type="button"
+                          disabled={!saveTemplateName.trim() || savingTemplate}
+                          onClick={() => void handleSaveTemplate(saveTemplateName)}
+                          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
+                          aria-label={t.save}
+                        >
+                          {savingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={2.5} />}
+                        </button>
+                      </div>
+                      <div className="mt-2 max-h-36 min-h-0 overflow-y-auto rounded-lg border border-slate-100 dark:border-white/10">
+                        {templatesList.length === 0 ? (
+                          <p className="px-2 py-2 text-xs italic text-slate-400 dark:text-neutral-500">{t.template_no_templates}</p>
+                        ) : (
+                          <ul className="divide-y divide-slate-100 dark:divide-white/10">
+                            {templatesList.map((name) => (
+                              <li key={name} className="flex items-center gap-2 px-2 py-1.5">
+                                <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800 dark:text-neutral-100">{name}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleApplyTemplate(name)}
+                                  className="shrink-0 rounded-md bg-accent/12 px-2 py-0.5 text-xs font-semibold text-accent hover:bg-accent/20"
+                                >
+                                  {t.template_apply}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleDeleteTemplate(name)}
+                                  title={t.template_delete_confirm}
+                                  className="shrink-0 rounded-md p-1 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:text-neutral-400 dark:hover:bg-red-950/40"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                    <div className="border-b border-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-white/10 dark:text-neutral-400">
+                      {t.wst_planning_section}
                     </div>
                     <button
                       type="button"
@@ -1951,25 +2078,40 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const newDate = addDays(oldDate, n);
                           const newDateStr = format(newDate, 'yyyy-MM-dd');
                           try {
-                            const res = await addShift({ user_id: s.user_id, date: newDateStr, start_time: s.start_time, end_time: s.end_time, type: s.type, approval_status: 'draft', deduct_break: s.deduct_break });
+                            const res = await addShift({
+                              user_id: s.user_id,
+                              date: newDateStr,
+                              start_time: s.start_time,
+                              end_time: s.end_time,
+                              type: s.type,
+                              approval_status: 'draft',
+                              deduct_break: s.deduct_break,
+                            });
                             if (res) copied++;
-                          } catch { /* skip */ }
+                          } catch {
+                            /* skip */
+                          }
                         }
                         closeWstToolbarDrawer();
-                        setWeekIndex((i) => Math.min(maxWeekIndex, i + (viewMode === 'day' ? 1 : viewMode === '2weeks' ? 2 : 1)));
+                        setWeekIndex((i) =>
+                          Math.min(maxWeekIndex, i + (viewMode === 'day' ? 1 : viewMode === '2weeks' ? 2 : 1))
+                        );
                         (showSuccess || showError)(formatTrans(t.shifts_copied_count, { n: copied }));
                       }}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                      className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
                     >
-                      <Copy className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
+                      <Copy className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
                       {t.copy_week}
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setCreatingOpenShift({ date: format(weekStart, 'yyyy-MM-dd') }); closeWstToolbarDrawer(); }}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                      onClick={() => {
+                        setCreatingOpenShift({ date: format(weekStart, 'yyyy-MM-dd') });
+                        closeWstToolbarDrawer();
+                      }}
+                      className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
                     >
-                      <Plus className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
+                      <Plus className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
                       {t.new_open_shift}
                     </button>
                     <button
@@ -2003,158 +2145,19 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         await deleteShifts(toDelete.map((s) => s.id));
                         showSuccess?.(formatTrans(t.shifts_deleted_count, { n: toDelete.length }));
                       }}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/35"
+                      className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:border-white/10 dark:text-red-400 dark:hover:bg-red-950/35"
                     >
-                      <Trash2 className="h-4 w-4 flex-shrink-0" />
-                      Elimina settimana
-                    </button>
-                    <div className="my-1 border-t border-slate-100 dark:border-white/10" />
-                  </>
-                )}
-
-                {/* ▸ SEZIONE TEMPLATE (management only) */}
-                {canManageDrafts && isWideShiftViewport && (
-                  <>
-                    <div className="px-3 pt-1.5 pb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">Template</p>
-                    </div>
-                    <div className="px-3 pb-2">
-                      <div className="flex gap-1.5">
-                        <input
-                          type="text"
-                          value={saveTemplateName}
-                          onChange={(e) => setSaveTemplateName(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTemplate(saveTemplateName); }}
-                          placeholder={t.template_name_placeholder}
-                          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-accent dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder:text-neutral-500"
-                        />
-                        <button
-                          type="button"
-                          disabled={!saveTemplateName.trim() || savingTemplate}
-                          onClick={() => handleSaveTemplate(saveTemplateName)}
-                          className="px-3 py-1.5 rounded-xl bg-accent text-white text-xs font-semibold disabled:opacity-50 hover:bg-accent-hover transition-colors"
-                        >
-                          {savingTemplate ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </div>
-                    {templatesList.length === 0 ? (
-                      <p className="px-4 py-1.5 text-xs text-slate-400 dark:text-neutral-400 italic">
-                        {t.template_no_templates}
-                      </p>
-                    ) : (
-                      templatesList.map((name) => (
-                        <div key={name} className="group flex items-center gap-1 px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-neutral-800/80">
-                          <span className="flex-1 truncate text-sm text-slate-800 dark:text-neutral-100">{name}</span>
-                          <button type="button" onClick={() => handleApplyTemplate(name)}
-                            className="px-2 py-0.5 rounded-xl text-xs font-medium bg-accent/10 text-accent hover:bg-accent/20 flex-shrink-0">
-                            {t.template_apply}
-                          </button>
-                          <button type="button" onClick={() => handleDeleteTemplate(name)}
-                            className="flex-shrink-0 rounded-xl p-1 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:text-neutral-400 dark:hover:bg-red-950/40 dark:hover:text-red-400">
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))
-                    )}
-                    <div className="my-1 border-t border-slate-100 dark:border-white/10" />
-                  </>
-                )}
-
-                {/* ▸ SEZIONE EXPORT */}
-                <div className="px-3 pt-1.5 pb-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.wst_export_section}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const weekStr = format(weekStart, 'yyyy-MM-dd');
-                    const weekEnd = format(addDays(weekStart, viewMode === '2weeks' ? 14 : 7), 'yyyy-MM-dd');
-                    const weekShifts = shifts.filter((s) => s.date >= weekStr && s.date < weekEnd);
-                    const header = `${t.wst_export_csv_header_row}\n`;
-                    const rows = weekShifts.map((s) => { const u = users.find((x) => x.id === s.user_id); return `${s.date};${u?.first_name ?? '-'};${s.start_time};${s.end_time};${s.approval_status}`; }).join('\n');
-                    const blob = new Blob(['\ufeff' + header + rows], { type: 'text/csv;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a'); a.href = url; a.download = `turni_${weekStr}_${weekEnd}.csv`; a.click(); URL.revokeObjectURL(url);
-                    closeWstToolbarDrawer();
-                  }}
-                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
-                >
-                  <Download className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
-                  {t.export_csv}
-                </button>
-                {currentUser && isFeatureEnabled(currentUser, 'export_pdf') && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    exportSchedulePDF(weekStart, allWeekDays, activeUsers, shifts, {
-                      filterLabel: localFilterDepartment || undefined,
-                      breakRules,
-                      breakComputeOpts,
-                      punchRecords,
-                      language: effectiveLanguage,
-                    });
-                    closeWstToolbarDrawer();
-                  }}
-                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
-                >
-                  <Download className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
-                  {t.download_pdf}
-                </button>
-                )}
-
-                {/* ▸ SEZIONE VISTA (management only) */}
-                {canUseShiftManagementChrome && (
-                  <>
-                    <div className="my-1 border-t border-slate-100 dark:border-white/10" />
-                    <div className="px-3 pt-1.5 pb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.wst_view_section}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => { setShowEditViewModal(true); closeWstToolbarDrawer(); }}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
-                    >
-                      <Pencil className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
-                      {t.edit_view}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setShowHiddenPeriodsModal(true); closeWstToolbarDrawer(); }}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
-                    >
-                      <EyeOff className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
-                      {t.wst_hidden_periods_short}
-                      {hiddenDates.size > 0 && (
-                        <span className="ml-auto rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700 dark:bg-neutral-700 dark:text-neutral-200">
-                          {hiddenDates.size}
-                        </span>
-                      )}
+                      <Trash2 className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+                      {tv.wst_toolbar_delete_week}
                     </button>
                   </>
-                )}
-
-                {/* ▸ SEZIONE REGISTRO */}
-                <div className="my-1 border-t border-slate-100 dark:border-white/10" />
-                <div className="px-3 pt-1.5 pb-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.wst_registry_section}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { setShowHistoryModal(true); closeWstToolbarDrawer(); }}
-                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800"
-                >
-                  <History className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-neutral-300" />
-                  {t.wst_schedule_history_title}
-                </button>
-
-                  </div>
                 )}
               </CenteredModalPortal>
             )}
           </>
           )}
         </div>
+
       </div>
       </>
       )}

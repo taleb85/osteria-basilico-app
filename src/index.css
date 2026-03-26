@@ -280,27 +280,46 @@
   }
 
   /**
-   * Bottom nav — vetro sul brand rgb(45, 90, 39); fill piuttosto pieno (leggibilità icone/testo).
+   * Bottom nav — tinta piena brand rgb(45, 90, 39) quando non c’è contenuto sotto;
+   * variante `--over-content` vetro / più trasparente quando la pagina scrolla sotto la barra.
    */
   .bottom-nav-glass {
     border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(45, 90, 39, 0.84);
+    background: rgb(45, 90, 39);
     box-shadow:
       0 12px 40px -4px rgba(0, 0, 0, 0.26),
       0 4px 16px -4px rgba(0, 0, 0, 0.14),
       inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    -webkit-backdrop-filter: blur(20px) saturate(1.18);
-    backdrop-filter: blur(20px) saturate(1.18);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transition:
+      background 0.35s ease,
+      border-color 0.35s ease,
+      box-shadow 0.35s ease,
+      -webkit-backdrop-filter 0.35s ease,
+      backdrop-filter 0.35s ease;
+  }
+  .bottom-nav-glass.bottom-nav-glass--over-content {
+    border-color: rgba(15, 23, 42, 0.08);
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(10px) saturate(1.05);
+    backdrop-filter: blur(10px) saturate(1.05);
   }
   html.dark .bottom-nav-glass {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(45, 90, 39, 0.78);
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgb(45, 90, 39);
     box-shadow:
       0 12px 40px -4px rgba(0, 0, 0, 0.45),
       0 4px 16px -4px rgba(0, 0, 0, 0.26),
-      inset 0 1px 0 rgba(255, 255, 255, 0.07);
-    -webkit-backdrop-filter: blur(20px) saturate(1.18);
-    backdrop-filter: blur(20px) saturate(1.18);
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  html.dark .bottom-nav-glass.bottom-nav-glass--over-content {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(10px) saturate(1.05);
+    backdrop-filter: blur(10px) saturate(1.05);
   }
 
   /**
@@ -409,13 +428,15 @@
    */
   .ui-toolbar-page-band-presences {
     @apply mb-5 box-border flex w-full min-h-0 max-w-full flex-col flex-wrap gap-2.5;
-    @apply sm:flex-row sm:flex-nowrap sm:items-center sm:gap-3 sm:overflow-x-auto-safe;
+    /* lg+ : due colonne affiancate; sm–md tablet resta colonna → niente sovrapposizione con “DA / Salva” */
+    @apply lg:flex-row lg:flex-nowrap lg:items-center lg:gap-3 lg:overflow-x-auto-safe;
   }
 
   .ui-toolbar-page-band-presences .ui-toolbar-row-tight {
     @apply min-h-9 items-center justify-start gap-2;
-    @apply max-sm:flex-wrap max-sm:gap-y-2.5;
-    @apply sm:h-9 sm:max-h-9 sm:flex-nowrap;
+    /* Sotto lg: può andare a capo (tablet/phone); desktop compatto su una riga */
+    @apply max-lg:flex-wrap max-lg:gap-y-2;
+    @apply lg:h-9 lg:max-h-9 lg:flex-nowrap;
   }
 
   .ui-toolbar-page-band-presences .ui-toolbar-group {

@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronLeft, ChevronRight, FileDown, Moon, UserCheck } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, FileDown, Moon } from 'lucide-react';
 import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { uiWidgetKeyAppliesToUser } from '../../utils/uiScreenWidgets';
@@ -146,21 +146,6 @@ export default function TimesheetTabPreview({
         <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/50 px-3 py-3 text-center text-xs text-amber-900/80 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-200/90">
           <Moon className="mx-auto mb-1 h-4 w-4 text-amber-600 dark:text-amber-400" />
           {tv.profile_visibility_dinner_placeholder ?? 'Chiusura turni sera'}
-        </div>
-      </WidgetChrome>
-      )}
-
-      {show('timesheet.ready_approval') && (
-      <WidgetChrome
-        widgetKey="timesheet.ready_approval"
-        previewUser={previewUser}
-        isSelectedAdmin={isSelectedAdmin}
-        onUiToggle={onUiToggle}
-        hiddenBadge={hiddenBadge}
-      >
-        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2.5 text-xs font-semibold text-amber-900 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200">
-          <UserCheck className="h-4 w-4 shrink-0" />
-          {t.timesheet_approve_all}
         </div>
       </WidgetChrome>
       )}

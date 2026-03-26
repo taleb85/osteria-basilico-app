@@ -777,11 +777,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (autoBreak) Object.assign(updates, autoBreak);
     }
 
-    const merged = { ...existing, ...updates };
-    setShifts(prev => prev.map(s => s.id === id ? merged : s));
+    const isAbsentUpdate = updates.approval_status === 'absent';
+    const merged: Shift =
+      isAbsentUpdate
+        ? {
+            ...existing,
+            ...updates,
+            approval_status: 'absent' as const,
+            approved_at: null,
+            approved_by: null,
+            approved_start_time: null,
+            approved_end_time: null,
+          }
+        : { ...existing, ...updates };
 
-    // Logga le modifiche se il turno era già pubblicato
+    /** Assenza: niente update ottimistico — altrimenti il drawer cambia layout (footer che sparisce) e al fallimento DB sembra un menu che si apre e chiude. */
+    if (!isAbsentUpdate) {
+      setShifts((prev) => prev.map((s) => (s.id === id ? merged : s)));
+    }
+
     const isPublished = existing.approval_status === 'confirmed' || existing.approval_status === 'approved';
+    const statusLabel: Record<string, string> = {
+      draft: 'Bozza',
+      confirmed: 'Confermato',
+      approved: 'Approvato',
+      absent: 'Non ha lavorato',
+    };
     if (isPublished) {
       const actor = currentUserRef.current?.first_name ?? 'Sistema';
       const date = existing.date;
@@ -791,14 +812,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (updates.end_time !== undefined && updates.end_time !== existing.end_time) {
         logShiftEdit({ shiftId: id, actorName: actor, field: 'Fine', oldValue: (existing.end_time || '').slice(0,5), newValue: (updates.end_time || '').slice(0,5), description: `${date} — orario fine modificato` });
       }
-      if (updates.approval_status !== undefined && updates.approval_status !== existing.approval_status) {
-        const statusLabel: Record<string, string> = {
-          draft: 'Bozza',
-          confirmed: 'Confermato',
-          approved: 'Approvato',
-          absent: 'Non ha lavorato',
-        };
-        logShiftEdit({ shiftId: id, actorName: actor, field: 'Stato', oldValue: statusLabel[existing.approval_status] ?? existing.approval_status, newValue: statusLabel[updates.approval_status] ?? updates.approval_status, description: `${date} — stato turno modificato` });
+      if (
+        updates.approval_status !== undefined &&
+        updates.approval_status !== existing.approval_status &&
+        !isAbsentUpdate
+      ) {
+        logShiftEdit({
+          shiftId: id,
+          actorName: actor,
+          field: 'Stato',
+          oldValue: statusLabel[existing.approval_status] ?? existing.approval_status,
+          newValue: statusLabel[updates.approval_status] ?? updates.approval_status,
+          description: `${date} — stato turno modificato`,
+        });
       }
       if (updates.user_id !== undefined && updates.user_id !== existing.user_id) {
         logShiftEdit({ shiftId: id, actorName: actor, field: 'Dipendente', oldValue: existing.user_id, newValue: updates.user_id, description: `${date} — turno spostato a diverso dipendente` });
@@ -809,13 +835,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const res = await database.shifts.update(id, updates);
-      if (res) {
-        setShifts(prev => prev.map(s => s.id === id ? { ...res, ...updates } : s));
+      const res = isAbsentUpdate ? await database.shifts.markAbsent(id) : await database.shifts.update(id, updates);
+      if (isAbsentUpdate) {
+        const nextRow = (res ? { ...res, ...updates } : merged) as Shift;
+        setShifts((prev) => prev.map((s) => (s.id === id ? nextRow : s)));
+        setPunchRecords((prev) => prev.filter((p) => p.shift_id !== id));
+        markManagementDataTouched();
+        if (isPublished) {
+          const actor = currentUserRef.current?.first_name ?? 'Sistema';
+          const date = existing.date;
+          logShiftEdit({
+            shiftId: id,
+            actorName: actor,
+            field: 'Stato',
+            oldValue: statusLabel[existing.approval_status] ?? existing.approval_status,
+            newValue: statusLabel.absent,
+            description: `${date} — stato turno modificato`,
+          });
+        }
+      } else if (res) {
+        setShifts((prev) => prev.map((s) => (s.id === id ? { ...res, ...updates } : s)));
         markManagementDataTouched();
       }
     } catch (err) {
-      setShifts(prev => prev.map(s => s.id === id ? existing : s));
+      if (!isAbsentUpdate) {
+        setShifts((prev) => prev.map((s) => (s.id === id ? existing : s)));
+      }
       throw err;
     }
   }, [shifts, showError, computePersistedAutoBreak, effectiveLanguage, markManagementDataTouched]);
@@ -1423,6 +1468,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       status: UserStatus;
       department?: Department;
       hourly_rate_eur?: number | null;
+      employment_start_date?: string | null;
+      employment_end_date?: string | null;
     }): Promise<User | null> => {
       const tr = getTranslations(effectiveLanguage);
       if (!supabase) {
@@ -1438,6 +1485,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const maxOrder = users.reduce((m, u) => Math.max(m, u.sort_order ?? 0), 0);
       const perms = defaultPermissionFieldsForNewUser(payload.role);
       const lastName = payload.last_name?.trim() ?? '';
+      const employmentStart =
+        payload.employment_start_date && /^\d{4}-\d{2}-\d{2}$/.test(payload.employment_start_date)
+          ? payload.employment_start_date
+          : null;
+      const employmentEndRaw =
+        payload.employment_end_date && /^\d{4}-\d{2}-\d{2}$/.test(payload.employment_end_date)
+          ? payload.employment_end_date
+          : null;
+      const employmentEnd =
+        payload.status === 'active' ? null : employmentEndRaw;
       const newRow: Omit<User, 'id'> = {
         first_name: payload.first_name.trim(),
         /* Stringa vuota se assente: DB legacy con last_name NOT NULL. */
@@ -1454,6 +1511,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...(payload.hourly_rate_eur != null && Number.isFinite(payload.hourly_rate_eur)
           ? { hourly_rate_eur: payload.hourly_rate_eur }
           : {}),
+        employment_start_date: employmentStart,
+        employment_end_date: employmentEnd,
       };
       try {
         const res = await database.users.insert(newRow);

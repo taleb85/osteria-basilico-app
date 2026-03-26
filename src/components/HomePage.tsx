@@ -17,7 +17,6 @@ import {
   canOperateTeamSchedule,
   canApproveShiftActions,
 } from '../utils/permissions';
-import { getRoleScopeHint } from '../utils/roleScopeHint';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
@@ -429,14 +428,6 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
           {uiW('home_compact.greeting') && (
           <div>
             <h1 className="text-slate-900 dark:text-neutral-100 font-bold text-2xl">{t.home_greeting.replace('{name}', currentUser.first_name)}</h1>
-            {(() => {
-              const scope = getRoleScopeHint(currentUser.role, t as Record<string, string>);
-              return scope ? (
-                <p className="text-[11px] text-slate-600 dark:text-neutral-400 mt-2 max-w-md leading-snug border-l-2 border-accent/30 pl-2.5">
-                  {scope}
-                </p>
-              ) : null;
-            })()}
           </div>
           )}
 
@@ -634,16 +625,6 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
           className="flex flex-col gap-5">
-
-          {currentUser.role !== 'admin' &&
-            (() => {
-              const scope = getRoleScopeHint(currentUser.role, t as Record<string, string>);
-              return scope ? (
-                <p className="text-[11px] text-slate-600 dark:text-neutral-400 leading-snug border-l-2 border-accent/35 pl-3 py-0.5 -mt-1">
-                  {scope}
-                </p>
-              ) : null;
-            })()}
 
           {/* ── Profilo amministratore (solo Admin) ───────────────────── */}
           {uiW('home_mgmt.admin_banner') && isPurelyManagementRole(currentUser.role) && (
@@ -972,6 +953,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
         {closeModal && (() => {
           const [h, m] = clockOutInput ? clockOutInput.split(':').map(Number) : [0, 0];
           const previewMins = clockOutInput ? Math.max(0, timeToMins(`${String(h ?? 0).padStart(2,'0')}:${String(m ?? 0).padStart(2,'0')}`) - timeToMins(closeModal.actualStart)) : 0;
+          const homeClockComplete = /^\d{2}:\d{2}$/.test((clockOutInput || '').trim());
           return (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
@@ -1013,7 +995,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
                   />
                 </div>
 
-                {clockOutInput && previewMins > 0 && (
+                {homeClockComplete && (
                   <div className="bg-slate-50 dark:bg-neutral-800/80 rounded-xl p-3 mb-4 grid grid-cols-3 gap-2 text-center">
                     {[
                       { label: t.home_modal_start, val: closeModal.actualStart },

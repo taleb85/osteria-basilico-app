@@ -70,6 +70,10 @@ export interface User {
   hide_from_team_schedule?: boolean;
   /** Foto profilo (data URL o URL pubblico); opzionale, può non esistere come colonna su DB. */
   avatar_url?: string | null;
+  /** Inizio rapporto (yyyy-MM-dd), opzionale */
+  employment_start_date?: string | null;
+  /** Fine rapporto / sospensione (yyyy-MM-dd), opzionale */
+  employment_end_date?: string | null;
 }
 
 export interface Shift {

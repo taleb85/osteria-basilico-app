@@ -276,6 +276,13 @@ export default function Statistics() {
     }, 0);
   }, [displayUsers, minutesByUserByWeek]);
 
+  /** Ore dell’utente connesso nel range (anche se non compare nella lista team, es. admin). */
+  const mgmtPersonalTotalMins = useMemo(() => {
+    if (!currentUser) return 0;
+    const byWeek = minutesByUserByWeek[currentUser.id] ?? {};
+    return Object.values(byWeek).reduce((a, b) => a + b, 0);
+  }, [currentUser, minutesByUserByWeek]);
+
   const hasDataInRange = totalMinutesAll > 0;
 
   // ── Preset labels ────────────────────────────────────────────────────────
@@ -316,6 +323,8 @@ export default function Statistics() {
                         if (p.key === 'custom') setMgmtRangeModalOpen(true);
                       }}
                       className={`ui-toolbar-pill transition-all ${
+                        p.key === 'custom' ? '!hidden lg:!flex ' : ''
+                      }${
                         preset === p.key
                           ? 'border-accent bg-accent text-white'
                           : 'border-slate-200/90 bg-transparent text-slate-600 hover:border-slate-300 hover:bg-slate-50/90 dark:border-white/10 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-white/[0.06]'
@@ -341,7 +350,7 @@ export default function Statistics() {
                     <button
                       type="button"
                       onClick={() => void handleExportStatsPdf()}
-                      className="ui-toolbar-chip shrink-0 border-slate-200 text-slate-600 hover:bg-slate-50/90 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/[0.06]"
+                      className="ui-toolbar-chip !hidden shrink-0 border-slate-200 text-slate-600 hover:bg-slate-50/90 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/[0.06] lg:!inline-flex"
                       title={t.download_pdf}
                       aria-label={t.download_pdf}
                     >
@@ -518,6 +527,39 @@ export default function Statistics() {
 
         {uiW('stats.table') && displayUsers.length > 1 && (
           <div className="mb-6 space-y-4">
+            {showManagementStatsChrome && (
+              <div className="surface-glass border border-slate-200/80 p-5 sm:p-6 dark:border-white/10">
+                <p className="mb-2 text-xs font-medium uppercase tracking-widest text-slate-600 dark:text-neutral-400">
+                  {tv.stats_mgmt_personal_hours_period ?? t.stats_your_hours_in_range}
+                </p>
+                <p className="text-2xl font-semibold tabular-nums text-slate-900 dark:text-neutral-50">
+                  {mgmtPersonalTotalMins > 0 ? formatMinutesToHoursAndMinutes(mgmtPersonalTotalMins) : '–'}
+                </p>
+                {mgmtPersonalTotalMins > 0 && (
+                  <>
+                    <p className="mb-3 mt-5 border-t border-slate-200 pt-4 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:border-white/10 dark:text-neutral-400">
+                      {tv.stats_week_by_week_heading ?? tv.stats_week_tabs_legend}
+                    </p>
+                    <ul className="space-y-2.5">
+                      {weeksInRange.map((w) => {
+                        const m = minutesByUserByWeek[currentUser.id]?.[w.key] ?? 0;
+                        return (
+                          <li
+                            key={`mgmt-self-${w.key}`}
+                            className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-2.5 last:border-0 last:pb-0 dark:border-white/10"
+                          >
+                            <span className="text-sm font-medium text-slate-700 dark:text-neutral-200">{w.label}</span>
+                            <span className="shrink-0 text-base font-semibold tabular-nums text-slate-900 dark:text-neutral-50">
+                              {m > 0 ? formatMinutesToHoursAndMinutes(m) : '–'}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                )}
+              </div>
+            )}
             {showManagementStatsChrome && (
               <div className="surface-glass p-5 sm:p-6">
                 <p className="mb-2 text-xs font-medium uppercase tracking-widest text-slate-600">

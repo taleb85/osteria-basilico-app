@@ -7,6 +7,18 @@ import { getTranslations, formatTrans } from '../utils/translations';
 import { findActiveUserWithSamePin } from '../utils/loginIdentifier';
 import { ProfileFormAdmin, type ProfileFormAdminData } from './UserProfile';
 
+function userDateToInput(d: string | null | undefined): string {
+  if (!d) return '';
+  return d.slice(0, 10);
+}
+
+function dateToDbYmd(s: string): string | null {
+  const t = s.trim();
+  if (!t) return null;
+  const m = t.match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : null;
+}
+
 interface EditStaffModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,6 +44,8 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
     status: user.status,
     department: user.department,
     hourly_rate_eur: hourlyStr,
+    employment_start_date: userDateToInput(user.employment_start_date),
+    employment_end_date: userDateToInput(user.employment_end_date),
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -51,6 +65,8 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
         status: user.status,
         department: user.department,
         hourly_rate_eur: hr,
+        employment_start_date: userDateToInput(user.employment_start_date),
+        employment_end_date: userDateToInput(user.employment_end_date),
       });
     }
   }, [isOpen, user]);
@@ -89,6 +105,9 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
         status: formData.status,
         department: formData.department,
         hourly_rate_eur,
+        employment_start_date: dateToDbYmd(formData.employment_start_date),
+        employment_end_date:
+          formData.status === 'active' ? null : dateToDbYmd(formData.employment_end_date),
       });
       setTimeout(() => {
         setIsSaving(false);

@@ -95,6 +95,17 @@ function shiftRingTitle(
 
 type Row = { userId: string; name: string; shifts: Shift[] };
 
+function shiftTimeCaption(shifts: Shift[], multiLabel: string): string {
+  if (shifts.length === 0) return '';
+  if (shifts.length === 1) {
+    const s = shifts[0];
+    const a = (s.start_time || '').slice(0, 5);
+    const b = (s.end_time || '').slice(0, 5);
+    return a && b ? `${a}–${b}` : a || b || '—';
+  }
+  return multiLabel.replace('{n}', String(shifts.length));
+}
+
 /**
  * Striscia sotto l’header: titolo + data e subito dopo l’elenco orizzontale colleghi in turno oggi.
  */
@@ -141,6 +152,7 @@ export default function HeaderTodayCoworkersCard() {
   const lunchL = t.lunch ?? 'Pranzo';
   const dinnerL = t.dinner ?? 'Cena';
   const cambioL = tv.header_coworkers_cambio_guardia ?? 'Cambio guardia';
+  const multiShiftsTpl = tv.header_coworkers_multi_shifts ?? '{n} turni';
 
   return (
     <section className="w-full px-2 py-1 sm:px-2.5 sm:py-1.5" aria-label={title}>
@@ -152,8 +164,8 @@ export default function HeaderTodayCoworkersCard() {
       ) : (
         <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <div className="flex min-w-0 shrink-0 items-start gap-2 sm:items-center">
-            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent sm:mt-0 dark:bg-accent/15">
-              <Users className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent sm:mt-0 dark:bg-accent/15">
+              <Users className="h-4 w-4" strokeWidth={2} aria-hidden />
             </span>
             <div className="min-w-0">
               <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-neutral-500">{title}</p>
@@ -170,7 +182,7 @@ export default function HeaderTodayCoworkersCard() {
           <ul
             id="header-coworkers-today-list"
             aria-label={title}
-            className="smooth-scroll flex min-w-0 flex-1 flex-nowrap gap-2.5 overflow-x-auto overscroll-contain pb-0.5 sm:border-l sm:border-slate-100 sm:pl-3 dark:sm:border-white/10"
+            className="smooth-scroll flex min-w-0 flex-1 flex-nowrap gap-3.5 overflow-x-auto overscroll-contain pb-1 sm:border-l sm:border-slate-100 sm:pl-3 dark:sm:border-white/10"
           >
             {rows.map((r) => {
               const u = users.find((x) => x.id === r.userId);
@@ -179,16 +191,17 @@ export default function HeaderTodayCoworkersCard() {
               const focus = readAvatarFocus(r.userId);
               const initial = (r.name.charAt(0) || '?').toUpperCase();
               const ringTitle = shiftRingTitle(r.shifts, lunchL, dinnerL, cambioL);
+              const timeCaption = shiftTimeCaption(r.shifts, multiShiftsTpl);
               return (
                 <li
                   key={r.userId}
-                  className="flex w-[3.75rem] shrink-0 flex-col items-center gap-0.5 text-center"
+                  className="flex w-[4.85rem] shrink-0 flex-col items-center gap-0.5 text-center sm:w-[5.25rem]"
                 >
                   <div
-                    className={`shrink-0 rounded-md p-[2px] ${shiftRingOuterClass(r.shifts)}`}
-                    title={ringTitle}
+                    className={`shrink-0 rounded-lg p-[2.5px] ${shiftRingOuterClass(r.shifts)}`}
+                    title={`${ringTitle}${timeCaption ? ` · ${timeCaption}` : ''}`}
                   >
-                    <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md bg-slate-100 dark:bg-neutral-800">
+                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[0.4rem] bg-slate-100 dark:bg-neutral-800 sm:h-11 sm:w-11">
                       {avatarSrc ? (
                         <img
                           src={avatarSrc}
@@ -198,15 +211,20 @@ export default function HeaderTodayCoworkersCard() {
                           draggable={false}
                         />
                       ) : (
-                        <span className="text-[10px] font-bold text-slate-500 dark:text-neutral-400" aria-hidden>
+                        <span className="text-sm font-bold text-slate-500 dark:text-neutral-400" aria-hidden>
                           {initial}
                         </span>
                       )}
                     </div>
                   </div>
-                  <span className="block w-full truncate text-[8px] font-semibold uppercase leading-tight tracking-wide text-slate-800 dark:text-neutral-100">
+                  <span className="block w-full truncate text-[9px] font-semibold uppercase leading-tight tracking-wide text-slate-800 dark:text-neutral-100 sm:text-[10px]">
                     {r.name}
                   </span>
+                  {timeCaption ? (
+                    <span className="block w-full truncate text-[8px] font-semibold tabular-nums text-slate-500 dark:text-neutral-400">
+                      {timeCaption}
+                    </span>
+                  ) : null}
                 </li>
               );
             })}

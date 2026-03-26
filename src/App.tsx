@@ -107,16 +107,32 @@ function KioskRoute() {
   );
 }
 
+/** Dopo login: torna a `/app`, `/admin`, ecc. solo se path interno (no open redirect). */
+function safeInternalRedirectPath(state: unknown, fallback = '/app'): string {
+  const pathname = (state as { from?: { pathname?: string } } | null)?.from?.pathname;
+  if (
+    typeof pathname === 'string' &&
+    pathname.startsWith('/') &&
+    !pathname.startsWith('//') &&
+    !pathname.includes('://')
+  ) {
+    return pathname;
+  }
+  return fallback;
+}
+
 // ─── Login Route ───────────────────────────────────────────────────────────────
 function LoginRoute() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser, dataSyncInProgress, isGlobalRefreshing, effectiveLanguage } = useApp();
+  const postAuthPath = useMemo(() => safeInternalRedirectPath(location.state), [location.state]);
 
   useEffect(() => {
-    if (currentUser) navigate('/app', { replace: true });
-  }, [currentUser, navigate]);
+    if (currentUser) navigate(postAuthPath, { replace: true });
+  }, [currentUser, navigate, postAuthPath]);
 
-  const handleLogin = () => navigate('/app', { replace: true });
+  const handleLogin = () => navigate(postAuthPath, { replace: true });
   const handleBack = () => navigate(PATH_TIMBRATURA, { replace: true });
 
   return (
@@ -543,7 +559,7 @@ function ProtectedApp() {
   ]);
 
   if (!currentUser) {
-    return <Navigate to={PATH_PROFILO} replace />;
+    return <Navigate to={PATH_PROFILO} replace state={{ from: location }} />;
   }
 
   if (featureFlags['maintenance_mode'] === true && currentUser.role !== 'admin') {

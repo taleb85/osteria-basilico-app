@@ -123,6 +123,9 @@ export interface AppContextType {
     status: UserStatus;
     department?: Department;
     hourly_rate_eur?: number | null;
+    /** `yyyy-MM-dd` o null */
+    employment_start_date?: string | null;
+    employment_end_date?: string | null;
   }) => Promise<User | null>;
   deleteUser: (id: string) => void;
   reorderUsers: (userId: string, direction: 'up' | 'down') => void;

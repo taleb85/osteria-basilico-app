@@ -26,6 +26,13 @@ const PHANTOM_USER: UserType = {
   can_manage_drafts: false,
 };
 
+function dateToDbYmd(s: string): string | null {
+  const t = s.trim();
+  if (!t) return null;
+  const m = t.match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : null;
+}
+
 const emptyForm = (): ProfileFormAdminData => ({
   first_name: '',
   last_name: '',
@@ -35,6 +42,8 @@ const emptyForm = (): ProfileFormAdminData => ({
   status: 'active',
   department: undefined,
   hourly_rate_eur: '',
+  employment_start_date: '',
+  employment_end_date: '',
 });
 
 interface CreateStaffModalProps {
@@ -123,6 +132,9 @@ export default function CreateStaffModal({
         status: formData.status,
         department: formData.department,
         hourly_rate_eur,
+        employment_start_date: dateToDbYmd(formData.employment_start_date),
+        employment_end_date:
+          formData.status === 'active' ? null : dateToDbYmd(formData.employment_end_date),
       });
       if (created) {
         onClose();

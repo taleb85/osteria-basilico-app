@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 export type TimeInputFieldProps = {
@@ -9,8 +9,12 @@ export type TimeInputFieldProps = {
   size?: 'md' | 'lg' | 'hero';
   disabled?: boolean;
   id?: string;
+  /** Ref al campo ore (es. focus da click su riepilogo). */
+  hourInputRef?: React.Ref<HTMLInputElement>;
   'aria-label'?: string;
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
+  /** Dopo Invio sui minuti: flush applicato, poi questo callback (es. focus campo successivo o invio form). */
+  onMinutesEnter?: () => void;
   style?: React.CSSProperties;
   autoFocus?: boolean;
 };
@@ -37,14 +41,39 @@ export function TimeInputField({
   size = 'md',
   disabled,
   id,
+  hourInputRef,
   'aria-label': ariaLabel,
   onKeyDown,
+  onMinutesEnter,
   style,
   autoFocus,
 }: TimeInputFieldProps) {
   const { h: h0, m: m0 } = splitIncoming(value);
   const [h, setH] = useState(h0);
   const [m, setM] = useState(m0);
+  const minuteInputRef = useRef<HTMLInputElement | null>(null);
+  /** Sempre valorizzato: serve per focus da click su bordo / “:” / padding. */
+  const hourLocalRef = useRef<HTMLInputElement | null>(null);
+
+  const setHourInputEl = useCallback(
+    (node: HTMLInputElement | null) => {
+      hourLocalRef.current = node;
+      if (hourInputRef == null) return;
+      if (typeof hourInputRef === 'function') {
+        hourInputRef(node);
+      } else {
+        (hourInputRef as React.MutableRefObject<HTMLInputElement | null>).current = node;
+      }
+    },
+    [hourInputRef]
+  );
+
+  const focusHourSelect = useCallback(() => {
+    const hel = hourLocalRef.current;
+    if (!hel || disabled) return;
+    hel.focus({ preventScroll: true });
+    queueMicrotask(() => hel.select());
+  }, [disabled]);
 
   useEffect(() => {
     const { h: hi, m: mi } = splitIncoming(value);
@@ -93,11 +122,26 @@ export function TimeInputField({
     setM(String(mn).padStart(2, '0'));
   }, [h, m, value, onChange]);
 
-  const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+  const handleHourKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      flush();
+      requestAnimationFrame(() => {
+        minuteInputRef.current?.focus();
+        minuteInputRef.current?.select();
+      });
+      return;
+    }
+    onKeyDown?.(e);
+  };
+
+  const handleMinuteKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       flush();
       (e.target as HTMLInputElement).blur();
+      onMinutesEnter?.();
+      return;
     }
     onKeyDown?.(e);
   };
@@ -120,11 +164,21 @@ export function TimeInputField({
 
   return (
     <div
-      className={`flex max-w-full min-w-0 items-center justify-center bg-white shadow-sm transition-colors ${boxSize} ${borderTone} ${disabled ? 'opacity-60' : ''} ${className}`.trim()}
+      className={`flex max-w-full min-w-0 touch-manipulation items-center justify-center bg-white shadow-sm transition-colors ${boxSize} ${borderTone} ${disabled ? 'opacity-60' : 'cursor-text'} ${className}`.trim()}
       style={style}
+      onPointerDownCapture={(e) => {
+        if (disabled) return;
+        if ((e.target as HTMLElement).tagName === 'INPUT') return;
+        const hel = hourLocalRef.current;
+        if (!hel) return;
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        if (e.pointerType === 'mouse') e.preventDefault();
+        focusHourSelect();
+      }}
     >
       <input
         id={id}
+        ref={setHourInputEl}
         type="text"
         inputMode="numeric"
         autoComplete="off"
@@ -134,15 +188,26 @@ export function TimeInputField({
         disabled={disabled}
         autoFocus={autoFocus}
         value={h}
-        onChange={(e) => setH(digitsOnly(e.target.value, 2))}
+        onChange={(e) => {
+          const next = digitsOnly(e.target.value, 2);
+          const prevLen = h.length;
+          setH(next);
+          if (next.length === 2 && prevLen < 2) {
+            requestAnimationFrame(() => {
+              minuteInputRef.current?.focus();
+              minuteInputRef.current?.select();
+            });
+          }
+        }}
         onBlur={flush}
-        onKeyDown={handleKeyDown}
+        onKeyDown={handleHourKeyDown}
         className={`${inner} pl-2 pr-0.5`}
       />
       <span className="select-none text-slate-400 dark:text-neutral-500" aria-hidden>
         :
       </span>
       <input
+        ref={minuteInputRef}
         type="text"
         inputMode="numeric"
         autoComplete="off"
@@ -153,7 +218,7 @@ export function TimeInputField({
         value={m}
         onChange={(e) => setM(digitsOnly(e.target.value, 2))}
         onBlur={flush}
-        onKeyDown={handleKeyDown}
+        onKeyDown={handleMinuteKeyDown}
         className={`${inner} pl-0.5 pr-2`}
       />
     </div>

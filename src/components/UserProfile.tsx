@@ -5,14 +5,19 @@
  * Layout: Reparto sopra Stato account (in admin). Tutte le etichette via t('chiave') per IT/EN/ES.
  * Persistenza: updateUser -> database.users.update (tabella `users`), campo `department` incluso.
  */
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone } from 'lucide-react';
+import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone, Calendar } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
 import { buildProfiloAccessLink } from '../config/appPaths';
 import type { User as UserType, Language, Department } from '../types';
 import { isPurelyManagementRole, isAdminOnly } from '../utils/permissions';
+import {
+  TIMESHEET_GRID_PLANNED_ONLY_KEY,
+  TIMESHEET_GRID_SHIFT_TIMES_FEATURE_KEY,
+  getTimesheetGridPrivacyMode,
+} from '../utils/timesheetGridPrivacy';
 import { translateRole } from '../utils/roles';
 import { getDepartments } from '../utils/departments';
 import { formatDepartmentDisplayForProfile, translateDepartmentValue } from '../utils/departmentLabels';
@@ -20,7 +25,6 @@ import { getRoleScopeHint } from '../utils/roleScopeHint';
 import { DEFAULT_PHONE_PREFIX, PHONE_PREFIX_OPTIONS } from '../utils/phonePrefix';
 import StaffOperationalPermissionsEditor from './StaffOperationalPermissionsEditor';
 import { OPERATIONAL_STAFF_ROLES_FOR_DELEGATE } from '../utils/operationalStaffRoles';
-
 const LANGS: Language[] = ['it', 'en', 'es', 'fr'];
 
 export type ProfileFormSelfData = {
@@ -381,6 +385,71 @@ export function ProfileFormSelf({
   );
 }
 
+/** Solo admin: limita la griglia Presenze dell’utente ai soli orari pianificati pubblicati/confermati. */
+export function AdminTimesheetGridPrivacyEditor({ user }: { user: UserType }) {
+  const { updateUser, effectiveLanguage, showSuccess, showError } = useApp();
+  const t = getTranslations(effectiveLanguage);
+  const tv = t as Record<string, string>;
+  const plannedOnly = getTimesheetGridPrivacyMode(user) === 'planned_only';
+  const [busy, setBusy] = useState(false);
+  const inFlight = useRef(false);
+
+  const handleToggle = async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    try {
+      const fe = { ...((user.enabled_features ?? {}) as Record<string, unknown>) };
+      if (plannedOnly) {
+        delete fe[TIMESHEET_GRID_PLANNED_ONLY_KEY];
+      } else {
+        fe[TIMESHEET_GRID_PLANNED_ONLY_KEY] = true;
+        delete fe[TIMESHEET_GRID_SHIFT_TIMES_FEATURE_KEY];
+      }
+      await updateUser(user.id, { enabled_features: fe });
+      showSuccess?.(tv.settings_operational_perm_saved ?? 'Salvato.');
+    } catch (e) {
+      console.error('[AdminTimesheetGridPrivacyEditor]', e);
+      showError?.(tv.save_error_retry ?? 'Errore durante il salvataggio.');
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 px-3 py-3 dark:border-white/10 dark:bg-neutral-900/45">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-slate-800 dark:text-neutral-100">
+            {tv.admin_timesheet_grid_planned_only_label}
+          </p>
+          <p className="mt-1 text-[10px] leading-snug text-slate-500 dark:text-neutral-400">
+            {tv.admin_timesheet_grid_planned_only_hint}
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={plannedOnly}
+          aria-label={tv.admin_timesheet_grid_planned_only_label}
+          disabled={busy}
+          onClick={() => void handleToggle()}
+          className={`relative flex h-7 w-12 shrink-0 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-50 ${
+            plannedOnly ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+              plannedOnly ? 'translate-x-5' : 'translate-x-0.5'
+            }`}
+          />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export type ProfileFormAdminData = {
   first_name: string;
   last_name: string;
@@ -391,6 +460,9 @@ export type ProfileFormAdminData = {
   department?: Department;
   /** Stringa per input numerico €/h */
   hourly_rate_eur: string;
+  /** yyyy-MM-dd o stringa vuota */
+  employment_start_date: string;
+  employment_end_date: string;
 };
 
 const inputClass =
@@ -457,6 +529,8 @@ export function ProfileFormAdmin({
 
   const roleSelectDisabled =
     readOnly || (isPurelyManagementRole(user.role) && !isAdminOnly(currentUser));
+  const showEmploymentEndField =
+    formData.status === 'suspended' || formData.status === 'inactive';
 
   return (
     <>
@@ -660,6 +734,57 @@ export function ProfileFormAdmin({
             <option value="suspended">{t.status_suspended}</option>
             <option value="inactive">{t.status_inactive}</option>
           </select>
+        </div>
+
+        {variant === 'edit' && isAdminOnly(currentUser) && !readOnly && (
+          <AdminTimesheetGridPrivacyEditor user={user} />
+        )}
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>
+              <Calendar className="w-3.5 h-3.5 inline mr-1.5 text-slate-400 dark:text-neutral-400" />
+              {tv.profile_employment_start_label}
+            </label>
+            <input
+              type="date"
+              value={formData.employment_start_date}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, employment_start_date: e.target.value }))
+              }
+              className={inputClass}
+              disabled={readOnly}
+            />
+            {tv.profile_employment_start_hint ? (
+              <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-1 font-sans">
+                {tv.profile_employment_start_hint}
+              </p>
+            ) : null}
+          </div>
+          {showEmploymentEndField ? (
+            <div>
+              <label className={labelClass}>
+                <Calendar className="w-3.5 h-3.5 inline mr-1.5 text-slate-400 dark:text-neutral-400" />
+                {tv.profile_employment_end_label}
+              </label>
+              <input
+                type="date"
+                value={formData.employment_end_date}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, employment_end_date: e.target.value }))
+                }
+                className={inputClass}
+                disabled={readOnly}
+              />
+              {tv.profile_employment_end_hint ? (
+                <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-1 font-sans">
+                  {tv.profile_employment_end_hint}
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <div className="hidden sm:block" aria-hidden />
+          )}
         </div>
 
         {variant === 'edit' && !isPurelyManagementRole(layoutRole) && !readOnly && (

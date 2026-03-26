@@ -17,6 +17,7 @@ import {
   isOperationalStaffRole,
 } from '../utils/permissions';
 import StaffOperationalPermissionsEditor from './StaffOperationalPermissionsEditor';
+import { AdminTimesheetGridPrivacyEditor } from './UserProfile';
 import { exportToJSON, exportToCSV } from '../utils/exportData';
 import { importDataToSupabase, clearAllData } from '../utils/importData';
 import EditStaffModal from './EditStaffModal';
@@ -738,6 +739,12 @@ export default function SettingsPage() {
                                   })}
                                 </div>
                               </div>
+                            )}
+
+                            {adminOnly && (
+                              <AdminTimesheetGridPrivacyEditor
+                                user={users.find((u) => u.id === user.id) ?? user}
+                              />
                             )}
 
                             {isPurelyManagementRole(user.role) ? (

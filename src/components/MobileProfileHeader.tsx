@@ -165,7 +165,7 @@ export default function MobileProfileHeader({
             ) : null;
           })()}
       </div>
-      <p className="flex-shrink-0 text-[10px] text-slate-500 dark:text-neutral-400 tabular-nums text-right leading-tight">
+      <p className="hidden md:block flex-shrink-0 text-[10px] text-slate-500 dark:text-neutral-400 tabular-nums text-right leading-tight">
         {timeStr}
         <span className="text-slate-300 dark:text-neutral-600 mx-0.5">·</span>
         {dateStr}
@@ -174,8 +174,7 @@ export default function MobileProfileHeader({
   ) : (
     <>
       <div className="px-3 sm:px-4 py-2.5">
-        {/* Su mobile: brand a tutta larghezza; ora + azioni su una seconda riga (niente competizione orizzontale). */}
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
           <div className="min-w-0 w-full md:flex-1">
             <h1 className="font-logo-snell text-[clamp(1.05rem,4.2vw,1.4375rem)] sm:text-[23px] text-accent dark:text-white tracking-tight leading-[1.15] break-words hyphens-auto">
               Osteria Basilico
@@ -195,51 +194,53 @@ export default function MobileProfileHeader({
               })()}
           </div>
 
-          <div className="flex w-full min-w-0 items-center justify-between gap-2 border-t border-slate-100/90 pt-2.5 dark:border-white/10 md:w-auto md:flex-shrink-0 md:items-center md:justify-start md:gap-3 md:border-t-0 md:pt-0">
-            <div className="min-w-0 text-left md:text-right">
-              <p className="text-base font-semibold text-slate-800 dark:text-neutral-200 tabular-nums leading-none">{timeStr}</p>
-              <p className="text-[10px] text-slate-600 dark:text-neutral-400 mt-0.5 leading-tight whitespace-nowrap" title={dateLong}>
+          {/* Una sola toolbar: su mobile senza orologio; da tablet/desktop ora compatta + stesse icone (logout come pulsante piccolo, non banner rosso). */}
+          <div className="flex w-full min-w-0 items-center justify-end gap-1.5 border-t border-slate-100/90 pt-2.5 dark:border-white/10 sm:gap-2 md:w-auto md:flex-shrink-0 md:justify-end md:border-t-0 md:pt-0">
+            <div className="mr-2 hidden shrink-0 text-right md:block">
+              <p className="text-[13px] font-semibold tabular-nums leading-none text-slate-800 dark:text-neutral-200">{timeStr}</p>
+              <p
+                className="mt-0.5 text-[10px] leading-tight text-slate-600 dark:text-neutral-400 whitespace-nowrap"
+                title={dateLong}
+              >
                 {dateStr}
               </p>
             </div>
-            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-              {!hideToolbarAvatar && (
-                <UserAvatarMenu variant="toolbar" onLogout={hideHeaderLogout ? onLogout : undefined} />
-              )}
-              <NotificationCenter denseTrigger />
-              {showDataSyncIndicator && (
-                <span
-                  className="flex shrink-0 items-center justify-center min-h-[40px] min-w-[40px] rounded-lg border border-accent/20 dark:border-accent-light/25 bg-accent/[0.06] dark:bg-accent-light/10 text-accent dark:text-accent-light"
-                  role="status"
-                  aria-live="polite"
-                  aria-atomic="true"
-                  aria-label={`${t.data_sync_banner_line1}. ${t.data_sync_banner_line2}`}
-                  title={`${t.data_sync_banner_line1} — ${t.data_sync_banner_line2}`}
-                >
-                  <Loader2 className="h-[18px] w-[18px] animate-spin" aria-hidden />
-                </span>
-              )}
-              {onLogout && !hideHeaderLogout ? (
-                <button
-                  type="button"
-                  onClick={onLogout}
-                  title={t.header_logout}
-                  aria-label={t.header_logout}
-                  className="relative flex flex-shrink-0 items-center justify-center border transition-colors touch-manipulation min-h-[40px] min-w-[40px] rounded-lg border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-200 hover:text-red-700"
-                >
-                  <LogOut size={15} strokeWidth={2} aria-hidden />
-                </button>
-              ) : null}
+            {!hideToolbarAvatar && (
+              <UserAvatarMenu variant="toolbar" onLogout={hideHeaderLogout ? onLogout : undefined} />
+            )}
+            <NotificationCenter denseTrigger />
+            {showDataSyncIndicator && (
+              <span
+                className="flex shrink-0 items-center justify-center min-h-[40px] min-w-[40px] rounded-lg border border-accent/20 dark:border-accent-light/25 bg-accent/[0.06] dark:bg-accent-light/10 text-accent dark:text-accent-light"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                aria-label={`${t.data_sync_banner_line1}. ${t.data_sync_banner_line2}`}
+                title={`${t.data_sync_banner_line1} — ${t.data_sync_banner_line2}`}
+              >
+                <Loader2 className="h-[18px] w-[18px] animate-spin" aria-hidden />
+              </span>
+            )}
+            {onLogout && !hideHeaderLogout ? (
               <button
                 type="button"
-                onClick={toggleUiTheme}
-                title={themeToggleTitle}
-                aria-label={themeToggleTitle}
-                className="relative flex flex-shrink-0 items-center justify-center border transition-colors touch-manipulation min-h-[40px] min-w-[40px] rounded-lg border-slate-200/90 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-neutral-700 dark:hover:text-white"
+                onClick={onLogout}
+                title={t.header_logout}
+                aria-label={t.header_logout}
+                className="relative flex flex-shrink-0 items-center justify-center border transition-colors touch-manipulation min-h-[40px] min-w-[40px] rounded-lg border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-200 hover:text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
               >
-                <ThemeContrastIcon mode={uiTheme} className="h-6 w-6 sm:h-7 sm:w-7" />
+                <LogOut size={15} strokeWidth={2} aria-hidden />
               </button>
-            </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={toggleUiTheme}
+              title={themeToggleTitle}
+              aria-label={themeToggleTitle}
+              className="relative flex flex-shrink-0 items-center justify-center border transition-colors touch-manipulation min-h-[40px] min-w-[40px] rounded-lg border-slate-200/90 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-neutral-700 dark:hover:text-white"
+            >
+              <ThemeContrastIcon mode={uiTheme} className="h-6 w-6 sm:h-7 sm:w-7" />
+            </button>
           </div>
         </div>
       </div>

@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
 import type { Language } from '../types';
 import { getTranslations } from '../utils/translations';
 
@@ -30,17 +29,30 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[110] flex flex-col items-center justify-center bg-[#0f172a]/85 px-6 text-center font-sans backdrop-blur-md dark:bg-black/80"
+      className="fixed inset-0 z-[110] flex flex-col items-center justify-center bg-gradient-to-br from-[#f8fafc] via-white to-[rgba(45,90,39,0.12)] px-6 text-center font-sans backdrop-blur-md dark:from-[#0a0a0a] dark:via-[#171717] dark:to-[rgba(45,90,39,0.14)]"
       role="status"
       aria-live="polite"
       aria-busy="true"
       aria-label={tv.post_unlock_restart_title ?? 'Aggiornamento'}
     >
-      <Loader2 className="mb-5 h-12 w-12 animate-spin text-white" strokeWidth={2} aria-hidden />
-      <h2 className="mb-2 text-lg font-bold tracking-tight text-white sm:text-xl">
+      {/* Stesso linguaggio dello splash PWA: guscio quadrato arrotondato + logo */}
+      <div
+        className="mb-5 flex aspect-square w-[min(44vw,7.5rem)] max-w-[132px] items-center justify-center rounded-[1.75rem] bg-accent/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] dark:bg-accent/15 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+        aria-hidden
+      >
+        <img
+          src="/logo-ob.svg"
+          width={512}
+          height={512}
+          alt=""
+          decoding="async"
+          className="h-auto w-[52%] max-h-[58%] object-contain opacity-95"
+        />
+      </div>
+      <h2 className="mb-2 text-lg font-bold tracking-tight text-[#2d5a27] sm:text-xl dark:text-[#d0dece]">
         {tv.post_unlock_restart_title ?? 'Aggiornamento in corso'}
       </h2>
-      <p className="max-w-sm text-sm leading-relaxed text-white/90 sm:text-base">
+      <p className="max-w-sm text-sm leading-relaxed text-slate-600 sm:text-base dark:text-neutral-300">
         {tv.post_unlock_restart_body ?? 'I dati sono stati salvati. Riavvio dell’app in corso…'}
       </p>
     </motion.div>

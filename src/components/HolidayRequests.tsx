@@ -33,9 +33,13 @@ const STATUS_CONFIG = {
 export default function HolidayRequests() {
   const { currentUser, holidays, users, addHolidayRequest, updateHolidayStatus, showSuccess, silentRefreshData, effectiveLanguage, featureFlags } = useApp();
 
-  /** Auto-refresh silenzioso quando la scheda Ferie viene montata (utente ci clicca sopra). */
+  /**
+   * Aggiorna turni/ferie/timbrature da DB aprendo la scheda.
+   * `skipRemoteRevisionCheck`: evita di innescare `forceGlobalRefresh` + overlay PIN / main `pointer-events-none`
+   * solo perché la revisione cloud è avanti rispetto all’ack locale (comportamento da “app bloccata”).
+   */
   useEffect(() => {
-    silentRefreshData();
+    void silentRefreshData({ skipRemoteRevisionCheck: true });
   }, [silentRefreshData]);
 
   const [showForm, setShowForm]       = useState(false);

@@ -92,6 +92,8 @@ const USER_INSERT_PATCH_KEYS = [
   'can_manage_drafts',
   'department',
   'hourly_rate_eur',
+  'employment_start_date',
+  'employment_end_date',
 ] as const;
 
 export function formatSupabaseError(err: unknown): string {
@@ -258,6 +260,8 @@ export const database = {
         'can_request_holidays', 'can_punch_from_app',
         'hide_from_team_schedule',
         'avatar_url',
+        'employment_start_date',
+        'employment_end_date',
       ];
       const rawPayload: Record<string, unknown> = {};
       for (const key of safeKeys) {
@@ -278,6 +282,8 @@ export const database = {
         'hourly_rate_eur',
         'hide_from_team_schedule',
         'avatar_url',
+        'employment_start_date',
+        'employment_end_date',
       ];
 
       const onlyOptionalCols = (keys: string[]) =>
@@ -381,6 +387,38 @@ export const database = {
       return (data || []) as Shift[];
     },
 
+    /**
+     * Presenze «non ha lavorato»: elimina timbrature con shift_id, azzera metadati congelamento, poi stato absent.
+     * Passi separati sul DB riducono conflitti con constraint/trigger rispetto a un solo UPDATE grande.
+     */
+    async markAbsent(id: string): Promise<Shift | null> {
+      if (!supabase) return null;
+      try {
+        const { data: punchRows } = await supabase.from('punch_records').select('id').eq('shift_id', id);
+        if (punchRows && punchRows.length > 0) {
+          const { error: delErr } = await supabase
+            .from('punch_records')
+            .delete()
+            .in(
+              'id',
+              (punchRows as { id: string }[]).map((r) => r.id)
+            );
+          if (delErr) console.warn('[database.shifts.markAbsent] punch delete', delErr);
+        }
+      } catch (e) {
+        console.warn('[database.shifts.markAbsent] punch cleanup', e);
+      }
+      const clearFreeze: Partial<Shift> = {
+        approved_at: null,
+        approved_by: null,
+        approved_start_time: null,
+        approved_end_time: null,
+      };
+      const { error: clearErr } = await supabase.from('shifts').update(clearFreeze).eq('id', id);
+      if (clearErr) console.warn('[database.shifts.markAbsent] clear freeze', clearErr);
+      return database.shifts.update(id, { approval_status: 'absent', ...clearFreeze });
+    },
+
     async update(id: string, updates: Partial<Shift>) {
       // approved_at / approved_by sono colonne opzionali: incluse ma con fallback graceful
       const allowedKeys: (keyof Shift)[] = [
@@ -431,6 +469,16 @@ export const database = {
           if (Object.keys(core).length > 0) {
             const res = await supabase!.from('shifts').update(core).eq('id', id).select().maybeSingle();
             if (!res.error) { data = res.data; error = null; }
+          }
+        }
+      }
+      /* UPDATE + SELECT in un solo round-trip può fallire (RLS/policy su SELECT) pur avendo scritto la riga. */
+      if (error && Object.keys(payload).length > 0) {
+        const { error: noSelectErr } = await supabase!.from('shifts').update(payload).eq('id', id);
+        if (!noSelectErr) {
+          const refetch = await supabase!.from('shifts').select('*').eq('id', id).maybeSingle();
+          if (!refetch.error && refetch.data) {
+            return refetch.data as Shift;
           }
         }
       }

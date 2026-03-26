@@ -304,13 +304,6 @@ export const UI_SCREEN_WIDGETS: UiScreenWidgetDef[] = [
     label: 'Sezione chiusura turni sera',
   },
   {
-    key: 'timesheet.ready_approval',
-    audience: 'management',
-    screenGroup: 'timesheet',
-    screenLabel: 'Presenze',
-    label: 'Turni pronti per approvazione',
-  },
-  {
     key: 'timesheet.main_grid',
     audience: 'all',
     screenGroup: 'timesheet',

@@ -17,7 +17,6 @@ import {
 } from '../utils/profilePhotoStorage';
 import { splitPhoneForForm, joinPhone, DEFAULT_PHONE_PREFIX } from '../utils/phonePrefix';
 import type { Language } from '../types';
-
 function serializeProfileForm(fd: ProfileFormSelfData): string {
   return JSON.stringify({
     first_name: fd.first_name.trim(),
