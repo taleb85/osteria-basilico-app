@@ -418,6 +418,7 @@ function shiftRowPayrollFrozen(s: ShiftRow): boolean {
 
 /** Stessi criteri di `handleOpenDayReview` (header «revisiona» e modal). */
 function shiftEligibleForDayReview(s: ShiftRow): boolean {
+  if (s.status === 'absent') return false;
   return s.status !== 'approved' && !shiftRowPayrollFrozen(s);
 }
 
@@ -1757,6 +1758,7 @@ export default function Timesheets() {
           const full = shifts.find((s) => s.id === id);
           if (!full) return false;
           if (full.approval_status === 'approved') return false;
+          if (full.approval_status === 'absent') return false;
           if (isShiftPayrollFrozen(full)) return false;
           return true;
         });
@@ -1787,6 +1789,10 @@ export default function Timesheets() {
   const handleDrawerReviewSaveAndNext = async () => {
     if (!drawerReviewQueue || !drawerData) return;
     const s = drawerData.shift;
+    if (drawerReviewQueue.reviewScope === 'employee_week' && s.status === 'absent') {
+      advanceDrawerReviewAfterStep();
+      return;
+    }
     const inHm = (manualPunchIn || '').trim().slice(0, 5);
     const outHm = (manualPunchOut || '').trim().slice(0, 5);
     const outDate = (manualPunchOutDate || '').trim();
@@ -3755,7 +3761,10 @@ export default function Timesheets() {
                 </div>
 
                 {/* Drawer footer – azioni (barra revisione inclusa nello stesso pannello) */}
-                {canTeamTimesheetOps && !isApproved && !isAbsentDraw && (
+                {canTeamTimesheetOps &&
+                  !isApproved &&
+                  (!isAbsentDraw ||
+                    (drawerReviewQueue?.reviewScope === 'employee_week' && isAbsentDraw)) && (
                   <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] dark:border-white/10 dark:bg-neutral-900 sm:gap-2.5 sm:p-3.5">
                     {drawerReviewQueue &&
                       (() => {
@@ -3773,11 +3782,14 @@ export default function Timesheets() {
                         const dateOk =
                           !!resolvedReviewOutDate && /^\d{4}-\d{2}-\d{2}$/.test(resolvedReviewOutDate);
                         const reviewFormComplete = inOk && outOk && dateOk;
+                        const skipAbsentInWeekQueue =
+                          isEmployeeWeekReviewSheet && s.status === 'absent';
                         const canReviewSave =
-                          reviewFormComplete &&
-                          (hasMissingInReview
-                            ? isEmployeeWeekReviewSheet || showTimbratureEditForm
-                            : true);
+                          skipAbsentInWeekQueue ||
+                          (reviewFormComplete &&
+                            (hasMissingInReview
+                              ? isEmployeeWeekReviewSheet || showTimbratureEditForm
+                              : true));
                         return (
                           <div
                             className={
