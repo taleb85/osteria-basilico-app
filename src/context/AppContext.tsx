@@ -1309,12 +1309,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (shiftId && typeof shiftId === 'string') {
         record.shift_id = shiftId;
 
-        // Regola Inviolabile: per punch-IN calcola il calculated_time corretto.
-        // Entrata anticipata → usa orario pianificato. Entrata in ritardo → usa orario reale.
+        // Punch-IN: `calculated_time` è ciò che Presenze / KPI usano come entrata effettiva.
+        // Kiosk / manager al terminale: regola anticipo → orario pianificato; ritardo → reale.
+        // Inserimento manuale da griglia (source manual): rispetta sempre l'orario digitato dal gestore.
         if (type === 'in') {
           const relatedShift = shifts.find((s) => s.id === shiftId);
           if (relatedShift) {
-            record.calculated_time = computeEffectivePunchIn(relatedShift, rawTimestamp);
+            record.calculated_time =
+              resolvedSource === 'manual'
+                ? rawTimestamp
+                : computeEffectivePunchIn(relatedShift, rawTimestamp);
           }
         }
       }

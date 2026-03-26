@@ -230,9 +230,9 @@ export type BreakMinutesComputeOptions = {
 /**
  * Restituisce i minuti di pausa da detrarre per un turno.
  *
- * **Regole attive:** se c’è almeno una regola `enabled !== false` e un `user`, si calcola prima dalle regole.
- * Se il risultato è **> 0**, quello è l’importo. Se è **0** (nessuna finestra applicabile al turno, es. solo pausa
- * pranzo su turno cena senza sovrapposizione), si applicano `break_minutes` sul turno e il fallback ≥6h come senza regole.
+ * **Regole attive:** con almeno una regola `enabled !== false` e un `user`, l’importo è **solo** quello dalle regole
+ * (anche 0 se nessuna finestra admin copre il turno, es. turno 18:00 con pause 11:30–12 e 17:00–17:30).
+ * Non si applicano `break_minutes` sul turno né il fallback automatico ≥6h (evita −30′ indebiti).
  *
  * **Senza regole attive:** `break_minutes` sul turno, altrimenti fallback 30 min se durata lorda ≥6h
  * (solo se `autoBreaksFeatureEnabled !== false`).
@@ -259,8 +259,7 @@ export function getBreakMinutesForShift(
       user,
       activeRules
     );
-    if (fromRules > 0) return Math.max(0, fromRules);
-    // Regole presenti ma nessuna detrazione (turno fuori dalle finestre / notte mal calcolata prima): continua sotto
+    return Math.max(0, fromRules);
   }
 
   if (shift.break_minutes != null && shift.break_minutes > 0) {

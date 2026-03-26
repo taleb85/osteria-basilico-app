@@ -2528,10 +2528,8 @@ export default function Timesheets() {
                           );
                         }
 
-                        return (
-                          <td key={dateStr} className={`px-1.5 py-2 ${tdBorder} align-top ${tdBg} md:px-1 md:py-1.5`}>
-                            <div className="flex flex-col gap-1 md:gap-0.5">
-                              {dayData.shifts.map((s) => {
+                        const { before16, from16 } = partitionShiftsByPlannedHour16(dayData.shifts);
+                        const renderShiftButton = (s: ShiftRow) => {
                                 const punchAuditCount = s.punchInId ? (punchAudits[s.punchInId]?.length ?? 0) : 0;
                                 const boardShift = shifts.find((sh) => sh.id === s.id) ?? null;
                                 const { border, bg, ring, dot } = getShiftCardStyle(s, punchAuditCount, dateStr, boardShift);
@@ -2682,23 +2680,19 @@ export default function Timesheets() {
                                     </div>
                                   </button>
                                 );
-                              })}
-                              {dayData.shifts.length > 1 && (
-                                <div className="text-[10px] font-semibold text-slate-500 dark:text-neutral-300 text-right px-1 mt-0.5 md:text-[9px] md:px-0.5 space-y-0.5">
-                                  {showFullTimesheetGrid ? (
-                                    `${fmtHM(dayData.totalPlannedMins)} / ${dayData.totalActualMins > 0 ? fmtHM(dayData.totalActualMins) : '?'}`
-                                  ) : plannedOnlyTimesheetGrid ? (
-                                    <>
-                                      <div>{fmtHM(dayData.totalPlannedMins)}</div>
-                                      {dayData.totalFrozenOfficialMins > 0 && (
-                                        <div className="font-bold text-slate-700 dark:text-neutral-200">
-                                          {fmtHM(dayData.totalFrozenOfficialMins)}
-                                        </div>
-                                      )}
-                                    </>
-                                  ) : (
-                                    t.ts_times_masked_totals
-                                  )}
+                        };
+
+                        return (
+                          <td key={dateStr} className={`px-1.5 py-2 ${tdBorder} align-top ${tdBg} md:px-1 md:py-1.5`}>
+                            <div className="flex flex-col gap-1.5 md:gap-1">
+                              {before16.length > 0 && (
+                                <div className="flex flex-col gap-1 md:gap-0.5">
+                                  {before16.map((s) => renderShiftButton(s))}
+                                </div>
+                              )}
+                              {from16.length > 0 && (
+                                <div className="flex flex-col gap-1 md:gap-0.5 rounded-lg border border-slate-200/90 dark:border-white/12 bg-slate-50/70 dark:bg-neutral-900/50 px-1 py-1 md:rounded-md md:px-0.5 md:py-0.5">
+                                  {from16.map((s) => renderShiftButton(s))}
                                 </div>
                               )}
                             </div>
