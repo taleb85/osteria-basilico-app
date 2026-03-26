@@ -424,11 +424,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
             activeTab={activeTab}
             showOnDesktop
             parentProvidesCardShell
-            hideHeaderLogout={
-              !isManagement ||
-              currentUser?.role === 'manager' ||
-              currentUser?.role === 'assistant_manager'
-            }
             hideToolbarAvatar={isManagement}
           />
         </div>

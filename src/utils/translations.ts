@@ -36,6 +36,8 @@ const baseIt = {
   settings_delegated_reactivate_confirm:
     'Riattivare {name}? Potrà di nuovo accedere con il proprio PIN.',
   settings_delegated_reactivated_toast: 'Dipendente riattivato.',
+  settings_last_active_admin_block:
+    'È l’unico profilo Admin attivo: non può essere disattivato, cambiato ruolo o eliminato finché non esiste almeno un altro Admin attivo.',
   settings_delegated_readonly_hint: 'Solo lettura. Per modificare anagrafica o permessi contatta un amministratore.',
   settings_delegated_view_title: 'Profilo dipendente',
   settings_delegated_empty_list: 'Nessun dipendente operativo in elenco.',
@@ -398,8 +400,8 @@ const baseIt = {
   admin_role: 'Amministratore',
   pin_4_digits: 'PIN (4 cifre)',
   account_status: 'Stato account',
-  profile_employment_start_label: 'Data inizio rapporto',
-  profile_employment_start_hint: 'Opzionale. Primo giorno utile del rapporto di lavoro.',
+  profile_employment_start_label: 'Data inizio rapporto (facoltativo)',
+  profile_employment_start_hint: 'Lascia vuoto se non serve. Altrimenti primo giorno utile del rapporto.',
   profile_employment_end_label: 'Data fine rapporto (sospensione / uscita)',
   profile_employment_end_hint: 'Obbligatoria se utile: data in cui il rapporto è sospeso, inattivo o terminato.',
   admin_employee_access_link_btn: 'Copia link accesso (login + PIN)',
@@ -1460,6 +1462,8 @@ const baseEn: Record<string, string> = {
   settings_delegated_reactivate_confirm:
     'Reactivate {name}? They will be able to sign in again with their PIN.',
   settings_delegated_reactivated_toast: 'Employee reactivated.',
+  settings_last_active_admin_block:
+    'This is the only active Admin account. Deactivate, change role, or delete only after another active Admin exists.',
   settings_delegated_readonly_hint: 'Read-only. To change details or permissions, contact an administrator.',
   settings_delegated_view_title: 'Employee profile',
   settings_delegated_empty_list: 'No operational staff to show.',
@@ -1787,8 +1791,8 @@ const baseEn: Record<string, string> = {
   filter_status: 'Status',
   pin_4_digits: 'PIN (4 digits)',
   account_status: 'Account status',
-  profile_employment_start_label: 'Employment start date',
-  profile_employment_start_hint: 'Optional. First day of employment.',
+  profile_employment_start_label: 'Employment start date (optional)',
+  profile_employment_start_hint: 'Leave blank if not needed. Otherwise first working day.',
   profile_employment_end_label: 'Employment end date (suspension / exit)',
   profile_employment_end_hint: 'Use when the account is suspended or inactive: last relevant date.',
   admin_employee_access_link_btn: 'Copy access link (login + PIN)',
@@ -2827,6 +2831,8 @@ const baseEs: Record<string, string> = {
   settings_delegated_reactivate_confirm:
     '¿Reactivar a {name}? Podrá volver a iniciar sesión con su PIN.',
   settings_delegated_reactivated_toast: 'Empleado reactivado.',
+  settings_last_active_admin_block:
+    'Es la única cuenta Admin activa: no se puede desactivar, cambiar de rol ni eliminar hasta que exista otro Admin activo.',
   settings_delegated_readonly_hint: 'Solo lectura. Para cambiar datos o permisos, contacta con un administrador.',
   settings_delegated_view_title: 'Perfil del empleado',
   settings_delegated_empty_list: 'No hay personal operativo en la lista.',
@@ -3157,8 +3163,8 @@ const baseEs: Record<string, string> = {
   load_error: 'Error al cargar.',
   pin_4_digits: 'PIN (4 dígitos)',
   account_status: 'Estado cuenta',
-  profile_employment_start_label: 'Fecha de inicio del contrato',
-  profile_employment_start_hint: 'Opcional. Primer día laboral.',
+  profile_employment_start_label: 'Fecha de inicio del contrato (opcional)',
+  profile_employment_start_hint: 'Déjalo vacío si no aplica. Si no, primer día laboral.',
   profile_employment_end_label: 'Fin del contrato (suspensión / baja)',
   profile_employment_end_hint: 'Si aplica: fecha de suspensión, inactividad o fin.',
   admin_employee_access_link_btn: 'Copiar enlace de acceso (login + PIN)',
@@ -4235,8 +4241,8 @@ const baseFr: Record<string, string> = {
   home_admin_profile_banner_body:
     'Gestion de la structure : pas de shift en salle — vous pilotez l’app, les règles et l’annuaire d’ici.',
   profile_role_scope_label: 'Portée du rôle',
-  profile_employment_start_label: 'Date de début du contrat',
-  profile_employment_start_hint: 'Optionnel. Premier jour effectif.',
+  profile_employment_start_label: 'Date de début du contrat (optionnel)',
+  profile_employment_start_hint: 'Laisser vide si besoin. Sinon premier jour effectif.',
   profile_employment_end_label: 'Date de fin (suspension / sortie)',
   profile_employment_end_hint: 'Si pertinent : suspension, inactivité ou fin du contrat.',
   ts_review_queue_freeze_intro:
@@ -4262,6 +4268,8 @@ const baseFr: Record<string, string> = {
   settings_delegated_reactivate_confirm:
     'Réactiver {name} ? Il pourra se reconnecter avec son PIN.',
   settings_delegated_reactivated_toast: 'Employé réactivé.',
+  settings_last_active_admin_block:
+    'C’est le seul profil Admin actif : impossible de le désactiver, de changer son rôle ou de le supprimer tant qu’un autre Admin actif n’existe pas.',
   settings_delegated_readonly_hint:
     'Lecture seule. Pour modifier les données ou les permissions, contactez un administrateur.',
   settings_delegated_view_title: 'Profil employé',

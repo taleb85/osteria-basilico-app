@@ -96,7 +96,7 @@ interface MobileProfileHeaderProps {
   embeddedInAppHeader?: boolean;
   /** Il genitore (es. MainApp) avvolge già la card con bordo/ombra — solo contenuto interno. */
   parentProvidesCardShell?: boolean;
-  /** Staff: logout solo da Impostazioni — meno pulsanti nell’header. */
+  /** Se true, nasconde il pulsante Esci nell’header e lo lascia solo nel modale avatar (override raro). */
   hideHeaderLogout?: boolean;
   /** Se true, nasconde il pulsante profilo (es. non-admin: profilo solo in bottom bar). */
   hideToolbarAvatar?: boolean;

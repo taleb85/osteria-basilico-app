@@ -50,10 +50,14 @@ export function canViewSuspended(user: User | null): boolean {
   return isAdminOnly(user);
 }
 
-/** Tabellone turni: creazione/modifica turni (drag, celle, contestuali). Admin sempre, altri solo se `can_create_shifts`. */
+/**
+ * Tabellone turni / griglia Presenze di squadra: operazioni sul team.
+ * Ruoli gestionali (admin, manager, assistant_manager, capo) sempre; staff operativo solo con `can_create_shifts`.
+ */
 export function canOperateTeamSchedule(user: User | null): boolean {
   if (!user) return false;
-  return user.role === 'admin' || user.can_create_shifts === true;
+  if (isManagementRole(user.role)) return true;
+  return user.can_create_shifts === true;
 }
 
 /** Approvazione turni (freeze) e ferie: Admin o `can_approve_shifts`. */
@@ -83,10 +87,14 @@ export function canPublishScheduleDrafts(user: User | null): boolean {
   return user.role === 'admin' || user.can_manage_drafts === true;
 }
 
-/** Ore totali / viste payroll di gruppo: Admin o `can_view_total_hours`. */
+/**
+ * Ore totali / viste payroll di gruppo (scheda Ore, riepiloghi).
+ * Tutti i ruoli gestionali; in più chi ha `can_view_total_hours` (es. contabilità da staff).
+ */
 export function canViewAllTeamHours(user: User | null): boolean {
   if (!user) return false;
-  return user.role === 'admin' || user.can_view_total_hours === true;
+  if (isManagementRole(user.role)) return true;
+  return user.can_view_total_hours === true;
 }
 
 /** Modifica PIN altrui: Admin o `can_edit_staff_pins`. */
@@ -119,4 +127,35 @@ export function isUserVisibleOnTeamSchedule(user: User): boolean {
   if (explicitHide === true) return false;
   if (explicitHide === false) return true;
   return getTemplateDefaultTeamScheduleVisible(user.role);
+}
+
+/** Numero di profili con ruolo admin e stato attivo. */
+export function countActiveAdmins(users: User[]): number {
+  return users.filter((u) => u.role === 'admin' && u.status === 'active').length;
+}
+
+/**
+ * True se, applicando role/status al profilo `targetUserId`, non resterebbe nessun admin attivo.
+ * Usato per evitare di chiudere fuori dall’app l’ultimo accesso a Impostazioni complete.
+ */
+export function wouldLeaveNoActiveAdmin(
+  users: User[],
+  targetUserId: string,
+  patch: Partial<Pick<User, 'role' | 'status'>>
+): boolean {
+  if (patch.role === undefined && patch.status === undefined) return false;
+  const target = users.find((u) => u.id === targetUserId);
+  if (!target) return false;
+
+  const nextRole = patch.role !== undefined ? patch.role : target.role;
+  const nextStatus = patch.status !== undefined ? patch.status : target.status;
+
+  const activeAdminsAfter = users.filter((u) => {
+    if (u.id === targetUserId) {
+      return nextRole === 'admin' && nextStatus === 'active';
+    }
+    return u.role === 'admin' && u.status === 'active';
+  }).length;
+
+  return activeAdminsAfter < 1;
 }

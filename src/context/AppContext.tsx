@@ -34,6 +34,8 @@ import {
   canApproveShiftActions,
   canPublishScheduleDrafts,
   isAdminOnly,
+  wouldLeaveNoActiveAdmin,
+  countActiveAdmins,
 } from '../utils/permissions';
 import {
   type FeatureFlags,
@@ -1376,6 +1378,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    const adminGuardPatch: Partial<Pick<User, 'role' | 'status'>> = {};
+    if (updates.role !== undefined) adminGuardPatch.role = updates.role;
+    if (updates.status !== undefined) adminGuardPatch.status = updates.status;
+    if (
+      Object.keys(adminGuardPatch).length > 0 &&
+      wouldLeaveNoActiveAdmin(users, id, adminGuardPatch)
+    ) {
+      const tr = getTranslations(effectiveLanguage);
+      showError(tr.settings_last_active_admin_block);
+      return false;
+    }
+
     // Aggiornamento ottimistico: l'UI si aggiorna subito
     const optimisticallyUpdated = { ...prevUser, ...updates };
     setUsers((prev) => prev.map((u) => (u.id === id ? optimisticallyUpdated : u)));
@@ -1450,13 +1464,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [currentUser, users, showError, effectiveLanguage, markManagementDataTouched]);
 
-  const deleteUser = useCallback(async (id: string) => {
-    await database.users.delete(id);
-    setUsers(prev => prev.filter(u => u.id !== id));
-    markManagementDataTouched();
-    const rev = await bumpClientSyncRevisionOnSupabase();
-    if (rev != null) writeAckClientSyncRevision(rev);
-  }, [markManagementDataTouched]);
+  const deleteUser = useCallback(
+    async (id: string) => {
+      const victim = users.find((u) => u.id === id);
+      if (
+        victim?.role === 'admin' &&
+        victim.status === 'active' &&
+        countActiveAdmins(users) <= 1
+      ) {
+        const tr = getTranslations(effectiveLanguage);
+        showError(tr.settings_last_active_admin_block);
+        return;
+      }
+      await database.users.delete(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+      markManagementDataTouched();
+      const rev = await bumpClientSyncRevisionOnSupabase();
+      if (rev != null) writeAckClientSyncRevision(rev);
+    },
+    [users, effectiveLanguage, showError, markManagementDataTouched]
+  );
 
   const createUser = useCallback(
     async (payload: {

@@ -96,7 +96,7 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
         const n = parseFloat(raw);
         hourly_rate_eur = Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
       }
-      await updateUser(user.id, {
+      const ok = await updateUser(user.id, {
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
@@ -109,6 +109,10 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
         employment_end_date:
           formData.status === 'active' ? null : dateToDbYmd(formData.employment_end_date),
       });
+      if (!ok) {
+        setIsSaving(false);
+        return;
+      }
       setTimeout(() => {
         setIsSaving(false);
         onClose();

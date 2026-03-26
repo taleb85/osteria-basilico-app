@@ -754,6 +754,8 @@ export function ProfileFormAdmin({
               }
               className={inputClass}
               disabled={readOnly}
+              required={false}
+              aria-required={false}
             />
             {tv.profile_employment_start_hint ? (
               <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-1 font-sans">
@@ -775,6 +777,8 @@ export function ProfileFormAdmin({
                 }
                 className={inputClass}
                 disabled={readOnly}
+                required={false}
+                aria-required={false}
               />
               {tv.profile_employment_end_hint ? (
                 <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-1 font-sans">
