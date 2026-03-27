@@ -680,6 +680,28 @@ export default function HomePage({
   }
 
   // ── MANAGER VIEW (team home) ────────────────────────────────────────────────
+  if (isMobile) {
+    return (
+      <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
+        <MobileStaffDashboard
+          user={currentUser}
+          language={effectiveLanguage}
+          todayStr={todayStr}
+          now={now}
+          myShifts={myShifts}
+          punchRecords={punchRecords}
+          weeklyMinutes={weeklyMinutes}
+          monthlyMinutes={monthlyMinutes}
+          monthDaysWorked={monthDaysWorked}
+          weekCapMinutes={40 * 60}
+          onTabChange={onTabChange}
+          greetingText={t.home_greeting.replace('{name}', currentUser.first_name ?? '')}
+          activeTab={activeTabProp ?? 'home'}
+        />
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">

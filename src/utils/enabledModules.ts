@@ -184,7 +184,12 @@ export function getBottomNavTabsForMainApp(
   featureFlags?: FeatureFlags | null
 ): AppNavTab[] {
   const all = getUnifiedNavTabs(user, isManagement, featureFlags);
-  if (isManagement) return all;
+  
+  // Su mobile, forziamo l'ordine dello staff per tutti (inclusi manager)
+  // per mantenere l'interfaccia pulita e operativa.
+  const isMobileViewport = window.innerWidth < 768;
+  if (isManagement && !isMobileViewport) return all;
+  
   const set = new Set(all);
   return STAFF_BOTTOM_NAV_ORDER.filter((id) => set.has(id));
 }

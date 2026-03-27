@@ -1,9 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { LogOut, Camera } from 'lucide-react';
+import { LogOut, Camera, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useProfileLeaveGuardRef } from '../context/ProfileLeaveGuardContext';
 import { getTranslations } from '../utils/translations';
+import { isManagementRole } from '../utils/permissions';
 import { ProfileFormSelf, type ProfileFormSelfData } from './UserProfile';
 import ProfilePhotoSourceSheet from './profile/ProfilePhotoSourceSheet';
 import ProfilePhotoCropperModal from './profile/ProfilePhotoCropperModal';
@@ -221,6 +223,9 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
   const displayName =
     (currentUser.first_name?.trim() || currentUser.email?.split('@')[0] || 'Utente').trim() || 'Utente';
   const profileInitial = (displayName.charAt(0) || '?').toUpperCase();
+  const navigate = useNavigate();
+  const isMgmt = isManagementRole(currentUser.role);
+  const isMobile = window.innerWidth < 768;
 
   const sectionLabel = tv.profile_tab_group_settings ?? 'Impostazioni';
   const changePhoto = tv.profile_tab_change_photo ?? 'Cambia foto';
@@ -351,6 +356,28 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
         </div>
 
         <p className="px-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-neutral-400">{sectionLabel}</p>
+
+        {/* Accesso Area Gestionale (solo Manager su mobile) */}
+        {isMgmt && isMobile && (
+          <div className="px-4">
+            <button
+              type="button"
+              onClick={() => navigate('/admin')}
+              className="w-full flex items-center justify-between gap-3 rounded-2xl bg-slate-900 dark:bg-neutral-800 px-5 py-4 text-white shadow-lg active:scale-[0.98] transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                  <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold uppercase tracking-wide">Area Gestionale</p>
+                  <p className="text-[10px] text-slate-400">Gestisci turni, profili e impostazioni</p>
+                </div>
+              </div>
+              <ShieldCheck className="w-5 h-5 text-slate-500" />
+            </button>
+          </div>
+        )}
 
         {/* Form impostazioni profilo */}
         <div className="surface-glass overflow-hidden">
