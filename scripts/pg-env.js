@@ -58,3 +58,81 @@ export function hintIfUnreachable(err) {
     );
   }
 }
+
+/**
+ * Config per `pg.Client`: su host diretto db.*.supabase.co risolve IPv4 e imposta TLS SNI (`servername`),
+ * così si evita EHOSTUNREACH quando solo IPv6 è risolto e non è raggiungibile.
+ * Se è già DATABASE_POOLER_URL, usa la stringa così com’è.
+ * @returns {Promise<{ clientConfig: object } | { error: string }>}
+ */
+export async function getPostgresClientConfig() {
+  loadRootDotenv();
+  const pooler = process.env.DATABASE_POOLER_URL;
+  const dbUrl = pooler || process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
+  if (!dbUrl) {
+    return { error: 'Imposta DATABASE_POOLER_URL (consigliato) o DATABASE_URL in .env — vedi .env.example' };
+  }
+
+  if (pooler) {
+    return {
+      clientConfig: {
+        connectionString: pooler,
+        ssl: supabaseLocalPgSsl,
+      },
+    };
+  }
+
+  let u;
+  try {
+    u = new URL(dbUrl.replace(/^postgres:\/\//i, 'postgresql://'));
+  } catch {
+    return { error: 'DATABASE_URL non è un URL valido' };
+  }
+
+  const hostname = u.hostname;
+  const isSupabaseDirect = /(^|\.)db\.[^.]+\.supabase\.co$/i.test(hostname);
+
+  if (!isSupabaseDirect) {
+    return {
+      clientConfig: {
+        connectionString: dbUrl,
+        ssl: supabaseLocalPgSsl,
+      },
+    };
+  }
+
+  console.warn(
+    '⚠️  Connessione diretta db.….supabase.co: risoluzione IPv4 + SNI; se fallisce, aggiungi DATABASE_POOLER_URL (pooler) in .env.'
+  );
+
+  try {
+    const dns = await import('node:dns/promises');
+    const { address } = await dns.lookup(hostname, { family: 4 });
+    const user = decodeURIComponent(u.username || 'postgres');
+    const password = u.password ? decodeURIComponent(u.password) : '';
+    const port = u.port ? parseInt(u.port, 10) : 5432;
+    const database = (u.pathname || '/postgres').replace(/^\//, '') || 'postgres';
+
+    return {
+      clientConfig: {
+        host: address,
+        port,
+        user,
+        password,
+        database,
+        ssl: {
+          ...supabaseLocalPgSsl,
+          servername: hostname,
+        },
+      },
+    };
+  } catch (lookupErr) {
+    console.warn('⚠️  Risoluzione IPv4 fallita, uso URL originale:', (lookupErr && lookupErr.message) || lookupErr);
+    return {
+      clientConfig: {
+        connectionString: dbUrl,
+        ssl: supabaseLocalPgSsl,
+      },
+    };
+  }
+}

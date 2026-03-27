@@ -9,25 +9,22 @@
 import { readFileSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import { getPostgresConnectionUrl, hintIfUnreachable, supabaseLocalPgSsl } from './pg-env.js';
+import { getPostgresClientConfig, hintIfUnreachable } from './pg-env.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const sqlPath = resolve(__dirname, '../supabase/migrations/20260329120000_merge_admin_taleb_into_taleb_barikhan.sql');
 
 async function main() {
-  const res = getPostgresConnectionUrl();
-  if (!res.dbUrl) {
+  const res = await getPostgresClientConfig();
+  if ('error' in res) {
     console.error('❌', res.error);
     process.exit(1);
   }
   const sql = readFileSync(sqlPath, 'utf8');
   try {
     const pg = (await import('pg')).default;
-    const client = new pg.Client({
-      connectionString: res.dbUrl,
-      ssl: supabaseLocalPgSsl,
-    });
+    const client = new pg.Client(res.clientConfig);
     await client.connect();
     await client.query(sql);
     await client.end();

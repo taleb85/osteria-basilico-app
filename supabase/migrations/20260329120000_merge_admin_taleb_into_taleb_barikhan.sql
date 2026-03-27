@@ -9,6 +9,14 @@
 -- Idempotente: seconda esecuzione → nessuna sorgente, solo NOTICE.
 -- auth.users: rimuovere eventuali account duplicati dalla dashboard Supabase se usi login email.
 
+-- Il trigger `set_shift_templates_updated_at` usa NEW.updated_at; su DB legacy la colonna può mancare.
+ALTER TABLE public.shift_templates
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
+
+-- Alcuni DB non hanno ancora `updated_at` su `users` (merge lo aggiorna in chiusura).
+ALTER TABLE public.users
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
+
 DO $merge$
 DECLARE
   target_id uuid;
