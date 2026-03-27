@@ -149,6 +149,7 @@ export default function HomePage({
   const locale = getDateLocale(effectiveLanguage) ?? it;
 
   const isMgmtUser = isManagementRole(currentUser.role);
+  const isMobile = window.innerWidth < 768;
   const uiW = (key: string) => isUiWidgetVisible(currentUser, key);
   /** Tabellone team su Home: rispetta matrice `team_view` (non solo il ruolo). */
   const showTeamHome = isMgmtUser && isFeatureEnabled(currentUser, 'team_view');
