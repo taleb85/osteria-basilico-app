@@ -7,6 +7,7 @@ import { LayoutPresetProvider } from './context/LayoutPresetContext';
 import { applyUnauthenticatedDocumentTheme } from './utils/theme';
 import { getTranslations } from './utils/translations';
 import BottomNav from './components/BottomNav';
+import MobileBottomNav from './components/mobile/MobileBottomNav';
 import MobileProfileHeader from './components/MobileProfileHeader';
 import HeaderTodayCoworkersCard from './components/HeaderTodayCoworkersCard';
 import RefreshLockOverlay from './components/RefreshLockOverlay';
@@ -28,6 +29,7 @@ import {
   clearMainViewState,
   applyWindowScrollY,
 } from './utils/mainAppViewRestore';
+import { useIsMobileViewport } from './hooks/useIsMobileViewport';
 import { isAdminOnly, isManagementRole } from './utils/permissions';
 import AdminGate from './components/AdminGate';
 import AdminLayout from './components/AdminLayout';
@@ -153,6 +155,11 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   } = useApp();
 
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
+  const isMobileViewport = useIsMobileViewport();
+  const staffMobileCompactHeader = !isManagement && isMobileViewport;
+
+  const location = useLocation();
+  const isAdminPath = location.pathname.startsWith('/admin');
 
   /** `roleTemplatesRevision` deve essere nelle dipendenze: `getEnabledFeatures` legge il template da cache modulo; dopo PIN/sync il memo altrimenti resta sulla lista schede vecchia. */
   const visibleNavTabs = useMemo((): AppNavTab[] => {
@@ -170,6 +177,9 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
   const tr = getTranslations(effectiveLanguage);
   const noNavTabs = Boolean(currentUser && visibleNavTabs.length === 0);
+  /** Spazio sotto il contenuto: la MobileBottomNav staff è `fixed`; `pb-24` su `<main>` evita che l’ultimo blocco resti sotto la barra. */
+  const staffMobileBottomNavActive =
+    !!currentUser && !noNavTabs && isMobileViewport;
 
   const appStickyHeaderRef = useRef<HTMLElement | null>(null);
 
@@ -193,6 +203,17 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   }, []);
 
   const [activeTab, setActiveTab] = useState<AppNavTab>('home');
+  const labels = useMemo(() => {
+    const tr = getTranslations(effectiveLanguage) as Record<string, string>;
+    return {
+      home: tr.sidebar_dashboard,
+      calendar: tr.sidebar_shifts,
+      coffee: tr.sidebar_holidays,
+      reports: tr.sidebar_statistics,
+      timesheet: tr.sidebar_attendance,
+      profile: tr.bottom_nav_profile_short ?? tr.sidebar_profile,
+    };
+  }, [effectiveLanguage]);
   const mainViewRestoredUserIdRef = useRef<string | null>(null);
   const pendingScrollRestoreRef = useRef<{ y: number; tab: AppNavTab } | null>(null);
   const profileLeaveGuardRef = useRef<ProfileLeaveGuard | null>(null);
@@ -394,7 +415,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
   return (
     <ProfileLeaveGuardRefContext.Provider value={profileLeaveGuardRef}>
-    <div className="min-h-screen min-h-[100dvh] w-full bg-[#f8fafc] dark:bg-[#0a0a0a] text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
+    <div className="min-h-screen min-h-[100dvh] w-full bg-gray-50 dark:bg-[#0a0a0a] text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col pb-32">
       <BodyPullToRefresh
         onRefresh={() => silentRefreshData({ pullRemoteConfig: true })}
         disabled={!!(isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending)}
@@ -414,8 +435,9 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
             onLogout={onLogout}
             activeTab={activeTab}
             showOnDesktop
+            compact={staffMobileCompactHeader}
             parentProvidesCardShell
-            hideToolbarAvatar={isManagement}
+            hideToolbarAvatar={false}
           />
         </div>
         {currentUser && activeTab === 'home' && (
@@ -426,7 +448,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <main
-        className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
+        className={`flex-1 flex flex-col w-full min-h-0 ${staffMobileBottomNavActive ? 'pb-32 md:pb-0' : ''} ${isAdminPath ? 'pb-32 md:pb-0' : ''} ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
       >
         <div className="w-full flex-1 app-main-top-pad app-horizontal-pad">
           {noNavTabs ? (
@@ -487,7 +509,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
             activeTab={activeTab}
             onTabChange={handleTabChange}
             visibleTabs={bottomNavTabs}
-            navClassName={!isManagement && activeTab === 'home' ? 'max-md:hidden' : undefined}
           />
         </div>
       )}

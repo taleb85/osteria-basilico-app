@@ -1,12 +1,12 @@
-/** Prefisso internazionale predefinito (Italia). */
-export const DEFAULT_PHONE_PREFIX = '+39';
+/** Prefisso internazionale predefinito (Regno Unito). */
+export const DEFAULT_PHONE_PREFIX = '+44';
 
 /** Opzioni prefisso per il profilo (ordine di presentazione). */
 export const PHONE_PREFIX_OPTIONS: readonly { value: string; label: string }[] = [
+  { value: '+44', label: '+44 GB' },
   { value: '+39', label: '+39 IT' },
   { value: '+33', label: '+33 FR' },
   { value: '+34', label: '+34 ES' },
-  { value: '+44', label: '+44 UK' },
   { value: '+49', label: '+49 DE' },
   { value: '+41', label: '+41 CH' },
   { value: '+423', label: '+423 LI' },

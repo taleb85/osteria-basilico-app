@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -38,34 +38,28 @@ function lunchDinnerRingClass(shifts: Shift[]): string {
   const hasL = types.has('lunch');
   const hasD = types.has('dinner');
   if (hasL && hasD) {
-    return 'bg-gradient-to-br from-emerald-500 to-amber-500 shadow-sm dark:from-emerald-400 dark:to-amber-400';
+    return 'bg-emerald-500';
   }
   if (hasD) {
-    return 'bg-amber-500 shadow-sm dark:bg-amber-400';
+    return 'bg-violet-500';
   }
-  return 'bg-emerald-500 shadow-sm dark:bg-emerald-400';
+  return 'bg-amber-500';
 }
 
 /** Anello: pranzo/cena (turni ≤16:00) + viola per cambio guardia (>16:00). */
 function shiftRingOuterClass(shifts: Shift[]): string {
+  if (shifts.length > 1) {
+    return 'bg-emerald-500';
+  }
   const early = shifts.filter((s) => !isCambioGuardiaShift(s));
   const late = shifts.filter((s) => isCambioGuardiaShift(s));
   if (late.length === 0) {
     return lunchDinnerRingClass(early.length ? early : shifts);
   }
   if (early.length === 0) {
-    return 'bg-violet-500 shadow-sm dark:bg-violet-400';
+    return 'bg-violet-500';
   }
-  const types = new Set(early.map(effectiveShiftType));
-  const hasL = types.has('lunch');
-  const hasD = types.has('dinner');
-  if (hasL && hasD) {
-    return 'bg-gradient-to-br from-emerald-500 via-amber-500 to-violet-600 shadow-sm dark:from-emerald-400 dark:via-amber-400 dark:to-violet-500';
-  }
-  if (hasD) {
-    return 'bg-gradient-to-br from-amber-500 to-violet-600 shadow-sm dark:from-amber-400 dark:to-violet-500';
-  }
-  return 'bg-gradient-to-br from-emerald-500 to-violet-600 shadow-sm dark:from-emerald-400 dark:to-violet-500';
+  return 'bg-emerald-500';
 }
 
 function shiftRingTitle(
@@ -107,16 +101,17 @@ function shiftTimeCaption(shifts: Shift[], multiLabel: string): string {
 }
 
 /**
- * Striscia sotto l’header: titolo + data e subito dopo l’elenco orizzontale colleghi in turno oggi.
+ * Striscia sotto l’header: titolo e subito dopo l’elenco orizzontale colleghi in turno oggi.
  */
 export default function HeaderTodayCoworkersCard() {
-  const { currentUser, shifts, users, effectiveLanguage } = useApp();
+  const { currentUser, shifts, users, punchRecords, effectiveLanguage, featureFlags } = useApp();
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
-  const dateLoc = getDateLocale(effectiveLanguage) ?? it;
+
+  const isVisibleByAdmin = featureFlags?.visibility_management !== false;
 
   const rows = useMemo(() => {
-    if (!currentUser) return [];
+    if (!currentUser || !isVisibleByAdmin) return [];
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const byUser = new Map<string, Shift[]>();
     for (const s of shifts) {
@@ -139,15 +134,38 @@ export default function HeaderTodayCoworkersCard() {
       const name = (u.first_name ?? '').trim() || u.email?.split('@')[0] || '—';
       out.push({ userId, name, shifts: sorted });
     }
-    out.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+    out.sort((a, b) => {
+      const aStart = a.shifts[0]?.start_time || '99:99';
+      const bStart = b.shifts[0]?.start_time || '99:99';
+      return aStart.localeCompare(bStart);
+    });
     return out;
   }, [currentUser, shifts, users]);
 
-  if (!currentUser) return null;
+  const getPunchForShift = (shiftId: string, userId: string, dateStr: string, isLunchShift: boolean) => {
+    const punchIn = punchRecords.find((p) => {
+      if (p.type !== 'in') return false;
+      if (shiftId && p.shift_id) return p.shift_id === shiftId;
+      if (p.user_id !== userId) return false;
+      const d = new Date(p.timestamp);
+      if (!isValid(d)) return false;
+      return format(d, 'yyyy-MM-dd') === dateStr && (isLunchShift ? d.getHours() < 16 : d.getHours() >= 16);
+    });
+    const punchOut = punchRecords.find((p) => {
+      if (p.type !== 'out') return false;
+      if (shiftId && p.shift_id) return p.shift_id === shiftId;
+      if (p.user_id !== userId) return false;
+      const d = new Date(p.timestamp);
+      if (!isValid(d)) return false;
+      return format(d, 'yyyy-MM-dd') === dateStr && (isLunchShift ? d.getHours() < 16 : d.getHours() >= 16);
+    });
+    return { punchIn, punchOut };
+  };
+
+  if (!currentUser || !isVisibleByAdmin) return null;
 
   const title = tv.header_coworkers_today_title ?? 'In turno oggi';
   const empty = tv.header_coworkers_today_empty ?? 'Nessun altro collega in turno oggi';
-  const todayShort = format(new Date(), 'EEE d MMM', { locale: dateLoc });
   const summaryTpl = tv.header_coworkers_today_summary ?? '{n}';
   const lunchL = t.lunch ?? 'Pranzo';
   const dinnerL = t.dinner ?? 'Cena';
@@ -155,34 +173,27 @@ export default function HeaderTodayCoworkersCard() {
   const multiShiftsTpl = tv.header_coworkers_multi_shifts ?? '{n} turni';
 
   return (
-    <section className="w-full px-2 py-1 sm:px-2.5 sm:py-1.5" aria-label={title}>
+    <section className="w-full px-3 py-2 sm:px-4 sm:py-3" aria-label={title}>
       {rows.length === 0 ? (
-        <div className="flex items-start gap-1.5">
-          <Users className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent/70" strokeWidth={2} aria-hidden />
+        <div className="flex items-start gap-1.5 px-1">
+          <Users className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} aria-hidden />
           <p className="min-w-0 text-[11px] leading-snug text-slate-500 dark:text-neutral-400">{empty}</p>
         </div>
       ) : (
-        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-          <div className="flex min-w-0 shrink-0 items-start gap-2 sm:items-center">
-            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent sm:mt-0 dark:bg-accent/15">
-              <Users className="h-4 w-4" strokeWidth={2} aria-hidden />
-            </span>
-            <div className="min-w-0">
-              <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-neutral-500">{title}</p>
-              <p className="mt-0.5 text-[11px] text-slate-700 dark:text-neutral-200">
-                <span className="font-semibold tabular-nums">
-                  {formatTrans(summaryTpl, { n: String(rows.length) })}
-                </span>
-                <span className="font-normal text-slate-400 dark:text-neutral-500"> · </span>
-                <span className="capitalize text-slate-500 dark:text-neutral-400">{todayShort}</span>
-              </p>
-            </div>
+        <div className="flex w-full min-w-0 flex-col gap-3">
+          <div className="flex items-center justify-between px-1">
+            <p className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest">
+              <span className="text-slate-900 dark:text-white mr-1">
+                {formatTrans(summaryTpl, { n: String(rows.length) })}
+              </span>
+              · {title}
+            </p>
           </div>
 
           <ul
             id="header-coworkers-today-list"
             aria-label={title}
-            className="smooth-scroll flex min-w-0 flex-1 flex-nowrap gap-3.5 overflow-x-auto overscroll-contain pb-1 sm:border-l sm:border-slate-100 sm:pl-3 dark:sm:border-white/10"
+            className="smooth-scroll flex min-w-0 flex-1 flex-nowrap gap-4 overflow-x-auto overscroll-contain pb-2 no-scrollbar"
           >
             {rows.map((r) => {
               const u = users.find((x) => x.id === r.userId);
@@ -192,16 +203,22 @@ export default function HeaderTodayCoworkersCard() {
               const initial = (r.name.charAt(0) || '?').toUpperCase();
               const ringTitle = shiftRingTitle(r.shifts, lunchL, dinnerL, cambioL);
               const timeCaption = shiftTimeCaption(r.shifts, multiShiftsTpl);
+              const isPunchedIn = r.shifts.some(s => {
+                const isDinner = effectiveShiftType(s) === 'dinner';
+                const { punchIn, punchOut } = getPunchForShift(s.id, s.user_id, format(new Date(), 'yyyy-MM-dd'), !isDinner);
+                return !!punchIn && !punchOut;
+              });
+
               return (
                 <li
                   key={r.userId}
-                  className="flex w-[4.85rem] shrink-0 flex-col items-center gap-0.5 text-center sm:w-[5.25rem]"
+                  className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 text-center"
                 >
                   <div
-                    className={`shrink-0 rounded-lg p-[2.5px] ${shiftRingOuterClass(r.shifts)}`}
+                    className="relative shrink-0 rounded-xl surface-glass-sm"
                     title={`${ringTitle}${timeCaption ? ` · ${timeCaption}` : ''}`}
                   >
-                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[0.4rem] bg-slate-100 dark:bg-neutral-800 sm:h-11 sm:w-11">
+                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-slate-50 dark:bg-neutral-900">
                       {avatarSrc ? (
                         <img
                           src={avatarSrc}
@@ -211,20 +228,27 @@ export default function HeaderTodayCoworkersCard() {
                           draggable={false}
                         />
                       ) : (
-                        <span className="text-sm font-bold text-slate-500 dark:text-neutral-400" aria-hidden>
+                        <span className="text-lg font-bold text-slate-400 dark:text-neutral-500" aria-hidden>
                           {initial}
                         </span>
                       )}
                     </div>
+                    {/* Shift Type Indicator */}
+                    <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-2 border-white dark:border-neutral-800 rounded-full shadow-sm z-10 ${shiftRingOuterClass(r.shifts)}`}></div>
+                    {isPunchedIn && (
+                      <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-neutral-800 rounded-full shadow-sm z-10"></div>
+                    )}
                   </div>
-                  <span className="block w-full truncate text-[9px] font-semibold uppercase leading-tight tracking-wide text-slate-800 dark:text-neutral-100 sm:text-[10px]">
-                    {r.name}
-                  </span>
-                  {timeCaption ? (
-                    <span className="block w-full truncate text-[8px] font-semibold tabular-nums text-slate-500 dark:text-neutral-400">
-                      {timeCaption}
+                  <div className="min-w-0 w-full px-0.5">
+                    <span className="block truncate text-[9px] font-black uppercase tracking-tight text-slate-900 dark:text-neutral-100">
+                      {r.name}
                     </span>
-                  ) : null}
+                    {timeCaption ? (
+                      <span className="block truncate text-[8px] font-bold tabular-nums text-slate-400 dark:text-neutral-500 mt-0.5">
+                        {timeCaption}
+                      </span>
+                    ) : null}
+                  </div>
                 </li>
               );
             })}

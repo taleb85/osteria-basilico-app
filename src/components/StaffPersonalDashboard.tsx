@@ -9,23 +9,39 @@ import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
 import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
 import { getTranslations, getDateLocale } from '../utils/translations';
-import { getVisibleStaffTabs, getUnifiedNavTabs, isStaffRequestsFeatureEnabled, type AppNavTab } from '../utils/enabledModules';
+import {
+  getVisibleStaffTabs,
+  getUnifiedNavTabs,
+  getBottomNavTabsForMainApp,
+  isStaffRequestsFeatureEnabled,
+  type AppNavTab,
+} from '../utils/enabledModules';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import MobileStaffDashboard from './mobile/MobileStaffDashboard';
+import MobileProfileStats from './mobile/MobileProfileStats';
+import MobileShiftList from './mobile/MobileShiftList';
+import MobileRequestList from './mobile/MobileRequestList';
+import MobileShifts from './mobile/MobileShifts';
+import MobileTimesheet from './mobile/MobileTimesheet';
+import MobileRequests from './mobile/MobileRequests';
+import { useIsMobileViewport } from '../hooks/useIsMobileViewport';
+const Timesheets = lazy(() => import('./Timesheets'));
+const HolidayRequests = lazy(() => import('./HolidayRequests'));
+const Statistics = lazy(() => import('./Statistics'));
+const SettingsPage = lazy(() => import('./SettingsPage'));
+const WeeklyShiftsTable = lazy(() => import('./WeeklyShiftsTable'));
+
 import { isPurelyManagementRole } from '../utils/permissions';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { userRowToSessionUser } from '../utils/staffPermissionDefaults';
 import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
 import { translateDepartmentValue } from '../utils/departmentLabels';
-import WeeklyShiftsTable from './WeeklyShiftsTable';
+import { lightHaptic } from '../utils/hapticFeedback';
 import AdminRow from './ui/AdminRow';
 import RequestHolidayModal from './RequestHolidayModal';
 import LanguageToggleGrid from './LanguageToggleGrid';
 import NotificationCenter from './NotificationCenter';
 import ProfileNavTabPanel from './ProfileNavTabPanel';
-
-const Timesheets = lazy(() => import('./Timesheets'));
-const Statistics = lazy(() => import('./Statistics'));
 
 interface StaffPersonalDashboardProps {
   user: UserType;
@@ -67,6 +83,7 @@ export default function StaffPersonalDashboard({
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
   const [seedingDemoProfile, setSeedingDemoProfile] = useState(false);
   const t = getTranslations(effectiveLanguage);
+  const tr = t as Record<string, string>;
   const now = useWallAlignedMinuteClock();
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
@@ -118,18 +135,18 @@ export default function StaffPersonalDashboard({
 
   /** PWA ↔ Safari / cambio app: realtime può restare indietro — riallinea da DB. */
   useEffect(() => {
-    let t: ReturnType<typeof setTimeout> | null = null;
+    let reloadDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     const scheduleReload = () => {
       if (document.visibilityState !== 'visible') {
-        if (t) {
-          clearTimeout(t);
-          t = null;
+        if (reloadDebounceTimer) {
+          clearTimeout(reloadDebounceTimer);
+          reloadDebounceTimer = null;
         }
         return;
       }
-      if (t) clearTimeout(t);
-      t = setTimeout(() => {
-        t = null;
+      if (reloadDebounceTimer) clearTimeout(reloadDebounceTimer);
+      reloadDebounceTimer = setTimeout(() => {
+        reloadDebounceTimer = null;
         loadUserData();
       }, 300);
     };
@@ -145,10 +162,15 @@ export default function StaffPersonalDashboard({
       window.removeEventListener('focus', scheduleReload);
       window.removeEventListener('online', scheduleReload);
       window.removeEventListener('pageshow', onPageShow);
-      if (t) clearTimeout(t);
+      if (reloadDebounceTimer) clearTimeout(reloadDebounceTimer);
     };
   }, [loadUserData]);
   const dateLocale = getDateLocale(effectiveLanguage);
+
+  const displayName = (displayUser?.first_name?.trim() || displayUser?.email?.split('@')[0] || 'Utente').trim() || 'Utente';
+  const displayDept = displayUser?.department
+    ? translateDepartmentValue(displayUser.department, effectiveLanguage)
+    : ((t as { department_none?: string }).department_none ?? 'Nessuno');
 
   const visibleShifts = shifts.filter(
     (s) => s.approval_status === 'approved' || s.approval_status === 'confirmed' || s.approval_status === 'absent'
@@ -234,6 +256,23 @@ export default function StaffPersonalDashboard({
     return getUnifiedNavTabs(displayUser, false, featureFlags);
   }, [displayUser, featureFlags, roleTemplatesRevision]);
 
+  const staffMobileBottomNavTabs = useMemo(() => {
+    void roleTemplatesRevision;
+    return getBottomNavTabsForMainApp(displayUser, false, featureFlags);
+  }, [displayUser, featureFlags, roleTemplatesRevision]);
+
+  const mobileNavTabLabels = useMemo((): Partial<Record<AppNavTab, string>> => {
+    return {
+      home: t.sidebar_dashboard,
+      turni: t.sidebar_shifts,
+      ferie: t.sidebar_holidays,
+      timesheet: t.sidebar_attendance,
+      reports: t.sidebar_statistics,
+      profile: tr.bottom_nav_profile_short ?? t.sidebar_profile,
+      settings: tr.bottom_nav_settings_short ?? t.sidebar_admin,
+    };
+  }, [t, tr]);
+
   const staffHomeWeeklyMonthly = useMemo(() => {
     const weekStart = startOfWeek(now, { weekStartsOn: 1 });
     const weekEnd = addDays(weekStart, 7);
@@ -262,7 +301,8 @@ export default function StaffPersonalDashboard({
       monthlyMinutes += getNetShiftMinutes(s, start, end, displayUser, breakRules, breakComputeOpts);
     }
     const monthDaysWorked = new Set(monthShifts.filter((s) => s.approval_status !== 'absent').map((s) => s.date)).size;
-    return { weeklyMinutes, monthlyMinutes, monthDaysWorked };
+    const monthShiftCount = monthShifts.filter((s) => s.approval_status !== 'absent').length;
+    return { weeklyMinutes, monthlyMinutes, monthDaysWorked, monthShiftCount };
   }, [now, visibleShifts, punchRecords, displayUser, breakRules, breakComputeOpts]);
 
   const showHomeKpiStrip =
@@ -279,7 +319,7 @@ export default function StaffPersonalDashboard({
 
     return (
       <div className="space-y-4">
-        <div className="md:hidden">
+        <div className="block md:hidden space-y-4">
           <MobileStaffDashboard
             user={displayUser}
             language={effectiveLanguage}
@@ -291,10 +331,8 @@ export default function StaffPersonalDashboard({
             monthlyMinutes={staffHomeWeeklyMonthly.monthlyMinutes}
             monthDaysWorked={staffHomeWeeklyMonthly.monthDaysWorked}
             weekCapMinutes={40 * 60}
-            visibleNavTabs={staffUnifiedTabs}
             onTabChange={onTabChange}
             greetingText={t.home_greeting.replace('{name}', displayUser.first_name ?? '')}
-            showMobileBottomNav
             activeTab={activeTab}
           />
         </div>
@@ -429,29 +467,65 @@ export default function StaffPersonalDashboard({
     );
   };
 
+  const shiftsSortedMobile = useMemo(
+    () =>
+      [...visibleShifts].sort(
+        (a, b) => a.date.localeCompare(b.date) || a.start_time.localeCompare(b.start_time)
+      ),
+    [visibleShifts]
+  );
+
+  const mobileHolidayListCopy = useMemo(
+    () => ({
+      empty: t.no_holidays_yet,
+      approved: t.approved,
+      pending: t.pending,
+      rejected: t.rejected,
+    }),
+    [t]
+  );
+
+  const isMobile = useIsMobileViewport();
+
   const renderShifts = () => (
     <div className="space-y-4">
-      {uiW('staff_shifts.summary') && (
-      <div className="surface-glass flex items-center justify-between p-5">
-        <div>
-          <p className="text-[10px] font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-widest mb-1">{t.approved_hours_summary}</p>
-          <p className="text-4xl font-bold text-slate-900 dark:text-neutral-100">{totalApprovedHours}</p>
-        </div>
-        <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center">
-          <TrendingUp className="w-6 h-6 text-accent" />
-        </div>
-      </div>
-      )}
-      {uiW('staff_shifts.table') && (
-        <WeeklyShiftsTable filterUserId={user.id} stickyDateBarInScrollPane />
+      {isMobile ? (
+        <MobileShifts shifts={shiftsSortedMobile} language={effectiveLanguage} />
+      ) : (
+        <>
+          {uiW('staff_shifts.summary') && (
+            <div className="surface-glass flex items-center justify-between p-5 rounded-3xl">
+              <div>
+                <p className="text-[10px] font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-widest mb-1">{t.approved_hours_summary}</p>
+                <p className="text-4xl font-bold text-slate-900 dark:text-neutral-100">{totalApprovedHours}</p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-accent" />
+              </div>
+            </div>
+          )}
+          {uiW('staff_shifts.table') && (
+            <Suspense fallback={tabSpinner}>
+              <WeeklyShiftsTable filterUserId={user.id} />
+            </Suspense>
+          )}
+        </>
       )}
     </div>
   );
 
-  const displayName = (displayUser?.first_name?.trim() || displayUser?.email?.split('@')[0] || 'Utente').trim() || 'Utente';
-  const displayDept = displayUser?.department
-    ? translateDepartmentValue(displayUser.department, effectiveLanguage)
-    : ((t as { department_none?: string }).department_none ?? 'Nessuno');
+  const mobileProfileStatsEl = (
+    <MobileProfileStats
+      monthHoursLabel={tr.mobile_staff_this_month_hours ?? t.hours_this_month}
+      hoursFormatted={formatMinutesToHoursAndMinutes(staffHomeWeeklyMonthly.monthlyMinutes)}
+      shiftsInMonth={staffHomeWeeklyMonthly.monthShiftCount}
+      shiftsLabel={t.shifts_confirmed}
+      documentsLabel={tr.mobile_staff_documents ?? 'Documenti'}
+      payslipLabel={tr.mobile_staff_payslip ?? 'Busta paga'}
+      onDocumentsTap={() => showSuccess(tr.mobile_staff_docs_hint ?? '')}
+      onPayslipTap={() => showSuccess(tr.mobile_staff_payslip_hint ?? '')}
+    />
+  );
 
   const renderProfile = () => (
     <div className="space-y-4">
@@ -477,7 +551,7 @@ export default function StaffPersonalDashboard({
             label={(t as { department_label?: string }).department_label ?? 'Reparto'}
             action={<span className="text-sm text-slate-600">{displayDept}</span>}
           />
-          <AdminRow label={t.profile_notifications} action={<NotificationCenter />} />
+          <AdminRow label={t.profile_notifications} action={<NotificationCenter denseTrigger />} />
           <AdminRow
             className="!items-start"
             label={t.language}
@@ -528,49 +602,16 @@ export default function StaffPersonalDashboard({
 
   const renderHolidays = () => (
     <div className="space-y-4">
-      {uiW('staff_holidays.header_actions') && (
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest">{t.holiday_management}</h3>
-        {displayUser.can_request_holidays !== false && (
-          <button
-            onClick={() => setIsHolidayModalOpen(true)}
-            className="px-4 py-2 bg-accent text-white rounded-xl font-semibold text-xs uppercase tracking-wider shadow-sm hover:bg-accent-hover active:scale-95 transition-all"
-          >
-            + {t.new_request}
-          </button>
-        )}
-      </div>
-      )}
-      {uiW('staff_holidays.list') && (holidays.length === 0 ? (
-        <div className="surface-glass p-12 text-center text-slate-500 dark:text-neutral-400">
-          <Palmtree className="w-10 h-10 mx-auto mb-3 opacity-40" />
-          <p className="text-sm font-medium">{t.no_holidays_yet}</p>
-        </div>
+      {isMobile ? (
+        <MobileRequests 
+          requests={holidays.filter(h => h.user_id === user.id)} 
+          onRequestNew={() => setIsHolidayModalOpen(true)}
+        />
       ) : (
-        <div className="space-y-3">
-          {holidays.map((holiday) => (
-            <div key={holiday.id} className="surface-glass flex items-start justify-between gap-3 p-4">
-              <div className="min-w-0">
-                <p className="text-slate-800 dark:text-neutral-100 font-semibold text-sm">
-                  {format(new Date(holiday.start_date), 'd MMM', { locale: dateLocale })} — {format(new Date(holiday.end_date), 'd MMM yyyy', { locale: dateLocale })}
-                </p>
-                {'reason' in holiday && typeof holiday.reason === 'string' && holiday.reason && (
-                  <p className="text-slate-500 dark:text-neutral-400 text-xs italic mt-1 truncate">"{holiday.reason}"</p>
-                )}
-              </div>
-              <div className={`flex-shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase border tracking-wider ${
-                holiday.status === 'approved'
-                  ? 'text-accent border-accent/30 bg-accent/8 dark:bg-accent/15'
-                  : holiday.status === 'rejected'
-                  ? 'text-red-600 border-red-200 bg-red-50 dark:bg-red-950/45 dark:border-red-800/50 dark:text-red-300'
-                  : 'text-amber-700 border-amber-200 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800/50 dark:text-amber-300'
-              }`}>
-                {holiday.status === 'approved' ? t.approved : holiday.status === 'rejected' ? t.rejected : t.pending}
-              </div>
-            </div>
-          ))}
-        </div>
-      ))}
+        <Suspense fallback={tabSpinner}>
+          <HolidayRequests />
+        </Suspense>
+      )}
     </div>
   );
 
@@ -606,7 +647,7 @@ export default function StaffPersonalDashboard({
   );
 
   return (
-    <div className="w-full text-slate-800 dark:text-neutral-100 font-sans antialiased pb-content">
+    <div className="w-full scroll-smooth text-slate-800 dark:text-neutral-100 font-sans antialiased max-md:pb-0 md:pb-content">
       {holidaysFocus && (
         <div className="mb-3 flex items-center gap-2">
           <button
@@ -655,17 +696,37 @@ export default function StaffPersonalDashboard({
                 {activeTab === 'turni' && renderShifts()}
                 {activeTab === 'ferie' && renderHolidays()}
                 {activeTab === 'timesheet' && (
-                  <Suspense fallback={tabSpinner}>
-                    <Timesheets />
-                  </Suspense>
+                  isMobile ? (
+                    <MobileTimesheet 
+                      shifts={visibleShifts} 
+                      punchRecords={punchRecords} 
+                      user={displayUser} 
+                      breakRules={breakRules} 
+                      breakComputeOpts={breakComputeOpts} 
+                    />
+                  ) : (
+                    <Suspense fallback={tabSpinner}>
+                      <Timesheets />
+                    </Suspense>
+                  )
                 )}
                 {activeTab === 'reports' && (
+                  <div className="min-h-0 overflow-y-auto overscroll-y-contain scroll-smooth [-webkit-overflow-scrolling:touch] pb-1">
+                    <Suspense fallback={tabSpinner}>
+                      <Statistics />
+                    </Suspense>
+                  </div>
+                )}
+                {activeTab === 'profile' && (
+                  <div className="space-y-4">
+                    <ProfileNavTabPanel onLogout={onLogout} />
+                  </div>
+                )}
+                {activeTab === 'settings' && (
                   <Suspense fallback={tabSpinner}>
-                    <Statistics />
+                    {renderProfile()}
                   </Suspense>
                 )}
-                {activeTab === 'profile' && <ProfileNavTabPanel onLogout={onLogout} />}
-                {activeTab === 'settings' && renderProfile()}
               </>
             )}
           </motion.div>

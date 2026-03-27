@@ -145,12 +145,12 @@ export function getAppNavTabTitle(t: Record<string, string>, tab: AppNavTab): st
 }
 
 /** Ordine bottom bar / PWA: allineato all’anteprima “Cosa vede chi”. */
-const UNIFIED_NAV_ORDER: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'profile', 'settings'];
+const UNIFIED_NAV_ORDER: AppNavTab[] = ['home', 'turni', 'ferie', 'reports', 'timesheet', 'profile', 'settings'];
 
 /**
- * Staff mobile: ferie prima dei turni; Ore in barra se `view_stats` (stesso set di tab di `getUnifiedNavTabs`, solo ordine diverso).
+ * Staff mobile: ordine richiesto [Home] [Turni] [Ferie] [Ore] [Presenze] [Profilo]
  */
-const STAFF_BOTTOM_NAV_ORDER: AppNavTab[] = ['home', 'ferie', 'turni', 'timesheet', 'reports', 'profile', 'settings'];
+const STAFF_BOTTOM_NAV_ORDER: AppNavTab[] = ['home', 'turni', 'ferie', 'reports', 'timesheet', 'profile'];
 
 /**
  * Voci bottom bar: stessa struttura per tutti i profili (come PWA).

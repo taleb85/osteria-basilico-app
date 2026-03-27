@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Settings, LayoutList, Menu, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -7,6 +7,9 @@ import { getTranslations } from '../utils/translations';
 import SettingsPage from './SettingsPage';
 import ImpostazioniPage from './ImpostazioniPage';
 import ProfileVisibilityHub from './ProfileVisibilityHub';
+
+import BottomNav from './BottomNav';
+import { getBottomNavTabsForMainApp } from '../utils/enabledModules';
 
 type AdminTab = 'profili' | 'visibilita' | 'impostazioni';
 
@@ -70,6 +73,11 @@ export default function AdminLayout() {
       setActiveTab('profili');
     }
   }, [fullAdminNav, activeTab]);
+
+  const bottomNavTabs = useMemo(() => {
+    if (!currentUser) return ['home'];
+    return getBottomNavTabsForMainApp(currentUser, true, null);
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen min-h-[100dvh] w-full bg-[#f8fafc] dark:bg-[#0a0a0a] text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased flex flex-col safe-area-pad overflow-x-clip">
@@ -168,7 +176,7 @@ export default function AdminLayout() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto pb-24">
         {/* Montate tutte e tre: evita reset di stato non salvato cambiando tab o uscendo/entrando dalla stessa scheda */}
         <div className={activeTab === 'profili' ? 'block' : 'hidden'} aria-hidden={activeTab !== 'profili'}>
           <SettingsPage />
@@ -180,6 +188,14 @@ export default function AdminLayout() {
           <ImpostazioniPage onOpenProfilesTab={() => handleTabChange('profili')} />
         </div>
       </main>
+
+      <BottomNav
+        activeTab="settings"
+        onTabChange={(tab) => {
+          if (tab !== 'settings') navigate('/app');
+        }}
+        visibleTabs={bottomNavTabs as any}
+      />
     </div>
   );
 }

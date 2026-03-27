@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { LogOut, Loader2 } from 'lucide-react';
+import { LogOut, Loader2, Cloud, CloudOff } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { getRoleScopeHint } from '../utils/roleScopeHint';
@@ -32,24 +32,10 @@ function ThemeContrastIcon({ mode, className }: { mode: 'light' | 'dark'; classN
         opacity: activeLight ? 1 : 0,
         transform: activeLight ? 'rotate(0deg) scale(1)' : 'rotate(-100deg) scale(0.82)',
       }}>
-        <defs>
-          <clipPath id={lL}>
-            <rect x="0" y="0" width="12" height="24" />
-          </clipPath>
-          <clipPath id={lR}>
-            <rect x="12" y="0" width="12" height="24" />
-          </clipPath>
-        </defs>
         <circle cx="12" cy="12" r="9.15" fill="#cbd5e1" />
-        <g clipPath={`url(#${lR})`}>
-          <circle cx="12" cy="12" r="8.65" fill="#ffffff" />
-        </g>
-        <g clipPath={`url(#${lL})`}>
-          <circle cx="12" cy="12" r="3.95" fill="#ffffff" />
-        </g>
-        <g clipPath={`url(#${lR})`}>
-          <circle cx="12" cy="12" r="3.95" fill="#94a3b8" />
-        </g>
+        <path d="M12 3.35C16.7773 3.35 20.65 7.22274 20.65 12C20.65 16.7773 16.7773 20.65 12 20.65V3.35Z" fill="white" />
+        <circle cx="12" cy="12" r="3.95" fill="white" />
+        <path d="M12 8.05C14.1815 8.05 15.95 9.81848 15.95 12C15.95 14.1815 14.1815 15.95 12 15.95V8.05Z" fill="#94a3b8" />
         <circle cx="12" cy="12" r="9.15" fill="none" stroke="#ffffff" strokeWidth="2.35" />
       </svg>
 
@@ -58,27 +44,11 @@ function ThemeContrastIcon({ mode, className }: { mode: 'light' | 'dark'; classN
         opacity: activeLight ? 0 : 1,
         transform: activeLight ? 'rotate(100deg) scale(0.82)' : 'rotate(0deg) scale(1)',
       }}>
-        <defs>
-          <clipPath id={dL}>
-            <rect x="0" y="0" width="12" height="24" />
-          </clipPath>
-          <clipPath id={dR}>
-            <rect x="12" y="0" width="12" height="24" />
-          </clipPath>
-        </defs>
         <circle cx="12" cy="12" r="9.85" fill="#ffffff" />
-        <g clipPath={`url(#${dL})`}>
-          <circle cx="12" cy="12" r="6.55" fill="#0a0a0a" />
-        </g>
-        <g clipPath={`url(#${dR})`}>
-          <circle cx="12" cy="12" r="6.55" fill="#ffffff" />
-        </g>
-        <g clipPath={`url(#${dL})`}>
-          <circle cx="12" cy="12" r="3.75" fill="#ffffff" />
-        </g>
-        <g clipPath={`url(#${dR})`}>
-          <circle cx="12" cy="12" r="3.75" fill="#0a0a0a" />
-        </g>
+        <path d="M12 5.45C15.6175 5.45 18.55 8.38254 18.55 12C18.55 15.6175 15.6175 18.55 12 18.55V5.45Z" fill="white" />
+        <path d="M12 5.45C8.38254 5.45 5.45 8.38254 5.45 12C5.45 15.6175 8.38254 18.55 12 18.55V5.45Z" fill="#0a0a0a" />
+        <path d="M12 8.25C14.0711 8.25 15.75 9.92893 15.75 12C15.75 14.0711 14.0711 15.75 12 15.75V8.25Z" fill="#0a0a0a" />
+        <path d="M12 8.25C9.92893 8.25 8.25 9.92893 8.25 12C8.25 14.0711 9.92893 15.75 12 15.75V8.25Z" fill="white" />
       </svg>
     </span>
   );
@@ -119,7 +89,9 @@ export default function MobileProfileHeader({
     isGlobalRefreshing,
     postRefreshLocked,
     updateUserPreferences,
+    featureFlags,
   } = useApp();
+  const isSynced = !!featureFlags && Object.keys(featureFlags).length > 0;
   const showDataSyncIndicator =
     dataSyncInProgress && !isGlobalRefreshing && !postRefreshLocked;
   const t = getTranslations(effectiveLanguage);
@@ -142,107 +114,86 @@ export default function MobileProfileHeader({
   const dateLong = format(now, 'EEEE d MMMM', { locale });
 
   const shellClass = parentProvidesCardShell
-    ? `w-full ${showOnDesktop ? '' : 'md:hidden'} ${compact ? 'p-2' : ''}`
-    : `relative surface-glass overflow-hidden shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] ${embeddedInAppHeader ? 'mb-0' : 'mb-2'} ${showOnDesktop ? '' : 'md:hidden'} ${compact ? 'p-2' : ''}`;
+    ? `w-full ${compact ? 'p-2' : ''}`
+    : `relative surface-glass overflow-hidden shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] ${embeddedInAppHeader ? 'mb-0' : 'mb-2'} ${showOnDesktop ? '' : 'md:hidden'} ${compact ? 'p-2' : ''} flex`;
 
-  const body = compact ? (
-    <div className="flex items-start justify-between gap-2">
-      <div className="min-w-0 flex-1 pr-1">
-        <h1 className="font-logo-snell text-[19px] sm:text-[22px] text-accent dark:text-white tracking-tight leading-tight truncate">
-          Osteria Basilico
-        </h1>
-        <h2 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-neutral-100 tracking-tight leading-tight truncate mt-0.5">
-          {pageTitle}
-        </h2>
-        {activeTab === 'home' &&
-          currentUser.role !== 'admin' &&
-          (() => {
-            const scope = getRoleScopeHint(currentUser.role, tr);
-            return scope ? (
-              <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-neutral-400 leading-snug mt-1 line-clamp-2 pr-1">
-                {scope}
-              </p>
-            ) : null;
-          })()}
-      </div>
-      <p className="hidden md:block flex-shrink-0 text-[10px] text-slate-500 dark:text-neutral-400 tabular-nums text-right leading-tight">
-        {timeStr}
-        <span className="text-slate-300 dark:text-neutral-600 mx-0.5">·</span>
-        {dateStr}
-      </p>
-    </div>
-  ) : (
+  const body = (
     <>
-      <div className="px-3 sm:px-4 py-2.5">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
-          <div className="min-w-0 w-full md:flex-1">
-            <h1 className="font-logo-snell text-[clamp(1.05rem,4.2vw,1.4375rem)] sm:text-[23px] text-accent dark:text-white tracking-tight leading-[1.15] break-words hyphens-auto">
+      <div className="px-3 sm:px-4 py-2">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="font-logo-snell text-[clamp(1.05rem,4.2vw,1.4375rem)] sm:text-[23px] text-accent dark:text-white tracking-tight leading-none break-words hyphens-auto font-normal">
               Osteria Basilico
             </h1>
-            <h2 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-neutral-100 tracking-tight leading-snug mt-0.5 line-clamp-2 md:line-clamp-1 md:truncate">
+            <h2 className="text-[11px] sm:text-[12px] font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight leading-tight mt-0.5 truncate uppercase">
               {pageTitle}
             </h2>
-            {activeTab === 'home' &&
-              currentUser.role !== 'admin' &&
-              (() => {
-                const scope = getRoleScopeHint(currentUser.role, tr);
-                return scope ? (
-                  <p className="text-[9px] sm:text-[10px] text-slate-600 dark:text-neutral-400 leading-snug mt-1 line-clamp-3">
-                    {scope}
-                  </p>
-                ) : null;
-              })()}
           </div>
 
-          {/* Una sola toolbar: su mobile senza orologio; da tablet/desktop ora compatta + stesse icone (logout come pulsante piccolo, non banner rosso). */}
-          <div className="flex w-full min-w-0 items-center justify-end gap-1.5 border-t border-slate-100/90 pt-2.5 dark:border-white/10 sm:gap-2 md:w-auto md:flex-shrink-0 md:justify-end md:border-t-0 md:pt-0">
-            <div className="mr-2 hidden shrink-0 text-right md:block">
-              <p className="text-[13px] font-semibold tabular-nums leading-none text-slate-800 dark:text-neutral-200">{timeStr}</p>
+          {/* Toolbar: sempre visibile con orologio, avatar e azioni. */}
+          <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-1.5">
+            <div className="mr-1 shrink-0 text-right">
+              <p className="text-[12px] sm:text-[13px] font-semibold tabular-nums leading-none text-slate-800 dark:text-neutral-200">{timeStr}</p>
               <p
-                className="mt-0.5 text-[10px] leading-tight text-slate-600 dark:text-neutral-400 whitespace-nowrap"
+                className="mt-0.5 text-[9px] sm:text-[10px] leading-tight text-slate-600 dark:text-neutral-400 whitespace-nowrap"
                 title={dateLong}
               >
                 {dateStr}
               </p>
             </div>
-            {!hideToolbarAvatar && (
+            {/* {!hideToolbarAvatar && (
               <UserAvatarMenu variant="toolbar" onLogout={hideHeaderLogout ? onLogout : undefined} />
-            )}
-            <NotificationCenter denseTrigger />
-            {showDataSyncIndicator && (
-              <span
-                className="flex shrink-0 items-center justify-center min-h-[40px] min-w-[40px] rounded-lg border border-accent/20 dark:border-accent-light/25 bg-accent/[0.06] dark:bg-accent-light/10 text-accent dark:text-accent-light"
-                role="status"
-                aria-live="polite"
-                aria-atomic="true"
-                aria-label={`${t.data_sync_banner_line1}. ${t.data_sync_banner_line2}`}
-                title={`${t.data_sync_banner_line1} — ${t.data_sync_banner_line2}`}
-              >
-                <Loader2 className="h-[18px] w-[18px] animate-spin" aria-hidden />
+            )} */}
+            <button
+              type="button"
+              onClick={toggleUiTheme}
+              title={themeToggleTitle}
+              aria-label={themeToggleTitle}
+              className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 surface-ghost-interactive transition-colors touch-manipulation text-slate-700 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-white"
+            >
+              <ThemeContrastIcon mode={uiTheme} className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center surface-glass-sm px-1.5 surface-ghost-interactive">
+              <NotificationCenter denseTrigger />
+            </div>
+            <div
+              title={isSynced ? 'Sincronizzato' : 'Offline'}
+              className={`flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 transition-all duration-300 ${
+                isSynced ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-neutral-500'
+              }`}
+            >
+              {isSynced ? (
+                <Cloud className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
+              ) : (
+                <CloudOff className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
+              )}
+              <span className="text-[7px] sm:text-[8px] font-bold tracking-tight uppercase">
+                {isSynced ? 'OK' : 'OFF'}
               </span>
-            )}
+            </div>
             {onLogout && !hideHeaderLogout ? (
               <button
                 type="button"
                 onClick={onLogout}
                 title={t.header_logout}
                 aria-label={t.header_logout}
-                className="relative flex flex-shrink-0 items-center justify-center border transition-colors touch-manipulation min-h-[40px] min-w-[40px] rounded-lg border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-200 hover:text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
+                className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 transition-colors touch-manipulation"
               >
-                <LogOut size={15} strokeWidth={2} aria-hidden />
+                <LogOut size={14} strokeWidth={2} aria-hidden />
               </button>
             ) : null}
-            <button
-              type="button"
-              onClick={toggleUiTheme}
-              title={themeToggleTitle}
-              aria-label={themeToggleTitle}
-              className="relative flex flex-shrink-0 items-center justify-center border transition-colors touch-manipulation min-h-[40px] min-w-[40px] rounded-lg border-slate-200/90 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-white/15 dark:hover:bg-neutral-700 dark:hover:text-white"
-            >
-              <ThemeContrastIcon mode={uiTheme} className="h-6 w-6 sm:h-7 sm:w-7" />
-            </button>
           </div>
         </div>
+        {activeTab === 'home' &&
+          currentUser.role !== 'admin' &&
+          (() => {
+            const scope = getRoleScopeHint(currentUser.role, tr);
+            return scope ? (
+              <p className="text-[9px] sm:text-[10px] text-slate-600 dark:text-neutral-400 leading-snug mt-1 line-clamp-1 italic opacity-80">
+                {scope}
+              </p>
+            ) : null;
+          })()}
       </div>
     </>
   );

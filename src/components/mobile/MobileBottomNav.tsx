@@ -1,17 +1,32 @@
 import { useLayoutEffect, useRef } from 'react';
-import { Home, Calendar, Coffee, User } from 'lucide-react';
+import { Home, Calendar, Palmtree, ClipboardList, Clock, User } from 'lucide-react';
 import type { AppNavTab } from '../../utils/enabledModules';
+import { useApp } from '../../context/AppContext';
 
 export interface MobileBottomNavProps {
   activeTab: AppNavTab;
   onNavigate: (tab: AppNavTab) => void;
   /** Tab visibili nell’app principale: nasconde le voci non abilitate. */
   visibleTabs: AppNavTab[];
-  labels: { home: string; calendar: string; coffee: string; profile: string };
+  labels: { 
+    home: string; 
+    calendar: string; 
+    coffee: string; 
+    profile: string;
+    reports?: string;
+    timesheet?: string;
+  };
+  onLogout?: () => void;
 }
 
+/**
+ * Mobile Bottom Navigation: White PC Style (Solid White, Fixed at Bottom).
+ * Design: Foto 2 Style (Full width, white background, border-t).
+ * Icons: Home, Turni, Ferie, Ore, Presenze, Profilo.
+ */
 export default function MobileBottomNav({ activeTab, onNavigate, visibleTabs, labels }: MobileBottomNavProps) {
   const navRef = useRef<HTMLElement>(null);
+  const { featureFlags, currentUser } = useApp();
 
   useLayoutEffect(() => {
     const el = navRef.current;
@@ -31,49 +46,56 @@ export default function MobileBottomNav({ activeTab, onNavigate, visibleTabs, la
     };
   }, [visibleTabs, activeTab]);
 
-  const vis = new Set(visibleTabs);
+  const profileDisplayName = (currentUser?.first_name?.trim() || currentUser?.email?.split('@')[0] || 'Utente').toUpperCase();
 
-  const items: { tab: AppNavTab; icon: typeof Home; label: string }[] = [
+  // Ordine rigoroso: Home, Turni, Ferie, Ore, Presenze, Profilo
+  const items: { tab: AppNavTab; icon: any; label: string; feature?: string }[] = [
     { tab: 'home', icon: Home, label: labels.home },
     { tab: 'turni', icon: Calendar, label: labels.calendar },
-    { tab: 'ferie', icon: Coffee, label: labels.coffee },
-    { tab: 'profile', icon: User, label: labels.profile },
+    { tab: 'ferie', icon: Palmtree, label: labels.coffee, feature: 'staff_requests' },
+    { tab: 'reports', icon: ClipboardList, label: labels.reports || 'Ore' },
+    { tab: 'timesheet', icon: Clock, label: labels.timesheet || 'Presenze' },
+    { tab: 'profile', icon: User, label: profileDisplayName },
   ];
 
-  const shown = items.filter((i) => vis.has(i.tab));
+  const vis = new Set(visibleTabs);
+  const shown = items.filter((i) => {
+    if (i.tab === 'profile' || i.tab === 'home') return true;
+    if (!vis.has(i.tab)) return false;
+    if (i.feature && featureFlags?.[i.feature] === false) return false;
+    return true;
+  });
+
   if (shown.length === 0) return null;
 
   return (
     <nav
       ref={navRef}
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-white/95 shadow-xl backdrop-blur-md dark:border-white/10 dark:bg-neutral-950/95 dark:shadow-[0_-8px_24px_-6px_rgba(0,0,0,0.4)] md:hidden"
-      style={{
-        paddingBottom: 'max(10px, env(safe-area-inset-bottom, 0px))',
-        paddingLeft: 'max(12px, env(safe-area-inset-left, 0px))',
-        paddingRight: 'max(12px, env(safe-area-inset-right, 0px))',
-      }}
-      aria-label="Navigazione rapida"
+      className="fixed bottom-0 left-0 right-0 h-20 bg-white dark:bg-neutral-900 border-t border-gray-100 dark:border-white/5 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] flex justify-around items-center px-4 z-[9999] md:hidden safe-area-pb"
+      aria-label="Navigazione principale mobile"
     >
-      <div className="mx-auto flex max-w-lg items-stretch justify-around gap-1 pt-2">
-        {shown.map(({ tab, icon: Icon, label }) => {
-          const on = activeTab === tab;
-          return (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => onNavigate(tab)}
-              className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 transition-colors ${
-                on
-                  ? 'text-accent dark:text-accent-light'
-                  : 'text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-neutral-200'
-              }`}
-            >
-              <Icon className="h-6 w-6 shrink-0" strokeWidth={on ? 2.5 : 2} aria-hidden />
-              <span className="max-w-full truncate px-0.5 text-[10px] font-bold">{label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {shown.map(({ tab, icon: Icon, label }) => {
+        const isActive = activeTab === tab;
+        return (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => onNavigate(tab)}
+            className={`flex flex-col items-center justify-center flex-1 transition-colors duration-200 gap-1.5 ${
+              isActive ? 'text-[#2D5A27] dark:text-emerald-400' : 'text-[#94a3b8]'
+            }`}
+          >
+            <Icon
+              className={`h-6 w-6 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}
+              strokeWidth={isActive ? 2.5 : 2}
+              aria-hidden
+            />
+              <span className={`text-[11px] font-bold uppercase tracking-tight truncate w-full text-center font-sans ${isActive ? 'opacity-100' : 'opacity-70'}`}>
+                {label}
+              </span>
+          </button>
+        );
+      })}
     </nav>
   );
 }

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -29,7 +31,7 @@
     --surface-card: #ffffff;
     /** Offset sotto l’header sticky app (MainApp lo aggiorna in px via ResizeObserver). */
     --app-sticky-header-offset: calc(max(6px, env(safe-area-inset-top, 0px)) + 5rem);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
     /** Densità UI (margini contenuti): `LayoutPresetProvider` + `data-layout-effective` su `<html>`. */
     --layout-app-px: 1rem;
@@ -90,7 +92,7 @@
   }
 
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: #f8fafc !important;
@@ -513,12 +515,16 @@
    * Niente `min-h-full` sul wrapper scheda o si crea vuoto enorme.
    */
   .pb-content {
-    padding-bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 80px + 0.75rem);
+    padding-bottom: calc(
+      max(10px, env(safe-area-inset-bottom, 0px)) + var(--app-bottom-nav-offset, 80px) + 0.75rem
+    );
   }
 
   @media (min-width: 640px) {
     .pb-content {
-      padding-bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 84px + 0.75rem);
+      padding-bottom: calc(
+        max(10px, env(safe-area-inset-bottom, 0px)) + var(--app-bottom-nav-offset, 84px) + 0.75rem
+      );
     }
   }
 

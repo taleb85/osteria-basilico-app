@@ -1,16 +1,27 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { isPurelyManagementRole } from '../../utils/permissions';
+import { isUiWidgetVisible } from '../../utils/uiScreenWidgets';
+import { lightHaptic } from '../../utils/hapticFeedback';
+import ProfileNavTabPanel from '../ProfileNavTabPanel';
+import { getBottomNavTabsForMainApp, type AppNavTab } from '../../utils/enabledModules';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { format, isValid, parseISO } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LogOut, Moon, Play, Square, UtensilsCrossed, X } from 'lucide-react';
+import { LogOut, Moon, X } from 'lucide-react';
 import type { User, Shift, PunchRecord, Language } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { getTranslations, getDateLocale } from '../../utils/translations';
 import { usePunchPresenceVerification } from '../../hooks/usePunchPresenceVerification';
 import { TimeInputField } from '../ui/TimeInputField';
 import { safeFormatDate } from '../../utils/safeDateFormat';
-import type { AppNavTab } from '../../utils/enabledModules';
-import MobileStatsCards from './MobileStatsCards';
-import MobileBottomNav from './MobileBottomNav';
+import MobileHome from './MobileHome';
+import { calculateUserStats } from '../../utils/stats';
+import { isUserInRestaurantRange, getCurrentPositionCoords } from '../../utils/geo';
+
+const Timesheets = lazy(() => import('../Timesheets'));
+const HolidayRequests = lazy(() => import('../HolidayRequests'));
+const Statistics = lazy(() => import('../Statistics'));
+const SettingsPage = lazy(() => import('../SettingsPage'));
+const WeeklyShiftsTable = lazy(() => import('../WeeklyShiftsTable'));
 
 function timeToMins(t: string): number {
   const [h, m] = (t || '00:00').slice(0, 5).split(':').map(Number);
@@ -69,14 +80,9 @@ export interface MobileStaffDashboardProps {
   now: Date;
   myShifts: Shift[];
   punchRecords: PunchRecord[];
-  weeklyMinutes: number;
-  monthlyMinutes: number;
-  monthDaysWorked: number;
-  weekCapMinutes: number;
-  visibleNavTabs: AppNavTab[];
   onTabChange?: (tab: AppNavTab) => void;
   greetingText: string;
-  /** Se true, mostra la barra icone fissa (la BottomNav globale va nascosta su mobile da App). */
+  /** Se true, mostra la barra icone fissa (di default la barra è nel genitore `StaffPersonalDashboard`). */
   showMobileBottomNav?: boolean;
   activeTab: AppNavTab;
 }
@@ -88,20 +94,25 @@ export default function MobileStaffDashboard({
   now,
   myShifts,
   punchRecords,
-  weeklyMinutes,
-  monthlyMinutes,
-  monthDaysWorked,
-  weekCapMinutes,
-  visibleNavTabs,
   onTabChange,
   greetingText,
-  showMobileBottomNav = true,
+  showMobileBottomNav = false,
   activeTab,
 }: MobileStaffDashboardProps) {
   const t = getTranslations(language);
   const tv = t as Record<string, string>;
   const locale = getDateLocale(language);
-  const { addPunchRecord, updatePunchRecord, showError, showSuccess } = useApp();
+  const { 
+    addPunchRecord, 
+    updatePunchRecord, 
+    showError, 
+    showSuccess, 
+    featureFlags, 
+    roleTemplatesRevision, 
+    breakRules,
+    geofenceConfig,
+    geofenceEffectiveConfig 
+  } = useApp();
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(language);
   const [punchBusy, setPunchBusy] = useState(false);
   const [tick, setTick] = useState(0);
@@ -119,14 +130,18 @@ export default function MobileStaffDashboard({
     return () => window.clearInterval(id);
   }, []);
 
+  const stats = useMemo(() => {
+    return calculateUserStats(user, myShifts, punchRecords, now, breakRules, {
+      autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false,
+    });
+  }, [user, myShifts, punchRecords, now, breakRules, featureFlags]);
+
   const todayWorkShifts = useMemo(
     () =>
       myShifts
         .filter(
           (s) =>
-            s.date === todayStr &&
-            (s.approval_status === 'confirmed' || s.approval_status === 'approved') &&
-            s.approval_status !== 'absent'
+            s.date === todayStr && (s.approval_status === 'confirmed' || s.approval_status === 'approved')
         )
         .sort((a, b) => a.start_time.localeCompare(b.start_time)),
     [myShifts, todayStr]
@@ -159,10 +174,12 @@ export default function MobileStaffDashboard({
   const nowM = now.getHours() * 60 + now.getMinutes();
 
   const shiftForStart = useMemo(() => {
+    const nowM = now.getHours() * 60 + now.getMinutes();
     for (const e of enriched) {
       if (e.punchIn) continue;
       const startM = timeToMins(e.shift.start_time);
-      if (Math.abs(nowM - startM) <= WINDOW_MIN || (nowM >= startM - 30 && nowM <= timeToMins((e.shift.end_time || '23:59').slice(0, 5)) + 30)) {
+      // Finestra più ampia per il debug o flessibilità: 2 ore prima o durante il turno
+      if (Math.abs(nowM - startM) <= 120 || (nowM >= startM - 60 && nowM <= timeToMins((e.shift.end_time || '23:59').slice(0, 5)) + 60)) {
         return e.shift;
       }
     }
@@ -170,7 +187,7 @@ export default function MobileStaffDashboard({
       if (!e.punchIn) return e.shift;
     }
     return null;
-  }, [enriched, nowM]);
+  }, [enriched, now]);
 
   const canStart = !!shiftForStart && !punchBusy;
   const canPause =
@@ -184,8 +201,32 @@ export default function MobileStaffDashboard({
     !inProgress.actualEnd &&
     !punchBusy;
 
+  const checkGeofence = useCallback(async () => {
+    if (featureFlags['geofence_punch'] === false) return true;
+    const config = geofenceEffectiveConfig || geofenceConfig;
+    if (!config) return true;
+    try {
+      const pos = await getCurrentPositionCoords();
+      const { inRange } = isUserInRestaurantRange(pos.lat, pos.lng, config);
+      if (!inRange) {
+        showError?.(t.punch_error_geofence || 'Sei troppo lontano dal ristorante.');
+        return false;
+      }
+      return true;
+    } catch (err) {
+      showError?.(t.punch_error_geo_denied || 'Impossibile verificare la posizione.');
+      return false;
+    }
+  }, [featureFlags, geofenceConfig, geofenceEffectiveConfig, showError, t]);
+
   const handleStart = useCallback(async () => {
     if (!shiftForStart) return;
+    if (featureFlags['maintenance_mode'] === true && user.role !== 'admin') {
+      showError?.(t.maintenance_mode_active || 'Sistema in manutenzione.');
+      return;
+    }
+    if (!(await checkGeofence())) return;
+    lightHaptic();
     setPunchBusy(true);
     try {
       let presenceProof: string | undefined;
@@ -212,10 +253,16 @@ export default function MobileStaffDashboard({
     } finally {
       setPunchBusy(false);
     }
-  }, [shiftForStart, user.id, addPunchRecord, requestProof, showError, showSuccess, t]);
+  }, [shiftForStart, user.id, addPunchRecord, requestProof, showError, showSuccess, t, checkGeofence]);
 
   const handlePauseOut = useCallback(async () => {
     if (!inProgress?.shift || inProgress.shift.type !== 'lunch') return;
+    if (featureFlags['maintenance_mode'] === true && user.role !== 'admin') {
+      showError?.(t.maintenance_mode_active || 'Sistema in manutenzione.');
+      return;
+    }
+    if (!(await checkGeofence())) return;
+    lightHaptic();
     setPunchBusy(true);
     try {
       let presenceProof: string | undefined;
@@ -242,10 +289,11 @@ export default function MobileStaffDashboard({
     } finally {
       setPunchBusy(false);
     }
-  }, [inProgress, user.id, addPunchRecord, requestProof, showError, showSuccess, t, tv.mobile_dash_pause_done]);
+  }, [inProgress, user.id, addPunchRecord, requestProof, showError, showSuccess, t, tv.mobile_dash_pause_done, checkGeofence]);
 
   const openDinnerClose = useCallback(() => {
     if (!inProgress?.punchIn || !inProgress.actualStart) return;
+    lightHaptic();
     setClockOutInput((inProgress.shift.end_time || '').slice(0, 5));
     setCloseModal({
       shiftId: inProgress.shift.id,
@@ -257,6 +305,12 @@ export default function MobileStaffDashboard({
 
   const handleConfirmClose = useCallback(async () => {
     if (!closeModal || !clockOutInput) return;
+    if (featureFlags['maintenance_mode'] === true && user.role !== 'admin') {
+      showError?.(t.maintenance_mode_active || 'Sistema in manutenzione.');
+      return;
+    }
+    if (!(await checkGeofence())) return;
+    lightHaptic();
     setClosingLoading(true);
     try {
       const [h, m] = clockOutInput.split(':').map(Number);
@@ -271,7 +325,7 @@ export default function MobileStaffDashboard({
     } finally {
       setClosingLoading(false);
     }
-  }, [closeModal, clockOutInput, todayStr, updatePunchRecord, showSuccess, showError, t]);
+  }, [closeModal, clockOutInput, todayStr, updatePunchRecord, showSuccess, showError, t, checkGeofence]);
 
   const statsLabels = {
     title: tv.mobile_dash_numbers ?? 'I miei numeri',
@@ -280,90 +334,121 @@ export default function MobileStaffDashboard({
     daysWorked: tv.mobile_dash_days_worked ?? 'Giorni lavorati',
   };
 
-  const navLabels = {
-    home: t.sidebar_dashboard,
-    calendar: t.sidebar_shifts,
-    coffee: tv.mobile_nav_break ?? t.sidebar_holidays,
-    profile: (tv.bottom_nav_profile_short ?? t.sidebar_profile) as string,
+  const staffMobileBottomTabs = useMemo(() => {
+    void roleTemplatesRevision;
+    return getBottomNavTabsForMainApp(user, false, featureFlags);
+  }, [user, featureFlags, roleTemplatesRevision]);
+
+  const mobileNavTabLabels = useMemo((): Partial<Record<AppNavTab, string>> => {
+    const tr = t as Record<string, string>;
+    return {
+      home: t.sidebar_dashboard,
+      turni: t.sidebar_shifts,
+      ferie: t.sidebar_holidays,
+      timesheet: t.sidebar_attendance,
+      reports: t.sidebar_statistics,
+      profile: tr.bottom_nav_profile_short ?? t.sidebar_profile,
+      settings: tr.bottom_nav_settings_short ?? t.sidebar_admin,
+    };
+  }, [t]);
+
+  const shiftTimeHint =
+    inProgress && elapsedLabel
+      ? `${inProgress.shift.start_time.slice(0, 5)} – ${inProgress.shift.end_time?.slice(0, 5) ?? '…'} · ${inProgress.shift.type === 'lunch' ? t.lunch : t.dinner}`
+      : null;
+
+  const uiW = useCallback((key: string) => isUiWidgetVisible(user, key), [user]);
+
+  const tabSpinner = (
+    <div className="flex items-center justify-center min-h-[200px]">
+      <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'home':
+        return (
+          <MobileHome
+            greetingText={greetingText}
+            todayLabel={safeFormatDate(todayStr, 'EEEE d MMMM', { locale })}
+            statsLabels={statsLabels}
+            weeklyMinutes={stats.weeklyMinutes}
+            monthlyMinutes={stats.monthlyMinutes}
+            monthDaysWorked={stats.monthDaysWorked}
+            weekCapMinutes={40 * 60}
+            inProgress={inProgress}
+            elapsedLabel={elapsedLabel}
+            todayWorkShiftsCount={todayWorkShifts.length}
+            noShiftsHint={t.no_shifts_scheduled}
+            tapStartHint={tv.mobile_dash_tap_start ?? 'Tocca Inizia per timbrare l’entrata.'}
+            shiftTimeHint={shiftTimeHint}
+            statusInShift={t.home_status_in_shift}
+            savingLabel={t.saving}
+            startLabel={tv.mobile_dash_start ?? 'Inizia'}
+            pauseLabel={tv.mobile_dash_pause ?? 'Pausa'}
+            endLabel={tv.mobile_dash_end ?? 'Fine turno'}
+            canStart={canStart}
+            canPause={canPause}
+            canEndDinner={canEndDinner}
+            punchBusy={punchBusy}
+            onStart={() => void handleStart()}
+            onPause={() => void handlePauseOut()}
+            onEndDinner={openDinnerClose}
+            onNavigateToTimesheet={() => onTabChange?.('timesheet')}
+            todayWorkShifts={todayWorkShifts}
+          />
+        );
+      case 'turni':
+        return (
+          <Suspense fallback={tabSpinner}>
+            <WeeklyShiftsTable filterUserId={user.id} />
+          </Suspense>
+        );
+      case 'ferie':
+        return (
+          <Suspense fallback={tabSpinner}>
+            <HolidayRequests />
+          </Suspense>
+        );
+      case 'timesheet':
+        return (
+          <Suspense fallback={tabSpinner}>
+            <Timesheets />
+          </Suspense>
+        );
+      case 'reports':
+        return (
+          <Suspense fallback={tabSpinner}>
+            <Statistics />
+          </Suspense>
+        );
+      case 'profile':
+        return <ProfileNavTabPanel onLogout={() => {}} />;
+      case 'settings':
+        return (
+          <Suspense fallback={tabSpinner}>
+            <SettingsPage />
+          </Suspense>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="flex min-h-0 flex-col gap-4 pb-4 font-sans">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-neutral-100">{greetingText}</h1>
-        <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-neutral-400">
-          {safeFormatDate(todayStr, 'EEEE d MMMM', { locale })}
-        </p>
-      </div>
-
-      <div>
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-neutral-400">
-          {statsLabels.title}
-        </p>
-        <MobileStatsCards
-          weekWorkedMins={weeklyMinutes}
-          weekCapMins={weekCapMinutes}
-          monthWorkedMins={monthlyMinutes}
-          monthDaysWorked={monthDaysWorked}
-          labels={statsLabels}
-        />
-      </div>
-
-      <div className="rounded-3xl border border-slate-200/90 bg-white/95 p-4 shadow-xl dark:border-white/10 dark:bg-neutral-900/95 dark:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.45)]">
-        {inProgress && elapsedLabel ? (
-          <div className="mb-4 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-300">
-              {t.home_status_in_shift}
-            </p>
-            <p className="mt-1 font-mono text-5xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">
-              {elapsedLabel}
-            </p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-neutral-400">
-              {inProgress.shift.start_time.slice(0, 5)} – {inProgress.shift.end_time?.slice(0, 5) ?? '…'} ·{' '}
-              {inProgress.shift.type === 'lunch' ? t.lunch : t.dinner}
-            </p>
-          </div>
-        ) : (
-          <p className="mb-3 text-center text-sm font-medium text-slate-600 dark:text-neutral-300">
-            {todayWorkShifts.length === 0 ? t.no_shifts_scheduled : tv.mobile_dash_tap_start ?? 'Tocca Inizia per timbrare l’entrata.'}
-          </p>
-        )}
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <button
-            type="button"
-            disabled={!canStart}
-            onClick={() => void handleStart()}
-            className="flex h-24 flex-col items-center justify-center gap-1 rounded-3xl bg-[#2D5A27] text-white shadow-lg shadow-[#2D5A27]/35 transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 dark:bg-[#3d7a34] dark:shadow-black/30"
-          >
-            <Play className="h-8 w-8 opacity-95" strokeWidth={2.2} fill="currentColor" />
-            <span className="text-sm font-bold">{tv.mobile_dash_start ?? 'Inizia'}</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={!canPause}
-            onClick={() => void handlePauseOut()}
-            className="flex h-24 flex-col items-center justify-center gap-1 rounded-3xl bg-amber-400 text-amber-950 shadow-lg shadow-amber-500/30 transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 dark:bg-amber-500 dark:text-amber-950"
-          >
-            <UtensilsCrossed className="h-8 w-8" strokeWidth={2.2} />
-            <span className="text-sm font-bold">{tv.mobile_dash_pause ?? 'Pausa'}</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={!canEndDinner}
-            onClick={openDinnerClose}
-            className="flex h-24 flex-col items-center justify-center gap-1 rounded-3xl bg-red-600 text-white shadow-lg shadow-red-600/35 transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 dark:bg-red-700"
-          >
-            <Square className="h-8 w-8" strokeWidth={2.2} />
-            <span className="text-sm font-bold">{tv.mobile_dash_end ?? 'Fine turno'}</span>
-          </button>
-        </div>
-        {punchBusy && (
-          <p className="mt-2 text-center text-[11px] font-semibold text-slate-500 dark:text-neutral-400">{t.saving}</p>
-        )}
-      </div>
+    <div className="flex min-h-0 flex-col font-sans">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          {renderContent()}
+        </motion.div>
+      </AnimatePresence>
 
       {presenceModal}
 
@@ -389,7 +474,7 @@ export default function MobileStaffDashboard({
             >
               <div className="mb-4 flex items-start justify-between">
                 <div>
-                  <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-neutral-100">
+                  <h3 className="flex items-center gap-2 text-lg font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight">
                     <Moon className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                     {t.home_modal_close_dinner}
                   </h3>
@@ -448,15 +533,6 @@ export default function MobileStaffDashboard({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {showMobileBottomNav && onTabChange && (
-        <MobileBottomNav
-          activeTab={activeTab}
-          onNavigate={onTabChange}
-          visibleTabs={visibleNavTabs}
-          labels={navLabels}
-        />
-      )}
     </div>
   );
 }

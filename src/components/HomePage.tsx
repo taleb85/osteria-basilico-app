@@ -28,7 +28,7 @@ import { getResolvedStartEndForHours, shiftPastPlannedEndWithoutClockIn } from '
 import { safeFormatDate } from '../utils/safeDateFormat';
 import { TimeInputField } from './ui/TimeInputField';
 import MobileStaffDashboard from './mobile/MobileStaffDashboard';
-import { getUnifiedNavTabs, type AppNavTab } from '../utils/enabledModules';
+import type { AppNavTab } from '../utils/enabledModules';
 
 // ── Board helpers ────────────────────────────────────────────────────────────
 const BOARD_KEY = 'manager_board_note';
@@ -227,8 +227,6 @@ export default function HomePage({
     );
   }, 0);
   const monthDaysWorked = new Set(thisMonthShifts.filter((s) => s.approval_status !== 'absent').map((s) => s.date)).size;
-
-  const homeNavTabs = getUnifiedNavTabs(currentUser, isMgmtUser, featureFlags);
 
   const pendingHolidays = holidays.filter((h) => h.status === 'pending');
   const myApprovedHolidays = holidays
@@ -462,7 +460,7 @@ export default function HomePage({
     const todayShiftsMine = shifts.filter((s) => s.date === todayStr && s.user_id === currentUser.id);
     return (
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
-        <div className="md:hidden">
+        <div className="block md:hidden space-y-4">
           <MobileStaffDashboard
             user={currentUser}
             language={effectiveLanguage}
@@ -474,9 +472,8 @@ export default function HomePage({
             monthlyMinutes={monthlyMinutes}
             monthDaysWorked={monthDaysWorked}
             weekCapMinutes={40 * 60}
-            visibleNavTabs={homeNavTabs}
             onTabChange={onTabChange}
-            greetingText={t.home_greeting.replace('{name}', currentUser.first_name)}
+            greetingText={t.home_greeting.replace('{name}', currentUser.first_name ?? '')}
             showMobileBottomNav={!isMgmtUser}
             activeTab={activeTabProp ?? 'home'}
           />

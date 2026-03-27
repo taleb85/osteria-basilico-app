@@ -140,7 +140,7 @@ export default function UserAvatarMenu({
           onClick={() => setIsOpen(!isOpen)}
           title={titleHint}
           aria-label={`${t.sidebar_profile}: ${titleHint}`}
-          className="relative flex min-h-[40px] min-w-[40px] max-w-[88px] flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 text-slate-700 surface-ghost-interactive dark:text-neutral-200 hover:text-slate-900 dark:hover:text-neutral-50 touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+          className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 text-slate-700 surface-ghost-interactive dark:text-neutral-200 hover:text-slate-900 dark:hover:text-neutral-50 touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
         >
           <span className="text-[14px] font-bold leading-none select-none" aria-hidden>
             {profileInitial}

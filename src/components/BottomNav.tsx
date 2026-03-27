@@ -99,8 +99,8 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     { id: 'home', icon: Home, label: t.sidebar_dashboard },
     { id: 'turni', icon: Calendar, label: t.sidebar_shifts },
     { id: 'ferie', icon: Palmtree, label: t.sidebar_holidays },
-    { id: 'timesheet', icon: ClipboardList, label: t.sidebar_attendance },
     { id: 'reports', icon: Clock, label: t.sidebar_statistics },
+    { id: 'timesheet', icon: ClipboardList, label: t.sidebar_attendance },
     { id: 'profile', icon: User, label: tv.bottom_nav_profile_short ?? t.sidebar_profile },
     { id: 'settings', icon: ShieldCheck, label: t.sidebar_admin },
   ];
@@ -111,7 +111,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   return (
     <nav
       ref={navRef}
-      className={`fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none ${navClassName ?? ''}`}
+      className={`fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none font-sans ${navClassName ?? ''}`}
       style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 0px))',
         paddingLeft: 'max(12px, env(safe-area-inset-left, 0px))',
@@ -119,7 +119,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
       }}
       aria-label="Navigazione principale"
     >
-      <div className="w-full max-w-screen-xl mx-auto pointer-events-auto">
+      <div className="w-full max-w-screen-xl mx-auto pointer-events-auto pb-safe">
         {/* Barra flottante vetro sul brand — `.bottom-nav-glass` in index.css */}
         <div
           className={`bottom-nav-glass w-full rounded-[1.35rem] sm:rounded-[1.75rem] px-1 py-1.5 sm:px-2.5 sm:py-2${
@@ -143,24 +143,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                 id === 'profile' && profileNavLabel
                   ? `${t.sidebar_profile}, ${profileNavLabel}`
                   : displayLabel;
-              const isProfileTab = id === 'profile' && currentUser;
               const over = navOverContent;
-              const profileNameLine =
-                isProfileTab && profileNavLabel ? (
-                  <span
-                    className={`max-w-[4.25rem] sm:max-w-[7.5rem] truncate text-center text-[9px] sm:text-[11px] font-bold uppercase leading-tight tracking-tight ${
-                      over
-                        ? isActive
-                          ? 'text-accent'
-                          : 'text-accent/80'
-                        : isActive
-                          ? 'text-white'
-                          : 'text-white/85'
-                    }`}
-                  >
-                    {profileNavLabel}
-                  </span>
-                ) : null;
 
               return (
                 <button
@@ -169,14 +152,10 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   onClick={() => onTabChange(id)}
                   title={buttonTitle}
                   aria-label={ariaLabel}
-                  className={`keep-white-glass flex flex-1 min-w-0 min-h-[44px] sm:min-h-[48px] rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] ${
+                  className={`keep-white-glass flex flex-1 min-w-0 min-h-[44px] sm:min-h-[48px] rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] items-center justify-center px-0.5 py-1.5 ${
                     over
                       ? 'text-accent/70 hover:bg-accent/12 hover:text-accent focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
                       : 'text-white/[0.78] hover:bg-white/10 hover:text-white/95 focus-visible:ring-white/35 focus-visible:ring-offset-[rgb(45,90,39)]'
-                  } ${
-                    isProfileTab
-                      ? 'flex-col items-center justify-center gap-0.5 px-0.5 py-1 sm:flex-row sm:gap-1.5 sm:px-1.5 sm:py-1.5'
-                      : 'items-center justify-center px-0.5 py-1.5'
                   }`}
                 >
                   {showProfilePic ? (
@@ -229,7 +208,6 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                       aria-hidden
                     />
                   )}
-                  {profileNameLine}
                 </button>
               );
             })}
