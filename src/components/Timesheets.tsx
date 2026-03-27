@@ -720,9 +720,9 @@ export default function Timesheets() {
 
   /** Griglia presenze: larghezze fisse (px) — nome | ogni giorno | colonna totale. */
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  const timesheetGridDayColPx = viewMode === 'month' ? (isMobile ? 110 : 76) : (isMobile ? 140 : 120);
-  const timesheetGridNameColPx = isMobile ? 100 : 80;
-  const timesheetGridTotalColPx = isMobile ? 80 : 60;
+  const timesheetGridDayColPx = viewMode === 'month' ? (isMobile ? 110 : 76) : 120;
+  const timesheetGridNameColPx = 80;
+  const timesheetGridTotalColPx = 60;
   const timesheetGridMinWidthPx =
     timesheetGridNameColPx + weekDays.length * timesheetGridDayColPx + timesheetGridTotalColPx;
 
