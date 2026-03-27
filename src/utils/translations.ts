@@ -897,6 +897,10 @@ const baseIt = {
   ts_drawer_manual_punch_out_date: 'Data uscita',
   ts_drawer_manual_punch_out: 'Ora uscita',
   ts_drawer_manual_punches_save: 'Registra timbrature',
+  ts_week_pdf: 'Week PDF',
+  ts_period_pdf: 'Period PDF',
+  ts_export_week_pdf: 'Esporta PDF settimana corrente',
+  ts_export_period_pdf: 'Esporta PDF intero periodo',
   ts_drawer_delete_punches_btn: 'Elimina timbrature del turno',
   ts_delete_punches_confirm:
     'Eliminare tutte le timbrature collegate a questo turno? L’operazione non può essere annullata.',
@@ -2276,6 +2280,10 @@ const baseEn: Record<string, string> = {
   ts_drawer_manual_punch_out_date: 'Clock-out date',
   ts_drawer_manual_punch_out: 'Clock-out time',
   ts_drawer_manual_punches_save: 'Save clock times',
+  ts_week_pdf: 'Week PDF',
+  ts_period_pdf: 'Period PDF',
+  ts_export_week_pdf: 'Export current week PDF',
+  ts_export_period_pdf: 'Export full period PDF',
   ts_drawer_delete_punches_btn: 'Delete shift clock times',
   ts_delete_punches_confirm:
     'Delete all clock-in/out records linked to this shift? This cannot be undone.',
@@ -3666,6 +3674,10 @@ const baseEs: Record<string, string> = {
   ts_drawer_manual_punch_out_date: 'Fecha de salida',
   ts_drawer_manual_punch_out: 'Hora de salida',
   ts_drawer_manual_punches_save: 'Guardar fichajes',
+  ts_week_pdf: 'Week PDF',
+  ts_period_pdf: 'Period PDF',
+  ts_export_week_pdf: 'Exportar PDF de la semana actual',
+  ts_export_period_pdf: 'Exportar PDF del periodo completo',
   ts_drawer_delete_punches_btn: 'Eliminar fichajes del turno',
   ts_delete_punches_confirm:
     '¿Eliminar todos los fichajes vinculados a este turno? No se puede deshacer.',
@@ -5103,6 +5115,10 @@ const baseFr: Record<string, string> = {
   ts_period_chip_aria: 'Période de présences (début et durée ci-dessous)',
   ts_pdf_no_data: 'Aucune donnée à exporter pour cette période.',
   ts_period_saved: 'Période enregistrée.',
+  ts_week_pdf: 'Week PDF',
+  ts_period_pdf: 'Period PDF',
+  ts_export_week_pdf: 'Exporter le PDF de la semaine actuelle',
+  ts_export_period_pdf: 'Exporter le PDF de la période complète',
   ts_period_cloud_failed: 'Enregistré sur l’appareil ; synchronisation cloud échouée.',
 
   pin_invalid: 'PIN invalide.',

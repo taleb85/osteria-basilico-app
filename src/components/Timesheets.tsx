@@ -34,6 +34,7 @@ import {
 } from '../utils/breakRules';
 import {
   isPurelyManagementRole,
+  isManagementRole,
   isUserVisibleOnTeamSchedule,
   canOperateTeamSchedule,
   canApproveShiftActions,
@@ -719,9 +720,9 @@ export default function Timesheets() {
 
   /** Griglia presenze: larghezze fisse (px) — nome | ogni giorno | colonna totale. */
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  const timesheetGridDayColPx = viewMode === 'month' ? (isMobile ? 110 : 76) : (isMobile ? 140 : 100);
-  const timesheetGridNameColPx = isMobile ? 100 : 132;
-  const timesheetGridTotalColPx = isMobile ? 80 : 90;
+  const timesheetGridDayColPx = viewMode === 'month' ? (isMobile ? 110 : 76) : (isMobile ? 140 : 120);
+  const timesheetGridNameColPx = isMobile ? 100 : 80;
+  const timesheetGridTotalColPx = isMobile ? 80 : 60;
   const timesheetGridMinWidthPx =
     timesheetGridNameColPx + weekDays.length * timesheetGridDayColPx + timesheetGridTotalColPx;
 
@@ -778,7 +779,13 @@ export default function Timesheets() {
   }, [punchRecords, weekStr, weekEnd]);
 
   const visibleUsers = useMemo(() => {
-    const onSchedule = users.filter(isUserVisibleOnTeamSchedule);
+    const onSchedule = users.filter((u) => {
+      // Escludi dipendenti del reparto cucina (kitchen) dalla tabella presenze
+      if (u.department?.toLowerCase() === 'kitchen' || u.department?.toLowerCase() === 'cucina') {
+        return false;
+      }
+      return isUserVisibleOnTeamSchedule(u, shifts);
+    });
     if (!canTeamTimesheetOps && currentUser) {
       const self = users.find((u) => u.id === currentUser.id);
       if (!self || self.status !== 'active' || isPurelyManagementRole(self.role)) return [];
@@ -1089,11 +1096,12 @@ export default function Timesheets() {
     if (drawerData?.shift?.id) setDrawerShiftEditsExpanded(true);
   }, [drawerData?.shift?.id]);
 
-  const handleExportTimesheetPdf = useCallback(() => {
+  const handleExportTimesheetPdf = useCallback((mode: 'WEEK' | 'PERIOD' = 'WEEK') => {
     if (!currentUser || !isFeatureEnabled(currentUser, 'export_pdf')) return;
     try {
+      const daysToExport = mode === 'WEEK' ? weekDays : allPeriodDays;
       const result = exportAttendancePdfFromGrid({
-        weekDays,
+        weekDays: daysToExport,
         visibleUsers,
         shifts,
         punchRecords,
@@ -1103,6 +1111,7 @@ export default function Timesheets() {
         t: t as Record<string, string>,
         formatTrans,
         fmtHM,
+        onlyConfirmedOrApproved: true, // FILTRO RIGOROSO: Solo turni congelati/approvati
       });
       if (result === 'no_days' || result === 'no_users') {
         showError?.(t.ts_pdf_no_data);
@@ -1116,12 +1125,14 @@ export default function Timesheets() {
     currentUser,
     visibleUsers,
     weekDays,
+    allPeriodDays,
     shifts,
     punchRecords,
     breakRules,
     breakComputeOpts,
     locale,
     t,
+    formatTrans,
     fmtHM,
     showSuccess,
     showError,
@@ -2244,25 +2255,25 @@ export default function Timesheets() {
 
           {/* ── Toolbar presenze: sopra la griglia ── */}
           {uiW('timesheet.header') && (
-          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-col items-stretch justify-start gap-2.5 lg:!h-auto lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch gap-2.5 overflow-x-auto-safe lg:flex-row lg:flex-nowrap lg:items-center lg:justify-start lg:gap-3">
-              <div className="ui-toolbar-row-tight min-w-0 w-full shrink-0 lg:w-auto">
-                <div className="ui-toolbar-group">
+          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-col items-stretch justify-start gap-2 md:flex-row md:items-center md:justify-between md:gap-1.5 md:px-2">
+            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch gap-2 overflow-x-auto-safe md:flex-row md:flex-nowrap md:items-center md:justify-start md:gap-1.5">
+              <div className="ui-toolbar-row-tight min-w-0 w-full shrink-0 md:w-auto md:gap-1.5">
+                <div className="ui-toolbar-group md:scale-90 md:origin-left">
                   <button
                     type="button"
                     onClick={() => setViewMode('day')}
-                    className={`ui-toolbar-tab ${viewMode === 'day' ? 'bg-accent text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}
+                    className={`ui-toolbar-tab !px-2 !text-[10px] ${viewMode === 'day' ? 'bg-accent text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}
                   >
                     {t.ts_period_day || 'Giorno'}
                   </button>
                   <button type="button" onClick={() => setViewMode('week')}
-                    className={`ui-toolbar-tab ${viewMode === 'week' ? 'bg-accent text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}>
+                    className={`ui-toolbar-tab !px-2 !text-[10px] ${viewMode === 'week' ? 'bg-accent text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}>
                     {t.ts_period_week}
                   </button>
                   <button
                     type="button"
                     onClick={() => setViewMode('month')}
-                    className={`ui-toolbar-tab ${viewMode === 'month' ? 'bg-accent text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}
+                    className={`ui-toolbar-tab !px-2 !text-[10px] ${viewMode === 'month' ? 'bg-accent text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}
                     title={monthTabTitle}
                     aria-label={`${t.ts_period_month}${payrollStripForToolbar ? `. ${formatTrans(tv.ts_timesheet_month_payroll_strip ?? '', { dates: payrollStripForToolbar })}` : ''}`}
                   >
@@ -2272,49 +2283,49 @@ export default function Timesheets() {
 
                 {viewMode === 'month' && payrollStripForToolbar && (
                   <span
-                    className="hidden min-[400px]:inline-flex h-9 max-w-[min(100%,22rem)] shrink-0 items-center truncate rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100"
+                    className="hidden min-[400px]:inline-flex h-8 max-w-[min(100%,12rem)] shrink-0 items-center truncate rounded-lg border border-emerald-200 bg-emerald-50 px-2 text-[9px] font-semibold text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100"
                     title={tv.ts_timesheet_month_tab_hint}
                   >
-                    {formatTrans(tv.ts_timesheet_month_payroll_strip ?? 'Pagamento stipendi previsto: {dates}', { dates: payrollStripForToolbar })}
+                    {payrollStripForToolbar}
                   </span>
                 )}
 
                 <div
-                  className="ui-toolbar-chip max-w-full min-w-0 cursor-default select-none font-semibold"
+                  className="ui-toolbar-chip max-w-full min-w-0 cursor-default select-none font-bold !px-2 !h-8 !text-[10px]"
                   role="status"
                   aria-label={t.ts_period_chip_aria}
                   title={`${format(periodStartDate, 'dd/MM/yy', { locale })} → ${format(periodEndDate, 'dd/MM/yy', { locale })}`}
                 >
-                  <Calendar className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-400" aria-hidden />
+                  <Calendar className="h-3.5 w-3.5 shrink-0 text-slate-500 dark:text-neutral-400" aria-hidden />
                   <span className="min-w-0 truncate tabular-nums">
                     {viewMode === 'day' 
-                      ? format(weekDays[0], 'EEEE d MMMM yyyy', { locale })
+                      ? format(weekDays[0], 'd MMM yy', { locale })
                       : `${format(periodStartDate, 'dd/MM/yy', { locale })} → ${format(periodEndDate, 'dd/MM/yy', { locale })}`}
                   </span>
                 </div>
 
                 {timesheetMainGridWeekNav && (
-                  <div className="ui-toolbar-group shrink-0 absolute top-[570px] left-[306px]">
+                  <div className="ui-toolbar-group shrink-0 md:scale-90">
                     <button
                       type="button"
                       onClick={timesheetMainGridWeekNav.onPrev}
                       disabled={!timesheetMainGridWeekNav.canPrev}
-                      className="ui-toolbar-tab px-2 disabled:opacity-30"
+                      className="ui-toolbar-tab px-1.5 h-8 disabled:opacity-30"
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-3.5 w-3.5" />
                     </button>
                     <button
                       type="button"
                       onClick={timesheetMainGridWeekNav.onNext}
                       disabled={!timesheetMainGridWeekNav.canNext}
-                      className="ui-toolbar-tab px-2 disabled:opacity-30"
+                      className="ui-toolbar-tab px-1.5 h-8 disabled:opacity-30"
                     >
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 )}
 
-                <div className="ui-toolbar-group !hidden shrink-0 lg:!flex">
+                <div className="ui-toolbar-group shrink-0 flex md:scale-90">
                   <button
                     type="button"
                     onClick={goToToday}
@@ -2324,7 +2335,7 @@ export default function Timesheets() {
                         ? t.ts_toolbar_today_outside
                         : t.ts_toolbar_today_hint
                     }
-                    className={`ui-toolbar-tab ${
+                    className={`ui-toolbar-tab !px-2 !text-[10px] h-8 ${
                       isShowingTodayWeek
                         ? 'bg-accent text-white'
                         : 'text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
@@ -2335,9 +2346,9 @@ export default function Timesheets() {
                 </div>
               </div>
 
-              <div className="hidden w-full min-w-0 flex-wrap items-center justify-start gap-2 border-t border-slate-200 pt-2 dark:border-white/10 lg:flex lg:w-auto lg:border-l lg:border-t-0 lg:pl-3 lg:pt-0">
-                <div className="flex min-w-0 shrink-0 items-center gap-2">
-                  <span className="shrink-0 whitespace-nowrap text-xs font-bold uppercase leading-none tracking-wide text-slate-600 dark:text-neutral-300">
+              <div className="hidden w-full min-w-0 flex-nowrap items-center justify-start gap-1.5 border-t border-slate-200 pt-2 dark:border-white/10 md:flex md:w-auto md:border-l md:border-t-0 md:pl-2 md:pt-0">
+                <div className="flex min-w-0 shrink-0 items-center gap-1.5">
+                  <span className="shrink-0 whitespace-nowrap text-[9px] font-bold uppercase leading-none tracking-wide text-slate-500 dark:text-neutral-400">
                     {t.ts_label_from}
                   </span>
                   <DatePickerField
@@ -2347,14 +2358,14 @@ export default function Timesheets() {
                     compact
                     toolbarComfortable
                     aria-label={t.ts_period_start}
-                    className="min-w-[7rem] max-w-[10rem] justify-between !border-slate-200 !bg-white shadow-sm dark:!border-white/10 dark:!bg-neutral-900 surface-ghost-interactive hover:!border-slate-300 dark:hover:!border-white/15"
+                    className="!h-8 !min-w-[6rem] !max-w-[8rem] !text-[10px] justify-between !border-slate-200 !bg-white shadow-sm dark:!border-white/10 dark:!bg-neutral-900 surface-ghost-interactive hover:!border-slate-300 dark:hover:!border-white/15"
                   />
                 </div>
-                <div className="ui-toolbar-group shrink-0" title={t.ts_preset_weeks_mobile_hint}>
+                <div className="ui-toolbar-group shrink-0 md:scale-90" title={t.ts_preset_weeks_mobile_hint}>
                   <button
                     type="button"
                     onClick={() => { setPeriodNumWeeks(4); setPeriodSaved(false); setWeekIndex(0); }}
-                    className={`ui-toolbar-tab px-2 ${
+                    className={`ui-toolbar-tab !px-2 !text-[10px] h-8 ${
                       periodNumWeeks === 4
                         ? 'bg-accent text-white'
                         : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
@@ -2365,7 +2376,7 @@ export default function Timesheets() {
                   <button
                     type="button"
                     onClick={() => { setPeriodNumWeeks(5); setPeriodSaved(false); setWeekIndex(0); }}
-                    className={`ui-toolbar-tab px-2 ${
+                    className={`ui-toolbar-tab !px-2 !text-[10px] h-8 ${
                       periodNumWeeks === 5
                         ? 'bg-accent text-white'
                         : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
@@ -2378,7 +2389,7 @@ export default function Timesheets() {
                   type="button"
                   onClick={() => { handleSavePeriodConfig(); }}
                   disabled={periodSaved}
-                  className={`ui-toolbar-accent shrink-0 px-2.5 ${
+                  className={`ui-toolbar-accent shrink-0 !px-2 !h-8 !text-[10px] ${
                     periodSaved
                       ? 'cursor-not-allowed !bg-slate-200 !text-slate-500 hover:!bg-slate-200 dark:!bg-neutral-800 dark:!text-neutral-500'
                       : ''
@@ -2386,28 +2397,33 @@ export default function Timesheets() {
                 >
                   {t.ts_save_period}
                 </button>
-                {!periodSaved && (
-                  <span
-                    className="h-2 w-2 shrink-0 rounded-full bg-amber-500"
-                    title={t.ts_save_period}
-                    aria-label={t.ts_save_period}
-                  />
-                )}
               </div>
             </div>
 
-            <div className="flex min-h-9 shrink-0 items-center justify-start gap-2 self-stretch lg:ml-auto lg:justify-end lg:self-center">
-              {currentUser && isFeatureEnabled(currentUser, 'export_pdf') && (
-                <button
-                  type="button"
-                  onClick={() => void handleExportTimesheetPdf()}
-                  className="ui-toolbar-chip !hidden hover:bg-slate-50 dark:hover:bg-neutral-800/90 lg:!inline-flex"
-                  title={t.download_pdf}
-                  aria-label={t.download_pdf}
-                >
-                  <FileDown className="h-4 w-4 shrink-0" aria-hidden />
-                  <span className="hidden min-[380px]:inline">{t.download_pdf}</span>
-                </button>
+            <div className="flex min-h-8 shrink-0 items-center justify-start gap-1 self-stretch md:ml-auto md:justify-end md:self-center">
+              {currentUser && (isManagementRole(currentUser.role) || isFeatureEnabled(currentUser, 'export_pdf')) && (
+                <div className="flex items-center gap-1 md:scale-90 md:origin-right">
+                  <button
+                    type="button"
+                    onClick={() => void handleExportTimesheetPdf('WEEK')}
+                    className="ui-toolbar-chip !hidden hover:bg-slate-50 dark:hover:bg-neutral-800/90 md:!inline-flex !h-8 !px-2 !text-[10px]"
+                    title={t.ts_export_week_pdf || "Export Current Week PDF"}
+                    aria-label={t.ts_export_week_pdf || "Export Current Week PDF"}
+                  >
+                    <FileDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    <span className="hidden min-[380px]:inline">{t.ts_week_pdf || "Week PDF"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleExportTimesheetPdf('PERIOD')}
+                    className="ui-toolbar-chip !hidden hover:bg-slate-50 dark:hover:bg-neutral-800/90 md:!inline-flex border-accent/30 text-accent !h-8 !px-2 !text-[10px]"
+                    title={t.ts_export_period_pdf || "Export Full Period PDF"}
+                    aria-label={t.ts_export_period_pdf || "Export Full Period PDF"}
+                  >
+                    <FileDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    <span className="hidden min-[380px]:inline">{t.ts_period_pdf || "Period PDF"}</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -2820,18 +2836,25 @@ export default function Timesheets() {
                         };
 
                         return (
-                          <td key={dateStr} className={`px-1.5 py-2 ${tdBorder} align-top ${tdBg} md:px-1 md:py-1.5`}>
-                            <div className="flex flex-col gap-1.5 md:gap-1">
-                              {before16.length > 0 && (
-                                <div className="flex flex-col gap-1 md:gap-0.5">
-                                  {before16.map((s) => renderShiftButton(s))}
-                                </div>
-                              )}
-                              {from16.length > 0 && (
-                                <div className="flex flex-col gap-1 md:gap-0.5 rounded-lg border border-slate-200/90 dark:border-white/12 bg-slate-50/70 dark:bg-neutral-900/50 px-1 py-1 md:rounded-md md:px-0.5 md:py-0.5">
-                                  {from16.map((s) => renderShiftButton(s))}
-                                </div>
-                              )}
+                          <td key={dateStr} className={`px-1.5 py-2 ${tdBorder} align-top ${tdBg} md:px-1 md:py-1.5 h-px`}>
+                            <div className="flex h-full flex-col gap-1.5 md:gap-1">
+                              {/* Slot Pranzo (Prima delle 16:00) */}
+                              <div className={`flex flex-1 flex-col gap-1 md:gap-0.5 rounded-lg border px-1 py-1 md:rounded-md md:px-0.5 md:py-0.5 min-h-[42px] transition-all ${
+                                before16.length > 0 
+                                  ? 'border-slate-200/90 dark:border-white/12 bg-slate-50/70 dark:bg-neutral-900/50' 
+                                  : 'border-transparent'
+                              }`}>
+                                {before16.map((s) => renderShiftButton(s))}
+                              </div>
+                              
+                              {/* Slot Cena (Dalle 16:00 in poi) */}
+                              <div className={`mt-auto flex flex-1 flex-col gap-1 md:gap-0.5 rounded-lg border px-1 py-1 md:rounded-md md:px-0.5 md:py-0.5 min-h-[42px] transition-all ${
+                                from16.length > 0 
+                                  ? 'border-slate-200/90 dark:border-white/12 bg-slate-50/70 dark:bg-neutral-900/50' 
+                                  : 'border-transparent'
+                              }`}>
+                                {from16.map((s) => renderShiftButton(s))}
+                              </div>
                             </div>
                           </td>
                         );
@@ -3199,7 +3222,7 @@ export default function Timesheets() {
                       <h3 className="truncate text-lg font-bold leading-tight text-slate-900 dark:text-neutral-100">
                         {drawerData.employeeName}
                       </h3>
-                      <p className="absolute left-[127px] -top-[5px] flex h-[45px] w-[232px] items-center gap-1.5 text-[12px] font-medium text-slate-600 dark:text-neutral-300">
+                      <p className="absolute left-[208px] top-0 flex h-[45px] w-[232px] items-center gap-1.5 text-[12px] font-medium text-slate-600 dark:text-neutral-300">
                         <Calendar className="h-5 w-5 shrink-0 opacity-80" strokeWidth={2} />
                         <span className="min-w-0 truncate">
                           {safeFormatDate(drawerData.dateStr, 'EEEE d MMMM yyyy', { locale })}

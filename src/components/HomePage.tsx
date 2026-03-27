@@ -270,7 +270,7 @@ export default function HomePage({
           if (s.date !== todayStr || s.notes?.startsWith('__OPEN__')) return false;
           const u = users.find((x) => x.id === s.user_id);
           if (!u) return true;
-          return isUserVisibleOnTeamSchedule(u);
+          return isUserVisibleOnTeamSchedule(u, shifts);
         })
         .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
     : [];

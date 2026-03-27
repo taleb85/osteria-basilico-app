@@ -31,7 +31,7 @@ async function main() {
     'Content-Type': 'application/json',
   };
 
-  const usersRes = await fetch(`${URL}/rest/v1/users?select=id,first_name,last_name,email,role&order=first_name`, {
+  const usersRes = await fetch(`${URL}/rest/v1/users?select=id,first_name,last_name,email,role,hide_from_team_schedule,status&order=first_name`, {
     headers,
   });
   if (!usersRes.ok) throw new Error(await usersRes.text());
@@ -56,7 +56,7 @@ async function main() {
   for (const u of talebLike) {
     const n = countByUser[u.id] || 0;
     console.log(
-      `${u.id} | ${u.first_name} ${u.last_name} | ${u.email} | role=${u.role} | turni=${n}`
+      `${u.id} | ${u.first_name} ${u.last_name} | ${u.email} | role=${u.role} | hide=${u.hide_from_team_schedule} | status=${u.status} | turni=${n}`
     );
   }
 
@@ -68,6 +68,14 @@ async function main() {
   if (canonical) {
     console.log('\nCanonico Taleb Barikhan:', canonical.id, '| turni:', countByUser[canonical.id] || 0);
   }
+
+  const allShiftsRes = await fetch(`${URL}/rest/v1/shifts?select=id,user_id,date,start_time,approval_status`, { headers });
+  const allShifts = await allShiftsRes.json();
+  console.log('\n--- Elenco ultimi 10 turni nel sistema ---');
+  allShifts.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 10).forEach(s => {
+    const u = users.find(x => x.id === s.user_id);
+    console.log(`${s.date} | ${s.start_time} | user=${u ? u.first_name + ' ' + (u.last_name||'') : s.user_id} | status=${s.approval_status}`);
+  });
 }
 
 main().catch((e) => {

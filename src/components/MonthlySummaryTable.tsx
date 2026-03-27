@@ -66,7 +66,7 @@ export default function MonthlySummaryTable() {
         return u.id === currentUser.id && u.status === 'active' && !isPurelyManagementRole(u.role);
       }
       if (u.id === currentUser.id && u.status === 'active' && !isPurelyManagementRole(u.role)) return true;
-      return isUserVisibleOnTeamSchedule(u);
+      return isUserVisibleOnTeamSchedule(u, shifts);
     })
     .sort((a, b) => a.sort_order - b.sort_order);
 
@@ -206,7 +206,7 @@ export default function MonthlySummaryTable() {
             </p>
             <p className="text-slate-900 dark:text-gray-100 text-3xl font-black tracking-tighter">
               {hasManagementAccess
-                ? users.filter(isUserVisibleOnTeamSchedule).length
+                ? users.filter((u) => isUserVisibleOnTeamSchedule(u, shifts)).length
                 : formatMinutesToHoursAndMinutes(getTotalMinutes(currentUser.id))
               }
             </p>

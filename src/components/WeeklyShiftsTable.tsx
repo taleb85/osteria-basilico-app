@@ -761,8 +761,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   // Staff vede SOLO turni approvati o confermati (non bozze). Admin/Manager vedono tutto.
   // Filtro attivi: nascondi dalla tabella chiunque abbia status !== 'active'.
   const visibleUserIds = useMemo(
-    () => new Set(users.filter(isUserVisibleOnTeamSchedule).map((u) => u.id)),
-    [users]
+    () => new Set(users.filter((u) => isUserVisibleOnTeamSchedule(u, shifts)).map((u) => u.id)),
+    [users, shifts]
   );
   const visibleShifts = useMemo(() => {
     let list = shifts.filter(s => visibleUserIds.has(s.user_id));
@@ -884,7 +884,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
 
   const activeUsers = useMemo(() => {
-    let list = users.filter(isUserVisibleOnTeamSchedule);
+    let list = users.filter((u) => isUserVisibleOnTeamSchedule(u, shifts));
     if (localFilterDepartment) {
       list = list.filter((u) => u.department === localFilterDepartment);
     }

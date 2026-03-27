@@ -1,12 +1,13 @@
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { LogOut, Cloud, CloudOff } from 'lucide-react';
+import { LogOut, Cloud, CloudOff, RotateCw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { getRoleScopeHint } from '../utils/roleScopeHint';
 import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
 import NotificationCenter from './NotificationCenter';
+import { useState } from 'react';
 
 /**
  * Icona tema: due grafiche come riferimento foto — grigio/bianco in chiaro, nero/bianco in scuro.
@@ -79,8 +80,30 @@ export default function MobileProfileHeader({
     effectiveLanguage,
     updateUserPreferences,
     featureFlags,
+    hardReloadFromDatabase,
+    dataSyncInProgress,
   } = useApp();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const isSynced = !!featureFlags && Object.keys(featureFlags).length > 0;
+
+  const handleHardRefresh = async () => {
+    if (isRefreshing || dataSyncInProgress) return;
+    setIsRefreshing(true);
+    try {
+      // 1. Sincronizzazione forzata dal database
+      await hardReloadFromDatabase();
+      
+      // 2. Hard Refresh del browser (svuota cache e ricarica)
+      // Nota: window.location.reload(true) è deprecato in alcuni browser, 
+      // ma forzare il ricaricamento dopo la sync garantisce l'ultima versione.
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (err) {
+      console.error('Errore durante l\'hard refresh:', err);
+      setIsRefreshing(false);
+    }
+  };
   const t = getTranslations(effectiveLanguage);
   const tr = t as Record<string, string>;
   const locale = getDateLocale(effectiveLanguage) ?? it;
@@ -143,21 +166,28 @@ export default function MobileProfileHeader({
             <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center surface-glass-sm px-1.5 surface-ghost-interactive">
               <NotificationCenter denseTrigger />
             </div>
-            <div
-              title={isSynced ? 'Sincronizzato' : 'Offline'}
-              className={`flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 transition-all duration-300 ${
-                isSynced ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-neutral-500'
+            <button
+              type="button"
+              onClick={handleHardRefresh}
+              disabled={isRefreshing || dataSyncInProgress}
+              title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Hard Refresh & Sincronizzazione'}
+              className={`flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 transition-all duration-300 active:scale-95 touch-manipulation ${
+                isRefreshing || dataSyncInProgress 
+                  ? 'text-amber-500' 
+                  : isSynced ? 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20' : 'text-slate-400 dark:text-neutral-500'
               }`}
             >
-              {isSynced ? (
+              {isRefreshing || dataSyncInProgress ? (
+                <RotateCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" strokeWidth={2.5} />
+              ) : isSynced ? (
                 <Cloud className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
               ) : (
                 <CloudOff className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
               )}
               <span className="text-[7px] sm:text-[8px] font-bold tracking-tight uppercase">
-                {isSynced ? 'OK' : 'OFF'}
+                {isRefreshing || dataSyncInProgress ? 'SYNC' : isSynced ? 'OK' : 'OFF'}
               </span>
-            </div>
+            </button>
             {onLogout && !hideHeaderLogout ? (
               <button
                 type="button"

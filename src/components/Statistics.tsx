@@ -222,10 +222,15 @@ export default function Statistics() {
     if (!currentUser) return [];
     return users
       .filter((u) => {
-        if (u.status !== 'active' || isPurelyManagementRole(u.role)) return false;
+        if (u.status !== 'active' || isPurelyManagementRole(u.role)) {
+          // Se l'admin ha turni nel sistema, deve comunque comparire nelle statistiche per il calcolo totale.
+          const hasShifts = shifts.some((s) => s.user_id === u.id);
+          if (u.status === 'active' && isPurelyManagementRole(u.role) && hasShifts) return true;
+          return false;
+        }
         if (!showManagementStatsChrome) return u.id === currentUser.id;
         if (u.id === currentUser.id) return true;
-        return isUserVisibleOnTeamSchedule(u);
+        return isUserVisibleOnTeamSchedule(u, shifts);
       })
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   }, [users, currentUser, showManagementStatsChrome]);

@@ -131,10 +131,15 @@ export function isOperationalStaffRole(role: string): boolean {
 
 /**
  * Dipendente attivo da mostrare nel tabellone turni, presenze collettive e riepiloghi ore di gruppo.
- * Esclude admin puro, profili non attivi e chi ha scelto di restare fuori dalla griglia (back-office).
+ * Esclude admin puro (tranne se ha turni assegnati), profili non attivi e chi ha scelto di restare fuori dalla griglia (back-office).
  */
-export function isUserVisibleOnTeamSchedule(user: User): boolean {
-  if (user.status !== 'active' || isPurelyManagementRole(user.role)) return false;
+export function isUserVisibleOnTeamSchedule(user: User, shifts?: { user_id: string }[]): boolean {
+  if (user.status !== 'active') return false;
+
+  // Se l'admin ha turni assegnati, deve essere visibile nel tabellone per poterli gestire/vedere.
+  const hasShifts = shifts && shifts.some((s) => s.user_id === user.id);
+  if (isPurelyManagementRole(user.role) && !hasShifts) return false;
+
   const explicitHide = user.hide_from_team_schedule;
   if (explicitHide === true) return false;
   if (explicitHide === false) return true;

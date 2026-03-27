@@ -69,116 +69,119 @@ function computeTimesheetGridForPdf(
         .filter((s) => s.user_id === user.id && s.date === dateStr)
         .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
 
-      const shiftRows: GridShiftRow[] = dayShifts.map((s) => {
-        const plannedStart = (s.start_time || '').slice(0, 5);
-        const plannedEnd = (s.end_time || '').slice(0, 5);
-        const grossPlanned = calculateShiftMinutesGross(plannedStart, plannedEnd);
-        const breakMinutes = getBreakMinutesForShift(s, grossPlanned, user, breakRules, breakComputeOpts);
-        const plannedMins = Math.max(0, grossPlanned - breakMinutes);
+      const shiftRows: GridShiftRow[] = dayShifts
+        .filter((s) => s.approval_status !== 'absent' || s.approval_status === 'absent') // placeholder to keep structure, we'll filter below
+        .map((s) => {
+          const plannedStart = (s.start_time || '').slice(0, 5);
+          const plannedEnd = (s.end_time || '').slice(0, 5);
+          const grossPlanned = calculateShiftMinutesGross(plannedStart, plannedEnd);
+          const breakMinutes = getBreakMinutesForShift(s, grossPlanned, user, breakRules, breakComputeOpts);
+          const plannedMins = Math.max(0, grossPlanned - breakMinutes);
 
-        if (s.approval_status === 'absent') {
+          if (s.approval_status === 'absent') {
+            return {
+              plannedStart,
+              plannedEnd,
+              plannedMins,
+              breakMinutes,
+              breakMinutesActual: 0,
+              actualStart: null,
+              actualEnd: null,
+              actualMins: 0,
+              deltaMins: -plannedMins,
+              status: 'absent' as const,
+              punched: false,
+              hasMissingOut: false,
+            };
+          }
+
+          const shiftHour = parseInt(plannedStart.split(':')[0], 10);
+          const isLunch = shiftHour < 16;
+
+          const punchIn = punchRecords.find((p) => {
+            if (p.type !== 'in') return false;
+            if (s.id && p.shift_id) return p.shift_id === s.id;
+            if (p.user_id !== user.id) return false;
+            const pDate = new Date(p.timestamp);
+            if (!isValid(pDate)) return false;
+            if (format(pDate, 'yyyy-MM-dd') !== dateStr) return false;
+            return isLunch ? pDate.getHours() < 16 : pDate.getHours() >= 16;
+          });
+
+          const punchOut = punchRecords.find((p) => {
+            if (p.type !== 'out') return false;
+            if (s.id && p.shift_id) return p.shift_id === s.id;
+            if (p.user_id !== user.id) return false;
+            const pDate = new Date(p.timestamp);
+            if (!isValid(pDate)) return false;
+            if (format(pDate, 'yyyy-MM-dd') !== dateStr) return false;
+            return isLunch ? pDate.getHours() < 16 : pDate.getHours() >= 16;
+          });
+
+          const clockOutRaw = (punchIn as { clock_out_time?: string | null })?.clock_out_time ?? null;
+          const punchActualStart = punchIn ? punchTimeHHMM(punchIn.calculated_time || punchIn.timestamp) : null;
+          const actualEndFull = clockOutRaw ?? punchOut?.timestamp ?? undefined;
+          const punchActualEnd = actualEndFull ? punchTimeHHMM(actualEndFull) : null;
+
+          const hasMissingOut = !!(punchIn && !punchActualEnd);
+
+          const frozen = !!(s.approved_at && s.approved_start_time && s.approved_end_time);
+          let displayActualStart = punchActualStart;
+          let displayActualEnd = punchActualEnd;
+          let grossActualMins = 0;
+
+          if (frozen) {
+            const r = getResolvedStartEndForHours(s as Shift, punchRecords);
+            displayActualStart = r.start;
+            displayActualEnd = r.end;
+            grossActualMins = calculateShiftMinutesGross(r.start, r.end);
+          } else if (punchActualStart && punchActualEnd) {
+            const startM = toMinutesFromMidnight(punchActualStart);
+            const endM = toMinutesFromMidnight(punchActualEnd);
+            const elapsedMs =
+              actualEndFull && punchIn
+                ? new Date(actualEndFull).getTime() -
+                  new Date(punchIn.calculated_time || punchIn.timestamp).getTime()
+                : (endM >= startM ? endM - startM : endM + 1440 - startM) * 60_000;
+            grossActualMins = Math.max(0, Math.round(elapsedMs / 60_000));
+          }
+
+          const actualMins =
+            displayActualStart && displayActualEnd
+              ? getNetShiftMinutes(
+                  s,
+                  displayActualStart,
+                  displayActualEnd,
+                  user,
+                  breakRules,
+                  breakComputeOpts
+                )
+              : Math.max(0, grossActualMins);
+          const deltaMins = actualMins - plannedMins;
+          const breakMinutesActual =
+            displayActualStart && displayActualEnd
+              ? Math.max(
+                  0,
+                  calculateShiftMinutesGross(displayActualStart, displayActualEnd) - actualMins
+                )
+              : 0;
+
           return {
             plannedStart,
             plannedEnd,
             plannedMins,
             breakMinutes,
-            breakMinutesActual: 0,
-            actualStart: null,
-            actualEnd: null,
-            actualMins: 0,
-            deltaMins: -plannedMins,
-            status: 'absent' as const,
-            punched: false,
-            hasMissingOut: false,
+            breakMinutesActual,
+            actualStart: displayActualStart,
+            actualEnd: displayActualEnd,
+            actualMins,
+            deltaMins,
+            status: s.approval_status as GridShiftRow['status'],
+            punched: !!punchIn,
+            hasMissingOut,
           };
-        }
-
-        const shiftHour = parseInt(plannedStart.split(':')[0], 10);
-        const isLunch = shiftHour < 16;
-
-        const punchIn = punchRecords.find((p) => {
-          if (p.type !== 'in') return false;
-          if (s.id && p.shift_id) return p.shift_id === s.id;
-          if (p.user_id !== user.id) return false;
-          const pDate = new Date(p.timestamp);
-          if (!isValid(pDate)) return false;
-          if (format(pDate, 'yyyy-MM-dd') !== dateStr) return false;
-          return isLunch ? pDate.getHours() < 16 : pDate.getHours() >= 16;
-        });
-
-        const punchOut = punchRecords.find((p) => {
-          if (p.type !== 'out') return false;
-          if (s.id && p.shift_id) return p.shift_id === s.id;
-          if (p.user_id !== user.id) return false;
-          const pDate = new Date(p.timestamp);
-          if (!isValid(pDate)) return false;
-          if (format(pDate, 'yyyy-MM-dd') !== dateStr) return false;
-          return isLunch ? pDate.getHours() < 16 : pDate.getHours() >= 16;
-        });
-
-        const clockOutRaw = (punchIn as { clock_out_time?: string | null })?.clock_out_time ?? null;
-        const punchActualStart = punchIn ? punchTimeHHMM(punchIn.calculated_time || punchIn.timestamp) : null;
-        const actualEndFull = clockOutRaw ?? punchOut?.timestamp ?? undefined;
-        const punchActualEnd = actualEndFull ? punchTimeHHMM(actualEndFull) : null;
-
-        const frozen = !!(s.approved_at && s.approved_start_time && s.approved_end_time);
-        let displayActualStart = punchActualStart;
-        let displayActualEnd = punchActualEnd;
-        let grossActualMins = 0;
-
-        if (frozen) {
-          const r = getResolvedStartEndForHours(s as Shift, punchRecords);
-          displayActualStart = r.start;
-          displayActualEnd = r.end;
-          grossActualMins = calculateShiftMinutesGross(r.start, r.end);
-        } else if (punchActualStart && punchActualEnd) {
-          const startM = toMinutesFromMidnight(punchActualStart);
-          const endM = toMinutesFromMidnight(punchActualEnd);
-          const elapsedMs =
-            actualEndFull && punchIn
-              ? new Date(actualEndFull).getTime() -
-                new Date(punchIn.calculated_time || punchIn.timestamp).getTime()
-              : (endM >= startM ? endM - startM : endM + 1440 - startM) * 60_000;
-          grossActualMins = Math.max(0, Math.round(elapsedMs / 60_000));
-        }
-
-        const actualMins =
-          displayActualStart && displayActualEnd
-            ? getNetShiftMinutes(
-                s,
-                displayActualStart,
-                displayActualEnd,
-                user,
-                breakRules,
-                breakComputeOpts
-              )
-            : Math.max(0, grossActualMins);
-        const deltaMins = actualMins - plannedMins;
-        const breakMinutesActual =
-          displayActualStart && displayActualEnd
-            ? Math.max(
-                0,
-                calculateShiftMinutesGross(displayActualStart, displayActualEnd) - actualMins
-              )
-            : 0;
-
-        const hasMissingOut = frozen ? false : !!(punchIn && !punchActualEnd);
-
-        return {
-          plannedStart,
-          plannedEnd,
-          plannedMins,
-          breakMinutes,
-          breakMinutesActual,
-          actualStart: displayActualStart,
-          actualEnd: displayActualEnd,
-          actualMins,
-          deltaMins,
-          status: s.approval_status as GridShiftRow['status'],
-          punched: !!punchIn,
-          hasMissingOut,
-        };
-      });
+        })
+        .filter((r) => !r.hasMissingOut); // ESCLUDI turni con errore (missing out) dalla somma e visualizzazione PDF
 
       const totalPlannedMins = shiftRows.reduce((a, r) => a + r.plannedMins, 0);
       const totalActualMins = shiftRows.reduce((a, r) => a + r.actualMins, 0);
@@ -324,6 +327,9 @@ export function exportAttendancePdfFromGrid(
     department: u.department ?? undefined,
     role: u.role,
   }));
+
+  // Assicurati che l'oggetto timesheetData passato al PDF contenga tutti i dati
+  // (computeTimesheetGridForPdf già calcola i dati per tutti i visibleUsers)
 
   const weekShiftsMeta = weekShifts.map((s) => ({
     approval_status: s.approval_status,
