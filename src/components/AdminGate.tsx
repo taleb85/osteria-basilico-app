@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { isAdminOnly } from '../utils/permissions';
@@ -8,22 +8,27 @@ interface AdminGateProps {
   children: React.ReactNode;
 }
 
-/** Protegge il pannello Admin: solo ruolo `admin`. */
+/** Protegge il pannello Admin: ruolo `admin`, `manager` o `assistant_manager`. */
 export default function AdminGate({ children }: AdminGateProps) {
   const { currentUser, showError } = useApp();
   const location = useLocation();
 
+  const isAllowed = useMemo(() => {
+    if (!currentUser) return false;
+    return currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'assistant_manager';
+  }, [currentUser]);
+
   useEffect(() => {
-    if (currentUser && !isAdminOnly(currentUser)) {
+    if (currentUser && !isAllowed) {
       showError?.('Accesso Negato');
     }
-  }, [currentUser, showError]);
+  }, [currentUser, isAllowed, showError]);
 
   if (!currentUser) {
     return <Navigate to={PATH_PROFILO} replace state={{ from: location }} />;
   }
 
-  if (!isAdminOnly(currentUser)) {
+  if (!isAllowed) {
     return <Navigate to="/app" replace state={{ accessDenied: true } as { accessDenied?: boolean }} />;
   }
 
