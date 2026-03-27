@@ -162,12 +162,6 @@ function resolveTimesheetPunchOutDateStr(
   return base;
 }
 
-function isoFromDateHHmm(dateStr: string, hhmm: string): string {
-  const [h, m] = hhmm.split(':').map(Number);
-  const d = parseISO(dateStr);
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), h ?? 0, m ?? 0, 0, 0).toISOString();
-}
-
 /** Dati per il popup congelo dopo salvataggio timbrature in coda revisione giornata/settimana. */
 function buildReviewQueueFreezeApprovalPayload(args: {
   shiftId: string;

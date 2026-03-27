@@ -356,6 +356,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       case 'home':
         return (
           <HomePage
+            activeTab={activeTab}
             onNavigateToHolidays={() => {
               void handleTabChange('ferie');
             }}
@@ -365,6 +366,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
             onNavigateToReports={() => {
               void handleTabChange('timesheet');
             }}
+            onTabChange={(tab) => void handleTabChange(tab)}
           />
         );
       case 'turni':
@@ -481,7 +483,12 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
       {!noNavTabs && (
         <div className={postUnlockReloadPending ? 'pointer-events-none' : undefined}>
-          <BottomNav activeTab={activeTab} onTabChange={handleTabChange} visibleTabs={bottomNavTabs} />
+          <BottomNav
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            visibleTabs={bottomNavTabs}
+            navClassName={!isManagement && activeTab === 'home' ? 'max-md:hidden' : undefined}
+          />
         </div>
       )}
     </div>

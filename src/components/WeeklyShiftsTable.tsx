@@ -31,7 +31,6 @@ import {
   isPurelyManagementRole,
   isManagementRole,
   isUserVisibleOnTeamSchedule,
-  canOperateTeamSchedule,
   canEditTeamShifts,
   canPublishScheduleDrafts,
   canApproveShiftActions,

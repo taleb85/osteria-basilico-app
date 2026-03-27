@@ -14,9 +14,11 @@ interface BottomNavProps {
   onTabChange: (tab: AppNavTab) => void;
   /** Tab visibili (ordine: dashboard, turni, ferie, presenze, ore, impostazioni). */
   visibleTabs: AppNavTab[];
+  /** Classi aggiuntive sul `<nav>` (es. `max-md:hidden` per sostituire con nav dedicata). */
+  navClassName?: string;
 }
 
-export default function BottomNav({ activeTab, onTabChange, visibleTabs }: BottomNavProps) {
+export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClassName }: BottomNavProps) {
   const navRef = useRef<HTMLElement>(null);
   const { effectiveLanguage, currentUser } = useApp();
   /** Contenuto che scorre sotto la nav fissa → vetro trasparente; altrimenti tinta piena rgb(45,90,39). */
@@ -39,6 +41,8 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
     if (!el) return;
     const apply = () => {
       const h = Math.ceil(el.getBoundingClientRect().height);
+      // Con `max-md:hidden` l’altezza è 0: non sovrascrivere — altra barra (es. mobile home staff) imposta l’offset.
+      if (h < 8) return;
       document.documentElement.style.setProperty('--app-bottom-nav-offset', `${h}px`);
       requestAnimationFrame(() => updateNavOverlapMode());
     };
@@ -51,7 +55,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
       window.removeEventListener('resize', apply);
       document.documentElement.style.removeProperty('--app-bottom-nav-offset');
     };
-  }, [updateNavOverlapMode]);
+  }, [updateNavOverlapMode, navClassName]);
 
   useEffect(() => {
     updateNavOverlapMode();
@@ -107,7 +111,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs }: Botto
   return (
     <nav
       ref={navRef}
-      className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none"
+      className={`fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none ${navClassName ?? ''}`}
       style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 0px))',
         paddingLeft: 'max(12px, env(safe-area-inset-left, 0px))',

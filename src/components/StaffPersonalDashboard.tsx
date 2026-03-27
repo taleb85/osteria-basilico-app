@@ -4,12 +4,14 @@ import { TrendingUp, Palmtree, Clock, CheckCircle, Download, X, Share, ChevronRi
 import { database } from '../lib/database';
 import { useApp } from '../context/AppContext';
 import { User as UserType, Shift, HolidayRequest, PunchRecord } from '../types';
-import { format, isToday, isFuture } from 'date-fns';
+import { format, isToday, isFuture, startOfWeek, addDays, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
 import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { getVisibleStaffTabs, getUnifiedNavTabs, isStaffRequestsFeatureEnabled, type AppNavTab } from '../utils/enabledModules';
+import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
+import MobileStaffDashboard from './mobile/MobileStaffDashboard';
 import { isPurelyManagementRole } from '../utils/permissions';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { userRowToSessionUser } from '../utils/staffPermissionDefaults';
@@ -39,9 +41,8 @@ export default function StaffPersonalDashboard({
   user,
   onLogout,
   activeTab,
-  onTabChange: _onTabChange,
+  onTabChange,
 }: StaffPersonalDashboardProps) {
-  void _onTabChange;
   const {
     setCurrentUser,
     users,
@@ -66,6 +67,7 @@ export default function StaffPersonalDashboard({
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
   const [seedingDemoProfile, setSeedingDemoProfile] = useState(false);
   const t = getTranslations(effectiveLanguage);
+  const now = useWallAlignedMinuteClock();
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
     [featureFlags]
@@ -232,6 +234,37 @@ export default function StaffPersonalDashboard({
     return getUnifiedNavTabs(displayUser, false, featureFlags);
   }, [displayUser, featureFlags, roleTemplatesRevision]);
 
+  const staffHomeWeeklyMonthly = useMemo(() => {
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const weekEnd = addDays(weekStart, 7);
+    const mStart = startOfMonth(now);
+    const mEnd = endOfMonth(now);
+    const weekOk = (s: Shift) =>
+      s.approval_status === 'approved' || s.approval_status === 'confirmed' || s.approval_status === 'absent';
+    const thisWeekShifts = visibleShifts.filter((s) => {
+      const d = parseISO(s.date);
+      return d >= weekStart && d < weekEnd && weekOk(s);
+    });
+    let weeklyMinutes = 0;
+    for (const s of thisWeekShifts) {
+      if (s.approval_status === 'absent') continue;
+      const { start, end } = getResolvedStartEndForHours(s, punchRecords);
+      weeklyMinutes += getNetShiftMinutes(s, start, end, displayUser, breakRules, breakComputeOpts);
+    }
+    const monthShifts = visibleShifts.filter((s) => {
+      const d = parseISO(s.date);
+      return d >= mStart && d <= mEnd && weekOk(s);
+    });
+    let monthlyMinutes = 0;
+    for (const s of monthShifts) {
+      if (s.approval_status === 'absent') continue;
+      const { start, end } = getResolvedStartEndForHours(s, punchRecords);
+      monthlyMinutes += getNetShiftMinutes(s, start, end, displayUser, breakRules, breakComputeOpts);
+    }
+    const monthDaysWorked = new Set(monthShifts.filter((s) => s.approval_status !== 'absent').map((s) => s.date)).size;
+    return { weeklyMinutes, monthlyMinutes, monthDaysWorked };
+  }, [now, visibleShifts, punchRecords, displayUser, breakRules, breakComputeOpts]);
+
   const showHomeKpiStrip =
     totalApprovedMinutes > 0 || todayShifts.length + upcomingShifts.length > 0;
 
@@ -242,9 +275,31 @@ export default function StaffPersonalDashboard({
       grouped[s.date].push(s);
     });
     const sortedDates = Object.keys(grouped).sort().slice(0, 6);
+    const todayStr = format(now, 'yyyy-MM-dd');
 
     return (
       <div className="space-y-4">
+        <div className="md:hidden">
+          <MobileStaffDashboard
+            user={displayUser}
+            language={effectiveLanguage}
+            todayStr={todayStr}
+            now={now}
+            myShifts={shifts}
+            punchRecords={punchRecords}
+            weeklyMinutes={staffHomeWeeklyMonthly.weeklyMinutes}
+            monthlyMinutes={staffHomeWeeklyMonthly.monthlyMinutes}
+            monthDaysWorked={staffHomeWeeklyMonthly.monthDaysWorked}
+            weekCapMinutes={40 * 60}
+            visibleNavTabs={staffUnifiedTabs}
+            onTabChange={onTabChange}
+            greetingText={t.home_greeting.replace('{name}', displayUser.first_name ?? '')}
+            showMobileBottomNav
+            activeTab={activeTab}
+          />
+        </div>
+
+        <div className="hidden md:block space-y-4">
 
         {/* Card ORE MESE (se disponibile) */}
         {uiW('staff_home.month_hours') && confirmedThisMonth && (
@@ -369,6 +424,7 @@ export default function StaffPersonalDashboard({
           </button>
         )}
 
+        </div>
       </div>
     );
   };
@@ -566,7 +622,7 @@ export default function StaffPersonalDashboard({
       )}
 
       {activeTab === 'home' && !holidaysFocus && uiW('staff_home.header_kpi') && showHomeKpiStrip && (
-        <div className="pb-4 pt-1">
+        <div className="hidden md:block pb-4 pt-1">
           <div className="surface-glass p-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-slate-50 dark:bg-neutral-950/80 border border-slate-100 dark:border-white/10 rounded-2xl px-4 py-3 text-center">

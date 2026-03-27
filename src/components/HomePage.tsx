@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
-import { format, isToday, isTomorrow, isValid, parseISO, addDays, startOfWeek } from 'date-fns';
+import { format, isToday, isTomorrow, isValid, parseISO, addDays, startOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
@@ -27,6 +27,8 @@ import ApproveShiftModal from './ApproveShiftModal';
 import { getResolvedStartEndForHours, shiftPastPlannedEndWithoutClockIn } from '../utils/shiftResolvedClockTimes';
 import { safeFormatDate } from '../utils/safeDateFormat';
 import { TimeInputField } from './ui/TimeInputField';
+import MobileStaffDashboard from './mobile/MobileStaffDashboard';
+import { getUnifiedNavTabs, type AppNavTab } from '../utils/enabledModules';
 
 // ── Board helpers ────────────────────────────────────────────────────────────
 const BOARD_KEY = 'manager_board_note';
@@ -74,10 +76,19 @@ interface HomePageProps {
   onNavigateToHolidays?: () => void;
   onNavigateToShifts?: () => void;
   onNavigateToReports?: () => void;
+  onTabChange?: (tab: AppNavTab) => void;
+  /** Per evidenziare la scheda nella MobileBottomNav (solo home gestionale compatto). */
+  activeTab?: AppNavTab;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onNavigateToReports }: HomePageProps) {
+export default function HomePage({
+  onNavigateToHolidays,
+  onNavigateToShifts,
+  onNavigateToReports,
+  onTabChange,
+  activeTab: activeTabProp,
+}: HomePageProps) {
   const { currentUser, shifts, holidays, users, punchRecords, updatePunchRecord, approveShift, effectiveLanguage, showSuccess, showError, breakRules, featureFlags } = useApp();
   const t = getTranslations(effectiveLanguage);
   const shiftsListRef = useRef<HTMLDivElement>(null);
@@ -192,6 +203,32 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
       getNetShiftMinutes(s, (s.start_time || '').slice(0, 5), (s.end_time || '').slice(0, 5), u, breakRules, breakComputeOpts)
     );
   }, 0);
+
+  const monthStart = startOfMonth(now);
+  const monthEnd = endOfMonth(now);
+  const thisMonthShifts = myShifts.filter((s) => {
+    const d = parseISO(s.date);
+    return (
+      d >= monthStart &&
+      d <= monthEnd &&
+      (s.approval_status === 'approved' || s.approval_status === 'confirmed' || s.approval_status === 'absent')
+    );
+  });
+  const monthlyMinutes = thisMonthShifts.reduce((sum, s) => {
+    if (s.approval_status === 'absent') return sum;
+    const u = users.find((x) => x.id === s.user_id) ?? currentUser;
+    if (s.approved_at && s.approved_start_time && s.approved_end_time) {
+      const { start, end } = getResolvedStartEndForHours(s, punchRecords);
+      return sum + getNetShiftMinutes(s, start, end, u, breakRules, breakComputeOpts);
+    }
+    return (
+      sum +
+      getNetShiftMinutes(s, (s.start_time || '').slice(0, 5), (s.end_time || '').slice(0, 5), u, breakRules, breakComputeOpts)
+    );
+  }, 0);
+  const monthDaysWorked = new Set(thisMonthShifts.filter((s) => s.approval_status !== 'absent').map((s) => s.date)).size;
+
+  const homeNavTabs = getUnifiedNavTabs(currentUser, isMgmtUser, featureFlags);
 
   const pendingHolidays = holidays.filter((h) => h.status === 'pending');
   const myApprovedHolidays = holidays
@@ -425,8 +462,31 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
     const todayShiftsMine = shifts.filter((s) => s.date === todayStr && s.user_id === currentUser.id);
     return (
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          className="mx-auto flex max-w-lg flex-col gap-4">
+        <div className="md:hidden">
+          <MobileStaffDashboard
+            user={currentUser}
+            language={effectiveLanguage}
+            todayStr={todayStr}
+            now={now}
+            myShifts={myShifts}
+            punchRecords={punchRecords}
+            weeklyMinutes={weeklyMinutes}
+            monthlyMinutes={monthlyMinutes}
+            monthDaysWorked={monthDaysWorked}
+            weekCapMinutes={40 * 60}
+            visibleNavTabs={homeNavTabs}
+            onTabChange={onTabChange}
+            greetingText={t.home_greeting.replace('{name}', currentUser.first_name)}
+            showMobileBottomNav={!isMgmtUser}
+            activeTab={activeTabProp ?? 'home'}
+          />
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mx-auto hidden max-w-lg flex-col gap-4 md:flex md:flex-col"
+        >
           {/* Saluto */}
           {uiW('home_compact.greeting') && (
           <div>
@@ -622,7 +682,7 @@ export default function HomePage({ onNavigateToHolidays, onNavigateToShifts, onN
     );
   }
 
-  // ── MANAGER VIEW ────────────────────────────────────────────────────────────
+  // ── MANAGER VIEW (team home) ────────────────────────────────────────────────
   return (
     <>
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
