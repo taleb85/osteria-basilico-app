@@ -1,9 +1,8 @@
 import { useMemo } from 'react';
 import { format, isValid } from 'date-fns';
-import { it } from 'date-fns/locale';
 import { Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { getTranslations, getDateLocale, formatTrans } from '../utils/translations';
+import { getTranslations, formatTrans } from '../utils/translations';
 import { isUserVisibleOnTeamSchedule } from '../utils/permissions';
 import {
   readProfileAvatarFromStorage,

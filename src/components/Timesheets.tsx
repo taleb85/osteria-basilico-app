@@ -11,7 +11,7 @@ import {
 } from 'date-fns';
 import { it } from 'date-fns/locale';
 import {
-  ChevronRight, Check, AlertTriangle, X,
+  ChevronRight, ChevronLeft, Check, AlertTriangle, X,
   Clock, History, FileEdit, ShieldAlert, LogOut, Lock, Unlock,
   Users, UserCheck, AlertCircle, ArrowRight, Calendar, Moon,
   ChevronDown, FileDown, UserX, Trash2, Pencil,
@@ -501,8 +501,15 @@ export default function Timesheets() {
     applyPeriodFromStorage();
   }, [currentUser?.id, applyPeriodFromStorage]);
 
-  type ViewMode = 'week' | 'month';
+  type ViewMode = 'day' | 'week' | 'month';
   const [viewMode, setViewMode] = useState<ViewMode>('week');
+  const [dayOffset, setDayOffset] = useState(() => {
+    const today = new Date();
+    const config = loadPeriodConfig();
+    const start = getPeriodStartDate(config);
+    const diff = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    return diff;
+  });
   const [weekIndex, setWeekIndex] = useState(() =>
     readStoredWeekIndex(initialConfig.startDate, initialConfig.numWeeks)
   );
@@ -677,32 +684,44 @@ export default function Timesheets() {
   );
 
   const weekDays =
-    viewMode === 'week'
-      ? allPeriodDays.slice(weekIndex * 7, weekIndex * 7 + 7)
-      : calendarPaddedDays;
+    viewMode === 'day'
+      ? [addDays(periodStartDate, dayOffset)]
+      : viewMode === 'week'
+        ? allPeriodDays.slice(weekIndex * 7, weekIndex * 7 + 7)
+        : calendarPaddedDays;
   const weekStart = weekDays[0] ?? periodStartDate;
   const lastDay = weekDays[weekDays.length - 1] ?? periodEndDate;
   const weekStr = format(weekStart, 'yyyy-MM-dd');
   const weekEnd = format(addDays(lastDay, 1), 'yyyy-MM-dd');
   const todayStr = format(now, 'yyyy-MM-dd');
 
+  const maxDayOffset = allPeriodDays.length - 1;
+
   const timesheetMainGridWeekNav = useMemo(
     () =>
-      viewMode === 'week'
+      viewMode === 'day'
         ? {
-            canPrev: weekIndex > 0,
-            canNext: weekIndex < maxWeekIndex,
-            onPrev: () => setWeekIndex((i) => Math.max(0, i - 1)),
-            onNext: () => setWeekIndex((i) => Math.min(maxWeekIndex, i + 1)),
+            canPrev: dayOffset > 0,
+            canNext: dayOffset < maxDayOffset,
+            onPrev: () => setDayOffset((d) => Math.max(0, d - 1)),
+            onNext: () => setDayOffset((d) => Math.min(maxDayOffset, d + 1)),
           }
-        : undefined,
+        : viewMode === 'week'
+          ? {
+              canPrev: weekIndex > 0,
+              canNext: weekIndex < maxWeekIndex,
+              onPrev: () => setWeekIndex((i) => Math.max(0, i - 1)),
+              onNext: () => setWeekIndex((i) => Math.min(maxWeekIndex, i + 1)),
+            }
+          : undefined,
     [viewMode, weekIndex, maxWeekIndex]
   );
 
   /** Griglia presenze: larghezze fisse (px) — nome | ogni giorno | colonna totale. */
-  const timesheetGridDayColPx = viewMode === 'month' ? 76 : 100;
-  const timesheetGridNameColPx = 132;
-  const timesheetGridTotalColPx = 90;
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const timesheetGridDayColPx = viewMode === 'month' ? (isMobile ? 110 : 76) : (isMobile ? 140 : 100);
+  const timesheetGridNameColPx = isMobile ? 100 : 132;
+  const timesheetGridTotalColPx = isMobile ? 80 : 90;
   const timesheetGridMinWidthPx =
     timesheetGridNameColPx + weekDays.length * timesheetGridDayColPx + timesheetGridTotalColPx;
 
@@ -2229,6 +2248,13 @@ export default function Timesheets() {
             <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch gap-2.5 overflow-x-auto-safe lg:flex-row lg:flex-nowrap lg:items-center lg:justify-start lg:gap-3">
               <div className="ui-toolbar-row-tight min-w-0 w-full shrink-0 lg:w-auto">
                 <div className="ui-toolbar-group">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('day')}
+                    className={`ui-toolbar-tab ${viewMode === 'day' ? 'bg-accent text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}
+                  >
+                    {t.ts_period_day || 'Giorno'}
+                  </button>
                   <button type="button" onClick={() => setViewMode('week')}
                     className={`ui-toolbar-tab ${viewMode === 'week' ? 'bg-accent text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}>
                     {t.ts_period_week}
@@ -2261,9 +2287,32 @@ export default function Timesheets() {
                 >
                   <Calendar className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-400" aria-hidden />
                   <span className="min-w-0 truncate tabular-nums">
-                    {format(periodStartDate, 'dd/MM/yy', { locale })} → {format(periodEndDate, 'dd/MM/yy', { locale })}
+                    {viewMode === 'day' 
+                      ? format(weekDays[0], 'EEEE d MMMM yyyy', { locale })
+                      : `${format(periodStartDate, 'dd/MM/yy', { locale })} → ${format(periodEndDate, 'dd/MM/yy', { locale })}`}
                   </span>
                 </div>
+
+                {timesheetMainGridWeekNav && (
+                  <div className="ui-toolbar-group shrink-0 absolute top-[570px] left-[306px]">
+                    <button
+                      type="button"
+                      onClick={timesheetMainGridWeekNav.onPrev}
+                      disabled={!timesheetMainGridWeekNav.canPrev}
+                      className="ui-toolbar-tab px-2 disabled:opacity-30"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={timesheetMainGridWeekNav.onNext}
+                      disabled={!timesheetMainGridWeekNav.canNext}
+                      className="ui-toolbar-tab px-2 disabled:opacity-30"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
 
                 <div className="ui-toolbar-group !hidden shrink-0 lg:!flex">
                   <button
@@ -2366,7 +2415,95 @@ export default function Timesheets() {
           {/* ── Griglia presenze (ancora scroll dalle card riepilogo) ─── */}
           {uiW('timesheet.main_grid') && (
           <>
-          <div id="timesheet-section-main-grid" className="surface-glass overflow-hidden scroll-mt-24">
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4 px-4 pb-8">
+            {visibleUsers.map((user) => {
+              const totals = userTotals[user.id];
+              const userHasShifts = weekDays.some(day => {
+                const dateStr = format(day, 'yyyy-MM-dd');
+                return timesheetData[user.id]?.[dateStr]?.shifts.length > 0;
+              });
+
+              return (
+                <div key={user.id} className="surface-glass rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-white/10 overflow-hidden">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="font-bold text-lg text-slate-900 dark:text-neutral-100">{user.first_name}</h4>
+                      {user.department && (
+                        <p className="text-[10px] text-slate-400 dark:text-neutral-400 font-medium uppercase tracking-wider">{user.department}</p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{t.stats_total}</div>
+                      <div className="text-sm font-bold text-accent">
+                        {formatMinutesToHoursAndMinutes(totals?.actualMins || totals?.plannedMins || 0)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {!userHasShifts ? (
+                      <div className="py-4 text-center border-2 border-dashed border-slate-100 dark:border-white/5 rounded-xl">
+                        <p className="text-xs text-slate-400 italic">{t.no_shifts_this_week || 'Nessun turno questa settimana'}</p>
+                      </div>
+                    ) : (
+                      weekDays.map(day => {
+                        const dateStr = format(day, 'yyyy-MM-dd');
+                        const dayData = timesheetData[user.id]?.[dateStr];
+                        if (!dayData || dayData.shifts.length === 0) return null;
+                        
+                        const todayDate = isToday(day);
+
+                        return (
+                          <div key={dateStr} className={`flex items-start gap-3 p-2 rounded-xl ${todayDate ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-slate-50/50 dark:bg-white/5'}`}>
+                            <div className="w-10 shrink-0 text-center">
+                              <div className={`text-[10px] font-bold uppercase ${todayDate ? 'text-accent' : 'text-slate-400'}`}>
+                                {format(day, 'EEE', { locale })}
+                              </div>
+                              <div className={`text-xs font-bold ${todayDate ? 'text-accent' : 'text-slate-600 dark:text-neutral-300'}`}>
+                                {format(day, 'd', { locale })}
+                              </div>
+                            </div>
+                            
+                            <div className="flex-1 space-y-2">
+                              {dayData.shifts.map(s => {
+                                const punchAuditCount = s.punchInId ? (punchAudits[s.punchInId]?.length ?? 0) : 0;
+                                const boardShift = shifts.find((sh) => sh.id === s.id) ?? null;
+                                const { border, bg, ring } = getShiftCardStyle(s, punchAuditCount, dateStr, boardShift);
+                                
+                                return (
+                                  <button 
+                                    key={s.id} 
+                                    onClick={() => openDrawer(s, user, dateStr)} 
+                                    className={`flex w-full items-center justify-between rounded-lg border-l-4 ${border} ${bg} ${ring} p-2 text-left transition-transform active:scale-[0.98]`}
+                                  >
+                                    <div className="flex flex-col">
+                                      <span className="text-xs font-bold text-slate-800 dark:text-neutral-100">
+                                        {s.plannedStart}–{s.plannedEnd || '?'}
+                                      </span>
+                                      {s.punched && s.actualStart && (
+                                        <span className="text-[10px] font-medium text-slate-500 dark:text-neutral-400">
+                                          {s.actualStart}–{s.actualEnd || '...'}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <ChevronRight className="h-4 w-4 text-slate-300" />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Table View */}
+          <div id="timesheet-section-main-grid" className="hidden md:block surface-glass overflow-hidden scroll-mt-24">
             <HorizontalScrollArea
               variant="overlay"
               remeasureKey={`${viewMode}-${weekStr}-${weekDays.length}`}
@@ -2388,7 +2525,7 @@ export default function Timesheets() {
               </colgroup>
               <thead>
                 <tr className="border-b-2 border-slate-300 dark:border-white/30">
-                  <th className="sticky left-0 z-10 box-border bg-slate-50 py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:border-r-white/40 dark:bg-neutral-800 dark:text-neutral-100 border-r-2 border-r-slate-400 md:py-2.5 md:pl-3 md:pr-2">
+                  <th className="sticky left-0 z-10 box-border bg-slate-50 py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:border-r-white/40 dark:bg-neutral-800 dark:text-neutral-100 border-r-2 border-r-slate-400 md:py-2.5 md:pl-3 md:pr-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">
                     {t.employee}
                   </th>
                   {weekDays.map((day, dayIdx) => {
@@ -2474,7 +2611,7 @@ export default function Timesheets() {
                       }`}
                     >
                       {/* Nome dipendente — click → revisione settimana (coda turni) */}
-                      <td className="sticky left-0 bg-inherit pl-4 pr-3 py-3 border-r-2 border-r-slate-400 dark:border-r-white/40 z-10 md:py-2 md:pl-3 md:pr-2">
+                      <td className="sticky left-0 bg-inherit pl-4 pr-3 py-3 border-r-2 border-r-slate-400 dark:border-r-white/40 z-10 md:py-2 md:pl-3 md:pr-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">
                         {canTeamTimesheetOps ? (
                           <button
                             type="button"
@@ -3062,7 +3199,7 @@ export default function Timesheets() {
                       <h3 className="truncate text-lg font-bold leading-tight text-slate-900 dark:text-neutral-100">
                         {drawerData.employeeName}
                       </h3>
-                      <p className="absolute left-[232px] top-[5px] flex h-[45px] w-[232px] items-center gap-1.5 text-xl font-medium text-slate-600 dark:text-neutral-300">
+                      <p className="absolute left-[127px] -top-[5px] flex h-[45px] w-[232px] items-center gap-1.5 text-[12px] font-medium text-slate-600 dark:text-neutral-300">
                         <Calendar className="h-5 w-5 shrink-0 opacity-80" strokeWidth={2} />
                         <span className="min-w-0 truncate">
                           {safeFormatDate(drawerData.dateStr, 'EEEE d MMMM yyyy', { locale })}

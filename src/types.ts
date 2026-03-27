@@ -94,6 +94,8 @@ export interface Shift {
   break_minutes?: number;
   /** true se la pausa è stata applicata automaticamente (es. turno > 6h). */
   is_auto_break?: boolean;
+  /** Reparto del turno (pianificazione; opzionale). */
+  department?: Department;
   /** Competenze/task richieste per questo turno (es. "sommelier,cassa") */
   skills?: string;
   /** Timestamp di quando il turno è stato approvato (ISO string); null per svuotare in update */

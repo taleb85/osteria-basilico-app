@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Clock, Calendar } from 'lucide-react';
 import type { Shift } from '../../types';

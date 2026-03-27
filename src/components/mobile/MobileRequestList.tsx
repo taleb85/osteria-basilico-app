@@ -1,6 +1,5 @@
-import { format, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Palmtree, Clock, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { Palmtree, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import type { HolidayRequest } from '../../types';
 import { safeFormatDate } from '../../utils/safeDateFormat';
 

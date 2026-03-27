@@ -1,6 +1,5 @@
-import { format, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Calendar, Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import type { Shift } from '../../types';
 import { safeFormatDate } from '../../utils/safeDateFormat';
 import { translateDepartmentValue } from '../../utils/departmentLabels';

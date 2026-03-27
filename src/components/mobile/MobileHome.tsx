@@ -1,7 +1,5 @@
-import { motion } from 'framer-motion';
 import { Play, Pause, LogOut, ChevronRight } from 'lucide-react';
 import MobileStatsCards from './MobileStatsCards';
-import { useApp } from '../../context/AppContext';
 
 export interface MobileHomeProps {
   greetingText: string;
@@ -67,9 +65,6 @@ export default function MobileHome({
   onNavigateToTimesheet,
   todayWorkShifts,
 }: MobileHomeProps) {
-  const { featureFlags } = useApp();
-  const isSynced = !!featureFlags && Object.keys(featureFlags).length > 0;
-
   return (
     <div className="flex flex-col gap-4 px-4 py-4 pb-12">
       {/* Header */}

@@ -12,15 +12,11 @@ import { getTranslations, getDateLocale } from '../utils/translations';
 import {
   getVisibleStaffTabs,
   getUnifiedNavTabs,
-  getBottomNavTabsForMainApp,
   isStaffRequestsFeatureEnabled,
   type AppNavTab,
 } from '../utils/enabledModules';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import MobileStaffDashboard from './mobile/MobileStaffDashboard';
-import MobileProfileStats from './mobile/MobileProfileStats';
-import MobileShiftList from './mobile/MobileShiftList';
-import MobileRequestList from './mobile/MobileRequestList';
 import MobileShifts from './mobile/MobileShifts';
 import MobileTimesheet from './mobile/MobileTimesheet';
 import MobileRequests from './mobile/MobileRequests';
@@ -28,7 +24,6 @@ import { useIsMobileViewport } from '../hooks/useIsMobileViewport';
 const Timesheets = lazy(() => import('./Timesheets'));
 const HolidayRequests = lazy(() => import('./HolidayRequests'));
 const Statistics = lazy(() => import('./Statistics'));
-const SettingsPage = lazy(() => import('./SettingsPage'));
 const WeeklyShiftsTable = lazy(() => import('./WeeklyShiftsTable'));
 
 import { isPurelyManagementRole } from '../utils/permissions';
@@ -36,7 +31,6 @@ import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { userRowToSessionUser } from '../utils/staffPermissionDefaults';
 import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
 import { translateDepartmentValue } from '../utils/departmentLabels';
-import { lightHaptic } from '../utils/hapticFeedback';
 import AdminRow from './ui/AdminRow';
 import RequestHolidayModal from './RequestHolidayModal';
 import LanguageToggleGrid from './LanguageToggleGrid';
@@ -83,7 +77,6 @@ export default function StaffPersonalDashboard({
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
   const [seedingDemoProfile, setSeedingDemoProfile] = useState(false);
   const t = getTranslations(effectiveLanguage);
-  const tr = t as Record<string, string>;
   const now = useWallAlignedMinuteClock();
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
@@ -255,23 +248,6 @@ export default function StaffPersonalDashboard({
     void roleTemplatesRevision;
     return getUnifiedNavTabs(displayUser, false, featureFlags);
   }, [displayUser, featureFlags, roleTemplatesRevision]);
-
-  const staffMobileBottomNavTabs = useMemo(() => {
-    void roleTemplatesRevision;
-    return getBottomNavTabsForMainApp(displayUser, false, featureFlags);
-  }, [displayUser, featureFlags, roleTemplatesRevision]);
-
-  const mobileNavTabLabels = useMemo((): Partial<Record<AppNavTab, string>> => {
-    return {
-      home: t.sidebar_dashboard,
-      turni: t.sidebar_shifts,
-      ferie: t.sidebar_holidays,
-      timesheet: t.sidebar_attendance,
-      reports: t.sidebar_statistics,
-      profile: tr.bottom_nav_profile_short ?? t.sidebar_profile,
-      settings: tr.bottom_nav_settings_short ?? t.sidebar_admin,
-    };
-  }, [t, tr]);
 
   const staffHomeWeeklyMonthly = useMemo(() => {
     const weekStart = startOfWeek(now, { weekStartsOn: 1 });
@@ -475,16 +451,6 @@ export default function StaffPersonalDashboard({
     [visibleShifts]
   );
 
-  const mobileHolidayListCopy = useMemo(
-    () => ({
-      empty: t.no_holidays_yet,
-      approved: t.approved,
-      pending: t.pending,
-      rejected: t.rejected,
-    }),
-    [t]
-  );
-
   const isMobile = useIsMobileViewport();
 
   const renderShifts = () => (
@@ -512,19 +478,6 @@ export default function StaffPersonalDashboard({
         </>
       )}
     </div>
-  );
-
-  const mobileProfileStatsEl = (
-    <MobileProfileStats
-      monthHoursLabel={tr.mobile_staff_this_month_hours ?? t.hours_this_month}
-      hoursFormatted={formatMinutesToHoursAndMinutes(staffHomeWeeklyMonthly.monthlyMinutes)}
-      shiftsInMonth={staffHomeWeeklyMonthly.monthShiftCount}
-      shiftsLabel={t.shifts_confirmed}
-      documentsLabel={tr.mobile_staff_documents ?? 'Documenti'}
-      payslipLabel={tr.mobile_staff_payslip ?? 'Busta paga'}
-      onDocumentsTap={() => showSuccess(tr.mobile_staff_docs_hint ?? '')}
-      onPayslipTap={() => showSuccess(tr.mobile_staff_payslip_hint ?? '')}
-    />
   );
 
   const renderProfile = () => (

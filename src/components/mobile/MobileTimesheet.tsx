@@ -1,4 +1,4 @@
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Clock, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import type { Shift, PunchRecord } from '../../types';

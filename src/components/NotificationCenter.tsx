@@ -1,15 +1,13 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Bell, BellOff, Check, X, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Bell, BellOff, X, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations } from '../utils/translations';
-import { 
-  generateNotifications, 
-  syncNotificationFeed, 
-  getSeenIds, 
-  markAllSeen, 
-  type AppNotification 
+import {
+  generateNotifications,
+  syncNotificationFeed,
+  getSeenIds,
+  markAllSeen,
 } from '../utils/notifications';
-import { motion, AnimatePresence } from 'framer-motion';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
 
 /**
@@ -40,7 +38,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
     }
   }, [currentUser, unreadCount, feed]);
 
-  const getIcon = (type: string, severity: string) => {
+  const getIcon = (_type: string, severity: string) => {
     switch (severity) {
       case 'success': return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
       case 'warning': return <AlertTriangle className="h-4 w-4 text-amber-500" />;

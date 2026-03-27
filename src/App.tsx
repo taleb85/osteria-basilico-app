@@ -7,7 +7,6 @@ import { LayoutPresetProvider } from './context/LayoutPresetContext';
 import { applyUnauthenticatedDocumentTheme } from './utils/theme';
 import { getTranslations } from './utils/translations';
 import BottomNav from './components/BottomNav';
-import MobileBottomNav from './components/mobile/MobileBottomNav';
 import MobileProfileHeader from './components/MobileProfileHeader';
 import HeaderTodayCoworkersCard from './components/HeaderTodayCoworkersCard';
 import RefreshLockOverlay from './components/RefreshLockOverlay';
@@ -203,17 +202,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   }, []);
 
   const [activeTab, setActiveTab] = useState<AppNavTab>('home');
-  const labels = useMemo(() => {
-    const tr = getTranslations(effectiveLanguage) as Record<string, string>;
-    return {
-      home: tr.sidebar_dashboard,
-      calendar: tr.sidebar_shifts,
-      coffee: tr.sidebar_holidays,
-      reports: tr.sidebar_statistics,
-      timesheet: tr.sidebar_attendance,
-      profile: tr.bottom_nav_profile_short ?? tr.sidebar_profile,
-    };
-  }, [effectiveLanguage]);
   const mainViewRestoredUserIdRef = useRef<string | null>(null);
   const pendingScrollRestoreRef = useRef<{ y: number; tab: AppNavTab } | null>(null);
   const profileLeaveGuardRef = useRef<ProfileLeaveGuard | null>(null);

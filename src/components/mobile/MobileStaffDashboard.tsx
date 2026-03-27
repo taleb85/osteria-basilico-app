@@ -1,8 +1,6 @@
-import { isPurelyManagementRole } from '../../utils/permissions';
-import { isUiWidgetVisible } from '../../utils/uiScreenWidgets';
 import { lightHaptic } from '../../utils/hapticFeedback';
 import ProfileNavTabPanel from '../ProfileNavTabPanel';
-import { getBottomNavTabsForMainApp, type AppNavTab } from '../../utils/enabledModules';
+import type { AppNavTab } from '../../utils/enabledModules';
 import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { format, isValid, parseISO } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -16,6 +14,7 @@ import { safeFormatDate } from '../../utils/safeDateFormat';
 import MobileHome from './MobileHome';
 import { calculateUserStats } from '../../utils/stats';
 import { isUserInRestaurantRange, getCurrentPositionCoords } from '../../utils/geo';
+import { readGeofenceEnvConfig } from '../../utils/geofencePunch';
 
 const Timesheets = lazy(() => import('../Timesheets'));
 const HolidayRequests = lazy(() => import('../HolidayRequests'));
@@ -85,6 +84,11 @@ export interface MobileStaffDashboardProps {
   /** Se true, mostra la barra icone fissa (di default la barra è nel genitore `StaffPersonalDashboard`). */
   showMobileBottomNav?: boolean;
   activeTab: AppNavTab;
+  /** Se passati dal genitore (es. stesso calcolo KPI della Home), sovrascrivono gli stat interni. */
+  weeklyMinutes?: number;
+  monthlyMinutes?: number;
+  monthDaysWorked?: number;
+  weekCapMinutes?: number;
 }
 
 export default function MobileStaffDashboard({
@@ -96,8 +100,12 @@ export default function MobileStaffDashboard({
   punchRecords,
   onTabChange,
   greetingText,
-  showMobileBottomNav = false,
+  showMobileBottomNav: _showMobileBottomNav = false,
   activeTab,
+  weeklyMinutes: weeklyMinutesProp,
+  monthlyMinutes: monthlyMinutesProp,
+  monthDaysWorked: monthDaysWorkedProp,
+  weekCapMinutes: weekCapMinutesProp,
 }: MobileStaffDashboardProps) {
   const t = getTranslations(language);
   const tv = t as Record<string, string>;
@@ -107,11 +115,9 @@ export default function MobileStaffDashboard({
     updatePunchRecord, 
     showError, 
     showSuccess, 
-    featureFlags, 
-    roleTemplatesRevision, 
+    featureFlags,
     breakRules,
-    geofenceConfig,
-    geofenceEffectiveConfig 
+    geofenceEffectiveConfig,
   } = useApp();
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(language);
   const [punchBusy, setPunchBusy] = useState(false);
@@ -170,9 +176,6 @@ export default function MobileStaffDashboard({
   }
   void tick;
 
-  const WINDOW_MIN = 60;
-  const nowM = now.getHours() * 60 + now.getMinutes();
-
   const shiftForStart = useMemo(() => {
     const nowM = now.getHours() * 60 + now.getMinutes();
     for (const e of enriched) {
@@ -203,7 +206,7 @@ export default function MobileStaffDashboard({
 
   const checkGeofence = useCallback(async () => {
     if (featureFlags['geofence_punch'] === false) return true;
-    const config = geofenceEffectiveConfig || geofenceConfig;
+    const config = geofenceEffectiveConfig || readGeofenceEnvConfig();
     if (!config) return true;
     try {
       const pos = await getCurrentPositionCoords();
@@ -217,7 +220,7 @@ export default function MobileStaffDashboard({
       showError?.(t.punch_error_geo_denied || 'Impossibile verificare la posizione.');
       return false;
     }
-  }, [featureFlags, geofenceConfig, geofenceEffectiveConfig, showError, t]);
+  }, [featureFlags, geofenceEffectiveConfig, showError, t]);
 
   const handleStart = useCallback(async () => {
     if (!shiftForStart) return;
@@ -334,30 +337,10 @@ export default function MobileStaffDashboard({
     daysWorked: tv.mobile_dash_days_worked ?? 'Giorni lavorati',
   };
 
-  const staffMobileBottomTabs = useMemo(() => {
-    void roleTemplatesRevision;
-    return getBottomNavTabsForMainApp(user, false, featureFlags);
-  }, [user, featureFlags, roleTemplatesRevision]);
-
-  const mobileNavTabLabels = useMemo((): Partial<Record<AppNavTab, string>> => {
-    const tr = t as Record<string, string>;
-    return {
-      home: t.sidebar_dashboard,
-      turni: t.sidebar_shifts,
-      ferie: t.sidebar_holidays,
-      timesheet: t.sidebar_attendance,
-      reports: t.sidebar_statistics,
-      profile: tr.bottom_nav_profile_short ?? t.sidebar_profile,
-      settings: tr.bottom_nav_settings_short ?? t.sidebar_admin,
-    };
-  }, [t]);
-
   const shiftTimeHint =
     inProgress && elapsedLabel
       ? `${inProgress.shift.start_time.slice(0, 5)} – ${inProgress.shift.end_time?.slice(0, 5) ?? '…'} · ${inProgress.shift.type === 'lunch' ? t.lunch : t.dinner}`
       : null;
-
-  const uiW = useCallback((key: string) => isUiWidgetVisible(user, key), [user]);
 
   const tabSpinner = (
     <div className="flex items-center justify-center min-h-[200px]">
@@ -373,10 +356,10 @@ export default function MobileStaffDashboard({
             greetingText={greetingText}
             todayLabel={safeFormatDate(todayStr, 'EEEE d MMMM', { locale })}
             statsLabels={statsLabels}
-            weeklyMinutes={stats.weeklyMinutes}
-            monthlyMinutes={stats.monthlyMinutes}
-            monthDaysWorked={stats.monthDaysWorked}
-            weekCapMinutes={40 * 60}
+            weeklyMinutes={weeklyMinutesProp ?? stats.weeklyMinutes}
+            monthlyMinutes={monthlyMinutesProp ?? stats.monthlyMinutes}
+            monthDaysWorked={monthDaysWorkedProp ?? stats.monthDaysWorked}
+            weekCapMinutes={weekCapMinutesProp ?? 40 * 60}
             inProgress={inProgress}
             elapsedLabel={elapsedLabel}
             todayWorkShiftsCount={todayWorkShifts.length}

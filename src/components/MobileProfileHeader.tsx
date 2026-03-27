@@ -1,13 +1,11 @@
-import { useId } from 'react';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { LogOut, Loader2, Cloud, CloudOff } from 'lucide-react';
+import { LogOut, Cloud, CloudOff } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { getRoleScopeHint } from '../utils/roleScopeHint';
 import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
-import UserAvatarMenu from './UserAvatarMenu';
 import NotificationCenter from './NotificationCenter';
 
 /**
@@ -15,12 +13,6 @@ import NotificationCenter from './NotificationCenter';
  * Transizione: dissolvenza + leggera rotazione/scala al cambio tema.
  */
 function ThemeContrastIcon({ mode, className }: { mode: 'light' | 'dark'; className?: string }) {
-  const uid = useId().replace(/:/g, '');
-  const lL = `tg-${uid}-ll`;
-  const lR = `tg-${uid}-lr`;
-  const dL = `tg-${uid}-dl`;
-  const dR = `tg-${uid}-dr`;
-
   const activeLight = mode === 'light';
   const svgTransition =
     'absolute inset-0 h-full w-full transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.34,1.2,0.64,1)]';
@@ -80,20 +72,15 @@ export default function MobileProfileHeader({
   embeddedInAppHeader = false,
   parentProvidesCardShell = false,
   hideHeaderLogout = false,
-  hideToolbarAvatar = false,
+  hideToolbarAvatar: _hideToolbarAvatar = false,
 }: MobileProfileHeaderProps) {
   const {
     currentUser,
     effectiveLanguage,
-    dataSyncInProgress,
-    isGlobalRefreshing,
-    postRefreshLocked,
     updateUserPreferences,
     featureFlags,
   } = useApp();
   const isSynced = !!featureFlags && Object.keys(featureFlags).length > 0;
-  const showDataSyncIndicator =
-    dataSyncInProgress && !isGlobalRefreshing && !postRefreshLocked;
   const t = getTranslations(effectiveLanguage);
   const tr = t as Record<string, string>;
   const locale = getDateLocale(effectiveLanguage) ?? it;
@@ -131,11 +118,11 @@ export default function MobileProfileHeader({
           </div>
 
           {/* Toolbar: sempre visibile con orologio, avatar e azioni. */}
-          <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-1.5">
-            <div className="mr-1 shrink-0 text-right">
+          <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-1.5 min-w-0">
+            <div className="mr-1 shrink-0 text-right min-w-0">
               <p className="text-[12px] sm:text-[13px] font-semibold tabular-nums leading-none text-slate-800 dark:text-neutral-200">{timeStr}</p>
               <p
-                className="mt-0.5 text-[9px] sm:text-[10px] leading-tight text-slate-600 dark:text-neutral-400 whitespace-nowrap"
+                className="mt-0.5 text-[9px] sm:text-[10px] leading-tight text-slate-600 dark:text-neutral-400 whitespace-nowrap truncate"
                 title={dateLong}
               >
                 {dateStr}

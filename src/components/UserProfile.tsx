@@ -399,7 +399,7 @@ export function AdminTimesheetGridPrivacyEditor({ user }: { user: UserType }) {
     inFlight.current = true;
     setBusy(true);
     try {
-      const fe = { ...((user.enabled_features ?? {}) as Record<string, unknown>) };
+      const fe: Record<string, boolean> = { ...(user.enabled_features ?? {}) };
       if (plannedOnly) {
         delete fe[TIMESHEET_GRID_PLANNED_ONLY_KEY];
       } else {

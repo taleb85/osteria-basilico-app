@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { isAdminOnly } from '../utils/permissions';
 import { PATH_PROFILO } from '../config/appPaths';
 
 interface AdminGateProps {

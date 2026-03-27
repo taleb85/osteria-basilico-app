@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Palmtree, Plus, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import type { HolidayRequest } from '../../types';
