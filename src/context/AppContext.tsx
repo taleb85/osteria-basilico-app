@@ -572,20 +572,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const saved = localStorage.getItem(APP_SESSION_STORAGE_KEY);
         if (saved) {
-          const { userId } = JSON.parse(saved) as { userId?: string };
-          if (userId) {
-            const restored = loadedUsers.find((u) => u.id === userId && u.status === 'active');
-            if (restored) {
-              const safeUser = userRowToSessionUser(restored as User);
-              setCurrentUser(safeUser);
-              const lang = (safeUser.language && ['it', 'en', 'es', 'fr'].includes(safeUser.language)
-                ? safeUser.language
-                : 'it') as Language;
-              persistStoredUiLanguage(lang);
-              setAppLanguage(lang);
-            } else {
-              localStorage.removeItem(APP_SESSION_STORAGE_KEY);
+          const parsed = JSON.parse(saved) as { userId?: string; email?: string };
+          const { userId, email: savedEmail } = parsed;
+          let restored =
+            userId != null && userId !== ''
+              ? loadedUsers.find((u) => u.id === userId && u.status === 'active')
+              : undefined;
+          if (!restored && savedEmail) {
+            const em = savedEmail.trim().toLowerCase();
+            restored = loadedUsers.find(
+              (u) => u.status === 'active' && (u.email || '').trim().toLowerCase() === em
+            );
+          }
+          if (restored) {
+            const safeUser = userRowToSessionUser(restored as User);
+            setCurrentUser(safeUser);
+            try {
+              localStorage.setItem(
+                APP_SESSION_STORAGE_KEY,
+                JSON.stringify({
+                  userId: restored.id,
+                  email: (restored.email || '').trim().toLowerCase() || undefined,
+                })
+              );
+            } catch {
+              /* ignore */
             }
+            const lang = (safeUser.language && ['it', 'en', 'es', 'fr'].includes(safeUser.language)
+              ? safeUser.language
+              : 'it') as Language;
+            persistStoredUiLanguage(lang);
+            setAppLanguage(lang);
+          } else if (userId || savedEmail) {
+            localStorage.removeItem(APP_SESSION_STORAGE_KEY);
           }
         }
       } catch {

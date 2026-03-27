@@ -125,7 +125,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       const userLang = (user.language || loginLang) as LangType;
       setLanguage(userLang);
       try {
-        localStorage.setItem(APP_SESSION_STORAGE_KEY, JSON.stringify({ userId: user.id }));
+        localStorage.setItem(
+          APP_SESSION_STORAGE_KEY,
+          JSON.stringify({
+            userId: user.id,
+            email: (user.email || '').trim().toLowerCase() || undefined,
+          })
+        );
       } catch {
         /* ignore */
       }
