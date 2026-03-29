@@ -4457,7 +4457,11 @@ export default function Timesheets() {
                                         }
                                       })();
                                     }}
-                                    className="flex-1 rounded-xl bg-accent px-3 py-2.5 text-sm font-bold text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
+                                    className={`flex-1 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors ${
+                                      isInReviewQueue
+                                        ? 'bg-slate-200 text-slate-600 cursor-not-allowed dark:bg-neutral-700 dark:text-neutral-400'
+                                        : 'bg-accent text-white hover:bg-accent-hover'
+                                    } ${reviewQueueSaving || manualPunchSaving ? 'opacity-50' : ''}`}
                                   >
                                     {t.ts_btn_save}
                                   </button>
