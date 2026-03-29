@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState, useCallback, useEffect, useMemo } from 'react';
-import { Home, Calendar, ClipboardList, Clock, ShieldCheck, Palmtree, User, Search, X, Delete } from 'lucide-react';
+import { Home, Calendar, ClipboardList, Clock, ShieldCheck, Palmtree, User, Search, X, Delete, Fingerprint } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
 import type { AppNavTab } from '../utils/enabledModules';
