@@ -138,7 +138,14 @@ export function isUserVisibleOnTeamSchedule(user: User, shifts?: { user_id: stri
   if (user.status !== 'active') return false;
 
   // Se l'admin ha turni assegnati, deve essere visibile nel tabellone per poterli gestire/vedere.
+  // Se non ha turni e non ha visibilità esplicita, l'admin è nascosto di default.
   const hasShifts = shifts && shifts.some((s) => s.user_id === user.id);
+  const explicitVisible = user.team_schedule_visible;
+
+  // Se c'è un override esplicito di visibilità (pulsante Griglia in Gestione Team), quello vince.
+  if (explicitVisible === true) return true;
+  if (explicitVisible === false) return false;
+
   if (isPurelyManagementRole(user.role) && !hasShifts) return false;
 
   const explicitHide = user.hide_from_team_schedule;

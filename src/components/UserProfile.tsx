@@ -112,6 +112,11 @@ export function ProfileFormSelf({
   const canEditRole = !readOnly && !roleLocked;
   const pinShownValue = readOnly ? (formData.pin.replace(/\D/g, '').length > 0 ? '••••' : '') : formData.pin;
 
+  const phoneExample = useMemo(() => {
+    const option = PHONE_PREFIX_OPTIONS.find(o => o.value === (formData.phone_prefix || DEFAULT_PHONE_PREFIX));
+    return option?.example ?? '333 1234567';
+  }, [formData.phone_prefix]);
+
   return (
     <form onSubmit={(e) => { e.preventDefault(); if (!readOnly) onSave(e); }} className="space-y-4">
       <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-4">
@@ -308,7 +313,7 @@ export function ProfileFormSelf({
             }
             readOnly={readOnly}
             className={readOnly ? inputClassDisabled : inputClass}
-            placeholder="333 1234567"
+            placeholder={phoneExample}
           />
         </div>
       </div>

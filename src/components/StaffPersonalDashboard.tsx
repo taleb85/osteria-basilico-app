@@ -600,7 +600,7 @@ export default function StaffPersonalDashboard({
   );
 
   return (
-    <div className="w-full scroll-smooth text-slate-800 dark:text-neutral-100 font-sans antialiased max-md:pb-0 md:pb-content">
+    <div className="w-full scroll-smooth text-slate-800 dark:text-neutral-100 font-sans antialiased pb-content">
       {holidaysFocus && (
         <div className="mb-3 flex items-center gap-2">
           <button

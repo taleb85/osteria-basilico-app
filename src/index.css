@@ -522,14 +522,14 @@
    */
   .pb-content {
     padding-bottom: calc(
-      max(4px, env(safe-area-inset-bottom, 0px)) + var(--app-bottom-nav-offset, 64px) + 0.1rem
+      var(--app-bottom-nav-offset, 64px) + 0.75rem
     );
   }
 
   @media (min-width: 640px) {
     .pb-content {
       padding-bottom: calc(
-        max(4px, env(safe-area-inset-bottom, 0px)) + var(--app-bottom-nav-offset, 68px) + 0.1rem
+        var(--app-bottom-nav-offset, 68px) + 0.75rem
       );
     }
   }
@@ -690,6 +690,12 @@
  *   `toggle-knob` — pallini switch / puntino PIN su accent
  *   `keep-white-glass` — vetro su brand (bottom nav, tile colorate)
  *   `preserve-on-dark` — es. tile “Tema chiaro” selezionato (bg bianco voluto) */
+.keep-white-glass {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
 html.dark .bg-white:not(.toggle-knob):not(.preserve-on-dark):not(.keep-white-glass) {
   background-color: rgb(23 23 23) !important;
 }
@@ -832,6 +838,15 @@ html.dark .rdp-modern.rdp-root .rdp-today:not(.rdp-selected) .rdp-day_button {
 }
 
 /** Dark: slate-600 (#475569 = rgb(71,85,105)) → bianco per testi secondari */
-html.dark .text-slate-600 {
+html.dark .text-slate-600,
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: rgb(255 255 255) !important;
+}
+
+/** Dark: slate-900 (#0f172a = rgb(15,23,42)) → bianco per testi principali */
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700 {
   color: rgb(255 255 255) !important;
 }

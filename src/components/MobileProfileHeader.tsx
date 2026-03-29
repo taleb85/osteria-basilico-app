@@ -9,6 +9,7 @@ import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
 import { readStoredThemePreference, persistThemePreference } from '../utils/theme';
 import NotificationCenter from './NotificationCenter';
 import { useState, useEffect } from 'react';
+import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 
 /**
  * Icona tema: due grafiche come riferimento foto — grigio/bianco in chiaro, nero/bianco in scuro.
@@ -200,22 +201,24 @@ export default function MobileProfileHeader({
               onClick={toggleUiTheme}
               title={themeToggleTitle}
               aria-label={themeToggleTitle}
-              className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 surface-ghost-interactive transition-colors touch-manipulation text-slate-700 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-white"
+              className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 surface-ghost-interactive transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation !text-slate-700 hover:!text-slate-900 bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10"
             >
               <ThemeContrastIcon mode={uiTheme} className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center surface-glass-sm px-1.5 surface-ghost-interactive">
-              <NotificationCenter denseTrigger />
-            </div>
+            {isUiWidgetVisible(currentUser, 'global.notifications') && (
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center surface-glass-sm px-1.5 surface-ghost-interactive transition-all duration-200 hover:scale-105 !text-slate-700 bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10">
+                <NotificationCenter denseTrigger />
+              </div>
+            )}
             <button
               type="button"
               onClick={handleHardRefresh}
               disabled={isRefreshing || dataSyncInProgress}
               title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Hard Refresh & Sincronizzazione'}
-              className={`flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 transition-all duration-300 active:scale-95 touch-manipulation ${
+              className={`flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10 ${
                 isRefreshing || dataSyncInProgress 
                   ? 'text-amber-500' 
-                  : isSynced ? 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20' : 'text-slate-400 dark:text-neutral-500'
+                  : isSynced ? '!text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950' : '!text-slate-400'
               }`}
             >
               {isRefreshing || dataSyncInProgress ? (
@@ -235,7 +238,7 @@ export default function MobileProfileHeader({
                 onClick={onLogout}
                 title={t.header_logout}
                 aria-label={t.header_logout}
-                className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 transition-colors touch-manipulation"
+                className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 !text-red-600 hover:bg-red-50 dark:hover:bg-red-950 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10"
               >
                 <LogOut size={14} strokeWidth={2} aria-hidden />
               </button>
@@ -247,7 +250,7 @@ export default function MobileProfileHeader({
           (() => {
             const scope = getRoleScopeHint(currentUser.role, tr);
             return scope ? (
-              <p className="text-[9px] sm:text-[10px] text-slate-600 dark:text-neutral-400 leading-snug mt-1 line-clamp-1 italic opacity-80">
+              <p className="text-[9px] sm:text-[10px] !text-slate-600 leading-snug mt-1 line-clamp-1 italic opacity-80">
                 {scope}
               </p>
             ) : null;

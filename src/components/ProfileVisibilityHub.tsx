@@ -14,10 +14,10 @@ import {
   User as UserIconLucide,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import type { User } from '../types';
+import type { User, EnabledFeatures } from '../types';
 import { getTranslations } from '../utils/translations';
 import { translateRole } from '../utils/roles';
-import { isAdminOnly, isManagementRole, isPurelyManagementRole } from '../utils/permissions';
+import { isAdminOnly, isManagementRole } from '../utils/permissions';
 import { FEATURE_LABELS, type EnabledFeatureKey } from '../utils/enabledFeatures';
 import {
   getEnabledModules,
@@ -34,7 +34,6 @@ import {
   computeNextEnabledFeaturesOverride,
   toggleStaffModule,
   getModuleLabel,
-  getProfileHubTabs,
   screenGroupToPreviewTab,
   featureKeyToPreviewTab,
   staffModuleToPreviewTab,
@@ -121,7 +120,12 @@ function NavPreviewBar({
   );
 }
 
-export default function ProfileVisibilityHub() {
+type Props = {
+  initialSelectedUserId?: string | null;
+  onClose?: () => void;
+};
+
+export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }: Props = {}) {
   const { users, currentUser, updateUser, featureFlags, showSuccess, effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
@@ -131,8 +135,21 @@ export default function ProfileVisibilityHub() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'staff' | 'management'>('all');
   const [showSuspended, setShowSuspended] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedUserId || null);
   const [activeHubTab, setActiveHubTab] = useState<AppNavTab>('home');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Local state for immediate preview updates without DB save
+  const [localFeatures, setLocalFeatures] = useState<EnabledFeatures | null>(null);
+  const [localModules, setLocalModules] = useState<EnabledModule[] | null>(null);
+  const [localUiOverrides, setLocalUiOverrides] = useState<Record<string, boolean> | null>(null);
+
+  // Keep track of original state to allow "Discard changes"
+  const [originalState, setOriginalState] = useState<{
+    features: EnabledFeatures;
+    modules: EnabledModule[];
+    ui: Record<string, boolean>;
+  } | null>(null);
 
   const sortedUsers = useMemo(() => {
     return [...users].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
@@ -141,6 +158,7 @@ export default function ProfileVisibilityHub() {
   // Se l'utente corrente non è gestionale, può vedere solo sé stesso
   const filteredList = useMemo(() => {
     const q = search.trim().toLowerCase();
+    if (!currentUser) return [];
     if (!isManagementRole(currentUser.role)) {
       return sortedUsers.filter((u) => u.id === currentUser.id);
     }
@@ -155,28 +173,71 @@ export default function ProfileVisibilityHub() {
   }, [sortedUsers, search, roleFilter, showSuspended, currentUser]);
 
   // Se non gestionale, la selezione è forzata su currentUser
-  const selected = !isManagementRole(currentUser.role)
-    ? currentUser
-    : (selectedId ? users.find((u) => u.id === selectedId) ?? null : null);
-
-  const isSelectedAdmin = selected?.role === 'admin';
-  const isMgmt = selected ? isManagementRole(selected.role) : false;
-
-  const hubTabs = useMemo(() => {
-    if (!selected) return [] as AppNavTab[];
-    return getProfileHubTabs(selected, isMgmt, featureFlags);
-  }, [selected, isMgmt, featureFlags]);
+  const selected = useMemo(() => {
+    if (!currentUser) return null;
+    if (!isManagementRole(currentUser.role)) return currentUser;
+    if (!selectedId) return null;
+    return users.find((u) => u.id === selectedId) ?? null;
+  }, [currentUser, selectedId, users]);
 
   useEffect(() => {
-    if (!selected || hubTabs.length === 0) return;
+    if (selected) {
+      const features = { ...selected.enabled_features };
+      const modules = [...(selected.enabled_modules || [])];
+      const ui = { ...selected.ui_section_overrides };
+      setOriginalState({ features, modules, ui });
+      setLocalFeatures(features);
+      setLocalModules(modules);
+      setLocalUiOverrides(ui);
+    } else {
+      setOriginalState(null);
+      setLocalFeatures(null);
+      setLocalModules(null);
+      setLocalUiOverrides(null);
+    }
+  }, [selected]);
+
+  // Reset hasUnsavedChanges when user selection changes
+  useEffect(() => {
+    setHasUnsavedChanges(false);
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (initialSelectedUserId) setSelectedId(initialSelectedUserId);
+  }, [initialSelectedUserId]);
+
+  // Create a "preview user" that merges selected user with local overrides
+  const previewUser = useMemo(() => {
+    if (!selected) return null;
+    return {
+      ...selected,
+      enabled_features: localFeatures ?? selected.enabled_features,
+      enabled_modules: localModules ?? selected.enabled_modules,
+      ui_section_overrides: localUiOverrides ?? selected.ui_section_overrides,
+    };
+  }, [selected, localFeatures, localModules, localUiOverrides]);
+
+  const isSelectedAdmin = selected?.role === 'admin';
+  // Forza isMgmt a false per vedere i widget dello staff se il ruolo non è gestionale
+  const isMgmt = previewUser ? isManagementRole(previewUser.role) : false;
+
+  const hubTabs = useMemo(() => {
+    if (!previewUser) return [] as AppNavTab[];
+    // Per l'anteprima "Cosa vede chi", mostriamo sempre tutte le tab potenziali 
+    // per permettere all'admin di configurarle anche se al momento sono disattivate
+    return ['home', 'turni', 'ferie', 'timesheet', 'reports', 'profile', 'settings'] as AppNavTab[];
+  }, [previewUser]);
+
+  useEffect(() => {
+    if (!previewUser || hubTabs.length === 0) return;
     setActiveHubTab((prev) => (hubTabs.includes(prev) ? prev : hubTabs[0]!));
-  }, [selected, hubTabs]);
+  }, [previewUser, hubTabs]);
 
   /** Pannello permessi: aperto di default così l’anteprima e i toggle sono visibili insieme. */
   const [permDetailsOpen, setPermDetailsOpen] = useState(true);
   useEffect(() => {
     setPermDetailsOpen(true);
-  }, [selected?.id, activeHubTab]);
+  }, [previewUser?.id, activeHubTab]);
 
   const navLabels: Record<AppNavTab, string> = {
     home: t.sidebar_dashboard,
@@ -192,53 +253,89 @@ export default function ProfileVisibilityHub() {
     (u: User, key: EnabledFeatureKey, on: boolean) => {
       if (isSelectedAdmin) return;
       const next = computeNextEnabledFeaturesOverride(u, key, on);
-      updateUser(u.id, { enabled_features: next ?? {} });
-      showSuccess?.(tv.profile_visibility_saved_hint ?? 'Salvato.');
+      setLocalFeatures(next ?? {});
+      setHasUnsavedChanges(true);
     },
-    [isSelectedAdmin, updateUser, showSuccess, tv.profile_visibility_saved_hint]
+    [isSelectedAdmin]
   );
 
   const handleModuleToggle = useCallback(
     (u: User, mod: EnabledModule, on: boolean) => {
       if (isSelectedAdmin || isManagementRole(u.role)) return;
       const next = toggleStaffModule(u, mod, on);
-      updateUser(u.id, { enabled_modules: next });
-      showSuccess?.(tv.profile_visibility_saved_hint ?? 'Salvato.');
+      setLocalModules(next);
+      setHasUnsavedChanges(true);
     },
-    [isSelectedAdmin, updateUser, showSuccess, tv.profile_visibility_saved_hint]
+    [isSelectedAdmin]
   );
 
-  const handleResetOverrides = useCallback(() => {
+  const handleSmartRestore = useCallback(() => {
     if (!selected || isSelectedAdmin) return;
-    updateUser(selected.id, { enabled_features: {} });
-    showSuccess?.(tv.profile_visibility_reset_done ?? 'Eccezioni rimosse: vale il template di ruolo.');
-  }, [selected, isSelectedAdmin, updateUser, showSuccess, tv.profile_visibility_reset_done]);
+
+    if (hasUnsavedChanges && originalState) {
+      // Discard unsaved changes: restore to original state
+      setLocalFeatures({ ...originalState.features });
+      setLocalModules([...originalState.modules]);
+      setLocalUiOverrides({ ...originalState.ui });
+      setHasUnsavedChanges(false);
+      showSuccess?.(tv.profile_visibility_changes_discarded ?? 'Modifiche annullate.');
+    } else {
+      // No unsaved changes: reset everything to template defaults
+      if (!window.confirm(tv.profile_visibility_reset_confirm ?? 'Rimuovere tutte le personalizzazioni e tornare al template di ruolo?')) return;
+      
+      setLocalFeatures({});
+      setLocalModules([]);
+      setLocalUiOverrides({});
+      setHasUnsavedChanges(true);
+      showSuccess?.(tv.profile_visibility_reset_done ?? 'Eccezioni rimosse: vale il template di ruolo.');
+    }
+  }, [selected, isSelectedAdmin, hasUnsavedChanges, originalState, showSuccess, tv]);
+
+  const handleSaveAndApply = useCallback(async () => {
+    if (!selected || !hasUnsavedChanges) return;
+    const success = await updateUser(selected.id, {
+      enabled_features: localFeatures ?? {},
+      enabled_modules: localModules ?? [],
+      ui_section_overrides: localUiOverrides ?? {},
+    });
+    if (success) {
+      setHasUnsavedChanges(false);
+      // Update original state to current state after save
+      setOriginalState({
+        features: { ...(localFeatures ?? {}) },
+        modules: [...(localModules ?? [])],
+        ui: { ...(localUiOverrides ?? {}) },
+      });
+      showSuccess?.(tv.profile_visibility_saved_hint ?? 'Modifiche salvate e applicate.');
+    }
+  }, [selected, hasUnsavedChanges, localFeatures, localModules, localUiOverrides, updateUser, showSuccess, tv.profile_visibility_saved_hint]);
 
   const uiGroups = useMemo(() => uiWidgetsByGroup(), []);
 
   const featuresForActiveTab = useMemo(() => {
-    if (!selected) return [] as EnabledFeatureKey[];
+    if (!previewUser) return [] as EnabledFeatureKey[];
     return PROFILE_VISIBILITY_FEATURE_KEYS.filter((key) => {
       if (featureKeyToPreviewTab(key) !== activeHubTab) return false;
       return true;
     });
-  }, [selected, activeHubTab]);
+  }, [previewUser, activeHubTab]);
 
   const layoutGroupsForActiveTab = useMemo((): { groupKey: string; widgets: UiScreenWidgetDef[] }[] => {
-    if (!selected) return [];
+    if (!previewUser) return [];
     const out: { groupKey: string; widgets: UiScreenWidgetDef[] }[] = [];
     for (const [groupKey, widgets] of uiGroups.entries()) {
-      if (screenGroupToPreviewTab(groupKey) !== activeHubTab) continue;
-      const applicable = widgets.filter((w) => widgetAppliesToUser(w, selected.role));
+      const tab = screenGroupToPreviewTab(groupKey);
+      if (tab !== 'all' && tab !== activeHubTab) continue;
+      const applicable = widgets.filter((w) => widgetAppliesToUser(w, previewUser.role));
       if (applicable.length) out.push({ groupKey, widgets: applicable });
     }
     return out;
-  }, [selected, activeHubTab, uiGroups]);
+  }, [previewUser, activeHubTab, uiGroups]);
 
   const staffModulesForActiveTab = useMemo(() => {
-    if (!selected || isManagementRole(selected.role)) return [] as EnabledModule[];
+    if (!previewUser || isManagementRole(previewUser.role)) return [] as EnabledModule[];
     return ENABLED_MODULES.filter((m) => staffModuleToPreviewTab(m, false) === activeHubTab);
-  }, [selected, activeHubTab]);
+  }, [previewUser, activeHubTab]);
 
   const activeTabPanelEmpty =
     featuresForActiveTab.length === 0 &&
@@ -252,22 +349,22 @@ export default function ProfileVisibilityHub() {
     (u: User, key: string, visible: boolean) => {
       if (isSelectedAdmin) return;
       const next = computeNextUiSectionOverrides(u, key, visible);
-      updateUser(u.id, { ui_section_overrides: next ?? {} });
-      showSuccess?.(tv.profile_visibility_saved_hint ?? 'Salvato.');
+      setLocalUiOverrides(next ?? {});
+      setHasUnsavedChanges(true);
     },
-    [isSelectedAdmin, updateUser, showSuccess, tv.profile_visibility_saved_hint]
+    [isSelectedAdmin]
   );
 
-  const handleResetUiSections = useCallback(() => {
-    if (!selected || isSelectedAdmin) return;
-    updateUser(selected.id, { ui_section_overrides: {} });
-    showSuccess?.(tv.profile_visibility_saved_hint ?? 'Salvato.');
-  }, [selected, isSelectedAdmin, updateUser, showSuccess, tv.profile_visibility_saved_hint]);
-
-  const closePreview = useCallback(() => setSelectedId(null), []);
+  const closePreview = useCallback(() => {
+    if (onClose) {
+      onClose();
+    } else {
+      setSelectedId(null);
+    }
+  }, [onClose]);
 
   useEffect(() => {
-    if (!selected) return;
+    if (!previewUser) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
@@ -278,7 +375,7 @@ export default function ProfileVisibilityHub() {
       document.body.style.overflow = prev;
       window.removeEventListener('keydown', onKey);
     };
-  }, [selected, closePreview]);
+  }, [previewUser, closePreview]);
 
   if (!currentUser) return null;
 
@@ -305,9 +402,9 @@ export default function ProfileVisibilityHub() {
         </p>
       </div>
 
-      <div className={`grid grid-cols-1 gap-6 lg:gap-8 ${selected ? '' : 'lg:grid-cols-12'}`}>
+      <div className={`grid grid-cols-1 gap-6 lg:gap-8 ${previewUser ? '' : 'lg:grid-cols-12'}`}>
         {/* Lista profili */}
-        <div className={`space-y-3 ${selected ? 'lg:max-w-2xl' : 'lg:col-span-4'}`}>
+        <div className={`space-y-3 ${previewUser ? 'lg:max-w-2xl' : 'lg:col-span-4'}`}>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-neutral-400" />
             <input
@@ -386,7 +483,7 @@ export default function ProfileVisibilityHub() {
           </ul>
         </div>
 
-        {!selected && (
+        {!previewUser && (
         <div className="lg:col-span-8 space-y-6">
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-16 text-center dark:border-white/15 dark:bg-neutral-900/40">
               <LayoutList className="mx-auto mb-3 h-10 w-10 text-slate-300 dark:text-neutral-600" />
@@ -399,7 +496,7 @@ export default function ProfileVisibilityHub() {
       </div>
     </div>
 
-    {selected && (
+    {previewUser && (
         <div
           className="fixed inset-0 z-[200] flex touch-manipulation flex-col overscroll-contain bg-slate-100/95 backdrop-blur-md dark:bg-neutral-950/95 supports-[backdrop-filter]:backdrop-saturate-125"
           role="dialog"
@@ -423,13 +520,23 @@ export default function ProfileVisibilityHub() {
                 {tv.profile_visibility_fullscreen_title ?? 'Anteprima profilo'}
               </p>
               <p className="truncate text-base font-bold text-slate-900 dark:text-neutral-50">
-                {selected.first_name} {selected.last_name ?? ''}
+                {previewUser.first_name} {previewUser.last_name ?? ''}
               </p>
-              <p className="text-[11px] text-slate-500 dark:text-neutral-300 truncate">{translateRole(selected.role, currentUser.language)}</p>
+              <p className="text-[11px] text-slate-500 dark:text-neutral-300 truncate">{translateRole(previewUser.role, currentUser.language)}</p>
             </div>
-            <span className="hidden shrink-0 rounded-lg border border-accent/20 bg-accent/10 px-2 py-1 text-[10px] font-bold tracking-wider text-accent uppercase dark:border-accent/30 dark:bg-accent/15 sm:inline-flex">
-              {tv.profile_visibility_readonly_preview ?? 'Solo lettura'}
-            </span>
+            {hasUnsavedChanges ? (
+              <button
+                type="button"
+                onClick={handleSaveAndApply}
+                className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm transition-all hover:bg-accent-hover active:scale-95"
+              >
+                {tv.profile_visibility_save_apply ?? 'Salva e applica'}
+              </button>
+            ) : (
+              <span className="hidden shrink-0 rounded-lg border border-accent/20 bg-accent/10 px-2 py-1 text-[10px] font-bold tracking-wider text-accent uppercase dark:border-accent/30 dark:bg-accent/15 sm:inline-flex">
+                {tv.profile_visibility_readonly_preview ?? 'Solo lettura'}
+              </span>
+            )}
           </header>
 
           <div className="flex-1 min-h-0 overflow-y-auto app-horizontal-pad py-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
@@ -471,19 +578,13 @@ export default function ProfileVisibilityHub() {
                 <div className="flex flex-wrap justify-end gap-2">
                   <button
                     type="button"
-                    onClick={handleResetUiSections}
+                    onClick={handleSmartRestore}
                     className="inline-flex items-center gap-2 surface-glass-sm px-3 py-2 text-xs font-semibold text-slate-600 surface-ghost-interactive hover:text-slate-900 dark:text-neutral-200 dark:hover:text-neutral-50"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    {tv.profile_visibility_reset_ui_sections ?? 'Ripristina tutte le sezioni'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleResetOverrides}
-                    className="inline-flex items-center gap-2 surface-glass-sm px-3 py-2 text-xs font-semibold text-slate-600 surface-ghost-interactive hover:text-slate-900 dark:text-neutral-200 dark:hover:text-neutral-50"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    {tv.profile_visibility_reset_features ?? 'Rimuovi eccezioni permessi (eredita template)'}
+                    {hasUnsavedChanges
+                      ? (tv.profile_visibility_discard_changes ?? 'Annulla modifiche')
+                      : (tv.profile_visibility_reset_all ?? 'Ripristina al template ruolo')}
                   </button>
                 </div>
               )}
@@ -500,17 +601,17 @@ export default function ProfileVisibilityHub() {
 
                   {!activeTabPanelEmpty && (
                     <>
-                      {showScreenMock && !isManagementRole(selected.role) && !isPurelyManagementRole(selected.role) && (
+                      {showScreenMock && (
                         <>
                           <ProfileTabRichPreview
                             activeHubTab={activeHubTab}
                             isMgmt={isMgmt}
                             layoutGroups={layoutGroupsForActiveTab}
-                            previewUser={selected}
+                            previewUser={previewUser}
                             language={effectiveLanguage}
                             isSelectedAdmin={isSelectedAdmin}
                             featureFlags={featureFlags}
-                            onUiToggle={(key, vis) => handleUiWidgetToggle(selected, key, vis)}
+                            onUiToggle={(key, vis) => handleUiWidgetToggle(previewUser, key, vis)}
                             navLabel={navLabels[activeHubTab]}
                           />
                           {staffModulesForActiveTab.length > 0 && (
@@ -519,7 +620,7 @@ export default function ProfileVisibilityHub() {
                                 {tv.profile_visibility_tab_staff_modules ?? 'Moduli area personale'}
                               </p>
                               {staffModulesForActiveTab.map((mod) => {
-                                const enabled = getEnabledModules(selected).includes(mod);
+                                const enabled = getEnabledModules(previewUser).includes(mod);
                                 return (
                                   <div
                                     key={mod}
@@ -548,14 +649,14 @@ export default function ProfileVisibilityHub() {
                                           type="button"
                                           role="switch"
                                           aria-checked={enabled}
-                                          onClick={() => handleModuleToggle(selected, mod, !enabled)}
-                                          className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+                                          onClick={() => handleModuleToggle(previewUser, mod, !enabled)}
+                                          className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 ${
                                             enabled ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'
                                           }`}
                                         >
                                           <span
-                                            className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white toggle-knob shadow transition-transform ${
-                                              enabled ? 'translate-x-4' : 'translate-x-0'
+                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
+                                              enabled ? 'translate-x-5' : 'translate-x-1'
                                             }`}
                                           />
                                         </button>
@@ -578,7 +679,7 @@ export default function ProfileVisibilityHub() {
 
                       {featuresForActiveTab.length > 0 && (
                         <details
-                          key={`perm-${selected.id}-${activeHubTab}`}
+                          key={`perm-${previewUser.id}-${activeHubTab}`}
                           className="group surface-glass-sm open:border-slate-300/95 bg-slate-50/50 open:bg-slate-50/80 dark:border-white/10 dark:bg-neutral-900/25 dark:open:border-white/18 dark:open:bg-neutral-900/40"
                           open={permDetailsOpen}
                           onToggle={(e) => setPermDetailsOpen(e.currentTarget.open)}
@@ -598,9 +699,9 @@ export default function ProfileVisibilityHub() {
                           </p>
                           <div className="flex flex-col gap-2 px-4 pb-4 pt-2">
                             {featuresForActiveTab.map((key) => {
-                              const eff = getEffectiveFeaturesForUser(selected)[key] === true;
-                              const overridden = isFeatureExplicitlyOverridden(selected, key);
-                              const base = getTemplateBaselineFeatures(selected)[key] === true;
+                              const eff = getEffectiveFeaturesForUser(previewUser)[key] === true;
+                              const overridden = isFeatureExplicitlyOverridden(previewUser, key);
+                              const base = getTemplateBaselineFeatures(previewUser)[key] === true;
                               const desc = `${overridden
                                 ? tv.profile_visibility_badge_custom ?? 'Personalizzato'
                                 : tv.profile_visibility_badge_template ?? 'Dal template ruolo'}${
@@ -629,15 +730,15 @@ export default function ProfileVisibilityHub() {
                                         isSelectedAdmin ? (tv.profile_visibility_admin_switch_hint ?? '') : undefined
                                       }
                                       onClick={() => {
-                                        if (!isSelectedAdmin) handleFeatureToggle(selected, key, !eff);
+                                        if (!isSelectedAdmin) handleFeatureToggle(previewUser, key, !eff);
                                       }}
-                                      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                                        eff ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
-                                      } ${isSelectedAdmin ? 'cursor-default opacity-100' : ''}`}
+                                      className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 ${
+                                        isSelectedAdmin ? 'cursor-default opacity-100' : 'cursor-pointer'
+                                      } ${eff ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'}`}
                                     >
                                       <span
-                                        className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white toggle-knob shadow transition-transform ${
-                                          eff ? 'translate-x-5' : 'translate-x-0'
+                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
+                                          eff ? 'translate-x-5' : 'translate-x-1'
                                         }`}
                                       />
                                     </button>

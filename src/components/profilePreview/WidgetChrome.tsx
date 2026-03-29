@@ -32,11 +32,11 @@ export function WidgetChrome({
             aria-checked={visible}
             aria-label={previewWidgetLabel(widgetKey)}
             onClick={() => onUiToggle(widgetKey, !visible)}
-            className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${visible ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'}`}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${visible ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'}`}
           >
             <span
-              className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white toggle-knob shadow transition-transform ${
-                visible ? 'translate-x-4' : 'translate-x-0'
+              className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white toggle-knob shadow transition-transform ${
+                visible ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
           </button>

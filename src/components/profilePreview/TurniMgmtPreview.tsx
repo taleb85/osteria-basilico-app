@@ -1,4 +1,4 @@
-import { Filter, ChevronDown, Calendar, Users } from 'lucide-react';
+import { Filter, ChevronDown, Calendar, Users, MousePointer2 } from 'lucide-react';
 import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { WidgetChrome } from './WidgetChrome';
@@ -110,6 +110,26 @@ export default function TurniMgmtPreview({
             <Calendar className="h-3 w-3" />
             {tv.profile_visibility_turni_grid_hint ?? 'Griglia dimostrativa — in app sono i turni reali del periodo.'}
           </p>
+        </div>
+      </WidgetChrome>
+
+      <WidgetChrome
+        widgetKey="turni.shift_modal"
+        previewUser={previewUser}
+        isSelectedAdmin={isSelectedAdmin}
+        onUiToggle={onUiToggle}
+        hiddenBadge={hiddenBadge}
+      >
+        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-800">
+            <MousePointer2 className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Popup dettaglio turno</p>
+            <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500 dark:text-neutral-400">
+              {tv.profile_visibility_generic_widget_demo ?? 'Contenuto dimostrativo: in app qui compariranno i dati reali.'}
+            </p>
+          </div>
         </div>
       </WidgetChrome>
     </div>

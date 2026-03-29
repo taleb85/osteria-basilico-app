@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext';
 import { useProfileLeaveGuardRef } from '../context/ProfileLeaveGuardContext';
 import { getTranslations } from '../utils/translations';
 import { isManagementRole } from '../utils/permissions';
+import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { ProfileFormSelf, type ProfileFormSelfData } from './UserProfile';
 import ProfilePhotoSourceSheet from './profile/ProfilePhotoSourceSheet';
 import ProfilePhotoCropperModal from './profile/ProfilePhotoCropperModal';
@@ -171,6 +172,24 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
     [persistCroppedAvatar, showError, tv.profile_tab_photo_error]
   );
 
+  const handleRemovePhoto = useCallback(async () => {
+    if (!currentUser?.id) return;
+    if (!window.confirm(tv.profile_tab_remove_photo_confirm ?? 'Vuoi rimuovere la foto profilo?')) return;
+    
+    setPhotoBusy(true);
+    try {
+      // Rimuovi da localStorage
+      writeProfileAvatarToStorage(currentUser.id, null);
+      // Rimuovi dal database
+      const ok = await updateUser(currentUser.id, { avatar_url: null });
+      if (!ok) throw new Error('avatar removal failed');
+    } catch {
+      showError?.(tv.profile_tab_photo_error ?? 'Errore durante la rimozione della foto.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  }, [currentUser?.id, updateUser, showError, tv]);
+
   const performProfileSave = useCallback(async () => {
     if (!currentUser) return;
     const pinDigits = formData.pin.replace(/\D/g, '').slice(0, 4);
@@ -206,6 +225,8 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
     [formData]
   );
 
+  const isProfileReadOnly = isFeatureEnabled(currentUser, 'profile_readonly');
+
   useEffect(() => {
     const ref = profileLeaveGuardRef;
     if (!ref) return;
@@ -236,6 +257,7 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
     gallery: tv.profile_photo_source_gallery ?? 'Galleria',
     camera: tv.profile_photo_source_camera ?? 'Fotocamera',
     files: tv.profile_photo_source_files ?? 'File',
+    remove: tv.profile_tab_remove_photo ?? 'Rimuovi foto',
   };
   const cropLabels = {
     close: tv.profile_photo_crop_close ?? 'Chiudi',
@@ -345,6 +367,7 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
                   onPickGallery={() => galleryInputRef.current?.click()}
                   onPickCamera={() => cameraInputRef.current?.click()}
                   onPickFiles={() => filesInputRef.current?.click()}
+                  onRemovePhoto={resolvedAvatar ? handleRemovePhoto : undefined}
                   menuId="profile-photo-source-menu"
                 />
               ) : null}
@@ -363,18 +386,18 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
             <button
               type="button"
               onClick={() => navigate('/admin')}
-              className="w-full flex items-center justify-between gap-3 rounded-2xl bg-slate-900 dark:bg-neutral-800 px-5 py-4 text-white shadow-lg active:scale-[0.98] transition-all"
+              className="w-full flex items-center justify-between gap-3 rounded-2xl bg-white dark:bg-neutral-800 px-5 py-4 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 shadow-sm active:scale-[0.98] transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                  <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                  <ShieldCheck className="w-6 h-6 text-accent" />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-bold uppercase tracking-wide">Area Gestionale</p>
-                  <p className="text-[10px] text-slate-400">Gestisci turni, profili e impostazioni</p>
+                  <p className="text-sm font-bold uppercase tracking-wide">{tv.area_gestionale_title ?? 'Area Gestionale'}</p>
+                  <p className="text-[10px] !text-slate-500 dark:!text-neutral-400">{tv.area_gestionale_subtitle ?? 'Gestisci turni, profili e impostazioni'}</p>
                 </div>
               </div>
-              <ShieldCheck className="w-5 h-5 text-slate-500" />
+              <ShieldCheck className="w-5 h-5 !text-slate-300 dark:!text-neutral-600" />
             </button>
           </div>
         )}
@@ -387,7 +410,7 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
               setFormData={setFormData}
               onSave={handleProfileSave}
               isSaving={isSaving}
-              readOnly={false}
+              readOnly={isProfileReadOnly}
               appearance="light"
               departmentLocked
               roleLocked

@@ -14,7 +14,7 @@ import FerieMgmtPreview from './FerieMgmtPreview';
 import StaffHolidaysPreview from './StaffHolidaysPreview';
 import TimesheetTabPreview from './TimesheetTabPreview';
 import StatisticsTabPreview from './StatisticsTabPreview';
-import SettingsTabPreview from './SettingsTabPreview';
+import SettingsTabPreview, { GlobalPopupsPreview } from './SettingsTabPreview';
 
 const OMIT_STAFF_HOME = 'staff_home';
 const OMIT_STAFF_TURNI = 'staff_shifts';
@@ -57,6 +57,7 @@ export default function ProfileTabRichPreview({
   if (activeHubTab === 'timesheet' && gm.has('timesheet')) omitKeys.add('timesheet');
   if (activeHubTab === 'reports' && gm.has('stats')) omitKeys.add('stats');
   if ((activeHubTab === 'settings' || activeHubTab === 'profile') && gm.has('staff_profile')) omitKeys.add('staff_profile');
+  if (gm.has('global_popups')) omitKeys.add('global_popups');
 
   const remainder = layoutGroups.filter((g) => !omitKeys.has(g.groupKey));
 
@@ -190,6 +191,12 @@ export default function ProfileTabRichPreview({
         <div className="bg-[#f8fafc] app-horizontal-pad py-4 sm:py-6 dark:bg-[#0a0a0a]">
           <div className="mx-auto w-full max-w-6xl space-y-5">
             {blocks}
+            <GlobalPopupsPreview 
+              previewUser={previewUser}
+              isSelectedAdmin={isSelectedAdmin}
+              onUiToggle={onUiToggle}
+              hiddenBadge={tv.profile_visibility_ui_hidden_badge ?? 'Nascosto'}
+            />
             {children}
           </div>
         </div>

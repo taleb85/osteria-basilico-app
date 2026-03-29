@@ -799,16 +799,30 @@ export default function Timesheets() {
       return users.filter((u) => u.id === currentUser.id);
     } else {
       // Utente gestionale: vede tutti gli utenti operativi
-      return users
-        .filter((u) => {
-          // Escludi cucina
-          if (u.department?.toLowerCase() === 'kitchen' || u.department?.toLowerCase() === 'cucina') return false;
-          // Escludi ruoli management/admin
-          if (isPurelyManagementRole(u.role) || isManagementRole(u.role)) return false;
-          // Solo attivi e visibili in planning
-          return u.status === 'active' && isUserVisibleOnTeamSchedule(u, shifts);
-        })
-        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      let list = users.filter((u) => {
+        // Solo attivi e visibili in planning
+        return u.status === 'active' && isUserVisibleOnTeamSchedule(u, shifts);
+      });
+
+      // Applica lo stesso ordinamento della scheda Turni (WeeklyShiftsTable)
+      list = [...list].sort((a, b) => {
+        // Priorità reparto: Sala + Bar (insieme), poi Cucina, poi altri
+        const getDeptPriority = (u: any) => {
+          const d = (u.department || '').toLowerCase();
+          // Sala e Bar assieme (priorità 1)
+          if (d === 'sala' || d === 'bar') return 1;
+          // Cucina per i fatti suoi (priorità 2)
+          if (d === 'kitchen' || d === 'cucina') return 2;
+          // Altri reparti (priorità 3)
+          return 3;
+        };
+        const pa = getDeptPriority(a);
+        const pb = getDeptPriority(b);
+        if (pa !== pb) return pa - pb;
+
+        return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+      });
+      return list;
     }
   }, [users, shifts, currentUser]);
 
@@ -1330,6 +1344,15 @@ export default function Timesheets() {
         setPinGateError(t.wst_freeze_pin_invalid);
         setPinGatePin('');
         return;
+      }
+      if (currentUser.role === 'capo') {
+        const shift = shifts.find(s => s.id === pinGateModal.shiftId);
+        const user = users.find(u => u.id === shift?.user_id);
+        if (user?.department !== currentUser.department) {
+          setPinGateError(t.wst_freeze_pin_invalid); // O un errore più specifico se disponibile
+          setPinGatePin('');
+          return;
+        }
       }
       setPinGateUnlocking(true);
       try {
@@ -3084,21 +3107,22 @@ export default function Timesheets() {
       </div>
 
       {/* ── Popup centrato: dettaglio turno (stesso schema del tabellone) ── */}
-      <CenteredModalPortal
-        open={!!drawerData}
-        onClose={closeTimesheetShiftDrawer}
-        panelRef={timesheetShiftDetailPanelRef}
-        maxWidthClass={
-          drawerReviewQueue?.reviewScope === 'employee_week'
-            ? 'max-w-sm md:max-w-xl lg:max-w-2xl'
-            : 'max-w-sm md:max-w-2xl lg:max-w-4xl'
-        }
-        maxHeightClass="max-h-[min(92dvh,820px)] lg:max-h-[min(92dvh,900px)]"
-        overlayZClass="z-[10050]"
-        ariaLabel={drawerData ? `${drawerData.employeeName} · ${drawerData.dateStr}` : t.ts_shift_detail_modal_aria}
-        panelClassName="!overflow-hidden flex flex-col p-0"
-        markDatePickerPortal
-      >
+      {isUiWidgetVisible(currentUser, 'timesheet.punch_modal') && (
+        <CenteredModalPortal
+          open={!!drawerData}
+          onClose={closeTimesheetShiftDrawer}
+          panelRef={timesheetShiftDetailPanelRef}
+          maxWidthClass={
+            drawerReviewQueue?.reviewScope === 'employee_week'
+              ? 'max-w-sm md:max-w-xl lg:max-w-2xl'
+              : 'max-w-sm md:max-w-2xl lg:max-w-4xl'
+          }
+          maxHeightClass="max-h-[min(92dvh,820px)] lg:max-h-[min(92dvh,900px)]"
+          overlayZClass="z-[10050]"
+          ariaLabel={drawerData ? `${drawerData.employeeName} · ${drawerData.dateStr}` : t.ts_shift_detail_modal_aria}
+          panelClassName="!overflow-hidden flex flex-col p-0"
+          markDatePickerPortal
+        >
         {drawerData && (() => {
           const s = drawerData.shift;
           const fullShift = shifts.find((sh) => sh.id === s.id);
@@ -4134,6 +4158,7 @@ export default function Timesheets() {
           );
         })()}
       </CenteredModalPortal>
+    )}
 
       <CenteredModalPortal
         open={!!pinGateModal}

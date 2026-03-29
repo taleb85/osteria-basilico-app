@@ -6,12 +6,11 @@ import { isAdminOnly, canEditRoleFeatureTemplates } from '../utils/permissions';
 import { getTranslations } from '../utils/translations';
 import SettingsPage from './SettingsPage';
 import ImpostazioniPage from './ImpostazioniPage';
-import ProfileVisibilityHub from './ProfileVisibilityHub';
 
 import BottomNav from './BottomNav';
 import { getBottomNavTabsForMainApp } from '../utils/enabledModules';
 
-type AdminTab = 'profili' | 'visibilita' | 'impostazioni';
+type AdminTab = 'profili' | 'impostazioni';
 
 /** `overflow-visible` così il pannello del menu hamburger non viene tagliato dal bordo arrotondato. */
 const adminHeaderCardClass =
@@ -69,7 +68,7 @@ export default function AdminLayout() {
 
   useEffect(() => {
     if (fullAdminNav) return;
-    if (activeTab === 'visibilita' || activeTab === 'impostazioni') {
+    if (activeTab === 'impostazioni') {
       setActiveTab('profili');
     }
   }, [fullAdminNav, activeTab]);
@@ -143,19 +142,6 @@ export default function AdminLayout() {
                           <button
                             type="button"
                             role="menuitem"
-                            onClick={() => selectAdminTab('visibilita')}
-                            className={`flex w-full min-h-[44px] items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold transition-colors ${
-                              activeTab === 'visibilita'
-                                ? 'bg-accent/[0.08] text-accent ring-1 ring-accent/20 dark:bg-accent/15 dark:text-accent-light'
-                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-50'
-                            }`}
-                          >
-                            <LayoutList className={`h-3.5 w-3.5 shrink-0 ${activeTab === 'visibilita' ? 'text-accent' : ''}`} />
-                            {t.admin_nav_visibility}
-                          </button>
-                          <button
-                            type="button"
-                            role="menuitem"
                             onClick={() => selectAdminTab('impostazioni')}
                             className={`flex w-full min-h-[44px] items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold transition-colors ${
                               activeTab === 'impostazioni'
@@ -177,12 +163,9 @@ export default function AdminLayout() {
       </header>
 
       <main className="flex-1 overflow-y-auto pb-24">
-        {/* Montate tutte e tre: evita reset di stato non salvato cambiando tab o uscendo/entrando dalla stessa scheda */}
+        {/* Montate tutte e due: evita reset di stato non salvato cambiando tab o uscendo/entrando dalla stessa scheda */}
         <div className={activeTab === 'profili' ? 'block' : 'hidden'} aria-hidden={activeTab !== 'profili'}>
           <SettingsPage />
-        </div>
-        <div className={activeTab === 'visibilita' ? 'block' : 'hidden'} aria-hidden={activeTab !== 'visibilita'}>
-          <ProfileVisibilityHub />
         </div>
         <div className={activeTab === 'impostazioni' ? 'block' : 'hidden'} aria-hidden={activeTab !== 'impostazioni'}>
           <ImpostazioniPage onOpenProfilesTab={() => handleTabChange('profili')} />

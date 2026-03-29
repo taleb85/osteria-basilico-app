@@ -236,6 +236,13 @@ export const UI_SCREEN_WIDGETS: UiScreenWidgetDef[] = [
     screenLabel: 'Tabellone turni',
     label: 'Griglia turni e contenuto principale',
   },
+  {
+    key: 'turni.shift_modal',
+    audience: 'management',
+    screenGroup: 'turni',
+    screenLabel: 'Tabellone turni',
+    label: 'Popup dettaglio turno (modifica orari)',
+  },
 
   // ── Ore ─────────────────────────────────────────────────────────────
   {
@@ -311,6 +318,13 @@ export const UI_SCREEN_WIDGETS: UiScreenWidgetDef[] = [
     label: 'Tabella / schede presenze',
   },
   {
+    key: 'timesheet.punch_modal',
+    audience: 'management',
+    screenGroup: 'timesheet',
+    screenLabel: 'Presenze',
+    label: 'Popup revisione timbratura (conferma ore)',
+  },
+  {
     key: 'timesheet.staff_summary_box',
     audience: 'staff',
     screenGroup: 'timesheet',
@@ -339,6 +353,22 @@ export const UI_SCREEN_WIDGETS: UiScreenWidgetDef[] = [
     screenGroup: 'ferie',
     screenLabel: 'Ferie e permessi',
     label: 'Elenco richieste / dettagli',
+  },
+
+  // ── Menu a popup e interazioni speciali ──────────────────────────────
+  {
+    key: 'global.quick_switch',
+    audience: 'all',
+    screenGroup: 'global_popups',
+    screenLabel: 'Menu e Popup',
+    label: 'Cambio rapido utente (pressione lunga su Profilo)',
+  },
+  {
+    key: 'global.notifications',
+    audience: 'all',
+    screenGroup: 'global_popups',
+    screenLabel: 'Menu e Popup',
+    label: 'Centro notifiche (campanella)',
   },
 ];
 

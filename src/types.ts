@@ -68,6 +68,8 @@ export interface User {
   ui_section_overrides?: Record<string, boolean>;
   /** Se true: account attivo ma non compare nel tabellone turni, presenze collettive e ore di gruppo (es. solo back-office). */
   hide_from_team_schedule?: boolean;
+  /** Se true: l'utente è visibile nel tabellone turni (Griglia). */
+  team_schedule_visible?: boolean;
   /** Foto profilo (data URL o URL pubblico); opzionale, può non esistere come colonna su DB. */
   avatar_url?: string | null;
   /** Inizio rapporto (yyyy-MM-dd), opzionale */

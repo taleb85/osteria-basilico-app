@@ -1,10 +1,11 @@
-import { Image as ImageIcon, Camera, FolderOpen } from 'lucide-react';
+import { Image as ImageIcon, Camera, FolderOpen, Trash2 } from 'lucide-react';
 
 export type ProfilePhotoSourceLabels = {
   sheetAria: string;
   gallery: string;
   camera: string;
   files: string;
+  remove?: string;
 };
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
   onPickGallery: () => void;
   onPickCamera: () => void;
   onPickFiles: () => void;
+  onRemovePhoto?: () => void;
   /** id per aria-controls dal pulsante fotocamera */
   menuId?: string;
 };
@@ -28,6 +30,7 @@ export default function ProfilePhotoSourceSheet({
   onPickGallery,
   onPickCamera,
   onPickFiles,
+  onRemovePhoto,
   menuId = 'profile-photo-source-menu',
 }: Props) {
   if (!open) return null;
@@ -81,6 +84,22 @@ export default function ProfilePhotoSourceSheet({
           <span className="leading-snug">{labels.files}</span>
         </button>
       </li>
+      {onRemovePhoto && (
+        <li role="none" className="border-t border-slate-100 dark:border-white/5 mt-0.5 pt-0.5">
+          <button
+            type="button"
+            role="menuitem"
+            className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-red-600 transition-colors hover:bg-red-50 active:bg-red-100 dark:text-red-400 dark:hover:bg-red-950/20 dark:active:bg-red-950/30 touch-manipulation"
+            onClick={() => {
+              onRemovePhoto();
+              onClose();
+            }}
+          >
+            <Trash2 className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
+            <span className="leading-snug">{labels.remove ?? 'Rimuovi foto'}</span>
+          </button>
+        </li>
+      )}
     </ul>
   );
 }

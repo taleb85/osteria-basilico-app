@@ -2,15 +2,15 @@
 export const DEFAULT_PHONE_PREFIX = '+44';
 
 /** Opzioni prefisso per il profilo (ordine di presentazione). */
-export const PHONE_PREFIX_OPTIONS: readonly { value: string; label: string }[] = [
-  { value: '+44', label: '+44 GB' },
-  { value: '+39', label: '+39 IT' },
-  { value: '+33', label: '+33 FR' },
-  { value: '+34', label: '+34 ES' },
-  { value: '+49', label: '+49 DE' },
-  { value: '+41', label: '+41 CH' },
-  { value: '+423', label: '+423 LI' },
-  { value: '+1', label: '+1 US/CA' },
+export const PHONE_PREFIX_OPTIONS: readonly { value: string; label: string; example: string }[] = [
+  { value: '+44', label: '+44 GB', example: '7700 123456' },
+  { value: '+39', label: '+39 IT', example: '333 1234567' },
+  { value: '+33', label: '+33 FR', example: '06 12 34 56 78' },
+  { value: '+34', label: '+34 ES', example: '612 345 678' },
+  { value: '+49', label: '+49 DE', example: '0151 12345678' },
+  { value: '+41', label: '+41 CH', example: '079 123 45 67' },
+  { value: '+423', label: '+423 LI', example: '791 23 45' },
+  { value: '+1', label: '+1 US/CA', example: '202-555-0123' },
 ] as const;
 
 function sortedPrefixesLongestFirst(): string[] {

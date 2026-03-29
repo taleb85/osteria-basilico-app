@@ -403,7 +403,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
   return (
     <ProfileLeaveGuardRefContext.Provider value={profileLeaveGuardRef}>
-    <div className="min-h-screen min-h-[100dvh] w-full bg-gray-50 dark:bg-[#0a0a0a] text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col pb-32">
+    <div className="min-h-screen min-h-[100dvh] w-full bg-gray-50 dark:bg-[#0a0a0a] text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
       <BodyPullToRefresh
         onRefresh={() => silentRefreshData({ pullRemoteConfig: true })}
         disabled={!!(isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending)}
@@ -436,7 +436,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <main
-        className={`flex-1 flex flex-col w-full min-h-0 ${staffMobileBottomNavActive ? 'pb-32 md:pb-0' : ''} ${isAdminPath ? 'pb-32 md:pb-0' : ''} ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
+        className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
       >
         <div className="w-full flex-1 app-main-top-pad app-horizontal-pad">
           {noNavTabs ? (

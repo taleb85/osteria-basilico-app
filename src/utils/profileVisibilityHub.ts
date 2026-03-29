@@ -32,10 +32,12 @@ const UI_SCREEN_GROUP_TO_PREVIEW_TAB: Record<string, AppNavTab> = {
   timesheet: 'timesheet',
   stats: 'reports',
   staff_profile: 'profile',
+  global_popups: 'settings',
 };
 
-export function screenGroupToPreviewTab(screenGroup: string): AppNavTab {
-  return UI_SCREEN_GROUP_TO_PREVIEW_TAB[screenGroup] ?? 'home';
+export function screenGroupToPreviewTab(screenGroup: string): AppNavTab | 'all' {
+  if (screenGroup === 'global_popups') return 'all';
+  return (UI_SCREEN_GROUP_TO_PREVIEW_TAB[screenGroup] as any) ?? 'home';
 }
 
 /** Dove mostrare il toggle permesso nella hub “Cosa vede chi” (per scheda). */

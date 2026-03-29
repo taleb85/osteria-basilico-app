@@ -901,6 +901,20 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       list = list.filter((u) => u.id === fid);
     }
     list = [...list].sort((a, b) => {
+      // Priorità reparto: Sala + Bar (insieme), poi Cucina, poi altri
+      const getDeptPriority = (u: any) => {
+        const d = (u.department || '').toLowerCase();
+        // Sala e Bar assieme (priorità 1)
+        if (d === 'sala' || d === 'bar') return 1;
+        // Cucina per i fatti suoi (priorità 2)
+        if (d === 'kitchen' || d === 'cucina') return 2;
+        // Altri reparti (priorità 3)
+        return 3;
+      };
+      const pa = getDeptPriority(a);
+      const pb = getDeptPriority(b);
+      if (pa !== pb) return pa - pb;
+
       if (userOrderOverride) {
         const ai = userOrderOverride.indexOf(a.id);
         const bi = userOrderOverride.indexOf(b.id);
@@ -909,7 +923,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       return (a.sort_order ?? 0) - (b.sort_order ?? 0);
     });
     return list;
-  }, [users, filterUserId, localFilterUserId, userOrderOverride, localFilterDepartment]);
+  }, [users, filterUserId, localFilterUserId, userOrderOverride, localFilterDepartment, shifts]);
 
   // Holiday lookup: Set of "userId_yyyy-MM-dd" for approved holiday days
   const approvedHolidayDates = useMemo(() => {

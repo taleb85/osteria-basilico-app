@@ -58,34 +58,28 @@ export default function RoleFeatureSectionsBlock(props: Props) {
     const enabled = lockedOn ? true : props.features[key] === true;
     const label = rowLabel(sectionId, key);
 
-    if (props.mode === 'badges') {
-      return (
-        <AdminRow
-          key={key}
-          className="!pl-8"
-          label={
-            <span
-              className={
-                enabled ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-600 dark:text-neutral-400'
-              }
-            >
-              {label}
-            </span>
-          }
-          action={
-            <span
-              className={`shrink-0 rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                enabled
-                  ? 'bg-accent text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-500 dark:bg-neutral-800 dark:text-neutral-400'
-              }`}
-            >
-              {enabled ? (tv.role_template_yes ?? 'Sì') : (tv.role_template_no ?? 'No')}
-            </span>
-          }
+    const switchBtn = (
+      <button
+        type="button"
+        role="switch"
+        aria-checked={enabled}
+        disabled={lockedOn}
+        aria-disabled={lockedOn}
+        onClick={() => {
+          if (lockedOn) return;
+          props.onToggle(key);
+        }}
+        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 ${
+          lockedOn ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
+        } ${enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
+      >
+        <span
+          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
+            enabled ? 'translate-x-5' : 'translate-x-1'
+          }`}
         />
-      );
-    }
+      </button>
+    );
 
     const homeHint = key === 'home_tab' ? (tv.role_template_home_hint ?? '') : undefined;
 
@@ -93,7 +87,15 @@ export default function RoleFeatureSectionsBlock(props: Props) {
       <AdminRow
         key={key}
         className="!pl-8"
-        label={label}
+        label={
+          <span
+            className={
+              enabled ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-600 dark:text-neutral-400'
+            }
+          >
+            {label}
+          </span>
+        }
         description={lockedOn ? homeHint : undefined}
         badge={
           lockedOn ? (
@@ -102,54 +104,13 @@ export default function RoleFeatureSectionsBlock(props: Props) {
             </span>
           ) : undefined
         }
-        action={
-          <button
-            type="button"
-            role="switch"
-            aria-checked={enabled}
-            disabled={lockedOn}
-            aria-disabled={lockedOn}
-            onClick={() => {
-              if (lockedOn) return;
-              props.onToggle(key);
-            }}
-            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 ${
-              lockedOn ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
-            } ${enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
-          >
-            <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${
-                enabled ? 'translate-x-5' : 'translate-x-1'
-              }`}
-            />
-          </button>
-        }
+        action={switchBtn}
       />
     );
   };
 
   const renderTabSheetSection = () => {
     const sectionTitle = tv[roleTemplateSectionTitleKey('tabs_nav')] ?? 'tabs';
-
-    if (props.mode === 'badges') {
-      return (
-        <div key="tab-sheets">
-          <p className="ui-section-title mb-2">{sectionTitle}</p>
-          <div className={PERMISSION_SUMMARY_LIST_CLASS}>
-            {ROLE_TEMPLATE_TAB_SHEET_GROUPS.map((group) => (
-              <div key={group.id} className="border-b border-gray-100 last:border-b-0 dark:border-white/10">
-                <div className="px-5 pt-3 pb-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
-                    {tv[group.titleKey] ?? group.id}
-                  </span>
-                </div>
-                {group.keys.map((key) => renderFeatureRow(key))}
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
 
     return (
       <div key="tab-sheets">

@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronLeft, ChevronRight, FileDown, Moon } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, FileDown, Moon, ClipboardList, MousePointer2 } from 'lucide-react';
 import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { uiWidgetKeyAppliesToUser } from '../../utils/uiScreenWidgets';
@@ -33,18 +33,8 @@ export default function TimesheetTabPreview({
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const days = Array.from({ length: 4 }, (_, i) => addDays(weekStart, i));
 
-  // For each day, find the shift for previewUser and compute worked hours
-  const dailyHours = days.map((day) => {
-    const dateStr = format(day, 'yyyy-MM-dd');
-    const shift = shifts.find(
-      (s) => s.user_id === previewUser.id && s.date === dateStr
-    );
-    if (!shift) return '';
-    const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
-    if (!start || !end) return '';
-    // Format as HH:mm–HH:mm
-    return `${start}–${end}`;
-  });
+  // DATI DIMOSTRATIVI FISSI PER ANTEPRIMA
+  const dailyHours = ['10:00–16:00', '18:00–23:00', '12:00–18:00', ''];
 
   return (
     <div className="flex flex-col gap-4 font-sans">
@@ -56,35 +46,25 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
-          <div className="min-w-0">
-            <h2 className="text-base font-bold text-slate-900 dark:text-neutral-50">{t.timesheet_title}</h2>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
+        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-800">
+            <ClipboardList className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.timesheet_title}</p>
+              <div className="flex items-center gap-1">
+                <div className="rounded-lg border border-slate-200 p-1 text-slate-400 dark:border-white/10">
+                  <ChevronLeft className="h-3 w-3" />
+                </div>
+                <div className="rounded-lg border border-slate-200 p-1 text-slate-400 dark:border-white/10">
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </div>
+            <p className="mt-0.5 text-[10px] font-medium text-slate-500 dark:text-neutral-400">
               {t.stats_preset_current_week}
             </p>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              tabIndex={-1}
-              className="rounded-lg border border-slate-200 p-1.5 text-slate-600 dark:border-white/10 dark:text-neutral-300"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              tabIndex={-1}
-              className="rounded-lg border border-slate-200 p-1.5 text-slate-600 dark:border-white/10 dark:text-neutral-300"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              tabIndex={-1}
-              className="rounded-lg border border-slate-200 p-1.5 text-slate-600 dark:border-white/10 dark:text-neutral-300"
-            >
-              <FileDown className="h-4 w-4" />
-            </button>
           </div>
         </div>
       </WidgetChrome>
@@ -199,6 +179,28 @@ export default function TimesheetTabPreview({
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </WidgetChrome>
+      )}
+
+      {show('timesheet.punch_modal') && (
+      <WidgetChrome
+        widgetKey="timesheet.punch_modal"
+        previewUser={previewUser}
+        isSelectedAdmin={isSelectedAdmin}
+        onUiToggle={onUiToggle}
+        hiddenBadge={hiddenBadge}
+      >
+        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-800">
+            <MousePointer2 className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Popup revisione timbratura</p>
+            <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500 dark:text-neutral-400">
+              {tv.profile_visibility_generic_widget_demo ?? 'Contenuto dimostrativo: in app qui compariranno i dati reali.'}
+            </p>
           </div>
         </div>
       </WidgetChrome>

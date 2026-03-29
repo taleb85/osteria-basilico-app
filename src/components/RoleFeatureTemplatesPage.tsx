@@ -97,9 +97,9 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   }, []);
 
   const [roleGroupExpanded, setRoleGroupExpanded] = useState<Record<RoleTemplateGroup, boolean>>(() => ({
-    management: readRoleGroupExpanded('management'),
-    capo: readRoleGroupExpanded('capo'),
-    staff: readRoleGroupExpanded('staff'),
+    management: false,
+    capo: false,
+    staff: false,
   }));
 
   const toggleRoleGroupExpanded = useCallback((group: RoleTemplateGroup) => {
@@ -331,11 +331,15 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const renderGroup = (group: RoleTemplateGroup, state: EnabledFeatures) => {
     const expanded = roleGroupExpanded[group];
     // Funzioni per attivare/disattivare tutto
-    const allKeys = Object.keys(state).filter((k) => k !== 'home_tab');
+    const allKeys = Object.keys(state).filter((k) => k !== 'home_tab') as EnabledFeatureKey[];
     const allOn = allKeys.every((k) => state[k]);
     const allOff = allKeys.every((k) => !state[k]);
     const setAll = (value: boolean) => {
-      allKeys.forEach((k) => toggleRole(group, k, value));
+      allKeys.forEach((k) => {
+        if (state[k] !== value) {
+          toggleRole(group, k);
+        }
+      });
     };
     return (
       <div
@@ -475,15 +479,6 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
   const pageBody = (
     <>
-      <div className="flex items-start gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${ACCENT}20` }}>
-          <SlidersHorizontal className="w-5 h-5" style={{ color: ACCENT }} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold leading-tight text-slate-800 dark:text-neutral-100">{t.role_templates_page_title}</h1>
-          {introDescription}
-        </div>
-      </div>
       {groupsBlock}
     </>
   );

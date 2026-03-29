@@ -129,6 +129,12 @@ export default function HomePage({
 
   const handleApproveFromModal = useCallback(
     async (shiftId: string, approvedStart: string, approvedEnd: string) => {
+      const shift = shifts.find(s => s.id === shiftId);
+      const user = users.find(u => u.id === shift?.user_id);
+      if (currentUser.role === 'capo' && user?.department !== currentUser.department) {
+        showError?.(t.ts_toast_approve_freeze_error);
+        return;
+      }
       setApprovingId(shiftId);
       try {
         await approveShift(shiftId, { approvedStart, approvedEnd });
@@ -137,7 +143,7 @@ export default function HomePage({
         setApprovingId(null);
       }
     },
-    [approveShift, showSuccess, t]
+    [approveShift, showSuccess, showError, shifts, users, currentUser, t]
   );
 
   const breakComputeOpts = useMemo(
@@ -149,10 +155,11 @@ export default function HomePage({
   const locale = getDateLocale(effectiveLanguage) ?? it;
 
   const isMgmtUser = isManagementRole(currentUser.role);
+  const isCapoUser = currentUser.role === 'capo';
   const isMobile = window.innerWidth < 768;
   const uiW = (key: string) => isUiWidgetVisible(currentUser, key);
   /** Tabellone team su Home: rispetta matrice `team_view` (non solo il ruolo). */
-  const showTeamHome = isMgmtUser && isFeatureEnabled(currentUser, 'team_view');
+  const showTeamHome = (isMgmtUser || isCapoUser) && isFeatureEnabled(currentUser, 'team_view');
   const canEditShiftsHome =
     currentUser.role === 'admin' ||
     (isFeatureEnabled(currentUser, 'edit_shifts') &&
@@ -163,10 +170,18 @@ export default function HomePage({
     currentUser.role === 'admin' ||
     currentUser.role === 'manager' ||
     currentUser.role === 'assistant_manager' ||
+    (isCapoUser && isFeatureEnabled(currentUser, 'edit_shifts')) ||
     canEditShiftsHome;
   const canApproveShiftsHome =
     currentUser.role === 'admin' ||
     (isFeatureEnabled(currentUser, 'approve_shifts') && canApproveShiftActions(currentUser));
+
+  // Filtro per il Capo: vede solo anomalie e chiusure del suo reparto
+  const filterByCapoDept = useCallback((enrichedShift: any) => {
+    if (currentUser.role !== 'capo') return true;
+    return enrichedShift.user?.department === currentUser.department;
+  }, [currentUser]);
+
   /** Stesso gate su web, mobile e PWA (Master Control `staff_requests`). */
   const staffRequestsEnabled = featureFlags['staff_requests'] !== false;
   const todayStr = format(now, 'yyyy-MM-dd');
@@ -178,7 +193,7 @@ export default function HomePage({
 
   const upcomingShifts = myShifts.filter((s) => {
     if (s.date < todayStr) return false;
-    if (isMgmtUser && showTeamHome) return true;
+    if ((isMgmtUser || isCapoUser) && showTeamHome) return true;
     return s.approval_status === 'approved' || s.approval_status === 'confirmed' || s.approval_status === 'absent';
   });
 
@@ -270,6 +285,7 @@ export default function HomePage({
           if (s.date !== todayStr || s.notes?.startsWith('__OPEN__')) return false;
           const u = users.find((x) => x.id === s.user_id);
           if (!u) return true;
+          if (currentUser.role === 'capo' && u.department !== currentUser.department) return false;
           return isUserVisibleOnTeamSchedule(u, shifts);
         })
         .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
@@ -303,31 +319,41 @@ export default function HomePage({
       canApproveShiftsHome &&
       s.approval_status === 'confirmed' &&
       !!punchIn &&
-      !!actualEnd;
+      !!actualEnd &&
+      (currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'assistant_manager' || (currentUser.role === 'capo' && user?.department === currentUser.department));
     const canClose =
-      showTeamHome && canEditShiftsHome && isDinner && !!punchIn && !actualEnd && !isApproved;
+      showTeamHome && (canEditShiftsHome || (isCapoUser && user?.department === currentUser.department)) && isDinner && !!punchIn && !actualEnd && !isApproved;
     return { shift: s, user, isDinner, punchIn, punchOut, actualStart, actualEnd, scheduledStart, scheduledEnd, scheduledMins, actualMins, deltaMins, isLate, hasMissingOut, isApproved, canApprove, canClose };
   });
 
   // Stats oggi — stessa logica delle card riepilogo Presenze (Timesheets)
   const inTurnoCount = todayAllShifts.filter((s) => {
     if (s.approval_status === 'absent') return false;
+    const u = users.find((x) => x.id === s.user_id);
+    if (currentUser.role === 'capo' && u?.department !== currentUser.department) return false;
     const start = timeToMins((s.start_time || '').slice(0, 5));
     const end = timeToMins((s.end_time || '23:59').slice(0, 5));
     return nowMins >= start - 30 && nowMins <= end;
   }).length;
-  const ritardiCount = todayShiftsEnriched.filter((e) => e.isLate).length;
+  const ritardiCount = todayShiftsEnriched.filter((e) => e.isLate).filter(filterByCapoDept).length;
   const senzaTimbraturaCount = todayAllShifts.filter((s) => {
     if (s.approval_status === 'absent') return false;
+    const u = users.find((x) => x.id === s.user_id);
+    if (currentUser.role === 'capo' && u?.department !== currentUser.department) return false;
     const isDinner = timeToMins((s.start_time || '').slice(0, 5)) >= 16 * 60;
     const { punchIn } = getPunchForShift(s.id, s.user_id, todayStr, !isDinner);
     return !punchIn;
   }).length;
-  const approvatiCount = todayAllShifts.filter((s) => s.approval_status === 'approved').length;
+  const approvatiCount = todayAllShifts.filter((s) => {
+    if (s.approval_status !== 'approved') return false;
+    const u = users.find((x) => x.id === s.user_id);
+    if (currentUser.role === 'capo' && u?.department !== currentUser.department) return false;
+    return true;
+  }).length;
 
   // Sections: critical = rosso/giallo
-  const criticalShifts = todayShiftsEnriched.filter((e) => e.hasMissingOut || e.isLate || e.canApprove);
-  const dinnerNeedsClose = todayShiftsEnriched.filter((e) => e.canClose);
+  const criticalShifts = todayShiftsEnriched.filter((e) => e.hasMissingOut || e.isLate || e.canApprove).filter(filterByCapoDept);
+  const dinnerNeedsClose = todayShiftsEnriched.filter((e) => e.canClose).filter(filterByCapoDept);
 
   // Attendance
   const todayShiftsWithPunch = todayAllShifts.filter((s) => {

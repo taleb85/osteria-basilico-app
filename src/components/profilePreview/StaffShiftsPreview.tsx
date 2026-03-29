@@ -42,14 +42,15 @@ export default function StaffShiftsPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="surface-glass overflow-hidden">
-          <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5">
+          <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5 dark:border-white/10">
             <Calendar className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
-            <span className="text-xs font-bold text-slate-700">{t.sidebar_shifts}</span>
+            <span className="text-xs font-bold text-slate-700 dark:text-neutral-200">{t.sidebar_shifts}</span>
           </div>
-          <div className="divide-y divide-slate-50 p-2">
+          <div className="divide-y divide-slate-50 p-2 dark:divide-white/5">
             {[
-              { d: 'Mar 12', h: '12:00 – 18:00' },
-              { d: 'Gio 14', h: '18:00 – 23:00' },
+              { d: 'Lun 10', h: '10:00 – 16:00' },
+              { d: 'Mar 11', h: '18:00 – 23:00' },
+              { d: 'Mer 12', h: '12:00 – 18:00' },
             ].map((row) => (
               <div key={row.d} className="flex items-center justify-between gap-2 px-2 py-2.5 text-sm">
                 <span className="font-semibold text-slate-800 dark:text-neutral-100">{row.d}</span>

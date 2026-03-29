@@ -51,12 +51,12 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
       <button
         type="button"
         onClick={handleOpen}
-        className={`relative flex items-center justify-center transition-all h-full w-full text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white`}
+        className={`relative flex items-center justify-center transition-all h-full w-full text-slate-600 dark:text-slate-600 hover:text-slate-900 dark:hover:text-slate-900`}
         title={t.profile_notifications}
       >
-        <Bell className={`${denseTrigger ? 'h-4 w-4' : 'h-5 w-5'} ${unreadCount > 0 ? 'animate-ring text-accent dark:text-accent-light' : ''}`} />
+        <Bell className={`${denseTrigger ? 'h-4 w-4' : 'h-5 w-5'} ${unreadCount > 0 ? 'animate-ring text-accent dark:text-accent' : ''}`} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-neutral-900">
+          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-neutral-950">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}

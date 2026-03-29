@@ -1,3 +1,4 @@
+import { BarChart3, ChevronDown, Clock, Filter, FileText } from 'lucide-react';
 import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { uiWidgetKeyAppliesToUser } from '../../utils/uiScreenWidgets';
@@ -30,8 +31,16 @@ export default function StatisticsTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm px-4 py-3">
-          <p className="text-lg font-bold text-slate-900 dark:text-neutral-50">{t.stats_title}</p>
+        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-800">
+            <BarChart3 className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.stats_title}</p>
+            <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500 dark:text-neutral-400">
+              {tv.profile_visibility_generic_widget_demo ?? 'Contenuto dimostrativo: in app qui compariranno i dati reali.'}
+            </p>
+          </div>
         </div>
       </WidgetChrome>
       )}
@@ -44,11 +53,21 @@ export default function StatisticsTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm flex flex-wrap items-center gap-2 p-2">
-          <span className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 dark:bg-neutral-800 dark:text-neutral-200">
-            {t.stats_preset_current_month}
-          </span>
-          <span className="text-[10px] text-slate-400 dark:text-neutral-400">{t.stats_preset_period}</span>
+        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-800">
+            <Filter className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.stats_preset_period}</p>
+            <div className="mt-1 flex flex-wrap gap-2">
+              <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 dark:bg-neutral-800 dark:text-neutral-200">
+                {t.stats_preset_current_month}
+              </span>
+              <span className="rounded-lg border border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:border-white/10 dark:text-neutral-400">
+                PDF Export
+              </span>
+            </div>
+          </div>
         </div>
       </WidgetChrome>
       )}

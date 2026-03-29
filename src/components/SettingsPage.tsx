@@ -41,6 +41,7 @@ import AdminRow from './ui/AdminRow';
 import { SettingsAccordionSection } from './ui/SettingsAccordionSection';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage';
+import ProfileVisibilityHub from './ProfileVisibilityHub';
 import type { WorkRules } from '../utils/workRules';
 import { getCurrentPositionCoords } from '../utils/geo';
 import { resolveEffectiveVerificationToken, generateRandomVerificationToken } from '../utils/presenceVerificationPayload';
@@ -141,6 +142,7 @@ export default function SettingsPage() {
     holidays,
     currentUser,
     updateUser,
+    deleteUser,
     effectiveLanguage,
     hardResetTestData,
     seedDemoProfileForUser,
@@ -168,6 +170,7 @@ export default function SettingsPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showCreateStaff, setShowCreateStaff] = useState(false);
   const [expandedPermsUserId, setExpandedPermsUserId] = useState<string | null>(null);
+  const [expandedVisibilityUserId, setExpandedVisibilityUserId] = useState<string | null>(null);
   const [showSuspended, setShowSuspended] = useState(false);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -429,14 +432,29 @@ export default function SettingsPage() {
                             {t.settings_delegated_suspend}
                           </button>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleDelegateReactivate(user)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-accent/35 bg-accent/10 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-accent transition-colors hover:bg-accent/15 dark:border-accent-light/40 dark:bg-accent-light/15 dark:text-accent-light dark:hover:bg-accent-light/20"
-                          >
-                            <UserCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                            {t.settings_delegated_reactivate}
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (window.confirm(t.settings_delete_user_confirm)) {
+                                  await deleteUser(user.id);
+                                  showSuccess?.(t.settings_delete_user_success);
+                                }
+                              }}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
+                              title={t.settings_delete_user_title}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelegateReactivate(user)}
+                              className="inline-flex items-center gap-1 rounded-lg border border-accent/35 bg-accent/10 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-accent transition-colors hover:bg-accent/15 dark:border-accent-light/40 dark:bg-accent-light/15 dark:text-accent-light dark:hover:bg-accent-light/20"
+                            >
+                              <UserCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                              {t.settings_delegated_reactivate}
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -489,17 +507,6 @@ export default function SettingsPage() {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {canEditRoleFeatureTemplates(currentUser) && (
-          <SettingsAccordionSection
-            storageKey="osteria_settings_acc_role_templates"
-            title={t.role_templates_page_title}
-            subtitle={t.role_templates_embedded_collapsed_hint}
-            defaultOpen
-          >
-            <RoleFeatureTemplatesPanel variant="embedded" />
-          </SettingsAccordionSection>
-        )}
 
         {/* Gestione Team */}
         <section className="mb-6">
@@ -578,18 +585,28 @@ export default function SettingsPage() {
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         {/* Permessi toggle */}
                         {canEdit && (
-                          <button
-                            type="button"
-                            onClick={() => setExpandedPermsUserId(isPermsOpen ? null : user.id)}
-                            title={t.settings_user_perms_title_attr}
-                            className={`px-2 py-1 rounded-lg border text-[10px] font-semibold transition-colors ${
-                              isPermsOpen
-                                ? 'bg-accent text-white border-accent'
-                                : 'border-slate-200 text-slate-500 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-400 dark:hover:bg-neutral-800'
-                            }`}
-                          >
-                            {t.settings_user_perms_button}
-                          </button>
+                          <div className="flex bg-slate-100 dark:bg-neutral-800 rounded-lg p-0.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setExpandedPermsUserId(isPermsOpen ? null : user.id);
+                                setExpandedVisibilityUserId(null);
+                              }}
+                              className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${isPermsOpen ? 'bg-white dark:bg-neutral-700 text-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-neutral-300'}`}
+                            >
+                              {t.settings_user_perms_button}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setExpandedVisibilityUserId(user.id);
+                                setExpandedPermsUserId(null);
+                              }}
+                              className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${expandedVisibilityUserId === user.id ? 'bg-white dark:bg-neutral-700 text-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-neutral-300'}`}
+                            >
+                              Cosa vede
+                            </button>
+                          </div>
                         )}
 
                         {/* Griglia: override per-utente (template in Permessi ruoli sopra) */}
@@ -625,24 +642,41 @@ export default function SettingsPage() {
 
                         {/* Active toggle */}
                         {canEdit && (
-                          <button
-                            type="button"
-                            role="switch"
-                            aria-checked={user.status === 'active'}
-                            onClick={() => handleToggleStatus(user)}
-                            className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
-                              user.status === 'active' ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
-                            }`}
-                          >
-                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${user.status === 'active' ? 'translate-x-5' : 'translate-x-0'}`} />
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            {user.status !== 'active' && (
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (window.confirm(t.settings_delete_user_confirm)) {
+                                    await deleteUser(user.id);
+                                    showSuccess?.(t.settings_delete_user_success);
+                                  }
+                                }}
+                                className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
+                                title={t.settings_delete_user_title}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={user.status === 'active'}
+                              onClick={() => handleToggleStatus(user)}
+                              className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
+                                user.status === 'active' ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
+                              }`}
+                            >
+                              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${user.status === 'active' ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
 
-                    {/* ── Permissions panel ── */}
+                    {/* Permissions / Visibility panel */}
                     <AnimatePresence>
-                      {isPermsOpen && canEdit && (
+                      {(isPermsOpen || expandedVisibilityUserId === user.id) && canEdit && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
@@ -650,8 +684,17 @@ export default function SettingsPage() {
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden"
                         >
-                          <div className="bg-slate-50 border-t border-slate-100 px-4 py-4 space-y-4">
-                            {/* Matrice permessi: solo lettura (definita dal ruolo) */}
+                          <div className="bg-slate-50 border-t border-slate-100 px-4 py-4 space-y-4 dark:bg-neutral-900/30">
+                            {expandedVisibilityUserId === user.id && (
+                              <ProfileVisibilityHub 
+                                initialSelectedUserId={user.id} 
+                                onClose={() => setExpandedVisibilityUserId(null)} 
+                              />
+                            )}
+                            
+                            {isPermsOpen && (
+                              <>
+                                {/* Matrice permessi: solo lettura (definita dal ruolo) */}
                             {!isPurelyManagementRole(user.role) && (
                               <div className="space-y-4">
                                 <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">
@@ -755,7 +798,9 @@ export default function SettingsPage() {
                                 </p>
                               </div>
                             ) : (
-                              <StaffOperationalPermissionsEditor user={user} currentUser={currentUser} />
+                                  <StaffOperationalPermissionsEditor user={user} currentUser={currentUser} />
+                                )}
+                              </>
                             )}
                           </div>
                         </motion.div>
@@ -810,6 +855,18 @@ export default function SettingsPage() {
                               : t.department_bar}
                         </span>
                       )}
+                      {isBuiltin && d.permissionCategory && (
+                        <span
+                          className="text-[9px] font-semibold normal-case opacity-90 border-l border-white/35 pl-1.5 shrink-0 max-w-[5.5rem] truncate"
+                          title={t.settings_dept_permission_group}
+                        >
+                          {d.permissionCategory === 'sala'
+                            ? t.department_sala
+                            : d.permissionCategory === 'kitchen'
+                              ? t.department_kitchen
+                              : t.department_bar}
+                        </span>
+                      )}
                       <button
                         type="button"
                         title={t.settings_dept_edit_title}
@@ -818,7 +875,7 @@ export default function SettingsPage() {
                           setEditingDeptValue(d.value);
                           setEditDeptLabel(d.label);
                           setEditDeptColor(d.color ?? '#2D5A27');
-                          setEditDeptPermissionCategory(isBuiltin ? '' : (d.permissionCategory ?? ''));
+                          setEditDeptPermissionCategory(d.permissionCategory ?? '');
                         }}
                         className="text-white/75 hover:text-white transition-colors shrink-0"
                       >
@@ -876,7 +933,7 @@ export default function SettingsPage() {
                                 updateDepartment(editingDeptValue, {
                                   label: editDeptLabel.trim(),
                                   color: editDeptColor,
-                                  ...(!isBuiltinEdit ? { permissionCategory: editDeptPermissionCategory } : {}),
+                                  permissionCategory: editDeptPermissionCategory,
                                 })
                               );
                               showSuccess?.(t.settings_dept_saved);
@@ -914,7 +971,7 @@ export default function SettingsPage() {
                                 updateDepartment(editingDeptValue, {
                                   label: editDeptLabel.trim(),
                                   color: editDeptColor,
-                                  ...(!isBuiltinEdit ? { permissionCategory: editDeptPermissionCategory } : {}),
+                                  permissionCategory: editDeptPermissionCategory,
                                 })
                               );
                               showSuccess?.(t.settings_dept_saved);

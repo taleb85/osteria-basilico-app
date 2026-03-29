@@ -18,6 +18,7 @@ import { useApp } from '../context/AppContext';
 import { getTranslations, getFeatureStrings, formatTrans } from '../utils/translations';
 import { isAdminOnly, isPurelyManagementRole } from '../utils/permissions';
 import { FEATURE_DEFINITIONS } from '../utils/featureFlags';
+import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage';
 
 const IMPOSTAZIONI_GROUPS: readonly {
   readonly titleKey: 'impostazioni_group_org' | 'impostazioni_group_rules' | 'impostazioni_group_tools';
@@ -59,6 +60,11 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
   const t = getTranslations(effectiveLanguage);
   const [howOpen, setHowOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    // Chiudi tutti i dettagli all'avvio per la modalità compatta
+    setDetailOpen({});
+  }, []);
 
   const toggleDetail = useCallback((slug: string) => {
     setDetailOpen((prev) => ({ ...prev, [slug]: !prev[slug] }));
@@ -143,10 +149,10 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
                     })
                   );
                 }}
-                className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
+                className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 ${enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
               >
                 <span
-                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-0'}`}
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${enabled ? 'translate-x-5' : 'translate-x-1'}`}
                 />
               </button>
             </div>
@@ -223,20 +229,19 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
         <div className="h-0.5 bg-slate-200 dark:bg-neutral-800 rounded my-6" />
 
         {/* Sezione gestione utenti */}
-        <div className="surface-glass-sm p-4 rounded-xl mb-6">
-          <h2 className="text-md font-bold mb-2 flex items-center gap-2"><Users className="w-4 h-4" />{t.impostazioni_open_profiles || 'Gestione utenti'}</h2>
-          <button
-            type="button"
-            onClick={onOpenProfilesTab}
-            className="inline-flex items-center gap-1.5 self-start rounded-lg border border-accent/25 bg-accent/[0.07] px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/12 transition-colors"
-          >
-            <Users className="w-3.5 h-3.5 opacity-80" />
-            {t.impostazioni_open_profiles}
-          </button>
-        </div>
-
-        {/* Divider */}
-        <div className="h-0.5 bg-slate-200 dark:bg-neutral-800 rounded my-6" />
+        {onOpenProfilesTab && (
+          <div className="surface-glass-sm p-4 rounded-xl mb-6">
+            <h2 className="text-md font-bold mb-2 flex items-center gap-2"><Users className="w-4 h-4" />{t.impostazioni_open_profiles || 'Gestione utenti'}</h2>
+            <button
+              type="button"
+              onClick={onOpenProfilesTab}
+              className="inline-flex items-center gap-1.5 self-start rounded-lg border border-accent/25 bg-accent/[0.07] px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/12 transition-colors"
+            >
+              <Users className="w-3.5 h-3.5 opacity-80" />
+              {t.impostazioni_open_profiles}
+            </button>
+          </div>
+        )}
 
         {/* Sezione funzionalità e regole */}
         <div className="space-y-6">

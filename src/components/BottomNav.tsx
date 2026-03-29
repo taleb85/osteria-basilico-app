@@ -10,6 +10,7 @@ import {
 } from '../utils/profilePhotoStorage';
 import { isAdminOnly } from '../utils/permissions';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
+import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 
 interface BottomNavProps {
   activeTab: AppNavTab;
@@ -38,6 +39,9 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
 
   const handleLongPressStart = useCallback((id: AppNavTab) => {
     if (id !== 'profile' || !currentUser) return;
+    
+    // Controllo visibilità widget per il cambio rapido
+    if (!isUiWidgetVisible(currentUser, 'global.quick_switch')) return;
     
     longPressTimerRef.current = setTimeout(() => {
       setIsQuickSwitchOpen(true);
@@ -226,13 +230,17 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   onMouseLeave={handleLongPressEnd}
                   onTouchStart={(e) => {
                     // Impedisce il menu contestuale di sistema su iOS durante il long press
+                    if (id === 'profile') {
+                      // Non chiamare e.preventDefault() qui altrimenti il click normale non funziona,
+                      // ma il long press su iOS è gestito dal sistema se non si usa -webkit-touch-callout: none
+                    }
                     handleLongPressStart(id);
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
                   }}
                   onTouchEnd={handleLongPressEnd}
                   onTouchMove={handleLongPressEnd}
-                  onContextMenu={(e) => {
-                    if (id === 'profile') e.preventDefault();
-                  }}
                   title={buttonTitle}
                   aria-label={ariaLabel}
                   className={`keep-white-glass flex flex-1 min-w-0 min-h-[44px] sm:min-h-[48px] rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] items-center justify-center px-0.5 py-1.5 ${
@@ -312,7 +320,9 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
           <div className="p-4 border-b border-slate-200/30 dark:border-white/10 sticky top-0 bg-white/40 dark:bg-neutral-900/40 backdrop-blur-md z-10">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-neutral-50 uppercase tracking-tight">
-                {pendingSwitchUser ? `Inserisci PIN per ${pendingSwitchUser.first_name}` : 'Cambio rapido utente'}
+                {pendingSwitchUser 
+                  ? (tv.quick_switch_pin_prompt ?? 'Inserisci PIN per {name}').replace('{name}', pendingSwitchUser.first_name)
+                  : (tv.quick_switch_title ?? 'Cambio rapido utente')}
               </h3>
               <button
                 onClick={() => {
@@ -332,7 +342,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   autoFocus
                   value={quickSwitchSearch}
                   onChange={(e) => setQuickSwitchSearch(e.target.value)}
-                  placeholder="Cerca dipendente..."
+                  placeholder={tv.quick_switch_search_placeholder ?? 'Cerca dipendente...'}
                   className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-neutral-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 outline-none"
                 />
               </div>
@@ -454,7 +464,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                 })}
                 {filteredUsers.length === 0 && (
                   <div className="p-8 text-center text-slate-400 text-sm">
-                    Nessun dipendente trovato
+                    {tv.quick_switch_no_employee_found ?? 'Nessun dipendente trovato'}
                   </div>
                 )}
               </>

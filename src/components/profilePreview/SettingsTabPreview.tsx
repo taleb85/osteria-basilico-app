@@ -1,4 +1,4 @@
-import { Bell, Globe, ShieldCheck, User as UserIcon } from 'lucide-react';
+import { Bell, Globe, ShieldCheck, User as UserIcon, Users } from 'lucide-react';
 import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { WidgetChrome } from './WidgetChrome';
@@ -52,6 +52,60 @@ export default function SettingsTabPreview({
                 <span className="text-sm font-medium text-slate-800 dark:text-neutral-200">{label}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </WidgetChrome>
+    </div>
+  );
+}
+
+export function GlobalPopupsPreview({
+  previewUser,
+  isSelectedAdmin,
+  onUiToggle,
+  hiddenBadge,
+}: {
+  previewUser: User;
+  isSelectedAdmin: boolean;
+  onUiToggle: (key: string, visible: boolean) => void;
+  hiddenBadge: string;
+}) {
+  return (
+    <div className="space-y-2 mt-4 pt-4 border-t border-slate-200 dark:border-white/10">
+      <p className="px-1 text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">Menu e Popup Globali</p>
+      
+      <WidgetChrome
+        widgetKey="global.quick_switch"
+        previewUser={previewUser}
+        isSelectedAdmin={isSelectedAdmin}
+        onUiToggle={onUiToggle}
+        hiddenBadge={hiddenBadge}
+      >
+        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-800">
+            <Users className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Cambio rapido utente</p>
+            <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500 dark:text-neutral-400">Pressione lunga sull'avatar</p>
+          </div>
+        </div>
+      </WidgetChrome>
+
+      <WidgetChrome
+        widgetKey="global.notifications"
+        previewUser={previewUser}
+        isSelectedAdmin={isSelectedAdmin}
+        onUiToggle={onUiToggle}
+        hiddenBadge={hiddenBadge}
+      >
+        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-800">
+            <Bell className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Centro notifiche</p>
+            <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500 dark:text-neutral-400">Icona campanella nell'header</p>
           </div>
         </div>
       </WidgetChrome>
