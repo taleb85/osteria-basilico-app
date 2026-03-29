@@ -169,7 +169,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
       window.visualViewport?.removeEventListener('resize', updateNavOverlapMode);
       docRo.disconnect();
     };
-  }, [updateNavOverlapMode, activeTab, visibleTabs]);
+  }, [updateNavOverlapMode]);
 
   const profileThumb =
     currentUser &&

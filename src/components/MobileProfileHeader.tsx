@@ -138,7 +138,7 @@ export default function MobileProfileHeader({
     handleChange(mediaQuery);
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [currentUser.id, currentUser.theme, updateUserPreferences]);
+  }, [currentUser.id, currentUser.theme]);
 
   // Se non c'è una preferenza salvata, forziamo il ricalcolo al cambio di stato del sistema
   useEffect(() => {

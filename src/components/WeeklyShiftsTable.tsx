@@ -60,6 +60,8 @@ import { TimeInputField } from './ui/TimeInputField';
 import { isDatePickerPortalClick } from '../utils/datePickerPortal';
 import { HorizontalScrollArea } from './HorizontalScrollArea';
 
+import EditStaffModal from './EditStaffModal';
+
 /**
  * ── WEB vs MOBILE (breakpoint sm = 640px) ─────────────────────────────────────
  * WEB (sm e oltre): settimana intera visibile, niente scroll orizzontale, checkbox
@@ -2943,7 +2945,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         ) : (
                           <span
                             className={`font-bold text-xs uppercase leading-tight truncate ${user.status === 'suspended' || user.status === 'inactive' ? 'text-slate-400 dark:text-neutral-500 line-through' : 'text-slate-800 dark:text-neutral-100'} ${(canViewTotalHours || canEditInApp) ? 'cursor-pointer hover:underline' : ''}`}
-                            onClick={() => (canViewTotalHours || canEditInApp) && setLocalFilterUserId(prev => prev === user.id ? null : user.id)}
+                            onClick={() => canViewTotalHours && setLocalFilterUserId(prev => prev === user.id ? null : user.id)}
                             onDoubleClick={(e) => {
                               e.stopPropagation();
                               if (canEditInApp && !isPurelyManagementRole(user.role)) {
@@ -3144,6 +3146,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   const delayMinsDay = getPunchDelayMinutes(dayShift, punchRecords);
                                   const showLateBarDay = !isAbsentCell && delayMinsDay != null && delayMinsDay > 0;
                                   const showPunchMissingBarDay = !isAbsentCell && dayVariant === 'punchMissing';
+
+                                  // Logica per determinare se mostrare l'orario pianificato come "effettivo" in assenza di timbrature
+                                  const showPlannedAsActualDay = !actualTimes.startTime && !actualTimes.endTime && (approvalDayNorm === 'confirmed' || approvalDayNorm === 'approved');
+                                  const displayActualStartDay = showPlannedAsActualDay ? startNormCell : actualTimes.startTime.slice(0, 5);
+                                  const displayActualEndDay = showPlannedAsActualDay ? (startNormCell === '10:00' ? '16:00' : '___') : (actualTimes.endTime || endFallback)?.slice(0, 5) || '___';
+
                                   return (
                                     <>
                                       {/* Barra sinistra: turno pubblicato (tabellone) */}
@@ -3189,8 +3197,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                             >
                                               <span className="flex max-w-full min-w-0 items-center justify-center gap-1.5">
                                                 <span className="min-w-0 text-center font-bold leading-none">
-                                                  <span className={`max-w-full truncate text-xs hidden sm:block ${timeTextCls}`}>{timeDisplayed}</span>
-                                                  <span className={`max-w-full truncate text-[11px] block sm:hidden ${timeTextCls}`}>{timeDisplayedShort}</span>
+                                                  <span className={`max-w-full truncate text-xs hidden sm:block ${timeTextCls}`}>
+                                                    {isAbsentCell ? t.status_absent : dayShift.approved_at && dayShift.approved_start_time && dayShift.approved_end_time ? `${dispS} – ${dispE}` : `${displayActualStartDay} – ${displayActualEndDay}`}
+                                                  </span>
+                                                  <span className={`max-w-full truncate text-[11px] block sm:hidden ${timeTextCls}`}>
+                                                    {isAbsentCell ? t.status_absent : dayShift.approved_at && dayShift.approved_start_time && dayShift.approved_end_time ? `${toShortTime(dispS)}–${toShortTime(dispE)}` : `${toShortTime(displayActualStartDay)}–${toShortTime(displayActualEndDay)}`}
+                                                  </span>
                                                 </span>
                                                 {showPunchMissingBarDay && (
                                                   <span
@@ -3212,8 +3224,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                             <span className="absolute inset-0 z-0 flex items-center justify-center px-2">
                                               <span className="flex max-w-full min-w-0 items-center justify-center gap-1.5">
                                                 <span className="min-w-0 text-center font-bold leading-none">
-                                                  <span className={`max-w-full truncate text-xs hidden sm:block ${timeTextCls}`}>{timeDisplayed}</span>
-                                                  <span className={`max-w-full truncate text-[11px] block sm:hidden ${timeTextCls}`}>{timeDisplayedShort}</span>
+                                                  <span className={`max-w-full truncate text-xs hidden sm:block ${timeTextCls}`}>
+                                                    {isAbsentCell ? t.status_absent : dayShift.approved_at && dayShift.approved_start_time && dayShift.approved_end_time ? `${dispS} – ${dispE}` : `${displayActualStartDay} – ${displayActualEndDay}`}
+                                                  </span>
+                                                  <span className={`max-w-full truncate text-[11px] block sm:hidden ${timeTextCls}`}>
+                                                    {isAbsentCell ? t.status_absent : dayShift.approved_at && dayShift.approved_start_time && dayShift.approved_end_time ? `${toShortTime(dispS)}–${toShortTime(dispE)}` : `${toShortTime(displayActualStartDay)}–${toShortTime(displayActualEndDay)}`}
+                                                  </span>
                                                 </span>
                                                 {showPunchMissingBarDay && (
                                                   <span
@@ -3360,6 +3376,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   const delayMinsEv = getPunchDelayMinutes(eveningShift, punchRecords);
                                   const showLateBarEv = !isAbsentEv && delayMinsEv != null && delayMinsEv > 0;
                                   const showPunchMissingBarEv = !isAbsentEv && eveningVariant === 'punchMissing';
+
+                                  // Logica per determinare se mostrare l'orario pianificato come "effettivo" in assenza di timbrature
+                                  const showPlannedAsActualEv = !actualTimes.startTime && !actualTimes.endTime && (approvalEvNorm === 'confirmed' || approvalEvNorm === 'approved');
+                                  const displayActualStartEv = showPlannedAsActualEv ? (eveningShift.start_time || '').slice(0, 5) : actualTimes.startTime.slice(0, 5);
+                                  const displayActualEndEv = showPlannedAsActualEv ? (eveningShift.end_time || '').slice(0, 5) || '___' : (actualTimes.endTime || '___')?.slice(0, 5);
+
                                   return (
                                     <>
                                       {/* Barra sinistra: turno pubblicato (tabellone) */}
@@ -3405,8 +3427,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                             >
                                               <span className="flex max-w-full min-w-0 items-center justify-center gap-1.5">
                                                 <span className="min-w-0 text-center font-bold leading-none">
-                                                  <span className={`max-w-full truncate text-xs hidden sm:block ${evTimeTextCls}`}>{timeDisplayed}</span>
-                                                  <span className={`max-w-full truncate text-[11px] block sm:hidden ${evTimeTextCls}`}>{timeDisplayedShort}</span>
+                                                  <span className={`max-w-full truncate text-xs hidden sm:block ${evTimeTextCls}`}>
+                                                    {isAbsentEv ? t.status_absent : eveningShift.approved_at && eveningShift.approved_start_time && eveningShift.approved_end_time ? `${dispS} – ${dispE}` : `${displayActualStartEv} – ${displayActualEndEv}`}
+                                                  </span>
+                                                  <span className={`max-w-full truncate text-[11px] block sm:hidden ${evTimeTextCls}`}>
+                                                    {isAbsentEv ? t.status_absent : eveningShift.approved_at && eveningShift.approved_start_time && eveningShift.approved_end_time ? `${toShortTime(dispS)}–${toShortTime(dispE)}` : `${toShortTime(displayActualStartEv)}–${toShortTime(displayActualEndEv)}`}
+                                                  </span>
                                                 </span>
                                                 {showPunchMissingBarEv && (
                                                   <span
@@ -3428,8 +3454,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                             <span className="absolute inset-0 z-0 flex items-center justify-center px-2">
                                               <span className="flex max-w-full min-w-0 items-center justify-center gap-1.5">
                                                 <span className="min-w-0 text-center font-bold leading-none">
-                                                  <span className={`max-w-full truncate text-xs hidden sm:block ${evTimeTextCls}`}>{timeDisplayed}</span>
-                                                  <span className={`max-w-full truncate text-[11px] block sm:hidden ${evTimeTextCls}`}>{timeDisplayedShort}</span>
+                                                  <span className={`max-w-full truncate text-xs hidden sm:block ${evTimeTextCls}`}>
+                                                    {isAbsentEv ? t.status_absent : eveningShift.approved_at && eveningShift.approved_start_time && eveningShift.approved_end_time ? `${dispS} – ${dispE}` : `${displayActualStartEv} – ${displayActualEndEv}`}
+                                                  </span>
+                                                  <span className={`max-w-full truncate text-[11px] block sm:hidden ${evTimeTextCls}`}>
+                                                    {isAbsentEv ? t.status_absent : eveningShift.approved_at && eveningShift.approved_start_time && eveningShift.approved_end_time ? `${toShortTime(dispS)}–${toShortTime(dispE)}` : `${toShortTime(displayActualStartEv)}–${toShortTime(displayActualEndEv)}`}
+                                                  </span>
                                                 </span>
                                                 {showPunchMissingBarEv && (
                                                   <span
@@ -3815,7 +3845,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     } else if (pair.actualStart && pair.plannedEnd) {
                       aS = pair.actualStart;
                       aE = pair.plannedEnd;
+                    } else if (!pair.actualStart && !pair.actualEnd && stPlanned && enPlanned) {
+                      // Se non ci sono timbrature, usa gli orari pianificati per permettere l'approvazione
+                      aS = stPlanned;
+                      aE = enPlanned;
                     }
+
                     if (aS && aE) {
                       actualNetMins = getNetShiftMinutes(
                         { ...shift, deduct_break: deductBreak, start_time: aS, end_time: aE },
@@ -3833,8 +3868,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     actualNetMins = 0;
                     actualNeedsPunches = false;
                   }
-
-                  const showApproveBtn = !isFrozen && !isAbsent && !isConfirmed && canApproveShifts;
 
                   return (
                     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -3869,18 +3902,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             <span className="flex items-center gap-1 text-[11px] font-bold text-rose-800 bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-full dark:bg-rose-950/50 dark:text-rose-100 dark:border-rose-800/60">
                               <UserX className="w-3 h-3" /> {t.status_absent}
                             </span>
-                          )}
-                          {showApproveBtn && (
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                await updateShift(shift.id, { approval_status: 'confirmed' });
-                                showSuccess?.(t.shift_status_toast_published);
-                              }}
-                              className="flex items-center gap-1 text-[11px] font-bold text-white bg-accent hover:bg-accent-hover px-3 py-1.5 rounded-full shadow-sm transition-all active:scale-95"
-                            >
-                              <Check className="w-3 h-3" strokeWidth={3} /> {t.wst_filter_published}
-                            </button>
                           )}
                           </div>
                         </div>

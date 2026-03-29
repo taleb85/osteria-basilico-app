@@ -27,7 +27,7 @@ export function punchCompletenessForShift(shift: Shift, punchRecords: PunchRecor
   };
 }
 
-/** Presenze: congelamento solo se turno non futuro, non già sigillato, e (assenza) oppure (timbratura IN+OUT complete). */
+/** Presenze: congelamento sempre possibile per turni non futuri e non già sigillati. */
 export function shiftCanBeFrozenFromTimesheet(
   shift: Shift,
   punchRecords: PunchRecord[],
@@ -38,5 +38,6 @@ export function shiftCanBeFrozenFromTimesheet(
   if (shift.approval_status === 'absent') return true;
   const st = shift.approval_status;
   if (st !== 'confirmed' && st !== 'draft' && !(st === 'approved' && !shift.approved_at)) return false;
-  return punchCompletenessForShift(shift, punchRecords).complete;
+  // Permetti sempre il congelamento se non è futuro e non è già sigillato
+  return true;
 }
