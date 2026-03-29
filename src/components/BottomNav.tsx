@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { Home, Calendar, ClipboardList, Clock, ShieldCheck, Palmtree, User, Search, X, Delete } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { getTranslations } from '../utils/translations';
+import { getTranslations, formatTrans } from '../utils/translations';
 import type { AppNavTab } from '../utils/enabledModules';
 import {
   readProfileAvatarFromStorage,
@@ -53,7 +53,13 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
       setSwitchPin('');
       setSwitchError('');
       // Feedback aptico se supportato
-      if ('vibrate' in navigator) navigator.vibrate(10);
+      try {
+        if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
+          navigator.vibrate(10);
+        }
+      } catch (e) {
+        // Ignora errori di vibrazione (es. restrizioni browser)
+      }
     }, 600);
   }, [currentUser]);
 
