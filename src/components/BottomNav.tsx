@@ -337,27 +337,22 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
         onClose={() => setIsQuickSwitchOpen(false)}
         ariaLabel="Cambio rapido utente"
         maxWidthClass="max-w-md"
-        panelClassName="p-0 !bg-white/70 dark:!bg-neutral-900/70 backdrop-blur-2xl border-white/20 dark:border-white/10"
+        panelClassName={`p-0 ${pendingSwitchUser ? '!bg-transparent !border-none !shadow-none' : '!bg-white/70 dark:!bg-neutral-900/70 backdrop-blur-2xl border-white/20 dark:border-white/10'}`}
       >
         <div className="flex flex-col h-full max-h-[80vh]">
-          <div className="p-4 border-b border-slate-200/30 dark:border-white/10 sticky top-0 bg-white/40 dark:bg-neutral-900/40 backdrop-blur-md z-10">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-bold text-slate-900 dark:text-neutral-50 uppercase tracking-tight">
-                {pendingSwitchUser 
-                  ? (tv.quick_switch_pin_prompt ?? 'Inserisci PIN per {name}').replace('{name}', pendingSwitchUser.first_name)
-                  : (tv.quick_switch_title ?? 'Cambio rapido utente')}
-              </h3>
-              <button
-                onClick={() => {
-                  if (pendingSwitchUser) setPendingSwitchUser(null);
-                  else setIsQuickSwitchOpen(false);
-                }}
-                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            {!pendingSwitchUser && (
+          {!pendingSwitchUser && (
+            <div className="p-4 border-b border-slate-200/30 dark:border-white/10 sticky top-0 bg-white/40 dark:bg-neutral-900/40 backdrop-blur-md z-10">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-bold text-slate-900 dark:text-neutral-50 uppercase tracking-tight">
+                  {tv.quick_switch_title ?? 'Cambio rapido utente'}
+                </h3>
+                <button
+                  onClick={() => setIsQuickSwitchOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
@@ -369,10 +364,10 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-neutral-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 outline-none"
                 />
               </div>
-            )}
-          </div>
+            </div>
+          )}
           
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div className={`flex-1 overflow-y-auto ${pendingSwitchUser ? 'p-0' : 'p-2 space-y-1'}`}>
             {pendingSwitchUser ? (
               <PinPadModal
                 title={tv.quick_switch_title ?? 'Cambio rapido utente'}
@@ -399,7 +394,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                           setSwitchPin('');
                         }
                       }}
-                      className="flex flex-col items-center justify-center gap-1 text-accent active:scale-95 transition-transform"
+                      className="flex flex-col items-center justify-center gap-1 text-[#455a3f] active:scale-95 transition-transform"
                     >
                       <Fingerprint className="w-6 h-6" />
                     </button>
