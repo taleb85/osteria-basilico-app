@@ -819,7 +819,18 @@ export default function Timesheets() {
       // Utente gestionale: vede tutti gli utenti operativi
       let list = users.filter((u) => {
         // Solo attivi e visibili in planning
-        return u.status === 'active' && isUserVisibleOnTeamSchedule(u, shifts);
+        if (u.status !== 'active' || !isUserVisibleOnTeamSchedule(u, shifts)) return false;
+        
+        // Filtro reparto (se attivo)
+        if (pdfDeptFilter !== 'all') {
+          const d = (u.department || '').toLowerCase();
+          if (pdfDeptFilter === 'sala_bar') {
+            return d === 'sala' || d === 'bar';
+          }
+          return d === pdfDeptFilter;
+        }
+        
+        return true;
       });
 
       // Applica lo stesso ordinamento della scheda Turni (WeeklyShiftsTable)
@@ -842,7 +853,7 @@ export default function Timesheets() {
       });
       return list;
     }
-  }, [users, shifts, currentUser]);
+  }, [users, shifts, currentUser, pdfDeptFilter]);
 
   const weekShifts = useMemo(() =>
     shifts.filter((s) => s.date >= weekStr && s.date < weekEnd && !s.notes?.startsWith('__OPEN__')),
@@ -1133,23 +1144,9 @@ export default function Timesheets() {
     try {
       const daysToExport = mode === 'WEEK' ? weekDays : allPeriodDays;
       
-      // Filtra gli utenti in base al reparto selezionato per il PDF
-      let usersToExport = visibleUsers;
-      if (pdfDeptFilter !== 'all') {
-        usersToExport = visibleUsers.filter(u => {
-          const d = (u.department || '').toLowerCase();
-          // Sala e Bar assieme
-          if (pdfDeptFilter === 'sala_bar') {
-            return d === 'sala' || d === 'bar';
-          }
-          // Altri reparti singoli
-          return d === pdfDeptFilter;
-        });
-      }
-
       const result = exportAttendancePdfFromGrid({
         weekDays: daysToExport,
-        visibleUsers: usersToExport,
+        visibleUsers,
         shifts,
         punchRecords,
         breakRules,
@@ -1183,7 +1180,6 @@ export default function Timesheets() {
     fmtHM,
     showSuccess,
     showError,
-    pdfDeptFilter,
   ]);
 
   // ── Indicatori Presenze: settimana visualizzata (in turno = solo se oggi è in quella settimana) ──
