@@ -425,7 +425,7 @@ export default function Statistics() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
                             transition={{ duration: 0.1 }}
-                            className="absolute left-0 top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                            className="absolute left-0 sm:right-0 sm:left-auto top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
                             style={{ isolation: 'isolate' }}
                           >
                             <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 border-b border-slate-100 dark:border-white/10 mb-1">
