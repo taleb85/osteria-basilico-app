@@ -2490,7 +2490,7 @@ export default function Timesheets() {
                           initial={{ opacity: 0, y: 4, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                          className="absolute left-0 sm:right-0 sm:left-auto top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                          className="absolute left-0 lg:right-0 lg:left-auto top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
                           style={{ isolation: 'isolate' }}
                         >
                         <button
