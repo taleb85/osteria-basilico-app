@@ -72,6 +72,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const canShowLinkDevice = webAuthnOk && pinMatches && resolvedUser && !hasPinUnlockCredential(resolvedUser.id);
   const showDeviceSection = webAuthnOk && (hasDeviceLogin || canShowLinkDevice);
 
+  // Auto-trigger biometric login if device has credentials
+  useEffect(() => {
+    if (hasDeviceLogin && !deviceLoading && !isLoading && !linkDeviceLoading && !isInviteLink) {
+      void handleDeviceLogin();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasDeviceLogin]);
+
   useEffect(() => {
     applyUnauthenticatedDocumentTheme();
   }, []);

@@ -22,6 +22,8 @@ import { applyUnauthenticatedDocumentTheme } from '../utils/theme';
 import { isPurelyManagementRole, canOperateTeamSchedule } from '../utils/permissions';
 import { usePunchPresenceVerification } from '../hooks/usePunchPresenceVerification';
 
+import { PinPadModal } from './ui/PinPadModal';
+
 /** Terminale /timbratura: UI sempre in inglese (dispositivo condiviso in sala). */
 const KIOSK_UI_LANGUAGE: Language = 'en';
 
@@ -752,129 +754,33 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                     })}
                   </div>
                 ) : (
-                  /* Tastierino PIN con design vetro */
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-4"
-                  >
-                    <motion.div
-                      initial={{ opacity: 0, y: -12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.05, type: 'spring', stiffness: 400, damping: 28 }}
-                      className="flex justify-center mb-2"
-                    >
-                      <BrandLogo className="flex-shrink-0" light={false} />
-                    </motion.div>
-                    <motion.div
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1, type: 'spring', stiffness: 400, damping: 28 }}
-                      className="flex items-center justify-between"
-                    >
+                  /* Tastierino PIN unificato */
+                  <PinPadModal
+                    title={t.sync_lock_title}
+                    subtitle={punchMode === 'out' ? t.punch_clock_out_label : `${t.punch_for_shift_at} ${selectedShift.start_time.slice(0, 5)}${selectedShift.end_time ? ` — ${selectedShift.end_time.slice(0, 5)}` : ''}`}
+                    pinLabel={t.pin_for_shift}
+                    pin={pin}
+                    onPinChange={(p) => (setPin(p), setError(''))}
+                    onConfirm={() => {}} // Gestito da useEffect su pin.length === 4
+                    onCancel={() => setSelectedShift(null)}
+                    error={error}
+                    isLoading={isLoading}
+                    confirmLabel={t.confirm}
+                    cancelLabel={t.cancel}
+                    leftActionButton={
                       <button
-                        onClick={() => setSelectedShift(null)}
-                        disabled={isLoading}
-                        className="flex items-center gap-2 text-slate-600 hover:text-slate-900 text-sm font-medium font-sans"
-                      >
-                        <X className="w-4 h-4" />
-                        {t.cancel}
-                      </button>
-                      <button
+                        type="button"
                         onClick={() => { setUserWantsShiftList(true); setSelectedShift(null); }}
                         disabled={isLoading}
-                        className="text-slate-500 dark:text-neutral-300 hover:text-slate-700 text-xs font-medium font-sans underline"
+                        className="flex flex-col items-center justify-center gap-0.5 text-slate-400 active:scale-95 transition-transform"
                       >
-                        {t.change_shift}
+                        <Smartphone className="w-5 h-5 text-[#455a3f]" />
+                        <span className="text-[8px] font-black uppercase tracking-tighter leading-none">
+                          {t.change_shift}
+                        </span>
                       </button>
-                    </motion.div>
-                    <motion.p
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.15, type: 'spring', stiffness: 400, damping: 28 }}
-                      className="text-slate-900 font-semibold text-base text-center font-sans w-full"
-                    >
-                      {punchMode === 'out' ? t.punch_clock_out_label : t.punch_for_shift_at} {selectedShift.start_time.slice(0, 5)}
-                      {selectedShift.end_time ? ` — ${selectedShift.end_time.slice(0, 5)}` : ''}
-                    </motion.p>
-                    <motion.div
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2, type: 'spring', stiffness: 400, damping: 28 }}
-                      className="flex flex-col items-center gap-2"
-                    >
-                      <div className="flex items-center gap-2 text-slate-600">
-                        <ShieldCheck className="w-5 h-5 text-accent" />
-                        <span className="text-xs font-medium uppercase tracking-wider font-sans">{t.pin_for_shift}</span>
-                      </div>
-                      <div className="relative w-full">
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.22, type: 'spring', stiffness: 400, damping: 28 }}
-                          className="relative"
-                        >
-                          <motion.div
-                            animate={pin.length === 4 ? { scale: [1, 1.02, 1] } : {}}
-                            transition={{ duration: 0.3 }}
-                            className="relative"
-                          >
-                        <input
-                          type="password"
-                          inputMode="numeric"
-                          maxLength={4}
-                          value={pin}
-                          onChange={(e) => (setPin(e.target.value), setError(''))}
-                          disabled={isLoading}
-                          autoFocus
-                          className="w-full px-6 py-5 rounded-xl bg-white border border-slate-200 focus:ring-2 focus:ring-accent/25 focus:border-accent outline-none font-medium text-4xl text-center tracking-[0.5em] text-slate-900 transition-all"
-                          placeholder="••••"
-                        />
-                        {isLoading && (
-                          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/90 backdrop-blur">
-                            <Loader2 className="w-10 h-10 text-accent animate-spin" />
-                          </div>
-                        )}
-                          </motion.div>
-                        </motion.div>
-                      </div>
-                    </motion.div>
-                    <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.25, type: 'spring', stiffness: 400, damping: 28 }}
-                      className="grid grid-cols-3 gap-2"
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, 'del'].map((n, idx) => (
-                        <motion.button
-                          key={idx}
-                          type="button"
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => {
-                            if (n === 'del') {
-                              setPin((p) => p.slice(0, -1));
-                              setError('');
-                            } else if (typeof n === 'number' && pin.length < 4) {
-                              setPin((p) => p + String(n));
-                              setError('');
-                            }
-                          }}
-                          disabled={isLoading || (typeof n === 'number' && pin.length >= 4)}
-                          className={`aspect-square rounded-xl flex items-center justify-center font-medium text-xl transition-all font-sans ${
-                            n === 'del'
-                              ? 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
-                              : 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50'
-                          }`}
-                        >
-                          {n === 'del' ? <Delete className="w-6 h-6" /> : n}
-                        </motion.button>
-                      ))}
-                    </motion.div>
-                    {error && (
-                      <p className="text-red-500 text-sm font-medium text-center font-sans">{error}</p>
-                    )}
-                  </motion.div>
+                    }
+                  />
                 )}
               </div>
             </motion.div>

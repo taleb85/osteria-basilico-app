@@ -69,6 +69,7 @@ import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
 import { getDeptColor, getDepartments } from '../utils/departments';
 import { translateDepartmentValue } from '../utils/departmentLabels';
 import { getTimesheetGridPrivacyMode } from '../utils/timesheetGridPrivacy';
+import { PinPadModal } from './ui/PinPadModal';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -4526,324 +4527,67 @@ export default function Timesheets() {
       {typeof document !== 'undefined' &&
         createPortal(
           <AnimatePresence>
-        {approvalConfirm && (() => {
-          const ac = approvalConfirm;
-          const deltaColor = ac.deltaMins > 5 ? 'text-accent' : ac.deltaMins < -5 ? 'text-red-500' : 'text-slate-500';
-          const hasAnomaly = ac.deltaMins < -10 || ac.freezeUsesPlannedTimes || !ac.actualEnd;
-          return (
-            <motion.div
-              key="timesheet-approval-confirm"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[10060] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
-              onClick={(e) => { if (e.target === e.currentTarget) setApprovalConfirm(null); }}
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }} transition={{ duration: 0.15 }}
-                className="modal-glass-panel w-full max-w-sm overflow-hidden rounded-2xl"
-              >
-                {/* Header */}
-                <div className="border-b border-accent/15 bg-accent/8 px-5 py-4 backdrop-blur-sm dark:bg-accent/10 flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <Lock className="w-4 h-4 text-accent flex-shrink-0" />
-                      <h3 className="font-bold text-slate-900 text-base">{t.ts_modal_confirm_approval}</h3>
-                    </div>
-                    <p className="text-sm text-slate-500 dark:text-neutral-300 pl-6">
-                      {ac.employeeName} · {safeFormatDate(ac.dateStr, 'EEEE d MMMM', { locale })}
-                    </p>
-                    {ac.afterFreeze === 'advance_review' ? (
-                      <p className="mt-2 pl-6 text-[11px] font-medium text-slate-600 dark:text-neutral-400">
-                        {(t as { ts_review_queue_freeze_intro?: string }).ts_review_queue_freeze_intro ?? ''}
-                      </p>
-                    ) : null}
-                  </div>
-                  <button type="button" onClick={() => setApprovalConfirm(null)}
-                    className="p-1.5 rounded-xl hover:bg-slate-100 transition-colors ml-2 flex-shrink-0">
-                    <X className="w-4 h-4 text-slate-500 dark:text-neutral-300" />
-                  </button>
-                </div>
-
-                {/* Dati da verificare */}
-                <div className="p-5 space-y-3">
-                  {/* Pianificato vs Effettivo */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-xl bg-slate-50 p-3 dark:bg-neutral-800/60">
-                      <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_label_planned}</p>
-                      <p className="text-sm font-bold text-slate-700 tabular-nums dark:text-neutral-100">{ac.plannedStart} – {ac.plannedEnd}</p>
-                      <p className="mt-0.5 text-[11px] text-slate-500 dark:text-neutral-300">{fmtHM(ac.plannedMins)}</p>
-                    </div>
-                    <div
-                      className={`rounded-xl p-3 ${
-                        !ac.actualEnd
-                          ? 'bg-red-50 dark:bg-red-950/35'
-                          : ac.freezeUsesPlannedTimes
-                            ? 'bg-amber-50 dark:bg-amber-950/30'
-                            : 'bg-teal-50 dark:bg-teal-950/35'
-                      }`}
-                    >
-                      <p className="text-[9px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wide mb-1.5">{t.ts_label_punched}</p>
-                      {ac.actualEnd ? (
-                        <>
-                          <p className="text-sm font-bold tabular-nums text-slate-800 dark:text-neutral-100">
-                            {ac.actualStart} – {ac.actualEnd}
-                          </p>
-                          <p className={`mt-0.5 text-[11px] font-semibold ${deltaColor}`}>
-                            {fmtHM(ac.actualMins)} ({ac.deltaMins >= 0 ? '+' : ''}{fmtHM(ac.deltaMins)})
-                          </p>
-                          {ac.freezeUsesPlannedTimes && (
-                            <p className="mt-1 text-[10px] font-medium text-amber-800 dark:text-amber-200/90">
-                              {t.ts_freeze_planned_ref_hint}
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        <p className="text-sm font-semibold text-red-500 dark:text-red-400">{t.ts_status_missing_out}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Barra visiva delta */}
-                  {ac.actualMins > 0 && (
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-neutral-700">
-                        <div
-                          className={`h-full rounded-full ${ac.deltaMins >= 0 ? 'bg-accent' : 'bg-red-400'}`}
-                          style={{ width: `${Math.min(100, Math.max(4, (ac.actualMins / Math.max(ac.plannedMins, 1)) * 100))}%` }}
-                        />
-                      </div>
-                      <span className={`text-[11px] font-bold tabular-nums ${deltaColor}`}>
-                        {Math.round((ac.actualMins / Math.max(ac.plannedMins, 1)) * 100)}%
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Avviso se anomalia */}
-                  {hasAnomaly && (
-                    <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
-                      <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs text-amber-700 font-medium">
-                        {!ac.actualEnd
-                          ? t.ts_warning_no_exit_confirm
-                          : ac.freezeUsesPlannedTimes
-                            ? t.ts_freeze_planned_confirm
-                            : t.ts_warning_anomaly}
-                      </p>
-                    </div>
-                  )}
-
-                  <p className="text-[11px] text-slate-400 dark:text-neutral-400 text-center">
-                    {t.ts_approval_freeze_notice}
-                  </p>
-
-                  <div className="space-y-1.5">
-                    <label className="block text-center text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-neutral-400">
-                      {t.ts_approval_pin_label}
-                    </label>
-                    <input
-                      type="password"
-                      inputMode="numeric"
-                      maxLength={4}
-                      value={approvalPin}
-                      placeholder={t.ts_approval_pin_placeholder}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-                        setApprovalPin(val);
-                        setApprovalPinError('');
-                      }}
-                      className={`w-full rounded-xl border px-3 py-2.5 text-center text-xl font-bold tracking-[0.5em] focus:outline-none focus:ring-2 ${
-                        approvalPinError
-                          ? 'border-red-400 text-red-600 ring-red-200 dark:bg-neutral-900 dark:text-red-400'
-                          : 'border-slate-200 text-slate-900 ring-accent/30 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100'
-                      }`}
-                    />
-                    {approvalPinError ? (
-                      <p className="text-center text-xs font-semibold text-red-500">{approvalPinError}</p>
-                    ) : null}
-                  </div>
-                </div>
-
-                {/* Azioni */}
-                <div className="flex gap-2 px-5 pb-5">
-                  <button type="button" onClick={() => setApprovalConfirm(null)}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">
-                    {t.cancel}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={approvingShiftId === ac.shiftId || approvalPin.length < 4}
-                    onClick={async () => {
-                      const verifier = findFreezeVerifierByPin(users, approvalPin);
-                      if (!verifier) {
-                        setApprovalPinError(t.ts_approval_pin_invalid);
-                        setApprovalPin('');
-                        return;
-                      }
-                      setApprovalConfirm(null);
-                      await handleApproveShift(ac.shiftId, verifier, {
-                        afterSuccess:
-                          ac.afterFreeze === 'advance_review' ? 'advance_review' : 'close_drawer',
-                      });
-                    }}
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
-                  >
-                    {approvingShiftId === ac.shiftId
-                      ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> {t.ts_approving}</>
-                      : <><Lock className="w-4 h-4" /> {t.ts_btn_yes_approve_freeze}</>
+            {approvalConfirm && (() => {
+              const ac = approvalConfirm;
+              return (
+                <PinPadModal
+                  title={t.sync_lock_title}
+                  subtitle={t.ts_enter_manager_pin}
+                  pinLabel={t.ts_approval_pin_label}
+                  pin={approvalPin}
+                  onPinChange={(p) => (setApprovalPin(p), setApprovalPinError(''))}
+                  onConfirm={async () => {
+                    const verifier = findFreezeVerifierByPin(users, approvalPin);
+                    if (!verifier) {
+                      setApprovalPinError(t.ts_approval_pin_invalid);
+                      setApprovalPin('');
+                      return;
                     }
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          );
-        })()}
-        {employeeWeekFreezeBatch && (() => {
-          const batch = employeeWeekFreezeBatch;
-          const tv = t as Record<string, string>;
-          return (
-            <motion.div
-              key="timesheet-employee-week-freeze-batch"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[10060] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
-              onClick={(e) => {
-                if (e.target === e.currentTarget && !employeeWeekFreezeBusy) {
-                  setEmployeeWeekFreezeBatch(null);
-                  showSuccess?.(
-                    tv.ts_employee_week_review_skipped_freeze ??
-                      'Revisione completata senza congelare i turni.'
-                  );
-                }
-              }}
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="modal-glass-panel w-full max-w-sm overflow-hidden rounded-2xl"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-start justify-between border-b border-accent/15 bg-accent/8 px-5 py-4 backdrop-blur-sm dark:bg-accent/10">
-                  <div className="min-w-0 pr-2">
-                    <div className="mb-0.5 flex items-center gap-2">
-                      <Lock className="h-4 w-4 shrink-0 text-accent" />
-                      <h3 className="text-base font-bold text-slate-900 dark:text-neutral-100">
-                        {tv.ts_employee_week_freeze_batch_title ?? 'Congela turni revisionati'}
-                      </h3>
-                    </div>
-                    <p className="pl-6 text-sm text-slate-500 dark:text-neutral-300">
-                      {formatTrans(
-                        tv.ts_employee_week_freeze_batch_subtitle ?? '{name}: {count} turni',
-                        {
-                          name: batch.employeeName,
-                          count: String(batch.shiftIds.length),
-                        }
-                      )}
-                    </p>
-                    <p className="mt-2 pl-6 text-[11px] font-medium text-slate-600 dark:text-neutral-400">
-                      {tv.ts_employee_week_freeze_batch_hint ?? ''}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={employeeWeekFreezeBusy}
-                    onClick={() => {
-                      setEmployeeWeekFreezeBatch(null);
-                      showSuccess?.(
-                        tv.ts_employee_week_review_skipped_freeze ??
-                          'Revisione completata senza congelare i turni.'
-                      );
-                    }}
-                    className="shrink-0 rounded-xl p-1.5 transition-colors hover:bg-slate-100 disabled:opacity-40 dark:hover:bg-white/10"
-                    aria-label={t.close}
-                  >
-                    <X className="h-4 w-4 text-slate-500 dark:text-neutral-300" />
-                  </button>
-                </div>
-                <div className="max-h-44 space-y-1.5 overflow-y-auto border-b border-slate-100 px-5 py-3 dark:border-white/10">
-                  {batch.previewRows.map((row, idx) => (
-                    <div
-                      key={`${row.dateStr}-${idx}`}
-                      className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs dark:bg-neutral-800/60"
-                    >
-                      <span className="font-medium text-slate-700 dark:text-neutral-200">
-                        {safeFormatDate(row.dateStr, 'EEE d MMM', { locale })}
-                      </span>
-                      <span className="tabular-nums text-slate-600 dark:text-neutral-300">{row.planned}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="space-y-3 p-5">
-                  <p className="text-center text-[11px] text-slate-400 dark:text-neutral-400">
-                    {t.ts_approval_freeze_notice}
-                  </p>
-                  <div className="space-y-1.5">
-                    <label className="block text-center text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-neutral-400">
-                      {t.ts_approval_pin_label}
-                    </label>
-                    <input
-                      type="password"
-                      inputMode="numeric"
-                      maxLength={4}
-                      value={approvalPin}
-                      placeholder={t.ts_approval_pin_placeholder}
-                      disabled={employeeWeekFreezeBusy}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-                        setApprovalPin(val);
-                        setApprovalPinError('');
-                      }}
-                      className={`w-full rounded-xl border px-3 py-2.5 text-center text-xl font-bold tracking-[0.5em] focus:outline-none focus:ring-2 ${
-                        approvalPinError
-                          ? 'border-red-400 text-red-600 ring-red-200 dark:bg-neutral-900 dark:text-red-400'
-                          : 'border-slate-200 text-slate-900 ring-accent/30 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100'
-                      }`}
-                    />
-                    {approvalPinError ? (
-                      <p className="text-center text-xs font-semibold text-red-500">{approvalPinError}</p>
-                    ) : null}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      disabled={employeeWeekFreezeBusy}
-                      onClick={() => {
-                        setEmployeeWeekFreezeBatch(null);
-                        showSuccess?.(
-                          tv.ts_employee_week_review_skipped_freeze ??
-                            'Revisione completata senza congelare i turni.'
-                        );
-                      }}
-                      className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-white/10 dark:text-neutral-300 dark:hover:bg-white/5"
-                    >
-                      {t.cancel}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={employeeWeekFreezeBusy || approvalPin.length < 4}
-                      onClick={() => void runEmployeeWeekBatchFreeze()}
-                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
-                    >
-                      {employeeWeekFreezeBusy ? (
-                        <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                          {t.ts_approving}
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="h-4 w-4" />
-                          {tv.ts_employee_week_freeze_batch_cta ?? t.ts_btn_yes_approve_freeze}
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          );
-        })()}
+                    setApprovalConfirm(null);
+                    await handleApproveShift(ac.shiftId, verifier, {
+                      afterSuccess:
+                        ac.afterFreeze === 'advance_review' ? 'advance_review' : 'close_drawer',
+                    });
+                  }}
+                  onCancel={() => {
+                    setApprovalConfirm(null);
+                    setApprovalPin('');
+                    setApprovalPinError('');
+                  }}
+                  error={approvalPinError}
+                  isLoading={approvingShiftId === ac.shiftId}
+                  confirmLabel={t.ts_btn_yes_approve_freeze}
+                  cancelLabel={t.cancel}
+                />
+              );
+            })()}
+            {employeeWeekFreezeBatch && (() => {
+              const batch = employeeWeekFreezeBatch;
+              const tv = t as Record<string, string>;
+              return (
+                <PinPadModal
+                  title={t.sync_lock_title}
+                  subtitle={tv.ts_employee_week_freeze_batch_title ?? 'Congela turni revisionati'}
+                  pinLabel={t.ts_approval_pin_label}
+                  pin={approvalPin}
+                  onPinChange={(p) => (setApprovalPin(p), setApprovalPinError(''))}
+                  onConfirm={() => void runEmployeeWeekBatchFreeze()}
+                  onCancel={() => {
+                    setEmployeeWeekFreezeBatch(null);
+                    setApprovalPin('');
+                    setApprovalPinError('');
+                    showSuccess?.(
+                      tv.ts_employee_week_review_skipped_freeze ??
+                        'Revisione completata senza congelare i turni.'
+                    );
+                  }}
+                  error={approvalPinError}
+                  isLoading={employeeWeekFreezeBusy}
+                  confirmLabel={tv.ts_employee_week_freeze_batch_cta ?? t.ts_btn_yes_approve_freeze}
+                  cancelLabel={t.cancel}
+                />
+              );
+            })()}
           </AnimatePresence>,
           document.body
         )}

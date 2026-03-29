@@ -12,6 +12,9 @@ import { isAdminOnly } from '../utils/permissions';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 
+import { PinPadModal } from './ui/PinPadModal';
+import { hasPinUnlockCredential, authenticatePinUnlockCredential } from '../utils/pinUnlockWebAuthn';
+
 interface BottomNavProps {
   activeTab: AppNavTab;
   onTabChange: (tab: AppNavTab) => void;
@@ -86,6 +89,26 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
       handleVerifyPinAndSwitch();
     }
   }, [switchPin, pendingSwitchUser, handleVerifyPinAndSwitch]);
+
+  // Auto-trigger biometric switch if device is registered for the pending user
+  useEffect(() => {
+    if (pendingSwitchUser && hasPinUnlockCredential(pendingSwitchUser.id)) {
+      const runBiometric = async () => {
+        try {
+          const ok = await authenticatePinUnlockCredential(pendingSwitchUser.id);
+          if (ok) {
+            setCurrentUser(pendingSwitchUser);
+            setIsQuickSwitchOpen(false);
+            setPendingSwitchUser(null);
+            setSwitchPin('');
+          }
+        } catch (err) {
+          console.error('Biometric switch failed:', err);
+        }
+      };
+      void runBiometric();
+    }
+  }, [pendingSwitchUser, setCurrentUser]);
 
   const filteredUsers = useMemo(() => {
     const q = quickSwitchSearch.toLowerCase().trim();
@@ -351,71 +374,38 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
           
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
             {pendingSwitchUser ? (
-              <div className="p-4 space-y-6">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-16 h-16 rounded-xl border-2 border-accent/30 bg-accent/10 text-accent flex items-center justify-center text-2xl font-bold ring-2 ring-accent/20 overflow-hidden">
-                    {(() => {
-                      const u = pendingSwitchUser;
-                      const uThumb = readProfileAvatarFromStorage(u.id) ?? u.avatar_url ?? null;
-                      const uThumbFocus = readAvatarFocus(u.id);
-                      if (uThumb) {
-                        return (
-                          <img
-                            src={uThumb}
-                            alt=""
-                            className="h-full w-full object-cover pointer-events-none select-none"
-                            style={{ objectPosition: avatarFocusToObjectPosition(uThumbFocus) }}
-                            draggable={false}
-                          />
-                        );
-                      }
-                      return (pendingSwitchUser.first_name?.[0] || '?').toUpperCase();
-                    })()}
-                  </div>
-                  <p className="text-lg font-bold text-slate-900 dark:text-neutral-50">
-                    {pendingSwitchUser.first_name} {pendingSwitchUser.last_name}
-                  </p>
-                </div>
-
-                <div className="flex flex-col items-center gap-4">
-                  <div className="flex gap-3 justify-center">
-                    {[0, 1, 2, 3].map((i) => (
-                      <div
-                        key={i}
-                        className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
-                          switchPin.length > i
-                            ? 'bg-accent border-accent scale-110'
-                            : 'border-slate-300 dark:border-neutral-600'
-                        }`}
-                      />
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 w-full max-w-[240px] mx-auto">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, 'del'].map((n, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          if (n === 'del') setSwitchPin(p => p.slice(0, -1));
-                          else if (typeof n === 'number' && switchPin.length < 4) setSwitchPin(p => p + String(n));
-                        }}
-                        className={`aspect-square rounded-xl flex items-center justify-center text-xl font-bold transition-all ${
-                          n === null ? 'invisible' : 'bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 active:scale-95'
-                        }`}
-                      >
-                        {n === 'del' ? <Delete className="w-6 h-6" /> : n}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  {switchError && (
-                    <p className="text-red-500 text-sm font-bold animate-shake text-center">
-                      {switchError}
-                    </p>
-                  )}
-                </div>
-              </div>
+              <PinPadModal
+                title={tv.quick_switch_title ?? 'Cambio rapido utente'}
+                subtitle={(tv.quick_switch_pin_prompt ?? 'Inserisci PIN per {name}').replace('{name}', pendingSwitchUser.first_name)}
+                pinLabel={formatTrans(tv.pin_for_profile_named ?? t.pin_for_profile, { name: `${pendingSwitchUser.first_name} ${pendingSwitchUser.last_name}` })}
+                pin={switchPin}
+                onPinChange={(p) => (setSwitchPin(p), setSwitchError(''))}
+                onConfirm={() => {}} // Gestito da useEffect su switchPin.length === 4
+                onCancel={() => setPendingSwitchUser(null)}
+                error={switchError}
+                isLoading={false}
+                confirmLabel={t.confirm}
+                cancelLabel={t.cancel}
+                leftActionButton={
+                  hasPinUnlockCredential(pendingSwitchUser.id) ? (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const ok = await authenticatePinUnlockCredential(pendingSwitchUser.id);
+                        if (ok) {
+                          setCurrentUser(pendingSwitchUser);
+                          setIsQuickSwitchOpen(false);
+                          setPendingSwitchUser(null);
+                          setSwitchPin('');
+                        }
+                      }}
+                      className="flex flex-col items-center justify-center gap-1 text-accent active:scale-95 transition-transform"
+                    >
+                      <Fingerprint className="w-6 h-6" />
+                    </button>
+                  ) : null
+                }
+              />
             ) : (
               <>
                 {filteredUsers.map((u) => {
