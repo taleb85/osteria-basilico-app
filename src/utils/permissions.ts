@@ -101,12 +101,13 @@ export function canPublishScheduleDrafts(user: User | null): boolean {
 
 /**
  * Ore totali / viste payroll di gruppo (scheda Ore, riepiloghi).
- * Tutti i ruoli gestionali; in più chi ha `can_view_total_hours` (es. contabilità da staff).
+ * Regola di base: Solo i profili gestionali (admin, manager, assistant_manager, capo) 
+ * vedono gli orari altrui. Gli altri vedono solo i propri orari.
  */
 export function canViewAllTeamHours(user: User | null): boolean {
   if (!user) return false;
-  if (isManagementRole(user.role)) return true;
-  return user.can_view_total_hours === true;
+  // Solo i ruoli definiti in MANAGEMENT_ROLES hanno accesso alla vista completa del team
+  return isManagementRole(user.role);
 }
 
 /** Modifica PIN altrui: Admin o `can_edit_staff_pins`. */

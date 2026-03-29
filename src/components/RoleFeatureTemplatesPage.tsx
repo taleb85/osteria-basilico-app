@@ -330,12 +330,19 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
   const renderGroup = (group: RoleTemplateGroup, state: EnabledFeatures) => {
     const expanded = roleGroupExpanded[group];
+    // Funzioni per attivare/disattivare tutto
+    const allKeys = Object.keys(state).filter((k) => k !== 'home_tab');
+    const allOn = allKeys.every((k) => state[k]);
+    const allOff = allKeys.every((k) => !state[k]);
+    const setAll = (value: boolean) => {
+      allKeys.forEach((k) => toggleRole(group, k, value));
+    };
     return (
       <div
         key={group}
-        className="surface-glass-sm overflow-hidden"
+        className="surface-glass-sm overflow-hidden mb-8"
       >
-        <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-neutral-800/70">
+        <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-neutral-800/70 flex items-center justify-between">
           <button
             type="button"
             onClick={() => toggleRoleGroupExpanded(group)}
@@ -350,6 +357,22 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
               {groupTitle(group, t as Record<string, string>)}
             </h2>
           </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className={`px-2 py-1 rounded text-xs font-semibold ${allOn ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'} hover:bg-green-200`}
+              onClick={() => setAll(true)}
+            >
+              {t.role_templates_enable_all || 'Attiva tutto'}
+            </button>
+            <button
+              type="button"
+              className={`px-2 py-1 rounded text-xs font-semibold ${allOff ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'} hover:bg-red-200`}
+              onClick={() => setAll(false)}
+            >
+              {t.role_templates_disable_all || 'Disattiva tutto'}
+            </button>
+          </div>
         </div>
         <AnimatePresence initial={false}>
           {expanded && (

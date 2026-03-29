@@ -3,6 +3,9 @@ import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { uiWidgetKeyAppliesToUser } from '../../utils/uiScreenWidgets';
 import { WidgetChrome } from './WidgetChrome';
+import { useApp } from '../../context/appContextCore';
+import { getResolvedStartEndForHours } from '../../utils/shiftResolvedClockTimes';
+import { format, addDays, startOfWeek } from 'date-fns';
 
 export default function TimesheetTabPreview({
   previewUser,
@@ -20,6 +23,28 @@ export default function TimesheetTabPreview({
   const hiddenBadge = tv.profile_visibility_ui_hidden_badge ?? 'Nascosto';
   const role = previewUser.role;
   const show = (key: string) => uiWidgetKeyAppliesToUser(role, key);
+
+
+  // Access context data
+  const { shifts, punchRecords } = useApp();
+
+  // Calculate current week days (Mon-Thu for preview)
+  const today = new Date();
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const days = Array.from({ length: 4 }, (_, i) => addDays(weekStart, i));
+
+  // For each day, find the shift for previewUser and compute worked hours
+  const dailyHours = days.map((day) => {
+    const dateStr = format(day, 'yyyy-MM-dd');
+    const shift = shifts.find(
+      (s) => s.user_id === previewUser.id && s.date === dateStr
+    );
+    if (!shift) return '';
+    const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
+    if (!start || !end) return '';
+    // Format as HH:mm–HH:mm
+    return `${start}–${end}`;
+  });
 
   return (
     <div className="flex flex-col gap-4 font-sans">
@@ -166,18 +191,14 @@ export default function TimesheetTabPreview({
                 {d}
               </div>
             ))}
-            {['Jean', 'John'].map((nm) => (
-              <div key={nm} className="contents">
-                <div className="bg-slate-50 px-2 py-2 font-semibold text-slate-700 dark:bg-neutral-900 dark:text-neutral-200">{nm}</div>
-                {[0, 1, 2, 3].map((i) => (
-                  <div key={i} className="min-h-[36px] bg-slate-50 p-0.5 dark:bg-neutral-900">
-                    {i === 1 && (
-                      <div className="rounded bg-accent/12 py-1 text-center text-[8px] font-bold text-accent">8h</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ))}
+            <div className="contents">
+              <div className="bg-slate-50 px-2 py-2 font-semibold text-slate-700 dark:bg-neutral-900 dark:text-neutral-200">{previewUser.first_name}</div>
+              {dailyHours.map((hours, i) => (
+                <div key={i} className="min-h-[36px] bg-slate-50 p-0.5 dark:bg-neutral-900 text-center">
+                  {hours || <span className="text-slate-300 dark:text-neutral-700">—</span>}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </WidgetChrome>

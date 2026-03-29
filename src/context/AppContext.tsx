@@ -230,6 +230,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (code === 'it') return 'it';
     return 'it';
   });
+
+  // Effetto per sincronizzare il tema di sistema quando non c'è un utente loggato
+  useEffect(() => {
+    if (currentUser) return;
+    
+    const stored = readStoredThemePreference();
+    if (stored) {
+      applyDocumentTheme(stored);
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      applyDocumentTheme(e.matches ? 'dark' : 'light');
+    };
+
+    handleChange(mediaQuery);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [currentUser]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [holidays, setHolidays] = useState<HolidayRequest[]>([]);
   const [punchRecords, setPunchRecords] = useState<PunchRecord[]>([]);

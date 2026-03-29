@@ -54,6 +54,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     showSuccess,
     showError,
     seedDemoProfileForUser,
+    logout, // Assicurati che logout sia disponibile in useApp
   } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [howOpen, setHowOpen] = useState(false);
@@ -82,10 +83,24 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     setDemoProfileTargetUserId(demoProfileCandidates[0]?.id ?? '');
   }, [demoProfileCandidates, demoProfileTargetUserId]);
 
+
   if (!currentUser) return null;
   if (!isAdminOnly(currentUser)) {
     return (
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
+        <div className="surface-glass-sm p-4 rounded-xl mb-6">
+          <h2 className="text-lg font-bold mb-1">{t.settings_current_user || 'Utente attuale'}</h2>
+          <div className="flex items-center gap-3">
+            <span className="font-semibold text-accent">{currentUser.first_name} {currentUser.last_name}</span>
+            <span className="text-xs bg-slate-200 dark:bg-neutral-700 rounded px-2 py-0.5 ml-2">{currentUser.role}</span>
+          </div>
+          <button
+            className="mt-3 px-3 py-1.5 rounded bg-red-100 text-red-700 font-semibold hover:bg-red-200"
+            onClick={logout}
+          >
+            {t.logout || 'Logout'}
+          </button>
+        </div>
         <p className="text-slate-600 text-sm">{t.no_access_settings}</p>
       </div>
     );
@@ -187,61 +202,43 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
         transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
         className="max-w-5xl"
       >
-        <header className="mb-5">
-          <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-[0.2em] mb-1">
-            {t.impostazioni_page_subtitle}
-          </p>
-          <h1 className="text-slate-800 text-xl font-semibold tracking-tight">{t.settings_title}</h1>
-          <p className="text-slate-600 text-sm mt-2 leading-relaxed max-w-3xl">{t.impostazioni_page_lead}</p>
-          <p className="text-[11px] text-slate-600 dark:text-neutral-300 mt-2 max-w-3xl leading-relaxed border-l-2 border-accent/35 pl-3">
-            {(t as Record<string, string>).settings_admin_structure_intro}
-          </p>
-
-          <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-2 sm:gap-3 max-w-3xl">
-            <p className="text-xs text-slate-500 dark:text-neutral-300">{t.impostazioni_duplicate_hint}</p>
-            {onOpenProfilesTab && (
-              <button
-                type="button"
-                onClick={onOpenProfilesTab}
-                className="inline-flex items-center gap-1.5 self-start rounded-lg border border-accent/25 bg-accent/[0.07] px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/12 transition-colors"
-              >
-                <Users className="w-3.5 h-3.5 opacity-80" />
-                {t.impostazioni_open_profiles}
-              </button>
-            )}
+        {/* Sezione utente attuale */}
+        <div className="surface-glass-sm p-4 rounded-xl mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold mb-1">{t.settings_current_user || 'Utente attuale'}</h2>
+            <div className="flex items-center gap-3">
+              <span className="font-semibold text-accent">{currentUser.first_name} {currentUser.last_name}</span>
+              <span className="text-xs bg-slate-200 dark:bg-neutral-700 rounded px-2 py-0.5 ml-2">{currentUser.role}</span>
+            </div>
           </div>
-          {onOpenProfilesTab && (
-            <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-1.5 max-w-3xl">{t.impostazioni_master_panel_scroll_hint}</p>
-          )}
+          <button
+            className="px-3 py-1.5 rounded bg-red-100 text-red-700 font-semibold hover:bg-red-200"
+            onClick={logout}
+          >
+            {t.logout || 'Logout'}
+          </button>
+        </div>
 
-          <div className="surface-glass-sm mt-4 max-w-3xl overflow-hidden">
-            <button
-              type="button"
-              aria-expanded={howOpen}
-              onClick={() => setHowOpen((o) => !o)}
-              className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition-colors hover:bg-slate-50/80 dark:hover:bg-white/[0.04]"
-            >
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-200">
-                {t.impostazioni_page_how_title}
-              </span>
-              <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform dark:text-neutral-400 ${howOpen ? 'rotate-180' : ''}`} />
-            </button>
-            <AnimatePresence initial={false}>
-              {howOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
-                  className="overflow-hidden border-t border-slate-100 dark:border-white/10"
-                >
-                  <p className="px-3 py-3 text-[12px] leading-relaxed text-slate-600 dark:text-neutral-300">{t.impostazioni_page_how_body}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </header>
+        {/* Divider */}
+        <div className="h-0.5 bg-slate-200 dark:bg-neutral-800 rounded my-6" />
 
+        {/* Sezione gestione utenti */}
+        <div className="surface-glass-sm p-4 rounded-xl mb-6">
+          <h2 className="text-md font-bold mb-2 flex items-center gap-2"><Users className="w-4 h-4" />{t.impostazioni_open_profiles || 'Gestione utenti'}</h2>
+          <button
+            type="button"
+            onClick={onOpenProfilesTab}
+            className="inline-flex items-center gap-1.5 self-start rounded-lg border border-accent/25 bg-accent/[0.07] px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/12 transition-colors"
+          >
+            <Users className="w-3.5 h-3.5 opacity-80" />
+            {t.impostazioni_open_profiles}
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="h-0.5 bg-slate-200 dark:bg-neutral-800 rounded my-6" />
+
+        {/* Sezione funzionalità e regole */}
         <div className="space-y-6">
           {IMPOSTAZIONI_GROUPS.map((group) => (
             <section key={group.titleKey}>
@@ -253,6 +250,10 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
           ))}
         </div>
 
+        {/* Divider */}
+        <div className="h-0.5 bg-slate-200 dark:bg-neutral-800 rounded my-6" />
+
+        {/* Sezione avanzate/demo profili */}
         <section
           className="mt-8 space-y-3 rounded-xl border-2 border-emerald-400/90 bg-emerald-50/90 p-4 shadow-sm dark:border-emerald-700/50 dark:bg-emerald-950/30 sm:p-5"
           aria-label={t.impostazioni_demo_profile_title}

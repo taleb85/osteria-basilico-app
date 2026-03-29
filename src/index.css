@@ -1,3 +1,9 @@
+/* Header sempre in primo piano */
+.header.safe-area-pad {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;

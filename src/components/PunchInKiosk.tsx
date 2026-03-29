@@ -416,10 +416,10 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
     ]
   );
 
-  /** Registra la timbratura di USCITA per i turni PRANZO. La cena è manager-only. */
+  /** Registra la timbratura di USCITA per i turni di chiusura serale (dinner) tramite QR code. */
   const handlePunchOut = useCallback(
     async (user: UserType, shift: Shift) => {
-      if (shift.type !== 'lunch') {
+      if (shift.type !== 'dinner') {
         setError(t.punch_dinner_exit_contact_manager);
         setTimeout(() => setError(''), 2500);
         return;

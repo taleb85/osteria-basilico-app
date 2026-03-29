@@ -295,6 +295,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [periodDraftNumWeeks, setPeriodDraftNumWeeks] = useState<4 | 5>(initialPeriod.numWeeks);
   const [periodDraftSaved, setPeriodDraftSaved] = useState(true);
   const [weekIndex, setWeekIndex] = useState(() => weekIndexForDateInPeriod(initialPeriod));
+
+  // Quando la scheda diventa attiva, riporta la visualizzazione alla settimana corrente
+  useEffect(() => {
+    const currentWeekIdx = weekIndexForDateInPeriod(periodConfig);
+    if (weekIndex !== currentWeekIdx) {
+      setWeekIndex(currentWeekIdx);
+    }
+  }, [periodConfig]);
   const [viewMode, setViewMode] = useState<'week' | '2weeks' | 'day' | 'month'>('week');
   /** Vista periodo: offset in settimane; frecce spostano di un intero periodo di paga (4 o 5 sett.). */
   const [periodPanOffsetWeeks, setPeriodPanOffsetWeeks] = useState(0);

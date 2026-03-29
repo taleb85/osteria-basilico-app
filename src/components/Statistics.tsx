@@ -220,6 +220,12 @@ export default function Statistics() {
 
   const displayUsers = useMemo(() => {
     if (!currentUser) return [];
+    
+    // Se l'utente non può vedere tutti gli orari del team, mostra solo se stesso
+    if (!canViewAllTeamHours(currentUser)) {
+      return users.filter(u => u.id === currentUser.id);
+    }
+
     return users
       .filter((u) => {
         if (u.status !== 'active' || isPurelyManagementRole(u.role)) {
@@ -304,7 +310,7 @@ export default function Statistics() {
   const statsLoc = getDateLocale(effectiveLanguage) ?? it;
   const tv = t as Record<string, string>;
   const staffSelfId = displayUsers[0]?.id ?? currentUser.id;
-  const staffRangeTotalMins = Object.values(minutesByUserByWeek[staffSelfId] ?? {}).reduce((a, b) => a + b, 0);
+  const staffRangeTotalMins = Object.values(minutesByUserByWeek[currentUser.id] ?? {}).reduce((a, b) => a + b, 0);
 
   return (
     <div className="pb-content pt-6 w-full max-w-full font-sans">
@@ -510,7 +516,7 @@ export default function Statistics() {
                   {tv.stats_week_by_week_heading ?? tv.stats_week_tabs_legend}
                 </p>
                 {weeksInRange.map((w) => {
-                  const wMins = minutesByUserByWeek[staffSelfId]?.[w.key] ?? 0;
+                  const wMins = minutesByUserByWeek[currentUser.id]?.[w.key] ?? 0;
                   return (
                     <div key={w.key} className="surface-glass p-5 sm:p-6">
                       <p className="mb-2 text-xs font-medium uppercase tracking-widest text-slate-600">

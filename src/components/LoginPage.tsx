@@ -249,13 +249,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       >
         {/* Logo — protagonista visivo: più spazio e tipografia grande */}
         <div className="flex flex-col items-center mb-5 sm:mb-6 min-h-[min(260px,46vh)] sm:min-h-[min(300px,50vh)] justify-center py-8 sm:py-10">
-          <div className="w-[7.25rem] h-[7.25rem] sm:w-32 sm:h-32 rounded-[1.75rem] bg-accent/10 dark:bg-accent/15 flex items-center justify-center mb-7 sm:mb-8 shadow-md ring-1 ring-accent/10 dark:ring-accent/20">
+          <div className="w-[7.25rem] h-[7.25rem] sm:w-32 sm:h-32 rounded-[1.75rem] border border-white/20 bg-white/10 dark:border-white/10 dark:bg-white/5 flex items-center justify-center mb-7 sm:mb-8 shadow-2xl backdrop-blur-xl ring-1 ring-white/20 dark:ring-white/10">
             <Clock className="w-[2.35rem] h-[2.35rem] sm:w-16 sm:h-16 text-accent dark:text-white" strokeWidth={1.65} />
           </div>
-          <h1 className="font-logo-snell text-[2.1rem] leading-none sm:text-6xl text-accent dark:text-white tracking-tight mb-3 sm:mb-4 text-center px-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.12)] dark:drop-shadow-none dark:[text-shadow:none]">
+          <h1 className="font-logo-snell text-[49px] leading-none text-accent dark:text-white tracking-tight mb-3 sm:mb-4 text-center px-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.12)] dark:drop-shadow-none dark:[text-shadow:none]">
             Osteria Basilico
           </h1>
-          <p className="text-slate-500 dark:text-neutral-200 text-lg sm:text-xl font-medium text-center px-3 max-w-md">
+          <p className="text-slate-500 dark:text-neutral-200 text-xs font-medium text-center px-3 max-w-md">
             {t.header_tagline ?? 'Staff Management'}
           </p>
         </div>

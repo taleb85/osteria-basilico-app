@@ -53,6 +53,7 @@ import {
   getPeriodEndDate,
   PERIOD_STORAGE_KEY,
   dispatchPeriodConfigUpdated,
+  weekIndexForDateInPeriod,
   type PeriodConfig,
 } from '../utils/periodConfig';
 import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
@@ -511,6 +512,20 @@ export default function Timesheets() {
     const diff = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     return diff;
   });
+
+  // Quando la scheda diventa attiva, riporta la visualizzazione al giorno corrente
+  useEffect(() => {
+    const today = new Date();
+    const start = getPeriodStartDate(periodConfig);
+    const diff = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    if (dayOffset !== diff) {
+      setDayOffset(diff);
+    }
+    const currentWeekIdx = weekIndexForDateInPeriod(periodConfig);
+    if (weekIndex !== currentWeekIdx) {
+      setWeekIndex(currentWeekIdx);
+    }
+  }, [periodConfig]);
   const [weekIndex, setWeekIndex] = useState(() =>
     readStoredWeekIndex(initialConfig.startDate, initialConfig.numWeeks)
   );
@@ -779,38 +794,23 @@ export default function Timesheets() {
   }, [punchRecords, weekStr, weekEnd]);
 
   const visibleUsers = useMemo(() => {
-    const onSchedule = users.filter((u) => {
-      // Escludi dipendenti del reparto cucina (kitchen) dalla tabella presenze
-      if (u.department?.toLowerCase() === 'kitchen' || u.department?.toLowerCase() === 'cucina') {
-        return false;
-      }
-      return isUserVisibleOnTeamSchedule(u, shifts);
-    });
-    if (!canTeamTimesheetOps && currentUser) {
-      const self = users.find((u) => u.id === currentUser.id);
-      if (!self || self.status !== 'active' || isPurelyManagementRole(self.role)) return [];
-      return [self].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    // Se l'utente corrente NON è gestionale, vede solo sé stesso
+    if (currentUser && !isManagementRole(currentUser.role)) {
+      return users.filter((u) => u.id === currentUser.id);
+    } else {
+      // Utente gestionale: vede tutti gli utenti operativi
+      return users
+        .filter((u) => {
+          // Escludi cucina
+          if (u.department?.toLowerCase() === 'kitchen' || u.department?.toLowerCase() === 'cucina') return false;
+          // Escludi ruoli management/admin
+          if (isPurelyManagementRole(u.role) || isManagementRole(u.role)) return false;
+          // Solo attivi e visibili in planning
+          return u.status === 'active' && isUserVisibleOnTeamSchedule(u, shifts);
+        })
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
     }
-    const self = currentUser
-      ? users.find((u) => u.id === currentUser.id)
-      : undefined;
-    const needsSelf =
-      self &&
-      self.status === 'active' &&
-      !isPurelyManagementRole(self.role) &&
-      !onSchedule.some((u) => u.id === self.id);
-    const merged = needsSelf ? [...onSchedule, self] : [...onSchedule];
-    /** Chi opera sul team (admin, manager, …) ma non è in elenco planning: stesso riepilogo ore degli altri (es. admin, back-office nascosto). */
-    if (
-      canTeamTimesheetOps &&
-      self &&
-      self.status === 'active' &&
-      !merged.some((u) => u.id === self.id)
-    ) {
-      merged.push(self);
-    }
-    return merged.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-  }, [users, canTeamTimesheetOps, currentUser]);
+  }, [users, shifts, currentUser]);
 
   const weekShifts = useMemo(() =>
     shifts.filter((s) => s.date >= weekStr && s.date < weekEnd && !s.notes?.startsWith('__OPEN__')),

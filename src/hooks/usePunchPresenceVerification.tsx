@@ -23,11 +23,11 @@ export function usePunchPresenceVerification(language: Language) {
     (punchUserId: string) => {
       const managerBypass = !!(currentUser && currentUser.id !== punchUserId);
       if (managerBypass) return false;
-      if (!presenceVerificationConfig?.requireVerification) return false;
+      // Regola di base: la scansione QR è SEMPRE obbligatoria per i dipendenti
       if (!effectiveToken) return false;
       return true;
     },
-    [currentUser, presenceVerificationConfig?.requireVerification, effectiveToken]
+    [currentUser, effectiveToken]
   );
 
   const requestProof = useCallback(
