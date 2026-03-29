@@ -1288,6 +1288,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const managerPunchingForSomeoneElse =
         !!(actor && actor.id !== userId && canOperateTeamSchedule(actor));
 
+      const rawTimestamp = options?.timestamp ? new Date(options.timestamp).toISOString() : new Date().toISOString();
+
+      const resolvedSource: PunchRecordSource =
+        options?.source ?? (managerPunchingForSomeoneElse ? 'manager' : 'kiosk');
+
+      // Non richiedere geofence per punch manuali o per manager che punzionano per altri
+      const shouldVerifyGeofence = resolvedSource !== 'manual' && !managerPunchingForSomeoneElse;
+
       const geoCfg = geofenceEffectiveConfigRef.current ?? readGeofenceEnvConfig();
       if (featureFlags['geofence_punch'] === true) {
         if (!geoCfg) {
@@ -1297,7 +1305,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               '[geofence_punch] Attivo ma nessun centro configurato: salva lat/lng in Impostazioni (geofence.json) o imposta VITE_RESTAURANT_LAT/LNG nel build.'
             );
           }
-        } else if (!managerPunchingForSomeoneElse) {
+        } else if (shouldVerifyGeofence) {
           try {
             const pos = await getCurrentPositionCoords();
             const { inRange, distanceM } = isUserInRestaurantRange(pos.lat, pos.lng, geoCfg);
@@ -1332,11 +1340,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           return { error: t.punch_presence_proof_mismatch };
         }
       }
-
-      const rawTimestamp = options?.timestamp ? new Date(options.timestamp).toISOString() : new Date().toISOString();
-
-      const resolvedSource: PunchRecordSource =
-        options?.source ?? (managerPunchingForSomeoneElse ? 'manager' : 'kiosk');
 
       const record: Record<string, unknown> = {
         user_id: userId,
