@@ -592,6 +592,22 @@ export default function Timesheets() {
   const [clockOutTime, setClockOutTime] = useState('');
   const [closingLoading, setClosingLoading] = useState(false);
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null);
+
+  // PDF Export Department Filter
+  const [pdfDeptFilter, setPdfDeptFilter] = useState<string>('all');
+  const [showPdfDeptMenu, setShowPdfDeptMenu] = useState(false);
+  const pdfDeptMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!showPdfDeptMenu) return;
+    const onClick = (e: MouseEvent) => {
+      if (pdfDeptMenuRef.current && !pdfDeptMenuRef.current.contains(e.target as Node)) {
+        setShowPdfDeptMenu(false);
+      }
+    };
+    window.addEventListener('click', onClick);
+    return () => window.removeEventListener('click', onClick);
+  }, [showPdfDeptMenu]);
   type TimbraturePinGateMode =
     | 'unlock_frozen'
     | 'enable_timbrature'
@@ -1114,9 +1130,24 @@ export default function Timesheets() {
     if (!currentUser || !isFeatureEnabled(currentUser, 'export_pdf')) return;
     try {
       const daysToExport = mode === 'WEEK' ? weekDays : allPeriodDays;
+      
+      // Filtra gli utenti in base al reparto selezionato per il PDF
+      let usersToExport = visibleUsers;
+      if (pdfDeptFilter !== 'all') {
+        usersToExport = visibleUsers.filter(u => {
+          const d = (u.department || '').toLowerCase();
+          // Sala e Bar assieme
+          if (pdfDeptFilter === 'sala_bar') {
+            return d === 'sala' || d === 'bar';
+          }
+          // Altri reparti singoli
+          return d === pdfDeptFilter;
+        });
+      }
+
       const result = exportAttendancePdfFromGrid({
         weekDays: daysToExport,
-        visibleUsers,
+        visibleUsers: usersToExport,
         shifts,
         punchRecords,
         breakRules,
@@ -1150,6 +1181,7 @@ export default function Timesheets() {
     fmtHM,
     showSuccess,
     showError,
+    pdfDeptFilter,
   ]);
 
   // ── Indicatori Presenze: settimana visualizzata (in turno = solo se oggi è in quella settimana) ──
@@ -2425,7 +2457,57 @@ export default function Timesheets() {
 
             <div className="flex min-h-8 shrink-0 items-center justify-start gap-1 self-stretch md:ml-auto md:justify-end md:self-center">
               {currentUser && (isManagementRole(currentUser.role) || isFeatureEnabled(currentUser, 'export_pdf')) && (
-                <div className="flex items-center gap-1 md:scale-90 md:origin-right">
+                <div className="flex items-center gap-1 md:scale-90 md:origin-right relative" ref={pdfDeptMenuRef}>
+                  {/* Department Selector for PDF */}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setShowPdfDeptMenu(!showPdfPdfDeptMenu); }}
+                    className="ui-toolbar-chip !h-8 !px-2 !text-[10px] flex items-center gap-1.5 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-neutral-800/90"
+                    title="Seleziona reparto per PDF"
+                  >
+                    <Filter className="h-3 w-3 text-slate-400" />
+                    <span className="font-bold text-slate-700 dark:text-neutral-200">
+                      {pdfDeptFilter === 'all' ? 'Tutti i reparti' : 
+                       pdfDeptFilter === 'sala_bar' ? 'Sala e Bar' : 
+                       pdfDeptFilter === 'kitchen' ? 'Cucina' : pdfDeptFilter}
+                    </span>
+                    <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${showPdfDeptMenu ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  <AnimatePresence>
+                    {showPdfDeptMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                        className="absolute right-0 top-full z-[100] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                      >
+                        {[
+                          { id: 'all', label: 'Tutti i reparti' },
+                          { id: 'sala_bar', label: 'Sala e Bar' },
+                          { id: 'kitchen', label: 'Cucina' },
+                        ].map((opt) => (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => { setPdfDeptFilter(opt.id); setShowPdfDeptMenu(false); }}
+                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
+                              pdfDeptFilter === opt.id 
+                                ? 'bg-accent/10 text-accent' 
+                                : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
+                            }`}
+                          >
+                            {opt.label}
+                            {pdfDeptFilter === opt.id && <Check className="h-3 w-3" />}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5" />
+
                   <button
                     type="button"
                     onClick={() => void handleExportTimesheetPdf('WEEK')}
