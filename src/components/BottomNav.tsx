@@ -52,14 +52,6 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
       setPendingSwitchUser(null);
       setSwitchPin('');
       setSwitchError('');
-      // Feedback aptico se supportato
-      try {
-        if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
-          navigator.vibrate(10);
-        }
-      } catch (e) {
-        // Ignora errori di vibrazione (es. restrizioni browser)
-      }
     }, 600);
   }, [currentUser]);
 
