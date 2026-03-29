@@ -70,6 +70,7 @@ import { getDeptColor, getDepartments, BUILTIN_DEPARTMENTS } from '../utils/depa
 import { translateDepartmentValue } from '../utils/departmentLabels';
 import { getTimesheetGridPrivacyMode } from '../utils/timesheetGridPrivacy';
 import { PinPadModal } from './ui/PinPadModal';
+import { usePunchPresenceVerification } from '../hooks/usePunchPresenceVerification';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -445,6 +446,9 @@ export default function Timesheets() {
   } = useApp();
   const t = getTranslations(effectiveLanguage);
   const locale = getDateLocale(effectiveLanguage) ?? it;
+  
+  // Hook per verifica QR code
+  const { requestProof: requestQrProof, needsModal: needsQrModal, modal: qrModal } = usePunchPresenceVerification(effectiveLanguage);
 
   const canTeamTimesheetOps = currentUser ? canOperateTeamSchedule(currentUser) : false;
   const canTimesheetApprove = currentUser ? canApproveShiftActions(currentUser) : false;
@@ -1702,6 +1706,19 @@ export default function Timesheets() {
     }
     setManualPunchSaving(true);
     try {
+      // Richiedi verifica QR code prima di salvare
+      if (needsQrModal(drawerData.userId)) {
+        try {
+          await requestQrProof(drawerData.userId);
+        } catch (err) {
+          if ((err as Error).message === 'presence_cancelled') {
+            return false;
+          }
+          showError?.((err as Error).message || t.punch_presence_qr_failed);
+          return false;
+        }
+      }
+      
       if (shiftRow.punchInId) {
         const newInISO = toISOFromDateHHMM(drawerData.dateStr, inHm);
         await updatePunchRecord(shiftRow.punchInId, { calculated_time: newInISO });
@@ -5138,6 +5155,9 @@ export default function Timesheets() {
           </AnimatePresence>,
           document.body
         )}
+
+      {/* QR code verification modal */}
+      {qrModal}
 
     </>
   );
