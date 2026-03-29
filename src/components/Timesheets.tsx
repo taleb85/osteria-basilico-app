@@ -14,7 +14,7 @@ import {
   ChevronRight, ChevronLeft, Check, AlertTriangle, X,
   Clock, History, FileEdit, ShieldAlert, LogOut, Lock, Unlock,
   Users, UserCheck, AlertCircle, ArrowRight, Calendar, Moon,
-  ChevronDown, FileDown, UserX, Trash2, Pencil,
+  ChevronDown, FileDown, UserX, Trash2, Pencil, Filter,
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
