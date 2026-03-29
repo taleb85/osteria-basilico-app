@@ -66,7 +66,7 @@ import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
 import { exportAttendancePdfFromGrid } from '../utils/timesheetPdfFromRange';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
-import { getDeptColor } from '../utils/departments';
+import { getDeptColor, getDepartments } from '../utils/departments';
 import { translateDepartmentValue } from '../utils/departmentLabels';
 import { getTimesheetGridPrivacyMode } from '../utils/timesheetGridPrivacy';
 
@@ -597,6 +597,8 @@ export default function Timesheets() {
   const [pdfDeptFilter, setPdfDeptFilter] = useState<string>('all');
   const [showPdfDeptMenu, setShowPdfDeptMenu] = useState(false);
   const pdfDeptMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const availableDepts = useMemo(() => getDepartments(), []);
 
   useEffect(() => {
     if (!showPdfDeptMenu) return;
@@ -2469,7 +2471,7 @@ export default function Timesheets() {
                     <span className="font-bold text-slate-700 dark:text-neutral-200">
                       {pdfDeptFilter === 'all' ? 'Tutti i reparti' : 
                        pdfDeptFilter === 'sala_bar' ? 'Sala e Bar' : 
-                       pdfDeptFilter === 'kitchen' ? 'Cucina' : pdfDeptFilter}
+                       availableDepts.find(d => d.value === pdfDeptFilter)?.label || pdfDeptFilter}
                     </span>
                     <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${showPdfDeptMenu ? 'rotate-180' : ''}`} />
                   </button>
@@ -2483,23 +2485,49 @@ export default function Timesheets() {
                         exit={{ opacity: 0, y: 4, scale: 0.95 }}
                         className="absolute right-0 top-full z-[100] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
                       >
-                        {[
-                          { id: 'all', label: 'Tutti i reparti' },
-                          { id: 'sala_bar', label: 'Sala e Bar' },
-                          { id: 'kitchen', label: 'Cucina' },
-                        ].map((opt) => (
+                        <button
+                          type="button"
+                          onClick={() => { setPdfDeptFilter('all'); setShowPdfDeptMenu(false); }}
+                          className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
+                            pdfDeptFilter === 'all' 
+                              ? 'bg-accent/10 text-accent' 
+                              : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
+                          }`}
+                        >
+                          Tutti i reparti
+                          {pdfDeptFilter === 'all' && <Check className="h-3 w-3" />}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => { setPdfDeptFilter('sala_bar'); setShowPdfDeptMenu(false); }}
+                          className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
+                            pdfDeptFilter === 'sala_bar' 
+                              ? 'bg-accent/10 text-accent' 
+                              : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
+                          }`}
+                        >
+                          Sala e Bar
+                          {pdfDeptFilter === 'sala_bar' && <Check className="h-3 w-3" />}
+                        </button>
+
+                        <div className="my-1 h-px bg-slate-100 dark:bg-white/5" />
+
+                        {availableDepts
+                          .filter(d => d.value !== 'sala' && d.value !== 'bar')
+                          .map((dept) => (
                           <button
-                            key={opt.id}
+                            key={dept.value}
                             type="button"
-                            onClick={() => { setPdfDeptFilter(opt.id); setShowPdfDeptMenu(false); }}
+                            onClick={() => { setPdfDeptFilter(dept.value); setShowPdfDeptMenu(false); }}
                             className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
-                              pdfDeptFilter === opt.id 
+                              pdfDeptFilter === dept.value 
                                 ? 'bg-accent/10 text-accent' 
                                 : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
                             }`}
                           >
-                            {opt.label}
-                            {pdfDeptFilter === opt.id && <Check className="h-3 w-3" />}
+                            {dept.label}
+                            {pdfDeptFilter === dept.value && <Check className="h-3 w-3" />}
                           </button>
                         ))}
                       </motion.div>
