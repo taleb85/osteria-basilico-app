@@ -533,7 +533,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                 {tv.profile_visibility_save_apply ?? 'Salva e applica'}
               </button>
             ) : (
-              <span className="hidden shrink-0 rounded-lg border border-accent/20 bg-accent/10 px-2 py-1 text-[10px] font-bold tracking-wider text-accent uppercase dark:border-accent/30 dark:bg-accent/15 sm:inline-flex">
+              <span className="shrink-0 rounded-lg border border-accent/20 bg-accent/10 px-2 py-1 text-[10px] font-bold tracking-wider text-accent uppercase dark:border-accent/30 dark:bg-accent/15">
                 {tv.profile_visibility_readonly_preview ?? 'Solo lettura'}
               </span>
             )}
