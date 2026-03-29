@@ -403,30 +403,20 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
         )}
 
         {/* Form impostazioni profilo */}
-        <div className="surface-glass overflow-hidden">
+        <div className="surface-glass overflow-hidden rounded-2xl mx-4">
           <div className="bg-slate-50/70 dark:bg-neutral-950/50 px-4 py-4 text-slate-900 dark:text-neutral-100">
             <ProfileFormSelf
               formData={formData}
               setFormData={setFormData}
               onSave={handleProfileSave}
               isSaving={isSaving}
-              readOnly={isProfileReadOnly}
+              readOnly={false}
               appearance="light"
-              departmentLocked
-              roleLocked
+              departmentLocked={false}
+              roleLocked={false}
             />
           </div>
         </div>
-
-        {/* Esci — tutto rosso, conferma */}
-        <button
-          type="button"
-          onClick={confirmLogout}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-700 bg-red-600 px-4 py-3.5 min-h-[52px] touch-manipulation font-semibold text-white shadow-sm transition-colors hover:bg-red-700 active:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 dark:border-red-800 dark:focus-visible:ring-offset-neutral-950"
-        >
-          <LogOut className="h-[18px] w-[18px] shrink-0 text-white" strokeWidth={2} aria-hidden />
-          <span>{t.header_logout}</span>
-        </button>
       </motion.div>
     </div>
   );

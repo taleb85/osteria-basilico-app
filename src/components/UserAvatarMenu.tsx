@@ -241,7 +241,7 @@ export default function UserAvatarMenu({
                     setFormData={setFormData}
                     onSave={handleSave}
                     isSaving={isSaving}
-                    readOnly={!isManagement}
+                    readOnly={false}
                     appearance="light"
                   />
 

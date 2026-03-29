@@ -1,6 +1,6 @@
-import { format } from 'date-fns';
+import { format, startOfWeek, endOfWeek, isSameWeek } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Clock, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, XCircle, Calendar } from 'lucide-react';
 import type { Shift, PunchRecord } from '../../types';
 import { safeFormatDate } from '../../utils/safeDateFormat';
 import { getResolvedStartEndForHours } from '../../utils/shiftResolvedClockTimes';
@@ -56,50 +56,108 @@ export default function MobileTimesheet({ shifts, punchRecords, user, breakRules
     );
   }
 
+  // Raggruppamento per settimana
+  const weeks: { start: Date; end: Date; shifts: Shift[] }[] = [];
+  history.forEach(shift => {
+    const shiftDate = new Date(shift.date);
+    const s = startOfWeek(shiftDate, { weekStartsOn: 1 });
+    const e = endOfWeek(shiftDate, { weekStartsOn: 1 });
+    
+    let week = weeks.find(w => isSameWeek(w.start, s, { weekStartsOn: 1 }));
+    if (!week) {
+      week = { start: s, end: e, shifts: [] };
+      weeks.push(week);
+    }
+    week.shifts.push(shift);
+  });
+
   return (
-    <div className="flex flex-col gap-3 px-4 pb-24">
-      {history.map((shift) => {
-        const status = (shift.approval_status as keyof typeof STATUS_CONFIG) || 'confirmed';
-        const config = STATUS_CONFIG[status] || STATUS_CONFIG.confirmed;
-        const Icon = config.icon;
-        
-        const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
-        const mins = getNetShiftMinutes(shift, start, end, user, breakRules, breakComputeOpts);
-        const hours = Math.floor(mins / 60);
-        const remainingMins = mins % 60;
+    <div className="flex flex-col gap-8 px-4 pb-24">
+      {weeks.map((week, wIdx) => {
+        // Calcolo totale ore settimana
+        let totalMins = 0;
+        week.shifts.forEach(shift => {
+          const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
+          totalMins += getNetShiftMinutes(shift, start, end, user, breakRules, breakComputeOpts);
+        });
+        const totalHours = Math.floor(totalMins / 60);
+        const totalRemainingMins = totalMins % 60;
 
         return (
-          <div 
-            key={shift.id}
-            className="bg-white dark:bg-neutral-900 rounded-3xl p-5 shadow-sm border border-slate-100 dark:border-white/5 flex flex-col gap-4"
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex flex-col">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
-                  {safeFormatDate(shift.date, 'EEEE d MMMM', { locale })}
-                </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-2xl font-bold text-slate-900 dark:text-neutral-100 tabular-nums">
-                    {hours}h {remainingMins > 0 ? `${remainingMins}m` : ''}
+          <div key={wIdx} className="flex flex-col gap-4">
+            {/* Header Settimana */}
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <Calendar className="w-4 h-4 text-accent" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+                    Settimana
+                  </p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-neutral-100 leading-none">
+                    {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM', { locale })}
                   </p>
                 </div>
               </div>
-              
-              <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${config.bg} ${config.border} ${config.color}`}>
-                <Icon className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-black uppercase tracking-wider">
-                  {config.label}
-                </span>
+              <div className="text-right">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+                  Totale
+                </p>
+                <p className="text-sm font-bold text-accent leading-none">
+                  {totalHours}h {totalRemainingMins > 0 ? `${totalRemainingMins}m` : ''}
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-white/5">
-              <p className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
-                {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
-              </p>
-              <p className="text-[11px] text-slate-400 italic">
-                {shift.type === 'lunch' ? 'Pranzo' : 'Cena'}
-              </p>
+            {/* Lista Turni */}
+            <div className="flex flex-col gap-3">
+              {week.shifts.map((shift) => {
+                const status = (shift.approval_status as keyof typeof STATUS_CONFIG) || 'confirmed';
+                const config = STATUS_CONFIG[status] || STATUS_CONFIG.confirmed;
+                const Icon = config.icon;
+                
+                const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
+                const mins = getNetShiftMinutes(shift, start, end, user, breakRules, breakComputeOpts);
+                const hours = Math.floor(mins / 60);
+                const remainingMins = mins % 60;
+
+                return (
+                  <div 
+                    key={shift.id}
+                    className="bg-white dark:bg-neutral-900 rounded-3xl p-5 shadow-sm border border-slate-100 dark:border-white/5 flex flex-col gap-4"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex flex-col">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                          {safeFormatDate(shift.date, 'EEEE d MMMM', { locale })}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-2xl font-bold text-slate-900 dark:text-neutral-100 tabular-nums">
+                            {hours}h {remainingMins > 0 ? `${remainingMins}m` : ''}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${config.bg} ${config.border} ${config.color}`}>
+                        <Icon className="w-3.5 h-3.5" />
+                        <span className="text-[10px] font-black uppercase tracking-wider">
+                          {config.label}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-white/5">
+                      <p className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
+                        {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
+                      </p>
+                      <p className="text-[11px] text-slate-400 italic">
+                        {shift.type === 'lunch' ? 'Pranzo' : 'Cena'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         );

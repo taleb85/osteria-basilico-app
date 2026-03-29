@@ -3,6 +3,7 @@ import { getDepartments } from './departments';
 import { getTranslations } from './translations';
 
 const BUILTIN_DEPT_TR_KEYS: Record<string, string> = {
+  sala_bar: 'department_sala_bar',
   sala: 'department_sala',
   kitchen: 'department_kitchen',
   bar: 'department_bar',

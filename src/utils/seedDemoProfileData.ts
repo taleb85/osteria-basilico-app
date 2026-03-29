@@ -168,7 +168,7 @@ export function buildDemoProfileData(now: Date, userId: string): DemoProfileBuil
 
   const userPatch: Partial<User> = {
     phone: '+39 340 1234567',
-    department: 'sala',
+    department: 'sala_bar',
     hourly_rate_eur: 11.5,
     monthly_confirmed: {
       [prevMonth]: { minutes: 96 * 60 + 30, shiftsCount: 18 },

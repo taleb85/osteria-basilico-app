@@ -848,11 +848,13 @@ export default function SettingsPage() {
                           className="text-[9px] font-semibold normal-case opacity-90 border-l border-white/35 pl-1.5 shrink-0 max-w-[5.5rem] truncate"
                           title={t.settings_dept_permission_group}
                         >
-                          {d.permissionCategory === 'sala'
-                            ? t.department_sala
-                            : d.permissionCategory === 'kitchen'
-                              ? t.department_kitchen
-                              : t.department_bar}
+                          {d.permissionCategory === 'sala_bar'
+                            ? t.department_sala_bar
+                            : d.permissionCategory === 'sala'
+                              ? t.department_sala
+                              : d.permissionCategory === 'kitchen'
+                                ? t.department_kitchen
+                                : t.department_bar}
                         </span>
                       )}
                       {isBuiltin && d.permissionCategory && (
@@ -860,11 +862,13 @@ export default function SettingsPage() {
                           className="text-[9px] font-semibold normal-case opacity-90 border-l border-white/35 pl-1.5 shrink-0 max-w-[5.5rem] truncate"
                           title={t.settings_dept_permission_group}
                         >
-                          {d.permissionCategory === 'sala'
-                            ? t.department_sala
-                            : d.permissionCategory === 'kitchen'
-                              ? t.department_kitchen
-                              : t.department_bar}
+                          {d.permissionCategory === 'sala_bar'
+                            ? t.department_sala_bar
+                            : d.permissionCategory === 'sala'
+                              ? t.department_sala
+                              : d.permissionCategory === 'kitchen'
+                                ? t.department_kitchen
+                                : t.department_bar}
                         </span>
                       )}
                       <button
@@ -954,9 +958,10 @@ export default function SettingsPage() {
                               className={deptPermissionCategorySelectClass}
                             >
                               <option value="">{t.settings_dept_permission_only}</option>
+                              <option value="sala_bar">{t.department_sala_bar}</option>
                               <option value="sala">{t.department_sala}</option>
-                              <option value="kitchen">{t.department_kitchen}</option>
                               <option value="bar">{t.department_bar}</option>
+                              <option value="kitchen">{t.department_kitchen}</option>
                             </select>
                           </div>
                         )}

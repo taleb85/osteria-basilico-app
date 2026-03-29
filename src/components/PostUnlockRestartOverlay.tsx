@@ -18,10 +18,27 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
   useEffect(() => {
     if (scheduled.current) return;
     scheduled.current = true;
-    const id = window.setTimeout(() => {
-      window.location.reload();
-    }, RELOAD_DELAY_MS);
-    return () => window.clearTimeout(id);
+    
+    // Tentativo immediato di reload se il delay fallisce
+    const reload = () => {
+      try {
+        window.location.href = window.location.href;
+      } catch {
+        window.location.reload();
+      }
+    };
+
+    const id = window.setTimeout(reload, RELOAD_DELAY_MS);
+    
+    // Fallback estremo: se dopo 5 secondi siamo ancora qui, forziamo il reload
+    const fallbackId = window.setTimeout(() => {
+      window.location.assign(window.location.origin + window.location.pathname + window.location.search);
+    }, 5000);
+
+    return () => {
+      window.clearTimeout(id);
+      window.clearTimeout(fallbackId);
+    };
   }, []);
 
   return (

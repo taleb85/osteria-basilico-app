@@ -10,14 +10,16 @@ import { formatTrans, getDateLocale, getTranslations } from './translations';
 // ── Colours ───────────────────────────────────────────────────────────────────
 
 const DEPT_FILL: Record<string, [number, number, number]> = {
+  sala_bar: [220, 230, 218], // tint basilico
   sala:    [240, 253, 250],  // light teal (allinea a reparto Sala, no blu)
-  kitchen: [255, 237, 213],  // light orange
   bar:     [220, 230, 218],  // tint basilico (accent light)
+  kitchen: [255, 237, 213],  // light orange
 };
 const DEPT_BORDER: Record<string, [number, number, number]> = {
+  sala_bar: [45, 90, 39],
   sala:    [13, 148, 136], // teal-600
-  kitchen: [249, 115, 22],
   bar:     [45, 90, 39],
+  kitchen: [249, 115, 22],
 };
 /** Brand Osteria Basilico #2D5A27 = rgb(45, 90, 39) */
 const BASILICO: [number, number, number] = [45, 90, 39];
@@ -183,7 +185,7 @@ export function exportSchedulePDF(
 
   scheduleUsers.forEach((user, rowIdx) => {
     // Department separator
-    const dept = user.department ?? 'sala';
+    const dept = user.department ?? 'sala_bar';
     if (dept !== prevDept && rowIdx > 0) {
       doc.setDrawColor(203, 213, 225);
       doc.setLineWidth(0.5);
@@ -299,9 +301,10 @@ export function exportSchedulePDF(
     { color: STATUS_COLOR.approved, label: t.status_approved },
     { color: STATUS_COLOR.confirmed, label: t.status_confirmed },
     { color: STATUS_COLOR.draft, label: t.status_draft },
+    { color: DEPT_FILL.sala_bar, label: t.department_sala_bar, border: DEPT_BORDER.sala_bar },
     { color: DEPT_FILL.sala, label: t.department_sala, border: DEPT_BORDER.sala },
-    { color: DEPT_FILL.kitchen, label: t.department_kitchen, border: DEPT_BORDER.kitchen },
     { color: DEPT_FILL.bar, label: t.department_bar, border: DEPT_BORDER.bar },
+    { color: DEPT_FILL.kitchen, label: t.department_kitchen, border: DEPT_BORDER.kitchen },
   ];
   let lx = MARGIN;
   legend.forEach(({ color, label, border }) => {

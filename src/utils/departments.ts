@@ -24,7 +24,7 @@ function saveBuiltinOverrides(overrides: Record<string, BuiltinOverride>) {
 }
 
 /** Categorie predefinite: regole pausa e filtri che selezionano una di queste si applicano anche ai reparti personalizzati collegati. */
-export type PermissionCategory = 'sala' | 'kitchen' | 'bar';
+export type PermissionCategory = 'sala_bar' | 'sala' | 'kitchen' | 'bar';
 
 export interface Department {
   value: string;
@@ -36,9 +36,10 @@ export interface Department {
 
 // Reparti built-in: stessi colori “pieni” della palette (bar = verde brand)
 export const BUILTIN_DEPARTMENTS: Department[] = [
+  { value: 'sala_bar', label: 'Sala e Bar', color: '#2D5A27' },
   { value: 'sala',    label: 'Sala',   color: '#2196F3' },
-  { value: 'kitchen', label: 'Cucina', color: '#F44336' },
   { value: 'bar',     label: 'Bar',    color: '#2D5A27' },
+  { value: 'kitchen', label: 'Cucina', color: '#F44336' },
 ];
 
 const DEFAULT_CUSTOM_COLOR = '#2D5A27'; // accent green
@@ -86,7 +87,7 @@ export function parseDepartmentsCloudPayload(raw: unknown): DepartmentsCloudV1 |
         typeof r.color === 'string' && r.color.trim() ? r.color.trim() : DEFAULT_CUSTOM_COLOR;
       const pc = r.permissionCategory;
       const permissionCategory =
-        pc === 'sala' || pc === 'kitchen' || pc === 'bar' ? pc : undefined;
+        pc === 'sala_bar' || pc === 'sala' || pc === 'kitchen' || pc === 'bar' ? pc : undefined;
       custom.push(
         permissionCategory
           ? { value, label: label || value, color, permissionCategory }
@@ -120,7 +121,7 @@ export function getDepartmentsCloudSnapshot(): DepartmentsCloudV1 {
       label: label || d.value,
       color,
     };
-    if (d.permissionCategory === 'sala' || d.permissionCategory === 'kitchen' || d.permissionCategory === 'bar') {
+    if (d.permissionCategory === 'sala_bar' || d.permissionCategory === 'sala' || d.permissionCategory === 'kitchen' || d.permissionCategory === 'bar') {
       row.permissionCategory = d.permissionCategory;
     }
     outCustom.push(row);

@@ -22,7 +22,7 @@ export type Language = 'it' | 'en' | 'es' | 'fr';
 
 export type Theme = 'light' | 'dark';
 
-/** Reparto del dipendente — valore libero; i built-in sono 'sala' | 'kitchen' | 'bar' */
+/** Reparto del dipendente — valore libero; i built-in sono 'sala_bar' | 'sala' | 'bar' | 'kitchen' */
 export type Department = string;
 
 /** Dati mensili confermati per un singolo mese (es. "2025-03") */

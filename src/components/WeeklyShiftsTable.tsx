@@ -7,7 +7,7 @@ import { useApp } from '../context/AppContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
-import { Shift, type ApprovalStatus, type PunchAuditEntry } from '../types';
+import { Shift, type ApprovalStatus, type PunchAuditEntry, type ShiftType } from '../types';
 import {
   calculateShiftMinutesGross,
   getActualShiftTime,
@@ -327,6 +327,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [saveTemplateName, setSaveTemplateName] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
   const wstToolbarDrawerRef = useRef<HTMLDivElement | null>(null);
+  const wstDeptDrawerRef = useRef<HTMLDivElement | null>(null);
   const wstToolbarModalRef = useRef<HTMLDivElement | null>(null);
   /** Pannello modale dettaglio turno (portal su body): escluso da clear selezione su pointerdown fuori tabella. */
   const shiftDetailModalPanelRef = useRef<HTMLDivElement | null>(null);
@@ -342,6 +343,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [hiddenDates, setHiddenDates] = useState<Set<string>>(() => getHiddenDates());
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showHiddenPeriodsModal, setShowHiddenPeriodsModal] = useState(false);
+  const [clipboardShifts, setClipboardShifts] = useState<{
+    shifts: Array<{
+      user_id: string;
+      start_time: string;
+      end_time: string;
+      type: ShiftType;
+      deduct_break?: boolean;
+      dayOffset: number;
+    }>;
+    sourceDays: number;
+  } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarDay, setSidebarDay] = useState<string>('');
   const [sidebarEdits, setSidebarEdits] = useState<Record<string, { start: string; end: string; deduct_break?: boolean }>>({});
@@ -877,6 +889,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         if (
           !wstToolbarModalRef.current?.contains(tgt) &&
           !wstToolbarDrawerRef.current?.contains(tgt) &&
+          !wstDeptDrawerRef.current?.contains(tgt) &&
           !isDatePickerPortalClick(e.target)
         ) {
           setWstToolbarDrawerOpen(false);
@@ -898,10 +911,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     if (localFilterDepartment) {
       list = list.filter((u) => {
         const d = (u.department || '').toLowerCase();
-        if (localFilterDepartment === 'sala_bar') {
-          return d === 'sala' || d === 'bar';
+        const filterLc = localFilterDepartment.toLowerCase();
+        
+        // Se il filtro è "sala_bar", includi utenti con reparto "sala_bar", "sala" o "bar"
+        if (filterLc === 'sala_bar') {
+          return d === 'sala_bar' || d === 'sala' || d === 'bar';
         }
-        return d === localFilterDepartment;
+        
+        return d === filterLc;
       });
     }
 
@@ -910,15 +927,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       list = list.filter((u) => u.id === fid);
     }
     list = [...list].sort((a, b) => {
-      // Priorità reparto: Sala + Bar (insieme), poi Cucina, poi altri
+      // Priorità reparto: Sala e Bar, poi Sala, poi Bar, poi Cucina, poi altri
       const getDeptPriority = (u: any) => {
         const d = (u.department || '').toLowerCase();
-        // Sala e Bar assieme (priorità 1)
-        if (d === 'sala' || d === 'bar') return 1;
-        // Cucina per i fatti suoi (priorità 2)
-        if (d === 'kitchen' || d === 'cucina') return 2;
-        // Altri reparti (priorità 3)
-        return 3;
+        if (d === 'sala_bar') return 1;
+        if (d === 'sala') return 2;
+        if (d === 'bar') return 3;
+        if (d === 'kitchen' || d === 'cucina') return 4;
+        return 5;
       };
       const pa = getDeptPriority(a);
       const pb = getDeptPriority(b);
@@ -1567,6 +1583,94 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               {weekIndex + 1}/{periodConfig.numWeeks}
             </span>
           )}
+          <div className="h-3.5 w-px bg-slate-200 dark:bg-white/10 mx-0.5 shrink-0" />
+          
+          <div className="relative" ref={wstDeptDrawerRef}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setWstToolbarDrawerOpen((open) => {
+                  if (open && wstToolbarDrawerSection === 'department') {
+                    setWstToolbarDrawerSection(null);
+                    return false;
+                  }
+                  setWstToolbarDrawerSection('department');
+                  return true;
+                });
+              }}
+              className={`ui-toolbar-chip !h-[22px] shrink-0 text-slate-600 dark:text-neutral-300 hover:bg-slate-50/90 dark:hover:bg-white/[0.06] ${
+                wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department' ? 'border-accent/35 bg-accent/8 ring-1 ring-accent/15' : ''
+              } ${localFilterDepartment !== '' ? 'border-accent/25 bg-accent/5 dark:bg-accent/10' : ''}`}
+              aria-expanded={wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department'}
+              aria-haspopup="true"
+              title={t.wst_department_button}
+            >
+              <Filter className="h-3 w-3 shrink-0" strokeWidth={2.5} aria-hidden />
+              <span className="text-[11px] font-bold">
+                {localFilterDepartment === '' ? t.wst_department_button : translateDepartmentValue(localFilterDepartment, effectiveLanguage)}
+              </span>
+              <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department' ? 'rotate-180' : ''}`} />
+              {localFilterDepartment !== '' && (
+                <span className="h-1.2 w-1.2 shrink-0 rounded-full bg-accent" aria-hidden />
+              )}
+            </button>
+
+            <AnimatePresence>
+              {wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                  transition={{ duration: 0.1 }}
+                  className="absolute left-0 top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                  style={{ isolation: 'isolate' }}
+                >
+                  <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 border-b border-slate-100 dark:border-white/10 mb-1">
+                    {t.department_filter_label}
+                  </div>
+                  {[
+                    { value: '', label: t.department_filter_all },
+                    ...getDepartments().map((d) => ({
+                      value: d.value,
+                      label: translateDepartmentValue(d.value, effectiveLanguage),
+                    })),
+                  ].map(({ value: dept, label }) => (
+                    <button
+                      key={dept || 'all'}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setLocalFilterDepartment(dept);
+                        setWstToolbarDrawerOpen(false);
+                        setWstToolbarDrawerSection(null);
+                      }}
+                      className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
+                        localFilterDepartment === dept
+                          ? 'bg-accent text-white shadow-md'
+                          : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
+                        {dept ? (
+                          <span
+                            className={`h-2.5 w-2.5 rounded-full shadow-sm ${localFilterDepartment === dept ? 'bg-white' : ''}`}
+                            style={localFilterDepartment !== dept ? { backgroundColor: getDeptColor(dept) } : {}}
+                          />
+                        ) : (
+                          <Check className={`h-3 w-3 ${localFilterDepartment === dept ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
+                        )}
+                      </div>
+                      <span className="flex-1 truncate">{label}</span>
+                      {localFilterDepartment === dept && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* ── Destra: pubblica settimana (se bozze) + menu hamburger ── */}
@@ -1600,20 +1704,20 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 });
               }}
               className={`ui-toolbar-chip shrink-0 text-slate-600 dark:text-neutral-300 hover:bg-slate-50/90 dark:hover:bg-white/[0.06] ${
-                wstToolbarDrawerOpen ? 'border-accent/35 bg-accent/8 ring-1 ring-accent/15' : ''
-              } ${localFilterStatus !== 'all' || localFilterDepartment !== '' ? 'border-accent/25 bg-accent/5 dark:bg-accent/10' : ''}`}
+                wstToolbarDrawerOpen && wstToolbarDrawerSection !== 'department' ? 'border-accent/35 bg-accent/8 ring-1 ring-accent/15' : ''
+              } ${localFilterStatus !== 'all' ? 'border-accent/25 bg-accent/5 dark:bg-accent/10' : ''}`}
               aria-expanded={wstToolbarDrawerOpen}
               aria-haspopup="true"
               title={(t as Record<string, string>).wst_toolbar_hamburger_title}
               aria-label={(t as Record<string, string>).wst_toolbar_hamburger_aria}
             >
               <Menu className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
-              {(localFilterStatus !== 'all' || localFilterDepartment !== '') && (
+              {localFilterStatus !== 'all' && (
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
               )}
             </button>
           </div>
-            {wstToolbarDrawerOpen && (
+            {wstToolbarDrawerOpen && wstToolbarDrawerSection !== 'department' && (
               <CenteredModalPortal
                 open
                 onClose={closeWstToolbarDrawer}
@@ -1805,74 +1909,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           </div>
                         ))}
                       </div>
-                    )}
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setWstToolbarDrawerSection((sec) => (sec === 'department' ? null : 'department'))
-                  }
-                  className="flex w-full items-center justify-between gap-2 border-b border-slate-100 dark:border-white/10 px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-neutral-800/80"
-                >
-                  <span className="flex min-w-0 items-center gap-2">
-                    <span className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.wst_department_button}</span>
-                    {localFilterDepartment !== '' && (
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
-                    )}
-                  </span>
-                  <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-400 transition-transform ${
-                      wstToolbarDrawerSection === 'department' ? '-rotate-180' : ''
-                    }`}
-                    strokeWidth={2.25}
-                    aria-hidden
-                  />
-                </button>
-                {wstToolbarDrawerSection === 'department' && (
-                  <div className="border-b border-slate-100 py-1 dark:border-white/10">
-                    <div className="border-b border-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-white/10 dark:text-neutral-400">
-                      {t.department_filter_label}
-                    </div>
-                    {[
-                      { value: '', label: t.department_filter_all },
-                      { value: 'sala_bar', label: 'Sala e Bar' },
-                      ...getDepartments().map((d) => ({
-                        value: d.value,
-                        label: translateDepartmentValue(d.value, effectiveLanguage),
-                      })),
-                    ].map(({ value: dept, label }) => (
-                        <button
-                          key={dept || 'all'}
-                          type="button"
-                          onClick={() => {
-                            setLocalFilterDepartment(dept);
-                            closeWstToolbarDrawer();
-                          }}
-                          className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm ${
-                            localFilterDepartment === dept
-                              ? 'bg-accent/10 font-semibold text-accent dark:bg-accent/15'
-                              : 'text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800'
-                          }`}
-                        >
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-neutral-800">
-                            {dept === 'sala_bar' ? (
-                              <Filter className="h-3.5 w-3.5 text-accent" strokeWidth={2.5} />
-                            ) : dept ? (
-                              <span
-                                className="h-2.5 w-2.5 rounded-full"
-                                style={{ backgroundColor: getDeptColor(dept) }}
-                              />
-                            ) : localFilterDepartment === '' ? (
-                              <Check className="h-3.5 w-3.5 text-accent" strokeWidth={2.5} />
-                            ) : (
-                              <span className="h-3.5 w-3.5" />
-                            )}
-                          </span>
-                          {label}
-                        </button>
-                      )
                     )}
                   </div>
                 )}
@@ -2101,43 +2137,73 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     </div>
                     <button
                       type="button"
-                      onClick={async () => {
+                      onClick={() => {
                         const n = viewMode === 'day' ? 1 : viewMode === '2weeks' ? 14 : 7;
                         const rangeStart = viewMode === 'day' ? allWeekDays[0] : weekStart;
                         const weekStr = format(rangeStart, 'yyyy-MM-dd');
                         const weekEnd = format(addDays(rangeStart, n), 'yyyy-MM-dd');
                         const toCopy = shifts.filter((s) => s.date >= weekStr && s.date < weekEnd);
-                        let copied = 0;
-                        for (const s of toCopy) {
-                          const oldDate = parseISO(s.date);
-                          const newDate = addDays(oldDate, n);
-                          const newDateStr = format(newDate, 'yyyy-MM-dd');
-                          try {
-                            const res = await addShift({
+                        
+                        setClipboardShifts({
+                          shifts: toCopy.map(s => {
+                            const shiftDate = parseISO(s.date);
+                            const dayOffset = Math.floor((shiftDate.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24));
+                            return {
                               user_id: s.user_id,
-                              date: newDateStr,
                               start_time: s.start_time,
                               end_time: s.end_time,
                               type: s.type,
-                              approval_status: 'draft',
                               deduct_break: s.deduct_break,
-                            });
-                            if (res) copied++;
-                          } catch {
-                            /* skip */
-                          }
-                        }
+                              dayOffset
+                            };
+                          }),
+                          sourceDays: n
+                        });
+                        
                         closeWstToolbarDrawer();
-                        setWeekIndex((i) =>
-                          Math.min(maxWeekIndex, i + (viewMode === 'day' ? 1 : viewMode === '2weeks' ? 2 : 1))
-                        );
-                        (showSuccess || showError)(formatTrans(t.shifts_copied_count, { n: copied }));
+                        showSuccess?.(formatTrans(t.shifts_copied_count, { n: toCopy.length }));
                       }}
                       className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
                     >
                       <Copy className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
                       {t.copy_week}
                     </button>
+
+                    {clipboardShifts && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const targetDate = viewMode === 'day' ? allWeekDays[0] : weekStart;
+                          let pasted = 0;
+                          
+                          // Mostriamo un caricamento se sono tanti
+                          for (const s of clipboardShifts.shifts) {
+                            const newDate = addDays(targetDate, s.dayOffset);
+                            const newDateStr = format(newDate, 'yyyy-MM-dd');
+                            
+                            try {
+                              const res = await addShift({
+                                user_id: s.user_id,
+                                date: newDateStr,
+                                start_time: s.start_time,
+                                end_time: s.end_time,
+                                type: s.type,
+                                approval_status: 'draft',
+                                deduct_break: s.deduct_break,
+                              });
+                              if (res) pasted++;
+                            } catch { /* skip */ }
+                          }
+                          
+                          closeWstToolbarDrawer();
+                          showSuccess?.(formatTrans(t.shifts_copied_count, { n: pasted }));
+                        }}
+                        className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-accent hover:bg-accent/5 dark:border-white/10 dark:hover:bg-accent/10"
+                      >
+                        <Check className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+                        Incolla turni qui (come bozze)
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => {

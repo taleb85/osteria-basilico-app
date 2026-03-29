@@ -33,11 +33,13 @@ import {
 } from '../utils/permissions';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
-import { motion } from 'framer-motion';
-import { Calendar, FileDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, FileDown, Filter, ChevronDown, Check } from 'lucide-react';
 import DatePickerField from './DatePickerField';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { exportAttendancePdfFromGrid } from '../utils/timesheetPdfFromRange';
+import { translateDepartmentValue } from '../utils/departmentLabels';
+import { getDeptColor, getDepartments } from '../utils/departments';
 
 function toDateOnly(d: Date): string {
   return format(d, 'yyyy-MM-dd');
@@ -95,6 +97,8 @@ export default function Statistics() {
   /** Staff: date manuali → non sovrascrivere su `osteria_period_updated` finché non si riallinea. */
   const [staffRangeCustom, setStaffRangeCustom] = useState(false);
   const [mgmtRangeModalOpen, setMgmtRangeModalOpen] = useState(false);
+  const [deptFilter, setDeptFilter] = useState<string>('all');
+  const [showDeptMenu, setShowDeptMenu] = useState(false);
 
   // Sync date range when preset changes
   useEffect(() => {
@@ -287,6 +291,35 @@ export default function Statistics() {
     }, 0);
   }, [displayUsers, minutesByUserByWeek]);
 
+  const departments = useMemo(() => {
+    const set = new Set<string>();
+    users.forEach(u => {
+      if (u.department) set.add(u.department);
+    });
+    return Array.from(set).sort();
+  }, [users]);
+
+  const filteredUsers = useMemo(() => {
+    if (deptFilter === 'all') return displayUsers;
+    
+    const filterLc = deptFilter.toLowerCase();
+    return displayUsers.filter(u => {
+      const d = (u.department || '').toLowerCase();
+      // Se il filtro è "sala_bar", includi utenti con reparto "sala_bar", "sala" o "bar"
+      if (filterLc === 'sala_bar') {
+        return d === 'sala_bar' || d === 'sala' || d === 'bar';
+      }
+      return d === filterLc;
+    });
+  }, [displayUsers, deptFilter]);
+
+  const totalMinutesFiltered = useMemo(() => {
+    return filteredUsers.reduce((sum, u) => {
+      const byWeek = minutesByUserByWeek[u.id] ?? {};
+      return sum + Object.values(byWeek).reduce((a, b) => a + b, 0);
+    }, 0);
+  }, [filteredUsers, minutesByUserByWeek]);
+
   /** Ore dell’utente connesso nel range (anche se non compare nella lista team, es. admin). */
   const mgmtPersonalTotalMins = useMemo(() => {
     if (!currentUser) return 0;
@@ -368,6 +401,79 @@ export default function Statistics() {
                       <FileDown className="h-3 w-3 shrink-0" aria-hidden />
                       <span className="hidden min-[380px]:inline">{t.download_pdf}</span>
                     </button>
+                  )}
+                  {departments.length > 0 && (
+                    <div className="relative ml-auto">
+                      <button
+                        type="button"
+                        onClick={() => setShowDeptMenu(prev => !prev)}
+                        className={`ui-toolbar-chip !h-[22px] shrink-0 text-slate-600 dark:text-neutral-300 hover:bg-slate-50/90 dark:hover:bg-white/[0.06] ${
+                          showDeptMenu ? 'border-accent/35 bg-accent/8 ring-1 ring-accent/15' : ''
+                        } ${deptFilter !== 'all' ? 'border-accent/25 bg-accent/5 dark:bg-accent/10' : ''}`}
+                      >
+                        <Filter className="h-3 w-3 shrink-0" strokeWidth={2.5} aria-hidden />
+                        <span className="text-[11px] font-bold">
+                          {deptFilter === 'all' ? 'Tutti i reparti' : translateDepartmentValue(deptFilter, effectiveLanguage)}
+                        </span>
+                        <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${showDeptMenu ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      <AnimatePresence>
+                        {showDeptMenu && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                            transition={{ duration: 0.1 }}
+                            className="absolute left-0 top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                            style={{ isolation: 'isolate' }}
+                          >
+                            <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 border-b border-slate-100 dark:border-white/10 mb-1">
+                              {t.department_filter_label}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => { setDeptFilter('all'); setShowDeptMenu(false); }}
+                              className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
+                                deptFilter === 'all' 
+                                  ? 'bg-accent text-white shadow-md' 
+                                  : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
+                              }`}
+                            >
+                              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
+                                <Check className={`h-3 w-3 ${deptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
+                              </div>
+                              <span className="flex-1 truncate">Tutti i reparti</span>
+                              {deptFilter === 'all' && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
+                            </button>
+
+                            <div className="my-1 h-px bg-slate-100 dark:bg-white/5" />
+
+                            {departments.map((d) => (
+                              <button
+                                key={d}
+                                type="button"
+                                onClick={() => { setDeptFilter(d); setShowDeptMenu(false); }}
+                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
+                                  deptFilter === d 
+                                    ? 'bg-accent text-white shadow-md' 
+                                    : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
+                                }`}
+                              >
+                                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
+                                  <span
+                                    className={`h-2.5 w-2.5 rounded-full shadow-sm ${deptFilter === d ? 'bg-white' : ''}`}
+                                    style={deptFilter !== d ? { backgroundColor: getDeptColor(d) } : {}}
+                                  />
+                                </div>
+                                <span className="flex-1 truncate">{translateDepartmentValue(d, effectiveLanguage)}</span>
+                                {deptFilter === d && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   )}
                 </div>
               </div>
@@ -574,10 +680,10 @@ export default function Statistics() {
             {showManagementStatsChrome && (
               <div className="surface-glass p-5 sm:p-6">
                 <p className="mb-2 text-xs font-medium uppercase tracking-widest text-slate-600">
-                  {tv.stats_team_hours_period ?? t.stats_total}
+                  {deptFilter === 'all' ? (tv.stats_team_hours_period ?? t.stats_total) : `TOTALE ${translateDepartmentValue(deptFilter, effectiveLanguage).toUpperCase()}`}
                 </p>
                 <p className="text-2xl font-semibold tabular-nums text-slate-900">
-                  {formatMinutesToHoursAndMinutes(totalMinutesAll)}
+                  {formatMinutesToHoursAndMinutes(totalMinutesFiltered)}
                 </p>
               </div>
             )}
@@ -591,7 +697,7 @@ export default function Statistics() {
               </div>
             ) : (
               weeksInRange.map((w) => {
-                const weekTotal = displayUsers.reduce(
+                const weekTotal = filteredUsers.reduce(
                   (s, u) => s + (minutesByUserByWeek[u.id]?.[w.key] ?? 0),
                   0
                 );
@@ -599,13 +705,20 @@ export default function Statistics() {
                   <div key={w.key} className="surface-glass p-5 sm:p-6">
                     <p className="mb-4 text-xs font-medium uppercase tracking-widest text-slate-600 dark:text-neutral-400">{w.label}</p>
                     <ul className="space-y-3">
-                      {displayUsers.map((u) => {
+                      {filteredUsers.map((u) => {
                         const m = minutesByUserByWeek[u.id]?.[w.key] ?? 0;
                         return (
                           <li key={u.id} className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0 dark:border-white/10">
-                            <span className="text-sm font-semibold uppercase tracking-wide text-slate-800 dark:text-neutral-100">
-                              {(u.first_name ?? '').trim() || '—'}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-semibold uppercase tracking-wide text-slate-800 dark:text-neutral-100">
+                                {(u.first_name ?? '').trim() || '—'}
+                              </span>
+                              {deptFilter === 'all' && u.department && (
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                                  {translateDepartmentValue(u.department, effectiveLanguage)}
+                                </span>
+                              )}
+                            </div>
                             <span className="shrink-0 text-lg font-semibold tabular-nums text-slate-900 dark:text-neutral-50">
                               {m > 0 ? formatMinutesToHoursAndMinutes(m) : '–'}
                             </span>

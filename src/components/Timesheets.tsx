@@ -66,7 +66,7 @@ import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
 import { exportAttendancePdfFromGrid } from '../utils/timesheetPdfFromRange';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
-import { getDeptColor, getDepartments } from '../utils/departments';
+import { getDeptColor, getDepartments, BUILTIN_DEPARTMENTS } from '../utils/departments';
 import { translateDepartmentValue } from '../utils/departmentLabels';
 import { getTimesheetGridPrivacyMode } from '../utils/timesheetGridPrivacy';
 import { PinPadModal } from './ui/PinPadModal';
@@ -599,7 +599,11 @@ export default function Timesheets() {
   const [showPdfDeptMenu, setShowPdfDeptMenu] = useState(false);
   const pdfDeptMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const availableDepts = useMemo(() => getDepartments(), []);
+  const availableDepts = useMemo(() => {
+    const builtin = BUILTIN_DEPARTMENTS;
+    const custom = getDepartments().filter(d => !builtin.some(b => b.value === d.value));
+    return [...builtin, ...custom];
+  }, []);
 
   useEffect(() => {
     if (!showPdfDeptMenu) return;
@@ -822,29 +826,32 @@ export default function Timesheets() {
         // Solo attivi e visibili in planning
         if (u.status !== 'active' || !isUserVisibleOnTeamSchedule(u, shifts)) return false;
         
-        // Filtro reparto (se attivo)
-        if (pdfDeptFilter !== 'all') {
-          const d = (u.department || '').toLowerCase();
-          if (pdfDeptFilter === 'sala_bar') {
-            return d === 'sala' || d === 'bar';
-          }
-          return d === pdfDeptFilter;
+      // Filtro reparto (se attivo)
+      if (pdfDeptFilter !== 'all') {
+        const d = (u.department || '').toLowerCase();
+        const filterLc = pdfDeptFilter.toLowerCase();
+        
+        // Se il filtro è "sala_bar", includi utenti con reparto "sala_bar", "sala" o "bar"
+        if (filterLc === 'sala_bar') {
+          return d === 'sala_bar' || d === 'sala' || d === 'bar';
         }
         
+        return d === filterLc;
+      }
+
         return true;
       });
 
       // Applica lo stesso ordinamento della scheda Turni (WeeklyShiftsTable)
       list = [...list].sort((a, b) => {
-        // Priorità reparto: Sala + Bar (insieme), poi Cucina, poi altri
+        // Priorità reparto: Sala e Bar, poi Sala, poi Bar, poi Cucina, poi altri
         const getDeptPriority = (u: any) => {
           const d = (u.department || '').toLowerCase();
-          // Sala e Bar assieme (priorità 1)
-          if (d === 'sala' || d === 'bar') return 1;
-          // Cucina per i fatti suoi (priorità 2)
-          if (d === 'kitchen' || d === 'cucina') return 2;
-          // Altri reparti (priorità 3)
-          return 3;
+          if (d === 'sala_bar') return 1;
+          if (d === 'sala') return 2;
+          if (d === 'bar') return 3;
+          if (d === 'kitchen' || d === 'cucina') return 4;
+          return 5;
         };
         const pa = getDeptPriority(a);
         const pb = getDeptPriority(b);
@@ -2471,7 +2478,6 @@ export default function Timesheets() {
                     <Filter className="h-3 w-3 text-slate-400" />
                     <span className="font-bold text-slate-700 dark:text-neutral-200">
                       {pdfDeptFilter === 'all' ? 'Tutti i reparti' : 
-                       pdfDeptFilter === 'sala_bar' ? 'Sala e Bar' : 
                        availableDepts.find(d => d.value === pdfDeptFilter)?.label || pdfDeptFilter}
                     </span>
                     <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${showPdfDeptMenu ? 'rotate-180' : ''}`} />
@@ -2484,52 +2490,47 @@ export default function Timesheets() {
                           initial={{ opacity: 0, y: 4, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                          className="absolute right-0 top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                          className="absolute left-0 top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
                           style={{ isolation: 'isolate' }}
                         >
                         <button
                           type="button"
                           onClick={() => { setPdfDeptFilter('all'); setShowPdfDeptMenu(false); }}
-                          className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
+                          className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
                             pdfDeptFilter === 'all' 
-                              ? 'bg-accent/10 text-accent' 
+                              ? 'bg-accent text-white shadow-md' 
                               : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
                           }`}
                         >
-                          Tutti i reparti
-                          {pdfDeptFilter === 'all' && <Check className="h-3 w-3" />}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => { setPdfDeptFilter('sala_bar'); setShowPdfDeptMenu(false); }}
-                          className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
-                            pdfDeptFilter === 'sala_bar' 
-                              ? 'bg-accent/10 text-accent' 
-                              : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
-                          }`}
-                        >
-                          Sala e Bar
-                          {pdfDeptFilter === 'sala_bar' && <Check className="h-3 w-3" />}
+                          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
+                            <Check className={`h-3 w-3 ${pdfDeptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
+                          </div>
+                          <span className="flex-1 truncate">Tutti i reparti</span>
+                          {pdfDeptFilter === 'all' && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                         </button>
 
                         <div className="my-1 h-px bg-slate-100 dark:bg-white/5" />
 
                         {availableDepts
-                          .filter(d => d.value !== 'sala' && d.value !== 'bar')
                           .map((dept) => (
                           <button
                             key={dept.value}
                             type="button"
                             onClick={() => { setPdfDeptFilter(dept.value); setShowPdfDeptMenu(false); }}
-                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
+                            className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
                               pdfDeptFilter === dept.value 
-                                ? 'bg-accent/10 text-accent' 
+                                ? 'bg-accent text-white shadow-md' 
                                 : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
                             }`}
                           >
-                            {dept.label}
-                            {pdfDeptFilter === dept.value && <Check className="h-3 w-3" />}
+                            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
+                              <span
+                                className={`h-2.5 w-2.5 rounded-full shadow-sm ${pdfDeptFilter === dept.value ? 'bg-white' : ''}`}
+                                style={pdfDeptFilter !== dept.value ? { backgroundColor: getDeptColor(dept.value) } : {}}
+                              />
+                            </div>
+                            <span className="flex-1 truncate">{dept.label}</span>
+                            {pdfDeptFilter === dept.value && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                           </button>
                         ))}
                       </motion.div>

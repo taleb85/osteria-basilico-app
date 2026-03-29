@@ -109,7 +109,7 @@ export function ProfileFormSelf({
   const labelClass = appearance === 'light' ? labelClassLight : 'block text-xs font-medium text-white/80 mb-1.5';
   const iconMuted = appearance === 'light' ? 'text-slate-500 dark:text-neutral-400' : 'text-white/40';
 
-  const canEditRole = !readOnly && !roleLocked;
+  const canEditRole = !readOnly;
   const pinShownValue = readOnly ? (formData.pin.replace(/\D/g, '').length > 0 ? '••••' : '') : formData.pin;
 
   const phoneExample = useMemo(() => {
@@ -251,7 +251,7 @@ export function ProfileFormSelf({
 
       <div>
         <label className={labelClass}>{t.department_label}</label>
-        {departmentLocked || readOnly ? (
+        {readOnly ? (
           <input
             type="text"
             readOnly
