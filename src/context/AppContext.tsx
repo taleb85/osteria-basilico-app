@@ -1328,7 +1328,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const pv = presenceVerificationRef.current;
       const effectivePresenceToken = resolveEffectiveVerificationToken(pv);
-      if (pv.requireVerification === true && !managerPunchingForSomeoneElse) {
+      // Non richiedere verifica QR per inserimenti manuali (source: 'manual') o per manager
+      const shouldVerifyPresence = pv.requireVerification === true && !managerPunchingForSomeoneElse && resolvedSource !== 'manual';
+      
+      if (shouldVerifyPresence) {
         if (!effectivePresenceToken) {
           return { error: t.punch_presence_not_configured };
         }
