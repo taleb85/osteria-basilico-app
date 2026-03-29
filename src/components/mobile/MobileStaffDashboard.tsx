@@ -193,14 +193,8 @@ export default function MobileStaffDashboard({
   }, [enriched, now]);
 
   const canStart = !!shiftForStart && !punchBusy;
-  const canPause =
+  const canEnd =
     !!inProgress &&
-    inProgress.shift.type === 'lunch' &&
-    !inProgress.actualEnd &&
-    !punchBusy;
-  const canEndDinner =
-    !!inProgress &&
-    (inProgress.shift.type === 'dinner' || timeToMins(inProgress.shift.start_time) >= 16 * 60) &&
     !inProgress.actualEnd &&
     !punchBusy;
 
@@ -258,8 +252,8 @@ export default function MobileStaffDashboard({
     }
   }, [shiftForStart, user.id, addPunchRecord, requestProof, showError, showSuccess, t, checkGeofence]);
 
-  const handlePauseOut = useCallback(async () => {
-    if (!inProgress?.shift || inProgress.shift.type !== 'lunch') return;
+  const handleEnd = useCallback(async () => {
+    if (!inProgress?.shift) return;
     if (featureFlags['maintenance_mode'] === true && user.role !== 'admin') {
       showError?.(t.maintenance_mode_active || 'Sistema in manutenzione.');
       return;
@@ -286,13 +280,13 @@ export default function MobileStaffDashboard({
         showError?.(res.error);
         return;
       }
-      showSuccess?.(tv.mobile_dash_pause_done ?? 'Pausa registrata.');
+      showSuccess?.(t.home_toast_exit_registered);
     } catch {
       showError?.(t.punch_save_error);
     } finally {
       setPunchBusy(false);
     }
-  }, [inProgress, user.id, addPunchRecord, requestProof, showError, showSuccess, t, tv.mobile_dash_pause_done, checkGeofence]);
+  }, [inProgress, user.id, addPunchRecord, requestProof, showError, showSuccess, t, checkGeofence]);
 
   const openDinnerClose = useCallback(() => {
     if (!inProgress?.punchIn || !inProgress.actualStart) return;
@@ -369,15 +363,12 @@ export default function MobileStaffDashboard({
             statusInShift={t.home_status_in_shift}
             savingLabel={t.saving}
             startLabel={tv.mobile_dash_start ?? 'Inizia'}
-            pauseLabel={tv.mobile_dash_pause ?? 'Pausa'}
             endLabel={tv.mobile_dash_end ?? 'Fine turno'}
             canStart={canStart}
-            canPause={canPause}
-            canEndDinner={canEndDinner}
+            canEnd={canEnd}
             punchBusy={punchBusy}
             onStart={() => void handleStart()}
-            onPause={() => void handlePauseOut()}
-            onEndDinner={openDinnerClose}
+            onEnd={() => void handleEnd()}
             onNavigateToTimesheet={() => onTabChange?.('timesheet')}
             todayWorkShifts={todayWorkShifts}
           />

@@ -1,4 +1,4 @@
-import { Filter, ChevronDown, Calendar, Users, MousePointer2 } from 'lucide-react';
+import { Filter, ChevronDown, Calendar, Users, MousePointer2, Layout } from 'lucide-react';
 import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { WidgetChrome } from './WidgetChrome';
@@ -122,7 +122,7 @@ export default function TurniMgmtPreview({
       >
         <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-800">
-            <MousePointer2 className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
+            <Layout className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Popup dettaglio turno</p>

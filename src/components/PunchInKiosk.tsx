@@ -149,7 +149,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(KIOSK_UI_LANGUAGE);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
-  /** 'in' = timbratura entrata, 'out' = timbratura uscita (solo turni pranzo) */
+  /** 'in' = timbratura entrata, 'out' = timbratura uscita */
   const [punchMode, setPunchMode] = useState<'in' | 'out'>('in');
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
@@ -197,14 +197,11 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
 
   /**
    * "Completato" dal punto di vista del dipendente al kiosk:
-   * - Turno PRANZO: richiede sia entrata che uscita.
-   * - Turno CENA: solo entrata (l'uscita è inserita dal Manager).
+   * Richiede sia entrata che uscita per ogni tipo di turno.
    */
   const isEmployeeDone = useCallback(
     (shift: Shift) => {
-      if (!isPunched(shift)) return false;
-      if (shift.type === 'dinner') return true;
-      return isPunchedOut(shift);
+      return isPunched(shift) && isPunchedOut(shift);
     },
     [isPunched, isPunchedOut]
   );
@@ -252,7 +249,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   );
   /**
    * Turno "ovvio" e azione suggerita:
-   * 1. Pranzo già timbrato IN ma non OUT → azione 'out' (priorità massima)
+   * 1. Turno già timbrato IN ma non OUT → azione 'out' (priorità massima)
    * 2. Turno unpunched entro ±60 min dall'inizio → azione 'in'
    */
   const obviousShift = useMemo((): Shift | null => {
@@ -260,11 +257,11 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
     const nowM = now.getHours() * 60 + now.getMinutes();
     const WINDOW_MIN = 60;
 
-    // Priorità 1: pranzo in attesa di uscita
-    const lunchAwaitingOut = selectedUserShifts.filter(
-      (s) => s.type === 'lunch' && isPunched(s) && !isPunchedOut(s)
+    // Priorità 1: turno in attesa di uscita
+    const awaitingOut = selectedUserShifts.filter(
+      (s) => isPunched(s) && !isPunchedOut(s)
     );
-    if (lunchAwaitingOut.length > 0) return lunchAwaitingOut[0];
+    if (awaitingOut.length > 0) return awaitingOut[0];
 
     // Priorità 2: turno non ancora timbrato nella finestra temporale
     const inWindow = unpunchedShifts.filter((s) => {
@@ -296,8 +293,8 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
     if (selectedUser && obviousShift && !userWantsShiftList) {
       setSelectedShift(obviousShift);
       // Determina la modalità in base allo stato del turno
-      const isLunchAwaitingOut = obviousShift.type === 'lunch' && isPunched(obviousShift) && !isPunchedOut(obviousShift);
-      setPunchMode(isLunchAwaitingOut ? 'out' : 'in');
+      const isAwaitingOut = isPunched(obviousShift) && !isPunchedOut(obviousShift);
+      setPunchMode(isAwaitingOut ? 'out' : 'in');
     }
   }, [selectedUser, obviousShift, userWantsShiftList, isPunched, isPunchedOut]);
 
@@ -416,14 +413,9 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
     ]
   );
 
-  /** Registra la timbratura di USCITA per i turni di chiusura serale (dinner) tramite QR code. */
+  /** Registra la timbratura di USCITA tramite QR code. */
   const handlePunchOut = useCallback(
     async (user: UserType, shift: Shift) => {
-      if (shift.type !== 'dinner') {
-        setError(t.punch_dinner_exit_contact_manager);
-        setTimeout(() => setError(''), 2500);
-        return;
-      }
       const employeeId = shift.user_id;
       const clickTimestamp = new Date().toISOString();
       setIsLoading(true);
@@ -574,29 +566,25 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                   nowMinutes >= startM - KIOSK_CLOCK_IN_LEAD_MINUTES && nowMinutes < startM + 5;
                 const punched = isPunched(shift);
                 const punchedOut = isPunchedOut(shift);
-                // "done" per il dipendente: pranzo = IN+OUT, cena = solo IN
+                // "done" per il dipendente: IN+OUT
                 const done = isEmployeeDone(shift);
-                const awaitingLunchOut = shift.type === 'lunch' && punched && !punchedOut;
-                const dinnerInProgress = shift.type === 'dinner' && punched && !punchedOut;
+                const awaitingOut = punched && !punchedOut;
                 const timeStr = `${shift.start_time.slice(0, 5)}–${shift.end_time ? shift.end_time.slice(0, 5) : '--:--'}`;
-                return { shift, startM, endM, inProgress, nearStart, punched, done, awaitingLunchOut, dinnerInProgress, timeStr };
+                return { shift, startM, endM, inProgress, nearStart, punched, done, awaitingOut, timeStr };
               });
 
               // Azione suggerita globale
-              const lunchAwaitingOut = shiftStatuses.find((s) => s.awaitingLunchOut);
-              const dinnerActive = shiftStatuses.find((s) => s.dinnerInProgress);
+              const awaitingOut = shiftStatuses.find((s) => s.awaitingOut);
               const nextShift = shiftStatuses.find((s) => !s.punched);
               const actionLabel = allPunched
                 ? null
-                : lunchAwaitingOut
+                : awaitingOut
                   ? {
                       label: t.punch_clock_out_label,
                       color:
                         'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200',
                     }
-                  : dinnerActive
-                    ? { label: t.punch_in_shift_label, color: 'bg-teal-50 text-teal-800 border-teal-200 dark:bg-teal-950/40 dark:text-teal-200 dark:border-teal-800/50' }
-                    : nextShift &&
+                  : nextShift &&
                         nowMinutes >= nextShift.startM - KIOSK_CLOCK_IN_LEAD_MINUTES
                       ? { label: t.punch_clock_in_label, color: 'bg-accent/10 text-accent border-accent/20' }
                       : null;
@@ -604,11 +592,9 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
               // Colore bordo sinistro
               const borderColor = allPunched
                 ? 'border-l-accent'
-                : lunchAwaitingOut
+                : awaitingOut
                   ? 'border-l-amber-400'
-                  : dinnerActive
-                    ? 'border-l-teal-500'
-                    : nextShift?.nearStart || nextShift?.inProgress
+                  : nextShift?.nearStart || nextShift?.inProgress
                       ? 'border-l-accent'
                       : 'border-l-slate-200 dark:border-l-neutral-600';
 
@@ -647,23 +633,19 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
 
                   {/* Riga 2: turni con stato */}
                   <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                    {shiftStatuses.map(({ shift, done, awaitingLunchOut, dinnerInProgress, inProgress, nearStart: ns, timeStr }) => {
+                    {shiftStatuses.map(({ shift, done, awaitingOut, inProgress, nearStart: ns, timeStr }) => {
                       const dotColor = done
                         ? 'bg-accent'
-                        : awaitingLunchOut
+                        : awaitingOut
                           ? 'bg-amber-400 animate-pulse'
-                          : dinnerInProgress
-                            ? 'bg-teal-500 animate-pulse'
-                            : inProgress || ns
+                          : inProgress || ns
                               ? 'bg-accent/50'
                               : 'bg-slate-200';
                       const textColor = done
                         ? 'text-accent'
-                        : awaitingLunchOut
+                        : awaitingOut
                           ? 'text-amber-600'
-                          : dinnerInProgress
-                            ? 'text-teal-700 dark:text-teal-300'
-                            : inProgress || ns
+                          : inProgress || ns
                               ? 'text-slate-700'
                               : 'text-slate-400';
                       return (
@@ -671,8 +653,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
                           <span className={`text-xs font-medium uppercase ${textColor}`}>{timeStr}</span>
                           {done && <Check className="w-3 h-3 text-accent flex-shrink-0" strokeWidth={2.5} />}
-                          {awaitingLunchOut && <span className="text-[10px] text-amber-500 font-semibold">{t.punch_exit_question}</span>}
-                          {dinnerInProgress && <span className="text-[10px] font-semibold text-teal-600 dark:text-teal-400">{t.punch_in_shift_small}</span>}
+                          {awaitingOut && <span className="text-[10px] text-amber-500 font-semibold">{t.punch_exit_question}</span>}
                         </span>
                       );
                     })}
@@ -718,18 +699,17 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
 
               <div className="p-4">
                 {!selectedShift ? (
-                  /* Lista turni: mostra IN per turni non timbrati, OUT per pranzo in attesa, blocca cena in corso */
+                  /* Lista turni: mostra IN per turni non timbrati, OUT per turni in attesa */
                   <div className="space-y-2">
                     {shiftsForPickList.map((shift, i) => {
                       const punched = isPunched(shift);
                       const punchedOut = isPunchedOut(shift);
                       const done = isEmployeeDone(shift);
-                      const awaitingLunchOut = shift.type === 'lunch' && punched && !punchedOut;
-                      const dinnerInProgress = shift.type === 'dinner' && punched;
-                      const isSuggested = !done && !dinnerInProgress && (shift.id === suggestedShift?.id || awaitingLunchOut);
+                      const awaitingOut = punched && !punchedOut;
+                      const isSuggested = !done && (shift.id === suggestedShift?.id || awaitingOut);
                       const isDayShift = shift.type === 'lunch';
-                      // Selezionabile: non completato E non cena in corso
-                      const isSelectable = !done && !dinnerInProgress;
+                      // Selezionabile: non completato
+                      const isSelectable = !done;
 
                       return (
                         <motion.button
@@ -739,26 +719,20 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                           transition={{ delay: i * 0.04 }}
                           onClick={() => {
                             if (!isSelectable) return;
-                            if (awaitingLunchOut) {
-                              setPunchMode('out');
-                            } else {
-                              setPunchMode('in');
-                            }
+                            setPunchMode(awaitingOut ? 'out' : 'in');
                             setSelectedShift(shift);
                           }}
                           disabled={!isSelectable}
                           className={`w-full px-4 py-3 rounded-xl flex items-center gap-3 text-left transition-all duration-300 border ${
                             done
                               ? 'bg-slate-50 border-slate-100 cursor-default'
-                              : dinnerInProgress
-                                ? 'cursor-default bg-teal-50 border-teal-100 dark:bg-teal-950/35 dark:border-teal-800/50'
-                                : awaitingLunchOut
+                              : awaitingOut
                                   ? 'bg-amber-50 border-amber-200 cursor-pointer hover:bg-amber-100'
                                   : 'bg-white border-slate-200 hover:bg-slate-50 cursor-pointer'
                           } ${isSuggested ? 'ring-2 ring-accent/40' : ''}`}
                         >
                           <span
-                            className={`flex-shrink-0 ${done ? 'text-accent' : awaitingLunchOut ? 'text-amber-500' : dinnerInProgress ? 'text-teal-600 dark:text-teal-400' : isDayShift ? 'text-amber-500' : 'text-slate-400 dark:text-neutral-500'}`}
+                            className={`flex-shrink-0 ${done ? 'text-accent' : awaitingOut ? 'text-amber-500' : isDayShift ? 'text-amber-500' : 'text-slate-400 dark:text-neutral-500'}`}
                           >
                             {isDayShift ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                           </span>
@@ -768,10 +742,8 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                           </span>
                           {done ? (
                             <Check className="w-5 h-5 text-accent flex-shrink-0" />
-                          ) : awaitingLunchOut ? (
+                          ) : awaitingOut ? (
                             <span className="text-xs font-semibold text-amber-600 uppercase flex-shrink-0">{t.punch_clock_out_label}</span>
-                          ) : dinnerInProgress ? (
-                            <span className="flex-shrink-0 text-xs font-medium text-teal-600 dark:text-teal-400">{t.punch_in_shift_label}</span>
                           ) : isSuggested ? (
                             <span className="text-xs font-medium text-accent uppercase flex-shrink-0">{t.punch_suggested}</span>
                           ) : null}

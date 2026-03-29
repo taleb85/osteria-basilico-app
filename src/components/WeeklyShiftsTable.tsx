@@ -893,9 +893,18 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   const activeUsers = useMemo(() => {
     let list = users.filter((u) => isUserVisibleOnTeamSchedule(u, shifts));
+    
+    // Filtro reparto (se attivo)
     if (localFilterDepartment) {
-      list = list.filter((u) => u.department === localFilterDepartment);
+      list = list.filter((u) => {
+        const d = (u.department || '').toLowerCase();
+        if (localFilterDepartment === 'sala_bar') {
+          return d === 'sala' || d === 'bar';
+        }
+        return d === localFilterDepartment;
+      });
     }
+
     if (filterUserId || localFilterUserId) {
       const fid = localFilterUserId || filterUserId;
       list = list.filter((u) => u.id === fid);
@@ -1828,6 +1837,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     </div>
                     {[
                       { value: '', label: t.department_filter_all },
+                      { value: 'sala_bar', label: 'Sala e Bar' },
                       ...getDepartments().map((d) => ({
                         value: d.value,
                         label: translateDepartmentValue(d.value, effectiveLanguage),
@@ -1847,7 +1857,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           }`}
                         >
                           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-neutral-800">
-                            {dept ? (
+                            {dept === 'sala_bar' ? (
+                              <Filter className="h-3.5 w-3.5 text-accent" strokeWidth={2.5} />
+                            ) : dept ? (
                               <span
                                 className="h-2.5 w-2.5 rounded-full"
                                 style={{ backgroundColor: getDeptColor(dept) }}

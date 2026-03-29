@@ -23,15 +23,12 @@ export interface MobileHomeProps {
   statusInShift: string;
   savingLabel: string;
   startLabel: string;
-  pauseLabel: string;
   endLabel: string;
   canStart: boolean;
-  canPause: boolean;
-  canEndDinner: boolean;
+  canEnd: boolean;
   punchBusy: boolean;
   onStart: () => void;
-  onPause: () => void;
-  onEndDinner: () => void;
+  onEnd: () => void;
   onNavigateToTimesheet?: () => void;
   todayWorkShifts: any[];
 }
@@ -53,15 +50,12 @@ export default function MobileHome({
   statusInShift,
   savingLabel,
   startLabel,
-  pauseLabel,
   endLabel,
   canStart,
-  canPause,
-  canEndDinner,
+  canEnd,
   punchBusy,
   onStart,
-  onPause,
-  onEndDinner,
+  onEnd,
   onNavigateToTimesheet,
   todayWorkShifts,
 }: MobileHomeProps) {
@@ -103,31 +97,16 @@ export default function MobileHome({
           {inProgress ? (
             <div className="flex flex-col gap-2.5">
               {/* Pulsante FINE TURNO (Rosso) */}
-              {canEndDinner && (
+              {canEnd && (
                 <button
                   type="button"
                   disabled={punchBusy}
-                  onClick={onEndDinner}
+                  onClick={onEnd}
                   className="w-full h-16 bg-red-600 hover:bg-red-700 text-white rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-red-600/20 transition-all active:scale-95"
                 >
                   <LogOut className="w-6 h-6" />
                   <span className="text-lg font-bold uppercase tracking-wider">
                     {punchBusy ? savingLabel : endLabel}
-                  </span>
-                </button>
-              )}
-              
-              {/* Pulsante PAUSA (Giallo) */}
-              {canPause && (
-                <button
-                  type="button"
-                  disabled={punchBusy}
-                  onClick={onPause}
-                  className="w-full h-16 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-amber-500/20 transition-all active:scale-95"
-                >
-                  <Pause className="w-6 h-6 fill-white" />
-                  <span className="text-lg font-bold uppercase tracking-wider">
-                    {punchBusy ? savingLabel : pauseLabel}
                   </span>
                 </button>
               )}

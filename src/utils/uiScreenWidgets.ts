@@ -396,7 +396,6 @@ export function isUiWidgetVisible(user: Pick<User, 'role' | 'ui_section_override
   const def = UI_SCREEN_WIDGETS.find((w) => w.key === key);
   if (!def) return true;
   if (!widgetAppliesToUser(def, user.role)) return true;
-  if (user.role === 'admin') return true;
   if (user.ui_section_overrides?.[key] === false) return false;
   return true;
 }

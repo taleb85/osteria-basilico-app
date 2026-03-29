@@ -24,7 +24,6 @@ export function usePunchPresenceVerification(language: Language) {
       const managerBypass = !!(currentUser && currentUser.id !== punchUserId);
       if (managerBypass) return false;
       // Regola di base: la scansione QR è SEMPRE obbligatoria per i dipendenti
-      if (!effectiveToken) return false;
       return true;
     },
     [currentUser, effectiveToken]

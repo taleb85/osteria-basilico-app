@@ -57,7 +57,12 @@ export default function ProfileTabRichPreview({
   if (activeHubTab === 'timesheet' && gm.has('timesheet')) omitKeys.add('timesheet');
   if (activeHubTab === 'reports' && gm.has('stats')) omitKeys.add('stats');
   if ((activeHubTab === 'settings' || activeHubTab === 'profile') && gm.has('staff_profile')) omitKeys.add('staff_profile');
+  
+  // SEMPRE OMETTI global_popups e turni.shift_modal e timesheet.punch_modal
+  // perché vengono renderizzati esplicitamente in fondo a ProfileTabRichPreview (o dentro i componenti preview)
   if (gm.has('global_popups')) omitKeys.add('global_popups');
+  // turni.shift_modal è gestito dentro TurniMgmtPreview
+  // timesheet.punch_modal è gestito dentro TimesheetTabPreview
 
   const remainder = layoutGroups.filter((g) => !omitKeys.has(g.groupKey));
 
