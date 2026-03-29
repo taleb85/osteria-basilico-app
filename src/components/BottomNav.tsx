@@ -92,7 +92,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
 
   // Auto-trigger biometric switch if device is registered for the pending user
   useEffect(() => {
-    if (pendingSwitchUser && hasPinUnlockCredential(pendingSwitchUser.id)) {
+    if (pendingSwitchUser && isQuickSwitchOpen && hasPinUnlockCredential(pendingSwitchUser.id)) {
       const runBiometric = async () => {
         try {
           const ok = await authenticatePinUnlockCredential(pendingSwitchUser.id);
@@ -108,7 +108,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
       };
       void runBiometric();
     }
-  }, [pendingSwitchUser, setCurrentUser]);
+  }, [pendingSwitchUser, isQuickSwitchOpen, setCurrentUser]);
 
   const filteredUsers = useMemo(() => {
     const q = quickSwitchSearch.toLowerCase().trim();
@@ -123,6 +123,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   }, [users, quickSwitchSearch]);
 
   const updateNavOverlapMode = useCallback(() => {
+    if (typeof window === 'undefined') return;
     const scrollY = window.scrollY;
     const vh = window.visualViewport?.height ?? window.innerHeight;
     const docH = document.documentElement.scrollHeight;
@@ -130,7 +131,8 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     const scrollBottom = scrollY + vh;
     const notScrollable = docH <= vh + epsilon;
     const atDocumentBottom = scrollBottom >= docH - epsilon;
-    setNavOverContent(!notScrollable && !atDocumentBottom);
+    const nextOver = !notScrollable && !atDocumentBottom;
+    setNavOverContent((prev) => (prev !== nextOver ? nextOver : prev));
   }, []);
 
   /** Altezza barra → `--app-bottom-nav-offset` per toast / overlay sopra la bottom nav. */
