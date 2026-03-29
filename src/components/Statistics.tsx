@@ -420,57 +420,113 @@ export default function Statistics() {
 
                       <AnimatePresence>
                         {showDeptMenu && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 4, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                            transition={{ duration: 0.1 }}
-                            className="absolute left-0 lg:right-0 lg:left-auto top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
-                            style={{ isolation: 'isolate' }}
-                          >
-                            <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 border-b border-slate-100 dark:border-white/10 mb-1">
-                              {t.department_filter_label}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => { setDeptFilter('all'); setShowDeptMenu(false); }}
-                              className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
-                                deptFilter === 'all' 
-                                  ? 'bg-accent text-white shadow-md' 
-                                  : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
-                              }`}
+                          <>
+                            {/* Desktop Dropdown */}
+                            <motion.div
+                              initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                              transition={{ duration: 0.1 }}
+                              className="hidden lg:block absolute left-0 lg:right-0 lg:left-auto top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                              style={{ isolation: 'isolate' }}
                             >
-                              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
-                                <Check className={`h-3 w-3 ${deptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
+                              <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 border-b border-slate-100 dark:border-white/10 mb-1">
+                                {t.department_filter_label}
                               </div>
-                              <span className="flex-1 truncate">Tutti i reparti</span>
-                              {deptFilter === 'all' && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
-                            </button>
-
-                            <div className="my-1 h-px bg-slate-100 dark:bg-white/5" />
-
-                            {departments.map((d) => (
                               <button
-                                key={d}
                                 type="button"
-                                onClick={() => { setDeptFilter(d); setShowDeptMenu(false); }}
+                                onClick={() => { setDeptFilter('all'); setShowDeptMenu(false); }}
                                 className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
-                                  deptFilter === d 
+                                  deptFilter === 'all' 
                                     ? 'bg-accent text-white shadow-md' 
                                     : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
                                 }`}
                               >
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
-                                  <span
-                                    className={`h-2.5 w-2.5 rounded-full shadow-sm ${deptFilter === d ? 'bg-white' : ''}`}
-                                    style={deptFilter !== d ? { backgroundColor: getDeptColor(d) } : {}}
-                                  />
+                                  <Check className={`h-3 w-3 ${deptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
                                 </div>
-                                <span className="flex-1 truncate">{translateDepartmentValue(d, effectiveLanguage)}</span>
-                                {deptFilter === d && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
+                                <span className="flex-1 truncate">Tutti i reparti</span>
+                                {deptFilter === 'all' && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                               </button>
-                            ))}
-                          </motion.div>
+
+                              <div className="my-1 h-px bg-slate-100 dark:bg-white/5" />
+
+                              {departments.map((d) => (
+                                <button
+                                  key={d}
+                                  type="button"
+                                  onClick={() => { setDeptFilter(d); setShowDeptMenu(false); }}
+                                  className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
+                                    deptFilter === d 
+                                      ? 'bg-accent text-white shadow-md' 
+                                      : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
+                                  }`}
+                                >
+                                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
+                                    <span
+                                      className={`h-2.5 w-2.5 rounded-full shadow-sm ${deptFilter === d ? 'bg-white' : ''}`}
+                                      style={deptFilter !== d ? { backgroundColor: getDeptColor(d) } : {}}
+                                    />
+                                  </div>
+                                  <span className="flex-1 truncate">{translateDepartmentValue(d, effectiveLanguage)}</span>
+                                  {deptFilter === d && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
+                                </button>
+                              ))}
+                            </motion.div>
+
+                            {/* Mobile/Tablet Popup Modal */}
+                            <div className="lg:hidden">
+                              <CenteredModalPortal
+                                open={showDeptMenu}
+                                onClose={() => setShowDeptMenu(false)}
+                                maxWidthClass="max-w-[280px]"
+                                panelClassName="p-1"
+                              >
+                                <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 border-b border-slate-100 dark:border-white/10 mb-1">
+                                  {t.department_filter_label}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => { setDeptFilter('all'); setShowDeptMenu(false); }}
+                                  className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
+                                    deptFilter === 'all' 
+                                      ? 'bg-accent text-white shadow-md' 
+                                      : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
+                                  }`}
+                                >
+                                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
+                                    <Check className={`h-3 w-3 ${deptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
+                                  </div>
+                                  <span className="flex-1 truncate">Tutti i reparti</span>
+                                  {deptFilter === 'all' && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
+                                </button>
+
+                                <div className="my-1 h-px bg-slate-100 dark:bg-white/5" />
+
+                                {departments.map((d) => (
+                                  <button
+                                    key={d}
+                                    type="button"
+                                    onClick={() => { setDeptFilter(d); setShowDeptMenu(false); }}
+                                    className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
+                                      deptFilter === d 
+                                        ? 'bg-accent text-white shadow-md' 
+                                        : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
+                                    }`}
+                                  >
+                                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
+                                      <span
+                                        className={`h-2.5 w-2.5 rounded-full shadow-sm ${deptFilter === d ? 'bg-white' : ''}`}
+                                        style={deptFilter !== d ? { backgroundColor: getDeptColor(d) } : {}}
+                                      />
+                                    </div>
+                                    <span className="flex-1 truncate">{translateDepartmentValue(d, effectiveLanguage)}</span>
+                                    {deptFilter === d && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
+                                  </button>
+                                ))}
+                              </CenteredModalPortal>
+                            </div>
+                          </>
                         )}
                       </AnimatePresence>
                     </div>
