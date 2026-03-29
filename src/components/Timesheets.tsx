@@ -2312,8 +2312,8 @@ export default function Timesheets() {
 
           {/* ── Toolbar presenze: sopra la griglia ── */}
           {uiW('timesheet.header') && (
-          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-col items-stretch justify-start gap-2 md:flex-row md:items-center md:justify-between md:gap-1.5 md:px-2">
-            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch gap-2 overflow-x-auto-safe md:flex-row md:flex-nowrap md:items-center md:justify-start md:gap-1.5">
+          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-col items-stretch justify-start gap-2 md:flex-row md:items-center md:justify-between md:gap-1.5 md:px-2 overflow-visible">
+            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch gap-2 overflow-visible md:flex-row md:flex-nowrap md:items-center md:justify-start md:gap-1.5">
               <div className="ui-toolbar-row-tight min-w-0 w-full shrink-0 md:w-auto md:gap-1.5">
                 <div className="ui-toolbar-group md:scale-90 md:origin-left">
                   <button
@@ -2458,112 +2458,110 @@ export default function Timesheets() {
             </div>
 
             <div className="flex min-h-8 shrink-0 items-center justify-start gap-1 self-stretch md:ml-auto md:justify-end md:self-center">
-              {currentUser && (isManagementRole(currentUser.role) || isFeatureEnabled(currentUser, 'export_pdf')) && (
-                <div className="flex items-center gap-1 md:scale-90 md:origin-right">
-                  {/* Department Selector for PDF */}
-                  <div className="relative" ref={pdfDeptMenuRef}>
-                    <button
-                      type="button"
-                      onClick={(e) => { 
-                        e.preventDefault();
-                        e.stopPropagation(); 
-                        setShowPdfDeptMenu(prev => !prev); 
-                      }}
-                      className="ui-toolbar-chip !inline-flex !h-8 !px-2 !text-[10px] items-center gap-1.5 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-neutral-800/90 cursor-pointer relative z-[110]"
-                      title="Seleziona reparto per PDF"
-                    >
-                      <Filter className="h-3 w-3 text-slate-400" />
-                      <span className="font-bold text-slate-700 dark:text-neutral-200">
-                        {pdfDeptFilter === 'all' ? 'Tutti i reparti' : 
-                         pdfDeptFilter === 'sala_bar' ? 'Sala e Bar' : 
-                         availableDepts.find(d => d.value === pdfDeptFilter)?.label || pdfDeptFilter}
-                      </span>
-                      <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${showPdfDeptMenu ? 'rotate-180' : ''}`} />
-                    </button>
+              <div className="flex items-center gap-1 md:scale-90 md:origin-right">
+                {/* Department Selector for PDF */}
+                <div className="relative" ref={pdfDeptMenuRef}>
+                  <button
+                    type="button"
+                    onClick={(e) => { 
+                      e.preventDefault();
+                      e.stopPropagation(); 
+                      setShowPdfDeptMenu(prev => !prev); 
+                    }}
+                    className="ui-toolbar-chip !inline-flex !h-8 !px-2 !text-[10px] items-center gap-1.5 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-neutral-800/90 cursor-pointer relative z-[110]"
+                    title="Seleziona reparto per PDF"
+                  >
+                    <Filter className="h-3 w-3 text-slate-400" />
+                    <span className="font-bold text-slate-700 dark:text-neutral-200">
+                      {pdfDeptFilter === 'all' ? 'Tutti i reparti' : 
+                       pdfDeptFilter === 'sala_bar' ? 'Sala e Bar' : 
+                       availableDepts.find(d => d.value === pdfDeptFilter)?.label || pdfDeptFilter}
+                    </span>
+                    <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${showPdfDeptMenu ? 'rotate-180' : ''}`} />
+                  </button>
 
-                    {/* Dropdown Menu */}
-                    <AnimatePresence>
-                      {showPdfDeptMenu && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 4, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                          className="absolute right-0 top-full z-[150] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                  {/* Dropdown Menu */}
+                  <AnimatePresence>
+                    {showPdfDeptMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                        className="absolute right-0 top-full z-[150] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => { setPdfDeptFilter('all'); setShowPdfDeptMenu(false); }}
+                          className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
+                            pdfDeptFilter === 'all' 
+                              ? 'bg-accent/10 text-accent' 
+                              : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
+                          }`}
                         >
+                          Tutti i reparti
+                          {pdfDeptFilter === 'all' && <Check className="h-3 w-3" />}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => { setPdfDeptFilter('sala_bar'); setShowPdfDeptMenu(false); }}
+                          className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
+                            pdfDeptFilter === 'sala_bar' 
+                              ? 'bg-accent/10 text-accent' 
+                              : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
+                          }`}
+                        >
+                          Sala e Bar
+                          {pdfDeptFilter === 'sala_bar' && <Check className="h-3 w-3" />}
+                        </button>
+
+                        <div className="my-1 h-px bg-slate-100 dark:bg-white/5" />
+
+                        {availableDepts
+                          .filter(d => d.value !== 'sala' && d.value !== 'bar')
+                          .map((dept) => (
                           <button
+                            key={dept.value}
                             type="button"
-                            onClick={() => { setPdfDeptFilter('all'); setShowPdfDeptMenu(false); }}
+                            onClick={() => { setPdfDeptFilter(dept.value); setShowPdfDeptMenu(false); }}
                             className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
-                              pdfDeptFilter === 'all' 
+                              pdfDeptFilter === dept.value 
                                 ? 'bg-accent/10 text-accent' 
                                 : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
                             }`}
                           >
-                            Tutti i reparti
-                            {pdfDeptFilter === 'all' && <Check className="h-3 w-3" />}
+                            {dept.label}
+                            {pdfDeptFilter === dept.value && <Check className="h-3 w-3" />}
                           </button>
-
-                          <button
-                            type="button"
-                            onClick={() => { setPdfDeptFilter('sala_bar'); setShowPdfDeptMenu(false); }}
-                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
-                              pdfDeptFilter === 'sala_bar' 
-                                ? 'bg-accent/10 text-accent' 
-                                : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
-                            }`}
-                          >
-                            Sala e Bar
-                            {pdfDeptFilter === 'sala_bar' && <Check className="h-3 w-3" />}
-                          </button>
-
-                          <div className="my-1 h-px bg-slate-100 dark:bg-white/5" />
-
-                          {availableDepts
-                            .filter(d => d.value !== 'sala' && d.value !== 'bar')
-                            .map((dept) => (
-                            <button
-                              key={dept.value}
-                              type="button"
-                              onClick={() => { setPdfDeptFilter(dept.value); setShowPdfDeptMenu(false); }}
-                              className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${
-                                pdfDeptFilter === dept.value 
-                                  ? 'bg-accent/10 text-accent' 
-                                  : 'text-slate-600 hover:bg-slate-50 dark:text-neutral-300 dark:hover:bg-white/5'
-                              }`}
-                            >
-                              {dept.label}
-                              {pdfDeptFilter === dept.value && <Check className="h-3 w-3" />}
-                            </button>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5" />
-
-                  <button
-                    type="button"
-                    onClick={() => void handleExportTimesheetPdf('WEEK')}
-                    className="ui-toolbar-chip hover:bg-slate-50 dark:hover:bg-neutral-800/90 inline-flex !h-8 !px-2 !text-[10px]"
-                    title={t.ts_export_week_pdf || "Export Current Week PDF"}
-                    aria-label={t.ts_export_week_pdf || "Export Current Week PDF"}
-                  >
-                    <FileDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    <span className="hidden min-[380px]:inline">{t.ts_week_pdf || "Week PDF"}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleExportTimesheetPdf('PERIOD')}
-                    className="ui-toolbar-chip hover:bg-slate-50 dark:hover:bg-neutral-800/90 inline-flex border-accent/30 text-accent !h-8 !px-2 !text-[10px]"
-                    title={t.ts_export_period_pdf || "Export Full Period PDF"}
-                    aria-label={t.ts_export_period_pdf || "Export Full Period PDF"}
-                  >
-                    <FileDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    <span className="hidden min-[380px]:inline">{t.ts_period_pdf || "Period PDF"}</span>
-                  </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              )}
+
+                <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5" />
+
+                <button
+                  type="button"
+                  onClick={() => void handleExportTimesheetPdf('WEEK')}
+                  className="ui-toolbar-chip hover:bg-slate-50 dark:hover:bg-neutral-800/90 inline-flex !h-8 !px-2 !text-[10px]"
+                  title={t.ts_export_week_pdf || "Export Current Week PDF"}
+                  aria-label={t.ts_export_week_pdf || "Export Current Week PDF"}
+                >
+                  <FileDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <span className="hidden min-[380px]:inline">{t.ts_week_pdf || "Week PDF"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleExportTimesheetPdf('PERIOD')}
+                  className="ui-toolbar-chip hover:bg-slate-50 dark:hover:bg-neutral-800/90 inline-flex border-accent/30 text-accent !h-8 !px-2 !text-[10px]"
+                  title={t.ts_export_period_pdf || "Export Full Period PDF"}
+                  aria-label={t.ts_export_period_pdf || "Export Full Period PDF"}
+                >
+                  <FileDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <span className="hidden min-[380px]:inline">{t.ts_period_pdf || "Period PDF"}</span>
+                </button>
+              </div>
             </div>
           </div>
           )}
