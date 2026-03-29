@@ -2463,8 +2463,12 @@ export default function Timesheets() {
                   {/* Department Selector for PDF */}
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setShowPdfDeptMenu(!showPdfPdfDeptMenu); }}
-                    className="ui-toolbar-chip !h-8 !px-2 !text-[10px] flex items-center gap-1.5 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-neutral-800/90"
+                    onClick={(e) => { 
+                      e.preventDefault();
+                      e.stopPropagation(); 
+                      setShowPdfDeptMenu(prev => !prev); 
+                    }}
+                    className="ui-toolbar-chip !h-8 !px-2 !text-[10px] flex items-center gap-1.5 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-neutral-800/90 cursor-pointer relative z-[110]"
                     title="Seleziona reparto per PDF"
                   >
                     <Filter className="h-3 w-3 text-slate-400" />
