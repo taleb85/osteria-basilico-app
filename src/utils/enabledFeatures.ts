@@ -24,6 +24,7 @@ export const PERMISSION_MATRIX_KEYS = [
   /** KPI “Costo stimato” (€/h × ore approvate) in Ore — utile soprattutto a chi cura contabilità / costi. */
   'view_estimated_cost',
   'desktop_access',
+  'profile_readonly',
 ] as const;
 
 export type PermissionMatrixKey = (typeof PERMISSION_MATRIX_KEYS)[number];
@@ -52,6 +53,7 @@ export const FEATURE_LABELS: Record<EnabledFeatureKey, string> = {
   view_stats: 'Visualizzazione Ore',
   view_estimated_cost: 'Costo stimato del lavoro (scheda Ore)',
   desktop_access: 'Accesso Browser Desktop (deprecato — il gate PWA è unificato)',
+  profile_readonly: 'Profilo in sola lettura (blocca modifiche anagrafica)',
   home_tab: 'Visualizza scheda Dashboard',
   ferie_tab: 'Visualizza scheda Ferie',
   admin_tab: 'Visualizza scheda Admin (Impostazioni)',
@@ -106,6 +108,7 @@ export const ROLE_TEMPLATE_FEATURE_SECTIONS: readonly RoleTemplateSection[] = [
     id: 'other',
     rows: [
       { kind: 'feature', key: 'view_estimated_cost' },
+      { kind: 'feature', key: 'profile_readonly' },
     ],
   },
 ] as const;
