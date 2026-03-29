@@ -3834,6 +3834,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     actualNeedsPunches = false;
                   }
 
+                  const showApproveBtn = !isFrozen && !isAbsent && !isConfirmed && canApproveShifts;
+
                   return (
                     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                       {/* Scrollable content */}
@@ -3867,6 +3869,18 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             <span className="flex items-center gap-1 text-[11px] font-bold text-rose-800 bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-full dark:bg-rose-950/50 dark:text-rose-100 dark:border-rose-800/60">
                               <UserX className="w-3 h-3" /> {t.status_absent}
                             </span>
+                          )}
+                          {showApproveBtn && (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await updateShift(shift.id, { approval_status: 'confirmed' });
+                                showSuccess?.(t.shift_status_toast_published);
+                              }}
+                              className="flex items-center gap-1 text-[11px] font-bold text-white bg-accent hover:bg-accent-hover px-3 py-1.5 rounded-full shadow-sm transition-all active:scale-95"
+                            >
+                              <Check className="w-3 h-3" strokeWidth={3} /> {t.wst_filter_published}
+                            </button>
                           )}
                           </div>
                         </div>
