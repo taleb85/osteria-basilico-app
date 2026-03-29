@@ -1706,8 +1706,10 @@ export default function Timesheets() {
     }
     setManualPunchSaving(true);
     try {
-      // Richiedi verifica QR code prima di salvare
-      if (needsQrModal(drawerData.userId)) {
+      // Richiedi verifica QR code SOLO se l'utente corrente è admin
+      const shouldRequireQrVerification = currentUser?.role === 'admin';
+      
+      if (shouldRequireQrVerification && needsQrModal(drawerData.userId)) {
         try {
           await requestQrProof(drawerData.userId);
         } catch (err) {
