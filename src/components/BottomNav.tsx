@@ -13,6 +13,7 @@ import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 
 import { PinPadModal } from './ui/PinPadModal';
+import { createPortal } from 'react-dom';
 import { hasPinUnlockCredential, authenticatePinUnlockCredential } from '../utils/pinUnlockWebAuthn';
 
 interface BottomNavProps {
@@ -333,130 +334,129 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
       </div>
 
       <CenteredModalPortal
-        open={isQuickSwitchOpen}
+        open={isQuickSwitchOpen && !pendingSwitchUser}
         onClose={() => setIsQuickSwitchOpen(false)}
         ariaLabel="Cambio rapido utente"
         maxWidthClass="max-w-md"
-        panelClassName={`p-0 ${pendingSwitchUser ? '!bg-transparent !border-none !shadow-none' : '!bg-white/70 dark:!bg-neutral-900/70 backdrop-blur-2xl border-white/20 dark:border-white/10'}`}
+        panelClassName="p-0 !bg-white/70 dark:!bg-neutral-900/70 backdrop-blur-2xl border-white/20 dark:border-white/10"
       >
         <div className="flex flex-col h-full max-h-[80vh]">
-          {!pendingSwitchUser && (
-            <div className="p-4 border-b border-slate-200/30 dark:border-white/10 sticky top-0 bg-white/40 dark:bg-neutral-900/40 backdrop-blur-md z-10">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-base font-bold text-slate-900 dark:text-neutral-50 uppercase tracking-tight">
-                  {tv.quick_switch_title ?? 'Cambio rapido utente'}
-                </h3>
-                <button
-                  onClick={() => setIsQuickSwitchOpen(false)}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  autoFocus
-                  value={quickSwitchSearch}
-                  onChange={(e) => setQuickSwitchSearch(e.target.value)}
-                  placeholder={tv.quick_switch_search_placeholder ?? 'Cerca dipendente...'}
-                  className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-neutral-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 outline-none"
-                />
-              </div>
+          <div className="p-4 border-b border-slate-200/30 dark:border-white/10 sticky top-0 bg-white/40 dark:bg-neutral-900/40 backdrop-blur-md z-10">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold text-slate-900 dark:text-neutral-50 uppercase tracking-tight">
+                {tv.quick_switch_title ?? 'Cambio rapido utente'}
+              </h3>
+              <button
+                onClick={() => setIsQuickSwitchOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-          )}
-          
-          <div className={`flex-1 overflow-y-auto ${pendingSwitchUser ? 'p-0' : 'p-2 space-y-1'}`}>
-            {pendingSwitchUser ? (
-              <PinPadModal
-                title={tv.quick_switch_title ?? 'Cambio rapido utente'}
-                subtitle={(tv.quick_switch_pin_prompt ?? 'Inserisci PIN per {name}').replace('{name}', pendingSwitchUser.first_name)}
-                pinLabel={formatTrans(tv.pin_for_profile_named ?? t.pin_for_profile, { name: `${pendingSwitchUser.first_name} ${pendingSwitchUser.last_name}` })}
-                pin={switchPin}
-                onPinChange={(p) => (setSwitchPin(p), setSwitchError(''))}
-                onConfirm={() => {}} // Gestito da useEffect su switchPin.length === 4
-                onCancel={() => setPendingSwitchUser(null)}
-                error={switchError}
-                isLoading={false}
-                confirmLabel={t.confirm}
-                cancelLabel={t.cancel}
-                leftActionButton={
-                  hasPinUnlockCredential(pendingSwitchUser.id) ? (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const ok = await authenticatePinUnlockCredential(pendingSwitchUser.id);
-                        if (ok) {
-                          setCurrentUser(pendingSwitchUser);
-                          setIsQuickSwitchOpen(false);
-                          setPendingSwitchUser(null);
-                          setSwitchPin('');
-                        }
-                      }}
-                      className="flex flex-col items-center justify-center gap-1 text-[#455a3f] active:scale-95 transition-transform"
-                    >
-                      <Fingerprint className="w-6 h-6" />
-                    </button>
-                  ) : null
-                }
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                autoFocus
+                value={quickSwitchSearch}
+                onChange={(e) => setQuickSwitchSearch(e.target.value)}
+                placeholder={tv.quick_switch_search_placeholder ?? 'Cerca dipendente...'}
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-neutral-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 outline-none"
               />
-            ) : (
-              <>
-                {filteredUsers.map((u) => {
-                  const uThumb = readProfileAvatarFromStorage(u.id) ?? u.avatar_url ?? null;
-                  const uThumbFocus = readAvatarFocus(u.id);
-                  const uInitial = (u.first_name?.[0] || '?').toUpperCase();
-                  
-                  return (
-                    <button
-                      key={u.id}
-                      onClick={() => handleSelectUserForSwitch(u)}
-                      className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-colors text-left ${
-                        currentUser?.id === u.id 
-                          ? 'bg-accent/10 text-accent' 
-                          : 'hover:bg-slate-50 dark:hover:bg-neutral-800/50 text-slate-700 dark:text-neutral-200'
-                      }`}
-                    >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-accent/30 bg-accent/10 text-accent/90 ring-1 ring-accent/25 shadow-sm transition-transform duration-200">
-                        {uThumb ? (
-                          <img
-                            src={uThumb}
-                            alt=""
-                            className="h-full w-full object-cover pointer-events-none select-none"
-                            style={{ objectPosition: avatarFocusToObjectPosition(uThumbFocus) }}
-                            draggable={false}
-                          />
-                        ) : (
-                          <span className="text-sm font-bold">
-                            {uInitial}
-                          </span>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold truncate">
-                          {u.first_name} {u.last_name}
-                        </p>
-                        <p className="text-[11px] opacity-60 truncate">
-                          {u.email}
-                        </p>
-                      </div>
-                      {currentUser?.id === u.id && (
-                        <ShieldCheck className="w-4 h-4 shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
-                {filteredUsers.length === 0 && (
-                  <div className="p-8 text-center text-slate-400 text-sm">
-                    {tv.quick_switch_no_employee_found ?? 'Nessun dipendente trovato'}
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            {filteredUsers.map((u) => {
+              const uThumb = readProfileAvatarFromStorage(u.id) ?? u.avatar_url ?? null;
+              const uThumbFocus = readAvatarFocus(u.id);
+              const uInitial = (u.first_name?.[0] || '?').toUpperCase();
+              
+              return (
+                <button
+                  key={u.id}
+                  onClick={() => handleSelectUserForSwitch(u)}
+                  className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-colors text-left ${
+                    currentUser?.id === u.id 
+                      ? 'bg-accent/10 text-accent' 
+                      : 'hover:bg-slate-50 dark:hover:bg-neutral-800/50 text-slate-700 dark:text-neutral-200'
+                  }`}
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-accent/30 bg-accent/10 text-accent/90 ring-1 ring-accent/25 shadow-sm transition-transform duration-200">
+                    {uThumb ? (
+                      <img
+                        src={uThumb}
+                        alt=""
+                        className="h-full w-full object-cover pointer-events-none select-none"
+                        style={{ objectPosition: avatarFocusToObjectPosition(uThumbFocus) }}
+                        draggable={false}
+                      />
+                    ) : (
+                      <span className="text-sm font-bold">
+                        {uInitial}
+                      </span>
+                    )}
                   </div>
-                )}
-              </>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold truncate">
+                      {u.first_name} {u.last_name}
+                    </p>
+                    <p className="text-[11px] opacity-60 truncate">
+                      {u.email}
+                    </p>
+                  </div>
+                  {currentUser?.id === u.id && (
+                    <ShieldCheck className="w-4 h-4 shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+            {filteredUsers.length === 0 && (
+              <div className="p-8 text-center text-slate-400 text-sm">
+                {tv.quick_switch_no_employee_found ?? 'Nessun dipendente trovato'}
+              </div>
             )}
           </div>
         </div>
       </CenteredModalPortal>
+
+      {isQuickSwitchOpen && pendingSwitchUser && createPortal(
+        <AnimatePresence>
+          <PinPadModal
+            title={tv.quick_switch_title ?? 'Cambio rapido utente'}
+            subtitle={(tv.quick_switch_pin_prompt ?? 'Inserisci PIN per {name}').replace('{name}', pendingSwitchUser.first_name)}
+            pinLabel={formatTrans(tv.pin_for_profile_named ?? t.pin_for_profile, { name: `${pendingSwitchUser.first_name} ${pendingSwitchUser.last_name}` })}
+            pin={switchPin}
+            onPinChange={(p) => (setSwitchPin(p), setSwitchError(''))}
+            onConfirm={() => {}} // Gestito da useEffect su switchPin.length === 4
+            onCancel={() => setPendingSwitchUser(null)}
+            error={switchError}
+            isLoading={false}
+            confirmLabel={t.confirm}
+            cancelLabel={t.cancel}
+            leftActionButton={
+              hasPinUnlockCredential(pendingSwitchUser.id) ? (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await authenticatePinUnlockCredential(pendingSwitchUser.id);
+                    if (ok) {
+                      setCurrentUser(pendingSwitchUser);
+                      setIsQuickSwitchOpen(false);
+                      setPendingSwitchUser(null);
+                      setSwitchPin('');
+                    }
+                  }}
+                  className="flex flex-col items-center justify-center gap-1 text-[#455a3f] active:scale-95 transition-transform"
+                >
+                  <Fingerprint className="w-6 h-6" />
+                </button>
+              ) : null
+            }
+          />
+        </AnimatePresence>,
+        document.body
+      )}
     </nav>
   );
 }
