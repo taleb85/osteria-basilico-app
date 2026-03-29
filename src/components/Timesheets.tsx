@@ -2469,7 +2469,7 @@ export default function Timesheets() {
                         e.stopPropagation(); 
                         setShowPdfDeptMenu(prev => !prev); 
                       }}
-                      className="ui-toolbar-chip !h-8 !px-2 !text-[10px] flex items-center gap-1.5 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-neutral-800/90 cursor-pointer relative z-[110]"
+                      className="ui-toolbar-chip !inline-flex !h-8 !px-2 !text-[10px] items-center gap-1.5 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-neutral-800/90 cursor-pointer relative z-[110]"
                       title="Seleziona reparto per PDF"
                     >
                       <Filter className="h-3 w-3 text-slate-400" />
@@ -2545,7 +2545,7 @@ export default function Timesheets() {
                   <button
                     type="button"
                     onClick={() => void handleExportTimesheetPdf('WEEK')}
-                    className="ui-toolbar-chip !hidden hover:bg-slate-50 dark:hover:bg-neutral-800/90 md:!inline-flex !h-8 !px-2 !text-[10px]"
+                    className="ui-toolbar-chip hover:bg-slate-50 dark:hover:bg-neutral-800/90 inline-flex !h-8 !px-2 !text-[10px]"
                     title={t.ts_export_week_pdf || "Export Current Week PDF"}
                     aria-label={t.ts_export_week_pdf || "Export Current Week PDF"}
                   >
@@ -2555,7 +2555,7 @@ export default function Timesheets() {
                   <button
                     type="button"
                     onClick={() => void handleExportTimesheetPdf('PERIOD')}
-                    className="ui-toolbar-chip !hidden hover:bg-slate-50 dark:hover:bg-neutral-800/90 md:!inline-flex border-accent/30 text-accent !h-8 !px-2 !text-[10px]"
+                    className="ui-toolbar-chip hover:bg-slate-50 dark:hover:bg-neutral-800/90 inline-flex border-accent/30 text-accent !h-8 !px-2 !text-[10px]"
                     title={t.ts_export_period_pdf || "Export Full Period PDF"}
                     aria-label={t.ts_export_period_pdf || "Export Full Period PDF"}
                   >
