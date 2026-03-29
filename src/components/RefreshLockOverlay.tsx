@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { Smartphone, Fingerprint, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
@@ -27,44 +27,6 @@ export default function RefreshLockOverlay() {
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
   const webAuthnSupported = supportsPinUnlockWebAuthn();
-
-  const handleDeviceUnlock = async () => {
-    if (deviceUnlockLoading || loading || linkDeviceLoading) return;
-    setDeviceUnlockLoading(true);
-    setError('');
-    try {
-      const ok = await unlockAfterRefreshWithDevice();
-      if (!ok) setError(t.sync_lock_device_failed);
-    } finally {
-      setDeviceUnlockLoading(false);
-    }
-  };
-
-  // Auto-trigger biometric unlock if device is registered
-  useEffect(() => {
-    if (pinUnlockDeviceRegistered && !deviceUnlockLoading && !loading && !linkDeviceLoading) {
-      void handleDeviceUnlock();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pinUnlockDeviceRegistered]);
-
-  const profileDisplayName = useMemo(() => {
-    if (!currentUser) return '';
-    const fn = (currentUser.first_name ?? '').trim();
-    const ln = (currentUser.last_name ?? '').trim();
-    const full = [fn, ln].filter(Boolean).join(' ').trim();
-    return full || currentUser.email?.split('@')[0] || currentUser.email || '—';
-  }, [currentUser]);
-
-  const pinProfileLabel = formatTrans(tv.pin_for_profile_named ?? t.pin_for_profile, {
-    name: profileDisplayName,
-  });
-
-  const message = pendingPublishWeekStart
-    ? t.publish_pin_prompt
-    : pendingOrderIds?.length
-      ? t.changes_pin_prompt
-      : t.sync_complete_pin_prompt;
 
   const handleDeviceUnlock = async () => {
     if (deviceUnlockLoading || loading || linkDeviceLoading) return;
