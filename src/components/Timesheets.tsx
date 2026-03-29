@@ -2312,8 +2312,8 @@ export default function Timesheets() {
 
           {/* ── Toolbar presenze: sopra la griglia ── */}
           {uiW('timesheet.header') && (
-          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-col items-stretch justify-start gap-2 md:flex-row md:items-center md:justify-between md:gap-1.5 md:px-2 overflow-visible">
-            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch gap-2 overflow-visible md:flex-row md:flex-nowrap md:items-center md:justify-start md:gap-1.5">
+          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-col items-stretch justify-start gap-2 md:flex-row md:items-center md:justify-between md:gap-1.5 md:px-2 overflow-visible relative z-[1000]">
+            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch gap-2 overflow-visible md:flex-row md:flex-nowrap md:items-center md:justify-start md:gap-1.5 relative z-[1001]">
               <div className="ui-toolbar-row-tight min-w-0 w-full shrink-0 md:w-auto md:gap-1.5">
                 <div className="ui-toolbar-group md:scale-90 md:origin-left">
                   <button
@@ -2480,15 +2480,16 @@ export default function Timesheets() {
                     <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${showPdfDeptMenu ? 'rotate-180' : ''}`} />
                   </button>
 
-                  {/* Dropdown Menu */}
-                  <AnimatePresence>
-                    {showPdfDeptMenu && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 4, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                        className="absolute right-0 top-full z-[150] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
-                      >
+                    {/* Dropdown Menu */}
+                    <AnimatePresence>
+                      {showPdfDeptMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                          className="absolute right-0 top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                          style={{ isolation: 'isolate' }}
+                        >
                         <button
                           type="button"
                           onClick={() => { setPdfDeptFilter('all'); setShowPdfDeptMenu(false); }}
