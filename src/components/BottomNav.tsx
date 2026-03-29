@@ -50,7 +50,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     }, 600);
   }, [currentUser]);
 
-  const handleLongPressEnd = useCallback(() => {
+  const handleLongPressEnd = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
@@ -224,8 +224,15 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   onMouseDown={() => handleLongPressStart(id)}
                   onMouseUp={handleLongPressEnd}
                   onMouseLeave={handleLongPressEnd}
-                  onTouchStart={() => handleLongPressStart(id)}
+                  onTouchStart={(e) => {
+                    // Impedisce il menu contestuale di sistema su iOS durante il long press
+                    handleLongPressStart(id);
+                  }}
                   onTouchEnd={handleLongPressEnd}
+                  onTouchMove={handleLongPressEnd}
+                  onContextMenu={(e) => {
+                    if (id === 'profile') e.preventDefault();
+                  }}
                   title={buttonTitle}
                   aria-label={ariaLabel}
                   className={`keep-white-glass flex flex-1 min-w-0 min-h-[44px] sm:min-h-[48px] rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] items-center justify-center px-0.5 py-1.5 ${
@@ -346,8 +353,9 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                           <img
                             src={uThumb}
                             alt=""
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-cover pointer-events-none select-none"
                             style={{ objectPosition: avatarFocusToObjectPosition(uThumbFocus) }}
+                            draggable={false}
                           />
                         );
                       }
@@ -420,8 +428,9 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                           <img
                             src={uThumb}
                             alt=""
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-cover pointer-events-none select-none"
                             style={{ objectPosition: avatarFocusToObjectPosition(uThumbFocus) }}
+                            draggable={false}
                           />
                         ) : (
                           <span className="text-sm font-bold">

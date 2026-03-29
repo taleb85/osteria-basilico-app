@@ -4,7 +4,12 @@
     <script>
       (function(){
         var t=localStorage.getItem('userTheme')||localStorage.getItem('theme');
-        document.documentElement.classList.toggle('dark',t==='dark');
+        if(t==='dark'||t==='light'){
+          document.documentElement.classList.toggle('dark',t==='dark');
+        } else {
+          var sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.toggle('dark', sysDark);
+        }
         if(location.search.includes('nocache=1')){
           Promise.all([
             navigator.serviceWorker?.getRegistrations?.().then(function(r){ return Promise.all(r.map(function(s){return s.unregister();})); })||Promise.resolve(),

@@ -240,7 +240,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       applyDocumentTheme(stored);
       return;
     }
-    applyDocumentTheme('light');
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      applyDocumentTheme(e.matches ? 'dark' : 'light');
+    };
+
+    handleChange(mediaQuery);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [currentUser]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [holidays, setHolidays] = useState<HolidayRequest[]>([]);

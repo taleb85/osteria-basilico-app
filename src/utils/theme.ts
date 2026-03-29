@@ -4,7 +4,14 @@ const STORAGE_KEY = 'userTheme';
 
 /** Applica la classe `dark` su `<html>` per Tailwind `darkMode: 'class'`. */
 export function applyDocumentTheme(theme: Theme | null | undefined): void {
-  const resolved: Theme = theme === 'dark' ? 'dark' : 'light';
+  let resolved: Theme;
+  if (theme === 'dark' || theme === 'light') {
+    resolved = theme;
+  } else {
+    // Se il tema non è specificato (null/undefined), segui il sistema
+    resolved = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
   if (resolved === 'dark') {
     document.documentElement.classList.add('dark');
   } else {

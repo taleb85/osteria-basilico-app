@@ -522,14 +522,14 @@
    */
   .pb-content {
     padding-bottom: calc(
-      max(10px, env(safe-area-inset-bottom, 0px)) + var(--app-bottom-nav-offset, 80px) + 0.75rem
+      max(4px, env(safe-area-inset-bottom, 0px)) + var(--app-bottom-nav-offset, 64px) + 0.1rem
     );
   }
 
   @media (min-width: 640px) {
     .pb-content {
       padding-bottom: calc(
-        max(10px, env(safe-area-inset-bottom, 0px)) + var(--app-bottom-nav-offset, 84px) + 0.75rem
+        max(4px, env(safe-area-inset-bottom, 0px)) + var(--app-bottom-nav-offset, 68px) + 0.1rem
       );
     }
   }

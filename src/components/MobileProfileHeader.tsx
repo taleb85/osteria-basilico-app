@@ -114,6 +114,42 @@ export default function MobileProfileHeader({
 
   const uiTheme = (currentUser.theme ?? 'light') as 'light' | 'dark';
   
+  // Effetto per seguire il tema di sistema se l'utente non ha una preferenza esplicita salvata
+  useEffect(() => {
+    const stored = readStoredThemePreference();
+    if (stored) {
+      // Se c'è una preferenza salvata, assicuriamoci che sia applicata
+      if (currentUser.theme !== stored) {
+        updateUserPreferences({ theme: stored });
+      }
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      const nextTheme = e.matches ? 'dark' : 'light';
+      if (currentUser.theme !== nextTheme) {
+        updateUserPreferences({ theme: nextTheme });
+      }
+    };
+
+    // Inizializza e ascolta i cambiamenti
+    handleChange(mediaQuery);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [currentUser.id, currentUser.theme, updateUserPreferences]);
+
+  // Se non c'è una preferenza salvata, forziamo il ricalcolo al cambio di stato del sistema
+  useEffect(() => {
+    const stored = readStoredThemePreference();
+    if (stored) return;
+
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (currentUser.theme !== systemTheme) {
+      updateUserPreferences({ theme: systemTheme });
+    }
+  }, [currentUser.id]); // Esegui al login/cambio utente
+
   const toggleUiTheme = () => {
     const nextTheme = uiTheme === 'light' ? 'dark' : 'light';
     updateUserPreferences({ theme: nextTheme });
