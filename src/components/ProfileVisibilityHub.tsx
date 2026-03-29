@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Search,
   Home,
@@ -496,14 +497,14 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
       </div>
     </div>
 
-    {previewUser && (
+    {previewUser && createPortal(
         <div
-          className="fixed inset-0 z-[200] flex touch-manipulation flex-col overscroll-contain bg-slate-100/95 backdrop-blur-md dark:bg-neutral-950/95 supports-[backdrop-filter]:backdrop-saturate-125"
+          className="fixed inset-0 z-[10060] flex touch-manipulation flex-col overscroll-contain bg-slate-100/95 backdrop-blur-md dark:bg-neutral-950/95 supports-[backdrop-filter]:backdrop-saturate-125"
           role="dialog"
           aria-modal="true"
           aria-labelledby="profile-visibility-fs-title"
         >
-          <header className="sticky top-0 z-[210] safe-area-pad flex shrink-0 items-center gap-3 border-b border-slate-200/90 bg-white/90 px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))] shadow-sm backdrop-blur-lg sm:px-5 dark:border-white/10 dark:bg-neutral-900/90">
+          <header className="sticky top-0 z-[10070] safe-area-pad flex min-h-[72px] shrink-0 items-center gap-3 border-b border-slate-200/90 bg-white/90 px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))] shadow-sm backdrop-blur-lg sm:px-5 dark:border-white/10 dark:bg-neutral-900/90">
             <button
               type="button"
               onClick={closePreview}
@@ -533,7 +534,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                 {tv.profile_visibility_save_apply ?? 'Salva e applica'}
               </button>
             ) : (
-              <span className="shrink-0 rounded-lg border border-accent/20 bg-accent/10 px-2 py-1 text-[10px] font-bold tracking-wider text-accent uppercase dark:border-accent/30 dark:bg-accent/15">
+              <span className="shrink-0 rounded-lg border border-accent/20 bg-accent/10 px-2.5 py-1.5 text-[11px] font-bold tracking-wider text-accent uppercase dark:border-accent/30 dark:bg-accent/15">
                 {tv.profile_visibility_readonly_preview ?? 'Solo lettura'}
               </span>
             )}
@@ -754,7 +755,8 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
     )}
     </>
   );
