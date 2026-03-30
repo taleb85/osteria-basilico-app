@@ -148,22 +148,10 @@ export function UnifiedBellButton({
         )}
       </button>
 
-      {/* Dropdown Messaggi - Mostrato solo se non c'è errore */}
-      {!error && (
-        <div className="absolute right-0 top-full z-50 mt-2">
-          {/* Tasto Nuova Comunicazione (visibile solo a ADMIN/MANAGER) */}
-          {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
-            <div className="mb-2 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-hover"
-              >
-                <Edit2 className="h-3 w-3" />
-                Nuova Comunicazione
-              </button>
-            </div>
-          )}
+      {/* Info tooltip long-press */}
+      {unreadCount > 0 && (
+        <div className="absolute right-0 top-full mt-1 whitespace-nowrap rounded-lg bg-slate-900 px-2 py-1 text-xs text-white pointer-events-none opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:bg-neutral-950">
+          Long press per mutare
         </div>
       )}
 
@@ -181,13 +169,6 @@ export function UnifiedBellButton({
         userName={currentUser?.first_name}
         onRefresh={handleRefresh}
       />
-
-      {/* Info tooltip long-press */}
-      {unreadCount > 0 && (
-        <div className="absolute right-0 top-full mt-1 whitespace-nowrap rounded-lg bg-slate-900 px-2 py-1 text-xs text-white pointer-events-none opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:bg-neutral-950">
-          Long press per mutare
-        </div>
-      )}
     </div>
   );
 }
