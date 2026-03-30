@@ -25,7 +25,7 @@ export function UnifiedBellButton({
   effectiveLanguage = 'it',
   onMessageClick,
 }: UnifiedBellButtonProps) {
-  const { messages, unreadCount, markAsRead, isLoading, error } = useMessages(userId);
+  const { messages, unreadCount, markAsRead, loadMessages, isLoading, error } = useMessages(userId);
   const { triggerHapticFeedback, isSoundEnabled, setIsSoundEnabled } =
     useMultisensorialFeedback();
   const { currentUser, users } = useApp();
@@ -34,6 +34,12 @@ export function UnifiedBellButton({
   const [isLongPress, setIsLongPress] = useState(false);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const handleRefresh = () => {
+    if (userId) {
+      loadMessages(userId);
+    }
+  };
 
   // Cleanup timer al unmount
   useEffect(() => {
@@ -180,6 +186,7 @@ export function UnifiedBellButton({
           last_name: u.last_name,
         }))}
         onComposerSuccess={() => setIsModalOpen(true)}
+        onRefresh={handleRefresh}
       />
 
       {/* Info tooltip long-press */}

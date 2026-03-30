@@ -1,8 +1,7 @@
 import { useState, useRef } from 'react';
-import { Send, X, Loader2 } from 'lucide-react';
+import { Send, X, Loader2, Users, User } from 'lucide-react';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
-import { database } from '../lib/database';
 
 interface MessageComposerProps {
   userId: string;
@@ -13,9 +12,8 @@ interface MessageComposerProps {
 }
 
 /**
- * Composer per messaggi staff.
- * Visibile solo a ADMIN/MANAGER.
- * Permette invio broadcast o privato.
+ * Composer per messaggi staff - Versione FULL-SCREEN.
+ * Ottimizzato per la visibilità e l'uso su mobile.
  */
 export function MessageComposer({
   userId,
@@ -63,20 +61,17 @@ export function MessageComposer({
       );
 
       if (success) {
-        // Feedback positivo
         triggerHapticFeedback('success');
         setSuccessMessage(true);
 
-        // Chiudi il composer dopo 2 secondi
         setTimeout(() => {
           setSuccessMessage(false);
           setSubject('');
           setBody('');
           setSelectedRecipientId('');
           setMessageType('broadcast');
-          onClose();
           if (onSuccess) onSuccess();
-        }, 2000);
+        }, 1500);
       } else {
         setError('Errore nell\'invio del messaggio');
       }
@@ -88,156 +83,111 @@ export function MessageComposer({
   };
 
   return (
-    <div className="w-full max-w-md rounded-lg border border-accent/30 bg-white dark:bg-neutral-900 p-4 shadow-lg">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-neutral-100">
-          <Send className="h-4 w-4 text-accent" />
-          Nuova Comunicazione
-        </h3>
+    <div className="flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
+      {/* Feedback Successo */}
+      {successMessage && (
+        <div className="flex items-center justify-center gap-3 rounded-xl bg-green-500 p-4 text-white shadow-lg shadow-green-500/20">
+          <div className="flex h-8 w-8 animate-bounce items-center justify-center rounded-full bg-white text-green-500">
+            <Send className="h-4 w-4" />
+          </div>
+          <span className="font-black uppercase tracking-widest text-sm">Messaggio inviato! ✅</span>
+        </div>
+      )}
+
+      {/* Errore */}
+      {error && (
+        <div className="rounded-xl bg-red-50 p-3 text-xs font-bold text-red-600 dark:bg-red-950/30">
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* Tipo Destinatario */}
+      <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
-          onClick={onClose}
-          disabled={isSending}
-          className="p-0.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50"
-          aria-label="Chiudi composer"
+          onClick={() => setMessageType('broadcast')}
+          className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 transition-all ${
+            messageType === 'broadcast'
+              ? 'border-accent bg-accent/10 text-accent'
+              : 'border-slate-100 bg-white text-slate-400 dark:border-neutral-800 dark:bg-neutral-900'
+          }`}
         >
-          <X className="h-4 w-4 text-slate-600 dark:text-neutral-400" />
+          <Users className="h-4 w-4" />
+          <span className="text-xs font-black uppercase tracking-wider">Tutti (Staff)</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMessageType('private')}
+          className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 transition-all ${
+            messageType === 'private'
+              ? 'border-accent bg-accent/10 text-accent'
+              : 'border-slate-100 bg-white text-slate-400 dark:border-neutral-800 dark:bg-neutral-900'
+          }`}
+        >
+          <User className="h-4 w-4" />
+          <span className="text-xs font-black uppercase tracking-wider">Privato</span>
         </button>
       </div>
 
-      {/* Success Message */}
-      {successMessage && (
-        <div className="mb-3 rounded-lg bg-green-100 p-3 text-sm font-semibold text-green-700 dark:bg-green-950/40 dark:text-green-300">
-          ✓ Messaggio inviato con successo!
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="mb-3 rounded-lg bg-red-100 p-3 text-sm font-semibold text-red-700 dark:bg-red-950/40 dark:text-red-300">
-          ✕ {error}
-        </div>
-      )}
-
-      {/* Destinatario */}
-      <div className="mb-3 space-y-2">
-        <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300">
-          Destinatario:
-        </label>
-        <div className="flex gap-3">
-          <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-neutral-300">
-            <input
-              type="radio"
-              name="msgType"
-              value="broadcast"
-              checked={messageType === 'broadcast'}
-              onChange={() => {
-                setMessageType('broadcast');
-                setSelectedRecipientId('');
-              }}
-              disabled={isSending}
-              className="h-4 w-4"
-            />
-            📢 Tutti
-          </label>
-          <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-neutral-300">
-            <input
-              type="radio"
-              name="msgType"
-              value="private"
-              checked={messageType === 'private'}
-              onChange={() => setMessageType('private')}
-              disabled={isSending}
-              className="h-4 w-4"
-            />
-            ✉️ Privato
-          </label>
-        </div>
-      </div>
-
-      {/* Seleziona destinatario privato */}
+      {/* Selezione Destinatario Privato */}
       {messageType === 'private' && (
-        <div className="mb-3">
-          <select
-            value={selectedRecipientId}
-            onChange={(e) => setSelectedRecipientId(e.target.value)}
-            disabled={isSending}
-            className="w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm dark:border-accent/50 dark:bg-neutral-800 dark:text-neutral-100"
-          >
-            <option value="">Seleziona destinatario...</option>
-            {allUsers
-              .filter((u) => u.id !== userId)
-              .map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.first_name} {user.last_name}
-                </option>
-              ))}
-          </select>
-        </div>
+        <select
+          value={selectedRecipientId}
+          onChange={(e) => setSelectedRecipientId(e.target.value)}
+          className="w-full rounded-xl border-2 border-slate-100 bg-white p-3 text-sm font-bold text-slate-900 outline-none focus:border-accent dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
+        >
+          <option value="">Seleziona dipendente...</option>
+          {allUsers
+            .filter((u) => u.id !== userId)
+            .sort((a, b) => a.first_name.localeCompare(b.first_name))
+            .map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.first_name.toUpperCase()} {u.last_name.toUpperCase()}
+              </option>
+            ))}
+        </select>
       )}
 
       {/* Oggetto */}
-      <div className="mb-3">
-        <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-1">
-          Oggetto:
-        </label>
-        <input
-          type="text"
-          placeholder="Es. Riunione, Cena stasera..."
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          disabled={isSending}
-          maxLength={100}
-          className="w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40 dark:border-accent/50 dark:bg-neutral-800 dark:text-neutral-100 disabled:opacity-50"
-        />
-        <p className="text-[10px] text-slate-500 dark:text-neutral-500 mt-1">
-          {subject.length}/100
-        </p>
-      </div>
+      <input
+        type="text"
+        placeholder="OGGETTO DEL MESSAGGIO..."
+        value={subject}
+        onChange={(e) => setSubject(e.target.value.toUpperCase())}
+        className="w-full rounded-xl border-2 border-slate-100 bg-white p-3 text-sm font-black tracking-wider text-slate-900 outline-none focus:border-accent dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
+      />
 
-      {/* Messaggio */}
-      <div className="mb-3">
-        <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-1">
-          Messaggio:
-        </label>
-        <textarea
-          ref={bodyInputRef}
-          placeholder="Scrivi il tuo messaggio..."
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          disabled={isSending}
-          maxLength={500}
-          rows={3}
-          className="w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40 resize-none dark:border-accent/50 dark:bg-neutral-800 dark:text-neutral-100 disabled:opacity-50"
-        />
-        <p className="text-[10px] text-slate-500 dark:text-neutral-500 mt-1">
-          {body.length}/500
-        </p>
-      </div>
+      {/* Corpo Messaggio */}
+      <textarea
+        ref={bodyInputRef}
+        placeholder="SCRIVI QUI IL TUO MESSAGGIO..."
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+        rows={4}
+        className="w-full resize-none rounded-xl border-2 border-slate-100 bg-white p-3 text-sm font-medium leading-relaxed text-slate-900 outline-none focus:border-accent dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
+      />
 
-      {/* Pulsanti */}
-      <div className="flex gap-2 pt-2">
+      {/* Pulsanti Azione */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 rounded-xl bg-slate-100 py-4 text-xs font-black uppercase tracking-widest text-slate-600 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-400"
+        >
+          Annulla
+        </button>
         <button
           type="button"
           onClick={handleSend}
-          disabled={isSending}
-          className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-accent-hover disabled:opacity-60 dark:bg-accent dark:hover:bg-accent-hover"
+          disabled={isSending || successMessage}
+          className="flex-[2] flex items-center justify-center gap-2 rounded-xl bg-accent py-4 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-accent/20 transition-all hover:bg-accent-hover disabled:opacity-50"
         >
           {isSending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Send className="h-4 w-4" />
           )}
-          {isSending ? 'Invio...' : 'Invia'}
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isSending}
-          className="rounded-lg border border-accent/30 px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/10 dark:border-accent/50 dark:text-accent-light dark:hover:bg-accent/20 disabled:opacity-50"
-        >
-          Annulla
+          {isSending ? 'Invio in corso...' : 'Invia Comunicazione'}
         </button>
       </div>
     </div>
