@@ -59,113 +59,121 @@ export function NotificationModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[10070] flex flex-col bg-white dark:bg-neutral-950 w-screen h-screen overflow-hidden"
+        className="fixed inset-0 z-[10070] flex items-center justify-center bg-black/60 backdrop-blur-md w-screen h-screen overflow-hidden p-4"
+        onClick={(e) => e.target === e.currentTarget && onClose()}
       >
-        {/* Header Fisso - Stile image_0.png */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white dark:bg-neutral-950 px-6 py-4 dark:border-neutral-800 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
-              <Bell className="w-5 h-5 text-accent" strokeWidth={2.5} />
-            </div>
-            <div>
-              <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-white uppercase">
-                Comunicazioni Staff
-              </h2>
-              {unreadCount > 0 && (
-                <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
-                  {unreadCount} da leggere
-                </p>
-              )}
-            </div>
-          </div>
-          
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-all active:scale-90 dark:bg-neutral-900 dark:text-neutral-500 hover:text-slate-900 dark:hover:text-white"
-            aria-label="Chiudi"
-          >
-            <X className="h-6 w-6" strokeWidth={2.5} />
-          </button>
-        </div>
-
-        {/* Lista Messaggi Compatta */}
-        <div className="flex-1 overflow-y-auto bg-slate-50/30 dark:bg-black/10">
-          <div className="mx-auto w-full max-w-3xl divide-y divide-slate-100 dark:divide-neutral-800/50">
-            {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-32 text-center px-6">
-                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 shadow-sm">
-                  <Mail className="h-10 w-10 text-slate-200 dark:text-neutral-800" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Tutto in ordine!</h3>
-                <p className="text-sm font-medium text-slate-400 dark:text-neutral-500">
-                  Non ci sono nuove comunicazioni per te al momento.
-                </p>
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="relative w-full max-w-lg max-h-[85vh] flex flex-col bg-white dark:bg-neutral-900 rounded-[40px] shadow-2xl overflow-hidden border border-white/20"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header Fisso - Stile image_0.png */}
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white dark:bg-neutral-900 px-8 py-6 dark:border-neutral-800">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
+                <Bell className="w-5 h-5 text-accent" strokeWidth={2.5} />
               </div>
-            ) : (
-              messages.map((msg) => {
-                const isBroadcast = msg.message_type === 'broadcast';
-                const isUnread = !msg.is_read;
+              <div>
+                <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-white uppercase">
+                  Comunicazioni Staff
+                </h2>
+                {unreadCount > 0 && (
+                  <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
+                    {unreadCount} da leggere
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-all active:scale-90 dark:bg-neutral-800 dark:text-neutral-500 hover:text-slate-900 dark:hover:text-white"
+              aria-label="Chiudi"
+            >
+              <X className="h-5 w-5" strokeWidth={3} />
+            </button>
+          </div>
 
-                return (
-                  <button
-                    key={msg.id}
-                    onClick={() => onMessageClick(msg.id)}
-                    className={`w-full flex items-center gap-4 px-6 py-4 transition-all active:bg-slate-100 dark:active:bg-neutral-800 text-left group ${
-                      isUnread ? 'bg-white dark:bg-neutral-900/40' : 'bg-transparent'
-                    }`}
-                  >
-                    {/* Icona Circolare (Sinistra) */}
-                    <div className="flex-shrink-0">
-                      <div className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition-transform group-hover:scale-105 ${
-                        isBroadcast 
-                          ? 'bg-green-50 border-green-100 text-green-600 dark:bg-green-950/20 dark:border-green-900/30' 
-                          : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-neutral-800 dark:border-neutral-700'
-                      }`}>
-                        {isBroadcast ? <span className="text-lg">📢</span> : <Mail className="h-5 w-5" />}
+          {/* Lista Messaggi Compatta */}
+          <div className="flex-1 overflow-y-auto bg-white dark:bg-neutral-900">
+            <div className="w-full divide-y divide-slate-50 dark:divide-neutral-800/50">
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-24 text-center px-8">
+                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50 dark:bg-neutral-800 border border-slate-100 dark:border-neutral-800">
+                    <Mail className="h-8 w-8 text-slate-200 dark:text-neutral-700" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Tutto in ordine!</h3>
+                  <p className="text-xs font-medium text-slate-400 dark:text-neutral-500">
+                    Non ci sono nuove comunicazioni.
+                  </p>
+                </div>
+              ) : (
+                messages.map((msg) => {
+                  const isBroadcast = msg.message_type === 'broadcast';
+                  const isUnread = !msg.is_read;
+
+                  return (
+                    <button
+                      key={msg.id}
+                      onClick={() => onMessageClick(msg.id)}
+                      className={`w-full flex items-center gap-4 px-8 py-5 transition-all active:bg-slate-50 dark:active:bg-neutral-800 text-left group ${
+                        isUnread ? 'bg-accent/5 dark:bg-accent/10' : 'bg-transparent'
+                      }`}
+                    >
+                      {/* Icona Circolare (Sinistra) */}
+                      <div className="flex-shrink-0">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-transform group-hover:scale-105 ${
+                          isBroadcast 
+                            ? 'bg-green-50 border-green-100 text-green-600 dark:bg-green-950/20 dark:border-green-900/30' 
+                            : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-neutral-800 dark:border-neutral-700'
+                        }`}>
+                          {isBroadcast ? <span className="text-base">📢</span> : <Mail className="h-4 w-4" />}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Contenuto (Centro) */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <h4 className={`text-sm sm:text-base font-bold truncate ${
+                      {/* Contenuto (Centro) */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className={`text-sm font-bold truncate ${
                           isUnread ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-neutral-400'
                         }`}>
                           {msg.subject}
                         </h4>
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-tight mt-0.5">
+                          <span>{msg.sender_name || 'Staff'}</span>
+                          <span className="h-1 w-1 rounded-full bg-slate-200 dark:bg-neutral-700" />
+                          <span>{new Date(msg.created_at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-tight">
-                        <span>Da: {msg.sender_name || 'Staff'}</span>
-                        <span className="h-1 w-1 rounded-full bg-slate-300 dark:bg-neutral-700" />
-                        <span>{new Date(msg.created_at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                    </div>
 
-                    {/* Badge/Stato (Destra) */}
-                    <div className="flex-shrink-0 flex items-center gap-3">
-                      {isUnread ? (
-                        <div className="h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-slate-300 dark:text-neutral-700" />
-                      )}
-                    </div>
-                  </button>
-                );
-              })
-            )}
+                      {/* Badge/Stato (Destra) */}
+                      <div className="flex-shrink-0">
+                        {isUnread ? (
+                          <div className="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-slate-200 dark:text-neutral-800" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
           </div>
-        </div>
-        
-        {/* Footer stile image_0.png */}
-        <div className="p-6 border-t border-slate-100 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-[0_-4px_12px_rgba(0,0,0,0.02)]">
-          <button
-            onClick={onClose}
-            className="w-full h-14 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black uppercase tracking-[0.15em] text-xs active:scale-95 transition-all shadow-lg shadow-slate-200 dark:shadow-none"
-          >
-            Chiudi
-          </button>
-        </div>
+          
+          {/* Footer stile PinPad */}
+          <div className="p-8 border-t border-slate-50 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+            <button
+              onClick={onClose}
+              className="w-full h-14 rounded-2xl bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 font-bold active:scale-95 transition-all hover:bg-slate-200 uppercase tracking-widest text-xs"
+            >
+              Annulla
+            </button>
+          </div>
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );
