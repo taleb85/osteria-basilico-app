@@ -5176,6 +5176,36 @@ export default function Timesheets() {
           document.body
         )}
 
+      {/* ── PIN Gate Modal per unlock_shift_edits e altre operazioni ── */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {pinGateModal && (() => {
+              const pgm = pinGateModal;
+              return (
+                <PinPadModal
+                  title={t.sync_lock_title}
+                  subtitle={t.ts_enter_manager_pin}
+                  pinLabel={t.ts_approval_pin_label}
+                  pin={pinGatePin}
+                  onPinChange={(p) => (setPinGatePin(p), setPinGateError(''))}
+                  onConfirm={() => void submitTimbraturePinGate(pinGatePin)}
+                  onCancel={() => {
+                    setPinGateModal(null);
+                    setPinGatePin('');
+                    setPinGateError('');
+                  }}
+                  error={pinGateError}
+                  isLoading={pinGateUnlocking}
+                  confirmLabel={t.ts_btn_confirm}
+                  cancelLabel={t.cancel}
+                />
+              );
+            })()}
+          </AnimatePresence>,
+          document.body
+        )}
+
     </>
   );
 }
