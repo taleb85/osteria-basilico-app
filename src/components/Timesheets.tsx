@@ -4578,7 +4578,7 @@ export default function Timesheets() {
                                         : 'bg-accent text-white hover:bg-accent-hover'
                                     } ${reviewQueueSaving || manualPunchSaving ? 'opacity-50' : ''}`}
                                   >
-                                    {t.ts_btn_save}
+                                    {t.ts_drawer_manual_punches_save}
                                   </button>
                                   <button
                                     type="button"
