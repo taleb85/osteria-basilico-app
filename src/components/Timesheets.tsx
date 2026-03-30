@@ -1486,9 +1486,9 @@ export default function Timesheets() {
             const pending = sessionStorage.getItem('pendingDrawerOpen');
             if (pending) {
               sessionStorage.removeItem('pendingDrawerOpen');
-              const { shift, user, dateStr } = JSON.parse(pending);
+              const { shift, user, dateStr, openSource } = JSON.parse(pending);
               // Apri il drawer con la sessione PIN già sbloccata
-              openDrawer(shift, user, dateStr, null);
+              openDrawer(shift, user, dateStr, null, openSource || 'date');
             }
           } catch {
             // ignorare errori parsing
@@ -3037,7 +3037,31 @@ export default function Timesheets() {
                                   <button
                                     key={s.id}
                                     type="button"
-                                    onClick={() => openDrawer(s, user, dateStr, null, 'date')}
+                                    onClick={() => {
+                                      // Se serve il PIN per modifiche, chiedilo subito prima di aprire il drawer
+                                      const pinRequiredForShiftEdits =
+                                        canTeamTimesheetOps && featureFlags['unlock_with_pin'] !== false;
+                                      if (pinRequiredForShiftEdits && !drawerPinUnlockedSessionId) {
+                                        // Chiedi il PIN adesso, con un marker speciale
+                                        setPinGateModal({
+                                          shiftId: s.id,
+                                          mode: 'unlock_shift_edits',
+                                        });
+                                        setPinGatePin('');
+                                        setPinGateError('');
+                                        // Salva il turno da aprire dopo la verifica del PIN
+                                        sessionStorage.setItem('pendingDrawerOpen', JSON.stringify({
+                                          shift: s,
+                                          user,
+                                          dateStr,
+                                          openSource: 'date'
+                                        }));
+                                        return;
+                                      }
+                                      
+                                      // PIN già sbloccato o non richiesto, apri il drawer
+                                      openDrawer(s, user, dateStr, null, 'date');
+                                    }}
                                     className={`flex w-full items-stretch text-left rounded-xl border-l-[3px] ${border} ${bg} ${ring} py-1.5 pl-2 pr-2 shadow-sm hover:shadow-md transition-all group md:rounded-lg md:py-1 md:pl-1.5 md:pr-1.5 md:border-l-2`}
                                   >
                                     {/* Spunta / lucchetto subito dopo la barra verticale, poi orari */}
