@@ -64,7 +64,7 @@ export default defineConfig({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
-        importScripts: ['pwa-background-sync.js'],
+        importScripts: ['pwa-background-sync.js', 'pwa-push-notifications.js'],
         // Precache: icone/manifest + index.html (navigateFallback richiede URL nel precache).
         globPatterns: ['**/*.{ico,png,svg,webmanifest}', 'index.html'],
         globIgnores: ['**/*.js', '**/*.css'],
