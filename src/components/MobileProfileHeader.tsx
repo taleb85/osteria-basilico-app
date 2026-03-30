@@ -10,6 +10,8 @@ import { readStoredThemePreference, persistThemePreference } from '../utils/them
 import { UnifiedBellButton } from './UnifiedBellButton';
 import { useState, useEffect } from 'react';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
+import { useMessages } from '../hooks/useMessages';
+import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 
 /**
  * Icona tema: due grafiche come riferimento foto — grigio/bianco in chiaro, nero/bianco in scuro.
@@ -80,11 +82,19 @@ export default function MobileProfileHeader({
   const {
     currentUser,
     effectiveLanguage,
+    users,
     updateUserPreferences,
     featureFlags,
     hardReloadFromDatabase,
     dataSyncInProgress,
   } = useApp();
+  const { sendMessage } = useMessages(currentUser?.id);
+  const { triggerHapticFeedback, playNotificationSound } = useMultisensorialFeedback();
+
+  const [isStaffComposerOpen, setIsStaffComposerOpen] = useState(false);
+  const [staffSubject, setStaffSubject] = useState('');
+  const [staffBody, setStaffBody] = useState('');
+  const [isStaffSending, setIsStaffSending] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isSynced = !!featureFlags && Object.keys(featureFlags).length > 0;
 
@@ -233,6 +243,87 @@ export default function MobileProfileHeader({
             ) : null}
           </div>
         </div>
+
+      {/* COMUNICAZIONI STAFF (solo ADMIN/MANAGER) */}
+      {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
+        <div className="px-3 sm:px-4 pb-4">
+          <div className="mt-1 mb-2">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-sm font-black uppercase tracking-widest text-accent">
+                Comunicazioni Staff
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsStaffComposerOpen((v) => !v)}
+                className="text-xs font-bold uppercase tracking-widest text-accent underline underline-offset-4"
+              >
+                {isStaffComposerOpen ? 'Chiudi' : 'Scrivi'}
+              </button>
+            </div>
+          </div>
+
+          {isStaffComposerOpen && (
+            <div className="rounded-2xl border border-accent/20 bg-accent/5 p-3 sm:p-4">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
+                Oggetto
+              </label>
+              <input
+                value={staffSubject}
+                onChange={(e) => setStaffSubject(e.target.value.toUpperCase())}
+                className="w-full mb-3 h-12 rounded-2xl border border-slate-100 bg-white px-4 text-sm font-black tracking-widest text-slate-900 outline-none focus:border-accent"
+                placeholder="OGGETTO"
+              />
+
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
+                Messaggio
+              </label>
+              <textarea
+                value={staffBody}
+                onChange={(e) => setStaffBody(e.target.value)}
+                rows={4}
+                className="w-full mb-3 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:border-accent resize-none"
+                placeholder="Scrivi qui..."
+              />
+
+              <button
+                type="button"
+                disabled={isStaffSending || !staffSubject.trim() || !staffBody.trim()}
+                onClick={async () => {
+                  if (!currentUser?.id) return;
+                  setIsStaffSending(true);
+                  try {
+                    const ok = await sendMessage(staffSubject.trim(), staffBody.trim());
+                    if (ok) {
+                      triggerHapticFeedback('success');
+                      try {
+                        playNotificationSound();
+                      } catch {
+                        // ignore
+                      }
+                      setIsStaffComposerOpen(false);
+                      setStaffSubject('');
+                      setStaffBody('');
+                      // feedback visivo: breve testo via stato (minimo)
+                    } else {
+                      triggerHapticFeedback('warning');
+                    }
+                  } finally {
+                    setIsStaffSending(false);
+                  }
+                }}
+                className="w-full h-14 rounded-2xl bg-[#2D5A27] text-white font-black uppercase tracking-[0.2em] text-xs shadow-lg shadow-accent/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
+              >
+                {isStaffSending ? 'INVIO...' : '✍️ INVIA ORA'}
+              </button>
+
+              <p className="mt-2 text-[10px] font-bold text-slate-500 text-center">
+                Verrà inviato a tutto lo staff.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
         {activeTab === 'home' &&
           currentUser.role !== 'admin' &&
           (() => {

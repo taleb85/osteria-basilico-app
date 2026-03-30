@@ -120,16 +120,24 @@ export function UnifiedBellButton({
             : 'hover:scale-105 active:scale-95'
         }`}
       >
-        <Bell
-          className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
-            error
-              ? 'text-slate-400 dark:text-slate-600'
-              : isLoading
-                ? 'text-slate-400 dark:text-slate-600 animate-pulse'
-                : 'text-accent dark:text-accent-light' /* Verde Basilico #2D5A27 */
+        <div
+          className={`h-full w-full flex items-center justify-center rounded-lg ${
+            unreadCount > 0 ? 'text-[#2D5A27]' : 'text-slate-700 dark:text-slate-200'
           }`}
-          strokeWidth={2}
-        />
+        >
+          <Bell
+            className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
+              error
+                ? 'text-slate-400 dark:text-slate-600'
+                : isLoading
+                  ? 'text-slate-400 dark:text-slate-600 animate-pulse'
+                  : unreadCount > 0
+                    ? 'text-[#2D5A27]'
+                    : 'text-slate-700 dark:text-slate-200'
+            }`}
+            strokeWidth={2}
+          />
+        </div>
 
         {/* Badge numero notifiche non lette - Nascosto quando count === 0 per header pulito */}
         {unreadCount > 0 && (
