@@ -86,46 +86,46 @@ export function MessageComposer({
     <div className="flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
       {/* Feedback Successo */}
       {successMessage && (
-        <div className="flex items-center justify-center gap-3 rounded-xl bg-green-500 p-4 text-white shadow-lg shadow-green-500/20">
-          <div className="flex h-8 w-8 animate-bounce items-center justify-center rounded-full bg-white text-green-500">
-            <Send className="h-4 w-4" />
+        <div className="flex items-center justify-center gap-3 rounded-[24px] bg-green-500 p-5 text-white shadow-lg shadow-green-500/20">
+          <div className="flex h-10 w-10 animate-bounce items-center justify-center rounded-full bg-white text-green-500">
+            <Send className="h-5 w-5" />
           </div>
-          <span className="font-black uppercase tracking-widest text-sm">Messaggio inviato! ✅</span>
+          <span className="font-black uppercase tracking-widest text-sm">Inviato! ✅</span>
         </div>
       )}
 
       {/* Errore */}
       {error && (
-        <div className="rounded-xl bg-red-50 p-3 text-xs font-bold text-red-600 dark:bg-red-950/30">
+        <div className="rounded-2xl bg-red-50 p-4 text-xs font-bold text-red-600 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30">
           ⚠️ {error}
         </div>
       )}
 
       {/* Tipo Destinatario */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         <button
           type="button"
           onClick={() => setMessageType('broadcast')}
-          className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 transition-all ${
+          className={`flex items-center justify-center gap-2 rounded-2xl border-2 py-4 transition-all active:scale-95 ${
             messageType === 'broadcast'
               ? 'border-accent bg-accent/10 text-accent'
               : 'border-slate-100 bg-white text-slate-400 dark:border-neutral-800 dark:bg-neutral-900'
           }`}
         >
-          <Users className="h-4 w-4" />
-          <span className="text-xs font-black uppercase tracking-wider">Tutti (Staff)</span>
+          <Users className="h-5 w-5" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Tutti (Staff)</span>
         </button>
         <button
           type="button"
           onClick={() => setMessageType('private')}
-          className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 transition-all ${
+          className={`flex items-center justify-center gap-2 rounded-2xl border-2 py-4 transition-all active:scale-95 ${
             messageType === 'private'
               ? 'border-accent bg-accent/10 text-accent'
               : 'border-slate-100 bg-white text-slate-400 dark:border-neutral-800 dark:bg-neutral-900'
           }`}
         >
-          <User className="h-4 w-4" />
-          <span className="text-xs font-black uppercase tracking-wider">Privato</span>
+          <User className="h-5 w-5" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Privato</span>
         </button>
       </div>
 
@@ -134,7 +134,7 @@ export function MessageComposer({
         <select
           value={selectedRecipientId}
           onChange={(e) => setSelectedRecipientId(e.target.value)}
-          className="w-full rounded-xl border-2 border-slate-100 bg-white p-3 text-sm font-bold text-slate-900 outline-none focus:border-accent dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
+          className="w-full h-14 rounded-2xl border-2 border-slate-100 bg-white px-4 text-sm font-bold text-slate-900 outline-none focus:border-accent dark:border-neutral-800 dark:bg-neutral-900 dark:text-white appearance-none"
         >
           <option value="">Seleziona dipendente...</option>
           {allUsers
@@ -151,45 +151,36 @@ export function MessageComposer({
       {/* Oggetto */}
       <input
         type="text"
-        placeholder="OGGETTO DEL MESSAGGIO..."
+        placeholder="OGGETTO..."
         value={subject}
         onChange={(e) => setSubject(e.target.value.toUpperCase())}
-        className="w-full rounded-xl border-2 border-slate-100 bg-white p-3 text-sm font-black tracking-wider text-slate-900 outline-none focus:border-accent dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
+        className="w-full h-14 rounded-2xl border-2 border-slate-100 bg-white px-4 text-sm font-black tracking-widest text-slate-900 outline-none focus:border-accent dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
       />
 
       {/* Corpo Messaggio */}
       <textarea
         ref={bodyInputRef}
-        placeholder="SCRIVI QUI IL TUO MESSAGGIO..."
+        placeholder="SCRIVI IL MESSAGGIO..."
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        rows={4}
-        className="w-full resize-none rounded-xl border-2 border-slate-100 bg-white p-3 text-sm font-medium leading-relaxed text-slate-900 outline-none focus:border-accent dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
+        rows={5}
+        className="w-full resize-none rounded-[24px] border-2 border-slate-100 bg-white p-5 text-sm font-medium leading-relaxed text-slate-900 outline-none focus:border-accent dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
       />
 
-      {/* Pulsanti Azione */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex-1 rounded-xl bg-slate-100 py-4 text-xs font-black uppercase tracking-widest text-slate-600 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-400"
-        >
-          Annulla
-        </button>
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={isSending || successMessage}
-          className="flex-[2] flex items-center justify-center gap-2 rounded-xl bg-accent py-4 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-accent/20 transition-all hover:bg-accent-hover disabled:opacity-50"
-        >
-          {isSending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
-          {isSending ? 'Invio in corso...' : 'Invia Comunicazione'}
-        </button>
-      </div>
+      {/* Pulsante Invia stile PinPad */}
+      <button
+        type="button"
+        onClick={handleSend}
+        disabled={isSending || successMessage}
+        className="w-full h-16 flex items-center justify-center gap-3 rounded-[24px] bg-accent text-white font-black uppercase tracking-[0.2em] text-sm shadow-xl shadow-accent/20 transition-all hover:bg-accent-hover active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
+      >
+        {isSending ? (
+          <Loader2 className="h-6 w-6 animate-spin" />
+        ) : (
+          <Send className="h-6 w-6" />
+        )}
+        {isSending ? 'Invio...' : 'Invia Messaggio'}
+      </button>
     </div>
   );
 }

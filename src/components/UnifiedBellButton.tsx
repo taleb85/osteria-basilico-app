@@ -185,7 +185,9 @@ export function UnifiedBellButton({
           first_name: u.first_name,
           last_name: u.last_name,
         }))}
-        onComposerSuccess={() => setIsModalOpen(true)}
+        onComposerSuccess={() => {
+          // Non chiudiamo il modal, lasciamo che il composer mostri il successo
+        }}
         onRefresh={handleRefresh}
       />
 
