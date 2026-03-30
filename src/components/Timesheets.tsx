@@ -4046,6 +4046,7 @@ export default function Timesheets() {
                                     setDrawerManualPunchFormExpanded(true);
                                   }}
                                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-review px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-review-hover disabled:opacity-40 dark:bg-review dark:hover:bg-review-hover"
+                                  style={{ backgroundColor: '#D97706', color: '#FFFFFF', opacity: 1 }}
                                 >
                                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                                   {t.ts_drawer_planned_times_save}
@@ -4146,8 +4147,8 @@ export default function Timesheets() {
 
                   {/* Storico: modifiche turno + audit timbrature — stessa scheda ambra, dettaglio dopo PIN */}
                   {!isEmployeeWeekReviewSheet && drawerHistoryTotalCount > 0 && (
-                    <div className="border-b border-slate-100 p-3 dark:border-white/10" style={{ position: 'absolute', top: '350px', zIndex: 0, width: '435px' }}>
-                      <div className="overflow-hidden rounded-xl border-2 border-amber-400/90 bg-white/85 shadow-sm dark:border-amber-500/70 dark:bg-amber-950/50" style={{ width: '405px' }}>
+                    <div className="border-b border-slate-100 p-3 dark:border-white/10 mt-3">
+                      <div className="overflow-hidden rounded-xl border-2 border-amber-400/90 bg-white/85 shadow-sm dark:border-amber-500/70 dark:bg-amber-950/50">
                         <button
                           type="button"
                           aria-expanded={shiftEditsRevealUnlocked && drawerShiftEditsExpanded}
@@ -4577,6 +4578,11 @@ export default function Timesheets() {
                                         ? 'bg-slate-200 text-slate-600 cursor-not-allowed dark:bg-neutral-700 dark:text-neutral-400'
                                         : 'bg-accent text-white hover:bg-accent-hover'
                                     } ${reviewQueueSaving || manualPunchSaving ? 'opacity-50' : ''}`}
+                                    style={
+                                      !(isInReviewQueue || drawerJustOpened)
+                                        ? { backgroundColor: '#2D5A27', color: '#FFFFFF', opacity: 1 }
+                                        : undefined
+                                    }
                                   >
                                     {t.ts_drawer_manual_punches_save}
                                   </button>
