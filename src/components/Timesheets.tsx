@@ -3768,7 +3768,7 @@ export default function Timesheets() {
                                   drawerOpenSource
                                     );
                                   }}
-                                  className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-40 dark:hover:bg-accent/20"
+                                  className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full p-0 transition-colors duration-200 hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
                                   aria-label={t.prev || 'Previous'}
                                 >
                                   <ChevronLeft className="h-5 w-5 text-slate-700 dark:text-neutral-200" />
@@ -3788,7 +3788,7 @@ export default function Timesheets() {
                                       drawerOpenSource
                                     );
                                   }}
-                                  className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-40 dark:hover:bg-accent/20"
+                                  className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full p-0 transition-colors duration-200 hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
                                   aria-label={t.next || 'Next'}
                                 >
                                   <ChevronRight className="h-5 w-5 text-slate-700 dark:text-neutral-200" />
