@@ -114,11 +114,9 @@ export function UnifiedBellButton({
               ? 'Caricamento notifiche'
               : `Campanella notifiche${unreadCount > 0 ? ` con ${unreadCount} nuovi messaggi` : ''}`
         }
-        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-lg surface-glass-sm px-1.5 transition-all duration-200 touch-manipulation bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10 ${
-          isDisabled
-            ? 'opacity-50 cursor-not-allowed'
-            : 'hover:scale-105 active:scale-95'
-        }`}
+        className={`relative bg-white border border-gray-100 rounded-2xl p-3 shadow-sm aspect-square flex items-center justify-center transition-all duration-200 touch-manipulation ${
+          isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
+        } ${'dark:bg-neutral-950 dark:border-white/10'}`}
       >
         <div
           className={`h-full w-full flex items-center justify-center rounded-lg ${
@@ -139,11 +137,9 @@ export function UnifiedBellButton({
           />
         </div>
 
-        {/* Badge numero notifiche non lette - Nascosto quando count === 0 per header pulito */}
+        {/* Puntino rosso per notifiche non lette (no numeri/scritte) */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow-md">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
+          <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#DC2626] shadow-[0_0_10px_rgba(220,38,38,0.6)]" />
         )}
 
         {/* Indicatore mute */}

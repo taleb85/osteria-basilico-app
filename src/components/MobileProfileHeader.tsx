@@ -249,24 +249,19 @@ export default function MobileProfileHeader({
         <div className="px-3 sm:px-4 pb-4">
           <div className="mt-1 mb-2">
             <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-black uppercase tracking-widest text-accent">
-                Comunicazioni Staff
-              </h3>
               <button
                 type="button"
                 onClick={() => setIsStaffComposerOpen((v) => !v)}
-                className="text-xs font-bold uppercase tracking-widest text-accent underline underline-offset-4"
+                className="w-full rounded-2xl bg-[#2D5A27] text-white font-black uppercase tracking-[0.18em] text-[11px] h-12 shadow-lg shadow-[#2D5A27]/20 active:scale-[0.98] transition-all"
               >
-                {isStaffComposerOpen ? 'Chiudi' : 'Scrivi'}
+                ✍️ Invia Comunicazione allo Staff
               </button>
             </div>
           </div>
 
           {isStaffComposerOpen && (
             <div className="rounded-2xl border border-accent/20 bg-accent/5 p-3 sm:p-4">
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
-                Oggetto
-              </label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Oggetto</label>
               <input
                 value={staffSubject}
                 onChange={(e) => setStaffSubject(e.target.value.toUpperCase())}
@@ -274,9 +269,7 @@ export default function MobileProfileHeader({
                 placeholder="OGGETTO"
               />
 
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
-                Messaggio
-              </label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Messaggio</label>
               <textarea
                 value={staffBody}
                 onChange={(e) => setStaffBody(e.target.value)}
@@ -316,9 +309,7 @@ export default function MobileProfileHeader({
                 {isStaffSending ? 'INVIO...' : '✍️ INVIA ORA'}
               </button>
 
-              <p className="mt-2 text-[10px] font-bold text-slate-500 text-center">
-                Verrà inviato a tutto lo staff.
-              </p>
+              <p className="mt-2 text-[10px] font-bold text-slate-500 text-center"> </p>
             </div>
           )}
         </div>
