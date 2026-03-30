@@ -3678,7 +3678,7 @@ export default function Timesheets() {
             pinRequiredForPlannedTimesEdit && plannedTimesEditUnlockedShiftId !== s.id && !drawerPinUnlockedSessionId;
 
           return (
-              <div className="flex min-h-0 max-h-full flex-1 flex-col overflow-hidden h-screen">
+              <div className="flex flex-1 flex-col overflow-y-auto min-h-screen">
                 {/* Drawer header — strip colorato in base allo stato */}
                 <div className={`border-l-4 ${border} ${bg} ${ring} shrink-0`}>
                   <div className="flex items-start justify-between gap-3 px-4 pb-2.5 pt-3 sm:px-5">
@@ -3837,8 +3837,8 @@ export default function Timesheets() {
                   <div
                     className={
                       isEmployeeWeekReviewSheet
-                        ? 'grid grid-cols-1 grid-rows-[auto_auto] items-stretch h-full overflow-hidden'
-                        : 'grid grid-cols-1 md:grid-cols-2 md:items-stretch md:divide-x md:divide-slate-100 dark:md:divide-white/10 h-full overflow-hidden'
+                        ? 'grid grid-cols-1 grid-rows-[auto_auto] items-stretch'
+                        : 'grid grid-cols-1 md:grid-cols-2 md:items-stretch md:divide-x md:divide-slate-100 dark:md:divide-white/10'
                     }
                   >
                   <div className="min-w-0">
@@ -4045,8 +4045,7 @@ export default function Timesheets() {
                                     setManualPunchOutDate(drawerData.dateStr);
                                     setDrawerManualPunchFormExpanded(true);
                                   }}
-                                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-review px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-review-hover disabled:opacity-40 dark:bg-review dark:hover:bg-review-hover"
-                                  style={{ backgroundColor: '#D97706', color: '#FFFFFF', opacity: 1 }}
+                                  className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-colors hover:bg-review-hover disabled:opacity-40 dark:hover:bg-review-hover bg-[#D97706] !important text-white !important"
                                 >
                                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                                   {t.ts_drawer_planned_times_save}
@@ -4576,13 +4575,8 @@ export default function Timesheets() {
                                     className={`flex-1 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors ${
                                       isInReviewQueue || drawerJustOpened
                                         ? 'bg-slate-200 text-slate-600 cursor-not-allowed dark:bg-neutral-700 dark:text-neutral-400'
-                                        : 'bg-accent text-white hover:bg-accent-hover'
+                                        : 'bg-[#2D5A27] !important text-white !important hover:bg-accent-hover'
                                     } ${reviewQueueSaving || manualPunchSaving ? 'opacity-50' : ''}`}
-                                    style={
-                                      !(isInReviewQueue || drawerJustOpened)
-                                        ? { backgroundColor: '#2D5A27', color: '#FFFFFF', opacity: 1 }
-                                        : undefined
-                                    }
                                   >
                                     {t.ts_drawer_manual_punches_save}
                                   </button>
