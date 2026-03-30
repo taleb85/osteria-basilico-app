@@ -59,30 +59,30 @@ export function NotificationModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-2xl backdrop-saturate-150 w-screen h-screen overflow-hidden p-4"
+        className="fixed inset-0 z-[99999] flex items-center justify-center bg-white w-screen h-screen overflow-hidden"
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative z-[100000] w-full max-w-2xl max-h-[85vh] flex flex-col bg-white dark:bg-neutral-900 rounded-[40px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] overflow-hidden border border-white/10"
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="relative w-full h-full flex flex-col bg-white dark:bg-neutral-950 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header Fisso - Stile image_0.png */}
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white dark:bg-neutral-900 px-8 py-7 dark:border-neutral-800">
+          {/* Header Fisso - Stile PinPad FullScreen */}
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white dark:bg-neutral-950 px-6 py-6 dark:border-neutral-800">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
-                <Bell className="w-5 h-5 text-accent" strokeWidth={2.5} />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10">
+                <Bell className="w-6 h-6 text-accent" strokeWidth={2.5} />
               </div>
               <div>
-                <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-white uppercase">
+                <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-white uppercase">
                   Comunicazioni Staff
                 </h2>
                 {unreadCount > 0 && (
-                  <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
-                    {unreadCount} da leggere
+                  <p className="text-xs font-bold text-red-500 uppercase tracking-widest">
+                    {unreadCount} messaggi da leggere
                   </p>
                 )}
               </div>
@@ -91,23 +91,23 @@ export function NotificationModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-all active:scale-90 dark:bg-neutral-800 dark:text-neutral-500 hover:text-slate-900 dark:hover:text-white"
+              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 transition-all active:scale-90 dark:bg-neutral-900 dark:text-neutral-500 hover:text-slate-900 dark:hover:text-white shadow-sm border border-slate-100 dark:border-white/5"
               aria-label="Chiudi"
             >
-              <X className="h-5 w-5" strokeWidth={3} />
+              <X className="h-8 w-8" strokeWidth={3} />
             </button>
           </div>
 
           {/* Lista Messaggi Compatta */}
-          <div className="flex-1 overflow-y-auto bg-white dark:bg-neutral-900">
+          <div className="flex-1 overflow-y-auto bg-white dark:bg-neutral-950">
             <div className="w-full divide-y divide-slate-50 dark:divide-neutral-800/50">
               {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-24 text-center px-8">
-                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50 dark:bg-neutral-800 border border-slate-100 dark:border-neutral-800">
-                    <Mail className="h-8 w-8 text-slate-200 dark:text-neutral-700" />
+                <div className="flex flex-col items-center justify-center py-32 text-center px-8">
+                  <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-slate-50 dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800">
+                    <Mail className="h-10 w-10 text-slate-200 dark:text-neutral-700" />
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Tutto in ordine!</h3>
-                  <p className="text-xs font-medium text-slate-400 dark:text-neutral-500">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Tutto in ordine!</h3>
+                  <p className="text-sm font-medium text-slate-400 dark:text-neutral-500">
                     Non ci sono nuove comunicazioni.
                   </p>
                 </div>
@@ -120,29 +120,29 @@ export function NotificationModal({
                     <button
                       key={msg.id}
                       onClick={() => onMessageClick(msg.id)}
-                      className={`w-full flex items-center gap-4 px-8 py-5 transition-all active:bg-slate-50 dark:active:bg-neutral-800 text-left group ${
+                      className={`w-full flex items-center gap-5 px-8 py-6 transition-all active:bg-slate-50 dark:active:bg-neutral-900 text-left group ${
                         isUnread ? 'bg-accent/5 dark:bg-accent/10' : 'bg-transparent'
                       }`}
                     >
                       {/* Icona Circolare (Sinistra) */}
                       <div className="flex-shrink-0">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-transform group-hover:scale-105 ${
+                        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border-2 transition-transform group-hover:scale-105 ${
                           isBroadcast 
                             ? 'bg-green-50 border-green-100 text-green-600 dark:bg-green-950/20 dark:border-green-900/30' 
                             : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-neutral-800 dark:border-neutral-700'
                         }`}>
-                          {isBroadcast ? <span className="text-base">📢</span> : <Mail className="h-4 w-4" />}
+                          {isBroadcast ? <span className="text-xl">📢</span> : <Mail className="h-5 w-5" />}
                         </div>
                       </div>
 
                       {/* Contenuto (Centro) */}
                       <div className="flex-1 min-w-0">
-                        <h4 className={`text-sm font-bold truncate ${
+                        <h4 className={`text-base font-bold truncate ${
                           isUnread ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-neutral-400'
                         }`}>
                           {msg.subject}
                         </h4>
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-tight mt-0.5">
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-tight mt-1">
                           <span>{msg.sender_name || 'Staff'}</span>
                           <span className="h-1 w-1 rounded-full bg-slate-200 dark:bg-neutral-700" />
                           <span>{new Date(msg.created_at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -152,9 +152,9 @@ export function NotificationModal({
                       {/* Badge/Stato (Destra) */}
                       <div className="flex-shrink-0">
                         {isUnread ? (
-                          <div className="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                          <div className="h-3 w-3 rounded-full bg-[#EF4444] shadow-[0_0_10px_rgba(239,68,68,0.6)]" />
                         ) : (
-                          <ChevronRight className="h-4 w-4 text-slate-200 dark:text-neutral-800" />
+                          <ChevronRight className="h-5 w-5 text-slate-200 dark:text-neutral-800" />
                         )}
                       </div>
                     </button>
@@ -164,13 +164,13 @@ export function NotificationModal({
             </div>
           </div>
           
-          {/* Footer stile PinPad */}
-          <div className="p-8 border-t border-slate-50 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+          {/* Footer stile PinPad FullScreen */}
+          <div className="p-8 border-t border-slate-100 dark:border-neutral-800 bg-white dark:bg-neutral-950">
             <button
               onClick={onClose}
-              className="w-full h-14 rounded-2xl bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 font-bold active:scale-95 transition-all hover:bg-slate-200 uppercase tracking-widest text-xs"
+              className="w-full h-16 rounded-3xl bg-[#1A1A1A] text-white font-black uppercase tracking-[0.2em] text-sm active:scale-[0.98] transition-all shadow-xl shadow-black/10"
             >
-              Annulla
+              Chiudi
             </button>
           </div>
         </motion.div>

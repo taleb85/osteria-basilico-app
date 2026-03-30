@@ -114,7 +114,7 @@ export function UnifiedBellButton({
               ? 'Caricamento notifiche'
               : `Campanella notifiche${unreadCount > 0 ? ` con ${unreadCount} nuovi messaggi` : ''}`
         }
-        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-200 touch-manipulation bg-[#1a1a1a] dark:bg-black shadow-sm ${
+        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-200 touch-manipulation bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10 ${
           isDisabled
             ? 'opacity-50 cursor-not-allowed'
             : 'hover:scale-105 active:scale-95'
@@ -123,17 +123,17 @@ export function UnifiedBellButton({
         <Bell
           className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
             error
-              ? 'text-slate-600'
+              ? 'text-slate-400 dark:text-slate-600'
               : isLoading
-                ? 'text-slate-600 animate-pulse'
-                : 'text-[#2D5A27]' /* Verde Basilico originale */
+                ? 'text-slate-400 dark:text-slate-600 animate-pulse'
+                : 'text-slate-700 dark:text-slate-200'
           }`}
-          strokeWidth={2.5}
+          strokeWidth={2}
         />
 
         {/* Badge numero notifiche non lette - Rosso acceso con numero bianco */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#DC2626] text-[10px] font-black text-white shadow-md ring-2 ring-[#1a1a1a]">
+          <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#EF4444] text-[10px] font-black text-white shadow-md ring-2 ring-white dark:ring-neutral-950">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -141,7 +141,7 @@ export function UnifiedBellButton({
         {/* Indicatore mute */}
         {!isSoundEnabled && (
           <div
-            className="absolute bottom-1 right-1 h-2 w-2 rounded-full bg-slate-500 border border-[#1a1a1a]"
+            className="absolute bottom-1 right-1 h-2 w-2 rounded-full bg-slate-400 border border-white dark:border-neutral-950 shadow-sm"
             title="Audio disabilitato"
           />
         )}

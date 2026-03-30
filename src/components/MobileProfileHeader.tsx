@@ -187,9 +187,6 @@ export default function MobileProfileHeader({
                 {dateStr}
               </p>
             </div>
-            {/* {!hideToolbarAvatar && (
-              <UserAvatarMenu variant="toolbar" onLogout={hideHeaderLogout ? onLogout : undefined} />
-            )} */}
             <button
               type="button"
               onClick={toggleUiTheme}
@@ -243,8 +240,9 @@ export default function MobileProfileHeader({
             ) : null}
           </div>
         </div>
+      </div>
 
-      {/* COMUNICAZIONI STAFF (solo ADMIN/MANAGER) */}
+      {/* COMUNICAZIONI STAFF (solo ADMIN/MANAGER) - Solo se NON compatto (quindi nel drawer) */}
       {!compact && (currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
         <div className="px-3 sm:px-4 pb-4">
           <div className="mt-1 mb-2">
@@ -325,17 +323,18 @@ export default function MobileProfileHeader({
         </div>
       )}
 
-        {activeTab === 'home' &&
-          currentUser.role !== 'admin' &&
-          (() => {
-            const scope = getRoleScopeHint(currentUser.role, tr);
-            return scope ? (
-              <p className="text-[9px] sm:text-[10px] !text-slate-600 leading-snug mt-1 line-clamp-1 italic opacity-80">
+      {activeTab === 'home' &&
+        currentUser.role !== 'admin' &&
+        (() => {
+          const scope = getRoleScopeHint(currentUser.role, tr);
+          return scope ? (
+            <div className="px-3 sm:px-4 pb-2">
+              <p className="text-[9px] sm:text-[10px] !text-slate-600 leading-snug line-clamp-1 italic opacity-80">
                 {scope}
               </p>
-            ) : null;
-          })()}
-      </div>
+            </div>
+          ) : null;
+        })()}
     </>
   );
 
