@@ -114,38 +114,34 @@ export function UnifiedBellButton({
               ? 'Caricamento notifiche'
               : `Campanella notifiche${unreadCount > 0 ? ` con ${unreadCount} nuovi messaggi` : ''}`
         }
-        className={`relative bg-white border border-gray-100 rounded-2xl p-3 shadow-sm aspect-square flex items-center justify-center transition-all duration-200 touch-manipulation ${
-          isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
-        } ${'dark:bg-neutral-950 dark:border-white/10'}`}
+        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-200 touch-manipulation bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10 ${
+          isDisabled
+            ? 'opacity-50 cursor-not-allowed'
+            : 'hover:scale-105 active:scale-95'
+        }`}
       >
-        <div
-          className={`h-full w-full flex items-center justify-center rounded-lg ${
-            unreadCount > 0 ? 'text-[#2D5A27]' : 'text-slate-700 dark:text-slate-200'
+        <Bell
+          className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
+            error
+              ? 'text-slate-400 dark:text-slate-600'
+              : isLoading
+                ? 'text-slate-400 dark:text-slate-600 animate-pulse'
+                : unreadCount > 0
+                  ? 'text-accent dark:text-accent-light'
+                  : 'text-slate-400 dark:text-slate-500'
           }`}
-        >
-          <Bell
-            className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
-              error
-                ? 'text-slate-400 dark:text-slate-600'
-                : isLoading
-                  ? 'text-slate-400 dark:text-slate-600 animate-pulse'
-                  : unreadCount > 0
-                    ? 'text-[#2D5A27]'
-                    : 'text-slate-700 dark:text-slate-200'
-            }`}
-            strokeWidth={2}
-          />
-        </div>
+          strokeWidth={2}
+        />
 
-        {/* Puntino rosso per notifiche non lette (no numeri/scritte) */}
+        {/* Badge numero notifiche non lette - Solo un puntino rosso nitido */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#DC2626] shadow-[0_0_10px_rgba(220,38,38,0.6)]" />
+          <span className="absolute top-2 right-2 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 shadow-sm border border-white dark:border-neutral-950" />
         )}
 
         {/* Indicatore mute */}
         {!isSoundEnabled && (
           <div
-            className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-slate-500 border border-white dark:border-neutral-950 shadow-sm"
+            className="absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full bg-slate-400 border border-white dark:border-neutral-950 shadow-sm"
             title="Audio disabilitato"
             aria-label="Audio disabilitato"
           />

@@ -245,37 +245,46 @@ export default function MobileProfileHeader({
         </div>
 
       {/* COMUNICAZIONI STAFF (solo ADMIN/MANAGER) */}
-      {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
+      {!compact && (currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
         <div className="px-3 sm:px-4 pb-4">
           <div className="mt-1 mb-2">
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => setIsStaffComposerOpen((v) => !v)}
-                className="w-full rounded-2xl bg-[#2D5A27] text-white font-black uppercase tracking-[0.18em] text-[11px] h-12 shadow-lg shadow-[#2D5A27]/20 active:scale-[0.98] transition-all"
-              >
-                ✍️ Invia Comunicazione allo Staff
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsStaffComposerOpen((v) => !v)}
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-50 dark:bg-neutral-900 border border-slate-100 dark:border-white/5 py-4 text-sm font-bold text-accent transition-all active:scale-95 shadow-sm"
+            >
+              <span>✍️</span>
+              <span>Invia Comunicazione allo Staff</span>
+            </button>
           </div>
 
           {isStaffComposerOpen && (
-            <div className="rounded-2xl border border-accent/20 bg-accent/5 p-3 sm:p-4">
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Oggetto</label>
+            <div className="rounded-[32px] border-2 border-accent/20 bg-accent/5 p-5 sm:p-6 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs font-black uppercase tracking-widest text-accent">
+                  Nuovo Messaggio
+                </h3>
+                <button 
+                  onClick={() => setIsStaffComposerOpen(false)}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
               <input
                 value={staffSubject}
                 onChange={(e) => setStaffSubject(e.target.value.toUpperCase())}
-                className="w-full mb-3 h-12 rounded-2xl border border-slate-100 bg-white px-4 text-sm font-black tracking-widest text-slate-900 outline-none focus:border-accent"
+                className="w-full mb-3 h-14 rounded-2xl border-2 border-slate-100 bg-white px-5 text-sm font-black tracking-widest text-slate-900 outline-none focus:border-accent shadow-sm"
                 placeholder="OGGETTO"
               />
 
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Messaggio</label>
               <textarea
                 value={staffBody}
                 onChange={(e) => setStaffBody(e.target.value)}
-                rows={4}
-                className="w-full mb-3 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:border-accent resize-none"
-                placeholder="Scrivi qui..."
+                rows={5}
+                className="w-full mb-4 rounded-[24px] border-2 border-slate-100 bg-white px-5 py-4 text-sm font-medium text-slate-900 outline-none focus:border-accent resize-none shadow-sm"
+                placeholder="Scrivi qui il tuo messaggio..."
               />
 
               <button
@@ -296,7 +305,6 @@ export default function MobileProfileHeader({
                       setIsStaffComposerOpen(false);
                       setStaffSubject('');
                       setStaffBody('');
-                      // feedback visivo: breve testo via stato (minimo)
                     } else {
                       triggerHapticFeedback('warning');
                     }
@@ -304,12 +312,14 @@ export default function MobileProfileHeader({
                     setIsStaffSending(false);
                   }
                 }}
-                className="w-full h-14 rounded-2xl bg-[#2D5A27] text-white font-black uppercase tracking-[0.2em] text-xs shadow-lg shadow-accent/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
+                className="w-full h-16 rounded-[24px] bg-[#2D5A27] text-white font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-accent/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
               >
-                {isStaffSending ? 'INVIO...' : '✍️ INVIA ORA'}
+                {isStaffSending ? 'INVIO...' : 'INVIA ORA'}
               </button>
 
-              <p className="mt-2 text-[10px] font-bold text-slate-500 text-center"> </p>
+              <p className="mt-3 text-[10px] font-bold text-slate-400 text-center uppercase tracking-widest">
+                Verrà inviato a tutto lo staff
+              </p>
             </div>
           )}
         </div>
