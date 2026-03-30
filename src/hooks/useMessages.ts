@@ -28,20 +28,19 @@ export function useMessages(userId?: string) {
 
   const loadMessages = useCallback(
     async (uid: string) => {
+      if (!uid) return;
       try {
         setIsLoading(true);
         setError(null);
 
         // Validazione di sicurezza: verifica che database.supabase sia disponibile
         if (!database?.supabase) {
-          console.warn('[useMessages] Supabase client not initialized, returning empty array');
           setMessages([]);
           setUnreadCount(0);
           return;
         }
 
         // Query nativa Supabase dalla tabella 'staff_messages'
-        // Recupera messaggi broadcast (recipient_id is null) o messaggi privati per questo utente
         const { data, error: supabaseError } = await database.supabase
           .from('staff_messages')
           .select('*')
@@ -50,40 +49,30 @@ export function useMessages(userId?: string) {
 
         // Gestione errori Supabase
         if (supabaseError) {
-          // Gestione RLS errors (403)
           if (supabaseError.code === 'PGRST116' || supabaseError.code === '42501') {
-            console.warn('[useMessages] Permission denied (RLS): returning empty array');
             setMessages([]);
             setUnreadCount(0);
             return;
           }
-
           throw supabaseError;
         }
 
-        // Gestione stato vuoto
         if (!data) {
-          console.warn('[useMessages] No data returned from Supabase');
           setMessages([]);
           setUnreadCount(0);
           return;
         }
 
-        // Validare struttura dati
         if (!Array.isArray(data)) {
           throw new Error('Invalid messages array in response');
         }
 
-        // Computare unread count
         const unread = data.filter((m) => !m.is_read).length;
-
         setMessages(data as Message[]);
         setUnreadCount(unread);
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Errore sconosciuto';
         setError(errorMsg);
-        console.error('[useMessages] Error loading messages:', err);
-        // Non rethrow: permetti all'app di continuare anche se i messaggi falliscono
       } finally {
         setIsLoading(false);
       }
@@ -93,28 +82,18 @@ export function useMessages(userId?: string) {
 
   // Carica messaggi iniziali
   useEffect(() => {
-    // Se database.supabase non è ancora pronto, attendi
-    if (!database?.supabase) return;
-
-    if (!userId) {
-      setIsLoading(false);
+    if (!database?.supabase || !userId) {
+      if (!userId) setIsLoading(false);
       return;
     }
-
     loadMessages(userId);
   }, [userId, loadMessages]);
 
   // Sottoscrizione real-time ai messaggi
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !database?.supabase) return;
 
     try {
-      // Validazione di sicurezza: verifica che database.supabase sia disponibile
-      if (!database?.supabase) {
-        console.warn('[useMessages] Supabase client not initialized, skipping real-time subscription');
-        return;
-      }
-
       const channel = database.supabase
         .channel(`staff_messages:user:${userId}`)
         .on(
@@ -124,8 +103,7 @@ export function useMessages(userId?: string) {
             schema: 'public',
             table: 'staff_messages',
           },
-          (payload) => {
-            // Ricarica quando un nuovo messaggio arriva
+          () => {
             loadMessages(userId);
           }
         )
@@ -137,9 +115,7 @@ export function useMessages(userId?: string) {
         channel.unsubscribe();
       };
     } catch (err) {
-      // Logga l'errore ma non crashare il componente
-      console.error('[useMessages] Error subscribing to real-time messages:', err);
-      // Continua a far funzionare il componente caricando i messaggi una volta sola
+      console.error('[useMessages] Real-time error:', err);
       return undefined;
     }
   }, [userId, loadMessages]);

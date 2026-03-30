@@ -36,7 +36,6 @@ export function UnifiedBellButton({
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleRefresh = () => {
-    if (!loadMessages) return;
     if (userId && typeof loadMessages === 'function') {
       loadMessages(userId);
     }
