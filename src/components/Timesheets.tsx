@@ -2946,8 +2946,7 @@ export default function Timesheets() {
                                 }
                                 
                                 // Se serve il PIN per modifiche, chiedilo subito prima di aprire il drawer
-                                const pinRequiredForShiftEdits =
-                                  canTeamTimesheetOps && featureFlags['unlock_with_pin'] !== false;
+                                const pinRequiredForShiftEdits = canTeamTimesheetOps;
                                 if (pinRequiredForShiftEdits && !drawerPinUnlockedSessionId) {
                                   // Chiedi il PIN adesso, con un marker speciale
                                   setPinGateModal({
@@ -3039,8 +3038,8 @@ export default function Timesheets() {
                                     type="button"
                                     onClick={() => {
                                       // Se serve il PIN per modifiche, chiedilo subito prima di aprire il drawer
-                                      const pinRequiredForShiftEdits =
-                                        canTeamTimesheetOps && featureFlags['unlock_with_pin'] !== false;
+                                      // Richiedi PIN se l'utente può operare il team timesheet (manager/admin)
+                                      const pinRequiredForShiftEdits = canTeamTimesheetOps;
                                       if (pinRequiredForShiftEdits && !drawerPinUnlockedSessionId) {
                                         // Chiedi il PIN adesso, con un marker speciale
                                         setPinGateModal({
