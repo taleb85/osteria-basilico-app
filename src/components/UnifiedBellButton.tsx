@@ -3,7 +3,7 @@ import { Bell, Edit2 } from 'lucide-react';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 import { useApp } from '../context/AppContext';
-import { NotificationDropdown } from './NotificationDropdown';
+import { NotificationModal } from './NotificationModal';
 import { MessageComposer } from './MessageComposer';
 
 interface UnifiedBellButtonProps {
@@ -28,10 +28,9 @@ export function UnifiedBellButton({
   const { messages, unreadCount, markAsRead, isLoading, error } = useMessages(userId);
   const { triggerHapticFeedback, isSoundEnabled, setIsSoundEnabled } =
     useMultisensorialFeedback();
-  const { currentUser } = useApp();
+  const { currentUser, users } = useApp();
 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLongPress, setIsLongPress] = useState(false);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -63,7 +62,7 @@ export function UnifiedBellButton({
 
     // Se non è stato long press, è un click breve
     if (!isLongPress) {
-      setIsDropdownOpen(!isDropdownOpen);
+      setIsModalOpen(true);
       // Feedback aptico per click breve
       triggerHapticFeedback('click');
     }
@@ -74,8 +73,6 @@ export function UnifiedBellButton({
   const handleMessageClick = (messageId: string) => {
     // Marca come letto
     markAsRead(messageId);
-    // Chiudi dropdown
-    setIsDropdownOpen(false);
     // Callback esterno se fornito
     if (onMessageClick) {
       onMessageClick(messageId);
@@ -146,14 +143,14 @@ export function UnifiedBellButton({
       </button>
 
       {/* Dropdown Messaggi - Mostrato solo se non c'è errore */}
-      {isDropdownOpen && !error && (
+      {!error && (
         <div className="absolute right-0 top-full z-50 mt-2">
           {/* Tasto Nuova Comunicazione (visibile solo a ADMIN/MANAGER) */}
-          {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && !isComposerOpen && (
+          {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
             <div className="mb-2 flex justify-end">
               <button
                 type="button"
-                onClick={() => setIsComposerOpen(true)}
+                onClick={() => setIsModalOpen(true)}
                 className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-hover"
               >
                 <Edit2 className="h-3 w-3" />
@@ -161,36 +158,32 @@ export function UnifiedBellButton({
               </button>
             </div>
           )}
-
-          {/* Composer o Dropdown */}
-          {isComposerOpen ? (
-            <MessageComposer
-              userId={userId || ''}
-              userName={currentUser?.first_name || 'Manager'}
-              allUsers={[
-                { 
-                  id: currentUser?.id || '', 
-                  first_name: currentUser?.first_name || '', 
-                  last_name: currentUser?.last_name || '' 
-                },
-              ]}
-              onClose={() => setIsComposerOpen(false)}
-              onSuccess={() => setIsDropdownOpen(false)}
-            />
-          ) : (
-            <NotificationDropdown
-              messages={messages}
-              unreadCount={unreadCount}
-              onMessageClick={(msg) => handleMessageClick(msg.id)}
-              isOpen={isDropdownOpen}
-              onClose={() => setIsDropdownOpen(false)}
-            />
-          )}
         </div>
       )}
 
+      {/* Modal Notifiche Centrato */}
+      <NotificationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        messages={messages}
+        unreadCount={unreadCount}
+        onMessageClick={(messageId) => {
+          markAsRead(messageId);
+          triggerHapticFeedback('success');
+        }}
+        userId={userId}
+        userName={currentUser?.first_name}
+        canWrite={currentUser?.role === 'admin' || currentUser?.role === 'manager'}
+        allUsers={users.map((u) => ({
+          id: u.id,
+          first_name: u.first_name,
+          last_name: u.last_name,
+        }))}
+        onComposerSuccess={() => setIsModalOpen(true)}
+      />
+
       {/* Info tooltip long-press */}
-      {unreadCount > 0 && !isDropdownOpen && (
+      {unreadCount > 0 && (
         <div className="absolute right-0 top-full mt-1 whitespace-nowrap rounded-lg bg-slate-900 px-2 py-1 text-xs text-white pointer-events-none opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:bg-neutral-950">
           Long press per mutare
         </div>
