@@ -3678,7 +3678,7 @@ export default function Timesheets() {
             pinRequiredForPlannedTimesEdit && plannedTimesEditUnlockedShiftId !== s.id && !drawerPinUnlockedSessionId;
 
           return (
-              <div className="flex flex-1 flex-col overflow-y-auto min-h-screen">
+              <div className="flex flex-1 flex-col overflow-y-auto min-h-screen sm:max-h-[calc(100vh-60px)] md:max-h-[calc(100vh-60px)]">
                 {/* Drawer header — strip colorato in base allo stato */}
                 <div className={`border-l-4 ${border} ${bg} ${ring} shrink-0`}>
                   <div className="flex items-start justify-between gap-3 px-4 pb-2.5 pt-3 sm:px-5">
