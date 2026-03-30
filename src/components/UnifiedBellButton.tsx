@@ -114,7 +114,7 @@ export function UnifiedBellButton({
               ? 'Caricamento notifiche'
               : `Campanella notifiche${unreadCount > 0 ? ` con ${unreadCount} nuovi messaggi` : ''}`
         }
-        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-200 touch-manipulation bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10 ${
+        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-200 touch-manipulation bg-[#1a1a1a] dark:bg-black shadow-sm ${
           isDisabled
             ? 'opacity-50 cursor-not-allowed'
             : 'hover:scale-105 active:scale-95'
@@ -123,27 +123,26 @@ export function UnifiedBellButton({
         <Bell
           className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
             error
-              ? 'text-slate-400 dark:text-slate-600'
+              ? 'text-slate-600'
               : isLoading
-                ? 'text-slate-400 dark:text-slate-600 animate-pulse'
-                : unreadCount > 0
-                  ? 'text-accent dark:text-accent-light'
-                  : 'text-slate-400 dark:text-slate-500'
+                ? 'text-slate-600 animate-pulse'
+                : 'text-[#2D5A27]' /* Verde Basilico originale */
           }`}
-          strokeWidth={2}
+          strokeWidth={2.5}
         />
 
-        {/* Badge numero notifiche non lette - Solo un puntino rosso nitido */}
+        {/* Badge numero notifiche non lette - Rosso acceso con numero bianco */}
         {unreadCount > 0 && (
-          <span className="absolute top-2 right-2 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 shadow-sm border border-white dark:border-neutral-950" />
+          <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#DC2626] text-[10px] font-black text-white shadow-md ring-2 ring-[#1a1a1a]">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
         )}
 
         {/* Indicatore mute */}
         {!isSoundEnabled && (
           <div
-            className="absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full bg-slate-400 border border-white dark:border-neutral-950 shadow-sm"
+            className="absolute bottom-1 right-1 h-2 w-2 rounded-full bg-slate-500 border border-[#1a1a1a]"
             title="Audio disabilitato"
-            aria-label="Audio disabilitato"
           />
         )}
       </button>

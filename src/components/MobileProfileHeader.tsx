@@ -251,7 +251,7 @@ export default function MobileProfileHeader({
             <button
               type="button"
               onClick={() => setIsStaffComposerOpen((v) => !v)}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-50 dark:bg-neutral-900 border border-slate-100 dark:border-white/5 py-4 text-sm font-bold text-accent transition-all active:scale-95 shadow-sm"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white dark:bg-neutral-900 border border-slate-100 dark:border-white/10 py-4 text-sm font-bold text-accent transition-all active:scale-95 shadow-sm"
             >
               <span>✍️</span>
               <span>Invia Comunicazione allo Staff</span>
