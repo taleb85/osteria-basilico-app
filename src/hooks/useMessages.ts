@@ -48,28 +48,16 @@ export function useMessages(userId?: string) {
       }
 
       const channel = database.supabase
-        .channel(`messages:user:${userId}`)
+        .channel(`staff_messages:user:${userId}`)
         .on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
-            table: 'messages',
+            table: 'staff_messages',
           },
           (payload) => {
             // Ricarica quando un nuovo messaggio arriva
-            loadMessages(userId);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'message_reads',
-          },
-          (payload) => {
-            // Aggiorna stato di lettura in tempo reale
             loadMessages(userId);
           }
         )
@@ -94,65 +82,53 @@ export function useMessages(userId?: string) {
         setIsLoading(true);
         setError(null);
 
-        // Aggiungi un timeout di sicurezza (5 secondi) per il fetch
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        // Validazione di sicurezza: verifica che database.supabase sia disponibile
+        if (!database?.supabase) {
+          console.warn('[useMessages] Supabase client not initialized, returning empty array');
+          setMessages([]);
+          setUnreadCount(0);
+          return;
+        }
 
-        try {
-          // Query per ottenere i messaggi dell'utente con cache-busting timestamp
-          const cacheToken = new Date().getTime();
-          const response = await fetch(`/api/messages?userId=${uid}&t=${cacheToken}`, {
-            signal: controller.signal,
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-            },
-          });
+        // Query nativa Supabase dalla tabella 'staff_messages'
+        // Recupera messaggi broadcast (recipient_id is null) o messaggi privati per questo utente
+        const { data, error: supabaseError } = await database.supabase
+          .from('staff_messages')
+          .select('*')
+          .or(`recipient_id.is.null,recipient_id.eq.${uid}`)
+          .order('created_at', { ascending: false });
 
-          clearTimeout(timeoutId);
-          
-          // Validazione risposta HTTP - Gestione RLS (401/403)
-          if (response.status === 401 || response.status === 403) {
+        // Gestione errori Supabase
+        if (supabaseError) {
+          // Gestione RLS errors (403)
+          if (supabaseError.code === 'PGRST116' || supabaseError.code === '42501') {
             console.warn('[useMessages] Permission denied (RLS): returning empty array');
             setMessages([]);
             setUnreadCount(0);
             return;
           }
 
-          if (!response.ok) {
-            throw new Error(`Failed to fetch messages: ${response.status} ${response.statusText}`);
-          }
-
-          // Validazione content-type prima di parsare JSON
-          const contentType = response.headers.get('content-type');
-          if (!contentType?.includes('application/json')) {
-            // Silent fallback: return empty array instead of throwing
-            console.warn(`[useMessages] Invalid content type (${contentType}), expected application/json`);
-            setMessages([]);
-            setUnreadCount(0);
-            return;
-          }
-
-          // Parsare JSON con validazione
-          const data = (await response.json()) as { messages: Message[]; unreadCount: number };
-          
-          // Validare struttura dati
-          if (!Array.isArray(data.messages)) {
-            throw new Error('Invalid messages array in response');
-          }
-
-          setMessages(data.messages);
-          setUnreadCount(data.unreadCount);
-        } catch (err) {
-          clearTimeout(timeoutId);
-          
-          // Distingui tra timeout e altri errori
-          if (err instanceof DOMException && err.name === 'AbortError') {
-            throw new Error('Timeout caricamento messaggi (5 secondi)');
-          }
-          
-          throw err;
+          throw supabaseError;
         }
+
+        // Gestione stato vuoto
+        if (!data) {
+          console.warn('[useMessages] No data returned from Supabase');
+          setMessages([]);
+          setUnreadCount(0);
+          return;
+        }
+
+        // Validare struttura dati
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid messages array in response');
+        }
+
+        // Computare unread count
+        const unread = data.filter((m) => !m.is_read).length;
+
+        setMessages(data as Message[]);
+        setUnreadCount(unread);
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Errore sconosciuto';
         setError(errorMsg);
@@ -173,22 +149,27 @@ export function useMessages(userId?: string) {
       if (!userId) return false;
 
       try {
-        const response = await fetch(`/api/messages/${messageId}/read`, {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-        });
-
-        // Gestione RLS
-        if (response.status === 401 || response.status === 403) {
-          console.warn('[useMessages] Permission denied (RLS) marking as read');
+        // Validazione di sicurezza
+        if (!database?.supabase) {
+          console.warn('[useMessages] Supabase client not initialized');
           return false;
         }
 
-        if (!response.ok) {
-          throw new Error('Failed to mark message as read');
+        // Update messaggio in Supabase
+        const { error: supabaseError } = await database.supabase
+          .from('staff_messages')
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .eq('id', messageId);
+
+        // Gestione errori Supabase
+        if (supabaseError) {
+          // Gestione RLS errors (403)
+          if (supabaseError.code === 'PGRST116' || supabaseError.code === '42501') {
+            console.warn('[useMessages] Permission denied (RLS) marking as read');
+            return false;
+          }
+
+          throw supabaseError;
         }
 
         // Aggiorna lo stato locale
@@ -214,30 +195,36 @@ export function useMessages(userId?: string) {
       if (!userId) return false;
 
       try {
-        const messageType = recipientId ? 'private' : 'broadcast';
-
-        const response = await fetch('/api/messages', {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            subject,
-            body,
-            message_type: messageType,
-            recipient_id: recipientId || null,
-          }),
-        });
-
-        // Gestione RLS
-        if (response.status === 401 || response.status === 403) {
-          console.warn('[useMessages] Permission denied (RLS) sending message');
+        // Validazione di sicurezza
+        if (!database?.supabase) {
+          console.warn('[useMessages] Supabase client not initialized');
           return false;
         }
 
-        if (!response.ok) {
-          throw new Error('Failed to send message');
+        const messageType = recipientId ? 'private' : 'broadcast';
+
+        // Insert messaggio in Supabase
+        const { error: supabaseError } = await database.supabase
+          .from('staff_messages')
+          .insert({
+            sender_id: userId,
+            message_type: messageType,
+            subject,
+            body,
+            recipient_id: recipientId || null,
+            is_read: false,
+            created_at: new Date().toISOString(),
+          });
+
+        // Gestione errori Supabase
+        if (supabaseError) {
+          // Gestione RLS errors (403)
+          if (supabaseError.code === 'PGRST116' || supabaseError.code === '42501') {
+            console.warn('[useMessages] Permission denied (RLS) sending message');
+            return false;
+          }
+
+          throw supabaseError;
         }
 
         // Ricarica messaggi per riflettere il nuovo
