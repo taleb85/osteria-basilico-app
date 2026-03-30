@@ -4178,7 +4178,7 @@ export default function Timesheets() {
                         {shiftEditsRevealUnlocked && drawerShiftEditsExpanded && (
                           <div
                             id="timesheet-drawer-combined-history"
-                            className="flex max-h-[min(48vh,380px)] flex-col gap-2 overflow-y-auto overscroll-contain border-t border-amber-200/80 px-3 pb-3 pt-2.5 dark:border-amber-800/40"
+                            className="flex max-h-[min(24vh,200px)] flex-col gap-2 overflow-y-auto overscroll-contain border-t border-amber-200/80 px-3 pb-3 pt-2.5 dark:border-amber-800/40"
                           >
                             {shiftEdits.length > 0 && (
                               <div className="flex flex-col gap-2">
@@ -4403,7 +4403,7 @@ export default function Timesheets() {
                         </div>
                         </div>
                       {showTimbratureEditForm && drawerManualPunchFormExpanded && (
-                        <div className="space-y-3 border-t border-amber-200/80 pt-3 dark:border-amber-800/40">
+                        <div className="space-y-2 border-t border-amber-200/80 pt-3 dark:border-amber-800/40">
                           <div>
                             <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-800/70 dark:text-amber-300/80">
                               {t.ts_drawer_manual_punch_in}
