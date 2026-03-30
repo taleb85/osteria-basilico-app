@@ -68,9 +68,9 @@ export function NotificationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[10000] flex flex-col bg-white dark:bg-neutral-950 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed inset-0 z-[10000] flex flex-col bg-white dark:bg-neutral-950 animate-in fade-in slide-in-from-bottom-4 duration-300 w-full h-full">
       {/* Header Fisso */}
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-4 backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-950/80 sm:px-6">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 dark:border-neutral-800 dark:bg-neutral-950 sm:px-6">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
             <Send className="h-5 w-5 text-accent" />
@@ -89,19 +89,19 @@ export function NotificationModal({
         <button
           type="button"
           onClick={onClose}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-900 transition-transform active:scale-90 dark:bg-neutral-800 dark:text-white"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-900 transition-transform active:scale-90 dark:bg-neutral-800 dark:text-white"
           aria-label="Chiudi"
         >
-          <X className="h-6 w-6" strokeWidth={3} />
+          <X className="h-8 w-8" strokeWidth={3} />
         </button>
       </div>
 
       {/* Contenuto Scrollabile */}
       <div className="flex-1 overflow-y-auto pb-20">
-        <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6">
-          {/* Area di Scrittura (Solo per Manager/Admin) */}
+        <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 flex flex-col">
+          {/* Area di Scrittura (Solo per Manager/Admin) - SPOSTATA IN CIMA */}
           {canWrite && (
-            <div className="mb-8 overflow-hidden rounded-2xl border border-accent/20 bg-accent/5 p-4 dark:bg-accent/10 sm:p-6">
+            <div className="mb-8 overflow-hidden rounded-2xl border border-accent/20 bg-accent/5 p-4 dark:bg-accent/10 sm:p-6 order-first">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-black uppercase tracking-widest text-accent">
                   Nuovo Messaggio

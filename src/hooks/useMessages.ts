@@ -26,59 +26,6 @@ export function useMessages(userId?: string) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [subscription, setSubscription] = useState<RealtimeChannel | null>(null);
 
-  // Carica messaggi iniziali
-  useEffect(() => {
-    // Se database.supabase non è ancora pronto, attendi
-    if (!database?.supabase) return;
-
-    if (!userId) {
-      setIsLoading(false);
-      return;
-    }
-
-    loadMessages(userId);
-  }, [userId, loadMessages]);
-
-  // Sottoscrizione real-time ai messaggi
-  useEffect(() => {
-    if (!userId) return;
-
-    try {
-      // Validazione di sicurezza: verifica che database.supabase sia disponibile
-      if (!database?.supabase) {
-        console.warn('[useMessages] Supabase client not initialized, skipping real-time subscription');
-        return;
-      }
-
-      const channel = database.supabase
-        .channel(`staff_messages:user:${userId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'staff_messages',
-          },
-          (payload) => {
-            // Ricarica quando un nuovo messaggio arriva
-            loadMessages(userId);
-          }
-        )
-        .subscribe();
-
-      setSubscription(channel);
-
-      return () => {
-        channel.unsubscribe();
-      };
-    } catch (err) {
-      // Logga l'errore ma non crashare il componente
-      console.error('[useMessages] Error subscribing to real-time messages:', err);
-      // Continua a far funzionare il componente caricando i messaggi una volta sola
-      return undefined;
-    }
-  }, [userId]);
-
   const loadMessages = useCallback(
     async (uid: string) => {
       try {
@@ -143,6 +90,59 @@ export function useMessages(userId?: string) {
     },
     []
   );
+
+  // Carica messaggi iniziali
+  useEffect(() => {
+    // Se database.supabase non è ancora pronto, attendi
+    if (!database?.supabase) return;
+
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
+
+    loadMessages(userId);
+  }, [userId, loadMessages]);
+
+  // Sottoscrizione real-time ai messaggi
+  useEffect(() => {
+    if (!userId) return;
+
+    try {
+      // Validazione di sicurezza: verifica che database.supabase sia disponibile
+      if (!database?.supabase) {
+        console.warn('[useMessages] Supabase client not initialized, skipping real-time subscription');
+        return;
+      }
+
+      const channel = database.supabase
+        .channel(`staff_messages:user:${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'staff_messages',
+          },
+          (payload) => {
+            // Ricarica quando un nuovo messaggio arriva
+            loadMessages(userId);
+          }
+        )
+        .subscribe();
+
+      setSubscription(channel);
+
+      return () => {
+        channel.unsubscribe();
+      };
+    } catch (err) {
+      // Logga l'errore ma non crashare il componente
+      console.error('[useMessages] Error subscribing to real-time messages:', err);
+      // Continua a far funzionare il componente caricando i messaggi una volta sola
+      return undefined;
+    }
+  }, [userId, loadMessages]);
 
   /**
    * Marca un messaggio come letto.
