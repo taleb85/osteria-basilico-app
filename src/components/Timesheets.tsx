@@ -647,6 +647,7 @@ export default function Timesheets() {
   const [manualPunchIn, setManualPunchIn] = useState('');
   const [manualPunchOut, setManualPunchOut] = useState('');
   const [manualPunchOutDate, setManualPunchOutDate] = useState('');
+  const [drawerJustOpened, setDrawerJustOpened] = useState(false);
   const [manualPunchSaving, setManualPunchSaving] = useState(false);
   /** Form IN/OUT sotto il riepilogo: dopo «Registra timbrature» si richiude; tap su riepilogo lo riapre. */
   const [drawerManualPunchFormExpanded, setDrawerManualPunchFormExpanded] = useState(true);
@@ -691,6 +692,7 @@ export default function Timesheets() {
     setDrawerPinUnlockedSessionId(null);
     setDrawerShiftEditsExpanded(false);
     setDrawerManualPunchFormExpanded(true);
+    setDrawerJustOpened(false);
   }, []);
 
   const [approvalConfirm, setApprovalConfirm] = useState<{
@@ -1601,6 +1603,7 @@ export default function Timesheets() {
     const sameReviewSession = reviewQueue?.reviewScope === 'employee_week' && drawerReviewQueue?.reviewScope === 'employee_week';
     setDrawerReviewQueue(reviewQueue);
     setDrawerOpenSource(openSource);
+    setDrawerJustOpened(true);
     const punchAuditEntries = shift.punchInId ? (punchAudits[shift.punchInId] || []) : [];
     const shiftEdits = getShiftHistory(shift.id);
     setDrawerData({ shift, userId: user.id, employeeName: user.first_name, department: user.department, dateStr, punchAuditEntries, shiftEdits });
@@ -1659,6 +1662,16 @@ export default function Timesheets() {
     const d = parseISO(dateStr);
     return new Date(d.getFullYear(), d.getMonth(), d.getDate(), h ?? 0, m ?? 0, 0, 0).toISOString();
   };
+
+  // Resetta drawerJustOpened dopo 500ms
+  useEffect(() => {
+    if (drawerJustOpened) {
+      const timer = setTimeout(() => {
+        setDrawerJustOpened(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [drawerJustOpened]);
 
   /** Inserimento timbrature mancanti o aggiornamento ingresso/uscita già presenti (dopo PIN se richiesto). */
   const handleDrawerSaveTimbratures = async (opts?: { silentToast?: boolean }): Promise<boolean> => {
@@ -4439,7 +4452,7 @@ export default function Timesheets() {
                                   </button>
                                   <button
                                     type="button"
-                                    disabled={reviewQueueSaving || manualPunchSaving || isInReviewQueue}
+                                    disabled={reviewQueueSaving || manualPunchSaving || isInReviewQueue || drawerJustOpened}
                                     onClick={() => {
                                       void (async () => {
                                         const ok = await handleDrawerSaveTimbratures({ silentToast: false });
@@ -4458,7 +4471,7 @@ export default function Timesheets() {
                                       })();
                                     }}
                                     className={`flex-1 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors ${
-                                      isInReviewQueue
+                                      isInReviewQueue || drawerJustOpened
                                         ? 'bg-slate-200 text-slate-600 cursor-not-allowed dark:bg-neutral-700 dark:text-neutral-400'
                                         : 'bg-accent text-white hover:bg-accent-hover'
                                     } ${reviewQueueSaving || manualPunchSaving ? 'opacity-50' : ''}`}
