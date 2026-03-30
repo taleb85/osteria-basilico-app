@@ -51,7 +51,7 @@ export function MessagesList({
             key={message.id}
             className={`rounded-lg border transition-colors ${
               isUnread
-                ? 'border-blue-200 bg-blue-50/50 dark:border-blue-900/40 dark:bg-blue-950/20'
+                ? 'border-accent/30 bg-accent/5 dark:border-accent/40 dark:bg-accent/10'
                 : 'border-slate-200 bg-slate-50/50 dark:border-neutral-700 dark:bg-neutral-900/40'
             }`}
           >
@@ -75,8 +75,8 @@ export function MessagesList({
                     📢
                   </div>
                 ) : (
-                  <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 dark:bg-blue-950/40">
-                    <Mail className="h-3 w-3 text-blue-700 dark:text-blue-300" />
+                  <div className="flex h-5 w-5 items-center justify-center rounded bg-accent/10 dark:bg-accent/20">
+                    <Mail className="h-3 w-3 text-accent dark:text-accent-light" />
                   </div>
                 )}
               </div>
@@ -150,7 +150,7 @@ export function MessagesList({
                     <button
                       type="button"
                       onClick={() => onMarkAsRead(message.id)}
-                      className="flex-1 rounded bg-blue-100 dark:bg-blue-950/40 px-2 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-950/60 transition-colors"
+                      className="flex-1 rounded bg-accent/10 dark:bg-accent/20 px-2 py-1 text-xs font-semibold text-accent dark:text-accent-light hover:bg-accent/20 dark:hover:bg-accent/30 transition-colors"
                     >
                       Marca come letto
                     </button>

@@ -217,15 +217,15 @@ export function MessageWriter({
 
   // Versione full (non compact)
   return (
-    <div className="space-y-4 rounded-lg border-2 border-blue-300/80 bg-blue-50/80 p-4 dark:border-blue-600/60 dark:bg-blue-950/40">
-      <h3 className="flex items-center gap-2 text-sm font-bold text-blue-900 dark:text-blue-100">
+    <div className="space-y-4 rounded-lg border-2 border-accent/50 bg-accent/5 p-4 dark:border-accent/60 dark:bg-accent/10">
+      <h3 className="flex items-center gap-2 text-sm font-bold text-accent dark:text-accent-light">
         <Send className="h-5 w-5" />
         Scrivi Messaggio
       </h3>
 
       {/* Tipo messaggio - Full */}
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-blue-900 dark:text-blue-200">
+        <label className="text-sm font-semibold text-accent dark:text-accent-light">
           Destinatario:
         </label>
         <div className="flex gap-3">
@@ -241,7 +241,7 @@ export function MessageWriter({
               }}
               className="h-4 w-4"
             />
-            <span className="text-sm text-blue-900 dark:text-blue-100">📢 Invia a tutti</span>
+            <span className="text-sm text-accent dark:text-accent-light">📢 Invia a tutti</span>
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -252,7 +252,7 @@ export function MessageWriter({
               onChange={(e) => setMessageType(e.target.value as 'broadcast' | 'private')}
               className="h-4 w-4"
             />
-            <span className="text-sm text-blue-900 dark:text-blue-100">✉️ Privato</span>
+            <span className="text-sm text-accent dark:text-accent-light">✉️ Privato</span>
           </label>
         </div>
       </div>
@@ -260,13 +260,13 @@ export function MessageWriter({
       {/* Seleziona destinatario - Full */}
       {messageType === 'private' && (
         <div>
-          <label className="block text-sm font-semibold text-blue-900 dark:text-blue-200">
+          <label className="block text-sm font-semibold text-accent dark:text-accent-light">
             A chi:
           </label>
           <select
             value={selectedRecipientId}
             onChange={(e) => setSelectedRecipientId(e.target.value)}
-            className="mt-2 w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm dark:border-blue-700 dark:bg-neutral-900 dark:text-neutral-100"
+            className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm dark:border-accent/50 dark:bg-neutral-900 dark:text-neutral-100"
           >
             <option value="">Seleziona utente...</option>
             {allUsers
@@ -282,7 +282,7 @@ export function MessageWriter({
 
       {/* Oggetto - Full */}
       <div>
-        <label className="block text-sm font-semibold text-blue-900 dark:text-blue-200">
+        <label className="block text-sm font-semibold text-accent dark:text-accent-light">
           Oggetto:
         </label>
         <input
@@ -291,13 +291,13 @@ export function MessageWriter({
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           maxLength={100}
-          className="mt-2 w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm placeholder-blue-400/60 dark:border-blue-700 dark:bg-neutral-900 dark:text-neutral-100"
+          className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40 dark:border-accent/50 dark:bg-neutral-900 dark:text-neutral-100"
         />
       </div>
 
       {/* Corpo - Full */}
       <div>
-        <label className="block text-sm font-semibold text-blue-900 dark:text-blue-200">
+        <label className="block text-sm font-semibold text-accent dark:text-accent-light">
           Messaggio:
         </label>
         <textarea
@@ -306,7 +306,7 @@ export function MessageWriter({
           onChange={(e) => setBody(e.target.value)}
           maxLength={500}
           rows={4}
-          className="mt-2 w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm placeholder-blue-400/60 resize-none dark:border-blue-700 dark:bg-neutral-900 dark:text-neutral-100"
+          className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40 resize-none dark:border-accent/50 dark:bg-neutral-900 dark:text-neutral-100"
         />
         <p className="mt-1 text-xs text-blue-700/70 dark:text-blue-300/70">
           {body.length}/500 caratteri
@@ -331,7 +331,7 @@ export function MessageWriter({
           type="button"
           onClick={handleSend}
           disabled={isSending}
-          className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-60 dark:bg-blue-700 dark:hover:bg-blue-800"
+          className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-accent-hover disabled:opacity-60 dark:bg-accent dark:hover:bg-accent-hover"
         >
           {isSending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -344,7 +344,7 @@ export function MessageWriter({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-blue-300 px-4 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-neutral-800"
+            className="rounded-lg border border-accent/30 px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/10 dark:border-accent/50 dark:text-accent-light dark:hover:bg-accent/20"
           >
             Annulla
           </button>

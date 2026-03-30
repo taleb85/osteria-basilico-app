@@ -107,7 +107,7 @@ export function NotificationDropdown({
                 type="button"
                 onClick={() => handleMessageClick(msg)}
                 className={`w-full px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-neutral-800 ${
-                  isUnread ? 'bg-blue-50 dark:bg-blue-950/20' : ''
+                  isUnread ? 'bg-accent/5 dark:bg-accent/10' : ''
                 }`}
               >
                 <div className="flex gap-3">
@@ -118,8 +118,8 @@ export function NotificationDropdown({
                         📢
                       </div>
                     ) : (
-                      <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 dark:bg-blue-950/40">
-                        <Mail className="h-3 w-3 text-blue-700 dark:text-blue-300" />
+                      <div className="flex h-5 w-5 items-center justify-center rounded bg-accent/10 dark:bg-accent/20">
+                        <Mail className="h-3 w-3 text-accent dark:text-accent-light" />
                       </div>
                     )}
                   </div>
@@ -136,7 +136,7 @@ export function NotificationDropdown({
                         {msg.subject}
                       </p>
                       {isUnread && (
-                        <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" />
+                        <div className="h-2 w-2 rounded-full bg-accent flex-shrink-0" />
                       )}
                     </div>
 
@@ -171,7 +171,7 @@ export function NotificationDropdown({
               // TODO: Naviga a profilo con sezione messaggi
               onClose();
             }}
-            className="w-full text-center text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+            className="w-full text-center text-xs font-semibold text-accent hover:text-accent-hover dark:text-accent-light dark:hover:text-accent transition-colors"
           >
             Visualizza Tutti →
           </button>
