@@ -4063,7 +4063,7 @@ export default function Timesheets() {
                       canTeamTimesheetOps && 
                       !isFrozen && 
                       !isAbsentDraw && (
-                      <div className="mt-3 flex flex-col gap-2">
+                      <div className="mt-3 sm:mt-3 sm:static sticky bottom-0 left-0 right-0 z-20 flex flex-col gap-2 p-2 sm:p-0 bg-white/95 sm:bg-transparent dark:bg-neutral-900/95 sm:dark:bg-transparent border-t sm:border-t-0 border-slate-200 sm:border-t-0 dark:border-white/10 sm:dark:border-t-0 shadow-lg sm:shadow-none">
                         {showPublishedPlannedTimesPinButton && (
                           <button
                             type="button"
