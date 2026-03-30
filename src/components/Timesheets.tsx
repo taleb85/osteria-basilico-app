@@ -3698,6 +3698,12 @@ export default function Timesheets() {
                         )}
                         {isApproved && <Lock className="ml-auto h-3.5 w-3.5 shrink-0 text-accent" />}
                       </div>
+                      <h2 className="mb-1 text-sm font-semibold text-slate-600 dark:text-neutral-400">
+                        {drawerOpenSource === 'name' 
+                          ? `Weekly Review - ${drawerData.employeeName}`
+                          : `Daily Team Review - ${safeFormatDate(drawerData.dateStr, 'EEE d MMM', { locale })}`
+                        }
+                      </h2>
                       <h3 className="truncate text-lg font-bold leading-tight text-slate-900 dark:text-neutral-100">
                         {drawerData.employeeName}
                       </h3>
@@ -3881,7 +3887,7 @@ export default function Timesheets() {
                                   type="button"
                                   disabled={plannedTimesSaving}
                                   onClick={() => void handleSaveDrawerPlannedTimes()}
-                                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-800 disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+                                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-review px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-review-hover disabled:opacity-40 dark:bg-review dark:hover:bg-review-hover"
                                 >
                                   {plannedTimesSaving ? (
                                     <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -4451,7 +4457,7 @@ export default function Timesheets() {
                               // Salva le timbrature
                               void handleDrawerSaveTimbratures();
                             }}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-600 px-3 py-2.5 text-xs font-bold text-white transition-colors hover:bg-amber-700 disabled:opacity-40 dark:bg-amber-600 dark:hover:bg-amber-500"
+                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3 py-2.5 text-xs font-bold text-white transition-colors hover:bg-accent-hover disabled:opacity-40 dark:bg-accent dark:hover:bg-accent-hover"
                           >
                             {manualPunchSaving ? (
                               <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -4489,7 +4495,7 @@ export default function Timesheets() {
                                   }
                                 })();
                               }}
-                              className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-3 py-2.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-50 disabled:opacity-40 dark:border-red-900/55 dark:bg-amber-950/30 dark:text-red-300 dark:hover:bg-red-950/40"
+                              className="flex w-full items-center justify-center gap-2 rounded-xl border border-error bg-white px-3 py-2.5 text-xs font-bold text-error transition-colors hover:bg-error-light disabled:opacity-40 dark:border-error dark:bg-error-light/20 dark:text-error dark:hover:bg-error-light/30"
                             >
                               <Trash2 className="h-3.5 w-3.5 shrink-0" />
                               {t.ts_drawer_delete_punches_btn}
@@ -4619,7 +4625,7 @@ export default function Timesheets() {
                                         }
                                       })();
                                     }}
-                                    className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl border-2 border-rose-200 bg-rose-50 px-3 py-2.5 text-xs font-bold text-rose-800 transition-colors hover:bg-rose-100 disabled:opacity-50 dark:border-rose-800/60 dark:bg-rose-950/40 dark:text-rose-100 dark:hover:bg-rose-950/55"
+                                    className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl border-2 border-error bg-error-light px-3 py-2.5 text-xs font-bold text-error transition-colors hover:bg-error-light/70 disabled:opacity-50 dark:border-error dark:bg-error-light/15 dark:text-error dark:hover:bg-error-light/25"
                                   >
                                     {markAbsentSaving ? (
                                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-rose-400/50 border-t-rose-800 dark:border-t-rose-100" />

@@ -13,6 +13,18 @@ export default {
           light:   '#d0dece',
           muted:   'rgba(45, 90, 39, 0.12)',
         },
+        // Arancione revisione — per approvazioni e modifiche
+        review: {
+          DEFAULT: '#D97706',
+          hover:   '#B45309',
+          light:   '#FEF3C7',
+        },
+        // Rosso errore — per eliminazioni e azioni critiche
+        error: {
+          DEFAULT: '#DC2626',
+          hover:   '#991B1B',
+          light:   '#FEE2E2',
+        },
         surface: {
           DEFAULT: '#f8fafc',
           card: '#ffffff',
