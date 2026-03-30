@@ -179,15 +179,6 @@ export function UnifiedBellButton({
         }}
         userId={userId}
         userName={currentUser?.first_name}
-        canWrite={currentUser?.role === 'admin' || currentUser?.role === 'manager'}
-        allUsers={users.map((u) => ({
-          id: u.id,
-          first_name: u.first_name,
-          last_name: u.last_name,
-        }))}
-        onComposerSuccess={() => {
-          // Non chiudiamo il modal, lasciamo che il composer mostri il successo
-        }}
         onRefresh={handleRefresh}
       />
 
