@@ -28,13 +28,16 @@ export function useMessages(userId?: string) {
 
   // Carica messaggi iniziali
   useEffect(() => {
+    // Se database.supabase non è ancora pronto, attendi
+    if (!database?.supabase) return;
+
     if (!userId) {
       setIsLoading(false);
       return;
     }
 
     loadMessages(userId);
-  }, [userId]);
+  }, [userId, loadMessages]);
 
   // Sottoscrizione real-time ai messaggi
   useEffect(() => {
