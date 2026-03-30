@@ -2526,7 +2526,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       />
                     ) : (
                       <>
-                        <span className="text-sm font-semibold text-slate-800 truncate flex-1 min-w-0">{u.first_name}</span>
+                        <span className="text-sm font-semibold text-slate-800 truncate flex-1 min-w-0">{u.first_name.toUpperCase()}</span>
                         {isManagement && !isPurelyManagementRole(u.role) && (
                           <button
                             type="button"

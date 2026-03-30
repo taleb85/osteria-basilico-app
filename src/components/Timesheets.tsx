@@ -3634,11 +3634,11 @@ export default function Timesheets() {
           const plannedDraftCard = s.status === 'draft';
           const plannedAbsentCard = s.status === 'absent';
           const plannedCardBoxClass = plannedPublishedCard
-            ? 'rounded-xl border-2 border-solid border-emerald-500/80 bg-emerald-50/95 p-3 dark:border-emerald-500/50 dark:bg-emerald-950/40'
+            ? 'rounded-xl border-2 border-l-4 border-solid border-emerald-500/80 border-l-accent bg-emerald-50/95 p-3 dark:border-emerald-500/50 dark:bg-emerald-950/40'
             : plannedAbsentCard
               ? 'rounded-xl border-2 border-dashed border-rose-400/85 bg-rose-50 p-3 dark:border-rose-500/65 dark:bg-rose-950/35'
               : plannedDraftCard
-                ? 'rounded-xl border-2 border-dashed border-slate-400 bg-slate-50 p-3 dark:border-white/75 dark:bg-neutral-950/85'
+                ? 'rounded-xl border-2 border-dashed border-review border-l-4 border-l-review bg-slate-50 p-3 dark:border-white/75 dark:bg-neutral-950/85'
                 : 'rounded-xl border-2 border-dashed border-slate-400 bg-slate-50/90 p-3 dark:border-white/75 dark:bg-neutral-950/85';
           const plannedCardLabelCls = plannedPublishedCard
             ? 'text-emerald-700 dark:text-emerald-400'
@@ -3700,12 +3700,12 @@ export default function Timesheets() {
                       </div>
                       <h2 className="mb-1 text-sm font-semibold text-slate-600 dark:text-neutral-400">
                         {drawerOpenSource === 'name' 
-                          ? `Weekly Review - ${drawerData.employeeName}`
+                          ? `Weekly Review - ${drawerData.employeeName.toUpperCase()}`
                           : `Daily Team Review - ${safeFormatDate(drawerData.dateStr, 'EEE d MMM', { locale })}`
                         }
                       </h2>
                       <h3 className="truncate text-lg font-bold leading-tight text-slate-900 dark:text-neutral-100">
-                        {drawerData.employeeName}
+                        {drawerData.employeeName.toUpperCase()}
                       </h3>
                       {/* Intestazione: indica se il drawer è stato aperto da "Nome" o da "Data". */}
                       {/* Removed old "Data: ... / Nome: ..." display - now using absolute positioned element below */}
@@ -3768,10 +3768,10 @@ export default function Timesheets() {
                                   drawerOpenSource
                                     );
                                   }}
-                                  className="shrink-0 rounded-xl p-1.5 transition-colors hover:bg-white/80 disabled:opacity-40 dark:hover:bg-white/10"
+                                  className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-40 dark:hover:bg-accent/20"
                                   aria-label={t.prev || 'Previous'}
                                 >
-                                  <ChevronLeft className="h-4 w-4 text-slate-600 dark:text-neutral-300" />
+                                  <ChevronLeft className="h-5 w-5 text-slate-700 dark:text-neutral-200" />
                                 </button>
                                 <button
                                   type="button"
@@ -3788,10 +3788,10 @@ export default function Timesheets() {
                                       drawerOpenSource
                                     );
                                   }}
-                                  className="shrink-0 rounded-xl p-1.5 transition-colors hover:bg-white/80 disabled:opacity-40 dark:hover:bg-white/10"
+                                  className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-40 dark:hover:bg-accent/20"
                                   aria-label={t.next || 'Next'}
                                 >
-                                  <ChevronRight className="h-4 w-4 text-slate-600 dark:text-neutral-300" />
+                                  <ChevronRight className="h-5 w-5 text-slate-700 dark:text-neutral-200" />
                                 </button>
                               </>
                             );
@@ -3943,12 +3943,12 @@ export default function Timesheets() {
                         </div>
                       </div>
                       <div
-                        className={`rounded-xl p-3 h-full overflow-hidden ${
+                        className={`rounded-xl p-3 h-full overflow-hidden border-l-4 ${
                           s.punched
                             ? s.isCrossDay
-                              ? 'bg-red-50 dark:bg-red-950/35'
-                              : 'bg-teal-50 dark:bg-teal-950/35'
-                            : 'border-2 border-amber-400/90 bg-amber-50 dark:border-amber-500/70 dark:bg-amber-950/45'
+                              ? 'bg-red-50 dark:bg-red-950/35 border-l-error'
+                              : 'bg-teal-50 dark:bg-teal-950/35 border-l-accent'
+                            : 'border-2 border-amber-400/90 bg-amber-50 dark:border-amber-500/70 dark:bg-amber-950/45 border-l-review'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
@@ -3956,7 +3956,7 @@ export default function Timesheets() {
                         </div>
                         {s.punched ? (
                           <>
-                            <p className="text-base font-bold tabular-nums text-slate-800 dark:text-neutral-100">
+                            <p className="text-base font-bold tabular-nums text-slate-900 dark:text-slate-50">
                               {s.actualStart}
                               {s.actualEnd ? `–${s.actualEnd}` : ''}
                             </p>
