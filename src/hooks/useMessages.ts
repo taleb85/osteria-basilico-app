@@ -263,5 +263,6 @@ export function useMessages(userId?: string) {
     unreadCount,
     markAsRead,
     sendMessage,
+    loadMessages,
   };
 }
