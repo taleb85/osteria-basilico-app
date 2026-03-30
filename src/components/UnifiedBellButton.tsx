@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Edit2 } from 'lucide-react';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
+import { useApp } from '../context/AppContext';
 import { NotificationDropdown } from './NotificationDropdown';
+import { MessageComposer } from './MessageComposer';
 
 interface UnifiedBellButtonProps {
   userId?: string;
@@ -26,8 +28,10 @@ export function UnifiedBellButton({
   const { messages, unreadCount, markAsRead, isLoading, error } = useMessages(userId);
   const { triggerHapticFeedback, isSoundEnabled, setIsSoundEnabled } =
     useMultisensorialFeedback();
+  const { currentUser } = useApp();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [isLongPress, setIsLongPress] = useState(false);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -144,13 +148,44 @@ export function UnifiedBellButton({
       {/* Dropdown Messaggi - Mostrato solo se non c'è errore */}
       {isDropdownOpen && !error && (
         <div className="absolute right-0 top-full z-50 mt-2">
-          <NotificationDropdown
-            messages={messages}
-            unreadCount={unreadCount}
-            onMessageClick={(msg) => handleMessageClick(msg.id)}
-            isOpen={isDropdownOpen}
-            onClose={() => setIsDropdownOpen(false)}
-          />
+          {/* Tasto Nuova Comunicazione (visibile solo a ADMIN/MANAGER) */}
+          {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && !isComposerOpen && (
+            <div className="mb-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsComposerOpen(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-hover"
+              >
+                <Edit2 className="h-3 w-3" />
+                Nuova Comunicazione
+              </button>
+            </div>
+          )}
+
+          {/* Composer o Dropdown */}
+          {isComposerOpen ? (
+            <MessageComposer
+              userId={userId || ''}
+              userName={currentUser?.first_name || 'Manager'}
+              allUsers={[
+                { 
+                  id: currentUser?.id || '', 
+                  first_name: currentUser?.first_name || '', 
+                  last_name: currentUser?.last_name || '' 
+                },
+              ]}
+              onClose={() => setIsComposerOpen(false)}
+              onSuccess={() => setIsDropdownOpen(false)}
+            />
+          ) : (
+            <NotificationDropdown
+              messages={messages}
+              unreadCount={unreadCount}
+              onMessageClick={(msg) => handleMessageClick(msg.id)}
+              isOpen={isDropdownOpen}
+              onClose={() => setIsDropdownOpen(false)}
+            />
+          )}
         </div>
       )}
 
