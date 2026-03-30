@@ -3698,13 +3698,13 @@ export default function Timesheets() {
                         )}
                         {isApproved && <Lock className="ml-auto h-3.5 w-3.5 shrink-0 text-accent" />}
                       </div>
-                      <h2 className="mb-1 text-sm font-semibold text-slate-600 dark:text-neutral-400">
+                      <h2 className="mb-1 text-xs sm:text-sm font-semibold text-slate-600 dark:text-neutral-400">
                         {drawerOpenSource === 'name' 
                           ? `Weekly Review - ${drawerData.employeeName.toUpperCase()}`
                           : `Daily Team Review - ${safeFormatDate(drawerData.dateStr, 'EEE d MMM', { locale })}`
                         }
                       </h2>
-                      <h3 className="mt-1.5 truncate text-lg font-bold leading-tight text-slate-900 dark:text-neutral-100">
+                      <h3 className="mt-1.5 truncate text-base sm:text-lg font-bold leading-tight text-slate-900 dark:text-neutral-100">
                         {drawerData.employeeName.toUpperCase()}
                       </h3>
                       {/* Intestazione: indica se il drawer è stato aperto da "Nome" o da "Data". */}
@@ -3768,7 +3768,7 @@ export default function Timesheets() {
                                   drawerOpenSource
                                     );
                                   }}
-                                  className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full p-0 transition-colors duration-200 hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
+                                  className="shrink-0 flex items-center justify-center w-10 sm:w-10 h-10 sm:h-10 min-h-[44px] min-w-[44px] rounded-full p-0 transition-colors duration-200 hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
                                   aria-label={t.prev || 'Previous'}
                                 >
                                   <ChevronLeft className="h-5 w-5 text-slate-700 dark:text-neutral-200" />
@@ -3788,7 +3788,7 @@ export default function Timesheets() {
                                       drawerOpenSource
                                     );
                                   }}
-                                  className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full p-0 transition-colors duration-200 hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
+                                  className="shrink-0 flex items-center justify-center w-10 sm:w-10 h-10 sm:h-10 min-h-[44px] min-w-[44px] rounded-full p-0 transition-colors duration-200 hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
                                   aria-label={t.next || 'Next'}
                                 >
                                   <ChevronRight className="h-5 w-5 text-slate-700 dark:text-neutral-200" />
@@ -3843,7 +3843,7 @@ export default function Timesheets() {
                   >
                   <div className="min-w-0">
                   {/* Riepilogo ore */}
-                  <div className="border-b border-slate-100 p-5 dark:border-white/10" style={{ height: '255px' }}>
+                  <div className="border-b border-slate-100 p-3 sm:p-5 dark:border-white/10" style={{ height: 'auto' }}>
                     <div className="mb-3 grid grid-cols-2 gap-3 h-[160px] md:items-end">
                       <div className={`${plannedCardBoxClass} h-full overflow-hidden`}>
                         <p className={`mb-1 text-[10px] font-semibold uppercase ${plannedCardLabelCls}`}>{t.ts_label_planned}</p>
@@ -4572,7 +4572,7 @@ export default function Timesheets() {
                                         }
                                       })();
                                     }}
-                                    className={`flex-1 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors ${
+                                    className={`flex-1 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-colors ${
                                       isInReviewQueue || drawerJustOpened
                                         ? 'bg-slate-200 text-slate-600 cursor-not-allowed dark:bg-neutral-700 dark:text-neutral-400'
                                         : 'bg-[#2D5A27] !important text-white !important hover:bg-accent-hover'
