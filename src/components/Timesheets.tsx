@@ -4280,7 +4280,7 @@ export default function Timesheets() {
                   {/* Timbrature in alto a destra (desktop): form visibile senza scroll nella colonna destra */}
                   {!isAbsentDraw && (
                     <div className="border-b border-slate-100 p-3 dark:border-white/10">
-                      <div className="space-y-1 rounded-xl border-2 border-amber-400/90 bg-white/85 p-2 shadow-sm dark:border-amber-500/70 dark:bg-amber-950/50 flex flex-col h-auto overflow-visible">
+                      <div className="space-y-0.5 sm:space-y-1 rounded-xl border-2 border-amber-400/90 bg-white/85 p-1.5 sm:p-2 shadow-sm dark:border-amber-500/70 dark:bg-amber-950/50 flex flex-col h-auto overflow-visible">
                         <div
                           className={
                             timbraturePinGateTarget
@@ -4328,7 +4328,7 @@ export default function Timesheets() {
                           <h4 className="text-xs font-bold text-amber-950 dark:text-amber-100">{t.ts_drawer_manual_punches_title}</h4>
                           <p className="mt-0.5 text-[9px] font-medium text-amber-900/85 dark:text-amber-200/90">{t.ts_drawer_manual_punches_hint}</p>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 pt-0.5">
+                        <div className="grid grid-cols-2 gap-1 sm:gap-2 pt-0.5">
                           <div
                             onPointerDown={
                               showTimbratureEditForm
@@ -4344,7 +4344,7 @@ export default function Timesheets() {
                                   }
                                 : undefined
                             }
-                            className={`rounded-lg bg-white/80 px-2.5 py-1.5 ring-1 ring-amber-200/80 dark:bg-neutral-900/40 dark:ring-amber-800/50 ${
+                            className={`rounded-lg bg-white/80 px-2 sm:px-2.5 py-1 sm:py-1.5 ring-1 ring-amber-200/80 dark:bg-neutral-900/40 dark:ring-amber-800/50 ${
                               showTimbratureEditForm
                                 ? 'cursor-pointer transition-colors hover:bg-amber-50/90 dark:hover:bg-amber-950/55'
                                 : ''
@@ -4354,7 +4354,7 @@ export default function Timesheets() {
                               {t.ts_drawer_manual_punch_in}
                             </p>
                             <p
-                              className={`text-sm font-bold tabular-nums ${
+                              className={`text-xs sm:text-sm font-bold tabular-nums ${
                                 s.actualStart ? 'text-slate-900 dark:text-neutral-100' : 'text-amber-700/45 dark:text-amber-400/45'
                               }`}
                             >
@@ -4376,17 +4376,17 @@ export default function Timesheets() {
                                   }
                                 : undefined
                             }
-                            className={`rounded-lg bg-white/80 px-2.5 py-1.5 ring-1 ring-amber-200/80 dark:bg-neutral-900/40 dark:ring-amber-800/50 ${
+                            className={`rounded-lg bg-white/80 px-2 sm:px-2.5 py-1 sm:py-1.5 ring-1 ring-amber-200/80 dark:bg-neutral-900/40 dark:ring-amber-800/50 ${
                               showTimbratureEditForm
                                 ? 'cursor-pointer transition-colors hover:bg-amber-50/90 dark:hover:bg-amber-950/55'
                                 : ''
                             }`}
                           >
-                            <p className="mb-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-800/80 dark:text-amber-300/90">
+                            <p className="mb-0.5 text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-amber-800/80 dark:text-amber-300/90">
                               {t.ts_drawer_manual_punch_out}
                             </p>
                             <p
-                              className={`text-sm font-bold tabular-nums ${
+                              className={`text-xs sm:text-sm font-bold tabular-nums ${
                                 s.actualEnd ? 'text-slate-900 dark:text-neutral-100' : 'text-amber-700/45 dark:text-amber-400/45'
                               }`}
                             >
