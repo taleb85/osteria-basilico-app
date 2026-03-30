@@ -1733,6 +1733,14 @@ export default function Timesheets() {
           document.activeElement.blur();
         }
         setDrawerManualPunchFormExpanded(false);
+        
+        // Auto-advance dopo salvataggio: se in review queue, avanza; altrimenti naviga contextualmente
+        if (drawerReviewQueue) {
+          advanceDrawerReviewAfterStep();
+        } else if (drawerOpenSource) {
+          handleDrawerContextualNavigate(1);
+        }
+        
         return true;
       }
       const rIn = await addPunchRecord(drawerData.userId, 'in', {
@@ -1763,6 +1771,14 @@ export default function Timesheets() {
         document.activeElement.blur();
       }
       setDrawerManualPunchFormExpanded(false);
+      
+      // Auto-advance dopo salvataggio: se in review queue, avanza; altrimenti naviga contextualmente
+      if (drawerReviewQueue) {
+        advanceDrawerReviewAfterStep();
+      } else if (drawerOpenSource) {
+        handleDrawerContextualNavigate(1);
+      }
+      
       return true;
     } catch {
       showError?.(t.save_error);
@@ -1984,6 +2000,55 @@ export default function Timesheets() {
           scope === 'employee_week' ? t.ts_toast_employee_week_review_complete : t.ts_toast_day_review_complete
         );
       }
+    }
+  };
+
+  /**
+   * Navigazione contestuale per auto-advance dopo salvataggio.
+   * - Se aperto da NAME: naviga giorni della settimana per lo stesso dipendente
+   * - Se aperto da DATA: naviga dipendenti per la stessa data
+   */
+  const handleDrawerContextualNavigate = (dir: 1 | -1) => {
+    if (!drawerData || !drawerOpenSource) return;
+
+    if (drawerOpenSource === 'name') {
+      // Navigazione settimanale (NOME): scorrere giorni per lo stesso dipendente
+      const currentDate = parseISO(drawerData.dateStr);
+      const nextDate = new Date(currentDate);
+      nextDate.setDate(nextDate.getDate() + dir);
+      const nextDateStr = format(nextDate, 'yyyy-MM-dd');
+      
+      // Verifica che la data sia all'interno della settimana visibile
+      const weekStart = weekDays[0];
+      const weekEnd = weekDays[weekDays.length - 1];
+      if (nextDate < weekStart || nextDate > weekEnd) return;
+      
+      const dayData = timesheetData[drawerData.userId]?.[nextDateStr];
+      if (!dayData || dayData.shifts.length === 0) return;
+      
+      const firstShift = dayData.shifts[0];
+      const user = visibleUsers.find((u) => u.id === drawerData.userId);
+      if (!user) return;
+      
+      openDrawer(firstShift, { id: user.id, first_name: drawerData.employeeName, department: drawerData.department }, nextDateStr, null, 'name');
+    } else if (drawerOpenSource === 'date') {
+      // Navigazione per data (DATA): scorrere dipendenti per la stessa data
+      const userList = visibleUsers.map((u) => u.id);
+      const currentUserIdx = userList.indexOf(drawerData.userId);
+      if (currentUserIdx === -1) return;
+      
+      const nextUserIdx = currentUserIdx + dir;
+      if (nextUserIdx < 0 || nextUserIdx >= userList.length) return;
+      
+      const nextUserId = userList[nextUserIdx];
+      const nextUser = visibleUsers.find((u) => u.id === nextUserId);
+      if (!nextUser) return;
+      
+      const nextDayData = timesheetData[nextUserId]?.[drawerData.dateStr];
+      if (!nextDayData || nextDayData.shifts.length === 0) return;
+      
+      const firstShift = nextDayData.shifts[0];
+      openDrawer(firstShift, { id: nextUser.id, first_name: nextUser.first_name, department: nextUser.department }, drawerData.dateStr, null, 'date');
     }
   };
 
