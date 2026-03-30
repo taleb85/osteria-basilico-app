@@ -3932,8 +3932,7 @@ export default function Timesheets() {
                                     setPlannedTimesEditUnlockedShiftId(s.id);
                                   }
                                 }}
-                                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-600/35 bg-white/90 px-3 py-2.5 text-xs font-bold text-emerald-900 transition-colors hover:bg-emerald-50 dark:border-emerald-500/40 dark:bg-emerald-950/30 dark:text-emerald-100 dark:hover:bg-emerald-950/50"
-                                style={{ position: 'absolute', top: '174px', left: '32px', zIndex: 28, height: '52px', width: '170px' }}
+                                className="hidden"
                               >
                                 <Pencil className="h-3.5 w-3.5 shrink-0" aria-hidden />
                                 {t.ts_drawer_edit_planned_times_btn}
@@ -4046,33 +4045,50 @@ export default function Timesheets() {
                                     setManualPunchOutDate(drawerData.dateStr);
                                     setDrawerManualPunchFormExpanded(true);
                                   }}
-                                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-amber-600 px-3 py-2.5 text-xs font-bold uppercase text-white transition-all hover:bg-amber-700 active:scale-[0.98] shadow-sm"
-                                  style={{ position: 'absolute', left: '242px', top: '173px', height: '52px', width: '171px', minWidth: '161px' }}
+                                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-review px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-review-hover disabled:opacity-40 dark:bg-review dark:hover:bg-review-hover"
                                 >
                                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
-                                  Approva (Pianificato)
+                                  {t.ts_drawer_planned_times_save}
                                 </button>
-                                
-                                {s.punched && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setManualPunchIn(s.plannedStart);
-                                      setManualPunchOut(s.plannedEnd);
-                                      setManualPunchOutDate(drawerData.dateStr);
-                                      setDrawerManualPunchFormExpanded(true);
-                                    }}
-                                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-amber-600/50 bg-white px-2 py-1.5 text-[10px] font-bold uppercase text-amber-700 transition-all hover:bg-amber-50 active:scale-[0.98]"
-                                  >
-                                    Correggi con Pianificato
-                                  </button>
-                                )}
                               </div>
                             )}
                           </div>
                         )}
                       </div>
                     </div>
+
+                    {/* Pulsanti di azione */}
+                    {!isEmployeeWeekReviewSheet && 
+                      fullShift && 
+                      canTeamTimesheetOps && 
+                      !isFrozen && 
+                      !isAbsentDraw && (
+                      <div className="mt-3 flex flex-col gap-2">
+                        {showPublishedPlannedTimesPinButton && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!drawerPinUnlockedSessionId && !drawerReviewQueue) {
+                                setPinGateModal({ shiftId: s.id, mode: 'enable_planned_times_edit' });
+                                setPinGatePin('');
+                                setPinGateError('');
+                              } else {
+                                const full = shifts.find((sh) => sh.id === s.id);
+                                if (full) {
+                                  setDrawerPlannedTimeStart((full.start_time || '').slice(0, 5));
+                                  setDrawerPlannedTimeEnd((full.end_time || '').slice(0, 5));
+                                }
+                                setPlannedTimesEditUnlockedShiftId(s.id);
+                              }
+                            }}
+                            className="flex items-center justify-center gap-2 rounded-lg border border-emerald-600/35 bg-white/90 px-3 py-2 text-xs font-bold text-emerald-900 transition-colors hover:bg-emerald-50 dark:border-emerald-500/40 dark:bg-emerald-950/30 dark:text-emerald-100 dark:hover:bg-emerald-950/50"
+                          >
+                            <Pencil className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                            {t.ts_drawer_edit_planned_times_btn}
+                          </button>
+                        )}
+                      </div>
+                    )}
 
                     {!isEmployeeWeekReviewSheet &&
                       fullShift &&
