@@ -23,7 +23,7 @@ export function UnifiedBellButton({
   effectiveLanguage = 'it',
   onMessageClick,
 }: UnifiedBellButtonProps) {
-  const { messages, unreadCount, markAsRead } = useMessages(userId);
+  const { messages, unreadCount, markAsRead, isLoading, error } = useMessages(userId);
   const { triggerHapticFeedback, isSoundEnabled, setIsSoundEnabled } =
     useMultisensorialFeedback();
 
@@ -78,22 +78,51 @@ export function UnifiedBellButton({
     }
   };
 
+  // Se il caricamento fallisce, mostra una campanella grigia statica
+  const isDisabled = isLoading || !!error;
+
   return (
     <div className="relative">
       {/* Pulsante Campanella */}
       <button
         ref={buttonRef}
         type="button"
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleMouseDown}
-        onTouchEnd={handleMouseUp}
-        title={`Notifiche${unreadCount > 0 ? ` (${unreadCount} non lette)` : ''}`}
-        aria-label={`Campanella notifiche${unreadCount > 0 ? ` con ${unreadCount} nuovi messaggi` : ''}`}
-        className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-lg surface-glass-sm px-1.5 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10"
+        onMouseDown={!isDisabled ? handleMouseDown : undefined}
+        onMouseUp={!isDisabled ? handleMouseUp : undefined}
+        onMouseLeave={!isDisabled ? handleMouseUp : undefined}
+        onTouchStart={!isDisabled ? handleMouseDown : undefined}
+        onTouchEnd={!isDisabled ? handleMouseUp : undefined}
+        disabled={isDisabled}
+        title={
+          error
+            ? `Errore caricamento notifiche: ${error}`
+            : isLoading
+              ? 'Caricamento notifiche...'
+              : `Notifiche${unreadCount > 0 ? ` (${unreadCount} non lette)` : ''}`
+        }
+        aria-label={
+          error
+            ? `Errore caricamento notifiche`
+            : isLoading
+              ? 'Caricamento notifiche'
+              : `Campanella notifiche${unreadCount > 0 ? ` con ${unreadCount} nuovi messaggi` : ''}`
+        }
+        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-lg surface-glass-sm px-1.5 transition-all duration-200 touch-manipulation bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10 ${
+          isDisabled
+            ? 'opacity-50 cursor-not-allowed'
+            : 'hover:scale-105 active:scale-95'
+        }`}
       >
-        <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-accent dark:text-accent-light" strokeWidth={2} />
+        <Bell
+          className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
+            error
+              ? 'text-slate-400 dark:text-slate-600'
+              : isLoading
+                ? 'text-slate-400 dark:text-slate-600 animate-pulse'
+                : 'text-accent dark:text-accent-light'
+          }`}
+          strokeWidth={2}
+        />
 
         {/* Badge numero notifiche non lette */}
         {unreadCount > 0 && (
@@ -112,8 +141,8 @@ export function UnifiedBellButton({
         )}
       </button>
 
-      {/* Dropdown Messaggi */}
-      {isDropdownOpen && (
+      {/* Dropdown Messaggi - Mostrato solo se non c'è errore */}
+      {isDropdownOpen && !error && (
         <div className="absolute right-0 top-full z-50 mt-2">
           <NotificationDropdown
             messages={messages}

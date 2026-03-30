@@ -40,39 +40,52 @@ export function useMessages(userId?: string) {
   useEffect(() => {
     if (!userId) return;
 
-    const channel = database.supabase
-      .channel(`messages:user:${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages',
-        },
-        (payload) => {
-          // Ricarica quando un nuovo messaggio arriva
-          loadMessages(userId);
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'message_reads',
-        },
-        (payload) => {
-          // Aggiorna stato di lettura in tempo reale
-          loadMessages(userId);
-        }
-      )
-      .subscribe();
+    try {
+      // Validazione di sicurezza: verifica che database.supabase sia disponibile
+      if (!database?.supabase) {
+        console.warn('[useMessages] Supabase client not initialized, skipping real-time subscription');
+        return;
+      }
 
-    setSubscription(channel);
+      const channel = database.supabase
+        .channel(`messages:user:${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'messages',
+          },
+          (payload) => {
+            // Ricarica quando un nuovo messaggio arriva
+            loadMessages(userId);
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'message_reads',
+          },
+          (payload) => {
+            // Aggiorna stato di lettura in tempo reale
+            loadMessages(userId);
+          }
+        )
+        .subscribe();
 
-    return () => {
-      channel.unsubscribe();
-    };
+      setSubscription(channel);
+
+      return () => {
+        channel.unsubscribe();
+      };
+    } catch (err) {
+      // Logga l'errore ma non crashare il componente
+      console.error('[useMessages] Error subscribing to real-time messages:', err);
+      // Continua a far funzionare il componente caricando i messaggi una volta sola
+      return undefined;
+    }
   }, [userId]);
 
   const loadMessages = useCallback(
@@ -81,19 +94,54 @@ export function useMessages(userId?: string) {
         setIsLoading(true);
         setError(null);
 
-        // Query per ottenere i messaggi dell'utente
-        const response = await fetch(`/api/messages?userId=${uid}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch messages: ${response.statusText}`);
-        }
+        // Aggiungi un timeout di sicurezza (5 secondi) per il fetch
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-        const data = (await response.json()) as { messages: Message[]; unreadCount: number };
-        setMessages(data.messages);
-        setUnreadCount(data.unreadCount);
+        try {
+          // Query per ottenere i messaggi dell'utente
+          const response = await fetch(`/api/messages?userId=${uid}`, {
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+          
+          // Validazione risposta HTTP
+          if (!response.ok) {
+            throw new Error(`Failed to fetch messages: ${response.status} ${response.statusText}`);
+          }
+
+          // Validazione content-type prima di parsare JSON
+          const contentType = response.headers.get('content-type');
+          if (!contentType?.includes('application/json')) {
+            throw new Error(`Invalid content type: ${contentType}. Expected application/json`);
+          }
+
+          // Parsare JSON con validazione
+          const data = (await response.json()) as { messages: Message[]; unreadCount: number };
+          
+          // Validare struttura dati
+          if (!Array.isArray(data.messages)) {
+            throw new Error('Invalid messages array in response');
+          }
+
+          setMessages(data.messages);
+          setUnreadCount(data.unreadCount);
+        } catch (err) {
+          clearTimeout(timeoutId);
+          
+          // Distingui tra timeout e altri errori
+          if (err instanceof DOMException && err.name === 'AbortError') {
+            throw new Error('Timeout caricamento messaggi (5 secondi)');
+          }
+          
+          throw err;
+        }
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Errore sconosciuto';
         setError(errorMsg);
         console.error('[useMessages] Error loading messages:', err);
+        // Non rethrow: permetti all'app di continuare anche se i messaggi falliscono
       } finally {
         setIsLoading(false);
       }
