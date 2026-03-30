@@ -79,7 +79,7 @@ export function PinPadModal({
           </div>
           
           {/* PIN Input Display */}
-          <div className="w-full h-16 rounded-2xl border-2 border-[#455a3f] dark:border-accent-light/30 bg-white dark:bg-neutral-900/50 flex items-center justify-center relative overflow-hidden">
+          <div className="w-full h-16 rounded-2xl border-2 border-[#6b9b5f] dark:border-[#6b9b5f] bg-white dark:bg-neutral-900/50 flex items-center justify-center relative overflow-hidden">
             <div className="flex items-center gap-3">
               {[0, 1, 2, 3].map((i) => (
                 <div key={i} className="relative flex items-center justify-center">
@@ -91,7 +91,7 @@ export function PinPadModal({
                       className="absolute -left-2 h-8 w-[1.5px] bg-slate-900 dark:bg-white" 
                     />
                   )}
-                  <div className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${pin.length > i ? 'bg-slate-400 dark:bg-neutral-400' : 'bg-slate-200 dark:bg-neutral-700'}`} />
+                  <div className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${pin.length > i ? 'bg-[#6b9b5f] dark:bg-[#6b9b5f]' : 'bg-slate-200 dark:bg-neutral-700'}`} />
                   {/* Special case: cursor at the end */}
                   {pin.length === 4 && i === 3 && (
                     <motion.div 
@@ -113,21 +113,25 @@ export function PinPadModal({
               key={n}
               type="button"
               onClick={() => handleKey(n)}
-              className="h-14 rounded-xl bg-white dark:bg-neutral-800/50 border border-slate-100 dark:border-white/5 text-slate-900 dark:text-neutral-100 font-bold text-xl active:scale-95 transition-transform shadow-sm"
+              className="h-14 rounded-2xl bg-white dark:bg-neutral-800/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-neutral-100 font-bold text-xl active:scale-95 transition-transform shadow-sm hover:bg-slate-50"
             >
               {n}
             </button>
           ))}
           
           {/* Bottom Row */}
-          <div className="flex items-center justify-center">
-            {leftActionButton}
-          </div>
+          <button
+            type="button"
+            onClick={() => leftActionButton && typeof leftActionButton === 'object' && leftActionButton.props?.onClick?.()}
+            className="h-14 rounded-2xl bg-[#d4e5cd] hover:bg-[#c8dcc1] dark:bg-[#4a6b45]/50 border border-[#6b9b5f] dark:border-[#6b9b5f] flex items-center justify-center text-[#6b9b5f] dark:text-[#6b9b5f] active:scale-95 transition-transform shadow-sm"
+          >
+            <Fingerprint className="w-6 h-6" />
+          </button>
           
           <button
             type="button"
             onClick={() => handleKey(0)}
-            className="h-14 rounded-xl bg-white dark:bg-neutral-800/50 border border-slate-100 dark:border-white/5 text-slate-900 dark:text-neutral-100 font-bold text-xl active:scale-95 transition-transform shadow-sm"
+            className="h-14 rounded-2xl bg-white dark:bg-neutral-800/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-neutral-100 font-bold text-xl active:scale-95 transition-transform shadow-sm hover:bg-slate-50"
           >
             0
           </button>
@@ -135,7 +139,7 @@ export function PinPadModal({
           <button
             type="button"
             onClick={() => handleKey('del')}
-            className="h-14 rounded-xl bg-slate-50 dark:bg-neutral-800/30 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 dark:text-neutral-400 active:scale-95 transition-transform shadow-sm"
+            className="h-14 rounded-2xl bg-slate-100 dark:bg-neutral-800/30 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-neutral-400 active:scale-95 transition-transform shadow-sm hover:bg-slate-150"
           >
             <Delete className="w-6 h-6" />
           </button>
@@ -152,7 +156,7 @@ export function PinPadModal({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 h-14 rounded-2xl bg-slate-50 dark:bg-neutral-800 border border-slate-100 dark:border-white/5 text-slate-900 dark:text-neutral-100 font-bold active:scale-95 transition-all"
+            className="flex-1 h-14 rounded-2xl bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 font-bold active:scale-95 transition-all hover:bg-slate-150"
           >
             {cancelLabel}
           </button>
@@ -160,7 +164,7 @@ export function PinPadModal({
             type="button"
             disabled={pin.length !== 4 || isLoading}
             onClick={onConfirm}
-            className="flex-1 h-14 rounded-2xl bg-[#94a388] hover:bg-[#86947a] text-white font-bold shadow-lg shadow-[#94a388]/20 disabled:opacity-50 disabled:grayscale active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="flex-1 h-14 rounded-2xl bg-[#6b9b5f] hover:bg-[#5d8a52] text-white font-bold shadow-lg shadow-[#6b9b5f]/20 disabled:opacity-50 disabled:grayscale active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : confirmLabel}
           </button>
