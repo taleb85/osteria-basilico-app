@@ -15,6 +15,13 @@ const fetchNoCache: typeof fetch = (input, init) =>
  * L'app usa sessione custom (`app_session`) e PostgREST/Storage con chiave anonima:
  * non usiamo Supabase Auth per il login. Disattivare persistenza/token evita spam di lock
  * GoTrue su localStorage (es. con React Strict Mode) e richieste inutili.
+ * 
+ * Il client Supabase viene inizializzato al caricamento del modulo.
+ * I componenti che lo usano (ad es. useMessages) verificano se è disponibile
+ * prima di accedervi.
+ * 
+ * Cache bypass: fetchNoCache assicura che ogni richiesta sia fresca,
+ * evitando problemi di stale data su pull-to-refresh e sync multi-dispositivo.
  */
 export const supabase: SupabaseClient | null = supabaseUrl && supabaseKey
   ? createClient(supabaseUrl, supabaseKey, {

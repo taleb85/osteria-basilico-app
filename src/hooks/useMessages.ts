@@ -99,14 +99,26 @@ export function useMessages(userId?: string) {
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
         try {
-          // Query per ottenere i messaggi dell'utente
-          const response = await fetch(`/api/messages?userId=${uid}`, {
+          // Query per ottenere i messaggi dell'utente con cache-busting timestamp
+          const cacheToken = new Date().getTime();
+          const response = await fetch(`/api/messages?userId=${uid}&t=${cacheToken}`, {
             signal: controller.signal,
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
           });
 
           clearTimeout(timeoutId);
           
-          // Validazione risposta HTTP
+          // Validazione risposta HTTP - Gestione RLS (401/403)
+          if (response.status === 401 || response.status === 403) {
+            console.warn('[useMessages] Permission denied (RLS): returning empty array');
+            setMessages([]);
+            setUnreadCount(0);
+            return;
+          }
+
           if (!response.ok) {
             throw new Error(`Failed to fetch messages: ${response.status} ${response.statusText}`);
           }
@@ -114,7 +126,11 @@ export function useMessages(userId?: string) {
           // Validazione content-type prima di parsare JSON
           const contentType = response.headers.get('content-type');
           if (!contentType?.includes('application/json')) {
-            throw new Error(`Invalid content type: ${contentType}. Expected application/json`);
+            // Silent fallback: return empty array instead of throwing
+            console.warn(`[useMessages] Invalid content type (${contentType}), expected application/json`);
+            setMessages([]);
+            setUnreadCount(0);
+            return;
           }
 
           // Parsare JSON con validazione
@@ -159,8 +175,17 @@ export function useMessages(userId?: string) {
       try {
         const response = await fetch(`/api/messages/${messageId}/read`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
         });
+
+        // Gestione RLS
+        if (response.status === 401 || response.status === 403) {
+          console.warn('[useMessages] Permission denied (RLS) marking as read');
+          return false;
+        }
 
         if (!response.ok) {
           throw new Error('Failed to mark message as read');
@@ -193,7 +218,10 @@ export function useMessages(userId?: string) {
 
         const response = await fetch('/api/messages', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
             subject,
             body,
@@ -201,6 +229,12 @@ export function useMessages(userId?: string) {
             recipient_id: recipientId || null,
           }),
         });
+
+        // Gestione RLS
+        if (response.status === 401 || response.status === 403) {
+          console.warn('[useMessages] Permission denied (RLS) sending message');
+          return false;
+        }
 
         if (!response.ok) {
           throw new Error('Failed to send message');
