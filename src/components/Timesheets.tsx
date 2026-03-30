@@ -3988,11 +3988,11 @@ export default function Timesheets() {
                                   ) : null}
                                 </>
                               ) : s.actualMins > 0 ? (
-                                s.breakMinutesActual > 0 ? (
-                                  `${fmtHM(s.actualMins)} (−${fmtBreakDeductionShort(s.breakMinutesActual)})`
-                                ) : (
-                                  `${fmtHM(s.actualMins)} (${s.deltaMins >= 0 ? '+' : ''}${fmtHM(s.deltaMins)})`
-                                )
+                                <>
+                                  {s.breakMinutesActual > 0
+                                    ? `${fmtHM(s.actualMins)} (−${fmtBreakDeductionShort(s.breakMinutesActual)})`
+                                    : `${fmtHM(s.actualMins)} (${s.deltaMins >= 0 ? '+' : ''}${fmtHM(s.deltaMins)})`}
+                                </>
                               ) : (
                                 <>
                                   {t.ts_out_missing_short}
