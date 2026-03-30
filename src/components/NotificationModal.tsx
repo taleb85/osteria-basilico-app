@@ -59,7 +59,7 @@ export function NotificationModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/85 backdrop-blur-xl w-screen h-screen overflow-hidden p-4"
+        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-2xl backdrop-saturate-150 w-screen h-screen overflow-hidden p-4"
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <motion.div
@@ -67,7 +67,7 @@ export function NotificationModal({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-2xl max-h-[85vh] flex flex-col bg-white dark:bg-neutral-900 rounded-[40px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] overflow-hidden border border-white/10"
+          className="relative z-[100000] w-full max-w-2xl max-h-[85vh] flex flex-col bg-white dark:bg-neutral-900 rounded-[40px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] overflow-hidden border border-white/10"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header Fisso - Stile image_0.png */}
