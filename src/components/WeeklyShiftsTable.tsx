@@ -2967,20 +2967,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         </span>
                       )}
                     </div>
-                    {/* Tabella turni: MOBILE con sticky name column + scroll | WEB sm:w-full = 7 giorni */}
-                    <div className="flex min-w-0 overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity">
-                      {/* Sticky nome su mobile (hidden su sm+) */}
-                      <div className="sm:hidden sticky left-0 z-10 flex items-center min-w-[80px] max-w-[80px] px-2.5 py-1 bg-slate-50 dark:bg-neutral-800/70 border-r border-slate-200 dark:border-white/10 flex-shrink-0">
-                        <span className="text-xs font-bold text-slate-700 dark:text-neutral-100 truncate">
-                          {user.first_name.toUpperCase()}
-                        </span>
-                      </div>
-                      {/* Scroll area per i giorni */}
-                      <div
-                        ref={(el) => { cardScrollRefs.current[userIdx] = el; }}
-                        onScroll={(e) => syncScrollLeft(e.currentTarget)}
-                        className="flex-1 overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity"
-                      >
+                    {/* Tabella turni: MOBILE con scroll fluido | WEB sm:w-full = 7 giorni */}
+                    <div
+                      ref={(el) => { cardScrollRefs.current[userIdx] = el; }}
+                      onScroll={(e) => syncScrollLeft(e.currentTarget)}
+                      className="overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity -mx-0.5 px-0.5"
+                    >
                     <table className={`border-collapse table-fixed min-w-0 sm:w-full ${allWeekDays.length === 1 ? 'w-[33.33%]' : allWeekDays.length === 14 ? 'w-[466.67%]' : 'w-[233.33%]'}`}>
                       <tbody>
                         {/* MOBILE+WEB: h-[100px] compatto */}
@@ -3529,7 +3521,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         </tr>
                       </tbody>
                     </table>
-                      </div>
                     </div>
                   </motion.div>
                 );
