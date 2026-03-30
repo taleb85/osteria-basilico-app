@@ -3704,7 +3704,7 @@ export default function Timesheets() {
                           : `Daily Team Review - ${safeFormatDate(drawerData.dateStr, 'EEE d MMM', { locale })}`
                         }
                       </h2>
-                      <h3 className="truncate text-lg font-bold leading-tight text-slate-900 dark:text-neutral-100">
+                      <h3 className="mt-1.5 truncate text-lg font-bold leading-tight text-slate-900 dark:text-neutral-100">
                         {drawerData.employeeName.toUpperCase()}
                       </h3>
                       {/* Intestazione: indica se il drawer è stato aperto da "Nome" o da "Data". */}
