@@ -7,8 +7,7 @@ import { getTranslations, getDateLocale } from '../utils/translations';
 import { getRoleScopeHint } from '../utils/roleScopeHint';
 import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
 import { readStoredThemePreference, persistThemePreference } from '../utils/theme';
-import NotificationCenter from './NotificationCenter';
-import { NotificationPermissionButton } from './NotificationPermissionButton';
+import { UnifiedBellButton } from './UnifiedBellButton';
 import { useState, useEffect } from 'react';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 
@@ -190,18 +189,15 @@ export default function MobileProfileHeader({
             >
               <ThemeContrastIcon mode={uiTheme} className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
-            {/* Pulsante Push Notifications (compatto) */}
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center">
-              <NotificationPermissionButton
-                effectiveLanguage={effectiveLanguage}
-                compact={true}
-              />
-            </div>
-            {isUiWidgetVisible(currentUser, 'global.notifications') && (
-              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center surface-glass-sm px-1.5 surface-ghost-interactive transition-all duration-200 hover:scale-105 !text-slate-700 bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10">
-                <NotificationCenter denseTrigger />
-              </div>
-            )}
+            {/* Campanella unificata: notifiche + mute audio */}
+            <UnifiedBellButton
+              userId={currentUser?.id}
+              effectiveLanguage={effectiveLanguage}
+              onMessageClick={(messageId) => {
+                // Deep-link a messaggio nel profilo
+                console.log('Navigating to message:', messageId);
+              }}
+            />
             <button
               type="button"
               onClick={handleHardRefresh}
