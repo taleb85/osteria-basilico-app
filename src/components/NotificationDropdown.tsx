@@ -61,14 +61,14 @@ export function NotificationDropdown({
       className="absolute right-0 top-full z-50 mt-2 w-80 max-h-96 rounded-lg border border-slate-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-neutral-700">
+      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/50">
         <div className="flex items-center gap-2">
-          <Bell className="h-4 w-4 text-slate-700 dark:text-neutral-300" />
+          <Bell className="h-4 w-4 text-accent dark:text-accent-light" />
           <h3 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
             Ultime Notifiche
           </h3>
           {unreadCount > 0 && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow-sm">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -76,7 +76,9 @@ export function NotificationDropdown({
         <button
           type="button"
           onClick={onClose}
-          className="p-0.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+          className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-neutral-700 transition-colors"
+          title="Chiudi"
+          aria-label="Chiudi notifiche"
         >
           <X className="h-4 w-4 text-slate-600 dark:text-neutral-400" />
         </button>
@@ -85,10 +87,13 @@ export function NotificationDropdown({
       {/* Lista messaggi */}
       <div className="divide-y divide-slate-100 dark:divide-neutral-800 overflow-y-auto max-h-80">
         {recentMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+          <div className="flex flex-col items-center justify-center gap-2 py-8 text-center px-4">
             <MessageCircle className="h-8 w-8 text-slate-300 dark:text-neutral-700" />
-            <p className="text-xs text-slate-500 dark:text-neutral-500">
-              Nessuna notifica
+            <p className="text-xs font-medium text-slate-600 dark:text-neutral-400">
+              Nessun nuovo messaggio
+            </p>
+            <p className="text-[11px] text-slate-500 dark:text-neutral-500">
+              Tutti i messaggi sono stati letti
             </p>
           </div>
         ) : (
@@ -164,14 +169,14 @@ export function NotificationDropdown({
 
       {/* Footer: Link al centro messaggi */}
       {recentMessages.length > 0 && (
-        <div className="border-t border-slate-200 px-4 py-2 dark:border-neutral-700">
+        <div className="border-t border-slate-200 px-4 py-2 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/50">
           <button
             type="button"
             onClick={() => {
               // TODO: Naviga a profilo con sezione messaggi
               onClose();
             }}
-            className="w-full text-center text-xs font-semibold text-accent hover:text-accent-hover dark:text-accent-light dark:hover:text-accent transition-colors"
+            className="w-full text-center text-xs font-semibold text-accent hover:text-accent-hover dark:text-accent-light dark:hover:text-accent transition-colors py-1"
           >
             Visualizza Tutti →
           </button>

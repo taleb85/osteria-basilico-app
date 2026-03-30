@@ -119,12 +119,12 @@ export function UnifiedBellButton({
               ? 'text-slate-400 dark:text-slate-600'
               : isLoading
                 ? 'text-slate-400 dark:text-slate-600 animate-pulse'
-                : 'text-accent dark:text-accent-light'
+                : 'text-accent dark:text-accent-light' /* Verde Basilico #2D5A27 */
           }`}
           strokeWidth={2}
         />
 
-        {/* Badge numero notifiche non lette */}
+        {/* Badge numero notifiche non lette - Nascosto quando count === 0 per header pulito */}
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow-md">
             {unreadCount > 9 ? '9+' : unreadCount}
