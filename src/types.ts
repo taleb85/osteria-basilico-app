@@ -1,3 +1,16 @@
+/** Configurazione di una sede (tenant). */
+export interface Tenant {
+  id: string;
+  slug: string;
+  name: string;
+  accent_color: string;
+  logo_url?: string | null;
+  plan: 'basic' | 'pro' | 'enterprise';
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export type UserRole =
   | 'admin'
   | 'manager'
@@ -33,6 +46,7 @@ export interface MonthlyConfirmedData {
 
 export interface User {
   id: string;
+  tenant_id?: string;
   first_name: string;
   /** Cognome opzionale */
   last_name?: string;
@@ -80,6 +94,7 @@ export interface User {
 
 export interface Shift {
   id: string;
+  tenant_id?: string;
   user_id: string;
   date: string;
   start_time: string;
@@ -111,6 +126,7 @@ export interface Shift {
 
 export interface HolidayRequest {
   id: string;
+  tenant_id?: string;
   user_id: string;
   start_date: string;
   end_date: string;
@@ -129,6 +145,7 @@ export type PunchRecordSource = 'kiosk' | 'manual' | 'manager';
 
 export interface PunchRecord {
   id: string;
+  tenant_id?: string;
   user_id: string;
   shift_id?: string;
   timestamp: string;
@@ -145,6 +162,7 @@ export interface PunchRecord {
  */
 export interface PunchAuditEntry {
   id: string;
+  tenant_id?: string;
   punch_record_id: string;
   actor_id?: string;
   actor_name: string;

@@ -1,5 +1,32 @@
 import { supabase } from './supabase';
 import { User, Shift, HolidayRequest, PunchRecord, PunchAuditEntry } from '../types';
+
+// ---------------------------------------------------------------------------
+// Multi-tenant: tenant_id corrente (impostato da TenantContext al bootstrap)
+// ---------------------------------------------------------------------------
+let _tenantId: string | null = null;
+
+/** Chiamato da TenantProvider appena il tenant è stato caricato. */
+export function setDatabaseTenant(tenantId: string): void {
+  _tenantId = tenantId;
+}
+
+export function getDatabaseTenant(): string | null {
+  return _tenantId;
+}
+
+/** Aggiunge il filtro tenant_id alla query se il tenant è stato impostato. */
+function withTenant<T extends { eq: (col: string, val: unknown) => T }>(query: T): T {
+  return _tenantId ? query.eq('tenant_id', _tenantId) : query;
+}
+
+/** Aggiunge tenant_id al payload di insert/update se il tenant è impostato. */
+function withTenantPayload(payload: Record<string, unknown>): Record<string, unknown> {
+  if (_tenantId && !payload.tenant_id) {
+    return { ...payload, tenant_id: _tenantId };
+  }
+  return payload;
+}
 import { sanitizeUiSectionOverrides } from '../utils/uiScreenWidgets';
 import { buildDemoCoworkerShiftsToday, buildDemoProfileData, punchRecordsFromSpecs } from '../utils/seedDemoProfileData';
 import { isUserVisibleOnTeamSchedule } from '../utils/permissions';
@@ -144,10 +171,9 @@ export const database = {
   users: {
     async getAll() {
       if (!supabase) return [];
-      const { data, error } = await supabase!
-        .from('users')
-        .select('*')
-        .order('sort_order', { ascending: true });
+      const { data, error } = await withTenant(
+        supabase!.from('users').select('*')
+      ).order('sort_order', { ascending: true });
       if (error) throw error;
       return data || [];
     },
@@ -155,7 +181,9 @@ export const database = {
     /** Una riga completa (es. PIN per sblocco sync — `getAll` in cache può essere incoerente con RLS/view). */
     async getById(id: string): Promise<User | null> {
       if (!supabase) return null;
-      const { data, error } = await supabase!.from('users').select('*').eq('id', id).maybeSingle();
+      const { data, error } = await withTenant(
+        supabase!.from('users').select('*').eq('id', id)
+      ).maybeSingle();
       if (error) throw error;
       return (data as User) ?? null;
     },
@@ -167,7 +195,7 @@ export const database = {
       if (!email) return null;
 
       const runInsert = async (body: Record<string, unknown>) =>
-        supabase!.from('users').insert(body);
+        supabase!.from('users').insert(withTenantPayload(body));
 
       /*
        * 1) Solo colonne “core” nell’INSERT: molti 400/RLS strani vengono da colonne extra nel primo write.
@@ -346,27 +374,24 @@ export const database = {
   shifts: {
     async getAll() {
       if (!supabase) return [];
-      const { data, error } = await supabase!
-        .from('shifts')
-        .select('*')
-        .order('date', { ascending: true });
+      const { data, error } = await withTenant(
+        supabase!.from('shifts').select('*')
+      ).order('date', { ascending: true });
       if (error) throw error;
       return data || [];
     },
 
     async getByUserId(userId: string) {
       if (!supabase) return [];
-      const { data, error } = await supabase!
-        .from('shifts')
-        .select('*')
-        .eq('user_id', userId)
-        .order('date', { ascending: true });
+      const { data, error } = await withTenant(
+        supabase!.from('shifts').select('*').eq('user_id', userId)
+      ).order('date', { ascending: true });
       if (error) throw error;
       return data || [];
     },
 
     async insert(shift: Omit<Shift, 'id'>) {
-      const payload = pickShiftInsertPayload(shift);
+      const payload = withTenantPayload(pickShiftInsertPayload(shift));
       const { data, error } = await supabase!
         .from('shifts')
         .insert(payload)
@@ -378,7 +403,7 @@ export const database = {
 
     async insertMany(shifts: Omit<Shift, 'id'>[]) {
       if (!supabase || shifts.length === 0) return [];
-      const payloads = shifts.map(pickShiftInsertPayload);
+      const payloads = shifts.map((s) => withTenantPayload(pickShiftInsertPayload(s)));
       const { data, error } = await supabase!
         .from('shifts')
         .insert(payloads)
@@ -516,15 +541,12 @@ export const database = {
 
     async deleteByDateRange(startDate: string, endDate: string) {
       if (!supabase) return;
-      const { data, error } = await supabase!
-        .from('shifts')
-        .select('id')
-        .gte('date', startDate)
-        .lte('date', endDate);
+      const { data, error } = await withTenant(
+        supabase!.from('shifts').select('id')
+      ).gte('date', startDate).lte('date', endDate);
       if (error) throw error;
       const ids = (data || []).map((s: { id: string }) => s.id);
       if (ids.length > 0) {
-        // Cascade: elimina prima i punch_records collegati per evitare FK violations
         await supabase!.from('punch_records').delete().in('shift_id', ids);
         const { error: delError } = await supabase!.from('shifts').delete().in('id', ids);
         if (delError) throw delError;
@@ -535,8 +557,9 @@ export const database = {
     /** Eliminazione diretta con filtro date (con cascade punch_records) */
     async deleteByDateRangeDirect(startDate: string, endDate: string) {
       if (!supabase) return;
-      // Fetch IDs per cascade su punch_records
-      const { data } = await supabase!.from('shifts').select('id').gte('date', startDate).lte('date', endDate);
+      const { data } = await withTenant(
+        supabase!.from('shifts').select('id')
+      ).gte('date', startDate).lte('date', endDate);
       const ids = (data || []).map((s: { id: string }) => s.id);
       if (ids.length > 0) {
         await supabase!.from('punch_records').delete().in('shift_id', ids);
@@ -548,11 +571,9 @@ export const database = {
     /** Restituisce gli id dei turni nel range date (per pulizia a cascata) */
     async getIdsByDateRange(startDate: string, endDate: string): Promise<string[]> {
       if (!supabase) return [];
-      const { data, error } = await supabase!
-        .from('shifts')
-        .select('id')
-        .gte('date', startDate)
-        .lte('date', endDate);
+      const { data, error } = await withTenant(
+        supabase!.from('shifts').select('id')
+      ).gte('date', startDate).lte('date', endDate);
       if (error) throw error;
       return (data || []).map((s: { id: string }) => s.id);
     },
@@ -561,28 +582,25 @@ export const database = {
   punchRecords: {
     async getAll() {
       if (!supabase) return [];
-      const { data, error } = await supabase!
-        .from('punch_records')
-        .select('*')
-        .order('timestamp', { ascending: false });
+      const { data, error } = await withTenant(
+        supabase!.from('punch_records').select('*')
+      ).order('timestamp', { ascending: false });
       if (error) throw error;
       return data || [];
     },
 
     async getByUserId(userId: string) {
       if (!supabase) return [];
-      const { data, error } = await supabase!
-        .from('punch_records')
-        .select('*')
-        .eq('user_id', userId)
-        .order('timestamp', { ascending: false });
+      const { data, error } = await withTenant(
+        supabase!.from('punch_records').select('*').eq('user_id', userId)
+      ).order('timestamp', { ascending: false });
       if (error) throw error;
       return data || [];
     },
 
     async insert(record: Omit<PunchRecord, 'id'>) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let payload: Record<string, any> = { ...record };
+      let payload: Record<string, any> = withTenantPayload({ ...record });
       let lastError: { message?: string; details?: string } | null = null;
       for (let attempt = 0; attempt < 5; attempt++) {
         const { data, error } = await supabase!
@@ -788,21 +806,18 @@ export const database = {
   holidays: {
     async getAll() {
       if (!supabase) return [];
-      const { data, error } = await supabase!
-        .from('holiday_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await withTenant(
+        supabase!.from('holiday_requests').select('*')
+      ).order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
 
     async getByUserId(userId: string) {
       if (!supabase) return [];
-      const { data, error } = await supabase!
-        .from('holiday_requests')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+      const { data, error } = await withTenant(
+        supabase!.from('holiday_requests').select('*').eq('user_id', userId)
+      ).order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
@@ -813,7 +828,7 @@ export const database = {
       const { requester_email: _ignored, ...dbPayload } = request as typeof request & { requester_email?: string };
       const { data, error } = await supabase!
         .from('holiday_requests')
-        .insert(dbPayload)
+        .insert(withTenantPayload(dbPayload as Record<string, unknown>))
         .select()
         .maybeSingle();
       if (error) throw error;
@@ -845,23 +860,18 @@ export const database = {
   availability: {
     async getAll() {
       if (!supabase) return [];
-      const { data, error } = await supabase!
-        .from('holiday_requests')
-        .select('*')
-        .eq('type', 'indisponibilita')
-        .order('start_date', { ascending: true });
+      const { data, error } = await withTenant(
+        supabase!.from('holiday_requests').select('*').eq('type', 'indisponibilita')
+      ).order('start_date', { ascending: true });
       if (error) throw error;
       return (data || []) as HolidayRequest[];
     },
 
     async getByUserId(userId: string) {
       if (!supabase) return [];
-      const { data, error } = await supabase!
-        .from('holiday_requests')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('type', 'indisponibilita')
-        .order('start_date', { ascending: true });
+      const { data, error } = await withTenant(
+        supabase!.from('holiday_requests').select('*').eq('user_id', userId).eq('type', 'indisponibilita')
+      ).order('start_date', { ascending: true });
       if (error) throw error;
       return (data || []) as HolidayRequest[];
     },

@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback, useRef } from 'react';
+const SuperAdminPanel = lazy(() => import('./components/SuperAdminPanel'));
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
@@ -580,6 +581,7 @@ function AppContent() {
       <Route path="/app/*" element={<ProtectedApp />} />
       <Route path="/admin" element={<AdminGate><AdminLayout /></AdminGate>} />
       <Route path="/admin/*" element={<AdminGate><AdminLayout /></AdminGate>} />
+      <Route path="/super-admin" element={<Suspense fallback={null}><SuperAdminPanel /></Suspense>} />
       <Route path="*" element={<Navigate to={PATH_TIMBRATURA} replace />} />
     </Routes>
   );

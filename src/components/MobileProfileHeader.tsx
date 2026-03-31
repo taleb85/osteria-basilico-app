@@ -1,6 +1,7 @@
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { useTenant } from '../context/TenantContext';
 import { LogOut, Cloud, CloudOff, RotateCw, Lock, Unlock, ShieldCheck, ShieldOff, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getDateLocale } from '../utils/translations';
@@ -93,6 +94,7 @@ export default function MobileProfileHeader({
     globalPinSessionId,
     setGlobalPinSessionId,
   } = useApp();
+  const { tenant } = useTenant();
   const { sendMessage } = useMessages(currentUser?.id);
   const { triggerHapticFeedback, playNotificationSound } = useMultisensorialFeedback();
 
@@ -188,7 +190,7 @@ export default function MobileProfileHeader({
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
             <h1 className="font-logo-snell text-[clamp(1.05rem,4.2vw,1.4375rem)] sm:text-[23px] text-accent dark:text-white tracking-tight leading-none break-words hyphens-auto font-normal">
-              Osteria Basilico
+              {tenant?.name ?? 'Osteria Basilico'}
             </h1>
             <h2 className="text-[11px] sm:text-[12px] font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight leading-tight mt-0.5 truncate uppercase">
               {pageTitle}

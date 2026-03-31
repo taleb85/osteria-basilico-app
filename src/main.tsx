@@ -9,6 +9,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
 import App from './App.tsx';
 import { RootErrorBoundary } from './components/RootErrorBoundary';
+import { TenantProvider } from './context/TenantContext';
 import './index.css';
 
 // autoUpdate: workbox-window ricarica su `activated` se c’è un aggiornamento (vedi vite-plugin-pwa register.js).
@@ -49,9 +50,11 @@ if (!rootEl) {
   createRoot(rootEl).render(
     <StrictMode>
       <RootErrorBoundary>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <TenantProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </TenantProvider>
       </RootErrorBoundary>
     </StrictMode>
   );
