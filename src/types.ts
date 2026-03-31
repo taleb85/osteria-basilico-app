@@ -5,7 +5,7 @@ export interface Tenant {
   name: string;
   accent_color: string;
   logo_url?: string | null;
-  plan: 'basic' | 'pro' | 'enterprise';
+  plan?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;

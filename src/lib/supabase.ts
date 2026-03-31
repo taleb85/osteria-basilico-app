@@ -33,3 +33,16 @@ export const supabase: SupabaseClient | null = supabaseUrl && supabaseKey
       },
     })
   : null;
+
+/** Client con service role key — bypassa RLS. Usato solo nel SuperAdminPanel. */
+const serviceRoleKey = cleanEnv(import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
+export const supabaseAdmin: SupabaseClient | null = supabaseUrl && serviceRoleKey
+  ? createClient(supabaseUrl, serviceRoleKey, {
+      global: { fetch: fetchNoCache },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    })
+  : null;

@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Pencil, Check, X, Building2, Palette, Globe, ToggleLeft, ToggleRight, Copy } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabaseAdmin as supabase } from '../lib/supabase';
 import type { Tenant } from '../types';
 import { applyTenantBrand } from '../context/TenantContext';
 
@@ -44,7 +44,6 @@ function TenantForm({ initial, onSave, onCancel, saving }: TenantFormProps) {
   const [name, setName] = useState(initial?.name ?? '');
   const [slug, setSlug] = useState(initial?.slug ?? '');
   const [accent, setAccent] = useState(initial?.accent_color ?? '#2D5A27');
-  const [plan, setPlan] = useState<Tenant['plan']>(initial?.plan ?? 'basic');
   const [slugManual, setSlugManual] = useState(!!initial?.slug);
 
   useEffect(() => {
@@ -53,7 +52,7 @@ function TenantForm({ initial, onSave, onCancel, saving }: TenantFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSave({ name: name.trim(), slug: slug.trim(), accent_color: accent, plan, is_active: initial?.is_active ?? true, logo_url: initial?.logo_url });
+    await onSave({ name: name.trim(), slug: slug.trim(), accent_color: accent, plan: 'basic', is_active: initial?.is_active ?? true, logo_url: initial?.logo_url });
   };
 
   return (
@@ -87,7 +86,7 @@ function TenantForm({ initial, onSave, onCancel, saving }: TenantFormProps) {
             value={slug}
             onChange={(e) => { setSlug(slugify(e.target.value)); setSlugManual(true); }}
             placeholder="es-ristorante-mario"
-            pattern="[a-z0-9-]+"
+            pattern="[a-z0-9\-]+"
             className="flex-1 rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm font-mono text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
           />
           <button type="button" onClick={() => { setSlugManual(false); setSlug(slugify(name)); }} className="text-xs text-accent hover:underline shrink-0">Auto</button>
@@ -118,20 +117,6 @@ function TenantForm({ initial, onSave, onCancel, saving }: TenantFormProps) {
         <div className="rounded-xl px-4 py-2.5 text-white text-sm font-semibold" style={{ backgroundColor: accent }}>
           {name || 'Nome sede'}
         </div>
-      </div>
-
-      {/* Piano */}
-      <div className="space-y-1">
-        <label className="text-xs font-semibold text-slate-600 dark:text-neutral-300">Piano</label>
-        <select
-          value={plan}
-          onChange={(e) => setPlan(e.target.value as Tenant['plan'])}
-          className="w-full rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
-        >
-          <option value="basic">Basic</option>
-          <option value="pro">Pro</option>
-          <option value="enterprise">Enterprise</option>
-        </select>
       </div>
 
       {/* Bottoni */}
@@ -308,7 +293,6 @@ export default function SuperAdminPanel() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-bold text-slate-900 dark:text-white text-sm">{t.name}</span>
-                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${t.plan === 'pro' ? 'bg-blue-100 text-blue-700' : t.plan === 'enterprise' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-500'}`}>{t.plan}</span>
                             {!t.is_active && <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-red-100 text-red-500">Inattiva</span>}
                           </div>
                           <div className="flex items-center gap-1 mt-0.5">
