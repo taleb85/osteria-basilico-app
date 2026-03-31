@@ -1,8 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
-import { format, startOfWeek, endOfWeek, addDays, parseISO, isToday, eachDayOfInterval, getDay } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addDays, differenceInCalendarDays, parseISO, isToday, eachDayOfInterval, getDay } from 'date-fns';
 import { database } from '../lib/database';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu, ClipboardCopy, ClipboardPaste } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
@@ -39,7 +39,7 @@ import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { isFeatureEnabled, isAdminModuleEnabled } from '../utils/enabledFeatures';
 import { getHiddenDates, toggleHiddenDate } from '../utils/hiddenPeriods';
 import { getHistory, type HistoryEntry } from '../utils/scheduleHistory';
-import { getDepartments, getDeptColor } from '../utils/departments';
+import { getDepartments, getDeptColor, deptMatchesFilterKey } from '../utils/departments';
 import { translateDepartmentValue } from '../utils/departmentLabels';
 import {
   loadPeriodConfig,
@@ -234,11 +234,23 @@ function scheduleDrawerRoleLabel(role: string | undefined): string {
 }
 
 const isOpenShiftRecord = (s: { notes?: string }) =>
-  !!(s.notes && (s.notes.startsWith('__OPEN__') || s.notes.startsWith('__OPEN_REQ__')));
+  !!(s.notes && (s.notes.startsWith('__OPEN__') || s.notes.startsWith('__OPEN_REQ__') || s.notes.startsWith('__OPEN_EXT__')));
 
 /** Vero se qualcuno ha già richiesto il turno aperto. */
 const isRequestedShift = (s: { notes?: string }) =>
   !!(s.notes && s.notes.startsWith('__OPEN_REQ__'));
+
+/** Vero se il turno aperto è stato assegnato a una persona esterna (non nel sistema). */
+const isExternalAssignedShift = (s: { notes?: string }) =>
+  !!(s.notes && s.notes.startsWith('__OPEN_EXT__'));
+
+/** Restituisce il nome della persona esterna assegnata, o stringa vuota. */
+const getExternalAssigneeName = (s: { notes?: string }): string => {
+  const n = s.notes ?? '';
+  if (!n.startsWith('__OPEN_EXT__:')) return '';
+  const parts = n.split(':');
+  return parts[1] ?? '';
+};
 
 /** Restituisce id e nome del richiedente, o null. */
 const getRequester = (s: { notes?: string }): { id: string; name: string } | null => {
@@ -279,6 +291,11 @@ const getOpenShiftPublicNote = (s: { notes?: string }): string => {
     const parts = n.split(':');
     // [0]=__OPEN_REQ__, [1]=userId, [2]=nome, [3+]=nota
     return parts.slice(3).join(':');
+  }
+  if (n.startsWith('__OPEN_EXT__:')) {
+    const parts = n.split(':');
+    // [0]=__OPEN_EXT__, [1]=nome esterno, [2+]=nota
+    return parts.slice(2).join(':');
   }
   return n.replace(/^__OPEN__:?/, '');
 };
@@ -356,6 +373,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     }>;
     sourceDays: number;
   } | null>(null);
+  // Clipboard selezione libera (Ctrl/Cmd+Click) — distinto dal clipboard settimanale
+  const [selectionClipboard, setSelectionClipboard] = useState<{
+    shifts: Array<Omit<import('../types').Shift, 'id'> & { dayOffset: number }>;
+    anchorDate: string;
+  } | null>(null);
+  // Modalità incolla: l'utente clicca la cella di destinazione
+  const [pasteMode, setPasteMode] = useState(false);
+  // Conferma eliminazione inline nella barra azioni
+  const [deleteConfirmPending, setDeleteConfirmPending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarDay, setSidebarDay] = useState<string>('');
   const [sidebarEdits, setSidebarEdits] = useState<Record<string, { start: string; end: string; deduct_break?: boolean }>>({});
@@ -374,6 +400,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [creatingShift, setCreatingShift] = useState<{ userId: string; date: string; defaultTime: string } | null>(null);
   const [creatingOpenShift, setCreatingOpenShift] = useState<{ date: string } | null>(null);
   const [openShiftsBarCollapsed, setOpenShiftsBarCollapsed] = useState(false);
+  const [assigningOpenShiftId, setAssigningOpenShiftId] = useState<string | null>(null);
+  const [assignExternalName, setAssignExternalName] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const dateBarScrollRef = useRef<HTMLDivElement>(null);
@@ -461,7 +489,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   // GestioneTurni: click-to-filter by employee
   const [localFilterUserId, setLocalFilterUserId] = useState<string | null>(null);
-  // Filtro per reparto (sala, kitchen, bar)
+  // Filtro per reparto — valore riallineato dall'useEffect dopo useApp()
   const [localFilterDepartment, setLocalFilterDepartment] = useState<string>('');
   const [localFilterStatus, setLocalFilterStatus] = useState<
     'all' | 'approved' | 'confirmed' | 'draft' | 'absent' | 'unpunched'
@@ -483,6 +511,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const isWideShiftViewport = useMinViewportMd();
   const { users, shifts, holidays, availability, toggleAvailability, updateShift, updateUser, currentUser, punchRecords, addShift, deleteShifts, showError, showSuccess, silentRefreshData, requestConfirmAndSaveOrder, requestConfirmAndPublishWeek, postRefreshLocked, effectiveLanguage, workRules, breakRules, featureFlags, departmentsRevision } = useApp();
   void departmentsRevision;
+  // Ruoli gestionali: filtro libero. Staff operativo: vincolato al reparto del profilo.
+  const isAdminWst = currentUser ? isManagementRole(currentUser.role) : false;
+  const lockedDeptWst = (!isAdminWst && currentUser?.department) ? currentUser.department : null;
+  // Riallinea il filtro reparto quando cambia il profilo (deve stare dopo useApp/currentUser)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (lockedDeptWst) setLocalFilterDepartment(lockedDeptWst);
+    else if (isAdminWst && currentUser?.department) setLocalFilterDepartment(currentUser.department);
+    else if (!isAdminWst) setLocalFilterDepartment('');
+  }, [lockedDeptWst, isAdminWst, currentUser?.department]);
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
   const breakComputeOpts = useMemo(
@@ -706,6 +744,78 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     });
   }, [shifts, updateShift, trackSave, showSuccess, showError, t]);
 
+  /** Management: assegna il turno aperto a una persona esterna (nome libero). */
+  const handleAssignOpenShiftExternal = useCallback(async (shiftId: string, externalName: string) => {
+    const trimmed = externalName.trim();
+    if (!trimmed) return;
+    const shift = shifts.find((s) => s.id === shiftId);
+    if (!shift) return;
+    const publicNote = getOpenShiftPublicNote(shift);
+    const newNotes = publicNote ? `__OPEN_EXT__:${trimmed}:${publicNote}` : `__OPEN_EXT__:${trimmed}`;
+    await trackSave(async () => {
+      try {
+        await updateShift(shiftId, { notes: newNotes });
+        showSuccess?.(formatTrans(t.shift_assigned_to, { name: trimmed }));
+        setAssigningOpenShiftId(null);
+        setAssignExternalName('');
+      } catch { showError?.(tv.open_shift_external_assign_error ?? t.open_shift_external_assign_error); }
+    });
+  }, [shifts, updateShift, trackSave, showSuccess, showError, t, tv]);
+
+  /** Management: rimuove l'assegnazione esterna → turno torna aperto. */
+  const handleFreeExternalShift = useCallback(async (shiftId: string) => {
+    const shift = shifts.find((s) => s.id === shiftId);
+    if (!shift) return;
+    const publicNote = getOpenShiftPublicNote(shift);
+    const newNotes = publicNote ? `__OPEN__:${publicNote}` : '__OPEN__';
+    await trackSave(async () => {
+      try {
+        await updateShift(shiftId, { notes: newNotes });
+      } catch { showError?.(tv.open_shift_free_error ?? t.open_shift_free_error); }
+    });
+  }, [shifts, updateShift, trackSave, showError, t, tv]);
+
+  // ── Selezione multipla: Copia / Incolla / Elimina ─────────────────────────
+
+  /** Copia i turni selezionati nel clipboard di selezione. */
+  const handleCopySelection = useCallback(() => {
+    const selected = shifts.filter((s) => selectedShiftIds.includes(s.id));
+    if (selected.length === 0) return;
+    const dates = selected.map((s) => s.date).sort();
+    const anchorDate = dates[0]!;
+    const clipboard = selected.map((s) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, ...rest } = s;
+      return { ...rest, dayOffset: differenceInCalendarDays(new Date(s.date), new Date(anchorDate)) };
+    });
+    setSelectionClipboard({ shifts: clipboard, anchorDate });
+    showSuccess?.(formatTrans(tv.selection_copied ?? t.selection_copied, { n: selected.length }));
+  }, [shifts, selectedShiftIds, showSuccess, t, tv]);
+
+  /** Incolla i turni copiati nella cella target (userId + dateStr). */
+  const handlePasteToCell = useCallback(async (userId: string, dateStr: string) => {
+    if (!selectionClipboard) return;
+    let count = 0;
+    for (const s of selectionClipboard.shifts) {
+      const newDate = format(addDays(new Date(dateStr), s.dayOffset), 'yyyy-MM-dd');
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { dayOffset, ...shiftData } = s;
+      await addShift({ ...shiftData, user_id: userId, date: newDate, approval_status: 'draft' });
+      count++;
+    }
+    setPasteMode(false);
+    showSuccess?.(formatTrans(tv.selection_pasted ?? t.selection_pasted, { n: count }));
+  }, [selectionClipboard, addShift, showSuccess, t, tv]);
+
+  /** Elimina i turni selezionati (chiamata dopo conferma inline). */
+  const handleDeleteSelection = useCallback(async () => {
+    await deleteShifts(selectedShiftIds);
+    setSelectedShiftIds([]);
+    setDeleteConfirmPending(false);
+  }, [selectedShiftIds, deleteShifts]);
+
+  // ───────────────────────────────────────────────────────────────────────────
+
   /** Manager: rifiuta la richiesta → turno torna disponibile come aperto. */
   const handleRejectOpenShift = useCallback(async (shiftId: string) => {
     const shift = shifts.find((s) => s.id === shiftId);
@@ -911,17 +1021,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     
     // Filtro reparto (se attivo)
     if (localFilterDepartment) {
-      list = list.filter((u) => {
-        const d = (u.department || '').toLowerCase();
-        const filterLc = localFilterDepartment.toLowerCase();
-        
-        // Se il filtro è "sala_bar", includi utenti con reparto "sala_bar", "sala" o "bar"
-        if (filterLc === 'sala_bar') {
-          return d === 'sala_bar' || d === 'sala' || d === 'bar';
-        }
-        
-        return d === filterLc;
-      });
+      list = list.filter((u) => deptMatchesFilterKey(u.department, localFilterDepartment));
     }
 
     if (filterUserId || localFilterUserId) {
@@ -1068,6 +1168,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (pasteMode) { setPasteMode(false); return; }
+        if (deleteConfirmPending) { setDeleteConfirmPending(false); return; }
         setSelectedShiftIds([]);
         setLocalFilterUserId(null);
       }
@@ -1210,13 +1312,18 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   const getCellStyle = (shift: Shift, isSelected: boolean, _hasAnySelected: boolean, colorVariant: ShiftColorVariant = 'planned') => {
     const v = VARIANT_CLASSES[colorVariant];
-    let base = `relative group flex flex-col items-start justify-start ${v.bg} ${v.text} shadow-sm transition-shadow `;
+    let base = `relative group flex flex-col items-start justify-start ${v.bg} ${v.text} shadow-sm transition-all `;
     if (v.border) base += `${v.border} `;
     if (v.borderBottom) base += `${v.borderBottom} `;
-    const selectedStyle = isSelected ? `ring-2 ${v.selRing} shadow-md ` : '';
+    // Ring selezione: accent forte su tutti i varianti (bianco sull'approved già verde)
+    const selectedStyle = isSelected
+      ? colorVariant === 'approved'
+        ? 'ring-[3px] ring-white/90 shadow-[0_0_0_5px_rgba(45,90,39,0.35)] dark:shadow-[0_0_0_5px_rgba(45,90,39,0.5)] scale-[1.02] '
+        : 'ring-[3px] ring-accent shadow-[0_0_0_5px_rgba(45,90,39,0.2)] dark:shadow-[0_0_0_5px_rgba(45,90,39,0.4)] scale-[1.02] '
+      : '';
     /** Box-shadow invece di `ring-*`: su desktop la stessa cella ha `hover:ring-2` (canEditInApp) che in Tailwind mascherava anelli rosso/ambra. */
     let violationGlow = '';
-    if (violationChromeEnabled) {
+    if (!isSelected && violationChromeEnabled) {
       const viol = getViolations(shift);
       if (viol.some(x => x.severity === 'error')) {
         violationGlow =
@@ -1283,9 +1390,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   const [draggedShiftId, setDraggedShiftId] = useState<string | null>(null);
   const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
+  const [dragCopyMode, setDragCopyMode] = useState(false);
   const [shakeBadgeId, setShakeBadgeId] = useState<string | null>(null);
-  // GestioneTurni: inline cell editor (always-on, no mode toggle)
-  const [cellEdit, setCellEdit] = useState<{ shiftId: string; value: string } | null>(null);
   /** Popup turno usa `CenteredModalPortal` (lock lì). Resto: overlay fissi senza portal. */
   const wstOverlayLocksScroll = useMemo(
     () =>
@@ -1449,7 +1555,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const handleDropShift = useCallback(async (shiftId: string, targetUserId: string, targetDate: string) => {
     const shift = shifts.find((s) => s.id === shiftId);
     if (!shift || (shift.user_id === targetUserId && shift.date === targetDate)) return;
-    if (!isShiftDraftLike(shift)) return;
+    // Turni pubblicati: crea sempre una copia in bozza (non sposta l'originale)
+    if (!isShiftDraftLike(shift)) {
+      await handleDropShiftCopy(shiftId, targetUserId, targetDate);
+      return;
+    }
     // Verifica limite massimo turni al giorno nella destinazione
     const existingOnTarget = shifts.filter(s => s.id !== shiftId && s.user_id === targetUserId && s.date === targetDate);
     if (existingOnTarget.length >= 2) {
@@ -1479,35 +1589,62 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     });
   }, [shifts, updateShift, showError, showSuccess, trackSave, shiftsOverlap, t]);
 
-  /** Salva l'editing inline della cella (solo turni in bozza). */
-  const handleCellEditSave = useCallback(async (shiftId: string, rawValue: string) => {
-    setCellEdit(null);
-    const parsed = parseCellTimeInput(rawValue);
-    if (!parsed || !parsed.start) return;
+  /** Copia il turno nel target (Shift+drag): crea un nuovo turno in bozza, non sposta. */
+  const handleDropShiftCopy = useCallback(async (shiftId: string, targetUserId: string, targetDate: string) => {
     const shift = shifts.find((s) => s.id === shiftId);
     if (!shift) return;
-    if (isShiftFrozenRecord(shift) || isShiftAbsentRecord(shift)) return;
-    if (!isShiftDraftLike(shift)) return;
-    const existing = shifts.filter((s) => s.user_id === shift.user_id && s.date === shift.date);
-    if (hasShiftConflictSameDay(existing, { start_time: parsed.start!, end_time: parsed.end }, shiftId)) {
-      showError(t.shift_conflict_same_day);
+    const existingOnTarget = shifts.filter(s => s.user_id === targetUserId && s.date === targetDate);
+    if (existingOnTarget.length >= 2) {
+      showError(t.max_two_shifts_same_day);
       return;
     }
-    const shiftUpdates: { start_time: string; end_time: string } = { start_time: parsed.start!, end_time: parsed.end };
+    const newShift = {
+      user_id: targetUserId,
+      date: targetDate,
+      start_time: shift.start_time,
+      end_time: shift.end_time,
+      role: shift.role,
+      department: shift.department,
+      notes: shift.notes ?? '',
+      public_notes: '',
+      approval_status: 'draft' as const,
+    };
     await trackSave(async () => {
       try {
-        await updateShift(shiftId, shiftUpdates);
-        showSuccess?.(t.shift_time_updated);
+        await addShift(newShift);
+        showSuccess?.(t.shift_copied ?? 'Turno copiato');
       } catch {
-        showError(t.save_error_retry);
+        showError(t.shift_move_error);
       }
     });
-  }, [shifts, updateShift, showError, showSuccess, trackSave, t]);
+  }, [shifts, addShift, showError, showSuccess, trackSave, t]);
+
 
   if (!currentUser) return null;
 
   return (
     <div ref={tableContainerRef} className="pb-content pt-6 w-full max-w-full font-sans">
+
+      {/* Banner modalità incolla */}
+      {pasteMode && selectionClipboard && (
+        <div className="pointer-events-auto fixed top-16 left-1/2 z-[9001] -translate-x-1/2 sm:top-4">
+          <div className="flex items-center gap-2 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-2.5 shadow-lg backdrop-blur-sm dark:bg-accent/20">
+            <ClipboardPaste className="h-4 w-4 shrink-0 text-accent dark:text-accent-light" />
+            <span className="text-[12px] font-bold text-accent dark:text-accent-light">
+              {tv.selection_paste_mode_banner ?? t.selection_paste_mode_banner ?? 'Clicca su una cella per incollare'}
+            </span>
+            <span className="text-[11px] text-accent/70 dark:text-accent-light/70">— Esc per annullare</span>
+            <button
+              type="button"
+              onClick={() => setPasteMode(false)}
+              className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-accent/60 transition-colors hover:bg-accent/20 hover:text-accent dark:text-accent-light/60 dark:hover:text-accent-light"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -1534,30 +1671,58 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       {wTurniToolbar && (
       <>
       {/* Toolbar: navigazione + pubblica + ☰ */}
-      <div className="mb-2 flex w-full min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 sm:mb-0 sm:h-[22px] sm:max-h-[22px] sm:flex-nowrap sm:gap-2 sm:overflow-x-auto-safe">
+      <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-between gap-1.5 overflow-x-auto relative z-[1000] mb-2">
         {/* ── Sinistra: navigazione periodo / vista ── */}
-        <div className="flex min-w-0 max-w-full shrink-0 flex-wrap items-center gap-2 sm:h-[22px] sm:max-h-[22px] sm:flex-nowrap sm:gap-2 sm:overflow-x-auto-safe">
-          <button
-            type="button"
-            onClick={() => {
-              setPeriodPanOffsetWeeks(0);
-              setWeekIndex(weekIndexForDateInPeriod(periodConfig));
-            }}
-            className="ui-toolbar-ghost-accent shrink-0"
-          >
-            {t.today}
-          </button>
-          <div className="ui-toolbar-group shrink-0">
-            {(['week', 'month'] as const).map((vm) => (
-              <button
-                key={vm}
-                type="button"
-                onClick={() => setViewMode(vm)}
-                className={`ui-toolbar-tab ${viewMode === vm ? 'bg-accent text-white' : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800'}`}
-              >
-                {vm === 'week' ? t.view_week : t.view_month}
-              </button>
-            ))}
+        <div className="ui-toolbar-row-tight min-w-0 shrink-0 !gap-0">
+          {/* Gruppo unificato: ◀ Prec. | Settimana | Mese | ▶ Pros. */}
+          <div className="ui-toolbar-group md:scale-90 md:origin-left">
+            {/* ◀ Prec. — settimana in week mode, periodo in month mode */}
+            <button
+              type="button"
+              onClick={() => {
+                if (viewMode === 'week') setWeekIndex(i => Math.max(0, i - 1));
+                else setPeriodPanOffsetWeeks(p => p - displayPeriodConfig.numWeeks);
+              }}
+              disabled={viewMode === 'week' && weekIndex <= 0}
+              className="ui-toolbar-tab !px-2 !text-[10px] shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
+              aria-label={viewMode === 'week' ? 'Settimana precedente' : 'Periodo precedente'}
+            >
+              <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
+              <span className="hidden sm:inline">Prec.</span>
+            </button>
+
+            {/* Settimana: vista settimanale + reset a corrente */}
+            <button
+              type="button"
+              onClick={() => { setViewMode('week'); setPeriodPanOffsetWeeks(0); setWeekIndex(weekIndexForDateInPeriod(periodConfig)); }}
+              className={`ui-toolbar-tab !px-2.5 !text-[10px] shrink-0 ${viewMode === 'week' ? 'bg-accent text-white font-extrabold' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}
+            >
+              {t.view_week}
+            </button>
+
+            {/* Mese: vista mensile + reset al periodo corrente */}
+            <button
+              type="button"
+              onClick={() => { setViewMode('month'); setPeriodPanOffsetWeeks(0); }}
+              className={`ui-toolbar-tab !px-2.5 !text-[10px] shrink-0 ${viewMode === 'month' && periodPanOffsetWeeks === 0 ? 'bg-accent text-white font-extrabold' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}
+            >
+              {t.view_month}
+            </button>
+
+            {/* ▶ Pros. — settimana in week mode, periodo in month mode */}
+            <button
+              type="button"
+              onClick={() => {
+                if (viewMode === 'week') setWeekIndex(i => Math.min(maxWeekIndex, i + 1));
+                else setPeriodPanOffsetWeeks(p => p + displayPeriodConfig.numWeeks);
+              }}
+              disabled={viewMode === 'week' && weekIndex >= maxWeekIndex}
+              className="ui-toolbar-tab !px-2 !text-[10px] shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
+              aria-label={viewMode === 'week' ? 'Settimana successiva' : 'Periodo successivo'}
+            >
+              <span className="hidden sm:inline">Pros.</span>
+              <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+            </button>
           </div>
           {viewMode === 'month' && (
             <>
@@ -1581,13 +1746,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             </>
           )}
           {viewMode !== 'month' && (
-            <span className="inline-flex h-[22px] shrink-0 items-center text-[13px] font-semibold tabular-nums leading-none text-slate-500 dark:text-neutral-300">
+            <span className="inline-flex h-9 shrink-0 items-center text-[10px] font-semibold tabular-nums leading-none text-slate-500 dark:text-neutral-300 px-1">
               {weekIndex + 1}/{periodConfig.numWeeks}
             </span>
           )}
-          <div className="h-3.5 w-px bg-slate-200 dark:bg-white/10 mx-0.5 shrink-0" />
-          
-          <div className="relative" ref={wstDeptDrawerRef}>
+        </div>
+
+        {/* ── Destra: pubblica settimana (se bozze) + menu hamburger ── */}
+        <div className="flex shrink-0 items-center gap-1.5">
+          <div className={`relative ${!isAdminWst ? 'hidden' : ''}`} ref={wstDeptDrawerRef}>
+            <div className="ui-toolbar-group md:scale-90 md:origin-left">
             <button
               type="button"
               onClick={(e) => {
@@ -1602,22 +1770,25 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   return true;
                 });
               }}
-              className={`ui-toolbar-chip !h-[22px] shrink-0 text-slate-600 dark:text-neutral-300 hover:bg-slate-50/90 dark:hover:bg-white/[0.06] ${
-                wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department' ? 'border-accent/35 bg-accent/8 ring-1 ring-accent/15' : ''
-              } ${localFilterDepartment !== '' ? 'border-accent/25 bg-accent/5 dark:bg-accent/10' : ''}`}
+              className={`ui-toolbar-tab !px-2 !text-[10px] shrink-0 ${
+                wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department'
+                  ? 'bg-accent/8 text-accent dark:text-accent-light'
+                  : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
+              } ${localFilterDepartment !== '' ? 'font-extrabold' : ''}`}
               aria-expanded={wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department'}
               aria-haspopup="true"
               title={t.wst_department_button}
             >
               <Filter className="h-3 w-3 shrink-0" strokeWidth={2.5} aria-hidden />
-              <span className="text-[11px] font-bold">
+              <span>
                 {localFilterDepartment === '' ? t.wst_department_button : translateDepartmentValue(localFilterDepartment, effectiveLanguage)}
               </span>
               <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department' ? 'rotate-180' : ''}`} />
               {localFilterDepartment !== '' && (
-                <span className="h-1.2 w-1.2 shrink-0 rounded-full bg-accent" aria-hidden />
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
               )}
             </button>
+            </div>
 
             <AnimatePresence>
               {wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department' && (
@@ -1730,10 +1901,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               )}
             </AnimatePresence>
           </div>
-        </div>
-
-        {/* ── Destra: pubblica settimana (se bozze) + menu hamburger ── */}
-        <div className="ui-toolbar-row-tight ml-auto shrink-0">
           {!isStaff && (
           <>
           {canManageDrafts && isWideShiftViewport && draftCountInWeek > 0 && (
@@ -2879,36 +3046,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     initial={{ y: -10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.04 + 0.03 * userIdx, duration: 0.28 }}
-                    draggable={canShiftOps}
-                    onDragStart={(e) => {
-                      const ev = e as unknown as React.DragEvent;
-                      ev.dataTransfer.setData('dragType', 'user');
-                      ev.dataTransfer.setData('userIdx', String(userIdx));
-                      setDraggingUserIdx(userIdx);
-                    }}
-                    onDragEnd={() => { setDraggingUserIdx(null); setDropUserIdx(null); }}
-                    onDragOver={(e) => {
-                      if (draggingUserIdx !== null && draggingUserIdx !== userIdx) {
-                        e.preventDefault(); setDropUserIdx(userIdx);
-                      }
-                    }}
-                    onDragLeave={() => setDropUserIdx(null)}
-                    onDrop={(e) => {
-                      const ev = e as unknown as React.DragEvent;
-                      const dtype = ev.dataTransfer.getData('dragType');
-                      if (dtype !== 'user') return;
-                      const fromIdx = parseInt(ev.dataTransfer.getData('userIdx'), 10);
-                      if (isNaN(fromIdx) || fromIdx === userIdx) return;
-                      const ordered = (userOrderOverride
-                        ? [...userOrderOverride]
-                        : activeUsers.map(u => u.id));
-                      const [moved] = ordered.splice(fromIdx, 1);
-                      ordered.splice(userIdx, 0, moved);
-                      setUserOrderOverride(ordered);
-                      setDraggingUserIdx(null); setDropUserIdx(null);
-                      requestConfirmAndSaveOrder(ordered);
-                    }}
-                    className={`w-full rounded-xl !p-0 overflow-hidden border-2 border-slate-300/85 bg-transparent shadow-none dark:border-neutral-600 dark:bg-transparent ${draggingUserIdx !== null && draggingUserIdx !== userIdx ? 'opacity-50' : ''} ${dropUserIdx === userIdx && draggingUserIdx !== null && draggingUserIdx !== userIdx ? 'ring-2 ring-inset ring-accent' : ''}`}
+                    className="w-full rounded-xl !p-0 overflow-hidden border-2 border-slate-300/85 bg-transparent shadow-none dark:border-neutral-600 dark:bg-transparent"
                   >
                     {/* Header scheda: nome + ore (fisso, non scorre) — verde bottomnav */}
                     <div
@@ -2971,7 +3109,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     <div
                       ref={(el) => { cardScrollRefs.current[userIdx] = el; }}
                       onScroll={(e) => syncScrollLeft(e.currentTarget)}
-                      className="overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity -mx-0.5 px-0.5"
+                                      className="overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity -mx-0.5 px-0.5"
                     >
                     <table className={`border-collapse table-fixed min-w-0 sm:w-full ${allWeekDays.length === 1 ? 'w-[33.33%]' : allWeekDays.length === 14 ? 'w-[466.67%]' : 'w-[233.33%]'}`}>
                       <tbody>
@@ -3036,14 +3174,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         return (
                           <td
                             key={dayStr}
-                            className={`px-0 py-0 min-w-0 snap-start group border-r border-slate-300 dark:border-neutral-600 ${
-                              isPayrollCol
-                                ? 'bg-emerald-50/30 ring-1 ring-inset ring-emerald-200/50 dark:bg-emerald-950/20 dark:ring-emerald-800/40'
-                                : isToday(day)
-                                  ? 'bg-accent/5 dark:bg-accent/10'
-                                  : isUnavailDay
-                                    ? 'bg-red-50/70 dark:bg-red-950/25'
-                                    : 'bg-white dark:bg-neutral-950/40'
+                            className={`px-0 py-0 min-w-0 snap-start group border-r border-slate-300 dark:border-neutral-600 ${pasteMode ? 'cursor-crosshair' : ''} ${
+                              pasteMode
+                                ? 'ring-2 ring-inset ring-accent/20 hover:ring-accent/60 hover:bg-accent/5 dark:hover:bg-accent/10 transition-colors'
+                                : isPayrollCol
+                                  ? 'bg-emerald-50/30 ring-1 ring-inset ring-emerald-200/50 dark:bg-emerald-950/20 dark:ring-emerald-800/40'
+                                  : isToday(day)
+                                    ? 'bg-accent/5 dark:bg-accent/10'
+                                    : isUnavailDay
+                                      ? 'bg-red-50/70 dark:bg-red-950/25'
+                                      : 'bg-white dark:bg-neutral-950/40'
                             }`}
                             style={{ width: `calc(100% / ${allWeekDays.length})` }}
                           >
@@ -3068,30 +3208,37 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               {/* Slot Superiore - Turno Diurno */}
                               <div
                                 onClick={(e) => {
+                                  // Paste mode: click su cella → incolla qui
+                                  if (pasteMode && selectionClipboard) {
+                                    void handlePasteToCell(user.id, dayStr);
+                                    return;
+                                  }
                                   if (dayShift) {
-                                    if (cellEdit?.shiftId === dayShift.id) return;
                                     if ((e.target as HTMLElement).closest('button')) return;
                                     if (canEditShifts) {
+                                      // Ctrl/Cmd+Click → toggle selezione senza aprire sidebar
+                                      if (e.ctrlKey || e.metaKey) {
+                                        setSelectedShiftIds(prev =>
+                                          prev.includes(dayShift.id)
+                                            ? prev.filter(id => id !== dayShift.id)
+                                            : [...prev, dayShift.id]
+                                        );
+                                        return;
+                                      }
                                       setSelectedShiftIds([dayShift.id]);
                                       setSidebarDay(dayStr);
                                       setSidebarOpen(true);
                                     }
                                   } else if (canManageThisUser) {
+                                    if (pasteMode) return; // in paste mode, click su cella vuota incolla
                                     setCreatingShift({ userId: user.id, date: dayStr, defaultTime: '10:00' });
-                                  }
-                                }}
-                                onDoubleClick={(e) => {
-                                  if (dayShift && canEditInApp && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
-                                    if (!isShiftDraftLike(dayShift) || isShiftAbsentRecord(dayShift)) return;
-                                    const cur = `${(dayShift.start_time||'').slice(0,5)}-${(dayShift.end_time||'').slice(0,5)}`;
-                                    setCellEdit({ shiftId: dayShift.id, value: cur });
                                   }
                                 }}
                                 onMouseDown={(e) => handleCellMouseDown(e, userIdx, dayIdx, 0)}
                                 onMouseEnter={() => handleCellMouseEnter(userIdx, dayIdx, 0)}
-                                onDragOver={(e) => { if (draggedShiftId) { e.preventDefault(); setDropTargetKey(`${user.id}_${dayStr}_0`); } }}
+                                onDragOver={(e) => { if (draggedShiftId) { e.preventDefault(); const isCopy = e.shiftKey; setDragCopyMode(isCopy); e.dataTransfer.dropEffect = isCopy ? 'copy' : 'move'; setDropTargetKey(`${user.id}_${dayStr}_0`); } }}
                                 onDragLeave={() => setDropTargetKey(null)}
-                                onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { handleDropShift(draggedShiftId, user.id, dayStr); setDraggedShiftId(null); setDropTargetKey(null); } }}
+                                onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { if (e.shiftKey || dragCopyMode) { handleDropShiftCopy(draggedShiftId, user.id, dayStr); } else { handleDropShift(draggedShiftId, user.id, dayStr); } setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); } }}
                                 title={dayShift && needsCambioWarning(dayShift) ? t.no_change_at_16 : undefined}
                                 className={`flex flex-col ${
                                   dayShift
@@ -3107,7 +3254,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                               ? 'border-b-2 border-emerald-700/35 dark:border-emerald-500/35'
                                               : 'border-b-2 border-slate-400 dark:border-white/45'
                                     : 'border-b-2 border-slate-400 dark:border-white/45'
-                                } relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600' : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
+                                } relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? (dragCopyMode ? 'bg-accent/10 dark:bg-accent/15 border-2 border-accent dark:border-accent/80' : 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600') : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
                               >
                                 {dayShift ? (() => {
                                   const isAbsentCell = isShiftAbsentRecord(dayShift);
@@ -3152,8 +3299,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   const displayActualStartDay = showPlannedAsActualDay ? startNormCell : actualTimes.startTime.slice(0, 5);
                                   const displayActualEndDay = showPlannedAsActualDay ? (startNormCell === '10:00' ? '16:00' : '___') : (actualTimes.endTime || endFallback)?.slice(0, 5) || '___';
 
+                                  const isDaySelected = selectedShiftIds.includes(dayShift.id);
                                   return (
                                     <>
+                                      {/* Badge selezione — angolo superiore destro */}
+                                      {isDaySelected && (
+                                        <span className="absolute right-1 top-1 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-accent shadow-sm pointer-events-none" aria-hidden>
+                                          <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+                                        </span>
+                                      )}
                                       {/* Barra sinistra: turno pubblicato (tabellone) */}
                                       {showPublishedBarDay && (
                                         <span
@@ -3162,38 +3316,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                           aria-hidden
                                         />
                                       )}
-                                      {/* Inline edit input */}
-                                      {canEditInApp && cellEdit?.shiftId === dayShift.id ? (
-                                        <input
-                                          value={cellEdit.value}
-                                          onChange={(e) => setCellEdit({ shiftId: dayShift.id, value: e.target.value })}
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter') { e.preventDefault(); handleCellEditSave(dayShift.id, cellEdit.value); }
-                                            if (e.key === 'Escape') setCellEdit(null);
-                                          }}
-                                          onBlur={() => handleCellEditSave(dayShift.id, cellEdit.value)}
-                                          onClick={(e) => e.stopPropagation()}
-                                          autoFocus
-                                          placeholder="10-16"
-                                          className="absolute left-1/2 top-1/2 z-10 w-[min(100px,calc(100%-12px))] -translate-x-1/2 -translate-y-1/2 bg-white text-slate-800 text-xs font-bold text-center border-2 border-amber-500 rounded-xl shadow-lg focus:outline-none px-1 py-0.5"
-                                        />
-                                      ) : (
-                                        <>
-                                          {/* Orario centrato in cella */}
+                                      {/* Orario centrato in cella */}
+                                      <>
                                           {canEditInApp ? (
                                             <span
-                                              draggable={isShiftDraftLike(dayShift) && !isAbsentCell}
-                                              onDragStart={(e: React.DragEvent) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', dayShift.id); setDraggedShiftId(dayShift.id); }}
-                                              onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); }}
-                                              onDoubleClick={(e) => {
-                                                e.stopPropagation();
-                                                if (!isShiftDraftLike(dayShift) || isAbsentCell) return;
-                                                const cur = `${(dayShift.start_time||'').slice(0,5)}-${(dayShift.end_time||'').slice(0,5)}`;
-                                                setCellEdit({ shiftId: dayShift.id, value: cur });
-                                              }}
-                                              className={`absolute inset-0 z-0 flex items-center justify-center px-2 cursor-text ${shakeBadgeId === dayShift.id ? 'animate-shake' : ''}`}
+                                              draggable={!isAbsentCell}
+                                              onDragStart={(e: React.DragEvent) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', dayShift.id); setDraggedShiftId(dayShift.id); const isCopy = e.shiftKey || !isShiftDraftLike(dayShift); setDragCopyMode(isCopy); e.dataTransfer.effectAllowed = isCopy ? 'copy' : 'move'; }}
+                                              onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
+                                              className={`absolute inset-0 z-0 flex items-center justify-center px-2 touch-none ${!isAbsentCell ? 'cursor-grab active:cursor-grabbing' : ''} ${shakeBadgeId === dayShift.id ? 'animate-shake' : ''}`}
                                               style={{ opacity: 1 }}
-                                              title="Doppio click: modifica"
                                             >
                                               <span className="flex max-w-full min-w-0 items-center justify-center gap-1.5">
                                                 <span className="min-w-0 text-center font-bold leading-none">
@@ -3294,7 +3425,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                             </span>
                                           )}
                                         </>
-                                      )}
                                     </>
                                   );
                                 })() : canManageThisUser && (
@@ -3314,32 +3444,39 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               {/* Slot Inferiore - Turno Serale */}
                               <div
                                 onClick={(e) => {
+                                  // Paste mode: click su cella → incolla qui
+                                  if (pasteMode && selectionClipboard) {
+                                    void handlePasteToCell(user.id, dayStr);
+                                    return;
+                                  }
                                   if (eveningShift) {
-                                    if (cellEdit?.shiftId === eveningShift.id) return;
                                     if ((e.target as HTMLElement).closest('button')) return;
                                     if (canEditShifts) {
+                                      // Ctrl/Cmd+Click → toggle selezione senza aprire sidebar
+                                      if (e.ctrlKey || e.metaKey) {
+                                        setSelectedShiftIds(prev =>
+                                          prev.includes(eveningShift.id)
+                                            ? prev.filter(id => id !== eveningShift.id)
+                                            : [...prev, eveningShift.id]
+                                        );
+                                        return;
+                                      }
                                       setSelectedShiftIds([eveningShift.id]);
                                       setSidebarDay(dayStr);
                                       setSidebarOpen(true);
                                     }
                                   } else if (canManageThisUser) {
+                                    if (pasteMode) return;
                                     setCreatingShift({ userId: user.id, date: dayStr, defaultTime: '18:00' });
-                                  }
-                                }}
-                                onDoubleClick={(e) => {
-                                  if (eveningShift && canEditInApp && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
-                                    if (!isShiftDraftLike(eveningShift) || isShiftAbsentRecord(eveningShift)) return;
-                                    const cur = `${(eveningShift.start_time||'').slice(0,5)}-${(eveningShift.end_time||'').slice(0,5)}`;
-                                    setCellEdit({ shiftId: eveningShift.id, value: cur });
                                   }
                                 }}
                                 onMouseDown={(e) => handleCellMouseDown(e, userIdx, dayIdx, 1)}
                                 onMouseEnter={() => handleCellMouseEnter(userIdx, dayIdx, 1)}
-                                onDragOver={(e) => { if (draggedShiftId) { e.preventDefault(); setDropTargetKey(`${user.id}_${dayStr}_1`); } }}
+                                onDragOver={(e) => { if (draggedShiftId) { e.preventDefault(); const isCopy = e.shiftKey; setDragCopyMode(isCopy); e.dataTransfer.dropEffect = isCopy ? 'copy' : 'move'; setDropTargetKey(`${user.id}_${dayStr}_1`); } }}
                                 onDragLeave={() => setDropTargetKey(null)}
-                                onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { handleDropShift(draggedShiftId, user.id, dayStr); setDraggedShiftId(null); setDropTargetKey(null); } }}
+                                onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { if (e.shiftKey || dragCopyMode) { handleDropShiftCopy(draggedShiftId, user.id, dayStr); } else { handleDropShift(draggedShiftId, user.id, dayStr); } setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); } }}
                                 title={eveningShift && needsCambioWarning(eveningShift) ? t.no_change_at_16 : undefined}
-                                className={`flex flex-col relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_1` ? 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600' : eveningShift ? getCellStyle(eveningShift, selectedShiftIds.includes(eveningShift.id) || isInDragRect(1), selectedShiftIds.length > 0, eveningVariant) : isInDragRect(1) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${eveningShift ? 'shift-card-hover-group' : ''} ${!eveningShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !eveningShift ? 'cursor-default' : eveningShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
+                                className={`flex flex-col relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_1` ? (dragCopyMode ? 'bg-accent/10 dark:bg-accent/15 border-2 border-accent dark:border-accent/80' : 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600') : eveningShift ? getCellStyle(eveningShift, selectedShiftIds.includes(eveningShift.id) || isInDragRect(1), selectedShiftIds.length > 0, eveningVariant) : isInDragRect(1) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${eveningShift ? 'shift-card-hover-group' : ''} ${!eveningShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !eveningShift ? 'cursor-default' : eveningShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
                               >
                                 {eveningShift ? (() => {
                                   const isAbsentEv = isShiftAbsentRecord(eveningShift);
@@ -3382,8 +3519,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   const displayActualStartEv = showPlannedAsActualEv ? (eveningShift.start_time || '').slice(0, 5) : actualTimes.startTime.slice(0, 5);
                                   const displayActualEndEv = showPlannedAsActualEv ? (eveningShift.end_time || '').slice(0, 5) || '___' : (actualTimes.endTime || '___')?.slice(0, 5);
 
+                                  const isEveningSelected = selectedShiftIds.includes(eveningShift.id);
                                   return (
                                     <>
+                                      {/* Badge selezione — angolo superiore destro */}
+                                      {isEveningSelected && (
+                                        <span className="absolute right-1 top-1 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-accent shadow-sm pointer-events-none" aria-hidden>
+                                          <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+                                        </span>
+                                      )}
                                       {/* Barra sinistra: turno pubblicato (tabellone) */}
                                       {showPublishedBarEv && (
                                         <span
@@ -3392,38 +3536,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                           aria-hidden
                                         />
                                       )}
-                                      {/* Inline edit input */}
-                                      {canEditInApp && cellEdit?.shiftId === eveningShift.id ? (
-                                        <input
-                                          value={cellEdit.value}
-                                          onChange={(e) => setCellEdit({ shiftId: eveningShift.id, value: e.target.value })}
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter') { e.preventDefault(); handleCellEditSave(eveningShift.id, cellEdit.value); }
-                                            if (e.key === 'Escape') setCellEdit(null);
-                                          }}
-                                          onBlur={() => handleCellEditSave(eveningShift.id, cellEdit.value)}
-                                          onClick={(e) => e.stopPropagation()}
-                                          autoFocus
-                                          placeholder="19-23"
-                                          className="absolute left-1/2 top-1/2 z-10 w-[min(100px,calc(100%-12px))] -translate-x-1/2 -translate-y-1/2 bg-white text-slate-800 text-xs font-bold text-center border-2 border-amber-500 rounded-xl shadow-lg focus:outline-none px-1 py-0.5"
-                                        />
-                                      ) : (
-                                        <>
-                                          {/* Orario centrato in cella */}
+                                      {/* Orario centrato in cella */}
+                                      <>
                                           {canEditInApp ? (
                                             <span
-                                              draggable={isShiftDraftLike(eveningShift) && !isAbsentEv}
-                                              onDragStart={(e: React.DragEvent) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', eveningShift.id); setDraggedShiftId(eveningShift.id); }}
-                                              onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); }}
-                                              onDoubleClick={(e) => {
-                                                e.stopPropagation();
-                                                if (!isShiftDraftLike(eveningShift) || isAbsentEv) return;
-                                                const cur = `${(eveningShift.start_time||'').slice(0,5)}-${(eveningShift.end_time||'').slice(0,5)}`;
-                                                setCellEdit({ shiftId: eveningShift.id, value: cur });
-                                              }}
-                                              className={`absolute inset-0 z-0 flex items-center justify-center px-2 cursor-text ${shakeBadgeId === eveningShift.id ? 'animate-shake' : ''}`}
+                                              draggable={!isAbsentEv}
+                                              onDragStart={(e: React.DragEvent) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', eveningShift.id); setDraggedShiftId(eveningShift.id); const isCopy = e.shiftKey || !isShiftDraftLike(eveningShift); setDragCopyMode(isCopy); e.dataTransfer.effectAllowed = isCopy ? 'copy' : 'move'; }}
+                                              onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
+                                              className={`absolute inset-0 z-0 flex items-center justify-center px-2 touch-none ${!isAbsentEv ? 'cursor-grab active:cursor-grabbing' : ''} ${shakeBadgeId === eveningShift.id ? 'animate-shake' : ''}`}
                                               style={{ opacity: 1 }}
-                                              title="Doppio click: modifica"
                                             >
                                               <span className="flex max-w-full min-w-0 items-center justify-center gap-1.5">
                                                 <span className="min-w-0 text-center font-bold leading-none">
@@ -3498,7 +3619,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                               </span>
                                             )}
                                         </>
-                                      )}
                                     </>
                                   );
                                 })() : canManageThisUser && (
@@ -3639,26 +3759,51 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   const timeLabel = `${s.start_time.slice(0,5)}–${(s.end_time||'?').slice(0,5)}`;
                                   const publicNote = getOpenShiftPublicNote(s);
                                   const requested = isRequestedShift(s);
+                                  const externalAssigned = isExternalAssignedShift(s);
+                                  const externalName = externalAssigned ? getExternalAssigneeName(s) : '';
                                   const requester = getRequester(s);
                                   const alreadyRequestedByMe = requester?.id === currentUser?.id;
-                                  const badgeBg = requested ? 'bg-orange-300 border border-orange-400' : 'bg-amber-200';
-                                  const badgeText = requested ? 'text-orange-900' : 'text-amber-900';
+                                  const isAssigningThis = assigningOpenShiftId === s.id;
+                                  const badgeBg = externalAssigned
+                                    ? 'bg-violet-100 border border-violet-300'
+                                    : requested
+                                      ? 'bg-orange-300 border border-orange-400'
+                                      : 'bg-amber-200';
+                                  const badgeText = externalAssigned ? 'text-violet-900' : requested ? 'text-orange-900' : 'text-amber-900';
                                   return (
                                     <div key={s.id} className={`relative group flex flex-col gap-0.5 rounded-xl px-1.5 py-1 text-[10px] font-semibold ${badgeBg} ${badgeText}`}>
                                       <div className="flex items-center gap-1">
                                         <span className="flex-1 truncate font-bold">{timeLabel}</span>
                                         {publicNote && <span title={publicNote}><MessageSquare className="h-2.5 w-2.5 flex-shrink-0" /></span>}
-                                        {canEditInApp && (
+                                        {canEditShifts && (
                                           <button
                                             type="button"
                                             onClick={() => deleteShifts([s.id])}
-                                            className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full bg-red-500 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                                            className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full bg-red-500 text-white transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
                                           >
                                             <X className="h-2 w-2" />
                                           </button>
                                         )}
                                       </div>
-                                      {isManagement && requested && requester && (
+
+                                      {/* Turno assegnato a persona esterna */}
+                                      {externalAssigned && (
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="truncate text-[9px] font-semibold">👤 {externalName}</span>
+                                          {isManagement && (
+                                            <button
+                                              type="button"
+                                              onClick={() => handleFreeExternalShift(s.id)}
+                                              className="w-full rounded-xl bg-violet-200 px-1 py-0.5 text-center text-[9px] font-bold leading-none text-violet-800 transition-colors hover:bg-violet-300"
+                                            >
+                                              {tv.wst_open_shift_free_label ?? t.wst_open_shift_free_label}
+                                            </button>
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {/* Richiesta da un dipendente */}
+                                      {!externalAssigned && isManagement && requested && requester && (
                                         <div className="flex flex-col gap-0.5">
                                           <span className="truncate text-[9px] font-semibold">
                                             👤 {requester.name}
@@ -3668,43 +3813,88 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                               type="button"
                                               onClick={() => handleApproveOpenShift(s.id)}
                                               className="flex flex-1 items-center justify-center gap-0.5 rounded-xl bg-accent px-1 py-0.5 text-[9px] font-bold leading-none text-white transition-colors hover:bg-accent-hover"
-                                              title={`Approva: assegna a ${requester.name}`}
+                                              title={`${tv.approve ?? t.approve}: ${requester.name}`}
                                             >
                                               <UserCheck className="h-2.5 w-2.5" />
-                                              Approva
+                                              {tv.approve ?? t.approve}
                                             </button>
                                             <button
                                               type="button"
                                               onClick={() => handleRejectOpenShift(s.id)}
                                               className="flex flex-1 items-center justify-center rounded-xl bg-red-100 px-1 py-0.5 text-[9px] font-bold leading-none text-red-700 transition-colors hover:bg-red-200"
-                                              title="Rifiuta richiesta"
+                                              title={tv.open_shift_reject_label ?? t.open_shift_reject_label}
                                             >
                                               <UserX className="h-2.5 w-2.5" />
-                                              Rifiuta
+                                              {tv.open_shift_reject_label ?? t.open_shift_reject_label}
                                             </button>
                                           </div>
                                         </div>
                                       )}
-                                      {isManagement && !requested && (
-                                        <span className="text-[9px] font-medium text-amber-700">Aperto</span>
+
+                                      {/* Turno aperto non assegnato — management può assegnare a esterno */}
+                                      {!externalAssigned && isManagement && !requested && (
+                                        isAssigningThis ? (
+                                          <div className="flex flex-col gap-0.5">
+                                            <input
+                                              autoFocus
+                                              type="text"
+                                              value={assignExternalName}
+                                              onChange={(e) => setAssignExternalName(e.target.value)}
+                                              onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleAssignOpenShiftExternal(s.id, assignExternalName);
+                                                if (e.key === 'Escape') { setAssigningOpenShiftId(null); setAssignExternalName(''); }
+                                              }}
+                                              placeholder={tv.wst_open_shift_external_placeholder ?? t.wst_open_shift_external_placeholder}
+                                              className="w-full rounded-lg border border-amber-300 bg-white/80 px-1.5 py-0.5 text-[9px] text-slate-800 outline-none placeholder:text-slate-400 focus:border-accent"
+                                            />
+                                            <div className="flex gap-0.5">
+                                              <button
+                                                type="button"
+                                                onClick={() => handleAssignOpenShiftExternal(s.id, assignExternalName)}
+                                                className="flex flex-1 items-center justify-center gap-0.5 rounded-xl bg-accent px-1 py-0.5 text-[9px] font-bold leading-none text-white transition-colors hover:bg-accent-hover"
+                                              >
+                                                <UserCheck className="h-2.5 w-2.5" />
+                                                OK
+                                              </button>
+
+                                              <button
+                                                type="button"
+                                                onClick={() => { setAssigningOpenShiftId(null); setAssignExternalName(''); }}
+                                                className="flex flex-1 items-center justify-center rounded-xl bg-slate-100 px-1 py-0.5 text-[9px] font-bold leading-none text-slate-600 transition-colors hover:bg-slate-200"
+                                              >
+                                                ✕
+                                              </button>
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => { setAssigningOpenShiftId(s.id); setAssignExternalName(''); }}
+                                            className="w-full rounded-xl bg-amber-300/70 px-1 py-0.5 text-center text-[9px] font-bold leading-none text-amber-900 transition-colors hover:bg-amber-300"
+                                          >
+                                            {tv.wst_open_shift_assign_label ?? t.wst_open_shift_assign_label}
+                                          </button>
+                                        )
                                       )}
-                                      {isStaffUser && !alreadyRequestedByMe && !requested && (
+
+                                      {/* Staff: richiedi / in attesa / già richiesto */}
+                                      {!externalAssigned && isStaffUser && !alreadyRequestedByMe && !requested && (
                                         <button
                                           type="button"
                                           onClick={() => handleClaimOpenShift(s.id)}
                                           className="w-full rounded-xl bg-accent px-1 py-0.5 text-center text-[9px] font-bold leading-none text-white transition-colors hover:bg-accent-hover"
                                         >
-                                          Richiedi
+                                          {tv.open_shift_claim_label ?? t.open_shift_claim_label}
                                         </button>
                                       )}
-                                      {isStaffUser && alreadyRequestedByMe && (
+                                      {!externalAssigned && isStaffUser && alreadyRequestedByMe && (
                                         <span className="block text-center text-[9px] font-semibold text-orange-800">
-                                          In attesa…
+                                          {tv.open_shift_waiting_label ?? t.open_shift_waiting_label}
                                         </span>
                                       )}
-                                      {isStaffUser && requested && !alreadyRequestedByMe && (
+                                      {!externalAssigned && isStaffUser && requested && !alreadyRequestedByMe && (
                                         <span className="block text-center text-[9px] font-semibold text-orange-700">
-                                          Già richiesto
+                                          {tv.open_shift_already_claimed_label ?? t.open_shift_already_claimed_label}
                                         </span>
                                       )}
                                     </div>
@@ -3980,66 +4170,99 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         )}
 
                         {/* ── TIMBRATURE (sola lettura; modifiche in Scheda presenze) ── */}
-                        <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-3.5 dark:border-white/10 dark:bg-neutral-800/80">
-                          <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-2">{t.wst_punches_section_title}</p>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-neutral-300">
-                                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
-                                {t.wst_punch_in_label}
-                              </p>
-                              <p className="text-sm font-bold tabular-nums text-slate-800 dark:text-neutral-100">{drawerTimbrature.inTime}</p>
-                              {drawerTimbrature.inMode === 'device' ? (
-                                <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_device}</p>
-                              ) : drawerTimbrature.inMode === 'manual' ? (
-                                <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_manual}</p>
-                              ) : drawerTimbrature.inMode === 'frozen' ? (
-                                <p className="mt-0.5 text-[10px] font-medium leading-snug text-accent">{t.wst_punch_mode_frozen}</p>
-                              ) : null}
+                        {(() => {
+                          const hasIn = drawerTimbrature.inTime !== '—';
+                          const hasOut = drawerTimbrature.outTime !== '—';
+                          const timbCard = hasIn && hasOut
+                            ? 'border-2 border-l-4 border-teal-200/80 dark:border-teal-800/50 border-l-accent bg-teal-50 dark:bg-teal-950/35'
+                            : hasIn
+                            ? 'border-2 border-l-4 border-amber-300/80 dark:border-amber-700/50 border-l-review bg-amber-50 dark:bg-amber-950/35'
+                            : 'border-2 border-l-4 border-slate-200 dark:border-white/10 border-l-slate-300 bg-slate-50/90 dark:bg-neutral-800/80';
+                          const labelCls = hasIn && hasOut
+                            ? 'text-teal-700 dark:text-teal-400'
+                            : hasIn
+                            ? 'text-amber-700 dark:text-amber-400'
+                            : 'text-slate-400 dark:text-neutral-400';
+                          return (
+                            <div className={`rounded-xl p-3.5 ${timbCard}`}>
+                              <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${labelCls}`}>{t.wst_punches_section_title}</p>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-neutral-300">
+                                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasIn ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-neutral-600'}`} aria-hidden />
+                                    {t.wst_punch_in_label}
+                                  </p>
+                                  <p className={`text-sm font-bold tabular-nums ${hasIn ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-400 dark:text-neutral-500'}`}>{drawerTimbrature.inTime}</p>
+                                  {drawerTimbrature.inMode === 'device' ? (
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_device}</p>
+                                  ) : drawerTimbrature.inMode === 'manual' ? (
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_manual}</p>
+                                  ) : drawerTimbrature.inMode === 'frozen' ? (
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-accent">{t.wst_punch_mode_frozen}</p>
+                                  ) : null}
+                                </div>
+                                <div>
+                                  <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-neutral-300">
+                                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasOut ? 'bg-rose-500' : 'bg-slate-300 dark:bg-neutral-600'}`} aria-hidden />
+                                    {t.wst_punch_out_label}
+                                  </p>
+                                  <p className={`text-sm font-bold tabular-nums ${hasOut ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-400 dark:text-neutral-500'}`}>{drawerTimbrature.outTime}</p>
+                                  {drawerTimbrature.outMode === 'device' ? (
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_device}</p>
+                                  ) : drawerTimbrature.outMode === 'manual' ? (
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_manual}</p>
+                                  ) : drawerTimbrature.outMode === 'frozen' ? (
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-accent">{t.wst_punch_mode_frozen}</p>
+                                  ) : null}
+                                </div>
+                              </div>
                             </div>
-                            <div>
-                              <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-neutral-300">
-                                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" aria-hidden />
-                                {t.wst_punch_out_label}
-                              </p>
-                              <p className="text-sm font-bold tabular-nums text-slate-800 dark:text-neutral-100">{drawerTimbrature.outTime}</p>
-                              {drawerTimbrature.outMode === 'device' ? (
-                                <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_device}</p>
-                              ) : drawerTimbrature.outMode === 'manual' ? (
-                                <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_manual}</p>
-                              ) : drawerTimbrature.outMode === 'frozen' ? (
-                                <p className="mt-0.5 text-[10px] font-medium leading-snug text-accent">{t.wst_punch_mode_frozen}</p>
-                              ) : null}
-                            </div>
-                          </div>
-                        </div>
+                          );
+                        })()}
 
-                        <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/90 p-3.5 dark:border-white/10 dark:bg-neutral-800/80">
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-400">{t.wst_drawer_hours_summary}</p>
-                          <div className="flex items-baseline justify-between gap-3">
-                            <span className="min-w-0 text-[11px] font-medium leading-snug text-slate-600 dark:text-neutral-300">{t.wst_drawer_planned_short}</span>
-                            <span className="shrink-0 text-sm font-bold tabular-nums text-slate-900 dark:text-neutral-100">
-                              {plannedNetMins != null ? formatMinutesToHoursAndMinutes(plannedNetMins) : '—'}
-                            </span>
-                          </div>
-                          <div className="flex items-start justify-between gap-3">
-                            <span className="min-w-0 pt-0.5 text-[11px] font-medium leading-snug text-slate-600 dark:text-neutral-300">{t.wst_drawer_actual_short}</span>
-                            <div className="text-sm font-bold text-accent tabular-nums shrink-0 text-right max-w-[55%]">
-                              {isAbsent ? (
-                                <span className="text-rose-700 dark:text-rose-200">{formatMinutesToHoursAndMinutes(0)}</span>
-                              ) : actualNetMins != null ? (
-                                formatMinutesToHoursAndMinutes(actualNetMins)
-                              ) : actualNeedsPunches && !isFrozen ? (
-                                <span className="block leading-tight">
-                                  <span className="block">{t.wst_drawer_actual_incomplete}</span>
-                                  <span className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 mt-0.5">{t.wst_drawer_actual_hint}</span>
+                        {/* ── ORE NETTE ── */}
+                        {(() => {
+                          const delta = actualNetMins != null && plannedNetMins != null ? actualNetMins - plannedNetMins : null;
+                          const hoursCard = actualNetMins != null && plannedNetMins != null
+                            ? delta! >= 0
+                              ? 'border-2 border-l-4 border-teal-200/80 dark:border-teal-800/50 border-l-accent bg-teal-50 dark:bg-teal-950/35'
+                              : 'border-2 border-l-4 border-amber-300/80 dark:border-amber-700/50 border-l-review bg-amber-50 dark:bg-amber-950/35'
+                            : 'border-2 border-l-4 border-slate-200 dark:border-white/10 border-l-slate-300 bg-slate-50/90 dark:bg-neutral-800/80';
+                          const hoursLabelCls = actualNetMins != null && plannedNetMins != null
+                            ? delta! >= 0 ? 'text-teal-700 dark:text-teal-400' : 'text-amber-700 dark:text-amber-400'
+                            : 'text-slate-400 dark:text-neutral-400';
+                          const actualCls = actualNetMins != null && plannedNetMins != null
+                            ? delta! > 0 ? 'text-teal-700 dark:text-teal-300' : delta! < 0 ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-neutral-100'
+                            : 'text-accent';
+                          return (
+                            <div className={`space-y-2 rounded-xl p-3.5 ${hoursCard}`}>
+                              <p className={`text-[10px] font-bold uppercase tracking-widest ${hoursLabelCls}`}>{t.wst_drawer_hours_summary}</p>
+                              <div className="flex items-baseline justify-between gap-3">
+                                <span className="min-w-0 text-[11px] font-medium leading-snug text-slate-600 dark:text-neutral-300">{t.wst_drawer_planned_short}</span>
+                                <span className="shrink-0 text-sm font-bold tabular-nums text-slate-900 dark:text-neutral-100">
+                                  {plannedNetMins != null ? formatMinutesToHoursAndMinutes(plannedNetMins) : '—'}
                                 </span>
-                              ) : (
-                                t.wst_drawer_actual_incomplete
-                              )}
+                              </div>
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="min-w-0 pt-0.5 text-[11px] font-medium leading-snug text-slate-600 dark:text-neutral-300">{t.wst_drawer_actual_short}</span>
+                                <div className={`text-sm font-bold tabular-nums shrink-0 text-right max-w-[55%] ${actualCls}`}>
+                                  {isAbsent ? (
+                                    <span className="text-rose-700 dark:text-rose-200">{formatMinutesToHoursAndMinutes(0)}</span>
+                                  ) : actualNetMins != null ? (
+                                    formatMinutesToHoursAndMinutes(actualNetMins)
+                                  ) : actualNeedsPunches && !isFrozen ? (
+                                    <span className="block leading-tight">
+                                      <span className="block">{t.wst_drawer_actual_incomplete}</span>
+                                      <span className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 mt-0.5">{t.wst_drawer_actual_hint}</span>
+                                    </span>
+                                  ) : (
+                                    t.wst_drawer_actual_incomplete
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
+                          );
+                        })()}
 
                         {/* ── STATO: bozza ↔ pubblicato (solo tabellone) ─── */}
                         {!isFrozen && !isAbsent && (canManageDrafts || canApproveShifts) && (
@@ -4380,6 +4603,91 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         />
       )}
 
+      {/* Barra azioni selezione multipla */}
+      {canEditShifts && selectedShiftIds.length > 0 && !pasteMode && (
+        <div
+          className="pointer-events-auto fixed left-1/2 z-[9000] -translate-x-1/2"
+          style={{ bottom: 'calc(var(--app-bottom-nav-offset, 72px) + 8px)' }}
+        >
+          <div className="flex items-center gap-1 rounded-2xl bg-[#2D5A27] px-3 py-2 shadow-[0_4px_24px_-4px_rgba(45,90,39,0.55)] ring-1 ring-white/10">
+            {/* Contatore */}
+            <span className="mr-1 text-[11px] font-extrabold text-white/90 tabular-nums whitespace-nowrap">
+              {formatTrans(tv.selection_bar_label ?? t.selection_bar_label, { n: selectedShiftIds.length })}
+            </span>
+            <span className="h-4 w-px bg-white/20 shrink-0" />
+
+            {/* Copia */}
+            <button
+              type="button"
+              onClick={handleCopySelection}
+              className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-semibold text-white/90 transition-colors hover:bg-white/15 active:bg-white/25"
+              title={tv.selection_copy_title ?? t.selection_copy_title ?? 'Copia turni selezionati'}
+            >
+              <ClipboardCopy className="h-3.5 w-3.5 shrink-0" />
+              {tv.selection_copy_btn ?? t.selection_copy_btn ?? 'Copia'}
+            </button>
+
+            {/* Incolla */}
+            <button
+              type="button"
+              disabled={!selectionClipboard}
+              onClick={() => { setPasteMode(true); setDeleteConfirmPending(false); }}
+              className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-semibold text-white/90 transition-colors hover:bg-white/15 active:bg-white/25 disabled:opacity-35 disabled:pointer-events-none"
+              title={tv.selection_paste_title ?? t.selection_paste_title ?? 'Incolla turni (clicca cella)'}
+            >
+              <ClipboardPaste className="h-3.5 w-3.5 shrink-0" />
+              {tv.selection_paste_btn ?? t.selection_paste_btn ?? 'Incolla'}
+            </button>
+
+            <span className="h-4 w-px bg-white/20 shrink-0" />
+
+            {/* Elimina — con mini-confirm inline */}
+            {deleteConfirmPending ? (
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] font-semibold text-red-200 whitespace-nowrap">
+                  {formatTrans(tv.selection_delete_confirm ?? t.selection_delete_confirm, { n: selectedShiftIds.length })}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void handleDeleteSelection()}
+                  className="rounded-xl bg-red-500 px-2.5 py-1.5 text-[11px] font-bold text-white transition-colors hover:bg-red-400"
+                >
+                  {tv.confirm ?? t.confirm ?? 'Sì'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmPending(false)}
+                  className="rounded-xl bg-white/15 px-2.5 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/25"
+                >
+                  {tv.cancel ?? t.cancel ?? 'No'}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmPending(true)}
+                className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-semibold text-red-300 transition-colors hover:bg-white/15 hover:text-red-200"
+              >
+                <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                {tv.selection_delete_btn ?? t.selection_delete_btn ?? 'Elimina'}
+              </button>
+            )}
+
+            <span className="h-4 w-px bg-white/20 shrink-0" />
+
+            {/* Deseleziona tutto */}
+            <button
+              type="button"
+              onClick={() => { setSelectedShiftIds([]); setDeleteConfirmPending(false); }}
+              className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/15 hover:text-white"
+              title="Deseleziona tutto"
+            >
+              <X className="h-3.5 w-3.5 shrink-0" />
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -4630,14 +4938,27 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               </div>
             </div>
 
-            <label className="flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 border-slate-300 bg-slate-50/90 px-3 py-2.5 shadow-sm transition-colors hover:bg-slate-50 dark:border-white/15 dark:bg-neutral-800/90 dark:hover:bg-neutral-800">
-              <input
-                type="checkbox"
-                checked={deductBreak}
-                onChange={(e) => setDeductBreak(e.target.checked)}
-                className="h-4 w-4 shrink-0 rounded border-2 border-slate-400 text-accent focus:ring-2 focus:ring-accent/30 dark:border-neutral-500"
-              />
-              <span className="text-sm font-semibold text-slate-700 dark:text-neutral-200">{t.deduct_break_label}</span>
+            <label className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 shadow-sm transition-colors ${
+              deductBreak
+                ? 'border-accent/60 bg-accent/5 hover:bg-accent/10 dark:border-accent/50 dark:bg-accent/10'
+                : 'border-slate-300 bg-slate-50/90 hover:bg-slate-50 dark:border-white/15 dark:bg-neutral-800/90 dark:hover:bg-neutral-800'
+            }`}>
+              <div className="relative shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={deductBreak}
+                  onChange={(e) => setDeductBreak(e.target.checked)}
+                />
+                <div className={`h-5 w-9 rounded-full transition-colors duration-200 ${deductBreak ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`} />
+                <div className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${deductBreak ? 'translate-x-4' : 'translate-x-0'}`} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className={`text-xs font-semibold ${deductBreak ? 'text-accent dark:text-accent-light' : 'text-slate-800 dark:text-neutral-100'}`}>{t.deduct_break_label}</p>
+                <p className="mt-0.5 text-[11px] leading-snug text-slate-500 dark:text-neutral-400">
+                  {deductBreak ? t.wst_drawer_break_deducted_readout : t.wst_create_shift_no_deduct_badge}
+                </p>
+              </div>
             </label>
 
             {/* ── Note pubblica ── */}

@@ -15,6 +15,8 @@ export type TimeInputFieldProps = {
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
   /** Dopo Invio sui minuti: flush applicato, poi questo callback (es. focus campo successivo o invio form). */
   onMinutesEnter?: () => void;
+  /** Chiamato quando il focus esce dall'intero componente (dopo flush). Utile per auto-save. */
+  onBlurCommit?: () => void;
   style?: React.CSSProperties;
   autoFocus?: boolean;
 };
@@ -45,6 +47,7 @@ export function TimeInputField({
   'aria-label': ariaLabel,
   onKeyDown,
   onMinutesEnter,
+  onBlurCommit,
   style,
   autoFocus,
 }: TimeInputFieldProps) {
@@ -153,7 +156,7 @@ export function TimeInputField({
         ? 'min-h-[52px] gap-1 rounded-xl border px-1.5 py-2 text-xl'
         : 'min-h-[44px] gap-0.5 rounded-xl border-2 px-1 text-sm font-semibold';
   const inner =
-    'min-w-0 flex-1 bg-transparent text-center font-bold tabular-nums text-slate-900 outline-none placeholder:text-slate-400 focus:outline-none dark:text-neutral-100 dark:placeholder:text-neutral-500';
+    'min-w-0 flex-1 bg-transparent text-center font-bold tabular-nums text-slate-900 outline-none placeholder:text-slate-400 focus:outline-none dark:text-neutral-100 dark:placeholder:text-neutral-500 cursor-pointer';
 
   const borderTone =
     size === 'hero'
@@ -166,6 +169,12 @@ export function TimeInputField({
     <div
       className={`flex max-w-full min-w-0 touch-manipulation items-center justify-center bg-white shadow-sm transition-colors ${boxSize} ${borderTone} ${disabled ? 'opacity-60' : 'cursor-text'} ${className}`.trim()}
       style={style}
+      onBlur={(e) => {
+        // Fires only when focus leaves the entire component (not moving between hour/minute)
+        if (onBlurCommit && !e.currentTarget.contains(e.relatedTarget as Node)) {
+          onBlurCommit();
+        }
+      }}
       onPointerDownCapture={(e) => {
         if (disabled) return;
         if ((e.target as HTMLElement).tagName === 'INPUT') return;
@@ -200,6 +209,7 @@ export function TimeInputField({
           }
         }}
         onBlur={flush}
+        onFocus={(e) => e.target.select()}
         onKeyDown={handleHourKeyDown}
         className={`${inner} pl-2 pr-0.5`}
       />
@@ -218,6 +228,7 @@ export function TimeInputField({
         value={m}
         onChange={(e) => setM(digitsOnly(e.target.value, 2))}
         onBlur={flush}
+        onFocus={(e) => e.target.select()}
         onKeyDown={handleMinuteKeyDown}
         className={`${inner} pl-0.5 pr-2`}
       />

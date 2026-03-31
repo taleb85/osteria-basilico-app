@@ -127,7 +127,7 @@ type Props = {
 };
 
 export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }: Props = {}) {
-  const { users, currentUser, updateUser, featureFlags, showSuccess, effectiveLanguage } = useApp();
+  const { users, currentUser, updateUser, deleteUser, featureFlags, showSuccess, effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
 
@@ -139,6 +139,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedUserId || null);
   const [activeHubTab, setActiveHubTab] = useState<AppNavTab>('home');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isDeleting, setIsStaffDeleting] = useState(false);
 
   // Local state for immediate preview updates without DB save
   const [localFeatures, setLocalFeatures] = useState<EnabledFeatures | null>(null);
@@ -310,6 +311,26 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
       showSuccess?.(tv.profile_visibility_saved_hint ?? 'Modifiche salvate e applicate.');
     }
   }, [selected, hasUnsavedChanges, localFeatures, localModules, localUiOverrides, updateUser, showSuccess, tv.profile_visibility_saved_hint]);
+
+  const handleDeleteUser = useCallback(async () => {
+    if (!selected || isDeleting) return;
+    
+    const fullName = `${selected.first_name} ${selected.last_name ?? ''}`.trim();
+    if (!window.confirm((tv.profile_visibility_delete_confirm ?? 'Sei sicuro di voler eliminare definitivamente {name}? Questa azione non è reversibile.').replace('{name}', fullName))) {
+      return;
+    }
+
+    setIsStaffDeleting(true);
+    try {
+      const success = await deleteUser?.(selected.id);
+      if (success) {
+        showSuccess?.((tv.profile_visibility_delete_success ?? 'Profilo di {name} eliminato.').replace('{name}', fullName));
+        setSelectedId(null);
+      }
+    } finally {
+      setIsStaffDeleting(false);
+    }
+  }, [selected, isDeleting, deleteUser, showSuccess, tv]);
 
   const uiGroups = useMemo(() => uiWidgetsByGroup(), []);
 
@@ -587,6 +608,22 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                       ? (tv.profile_visibility_discard_changes ?? 'Annulla modifiche')
                       : (tv.profile_visibility_reset_all ?? 'Ripristina al template ruolo')}
                   </button>
+
+                  {isAdminOnly(currentUser) && !hasUnsavedChanges && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteUser}
+                      disabled={isDeleting}
+                      className="inline-flex items-center gap-2 surface-glass-sm px-3 py-2 text-xs font-semibold text-red-600 surface-ghost-interactive hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                    >
+                      {isDeleting ? (
+                        <RotateCcw className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <X className="w-3.5 h-3.5" />
+                      )}
+                      {tv.profile_visibility_delete_user ?? 'Elimina dipendente'}
+                    </button>
+                  )}
                 </div>
               )}
 

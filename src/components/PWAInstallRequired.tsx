@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Share, MoreHorizontal } from 'lucide-react';
 import { isIOS, isAndroid, isDesktop } from '../utils/pwaStandalone';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/appContextCore';
 import { getTranslations } from '../utils/translations';
 
 const BG_COLOR = '#2D5A27'; // Verde Basilico

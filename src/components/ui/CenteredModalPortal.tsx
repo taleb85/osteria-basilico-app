@@ -1,5 +1,6 @@
 import { type ReactNode, type RefObject, type LegacyRef } from 'react';
 import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 type CenteredModalPortalProps = {
@@ -22,6 +23,8 @@ type CenteredModalPortalProps = {
   markDatePickerPortal?: boolean;
   /** Sopra bottom bar (z-50), overlay sync header, ecc. */
   overlayZClass?: string;
+  /** Se true, il click sul backdrop NON chiude il modale. */
+  disableBackdropClose?: boolean;
 };
 
 /**
@@ -40,34 +43,47 @@ export function CenteredModalPortal({
   panelClassName = '',
   markDatePickerPortal = false,
   overlayZClass = 'z-[10050]',
+  disableBackdropClose = true,
 }: CenteredModalPortalProps) {
   useBodyScrollLock(open);
 
-  if (!open || typeof document === 'undefined') return null;
+  if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <div
-      className={`fixed inset-0 ${overlayZClass} flex items-center justify-center overflow-hidden overscroll-none p-4 font-sans`}
-      role="presentation"
-      {...(markDatePickerPortal ? { 'data-osteria-date-picker-portal': '' } : {})}
-    >
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm dark:bg-black/75"
-        aria-label={backdropAriaLabel}
-        onClick={onClose}
-      />
-      <div
-        ref={panelRef as LegacyRef<HTMLDivElement> | undefined}
-        role="dialog"
-        aria-modal="true"
-        aria-label={ariaLabel}
-        className={`relative z-10 ${panelWidthClass} ${maxWidthClass} ${maxHeightClass} overflow-y-auto overscroll-contain rounded-2xl modal-glass-panel ${panelClassName}`.trim()}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>,
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className={`fixed inset-0 ${overlayZClass} flex items-center justify-center overflow-hidden overscroll-none p-4 font-sans`}
+          role="presentation"
+          {...(markDatePickerPortal ? { 'data-osteria-date-picker-portal': '' } : {})}
+        >
+          <button
+            type="button"
+            className={`absolute inset-0 bg-black/75 backdrop-blur-md dark:bg-black/85 ${disableBackdropClose ? 'cursor-default' : ''}`}
+            aria-label={backdropAriaLabel}
+            onClick={disableBackdropClose ? undefined : onClose}
+          />
+          <motion.div
+            ref={panelRef as LegacyRef<HTMLDivElement> | undefined}
+            role="dialog"
+            aria-modal="true"
+            aria-label={ariaLabel}
+            initial={{ scale: 0.85, opacity: 0, y: 40 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 28, mass: 0.8 }}
+            className={`relative z-10 ${panelWidthClass} ${maxWidthClass} ${maxHeightClass} overflow-y-auto overscroll-contain rounded-2xl modal-glass-panel ${panelClassName}`.trim()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
     document.body
   );
 }

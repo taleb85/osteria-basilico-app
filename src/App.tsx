@@ -396,10 +396,8 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   };
 
   /** `overflow-visible` così popover / menu non vengono tagliati dal bordo arrotondato della card. */
-  const appHeaderMainCardClass =
-    'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/80 dark:bg-neutral-900/80 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-visible supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
-  const appHeaderCardClass =
-    'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/80 dark:bg-neutral-900/80 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-hidden supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
+  const appHeaderMainCardClass = 'w-full rounded-2xl border-0 bg-gradient-to-b from-white/75 to-white/55 dark:from-neutral-800/70 dark:to-neutral-900/60 shadow-[0_2px_0_0_rgba(255,255,255,0.85)_inset,0_-1px_0_0_rgba(0,0,0,0.05)_inset,0_10px_28px_-4px_rgba(45,90,39,0.18),0_4px_12px_-2px_rgba(15,23,42,0.10)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.07)_inset,0_-1px_0_0_rgba(0,0,0,0.45)_inset,0_12px_32px_-4px_rgba(0,0,0,0.55),0_4px_12px_-2px_rgba(0,0,0,0.35)] overflow-visible supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-[2]';
+  const appHeaderCardClass = 'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/80 dark:bg-neutral-900/80 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-hidden supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
 
   return (
     <ProfileLeaveGuardRefContext.Provider value={profileLeaveGuardRef}>
@@ -414,7 +412,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       */}
       <header
         ref={appStickyHeaderRef}
-        className={`sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2 ${
+        className={`sticky top-0 z-[10040] shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2 ${
           isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''
         }`}
       >

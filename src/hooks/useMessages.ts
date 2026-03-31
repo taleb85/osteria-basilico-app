@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import { database } from '../lib/database';
 
 export interface Message {
@@ -33,18 +34,19 @@ export function useMessages(userId?: string) {
         setIsLoading(true);
         setError(null);
 
-        // Validazione di sicurezza: verifica che database.supabase sia disponibile
-        if (!database?.supabase) {
+        // Validazione di sicurezza: verifica che supabase sia disponibile
+        if (!supabase) {
           setMessages([]);
           setUnreadCount(0);
           return;
         }
 
         // Query nativa Supabase dalla tabella 'staff_messages'
-        const { data, error: supabaseError } = await database.supabase
+        // Recupera messaggi broadcast, messaggi privati per noi, o inviati da noi
+        const { data, error: supabaseError } = await supabase
           .from('staff_messages')
           .select('*')
-          .or(`recipient_id.is.null,recipient_id.eq.${uid}`)
+          .or(`recipient_id.is.null,recipient_id.eq.${uid},sender_id.eq.${uid}`)
           .order('created_at', { ascending: false });
 
         // Gestione errori Supabase
@@ -82,7 +84,7 @@ export function useMessages(userId?: string) {
 
   // Carica messaggi iniziali
   useEffect(() => {
-    if (!database?.supabase || !userId) {
+    if (!supabase || !userId) {
       if (!userId) setIsLoading(false);
       return;
     }
@@ -91,28 +93,36 @@ export function useMessages(userId?: string) {
 
   // Sottoscrizione real-time ai messaggi
   useEffect(() => {
-    if (!userId || !database?.supabase) return;
+    if (!userId || !supabase) return;
 
     try {
-      const channel = database.supabase
-        .channel(`staff_messages:user:${userId}`)
+      const channel = supabase
+        .channel(`staff_messages_changes`)
         .on(
           'postgres_changes',
           {
-            event: '*',
+            event: '*', // Ascolta tutti gli eventi (INSERT, UPDATE, DELETE)
             schema: 'public',
             table: 'staff_messages',
           },
-          () => {
-            loadMessages(userId);
+          (payload) => {
+            console.log('[useMessages] Change detected:', payload);
+            const msg = (payload.new || payload.old) as Message;
+            
+            // Ricarica se il messaggio ci riguarda (siamo mittenti o destinatari o è broadcast)
+            if (!msg.recipient_id || msg.recipient_id === userId || msg.sender_id === userId) {
+              loadMessages(userId);
+            }
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('[useMessages] Subscription status:', status);
+        });
 
       setSubscription(channel);
 
       return () => {
-        channel.unsubscribe();
+        supabase.removeChannel(channel);
       };
     } catch (err) {
       console.error('[useMessages] Real-time error:', err);
@@ -129,13 +139,13 @@ export function useMessages(userId?: string) {
 
       try {
         // Validazione di sicurezza
-        if (!database?.supabase) {
+        if (!supabase) {
           console.warn('[useMessages] Supabase client not initialized');
           return false;
         }
 
         // Update messaggio in Supabase
-        const { error: supabaseError } = await database.supabase
+        const { error: supabaseError } = await supabase
           .from('staff_messages')
           .update({ is_read: true, read_at: new Date().toISOString() })
           .eq('id', messageId);
@@ -175,7 +185,7 @@ export function useMessages(userId?: string) {
 
       try {
         // Validazione di sicurezza
-        if (!database?.supabase) {
+        if (!supabase) {
           console.warn('[useMessages] Supabase client not initialized');
           return false;
         }
@@ -183,7 +193,7 @@ export function useMessages(userId?: string) {
         const messageType = recipientId ? 'private' : 'broadcast';
 
         // Insert messaggio in Supabase
-        const { error: supabaseError } = await database.supabase
+        const { error: supabaseError } = await supabase
           .from('staff_messages')
           .insert({
             sender_id: userId,
@@ -218,6 +228,31 @@ export function useMessages(userId?: string) {
   );
 
   /**
+   * Elimina un messaggio (solo Admin).
+   */
+  const deleteMessage = useCallback(
+    async (messageId: string) => {
+      if (!userId || !supabase) return false;
+
+      try {
+        const { error: supabaseError } = await supabase
+          .from('staff_messages')
+          .delete()
+          .eq('id', messageId);
+
+        if (supabaseError) throw supabaseError;
+
+        setMessages((prev) => prev.filter((m) => m.id !== messageId));
+        return true;
+      } catch (err) {
+        console.error('[useMessages] Error deleting message:', err);
+        return false;
+      }
+    },
+    [userId]
+  );
+
+  /**
    * Filtra messaggi broadcast.
    */
   const broadcastMessages = messages.filter((m) => m.message_type === 'broadcast');
@@ -242,6 +277,7 @@ export function useMessages(userId?: string) {
     unreadCount,
     markAsRead,
     sendMessage,
+    deleteMessage,
     loadMessages,
   };
 }

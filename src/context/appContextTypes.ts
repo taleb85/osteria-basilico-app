@@ -64,6 +64,9 @@ export interface AppContextType {
   requestConfirmAndPublishWeek: (weekStart: Date) => void;
   forceLogoutRequested: boolean;
   clearForceLogoutRequest: () => void;
+  /** Sessione PIN globale — quando impostata, tutti i PIN gate dell'app sono bypassati. */
+  globalPinSessionId: string | null;
+  setGlobalPinSessionId: (id: string | null) => void;
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
   users: User[];

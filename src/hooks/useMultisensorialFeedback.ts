@@ -19,7 +19,12 @@ export function useMultisensorialFeedback() {
     return stored ? parseInt(stored, 10) : 50; // Default: 50%
   });
 
-  // Persisti le impostazioni di suono
+  const [hapticIntensity, setHapticIntensity] = useState(() => {
+    const stored = localStorage.getItem('app:hapticIntensity');
+    return stored ? parseInt(stored, 10) : 100; // Default: 100%
+  });
+
+  // Persisti le impostazioni
   useEffect(() => {
     localStorage.setItem('app:soundEnabled', String(isSoundEnabled));
   }, [isSoundEnabled]);
@@ -28,31 +33,37 @@ export function useMultisensorialFeedback() {
     localStorage.setItem('app:soundVolume', String(soundVolume));
   }, [soundVolume]);
 
+  useEffect(() => {
+    localStorage.setItem('app:hapticIntensity', String(hapticIntensity));
+  }, [hapticIntensity]);
+
   /**
    * Feedback aptico (vibrazione tattile).
    * Ottimizzato per batteria: check supporto e tipo dispositivo.
    */
   const triggerHapticFeedback = useCallback((type: HapticType = 'success') => {
     // Check supporto
-    if (!('vibrate' in navigator)) return;
+    if (!('vibrate' in navigator) || hapticIntensity === 0) return;
 
     try {
+      const factor = hapticIntensity / 100;
+      
       // Vibration patterns (in millisecondi: vibra, pausa, vibra, ...)
       const patterns: Record<HapticType, number[]> = {
-        success: [10, 30, 10], // Breve e "premium"
-        warning: [30, 20, 30], // Più lungo, avvertenza
-        error: [50, 30, 50], // Lungo e deciso
-        click: [15], // Singolo "scatto"
-        heavy: [50], // Singolo pesante
-        medium: [30], // Singolo medio
-        light: [10], // Singolo leggero
+        success: [20 * factor, 40, 20 * factor],
+        warning: [40 * factor, 30, 40 * factor],
+        error: [60 * factor, 40, 60 * factor],
+        click: [25 * factor],
+        heavy: [70 * factor],
+        medium: [40 * factor],
+        light: [15 * factor],
       };
 
       navigator.vibrate(patterns[type] || patterns.success);
     } catch (err) {
       console.warn('[Haptic] Vibration not available:', err);
     }
-  }, []);
+  }, [hapticIntensity]);
 
   /**
    * Riproduci suono di notifica.
@@ -78,12 +89,12 @@ export function useMultisensorialFeedback() {
       // Imposta volume (0-1)
       gainNode.gain.setValueAtTime(soundVolume / 100, audioContext.currentTime);
       
-      // Frequenza "ping" gradevole (F5: 698.46 Hz)
-      oscillator.frequency.setValueAtTime(698, audioContext.currentTime);
+      // Frequenza "ping" più cristallina (A5: 880 Hz)
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
       oscillator.type = 'sine';
       
-      // Durata: 100ms
-      const duration = 0.1;
+      // Durata leggermente più lunga: 150ms
+      const duration = 0.15;
       
       // Envelope ADSR (Attack, Decay, Sustain, Release)
       gainNode.gain.setValueAtTime(0, audioContext.currentTime); // Attack
@@ -115,9 +126,11 @@ export function useMultisensorialFeedback() {
     triggerHapticFeedback,
     playNotificationSound,
     triggerFeedback,
-    isSoundEnabled,
-    setIsSoundEnabled,
-    soundVolume,
+    hapticIntensity,
+    setHapticIntensity,
+    isSoundEnabled, 
+    setIsSoundEnabled, 
+    soundVolume, 
     setSoundVolume,
   };
 }

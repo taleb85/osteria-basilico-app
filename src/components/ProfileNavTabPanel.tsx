@@ -8,6 +8,7 @@ import { getTranslations } from '../utils/translations';
 import { isManagementRole } from '../utils/permissions';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { ProfileFormSelf, type ProfileFormSelfData } from './UserProfile';
+import { SoundSettings } from './SoundSettings';
 import ProfilePhotoSourceSheet from './profile/ProfilePhotoSourceSheet';
 import ProfilePhotoCropperModal from './profile/ProfilePhotoCropperModal';
 import {
@@ -29,6 +30,7 @@ function serializeProfileForm(fd: ProfileFormSelfData): string {
     language: fd.language,
     role: fd.role,
     pin: fd.pin.replace(/\D/g, '').slice(0, 4),
+    department: fd.department ?? null,
   });
 }
 
@@ -201,6 +203,7 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
         email: formData.email,
         phone: joinPhone(formData.phone_prefix, formData.phone_national),
         language: formData.language,
+        department: formData.department ?? null,
         ...(pinDigits.length === 4 ? { pin: pinDigits } : {}),
       });
       if (!ok) throw new Error('save failed');
@@ -416,6 +419,11 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
               roleLocked={false}
             />
           </div>
+        </div>
+
+        {/* IMPOSTAZIONI SUONO E FEEDBACK */}
+        <div className="mx-4">
+          <SoundSettings />
         </div>
       </motion.div>
     </div>

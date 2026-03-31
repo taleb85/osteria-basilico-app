@@ -2,7 +2,7 @@ const KEY = 'osteria_departments';
 /** Etichetta/colore personalizzati per sala | kitchen | bar (il `value` resta invariato). */
 const BUILTIN_OVERRIDES_KEY = 'osteria_department_builtin_overrides';
 
-type BuiltinOverride = { label?: string; color?: string };
+type BuiltinOverride = { label?: string; color?: string; hidden?: boolean };
 
 function getBuiltinOverrides(): Record<string, BuiltinOverride> {
   try {
@@ -46,10 +46,24 @@ const DEFAULT_CUSTOM_COLOR = '#2D5A27'; // accent green
 
 function mergeBuiltinsWithOverrides(): Department[] {
   const ov = getBuiltinOverrides();
-  return BUILTIN_DEPARTMENTS.map((d) => ({
-    ...d,
-    ...(ov[d.value] || {}),
-  }));
+  return BUILTIN_DEPARTMENTS
+    .filter((d) => !ov[d.value]?.hidden)
+    .map((d) => ({ ...d, ...(ov[d.value] || {}) }));
+}
+
+/** Restituisce i valori dei built-in attualmente nascosti. */
+export function getHiddenBuiltinValues(): string[] {
+  const ov = getBuiltinOverrides();
+  return BUILTIN_DEPARTMENTS.map((d) => d.value).filter((v) => ov[v]?.hidden);
+}
+
+/** Ripristina un built-in nascosto. */
+export function restoreBuiltinDepartment(value: string): Department[] {
+  const ov = getBuiltinOverrides();
+  if (!ov[value]?.hidden) return getDepartments();
+  const next = { ...ov, [value]: { ...ov[value], hidden: false } };
+  saveBuiltinOverrides(next);
+  return getDepartments();
 }
 
 /** Snapshot per Storage `app-config/departments.json` — allinea colori/etichette/reparti custom su tutti i dispositivi. */
@@ -217,7 +231,12 @@ export function addDepartment(
 
 export function removeDepartment(value: string): Department[] {
   const builtinValues = new Set(BUILTIN_DEPARTMENTS.map((d) => d.value));
-  if (builtinValues.has(value)) return getDepartments();
+  if (builtinValues.has(value)) {
+    // Per i built-in: nasconde tramite override (non rimuove il codice fisso)
+    const ov = { ...getBuiltinOverrides(), [value]: { ...getBuiltinOverrides()[value], hidden: true } };
+    saveBuiltinOverrides(ov);
+    return getDepartments();
+  }
   const all = getDepartments().filter((d) => d.value !== value);
   saveCustomDepartments(all);
   return all;
@@ -233,6 +252,39 @@ export function getDeptPermissionMatchKeys(deptValue: string | null | undefined)
   if (builtinValues.has(d.value)) return [d.value];
   if (d.permissionCategory) return [d.value, d.permissionCategory];
   return [d.value];
+}
+
+/**
+ * Verifica se il reparto di un utente rientra nel filterKey scelto nel filtro,
+ * tenendo conto della permissionCategory per reparti custom.
+ *
+ * Esempi:
+ *   filterKey='kitchen', userDept='cucina_2' (permissionCategory:'kitchen') → true
+ *   filterKey='sala_bar', userDept='sala'                                     → true
+ *   filterKey='sala_bar', userDept='mio_rep' (permissionCategory:'sala')      → true
+ */
+export function deptMatchesFilterKey(
+  userDept: string | null | undefined,
+  filterKey: string
+): boolean {
+  if (!userDept || !filterKey) return false;
+
+  // Corrispondenza diretta
+  if (userDept === filterKey) return true;
+
+  // sala_bar aggruppa i built-in sala e bar
+  if (filterKey === 'sala_bar' && (userDept === 'sala' || userDept === 'bar')) return true;
+
+  // Controlla le match-keys del reparto (include permissionCategory se presente)
+  const matchKeys = getDeptPermissionMatchKeys(userDept);
+  if (matchKeys.includes(filterKey)) return true;
+
+  // Se il filtro è sala_bar verifica anche le categorie sala/bar
+  if (filterKey === 'sala_bar') {
+    if (matchKeys.includes('sala') || matchKeys.includes('bar')) return true;
+  }
+
+  return false;
 }
 
 /** Reparto utente soddisfa il filtro reparti della regola pausa? */

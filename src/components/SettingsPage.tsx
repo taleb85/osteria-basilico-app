@@ -1,6 +1,22 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { format, parseISO, addDays } from 'date-fns';
+import {
+  loadPeriodConfig,
+  savePeriodConfig as persistPeriodConfig,
+  getPeriodEndDate,
+  getPeriodStartDate,
+  dispatchPeriodConfigUpdated,
+  nextPeriodConfig,
+  prevPeriodConfig,
+  currentPeriodConfig,
+  periodConfigForMonth,
+  periodConfigFromStartDate,
+  type PeriodConfig,
+} from '../utils/periodConfig';
+import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
+import DatePickerField from './DatePickerField';
 import { useApp } from '../context/AppContext';
 import type { User, UserRole } from '../types';
 import { translateRole } from '../utils/roles';
@@ -28,6 +44,8 @@ import {
   addDepartment,
   removeDepartment,
   updateDepartment,
+  restoreBuiltinDepartment,
+  getHiddenBuiltinValues,
   BUILTIN_DEPARTMENTS,
   DEPARTMENT_COLOR_PRESETS,
 } from '../utils/departments';
@@ -185,6 +203,40 @@ export default function SettingsPage() {
   const [geoAcquiring, setGeoAcquiring] = useState(false);
   const [presenceQrBusy, setPresenceQrBusy] = useState(false);
 
+  // ── Periodo Presenze ──────────────────────────────────────────────────────
+  const [periodCfg, setPeriodCfg] = useState<PeriodConfig>(() => loadPeriodConfig());
+  const [periodDraftStart, setPeriodDraftStart] = useState<string>(periodCfg.startDate);
+  const [periodDraftWeeks, setPeriodDraftWeeks] = useState<4 | 5>(periodCfg.numWeeks);
+  const [periodDraftDirty, setPeriodDraftDirty] = useState(false);
+  const [periodSavingCloud, setPeriodSavingCloud] = useState(false);
+  /** Regola di calcolo periodo: 'last_sunday' = ultima domenica del mese (auto); 'fixed_start' = primo giorno manuale */
+  const [periodRuleMode, setPeriodRuleMode] = useState<'last_sunday' | 'fixed_start'>(() => {
+    try { return (localStorage.getItem('osteria_period_rule') as 'last_sunday' | 'fixed_start') ?? 'last_sunday'; }
+    catch { return 'last_sunday'; }
+  });
+
+  /** Aggiorna solo il draft (navigazione rapida) — NON salva. */
+  const setDraftFromConfig = (cfg: PeriodConfig) => {
+    setPeriodDraftStart(cfg.startDate);
+    setPeriodDraftWeeks(cfg.numWeeks);
+    setPeriodDraftDirty(true);
+  };
+
+  const applyPeriod = (cfg: PeriodConfig, rule?: 'last_sunday' | 'fixed_start') => {
+    const ruleToSave = rule ?? periodRuleMode;
+    try { localStorage.setItem('osteria_period_rule', ruleToSave); } catch { /* ignore */ }
+    setPeriodRuleMode(ruleToSave);
+    persistPeriodConfig(cfg);
+    setPeriodCfg(cfg);
+    setPeriodDraftStart(cfg.startDate);
+    setPeriodDraftWeeks(cfg.numWeeks);
+    setPeriodDraftDirty(false);
+    dispatchPeriodConfigUpdated();
+    setPeriodSavingCloud(true);
+    void saveTimesheetPeriodToSupabase(cfg).finally(() => setPeriodSavingCloud(false));
+    showSuccess?.(t.ts_period_saved);
+  };
+
   useEffect(() => {
     if (geofenceEffectiveConfig) {
       setGeoLat(String(geofenceEffectiveConfig.lat));
@@ -195,8 +247,10 @@ export default function SettingsPage() {
   const [editingBreakRule, setEditingBreakRule] = useState<BreakRule | null>(null);
   const [creatingBreakRule, setCreatingBreakRule] = useState(false);
   const [departments, setDepts] = useState<Department[]>(() => getDepartments());
+  const [hiddenBuiltins, setHiddenBuiltins] = useState<string[]>(() => getHiddenBuiltinValues());
   useEffect(() => {
     setDepts(getDepartments());
+    setHiddenBuiltins(getHiddenBuiltinValues());
   }, [departmentsRevision]);
   const [newDeptName, setNewDeptName] = useState('');
   const [newDeptColor, setNewDeptColor] = useState('#2D5A27');
@@ -205,6 +259,9 @@ export default function SettingsPage() {
   const [editDeptColor, setEditDeptColor] = useState('#2D5A27');
   const [newDeptPermissionCategory, setNewDeptPermissionCategory] = useState<PermissionCategory | ''>('sala');
   const [editDeptPermissionCategory, setEditDeptPermissionCategory] = useState<PermissionCategory | ''>('');
+  const [deletingDept, setDeletingDept] = useState<Department | null>(null);
+  const [reassignMap, setReassignMap] = useState<Record<string, string>>({});
+  const [isDeleting, setIsDeleting] = useState(false);
   const builtinValues = new Set(BUILTIN_DEPARTMENTS.map((d) => d.value));
 
   const deptPermissionCategorySelectClass =
@@ -258,6 +315,7 @@ export default function SettingsPage() {
     if (valid) return;
     setDemoProfileTargetUserId(demoProfileCandidates[0]?.id ?? '');
   }, [demoProfileCandidates, demoProfileTargetUserId]);
+
 
   if (!currentUser) return null;
 
@@ -885,24 +943,58 @@ export default function SettingsPage() {
                       >
                         <Pencil className="w-3 h-3" />
                       </button>
-                      {!isBuiltin && (
-                        <button
-                          type="button"
-                          title={t.settings_dept_delete_title}
-                          onClick={() => {
-                            if (editingDeptValue === d.value) setEditingDeptValue(null);
-                            setDepts(removeDepartment(d.value));
-                            void notifyDepartmentsChanged();
-                          }}
-                          className="text-white/70 hover:text-white transition-colors shrink-0"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        title={t.settings_dept_delete_title}
+                        onClick={() => {
+                          if (editingDeptValue === d.value) setEditingDeptValue(null);
+                          const affected = users.filter(u => u.department === d.value);
+                          const initMap: Record<string, string> = {};
+                          affected.forEach(u => { initMap[u.id] = ''; });
+                          setReassignMap(initMap);
+                          setDeletingDept(d);
+                        }}
+                        className="text-white/70 hover:text-white transition-colors shrink-0"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
                   );
                 })}
               </div>
+
+              {/* Reparti built-in nascosti — pulsante ripristino */}
+              {hiddenBuiltins.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 dark:border-white/10">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                    Nascosti
+                  </span>
+                  {hiddenBuiltins.map((v) => {
+                    const builtin = BUILTIN_DEPARTMENTS.find((b) => b.value === v);
+                    if (!builtin) return null;
+                    return (
+                      <button
+                        key={v}
+                        type="button"
+                        title="Ripristina reparto"
+                        onClick={() => {
+                          const next = restoreBuiltinDepartment(v);
+                          setDepts(next);
+                          setHiddenBuiltins(getHiddenBuiltinValues());
+                          void notifyDepartmentsChanged();
+                        }}
+                        className="flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:border-accent/50 hover:text-accent dark:border-white/15 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:border-accent/40 dark:hover:text-accent-light"
+                      >
+                        <span
+                          className="h-2.5 w-2.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: builtin.color }}
+                        />
+                        {builtin.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               <AnimatePresence>
                 {editingDeptValue && (
@@ -1296,6 +1388,190 @@ export default function SettingsPage() {
                 <Plus className="w-6 h-6" />
                 <span className="text-xs font-semibold">{t.settings_break_new_rule}</span>
               </button>
+            </div>
+          </SettingsAccordionSection>
+        )}
+
+        {/* ── Periodi Presenze ─────────────────────────────────────────────── */}
+        {isManager && (
+          <SettingsAccordionSection
+            storageKey="osteria_settings_acc_period_rule"
+            title="Periodi Presenze"
+            subtitle={(() => {
+              const s = getPeriodStartDate(periodCfg);
+              const e = getPeriodEndDate(periodCfg);
+              return `${format(s, 'dd/MM/yy')} → ${format(e, 'dd/MM/yy')} · ${periodCfg.numWeeks} sett.`;
+            })()}
+            defaultOpen={false}
+          >
+            <div className="surface-glass bg-slate-50/50 p-4 dark:bg-neutral-900/20 space-y-4">
+
+              {/* Periodo attivo + bozza */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Periodo attivo: mostra anteprima della regola selezionata */}
+                {(() => {
+                  const isLastSunday = periodRuleMode === 'last_sunday';
+                  const previewStart = parseISO(periodCfg.startDate);
+                  const previewEnd = getPeriodEndDate(periodCfg);
+                  const ruleName = isLastSunday ? 'Ultima domenica' : 'Primo giorno';
+                  const ruleColor = isLastSunday
+                    ? 'text-accent dark:text-accent-light'
+                    : 'text-teal-600 dark:text-teal-400';
+                  const borderColor = isLastSunday
+                    ? 'border-accent/25 border-l-accent'
+                    : 'border-teal-400/30 border-l-teal-500';
+                  return (
+                    <div className={`rounded-xl border-2 border-l-4 ${borderColor} bg-white px-3 py-2.5 dark:bg-neutral-900/60`}>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                          Periodo attivo
+                        </p>
+                        <span className={`text-[9px] font-extrabold uppercase tracking-wide ${ruleColor}`}>
+                          · {ruleName}
+                        </span>
+                      </div>
+                      <p className="text-[13px] font-bold text-slate-800 dark:text-neutral-100 tabular-nums">
+                        {format(previewStart, 'dd/MM/yy')}
+                        <span className="text-slate-400 dark:text-neutral-500 font-normal"> → </span>
+                        {format(previewEnd, 'dd/MM/yy')}
+                      </p>
+                      <p className={`text-[10px] mt-0.5 ${ruleColor}`}>
+                        {periodCfg.numWeeks} sett.
+                      </p>
+                    </div>
+                  );
+                })()}
+                {/* Bozza (non ancora salvata) */}
+                {periodDraftDirty ? (
+                  <div className="rounded-xl border-2 border-l-4 border-amber-300/60 border-l-amber-500 bg-amber-50/80 px-3 py-2.5 dark:bg-amber-950/30 dark:border-amber-700/40">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1">
+                      Bozza non salvata
+                    </p>
+                    <p className="text-[13px] font-bold text-slate-800 dark:text-neutral-100 tabular-nums">
+                      {format(parseISO(periodDraftStart), 'dd/MM/yy')}
+                      <span className="text-slate-400 dark:text-neutral-500 font-normal"> → </span>
+                      {format(addDays(parseISO(periodDraftStart), periodDraftWeeks * 7 - 1), 'dd/MM/yy')}
+                    </p>
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
+                      {periodDraftWeeks} sett. · premi Salva per confermare
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-slate-100 dark:border-white/8 bg-white/50 dark:bg-white/[0.03] px-3 py-2.5 flex items-center justify-center">
+                    <p className="text-[10px] text-slate-400 dark:text-neutral-500 text-center leading-snug">
+                      Nessuna modifica in bozza
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Selettore regola ────────────────────────────────────────── */}
+              <div>
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                  Regola di calcolo
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Regola 1: Ultima domenica */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPeriodRuleMode('last_sunday');
+                      const cfg = currentPeriodConfig();
+                      setDraftFromConfig(cfg);
+                    }}
+                    className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
+                      periodRuleMode === 'last_sunday'
+                        ? 'border-accent bg-accent/8 dark:bg-accent/12'
+                        : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-neutral-800/60 dark:hover:border-white/20'
+                    }`}
+                  >
+                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'last_sunday' ? 'text-accent dark:text-accent-light' : 'text-slate-600 dark:text-neutral-300'}`}>
+                      Ultima domenica
+                    </span>
+                    <span className="text-[10px] leading-snug text-slate-400 dark:text-neutral-500">
+                      Il periodo termina sull'ultima dom. del mese
+                    </span>
+                  </button>
+                  {/* Regola 2: Primo giorno */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPeriodRuleMode('fixed_start');
+                      const cfg = periodConfigFromStartDate(parseISO(periodDraftStart));
+                      setDraftFromConfig(cfg);
+                    }}
+                    className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
+                      periodRuleMode === 'fixed_start'
+                        ? 'border-teal-500 bg-teal-500/8 dark:bg-teal-500/12'
+                        : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-neutral-800/60 dark:hover:border-white/20'
+                    }`}
+                  >
+                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-neutral-300'}`}>
+                      Primo giorno
+                    </span>
+                    <span className="text-[10px] leading-snug text-slate-400 dark:text-neutral-500">
+                      Imposti la data di inizio, il sistema calcola la fine
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Configurazione in base alla regola selezionata ───────────── */}
+              {periodRuleMode === 'fixed_start' && (
+                /* Regola "Primo giorno": l'utente imposta la data di inizio */
+                <div>
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                    Primo giorno del periodo
+                  </p>
+                  <DatePickerField
+                    value={periodDraftStart}
+                    onChange={(v) => {
+                      setPeriodDraftStart(v);
+                      setPeriodDraftDirty(true);
+                      const cfg = periodConfigFromStartDate(parseISO(v));
+                      setPeriodDraftWeeks(cfg.numWeeks);
+                    }}
+                    allowClear={false}
+                    compact
+                    aria-label="Primo giorno del periodo"
+                    className="mb-3 w-full !border-slate-200 !bg-white dark:!border-white/10 dark:!bg-neutral-800"
+                  />
+                  {/* Preview periodo calcolato dalla data scelta */}
+                  {(() => {
+                    const draftStart = parseISO(periodDraftStart || periodCfg.startDate);
+                    const cfg = periodConfigFromStartDate(draftStart);
+                    const endDate = addDays(draftStart, cfg.numWeeks * 7 - 1);
+                    return (
+                      <div className="flex items-center justify-between rounded-xl border border-teal-500/30 bg-teal-500/8 px-3 py-2.5 dark:border-teal-500/20 dark:bg-teal-500/10">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-bold text-teal-600 dark:text-teal-400">Primo giorno</span>
+                          <span className="rounded-full bg-teal-500/15 px-2 py-0.5 text-[9px] font-bold text-teal-600 dark:text-teal-400">
+                            {cfg.numWeeks} sett.
+                          </span>
+                        </div>
+                        <span className="text-[11px] tabular-nums font-semibold text-slate-600 dark:text-neutral-300">
+                          {format(draftStart, 'dd/MM/yy')} → {format(endDate, 'dd/MM/yy')}
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Salva */}
+              <button
+                type="button"
+                disabled={!periodDraftDirty || periodSavingCloud}
+                onClick={() => applyPeriod({ startDate: periodDraftStart, numWeeks: periodDraftWeeks }, periodRuleMode)}
+                className={`w-full rounded-xl py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+                  !periodDraftDirty || periodSavingCloud
+                    ? 'bg-slate-100 text-slate-400 dark:bg-neutral-800 dark:text-neutral-500 cursor-not-allowed'
+                    : 'bg-accent text-white hover:bg-accent-hover'
+                }`}
+              >
+                {periodSavingCloud ? 'Sincronizzazione…' : t.ts_save_period}
+              </button>
+
             </div>
           </SettingsAccordionSection>
         )}
@@ -1801,6 +2077,126 @@ export default function SettingsPage() {
           onSave={handleSaveBreakRule}
           onClose={() => { setCreatingBreakRule(false); setEditingBreakRule(null); }}
         />
+      )}
+
+      {/* Modale eliminazione reparto con riassegnazione utenti */}
+      {deletingDept && (
+        <CenteredModalPortal
+          open
+          onClose={() => { if (!isDeleting) setDeletingDept(null); }}
+          maxWidthClass="max-w-md"
+        >
+          <div className="p-1">
+            {/* Header */}
+            <div className="mb-4 flex items-start gap-3">
+              <div
+                className="mt-0.5 h-8 w-8 shrink-0 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: deletingDept.color ?? '#2D5A27' }}
+              >
+                <Trash2 className="h-4 w-4 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-neutral-50">
+                  Elimina reparto
+                </h3>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-neutral-400">
+                  <span
+                    className="inline-block rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-white"
+                    style={{ backgroundColor: deletingDept.color ?? '#2D5A27' }}
+                  >
+                    {deletingDept.label}
+                  </span>
+                  {' '}verrà rimosso definitivamente.
+                </p>
+              </div>
+            </div>
+
+            {/* Lista utenti da riassegnare */}
+            {(() => {
+              const affected = users.filter(u => u.department === deletingDept.value);
+              if (affected.length === 0) {
+                return (
+                  <p className="mb-4 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-500 dark:bg-neutral-800/60 dark:text-neutral-400">
+                    Nessun profilo associato a questo reparto.
+                  </p>
+                );
+              }
+              return (
+                <div className="mb-4">
+                  <p className="mb-2 text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                    {affected.length} {affected.length === 1 ? 'profilo associato' : 'profili associati'} — scegli il nuovo reparto:
+                  </p>
+                  <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
+                    {affected.map(u => {
+                      const initials = ((u.first_name?.[0] ?? '') + (u.last_name?.[0] ?? '')).toUpperCase() || '?';
+                      return (
+                        <div key={u.id} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 dark:border-white/10 dark:bg-neutral-800/80">
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-[11px] font-bold text-accent dark:bg-accent/20">
+                            {initials}
+                          </div>
+                          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700 dark:text-neutral-200">
+                            {u.first_name} {u.last_name}
+                          </span>
+                          <select
+                            value={reassignMap[u.id] ?? ''}
+                            onChange={e => setReassignMap(m => ({ ...m, [u.id]: e.target.value }))}
+                            className="min-w-0 max-w-[130px] shrink rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-700 dark:text-neutral-200"
+                          >
+                            <option value="">— nessun reparto —</option>
+                            {departments
+                              .filter(dep => dep.value !== deletingDept.value)
+                              .map(dep => (
+                                <option key={dep.value} value={dep.value}>
+                                  {translateDepartmentValue(dep.value, effectiveLanguage)}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Bottoni */}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeletingDept(null)}
+                className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-200 disabled:opacity-50 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={async () => {
+                  setIsDeleting(true);
+                  try {
+                    const affected = users.filter(u => u.department === deletingDept.value);
+                    await Promise.all(
+                      affected.map(u =>
+                        updateUser(u.id, { department: (reassignMap[u.id] || undefined) as string | undefined })
+                      )
+                    );
+                    const next = removeDepartment(deletingDept.value);
+                    setDepts(next);
+                    setHiddenBuiltins(getHiddenBuiltinValues());
+                    void notifyDepartmentsChanged();
+                    setDeletingDept(null);
+                  } finally {
+                    setIsDeleting(false);
+                  }
+                }}
+                className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-red-600 disabled:opacity-50 dark:bg-red-600 dark:hover:bg-red-700"
+              >
+                {isDeleting ? 'Eliminazione…' : 'Conferma eliminazione'}
+              </button>
+            </div>
+          </div>
+        </CenteredModalPortal>
       )}
 
       {showImportConfirm && importFile && (

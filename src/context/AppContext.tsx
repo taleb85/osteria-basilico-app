@@ -273,6 +273,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [pendingOrderIds, setPendingOrderIds] = useState<string[] | null>(null);
   const [pendingPublishWeekStart, setPendingPublishWeekStart] = useState<string | null>(null);
   const [forceLogoutRequested, setForceLogoutRequested] = useState(false);
+  const [globalPinSessionId, setGlobalPinSessionId] = useState<string | null>(null);
   /** Forza ricalcolo credenziale WebAuthn PIN lock (localStorage) dopo registrazione. */
   const [pinUnlockDeviceTick, setPinUnlockDeviceTick] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -496,19 +497,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [markManagementDataTouched]);
 
   useEffect(() => {
-    applyDocumentTheme(readStoredThemePreference() ?? 'light');
+    // null → applyDocumentTheme segue prefers-color-scheme
+    applyDocumentTheme(readStoredThemePreference() ?? null);
     loadInitialData();
   // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once; loadInitialData omitted intentionally
   }, []);
 
   useEffect(() => {
     if (!currentUser) {
-      applyDocumentTheme(readStoredThemePreference() ?? 'light');
+      applyDocumentTheme(readStoredThemePreference() ?? null);
       return;
     }
-    const th = currentUser.theme ?? 'light';
+    const th = currentUser.theme ?? null; // null = segui sistema operativo
     applyDocumentTheme(th);
-    persistThemePreference(th);
+    if (th) persistThemePreference(th);
+
+    // Se l'utente non ha un tema esplicito, aggiorna il documento al cambio del tema OS
+    if (!th) {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      const onMqChange = (e: MediaQueryListEvent | MediaQueryList) => {
+        applyDocumentTheme(e.matches ? 'dark' : 'light');
+      };
+      onMqChange(mq);
+      mq.addEventListener('change', onMqChange);
+      return () => mq.removeEventListener('change', onMqChange);
+    }
   }, [currentUser]);
 
   useEffect(() => {
@@ -1060,7 +1073,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
       return;
     }
-    if (existing) {
+    const isFullPrivilegeOp = op.role === 'admin' || op.role === 'manager' || op.role === 'assistant_manager';
+    if (existing && !isFullPrivilegeOp) {
       const st = String(existing.approval_status ?? '').trim().toLowerCase();
       if (st !== 'draft' && st !== '') {
         showError(getTranslations(effectiveLanguage).shift_delete_blocked_published);
@@ -1091,15 +1105,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
       return;
     }
-    const blockedPublished = ids.some((id) => {
-      const s = shifts.find((x) => x.id === id);
-      if (!s) return false;
-      const st = String(s.approval_status ?? '').trim().toLowerCase();
-      return st !== 'draft' && st !== '';
-    });
-    if (blockedPublished) {
-      showError(getTranslations(effectiveLanguage).shift_delete_blocked_published);
-      return;
+    const isFullPrivilegeOp = op.role === 'admin' || op.role === 'manager' || op.role === 'assistant_manager';
+    if (!isFullPrivilegeOp) {
+      const blockedPublished = ids.some((id) => {
+        const s = shifts.find((x) => x.id === id);
+        if (!s) return false;
+        const st = String(s.approval_status ?? '').trim().toLowerCase();
+        return st !== 'draft' && st !== '';
+      });
+      if (blockedPublished) {
+        showError(getTranslations(effectiveLanguage).shift_delete_blocked_published);
+        return;
+      }
     }
     const actor = currentUserRef.current?.first_name ?? 'Sistema';
     logHistory('bulk_delete', actor, `${ids.length} turni eliminati`);
@@ -1522,6 +1539,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const deleteUser = useCallback(
     async (id: string) => {
+      if (!currentUser || currentUser.role !== 'admin') {
+        const tr = getTranslations(effectiveLanguage);
+        showError(tr.profile_visibility_forbidden ?? 'Azione non consentita.');
+        return false;
+      }
       const victim = users.find((u) => u.id === id);
       if (
         victim?.role === 'admin' &&
@@ -2380,7 +2402,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift,
         publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
         updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing, dataSyncInProgress,
-        postRefreshLocked, postUnlockReloadPending, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest,
+        postRefreshLocked, postUnlockReloadPending, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest, globalPinSessionId, setGlobalPinSessionId,
         featureFlags, setFeatureFlag, geofenceEffectiveConfig, saveGeofenceConfig,
         presenceVerificationConfig, savePresenceVerificationConfig,
         workRules, setWorkRules, breakRules, setBreakRules,

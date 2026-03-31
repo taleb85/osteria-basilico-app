@@ -1,4 +1,4 @@
-import { format, parseISO, startOfWeek, startOfDay, addDays } from 'date-fns';
+import { format, parseISO, startOfWeek, startOfDay, startOfMonth, addDays, endOfMonth, subDays, getDay } from 'date-fns';
 
 export const PERIOD_STORAGE_KEY = 'osteria_timesheet_period';
 
@@ -31,20 +31,19 @@ export function coercePeriodConfig(parsed: unknown): PeriodConfig | null {
 
 /** Carica la configurazione periodo da localStorage (data inizio + 4 o 5 settimane). */
 export function loadPeriodConfig(): PeriodConfig {
-  const now = new Date();
-  const defaultStart = format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+  const autoDefault = currentPeriodConfig();
   try {
     if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
-      return { startDate: defaultStart, numWeeks: 4 };
+      return autoDefault;
     }
     const raw = localStorage.getItem(PERIOD_STORAGE_KEY);
-    if (!raw || typeof raw !== 'string') return { startDate: defaultStart, numWeeks: 4 };
+    if (!raw || typeof raw !== 'string') return autoDefault;
     const parsed = JSON.parse(raw) as { startDate?: string; numWeeks?: number };
     const numWeeks = (parsed?.numWeeks === 5 ? 5 : 4) as 4 | 5;
-    const startStr = parsed?.startDate ? String(parsed.startDate).slice(0, 10) : defaultStart;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(startStr)) return { startDate: defaultStart, numWeeks };
+    const startStr = parsed?.startDate ? String(parsed.startDate).slice(0, 10) : autoDefault.startDate;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startStr)) return { startDate: autoDefault.startDate, numWeeks };
     const testDate = parseISO(startStr);
-    if (Number.isNaN(testDate.getTime())) return { startDate: defaultStart, numWeeks };
+    if (Number.isNaN(testDate.getTime())) return { startDate: autoDefault.startDate, numWeeks };
     return { startDate: startStr, numWeeks };
   } catch {
     try {
@@ -52,7 +51,7 @@ export function loadPeriodConfig(): PeriodConfig {
     } catch {
       /* ignore */
     }
-    return { startDate: defaultStart, numWeeks: 4 };
+    return autoDefault;
   }
 }
 
@@ -105,4 +104,89 @@ export function getPeriodDateRange(config: PeriodConfig): { startDate: string; e
     startDate: format(start, 'yyyy-MM-dd'),
     endDate: format(end, 'yyyy-MM-dd'),
   };
+}
+
+// ── Logica periodo basata sull'ultima domenica del mese ───────────────────────
+//
+// Regola:
+//   • Il periodo termina sull'ULTIMA DOMENICA del mese di riferimento.
+//   • Il periodo inizia il LUNEDÌ successivo all'ultima domenica del mese precedente.
+//   • La durata (4 o 5 sett.) dipende da quante settimane complete cadono tra inizio e fine.
+//
+// Esempi verificati:
+//   dic 2025 → ultima dom = 28/12/2025 → periodo gen: 29/12 → 25/01 (4 sett.)
+//   gen 2026 → ultima dom = 25/01/2026 → periodo feb: 26/01 → 22/02 (4 sett.)
+//   feb 2026 → ultima dom = 22/02/2026 → periodo mar: 23/02 → 29/03 (5 sett.)
+
+/** Ultima domenica del mese che contiene `d`. */
+export function lastSundayOfMonth(d: Date): Date {
+  const last = endOfMonth(d);
+  const dow = getDay(last); // 0 = dom, 1 = lun, …, 6 = sab
+  return startOfDay(subDays(last, dow));
+}
+
+/**
+ * Costruisce il PeriodConfig per il mese che contiene `refDate`.
+ * Il periodo termina sull'ultima domenica di quel mese
+ * e inizia il lunedì dopo l'ultima domenica del mese precedente.
+ *
+ * Fix: si trova l'ultima domenica del mese PRECEDENTE andando all'ultimo giorno del mese
+ * prima di refDate, così non si resta mai nello stesso mese.
+ */
+export function periodConfigForMonth(refDate: Date): PeriodConfig {
+  const endSun = lastSundayOfMonth(refDate);
+  // Ultimo giorno del mese precedente = giorno prima dell'inizio del mese di refDate
+  const prevMonthLastDay = subDays(startOfMonth(refDate), 1);
+  const prevMonthLastSun = lastSundayOfMonth(prevMonthLastDay);
+  const startMon = addDays(prevMonthLastSun, 1); // lunedì dopo l'ultima domenica del mese precedente
+
+  // numWeeks = numero di settimane complete tra startMon e endSun (inclusi)
+  const days = Math.round((endSun.getTime() - startMon.getTime()) / 86_400_000) + 1;
+  const weeks = Math.round(days / 7);
+  const numWeeks: 4 | 5 = weeks === 5 ? 5 : 4;
+
+  return { startDate: format(startMon, 'yyyy-MM-dd'), numWeeks };
+}
+
+/** Periodo del mese successivo a quello che inizia con `startDate`. */
+export function nextPeriodConfig(current: PeriodConfig): PeriodConfig {
+  const currentEnd = getPeriodEndDate(current); // ultima dom del periodo corrente
+  const nextMonthRef = addDays(currentEnd, 1);  // primo giorno del mese successivo (lunedì)
+  return periodConfigForMonth(addDays(currentEnd, 14)); // ref a metà del mese successivo
+}
+
+/** Periodo del mese precedente a quello che inizia con `startDate`. */
+export function prevPeriodConfig(current: PeriodConfig): PeriodConfig {
+  const currentStart = getPeriodStartDate(current);
+  const prevMonthRef = subDays(currentStart, 7); // una settimana prima → dentro il mese precedente
+  return periodConfigForMonth(prevMonthRef);
+}
+
+/** Periodo corrente basato su oggi. */
+export function currentPeriodConfig(): PeriodConfig {
+  return periodConfigForMonth(new Date());
+}
+
+/**
+ * Regola "Primo giorno": costruisce il PeriodConfig partendo da una data di inizio
+ * scelta dall'utente.
+ * Il periodo termina sull'ultima domenica del mese che si trova a ~2 settimane
+ * dalla data di inizio (così si trova il mese "target" corretto per 4-5 settimane).
+ * Se l'ultima domenica trovata è prima o uguale all'inizio, si sposta al mese successivo.
+ */
+export function periodConfigFromStartDate(startDate: Date): PeriodConfig {
+  const start = startOfDay(startDate);
+  // Punto di mezzo per individuare il mese in cui dovrebbe terminare il periodo
+  const midPoint = addDays(start, 14);
+  let endSun = lastSundayOfMonth(midPoint);
+
+  // Se l'ultima domenica trovata è uguale o precedente alla data di inizio, sposta al mese successivo
+  if (endSun.getTime() <= start.getTime()) {
+    endSun = lastSundayOfMonth(addDays(start, 35));
+  }
+
+  const days = Math.round((endSun.getTime() - start.getTime()) / 86_400_000) + 1;
+  const weeks = Math.round(days / 7);
+  const numWeeks: 4 | 5 = weeks === 5 ? 5 : 4;
+  return { startDate: format(start, 'yyyy-MM-dd'), numWeeks };
 }

@@ -1,18 +1,21 @@
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { LogOut, Cloud, CloudOff, RotateCw } from 'lucide-react';
+import { LogOut, Cloud, CloudOff, RotateCw, Lock, Unlock, ShieldCheck, ShieldOff, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { getRoleScopeHint } from '../utils/roleScopeHint';
 import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
-import { readStoredThemePreference, persistThemePreference } from '../utils/theme';
+import { persistThemePreference } from '../utils/theme';
 import { UnifiedBellButton } from './UnifiedBellButton';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
-
+import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { findFreezeVerifierByPin, isManagementRole } from '../utils/permissions';
+import { PinPadModal } from './ui/PinPadModal';
 /**
  * Icona tema: due grafiche come riferimento foto — grigio/bianco in chiaro, nero/bianco in scuro.
  * Transizione: dissolvenza + leggera rotazione/scala al cambio tema.
@@ -87,6 +90,8 @@ export default function MobileProfileHeader({
     featureFlags,
     hardReloadFromDatabase,
     dataSyncInProgress,
+    globalPinSessionId,
+    setGlobalPinSessionId,
   } = useApp();
   const { sendMessage } = useMessages(currentUser?.id);
   const { triggerHapticFeedback, playNotificationSound } = useMultisensorialFeedback();
@@ -96,6 +101,10 @@ export default function MobileProfileHeader({
   const [staffBody, setStaffBody] = useState('');
   const [isStaffSending, setIsStaffSending] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showPinMenu, setShowPinMenu] = useState(false);
+  const [globalPinValue, setGlobalPinValue] = useState('');
+  const [globalPinError, setGlobalPinError] = useState('');
+  const globalPinAutoSubmitted = useRef('');
   const isSynced = !!featureFlags && Object.keys(featureFlags).length > 0;
 
   const handleHardRefresh = async () => {
@@ -116,6 +125,34 @@ export default function MobileProfileHeader({
       setIsRefreshing(false);
     }
   };
+  const closePinMenu = () => {
+    setShowPinMenu(false);
+    setGlobalPinValue('');
+    setGlobalPinError('');
+    globalPinAutoSubmitted.current = '';
+  };
+
+  const handleGlobalPinSubmit = (pin: string) => {
+    const verifier = findFreezeVerifierByPin(users, pin);
+    if (!verifier) {
+      setGlobalPinError('PIN non valido');
+      setGlobalPinValue('');
+      globalPinAutoSubmitted.current = '';
+      return;
+    }
+    setGlobalPinSessionId(Date.now().toString());
+    closePinMenu();
+  };
+
+  useEffect(() => {
+    if (!showPinMenu || !!globalPinSessionId) return;
+    if (globalPinValue.length < 4) { globalPinAutoSubmitted.current = ''; return; }
+    if (globalPinAutoSubmitted.current === globalPinValue) return;
+    globalPinAutoSubmitted.current = globalPinValue;
+    handleGlobalPinSubmit(globalPinValue);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPinMenu, globalPinValue, globalPinSessionId]);
+
   const t = getTranslations(effectiveLanguage);
   const tr = t as Record<string, string>;
   const locale = getDateLocale(effectiveLanguage) ?? it;
@@ -123,32 +160,14 @@ export default function MobileProfileHeader({
 
   if (!currentUser) return null;
 
-  const uiTheme = (currentUser.theme ?? 'light') as 'light' | 'dark';
-  
-  // Effetto per sincronizzare il tema: esegui UNA SOLA VOLTA al mount
-  // Evita loop infinito non includendo currentUser.theme nelle dipendenze
-  useEffect(() => {
-    const stored = readStoredThemePreference();
-    if (stored) {
-      // Se c'è una preferenza salvata, assicuriamoci che sia applicata
-      if (currentUser.theme !== stored) {
-        updateUserPreferences({ theme: stored });
-      }
-      return;
-    }
-
-    // Se nessuna preferenza salvata, sincronizza con il sistema una sola volta
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const systemTheme = mediaQuery.matches ? 'dark' : 'light';
-    if (currentUser.theme !== systemTheme) {
-      updateUserPreferences({ theme: systemTheme });
-    }
-  }, [currentUser.id]); // Dipende SOLO dall'ID utente, non dal tema
+  // Se l'utente non ha un tema esplicito, segui il sistema operativo per l'icona
+  const systemDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const uiTheme = (currentUser.theme ?? (systemDark ? 'dark' : 'light')) as 'light' | 'dark';
 
   const toggleUiTheme = () => {
     const nextTheme = uiTheme === 'light' ? 'dark' : 'light';
     updateUserPreferences({ theme: nextTheme });
-    // Salviamo la preferenza esplicita in localStorage per "staccarci" dal sistema
+    // Salva la preferenza esplicita in localStorage per "staccarsi" dal sistema
     persistThemePreference(nextTheme);
   };
   const themeToggleTitle =
@@ -192,7 +211,7 @@ export default function MobileProfileHeader({
               onClick={toggleUiTheme}
               title={themeToggleTitle}
               aria-label={themeToggleTitle}
-              className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 surface-ghost-interactive transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation !text-slate-700 hover:!text-slate-900 bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl border-0 bg-gradient-to-b from-white/75 to-white/55 dark:from-neutral-800/70 dark:to-neutral-900/60 shadow-[0_1px_0_0_rgba(255,255,255,0.85)_inset,0_-1px_0_0_rgba(0,0,0,0.05)_inset,0_4px_10px_-2px_rgba(45,90,39,0.14),0_2px_5px_-1px_rgba(15,23,42,0.09)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.07)_inset,0_-1px_0_0_rgba(0,0,0,0.4)_inset,0_4px_12px_-2px_rgba(0,0,0,0.45)] supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-[2] transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation text-slate-700 hover:text-slate-900 dark:text-neutral-200 dark:hover:text-white"
             >
               <ThemeContrastIcon mode={uiTheme} className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
@@ -201,7 +220,6 @@ export default function MobileProfileHeader({
               userId={currentUser?.id}
               effectiveLanguage={effectiveLanguage}
               onMessageClick={(messageId) => {
-                // Deep-link a messaggio nel profilo
                 console.log('Navigating to message:', messageId);
               }}
             />
@@ -210,10 +228,10 @@ export default function MobileProfileHeader({
               onClick={handleHardRefresh}
               disabled={isRefreshing || dataSyncInProgress}
               title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Hard Refresh & Sincronizzazione'}
-              className={`flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10 ${
-                isRefreshing || dataSyncInProgress 
-                  ? 'text-amber-500' 
-                  : isSynced ? '!text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950' : '!text-slate-400'
+              className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-0 bg-gradient-to-b from-white/75 to-white/55 dark:from-neutral-800/70 dark:to-neutral-900/60 shadow-[0_1px_0_0_rgba(255,255,255,0.85)_inset,0_-1px_0_0_rgba(0,0,0,0.05)_inset,0_4px_10px_-2px_rgba(45,90,39,0.14),0_2px_5px_-1px_rgba(15,23,42,0.09)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.07)_inset,0_-1px_0_0_rgba(0,0,0,0.4)_inset,0_4px_12px_-2px_rgba(0,0,0,0.45)] supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-[2] transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation ${
+                isRefreshing || dataSyncInProgress
+                  ? 'text-amber-500'
+                  : isSynced ? 'text-emerald-600' : 'text-slate-400'
               }`}
             >
               {isRefreshing || dataSyncInProgress ? (
@@ -227,101 +245,40 @@ export default function MobileProfileHeader({
                 {isRefreshing || dataSyncInProgress ? 'SYNC' : isSynced ? 'OK' : 'OFF'}
               </span>
             </button>
+            {featureFlags['unlock_with_pin'] !== false && currentUser && isManagementRole(currentUser.role) && (
+              <button
+                type="button"
+                onClick={() => setShowPinMenu(true)}
+                title={globalPinSessionId ? 'Sessione PIN attiva' : 'Sblocca sessione PIN'}
+                aria-label={globalPinSessionId ? 'Gestisci sessione PIN' : 'Sblocca sessione PIN'}
+                className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl border shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation ${
+                  globalPinSessionId
+                    ? 'bg-accent border-accent/40 text-white hover:bg-accent-hover'
+                    : 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-white/10 text-slate-500 hover:bg-slate-50 dark:hover:bg-neutral-800'
+                }`}
+              >
+                {globalPinSessionId
+                  ? <Unlock size={16} strokeWidth={2.5} aria-hidden />
+                  : <Lock size={16} strokeWidth={2.5} aria-hidden />
+                }
+              </button>
+            )}
             {onLogout && !hideHeaderLogout ? (
               <button
                 type="button"
                 onClick={onLogout}
                 title={t.header_logout}
                 aria-label={t.header_logout}
-                className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 !text-red-600 hover:bg-red-50 dark:hover:bg-red-950 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10"
+                className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-white/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
               >
-                <LogOut size={14} strokeWidth={2} aria-hidden />
+                <LogOut size={16} strokeWidth={2} aria-hidden />
               </button>
             ) : null}
           </div>
         </div>
       </div>
 
-      {/* COMUNICAZIONI STAFF (solo ADMIN/MANAGER) - Solo se NON compatto (quindi nel drawer) */}
-      {!compact && (currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
-        <div className="px-3 sm:px-4 pb-4">
-          <div className="mt-1 mb-2">
-            <button
-              type="button"
-              onClick={() => setIsStaffComposerOpen((v) => !v)}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white dark:bg-neutral-900 border border-slate-100 dark:border-white/10 py-4 text-sm font-bold text-accent transition-all active:scale-95 shadow-sm"
-            >
-              <span>✍️</span>
-              <span>Invia Comunicazione allo Staff</span>
-            </button>
-          </div>
 
-          {isStaffComposerOpen && (
-            <div className="rounded-[32px] border-2 border-accent/20 bg-accent/5 p-5 sm:p-6 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-black uppercase tracking-widest text-accent">
-                  Nuovo Messaggio
-                </h3>
-                <button 
-                  onClick={() => setIsStaffComposerOpen(false)}
-                  className="text-slate-400 hover:text-slate-600"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <input
-                value={staffSubject}
-                onChange={(e) => setStaffSubject(e.target.value.toUpperCase())}
-                className="w-full mb-3 h-14 rounded-2xl border-2 border-slate-100 bg-white px-5 text-sm font-black tracking-widest text-slate-900 outline-none focus:border-accent shadow-sm"
-                placeholder="OGGETTO"
-              />
-
-              <textarea
-                value={staffBody}
-                onChange={(e) => setStaffBody(e.target.value)}
-                rows={5}
-                className="w-full mb-4 rounded-[24px] border-2 border-slate-100 bg-white px-5 py-4 text-sm font-medium text-slate-900 outline-none focus:border-accent resize-none shadow-sm"
-                placeholder="Scrivi qui il tuo messaggio..."
-              />
-
-              <button
-                type="button"
-                disabled={isStaffSending || !staffSubject.trim() || !staffBody.trim()}
-                onClick={async () => {
-                  if (!currentUser?.id) return;
-                  setIsStaffSending(true);
-                  try {
-                    const ok = await sendMessage(staffSubject.trim(), staffBody.trim());
-                    if (ok) {
-                      triggerHapticFeedback('success');
-                      try {
-                        playNotificationSound();
-                      } catch {
-                        // ignore
-                      }
-                      setIsStaffComposerOpen(false);
-                      setStaffSubject('');
-                      setStaffBody('');
-                    } else {
-                      triggerHapticFeedback('warning');
-                    }
-                  } finally {
-                    setIsStaffSending(false);
-                  }
-                }}
-                className="w-full h-16 rounded-[24px] bg-[#2D5A27] text-white font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-accent/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
-              >
-                {isStaffSending ? 'INVIO...' : 'INVIA ORA'}
-              </button>
-
-              <p className="mt-3 text-[10px] font-bold text-slate-400 text-center uppercase tracking-widest">
-                Verrà inviato a tutto lo staff
-              </p>
-            </div>
-          )}
-        </div>
-      )}
 
       {activeTab === 'home' &&
         currentUser.role !== 'admin' &&
@@ -335,6 +292,84 @@ export default function MobileProfileHeader({
             </div>
           ) : null;
         })()}
+      {/* Locked: usa direttamente PinPadModal — zero duplicazione */}
+      {createPortal(
+        <AnimatePresence>
+          {showPinMenu && !globalPinSessionId && (
+            <PinPadModal
+              key="global-pin-lock"
+              title="Sblocco sessione"
+              subtitle="Inserisci il PIN per sbloccare tutte le operazioni protette"
+              pinLabel="PIN"
+              pin={globalPinValue}
+              onPinChange={setGlobalPinValue}
+              error={globalPinError}
+              onConfirm={() => handleGlobalPinSubmit(globalPinValue)}
+              onCancel={closePinMenu}
+              confirmLabel="Sblocca"
+            />
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Unlocked: pannello di stato + blocca */}
+      {createPortal(
+        <AnimatePresence>
+          {showPinMenu && !!globalPinSessionId && (
+            <motion.div
+              key="global-pin-unlock"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="fixed inset-0 z-[10080] bg-black/75 backdrop-blur-md flex flex-col items-center justify-center"
+            >
+              <button
+                type="button"
+                onClick={closePinMenu}
+                className="absolute top-5 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                aria-label="Chiudi"
+              >
+                <X size={20} strokeWidth={2.5} />
+              </button>
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 16 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 30, mass: 0.9 }}
+                className="flex flex-col items-center w-full max-w-[320px] px-6"
+              >
+                <div className="flex flex-col items-center text-center mb-10">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent/20 border-2 border-accent/40 mb-5">
+                    <ShieldCheck className="w-9 h-9 text-accent" strokeWidth={2} />
+                  </div>
+                  <h2 className="text-white font-bold uppercase tracking-widest text-base mb-2">Sessione sbloccata</h2>
+                  <p className="text-white/60 text-sm font-medium leading-tight px-4">
+                    Tutte le operazioni protette da PIN sono accessibili in questa sessione.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setGlobalPinSessionId(null); closePinMenu(); }}
+                  className="w-full h-14 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold flex items-center justify-center gap-2.5 transition-all active:scale-95 mb-3"
+                >
+                  <ShieldOff className="w-5 h-5" strokeWidth={2} />
+                  Blocca sessione
+                </button>
+                <button
+                  type="button"
+                  onClick={closePinMenu}
+                  className="w-full h-14 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white/70 font-bold transition-all active:scale-95"
+                >
+                  Annulla
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 

@@ -20,7 +20,7 @@ import { hasPinUnlockCredential, authenticatePinUnlockCredential } from '../util
 interface BottomNavProps {
   activeTab: AppNavTab;
   onTabChange: (tab: AppNavTab) => void;
-  /** Tab visibili (ordine: dashboard, turni, ferie, presenze, ore, impostazioni). */
+  /** Tab visibili (ordine: dashboard, turni, ore, presenze, ferie, impostazioni). */
   visibleTabs: AppNavTab[];
   /** Classi aggiuntive sul `<nav>` (es. `max-md:hidden` per sostituire con nav dedicata). */
   navClassName?: string;
@@ -198,9 +198,9 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   const defs: { id: AppNavTab; icon: typeof Home; label: string }[] = [
     { id: 'home', icon: Home, label: t.sidebar_dashboard },
     { id: 'turni', icon: Calendar, label: t.sidebar_shifts },
-    { id: 'ferie', icon: Palmtree, label: t.sidebar_holidays },
     { id: 'reports', icon: Clock, label: t.sidebar_statistics },
     { id: 'timesheet', icon: ClipboardList, label: t.sidebar_attendance },
+    { id: 'ferie', icon: Palmtree, label: t.sidebar_holidays },
     { id: 'profile', icon: User, label: tv.bottom_nav_profile_short ?? t.sidebar_profile },
     { id: 'settings', icon: ShieldCheck, label: t.sidebar_admin },
   ];
@@ -222,11 +222,11 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
       <div className="w-full max-w-screen-xl mx-auto pointer-events-auto pb-safe">
         {/* Barra flottante vetro sul brand — `.bottom-nav-glass` in index.css */}
         <div
-          className={`bottom-nav-glass w-full rounded-[1.35rem] sm:rounded-[1.75rem] px-1 py-1.5 sm:px-2.5 sm:py-2${
+          className={`bottom-nav-glass w-full rounded-2xl px-1 py-1 sm:px-2.5 sm:py-1.5${
             navOverContent ? ' bottom-nav-glass--over-content' : ''
           }`}
         >
-          <div className="flex min-h-[44px] items-stretch justify-between gap-0.5 sm:min-h-[48px]">
+          <div className="flex min-h-[38px] items-stretch justify-between gap-0.5 sm:min-h-[44px]">
             {tabs.map(({ id, icon: Icon, label }) => {
               const isActive = activeTab === id;
               const displayLabel =
@@ -268,22 +268,16 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   onTouchMove={handleLongPressEnd}
                   title={buttonTitle}
                   aria-label={ariaLabel}
-                  className={`keep-white-glass flex flex-1 min-w-0 min-h-[44px] sm:min-h-[48px] rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] items-center justify-center px-0.5 py-1.5 ${
+                  className={`keep-white-glass flex flex-1 min-w-0 min-h-[38px] sm:min-h-[44px] rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] items-center justify-center px-0.5 py-1 ${
                     over
-                      ? 'text-accent/70 dark:text-neutral-400 hover:bg-accent/12 dark:hover:bg-white/10 hover:text-accent dark:hover:text-white focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
-                      : 'text-white/[0.78] hover:bg-white/10 hover:text-white/95 focus-visible:ring-white/35 focus-visible:ring-offset-[rgb(45,90,39)]'
+                      ? 'text-accent/65 dark:text-neutral-400 hover:bg-accent/10 dark:hover:bg-white/10 hover:text-accent dark:hover:text-white focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
+                      : 'text-white/65 hover:bg-white/15 hover:text-white focus-visible:ring-white/35 focus-visible:ring-offset-transparent'
                   }`}
                 >
                   {showProfilePic ? (
                     <span
-                      className={`flex h-[22px] w-[22px] sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md transition-transform duration-200 ${
-                        over
-                          ? isActive
-                            ? 'scale-110 ring-2 ring-accent dark:ring-white ring-offset-1 ring-offset-transparent'
-                            : 'opacity-95 ring-1 ring-accent/35 dark:ring-white/30'
-                          : isActive
-                            ? 'scale-110 ring-2 ring-white ring-offset-1 ring-offset-[rgb(45,90,39)]'
-                            : 'opacity-90 ring-1 ring-white/20'
+                      className={`flex h-[22px] w-[22px] sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md transition-all duration-200 ${
+                        isActive ? 'opacity-100' : 'opacity-65'
                       }`}
                     >
                       <img
@@ -296,14 +290,10 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                     </span>
                   ) : showProfileInitial ? (
                     <span
-                      className={`flex h-[22px] w-[22px] sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md text-[11px] sm:text-xs font-bold transition-transform duration-200 ${
+                      className={`flex h-[22px] w-[22px] sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md text-[11px] sm:text-xs font-bold transition-all duration-200 ${
                         over
-                          ? isActive
-                            ? 'scale-110 border border-accent/50 dark:border-white/50 bg-accent/15 dark:bg-white/15 text-accent dark:text-white ring-2 ring-accent dark:ring-white ring-offset-1 ring-offset-transparent'
-                            : 'border border-accent/30 dark:border-white/30 bg-accent/10 dark:bg-white/10 text-accent/90 dark:text-white/90 ring-1 ring-accent/25 dark:ring-white/25'
-                          : isActive
-                            ? 'border border-white/35 bg-white/10 text-white scale-110 ring-2 ring-white ring-offset-1 ring-offset-[rgb(45,90,39)]'
-                            : 'border border-white/35 bg-white/10 text-white opacity-95 ring-1 ring-white/25'
+                          ? `bg-accent/10 dark:bg-white/10 ${isActive ? 'text-accent dark:text-white' : 'text-accent/65 dark:text-neutral-400'}`
+                          : `bg-white/15 ${isActive ? 'text-white' : 'text-white/65'}`
                       }`}
                       aria-hidden
                     >
@@ -311,16 +301,12 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                     </span>
                   ) : (
                     <Icon
-                      className={`h-[22px] w-[22px] sm:h-6 sm:w-6 flex-shrink-0 transition-[transform,color] duration-200 ${
+                      className={`h-[22px] w-[22px] sm:h-6 sm:w-6 flex-shrink-0 transition-[color] duration-200 ${
                         over
-                          ? isActive
-                            ? 'scale-110 text-accent dark:text-white drop-shadow-[0_0_14px_rgba(45,90,39,0.55)] dark:drop-shadow-[0_0_14px_rgba(255,255,255,0.25)]'
-                            : 'text-accent/60 dark:text-neutral-400'
-                          : isActive
-                            ? 'scale-110 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.35)]'
-                            : 'text-white/55'
+                          ? isActive ? 'text-accent dark:text-white' : 'text-accent/55 dark:text-neutral-400'
+                          : isActive ? 'text-white' : 'text-white/55'
                       }`}
-                      strokeWidth={isActive ? 2.45 : 1.45}
+                      strokeWidth={isActive ? 1.6 : 1.25}
                       aria-hidden
                     />
                   )}

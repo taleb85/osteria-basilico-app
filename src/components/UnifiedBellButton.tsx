@@ -1,10 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
-import { Bell, Edit2 } from 'lucide-react';
+import { useState, useRef } from 'react';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 import { useApp } from '../context/AppContext';
 import { NotificationModal } from './NotificationModal';
-import { MessageComposer } from './MessageComposer';
 
 interface UnifiedBellButtonProps {
   userId?: string;
@@ -14,25 +12,17 @@ interface UnifiedBellButtonProps {
 
 /**
  * Campanella unificata per notifiche.
- * Combina:
- * - Badge numero notifiche non lette
- * - Click breve → Dropdown messaggi
- * - Long press → Toggle mute audio
- * - Feedback aptico
+ * Apre il centro messaggi al click.
  */
 export function UnifiedBellButton({
   userId,
-  effectiveLanguage = 'it',
   onMessageClick,
 }: UnifiedBellButtonProps) {
   const { messages, unreadCount, markAsRead, loadMessages, isLoading, error } = useMessages(userId);
-  const { triggerHapticFeedback, isSoundEnabled, setIsSoundEnabled } =
-    useMultisensorialFeedback();
-  const { currentUser, users } = useApp();
+  const { triggerHapticFeedback } = useMultisensorialFeedback();
+  const { currentUser } = useApp();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLongPress, setIsLongPress] = useState(false);
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleRefresh = () => {
@@ -41,118 +31,62 @@ export function UnifiedBellButton({
     }
   };
 
-  // Cleanup timer al unmount
-  useEffect(() => {
-    return () => {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-      }
-    };
-  }, []);
-
-  const handleMouseDown = () => {
-    setIsLongPress(false);
-    longPressTimerRef.current = setTimeout(() => {
-      setIsLongPress(true);
-      // Toggle mute
-      setIsSoundEnabled(!isSoundEnabled);
-      // Feedback aptico
-      triggerHapticFeedback(isSoundEnabled ? 'warning' : 'success');
-    }, 500); // 500ms per long press
-  };
-
-  const handleMouseUp = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-    }
-
-    // Se non è stato long press, è un click breve
-    if (!isLongPress) {
-      setIsModalOpen(true);
-      // Feedback aptico per click breve
-      triggerHapticFeedback('click');
-    }
-
-    setIsLongPress(false);
-  };
-
-  const handleMessageClick = (messageId: string) => {
-    // Marca come letto
-    markAsRead(messageId);
-    // Callback esterno se fornito
-    if (onMessageClick) {
-      onMessageClick(messageId);
-    }
-  };
-
-  // Se il caricamento fallisce, mostra una campanella grigia statica
-  const isDisabled = isLoading || !!error;
+  // Per ora lo teniamo sempre attivo per test, o comunque non bloccato da caricamento
+  const isDisabled = !!error;
 
   return (
-    <div className="relative">
+    <div className="relative shrink-0">
       {/* Pulsante Campanella */}
       <button
         ref={buttonRef}
         type="button"
-        onMouseDown={!isDisabled ? handleMouseDown : undefined}
-        onMouseUp={!isDisabled ? handleMouseUp : undefined}
-        onMouseLeave={!isDisabled ? handleMouseUp : undefined}
-        onTouchStart={!isDisabled ? handleMouseDown : undefined}
-        onTouchEnd={!isDisabled ? handleMouseUp : undefined}
+        onClick={() => {
+          if (!isDisabled) {
+            setIsModalOpen(true);
+            triggerHapticFeedback('click');
+          }
+        }}
         disabled={isDisabled}
         title={
           error
             ? `Errore caricamento notifiche: ${error}`
-            : isLoading
-              ? 'Caricamento notifiche...'
-              : `Notifiche${unreadCount > 0 ? ` (${unreadCount} non lette)` : ''}`
+            : `Notifiche${unreadCount > 0 ? ` (${unreadCount} non lette)` : ''}`
         }
         aria-label={
           error
             ? `Errore caricamento notifiche`
-            : isLoading
-              ? 'Caricamento notifiche'
-              : `Campanella notifiche${unreadCount > 0 ? ` con ${unreadCount} nuovi messaggi` : ''}`
+            : `Campanella notifiche${unreadCount > 0 ? ` con ${unreadCount} nuovi messaggi` : ''}`
         }
-        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-200 touch-manipulation bg-white dark:bg-neutral-950 shadow-sm border border-slate-100 dark:border-white/10 ${
+        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-white/10 shadow-sm transition-all duration-200 touch-manipulation hover:bg-emerald-50 dark:hover:bg-emerald-950/30 ${
           isDisabled
             ? 'opacity-50 cursor-not-allowed'
             : 'hover:scale-105 active:scale-95'
         }`}
       >
-        <Bell
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
             error
               ? 'text-slate-400 dark:text-slate-600'
-              : isLoading
-                ? 'text-slate-400 dark:text-slate-600 animate-pulse'
-                : 'text-slate-700 dark:text-slate-200'
+              : 'text-[#2D5A27]'
           }`}
-          strokeWidth={2}
-        />
+        >
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
 
         {/* Badge numero notifiche non lette - Rosso acceso con numero bianco */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#EF4444] text-[10px] font-black text-white shadow-md ring-2 ring-white dark:ring-neutral-950">
+          <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#EF4444] text-[10px] font-black text-white shadow-md ring-2 ring-white dark:ring-neutral-900">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
-
-        {/* Indicatore mute */}
-        {!isSoundEnabled && (
-          <div
-            className="absolute bottom-1 right-1 h-2 w-2 rounded-full bg-slate-400 border border-white dark:border-neutral-950 shadow-sm"
-            title="Audio disabilitato"
-          />
-        )}
       </button>
-
-      {/* Info tooltip long-press */}
-      {unreadCount > 0 && (
-        <div className="absolute right-0 top-full mt-1 whitespace-nowrap rounded-lg bg-slate-900 px-2 py-1 text-xs text-white pointer-events-none opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:bg-neutral-950">
-          Long press per mutare
-        </div>
-      )}
 
       {/* Modal Notifiche Centrato */}
       <NotificationModal
@@ -163,10 +97,12 @@ export function UnifiedBellButton({
         onMessageClick={(messageId) => {
           markAsRead(messageId);
           triggerHapticFeedback('success');
+          if (onMessageClick) onMessageClick(messageId);
         }}
         userId={userId}
         userName={currentUser?.first_name}
         onRefresh={handleRefresh}
+        currentUser={currentUser}
       />
     </div>
   );

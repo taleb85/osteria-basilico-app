@@ -1,4 +1,4 @@
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, Smartphone, BellRing } from 'lucide-react';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 
 interface SoundSettingsProps {
@@ -6,144 +6,140 @@ interface SoundSettingsProps {
 }
 
 /**
- * Componente per controllare le impostazioni audio/vibrazione nel profilo.
+ * Componente per gestire le impostazioni di suono e vibrazione.
+ * Da inserire nella scheda Profilo.
  */
 export function SoundSettings({ compact = false }: SoundSettingsProps) {
-  const { isSoundEnabled, setIsSoundEnabled, soundVolume, setSoundVolume, triggerFeedback } =
-    useMultisensorialFeedback();
+  const { 
+    isSoundEnabled, 
+    setIsSoundEnabled, 
+    soundVolume, 
+    setSoundVolume,
+    hapticIntensity,
+    setHapticIntensity,
+    triggerFeedback 
+  } = useMultisensorialFeedback();
 
-  const handleSoundToggle = () => {
-    setIsSoundEnabled(!isSoundEnabled);
-    // Feedback: vibrazione al toggle
-    triggerFeedback(isSoundEnabled ? 'warning' : 'success', false);
+  const handleToggleSound = () => {
+    const next = !isSoundEnabled;
+    setIsSoundEnabled(next);
+    if (next) {
+      // Piccolo feedback per confermare l'attivazione
+      triggerFeedback('click', true);
+    }
   };
 
-  const handleVolumeChange = (newVolume: number) => {
-    setSoundVolume(newVolume);
-    // Prova il suono al cambio volume
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSoundVolume(parseInt(e.target.value, 10));
+  };
+
+  const handleTestSound = () => {
     triggerFeedback('success', true);
   };
 
   if (compact) {
     return (
-      <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-neutral-700 dark:bg-neutral-900/50">
+      <button
+        onClick={handleToggleSound}
+        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
+          isSoundEnabled 
+            ? 'bg-accent/10 text-accent' 
+            : 'bg-slate-100 text-slate-400 dark:bg-neutral-800'
+        }`}
+        title={isSoundEnabled ? 'Muta suoni' : 'Attiva suoni'}
+      >
+        {isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+      </button>
+    );
+  }
+
+  return (
+    <div className="space-y-4 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm dark:border-white/5 dark:bg-neutral-900/50">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+          <BellRing size={20} />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight">
+            Notifiche e Feedback
+          </h3>
+          <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
+            Personalizza suoni e vibrazioni
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-5 pt-2">
+        {/* Toggle Suono */}
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-neutral-300">
-            {isSoundEnabled ? (
-              <Volume2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-            ) : (
-              <VolumeX className="h-4 w-4 text-slate-400 dark:text-neutral-600" />
-            )}
-            Suoni & Vibrazioni
-          </span>
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${isSoundEnabled ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
+              {isSoundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            </div>
+            <span className="text-xs font-bold text-slate-700 dark:text-neutral-300">Suoni Notifica</span>
+          </div>
           <button
-            type="button"
-            onClick={handleSoundToggle}
-            className={`rounded px-2 py-1 text-xs font-semibold transition-colors ${
-              isSoundEnabled
-                ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-950/40 dark:text-green-300'
-                : 'bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-neutral-800 dark:text-neutral-400'
+            onClick={handleToggleSound}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+              isSoundEnabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-700'
             }`}
           >
-            {isSoundEnabled ? 'Attivo' : 'Muto'}
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                isSoundEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
           </button>
         </div>
 
+        {/* Slider Volume */}
         {isSoundEnabled && (
-          <div>
-            <label className="text-[11px] font-semibold text-slate-600 dark:text-neutral-400">
-              Volume: {soundVolume}%
-            </label>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Volume</span>
+              <span className="text-[10px] font-black text-accent">{soundVolume}%</span>
+            </div>
             <input
               type="range"
               min="0"
               max="100"
-              step="10"
               value={soundVolume}
-              onChange={(e) => handleVolumeChange(parseInt(e.target.value, 10))}
-              className="mt-1 w-full"
+              onChange={handleVolumeChange}
+              className="w-full h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-accent"
             />
           </div>
         )}
-      </div>
-    );
-  }
 
-  // Versione full (expanded)
-  return (
-    <div className="space-y-3 rounded-lg border-2 border-green-300 bg-green-50 p-4 dark:border-green-700/50 dark:bg-green-950/30">
-      <h3 className="flex items-center gap-2 text-sm font-bold text-green-900 dark:text-green-200">
-        <Volume2 className="h-5 w-5" />
-        Suoni & Vibrazioni
-      </h3>
-
-      {/* Toggle Suoni */}
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold text-green-900 dark:text-green-100">
-            Abilita Notifiche Audio
-          </p>
-          <p className="text-xs text-green-700 dark:text-green-300">
-            Ping quando arrivano nuovi messaggi
-          </p>
-        </div>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={isSoundEnabled}
-            onChange={handleSoundToggle}
-            className="h-5 w-5 rounded"
-          />
-          <span className="text-sm font-semibold text-green-900 dark:text-green-100">
-            {isSoundEnabled ? 'Attivo' : 'Disattivo'}
-          </span>
-        </label>
-      </div>
-
-      {/* Volume Control */}
-      {isSoundEnabled && (
-        <div className="space-y-2 rounded bg-white/50 p-3 dark:bg-neutral-900/50">
+        {/* Info Vibrazione */}
+        <div className="flex flex-col gap-2 border-t border-slate-50 dark:border-white/5 pt-4">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-semibold text-green-900 dark:text-green-200">
-              Volume Notifiche
-            </label>
-            <span className="text-sm font-bold text-green-700 dark:text-green-300 tabular-nums">
-              {soundVolume}%
-            </span>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
+                <Smartphone size={16} />
+              </div>
+              <span className="text-xs font-bold text-slate-700 dark:text-neutral-300">Feedback Aptico</span>
+            </div>
+            <span className="text-[10px] font-black text-accent uppercase tracking-widest">{hapticIntensity}%</span>
           </div>
-
           <input
             type="range"
             min="0"
             max="100"
-            step="10"
-            value={soundVolume}
-            onChange={(e) => handleVolumeChange(parseInt(e.target.value, 10))}
-            className="w-full h-2 bg-green-200 dark:bg-green-800 rounded-lg appearance-none cursor-pointer"
+            step="25"
+            value={hapticIntensity}
+            onChange={(e) => setHapticIntensity(parseInt(e.target.value, 10))}
+            className="w-full h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-accent"
           />
-
-          <p className="text-xs text-green-700 dark:text-green-400">
-            {soundVolume === 0 ? '🔇 Muto' : soundVolume <= 33 ? '🔉 Basso' : soundVolume <= 66 ? '🔊 Medio' : '🔉 Alto'}
-          </p>
         </div>
-      )}
 
-      {/* Vibrazione Info */}
-      <div className="flex items-start gap-2 rounded bg-white/50 p-3 dark:bg-neutral-900/50 text-xs text-green-700 dark:text-green-300">
-        <span className="mt-0.5">📳</span>
-        <p>
-          Le vibrazioni tattili vengono attivate automaticamente su dispositivi compatibili quando ricevi notifiche push.
-        </p>
+        {/* Tasto Test */}
+        <button
+          onClick={handleTestSound}
+          className="w-full py-3 rounded-2xl bg-slate-50 dark:bg-neutral-800 text-[10px] font-black text-slate-500 dark:text-neutral-400 uppercase tracking-[0.2em] hover:bg-slate-100 transition-colors border border-slate-100 dark:border-white/5"
+        >
+          Prova Feedback
+        </button>
       </div>
-
-      {/* Test Button */}
-      <button
-        type="button"
-        onClick={() => triggerFeedback('success', true)}
-        className="w-full rounded-lg bg-green-600 px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
-      >
-        🔊 Prova Suono & Vibrazione
-      </button>
     </div>
   );
 }

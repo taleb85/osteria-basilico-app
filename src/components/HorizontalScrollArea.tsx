@@ -10,6 +10,13 @@ export type HorizontalScrollWeekNav = {
   onNext: () => void;
 };
 
+export type HorizontalScrollNavState = {
+  canLeft: boolean;
+  canRight: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+};
+
 type Props = {
   children: ReactNode;
   className?: string;
@@ -31,6 +38,12 @@ type Props = {
    * `overlay`: pulsanti tondi sui bordi (senza fascia gradiente, evita artefatti verticali).
    */
   variant?: Variant;
+  /**
+   * Callback chiamata ogni volta che cambia lo stato dei bottoni nav.
+   * Permette al genitore di renderizzare i bottoni altrove (es. nella toolbar).
+   * Se impostato con `variant="overlay"`, i bottoni overlay NON vengono renderizzati internamente.
+   */
+  onNavStateChange?: (state: HorizontalScrollNavState) => void;
 };
 
 const overlayBtnClass =
@@ -47,18 +60,27 @@ export function HorizontalScrollArea({
   delta = 280,
   navRowClassName = '',
   variant = 'toolbar',
+  onNavStateChange,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
+  const onNavStateChangeRef = useRef(onNavStateChange);
+  onNavStateChangeRef.current = onNavStateChange;
+
+  const scrollBy = (dx: number) => {
+    scrollRef.current?.scrollBy({ left: dx, behavior: 'smooth' });
+  };
 
   const update = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
     const overflow = scrollWidth > clientWidth + 1;
-    setCanLeft(overflow && scrollLeft > 2);
-    setCanRight(overflow && scrollLeft < scrollWidth - clientWidth - 2);
+    const newCanLeft = overflow && scrollLeft > 2;
+    const newCanRight = overflow && scrollLeft < scrollWidth - clientWidth - 2;
+    setCanLeft(newCanLeft);
+    setCanRight(newCanRight);
   }, []);
 
   useEffect(() => {
@@ -74,15 +96,24 @@ export function HorizontalScrollArea({
     };
   }, [update, remeasureKey]);
 
+  // Notifica il genitore ogni volta che cambia lo stato nav
+  useEffect(() => {
+    if (!onNavStateChangeRef.current) return;
+    const useWeekNavEffect = weekNav != null;
+    onNavStateChangeRef.current({
+      canLeft: useWeekNavEffect ? weekNav!.canPrev : canLeft,
+      canRight: useWeekNavEffect ? weekNav!.canNext : canRight,
+      onPrev: useWeekNavEffect ? weekNav!.onPrev : () => scrollBy(-delta),
+      onNext: useWeekNavEffect ? weekNav!.onNext : () => scrollBy(delta),
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canLeft, canRight, weekNav?.canPrev, weekNav?.canNext, delta]);
+
   useEffect(() => {
     if (!weekNav) return;
     const el = scrollRef.current;
     if (el) el.scrollLeft = 0;
   }, [remeasureKey, weekNav]);
-
-  const scrollBy = (dx: number) => {
-    scrollRef.current?.scrollBy({ left: dx, behavior: 'smooth' });
-  };
 
   const useWeekNav = weekNav != null;
   const showNav = useWeekNav ? weekNav.canPrev || weekNav.canNext : canLeft || canRight;
@@ -123,7 +154,7 @@ export function HorizontalScrollArea({
       <div ref={scrollRef} onScroll={update} className={scrollClassName}>
         {children}
       </div>
-      {variant === 'overlay' && showNav && (
+      {variant === 'overlay' && showNav && !onNavStateChange && (
         <>
           <button
             type="button"

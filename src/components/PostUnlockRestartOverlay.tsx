@@ -4,7 +4,27 @@ import type { Language } from '../types';
 import { getTranslations } from '../utils/translations';
 
 /** Tempo minimo messaggio visibile prima del reload (ms). */
-const RELOAD_DELAY_MS = 1200;
+const RELOAD_DELAY_MS = 900;
+
+/**
+ * Forza un vero reload anche in contesti PWA/service-worker dove
+ * `location.href = location.href` viene ignorato (stesso URL).
+ */
+function hardReload() {
+  try {
+    // Aggiunge un timestamp per forzare una navigazione vera anche in PWA standalone
+    const url = new URL(window.location.href);
+    url.searchParams.set('_r', String(Date.now()));
+    window.location.replace(url.toString());
+  } catch {
+    try {
+      window.location.reload();
+    } catch {
+      // ultimo tentativo
+      window.location.assign(window.location.origin + window.location.pathname);
+    }
+  }
+}
 
 /**
  * Dopo PIN corretto su blocco post-sync: messaggio di aggiornamento e reload pagina.
@@ -18,22 +38,11 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
   useEffect(() => {
     if (scheduled.current) return;
     scheduled.current = true;
-    
-    // Tentativo immediato di reload se il delay fallisce
-    const reload = () => {
-      try {
-        window.location.href = window.location.href;
-      } catch {
-        window.location.reload();
-      }
-    };
 
-    const id = window.setTimeout(reload, RELOAD_DELAY_MS);
-    
-    // Fallback estremo: se dopo 5 secondi siamo ancora qui, forziamo il reload
-    const fallbackId = window.setTimeout(() => {
-      window.location.assign(window.location.origin + window.location.pathname + window.location.search);
-    }, 5000);
+    const id = window.setTimeout(hardReload, RELOAD_DELAY_MS);
+
+    // Fallback: se dopo 4 secondi il componente è ancora montato, forziamo comunque
+    const fallbackId = window.setTimeout(hardReload, 4000);
 
     return () => {
       window.clearTimeout(id);
