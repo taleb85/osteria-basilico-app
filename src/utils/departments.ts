@@ -36,13 +36,13 @@ export interface Department {
 
 // Reparti built-in: stessi colori “pieni” della palette (bar = verde brand)
 export const BUILTIN_DEPARTMENTS: Department[] = [
-  { value: 'sala_bar', label: 'Sala e Bar', color: '#2D5A27' },
+  { value: 'sala_bar', label: 'Sala e Bar', color: 'var(--brand)' },
   { value: 'sala',    label: 'Sala',   color: '#2196F3' },
-  { value: 'bar',     label: 'Bar',    color: '#2D5A27' },
+  { value: 'bar',     label: 'Bar',    color: 'var(--brand)' },
   { value: 'kitchen', label: 'Cucina', color: '#F44336' },
 ];
 
-const DEFAULT_CUSTOM_COLOR = '#2D5A27'; // accent green
+const DEFAULT_CUSTOM_COLOR = 'var(--brand)'; // accent green
 
 function mergeBuiltinsWithOverrides(): Department[] {
   const ov = getBuiltinOverrides();
@@ -177,7 +177,7 @@ export const DEPARTMENT_COLOR_PRESETS: readonly string[] = [
   '#CDDC39', // lime
   '#8BC34A', // verde chiaro
   '#4CAF50', // verde
-  '#2D5A27', // verde basilico (brand)
+  'var(--brand)', // verde basilico (brand)
   '#009688', // teal
   '#00BCD4', // ciano
   '#03A9F4', // azzurro

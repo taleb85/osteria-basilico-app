@@ -86,8 +86,8 @@ export function MessageComposer({
     <div className="flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
       {/* Feedback Successo */}
       {successMessage && (
-        <div className="flex items-center justify-center gap-3 rounded-[24px] bg-green-500 p-5 text-white shadow-lg shadow-green-500/20">
-          <div className="flex h-10 w-10 animate-bounce items-center justify-center rounded-full bg-white text-green-500">
+        <div className="flex items-center justify-center gap-3 rounded-[24px] bg-brand-500 p-5 text-white shadow-lg shadow-brand-500/20">
+          <div className="flex h-10 w-10 animate-bounce items-center justify-center rounded-full bg-white text-brand-500">
             <Send className="h-5 w-5" />
           </div>
           <span className="font-black uppercase tracking-widest text-sm">Inviato! ✅</span>

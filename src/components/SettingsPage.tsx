@@ -253,10 +253,10 @@ export default function SettingsPage() {
     setHiddenBuiltins(getHiddenBuiltinValues());
   }, [departmentsRevision]);
   const [newDeptName, setNewDeptName] = useState('');
-  const [newDeptColor, setNewDeptColor] = useState('#2D5A27');
+  const [newDeptColor, setNewDeptColor] = useState('var(--brand)');
   const [editingDeptValue, setEditingDeptValue] = useState<string | null>(null);
   const [editDeptLabel, setEditDeptLabel] = useState('');
-  const [editDeptColor, setEditDeptColor] = useState('#2D5A27');
+  const [editDeptColor, setEditDeptColor] = useState('var(--brand)');
   const [newDeptPermissionCategory, setNewDeptPermissionCategory] = useState<PermissionCategory | ''>('sala');
   const [editDeptPermissionCategory, setEditDeptPermissionCategory] = useState<PermissionCategory | ''>('');
   const [deletingDept, setDeletingDept] = useState<Department | null>(null);
@@ -887,7 +887,7 @@ export default function SettingsPage() {
               <div className="flex flex-wrap gap-2">
                 {departments.map((d) => {
                   const isBuiltin = builtinValues.has(d.value);
-                  const badgeColor = d.color ?? '#2D5A27';
+                  const badgeColor = d.color ?? 'var(--brand)';
                   const isEditingChip = editingDeptValue === d.value;
                   return (
                     <div
@@ -937,7 +937,7 @@ export default function SettingsPage() {
                         onClick={() => {
                           setEditingDeptValue(d.value);
                           setEditDeptLabel(d.label);
-                          setEditDeptColor(d.color ?? '#2D5A27');
+                          setEditDeptColor(d.color ?? 'var(--brand)');
                           setEditDeptPermissionCategory(d.permissionCategory ?? '');
                         }}
                         className="text-white/75 hover:text-white transition-colors shrink-0"
@@ -1116,7 +1116,7 @@ export default function SettingsPage() {
                           addDepartment(newDeptName, newDeptColor, newDeptPermissionCategory || undefined)
                         );
                         setNewDeptName('');
-                        setNewDeptColor('#2D5A27');
+                        setNewDeptColor('var(--brand)');
                         setNewDeptPermissionCategory('sala');
                         void notifyDepartmentsChanged();
                       }
@@ -1133,7 +1133,7 @@ export default function SettingsPage() {
                           addDepartment(newDeptName, newDeptColor, newDeptPermissionCategory || undefined)
                         );
                         setNewDeptName('');
-                        setNewDeptColor('#2D5A27');
+                        setNewDeptColor('var(--brand)');
                         setNewDeptPermissionCategory('sala');
                         void notifyDepartmentsChanged();
                       }
@@ -1670,15 +1670,15 @@ export default function SettingsPage() {
         )}
 
         {adminOnly && (
-          <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/50 dark:border-emerald-900/40 dark:bg-emerald-950/20 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="rounded-2xl border border-brand-200/80 bg-brand-50/50 dark:border-brand-900/40 dark:bg-emerald-950/20 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex gap-3 min-w-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
                 <UploadCloud className="h-5 w-5" aria-hidden />
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.settings_cloud_sync_heading}</p>
                 <p className="text-xs text-slate-600 dark:text-neutral-400 mt-0.5 leading-relaxed">{t.settings_cloud_sync_hint}</p>
-                <p className="text-[11px] font-medium text-emerald-800/90 dark:text-emerald-300/90 mt-1.5">
+                <p className="text-[11px] font-medium text-brand-800/90 dark:text-brand-300/90 mt-1.5">
                   {settingsCloudLastSyncedAt
                     ? formatTrans(t.settings_cloud_synced_at, {
                         when: new Date(settingsCloudLastSyncedAt).toLocaleString(
@@ -1695,7 +1695,7 @@ export default function SettingsPage() {
               type="button"
               disabled={settingsCloudPushBusy}
               onClick={() => void pushSettingsToCloud()}
-              className="inline-flex min-h-[40px] shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-emerald-800 disabled:opacity-60 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+              className="inline-flex min-h-[40px] shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-brand-800 disabled:opacity-60 dark:bg-brand-600 dark:hover:bg-brand-500"
             >
               {settingsCloudPushBusy ? t.ui_ellipsis : t.settings_cloud_save_all_devices}
             </button>
@@ -1827,9 +1827,9 @@ export default function SettingsPage() {
                 {t.settings_geofence_editor_hint}
               </p>
               {geofenceEffectiveConfig && (
-                <div className="mb-3 flex items-start gap-2 rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-3 py-2 dark:border-emerald-800/50 dark:bg-emerald-950/40">
-                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />
-                  <p className="text-[11px] leading-snug text-emerald-900 dark:text-emerald-100">
+                <div className="mb-3 flex items-start gap-2 rounded-xl border border-brand-200/80 bg-brand-50/90 px-3 py-2 dark:border-brand-800/50 dark:bg-emerald-950/40">
+                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-600 dark:text-brand-400" aria-hidden />
+                  <p className="text-[11px] leading-snug text-brand-900 dark:text-brand-100">
                     {formatTrans(t.settings_geofence_active_summary, {
                       lat: geofenceEffectiveConfig.lat.toFixed(6),
                       lng: geofenceEffectiveConfig.lng.toFixed(6),
@@ -2043,7 +2043,7 @@ export default function SettingsPage() {
                                 setSeedingDemoProfile(false);
                               }
                             }}
-                            className="w-full rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-emerald-800 hover:bg-emerald-100 disabled:opacity-60 dark:border-emerald-800/50 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-950/55"
+                            className="w-full rounded-lg border border-brand-200 bg-brand-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-brand-800 hover:bg-brand-100 disabled:opacity-60 dark:border-brand-800/50 dark:bg-emerald-950/40 dark:text-brand-200 dark:hover:bg-emerald-950/55"
                           >
                             {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
                           </button>
@@ -2092,7 +2092,7 @@ export default function SettingsPage() {
             <div className="mb-4 flex items-start gap-3">
               <div
                 className="mt-0.5 h-8 w-8 shrink-0 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: deletingDept.color ?? '#2D5A27' }}
+                style={{ backgroundColor: deletingDept.color ?? 'var(--brand)' }}
               >
                 <Trash2 className="h-4 w-4 text-white" />
               </div>
@@ -2103,7 +2103,7 @@ export default function SettingsPage() {
                 <p className="mt-0.5 text-xs text-slate-500 dark:text-neutral-400">
                   <span
                     className="inline-block rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-white"
-                    style={{ backgroundColor: deletingDept.color ?? '#2D5A27' }}
+                    style={{ backgroundColor: deletingDept.color ?? 'var(--brand)' }}
                   >
                     {deletingDept.label}
                   </span>

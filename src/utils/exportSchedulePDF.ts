@@ -21,7 +21,7 @@ const DEPT_BORDER: Record<string, [number, number, number]> = {
   bar:     [45, 90, 39],
   kitchen: [249, 115, 22],
 };
-/** Brand Osteria Basilico #2D5A27 = rgb(45, 90, 39) */
+/** Brand Osteria Basilico var(--brand) = rgb(45, 90, 39) */
 const BASILICO: [number, number, number] = [45, 90, 39];
 const STATUS_COLOR: Record<string, [number, number, number]> = {
   approved: BASILICO,

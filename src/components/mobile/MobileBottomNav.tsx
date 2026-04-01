@@ -82,7 +82,7 @@ export default function MobileBottomNav({ activeTab, onNavigate, visibleTabs, la
             type="button"
             onClick={() => onNavigate(tab)}
             className={`flex flex-col items-center justify-center flex-1 transition-colors duration-200 gap-1.5 ${
-              isActive ? 'text-[#2D5A27] dark:text-emerald-400' : 'text-[#94a3b8]'
+              isActive ? 'text-accent dark:text-brand-400' : 'text-[#94a3b8]'
             }`}
           >
             <Icon

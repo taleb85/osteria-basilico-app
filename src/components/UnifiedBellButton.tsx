@@ -57,7 +57,7 @@ export function UnifiedBellButton({
             ? `Errore caricamento notifiche`
             : `Campanella notifiche${unreadCount > 0 ? ` con ${unreadCount} nuovi messaggi` : ''}`
         }
-        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-white/10 shadow-sm transition-all duration-200 touch-manipulation hover:bg-emerald-50 dark:hover:bg-emerald-950/30 ${
+        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-white/10 shadow-sm transition-all duration-200 touch-manipulation hover:bg-brand-50 dark:hover:bg-emerald-950/30 ${
           isDisabled
             ? 'opacity-50 cursor-not-allowed'
             : 'hover:scale-105 active:scale-95'
@@ -73,7 +73,7 @@ export function UnifiedBellButton({
           className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
             error
               ? 'text-slate-400 dark:text-slate-600'
-              : 'text-[#2D5A27]'
+              : 'text-accent'
           }`}
         >
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />

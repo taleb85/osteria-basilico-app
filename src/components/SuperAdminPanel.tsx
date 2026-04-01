@@ -20,7 +20,7 @@ import { applyTenantBrand } from '../context/TenantContext';
 // ---------------------------------------------------------------------------
 
 const ACCENT_PRESETS = [
-  { label: 'Verde oliva',  value: '#2D5A27' },
+  { label: 'Verde oliva',  value: 'var(--brand)' },
   { label: 'Rosso',        value: '#B91C1C' },
   { label: 'Blu marino',   value: '#1D4ED8' },
   { label: 'Arancio',      value: '#C2410C' },
@@ -360,7 +360,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
               {/* Azioni */}
               <div className="flex items-center gap-1 shrink-0">
                 <button onClick={() => toggleStatus(u)} title={u.status === 'active' ? 'Sospendi' : 'Riattiva'}
-                  className={`p-1.5 rounded-lg transition ${u.status === 'active' ? 'text-green-500 hover:bg-green-50 dark:hover:bg-green-950/30' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800'}`}>
+                  className={`p-1.5 rounded-lg transition ${u.status === 'active' ? 'text-brand-500 hover:bg-brand-50 dark:hover:bg-green-950/30' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800'}`}>
                   {u.status === 'active' ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
                 </button>
                 <button onClick={() => openEdit(u)} title="Modifica"
@@ -794,7 +794,7 @@ interface TenantFormProps {
 function TenantForm({ initial, onSave, onCancel, saving }: TenantFormProps) {
   const [name, setName] = useState(initial?.name ?? '');
   const [slug, setSlug] = useState(initial?.slug ?? '');
-  const [accent, setAccent] = useState(initial?.accent_color ?? '#2D5A27');
+  const [accent, setAccent] = useState(initial?.accent_color ?? 'var(--brand)');
   const [slugManual, setSlugManual] = useState(!!initial?.slug);
   const [logoUrl, setLogoUrl] = useState(initial?.logo_url ?? '');
   const [uploading, setUploading] = useState(false);
@@ -1207,8 +1207,8 @@ export default function SuperAdminPanel() {
                             onClick={() => toggleActive(t)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition active:scale-95 ${
                               t.is_active
-                                ? 'bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 hover:bg-red-50 hover:text-red-500'
-                                : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 hover:bg-green-50 hover:text-green-600'
+                                ? 'bg-brand-50 dark:bg-green-950/30 text-brand-600 dark:text-brand-400 hover:bg-red-50 hover:text-red-500'
+                                : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 hover:bg-brand-50 hover:text-brand-600'
                             }`}
                           >
                             {t.is_active ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}

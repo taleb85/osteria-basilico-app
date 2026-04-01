@@ -34,7 +34,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const { users, setCurrentUser, setLanguage } = useApp();
   const { tenant } = useTenant();
   const tenantName = tenant?.name ?? 'Osteria Basilico';
-  const tenantAccent = tenant?.accent_color ?? '#2D5A27';
+  const tenantAccent = tenant?.accent_color ?? 'var(--brand)';
   const logoSrc = tenant?.logo_url ?? generateTenantLogoSvg(tenantName, tenantAccent);
   const [searchParams] = useSearchParams();
   const inviteUserId = searchParams.get('u')?.trim() ?? '';

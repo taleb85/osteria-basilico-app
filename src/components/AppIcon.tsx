@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 
-/** Icona app "OB" — quadrato verde accent (#2D5A27), lettere bianche più grandi */
+/** Icona app "OB" — quadrato verde accent (var(--brand)), lettere bianche più grandi */
 export default function AppIcon({ className = 'w-12 h-12' }: { className?: string }) {
   const containerStyle: CSSProperties = { containerType: 'size' };
   return (

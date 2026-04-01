@@ -96,8 +96,8 @@ export function PinPadModal({
         {/* Header */}
         <div className="relative flex flex-col items-center text-center mb-5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl mb-3 shadow-lg shadow-accent/30"
-            style={{ background: 'linear-gradient(135deg, #2D5A27 0%, #1a3818 100%)', border: '1px solid rgba(74,222,128,0.25)' }}>
-            <Lock className="w-4 h-4 text-green-300" strokeWidth={2.5} />
+            style={{ background: 'linear-gradient(135deg, var(--brand) 0%, #1a3818 100%)', border: '1px solid rgba(74,222,128,0.25)' }}>
+            <Lock className="w-4 h-4 text-brand-300" strokeWidth={2.5} />
           </div>
           <h2 className="text-white font-bold uppercase tracking-widest text-sm mb-1">{title}</h2>
           <p className="text-white/50 text-xs font-medium leading-tight px-2">{subtitle}</p>
@@ -105,7 +105,7 @@ export function PinPadModal({
 
         {/* PIN label + display */}
         <div className="relative flex flex-col items-center gap-1.5 mb-5 w-full">
-          <div className="flex items-center gap-1.5 text-green-400/80">
+          <div className="flex items-center gap-1.5 text-brand-400/80">
             <ShieldCheck className="w-4 h-4" strokeWidth={2.5} />
             <span className="text-[10px] font-bold uppercase tracking-widest">{pinLabel}</span>
           </div>
@@ -117,7 +117,7 @@ export function PinPadModal({
                 <div key={i} className="relative flex items-center justify-center">
                   {filledCount === i && (
                     <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                      className="absolute -left-2.5 h-8 w-[2px] rounded-full bg-green-400" />
+                      className="absolute -left-2.5 h-8 w-[2px] rounded-full bg-brand-400" />
                   )}
                   <motion.div
                     animate={filledCount > i ? { scale: [1, 1.3, 1] } : { scale: 1 }}
@@ -129,7 +129,7 @@ export function PinPadModal({
                   />
                   {filledCount === 4 && i === 3 && (
                     <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                      className="absolute -right-2.5 h-8 w-[2px] rounded-full bg-green-400" />
+                      className="absolute -right-2.5 h-8 w-[2px] rounded-full bg-brand-400" />
                   )}
                 </div>
               ))}
@@ -184,7 +184,7 @@ export function PinPadModal({
           </button>
           <button type="button" disabled={pin.length !== 4 || isLoading} onClick={onConfirm}
             className="flex-1 h-11 rounded-xl text-white font-bold text-sm disabled:opacity-35 disabled:grayscale active:scale-95 transition-all flex items-center justify-center gap-2"
-            style={{ background: 'linear-gradient(135deg, #2D5A27 0%, #1e3d1a 100%)', border: '1px solid rgba(74,222,128,0.35)', boxShadow: '0 4px 20px rgba(45,90,39,0.5)' }}>
+            style={{ background: 'linear-gradient(135deg, var(--brand) 0%, #1e3d1a 100%)', border: '1px solid rgba(74,222,128,0.35)', boxShadow: '0 4px 20px rgba(45,90,39,0.5)' }}>
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : confirmLabel}
           </button>
         </div>

@@ -233,7 +233,7 @@ export default function MobileProfileHeader({
               className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-0 bg-gradient-to-b from-white/75 to-white/55 dark:from-neutral-800/70 dark:to-neutral-900/60 shadow-[0_1px_0_0_rgba(255,255,255,0.85)_inset,0_-1px_0_0_rgba(0,0,0,0.05)_inset,0_4px_10px_-2px_rgba(45,90,39,0.14),0_2px_5px_-1px_rgba(15,23,42,0.09)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.07)_inset,0_-1px_0_0_rgba(0,0,0,0.4)_inset,0_4px_12px_-2px_rgba(0,0,0,0.45)] supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-[2] transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation ${
                 isRefreshing || dataSyncInProgress
                   ? 'text-amber-500'
-                  : isSynced ? 'text-emerald-600' : 'text-slate-400'
+                  : isSynced ? 'text-brand-600' : 'text-slate-400'
               }`}
             >
               {isRefreshing || dataSyncInProgress ? (

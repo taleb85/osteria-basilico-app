@@ -73,7 +73,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
         {/* Toggle Suono */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${isSoundEnabled ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
+            <div className={`p-2 rounded-lg ${isSoundEnabled ? 'bg-brand-50 text-brand-600' : 'bg-slate-50 text-slate-400'}`}>
               {isSoundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
             </div>
             <span className="text-xs font-bold text-slate-700 dark:text-neutral-300">Suoni Notifica</span>

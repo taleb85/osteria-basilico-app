@@ -77,7 +77,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                         {safeFormatDate(shift.date, 'EEEE d MMMM', { locale })}
                       </p>
                       <div className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-[#2D5A27]" />
+                        <Clock className="w-5 h-5 text-accent" />
                         <p className="text-2xl font-bold text-slate-900 dark:text-neutral-100 tabular-nums">
                           {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                         </p>
@@ -94,7 +94,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                   <div className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-white/5">
                     <div className="flex items-center gap-1.5">
                       <div className={`w-2 h-2 rounded-full ${
-                        isAbsent ? 'bg-red-500' : isDraft ? 'bg-slate-300' : 'bg-green-500'
+                        isAbsent ? 'bg-red-500' : isDraft ? 'bg-slate-300' : 'bg-brand-500'
                       }`} />
                       <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
                         {isAbsent ? 'Assente' : isDraft ? 'Bozza' : 'Confermato'}

@@ -23,14 +23,72 @@ function readSlugFromEnv(): string {
   return DEFAULT_SLUG;
 }
 
-/** Applica le CSS variables del brand al documento. */
+/** Converte hex in HSL [hue 0-360, sat 0-100, l 0-100]. */
+function hexToHsl(hex: string): [number, number, number] {
+  const { r, g, b } = hexToRgb(hex);
+  const rn = r / 255, gn = g / 255, bn = b / 255;
+  const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, Math.round(l * 100)];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = 0;
+  if (max === rn) h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6;
+  else if (max === gn) h = ((bn - rn) / d + 2) / 6;
+  else h = ((rn - gn) / d + 4) / 6;
+  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+}
+
+/** Applica le CSS variables del brand al documento — genera tutte le varianti shade + nav + shadow. */
 export function applyTenantBrand(accent: string): void {
   const root = document.documentElement;
-  root.style.setProperty('--accent', accent);
-  root.style.setProperty('--color-accent', accent);
-  root.style.setProperty('--basilico-primary', accent);
-  root.style.setProperty('--accent-hover', darken(accent, 0.08));
-  root.style.setProperty('--accent-dark', darken(accent, 0.18));
+  const { r, g, b } = hexToRgb(accent);
+  const [hue, sat] = hexToHsl(accent);
+
+  // Genera shade HSL con la stessa tonalità del brand
+  const hsl = (l: number, sMod = 1) =>
+    `hsl(${hue} ${Math.min(Math.round(sat * sMod), 100)}% ${l}%)`;
+
+  // Variabili base (retrocompatibili con codice esistente)
+  root.style.setProperty('--brand',           accent);
+  root.style.setProperty('--brand-rgb',       `${r} ${g} ${b}`);
+  root.style.setProperty('--accent',          accent);
+  root.style.setProperty('--color-accent',    accent);
+  root.style.setProperty('--basilico-primary',accent);
+  root.style.setProperty('--accent-hover',    hsl(30));
+  root.style.setProperty('--accent-dark',     hsl(20));
+  root.style.setProperty('--accent-light',    hsl(87, 0.28));
+  root.style.setProperty('--brand-hover',     hsl(30));
+  root.style.setProperty('--brand-dark',      hsl(20));
+  root.style.setProperty('--brand-light',     hsl(87, 0.28));
+  root.style.setProperty('--brand-muted',     `rgb(${r} ${g} ${b} / 0.12)`);
+
+  // Palette shades (50–900) — usate da Tailwind via brand-50…brand-900
+  root.style.setProperty('--brand-50',  hsl(97, 0.25));
+  root.style.setProperty('--brand-100', hsl(93, 0.35));
+  root.style.setProperty('--brand-200', hsl(85, 0.50));
+  root.style.setProperty('--brand-300', hsl(73, 0.70));
+  root.style.setProperty('--brand-400', hsl(57, 0.85));
+  root.style.setProperty('--brand-500', hsl(45));
+  root.style.setProperty('--brand-600', hsl(35));
+  root.style.setProperty('--brand-700', hsl(26));
+  root.style.setProperty('--brand-800', hsl(17));
+  root.style.setProperty('--brand-900', hsl(10));
+
+  // Gradienti bottom-nav
+  const dr = Math.round(r * 0.77), dg = Math.round(g * 0.77), db = Math.round(b * 0.77);
+  root.style.setProperty('--brand-nav-from', `rgb(${r} ${g} ${b} / 0.92)`);
+  root.style.setProperty('--brand-nav-to',   `rgb(${dr} ${dg} ${db} / 0.88)`);
+  root.style.setProperty('--brand-nav-dark-from', `rgb(${r} ${g} ${b} / 0.88)`);
+  root.style.setProperty('--brand-nav-dark-to',   `rgb(${Math.round(r*0.66)} ${Math.round(g*0.66)} ${Math.round(b*0.66)} / 0.84)`);
+
+  // Ombra card accent
+  root.style.setProperty('--shadow-card-accent',
+    `0 4px 16px -4px rgb(${r} ${g} ${b} / 0.14), 0 2px 8px -4px rgb(15 23 42 / 0.08)`);
+
+  // Calendar (react-day-picker)
+  root.style.setProperty('--rdp-accent-color', accent);
+  root.style.setProperty('--rdp-accent-background-color', `rgb(${r} ${g} ${b} / 0.14)`);
 }
 
 function darken(hex: string, amount: number): string {

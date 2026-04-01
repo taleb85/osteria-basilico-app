@@ -9,7 +9,7 @@ import { isPurelyManagementRole } from './permissions';
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
-/** #2D5A27 */
+/** var(--brand) */
 const ACCENT: [number, number, number] = [45, 90, 39];
 const LIGHT: [number, number, number] = [220, 252, 231];
 const WEEKEND_BG: [number, number, number] = [248, 250, 252];

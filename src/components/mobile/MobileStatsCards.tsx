@@ -42,7 +42,7 @@ export default function MobileStatsCards({
         </p>
         <div className="w-full bg-slate-100 dark:bg-neutral-800 rounded-full h-2">
           <div
-            className="h-full rounded-full bg-[#2D5A27] transition-[width] duration-700 ease-out"
+            className="h-full rounded-full bg-[var(--brand)] transition-[width] duration-700 ease-out"
             style={{ width: `${pct}%` }}
           />
         </div>

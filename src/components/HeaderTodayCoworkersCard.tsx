@@ -37,7 +37,7 @@ function lunchDinnerRingClass(shifts: Shift[]): string {
   const hasL = types.has('lunch');
   const hasD = types.has('dinner');
   if (hasL && hasD) {
-    return 'bg-emerald-500';
+    return 'bg-brand-500';
   }
   if (hasD) {
     return 'bg-violet-500';
@@ -48,7 +48,7 @@ function lunchDinnerRingClass(shifts: Shift[]): string {
 /** Anello: pranzo/cena (turni ≤16:00) + viola per cambio guardia (>16:00). */
 function shiftRingOuterClass(shifts: Shift[]): string {
   if (shifts.length > 1) {
-    return 'bg-emerald-500';
+    return 'bg-brand-500';
   }
   const early = shifts.filter((s) => !isCambioGuardiaShift(s));
   const late = shifts.filter((s) => isCambioGuardiaShift(s));
@@ -58,7 +58,7 @@ function shiftRingOuterClass(shifts: Shift[]): string {
   if (early.length === 0) {
     return 'bg-violet-500';
   }
-  return 'bg-emerald-500';
+  return 'bg-brand-500';
 }
 
 function shiftRingTitle(
@@ -235,7 +235,7 @@ export default function HeaderTodayCoworkersCard() {
                     {/* Shift Type Indicator */}
                     <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-2 border-white dark:border-neutral-800 rounded-full shadow-sm z-10 ${shiftRingOuterClass(r.shifts)}`}></div>
                     {isPunchedIn && (
-                      <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-neutral-800 rounded-full shadow-sm z-10"></div>
+                      <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-brand-500 border-2 border-white dark:border-neutral-800 rounded-full shadow-sm z-10"></div>
                     )}
                   </div>
                   <div className="min-w-0 w-full px-0.5">

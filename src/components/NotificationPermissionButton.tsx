@@ -51,7 +51,7 @@ export function NotificationPermissionButton({
 
   const buttonText = isSubscribed ? 'Notifiche Attive' : 'Attiva Notifiche';
   const buttonClass = isSubscribed
-    ? 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-950/50'
+    ? 'bg-brand-50 dark:bg-green-950/30 text-brand-700 dark:text-brand-300 border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-green-950/50'
     : 'bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800';
 
   if (compact) {
@@ -63,7 +63,7 @@ export function NotificationPermissionButton({
         title={isSubscribed ? 'Disattiva notifiche' : 'Attiva notifiche'}
         className={`inline-flex items-center justify-center h-10 w-10 rounded-lg transition-colors ${
           isSubscribed
-            ? 'bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-950/60'
+            ? 'bg-brand-100 dark:bg-green-950/40 text-brand-700 dark:text-brand-300 hover:bg-brand-200 dark:hover:bg-green-950/60'
             : 'bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
         } disabled:opacity-50`}
       >

@@ -25,7 +25,7 @@ export default function Toast({ message, type = 'error', onClose, duration = 350
   const isError = type === 'error';
 
   const barClass = isSuccess
-    ? 'bg-[#2D5A27] text-white border border-white/10 shadow-lg'
+    ? 'bg-[var(--brand)] text-white border border-white/10 shadow-lg'
     : isError
       ? 'bg-red-600 text-white border border-red-500/80 shadow-lg'
       : 'bg-slate-800 text-white border border-slate-600/80 shadow-lg';

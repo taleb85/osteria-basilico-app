@@ -260,17 +260,17 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
 
         {/* Sezione avanzate/demo profili */}
         <section
-          className="mt-8 space-y-3 rounded-xl border-2 border-emerald-400/90 bg-emerald-50/90 p-4 shadow-sm dark:border-emerald-700/50 dark:bg-emerald-950/30 sm:p-5"
+          className="mt-8 space-y-3 rounded-xl border-2 border-brand-400/90 bg-brand-50/90 p-4 shadow-sm dark:border-brand-700/50 dark:bg-emerald-950/30 sm:p-5"
           aria-label={t.impostazioni_demo_profile_title}
         >
-          <h2 className="text-sm font-bold uppercase tracking-wide text-emerald-950 dark:text-emerald-100">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-emerald-950 dark:text-brand-100">
             {t.impostazioni_demo_profile_title}
           </h2>
-          <p className="max-w-2xl text-xs leading-relaxed text-emerald-900/85 dark:text-emerald-200/90">{t.impostazioni_demo_profile_lead}</p>
+          <p className="max-w-2xl text-xs leading-relaxed text-brand-900/85 dark:text-brand-200/90">{t.impostazioni_demo_profile_lead}</p>
           <div className="space-y-2 max-w-md">
             <label
               htmlFor="osteria-demo-profile-user-impostazioni"
-              className="block text-[10px] font-bold uppercase tracking-wider text-emerald-900/80 dark:text-emerald-200/90"
+              className="block text-[10px] font-bold uppercase tracking-wider text-brand-900/80 dark:text-brand-200/90"
             >
               {t.settings_seed_demo_profile_pick_user}
             </label>
@@ -311,7 +311,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
                   setSeedingDemoProfile(false);
                 }
               }}
-              className="w-full px-3 py-3 rounded-xl bg-emerald-600 border border-emerald-700 text-white text-xs font-bold uppercase tracking-wider hover:bg-emerald-700 disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full px-3 py-3 rounded-xl bg-brand-600 border border-brand-700 text-white text-xs font-bold uppercase tracking-wider hover:bg-brand-700 disabled:opacity-50 disabled:pointer-events-none"
             >
               {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
             </button>

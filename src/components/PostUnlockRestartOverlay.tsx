@@ -75,7 +75,7 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
           className="h-auto w-[52%] max-h-[58%] object-contain opacity-95"
         />
       </div>
-      <h2 className="mb-2 text-lg font-bold tracking-tight text-[#2d5a27] sm:text-xl dark:text-[#d0dece]">
+      <h2 className="mb-2 text-lg font-bold tracking-tight text-accent sm:text-xl dark:text-[#d0dece]">
         {tv.post_unlock_restart_title ?? 'Aggiornamento in corso'}
       </h2>
       <p className="max-w-sm text-sm leading-relaxed text-slate-600 sm:text-base dark:text-neutral-300">

@@ -412,10 +412,10 @@ export default function HomePage({
     }
     if (e.canApprove) {
       return {
-        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
-        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
-        badge: 'bg-emerald-100 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/50 dark:text-emerald-50 dark:border-emerald-500/50',
-        dot: 'bg-emerald-500 dark:bg-emerald-400',
+        border: 'border-l-brand-500 dark:border-l-brand-500/80',
+        bg: 'bg-brand-50/95 dark:bg-emerald-950/40',
+        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-emerald-950/50 dark:text-brand-50 dark:border-brand-500/50',
+        dot: 'bg-brand-500 dark:bg-brand-400',
         label: t.home_status_to_approve,
       };
     }
@@ -431,10 +431,10 @@ export default function HomePage({
       }
       if (publishedHome) {
         return {
-          border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
-          bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
-          badge: 'bg-emerald-100 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/50 dark:text-emerald-50 dark:border-emerald-500/50',
-          dot: 'bg-emerald-500 dark:bg-emerald-400',
+          border: 'border-l-brand-500 dark:border-l-brand-500/80',
+          bg: 'bg-brand-50/95 dark:bg-emerald-950/40',
+          badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-emerald-950/50 dark:text-brand-50 dark:border-brand-500/50',
+          dot: 'bg-brand-500 dark:bg-brand-400',
           label: t.home_status_not_punched,
         };
       }
@@ -448,28 +448,28 @@ export default function HomePage({
     }
     if (inTodayKpiWindow && e.punchIn && !e.isLate && !e.hasMissingOut) {
       return {
-        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
-        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
-        badge: 'bg-emerald-100 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/50 dark:text-emerald-50 dark:border-emerald-500/50',
-        dot: 'bg-emerald-500 dark:bg-emerald-400',
+        border: 'border-l-brand-500 dark:border-l-brand-500/80',
+        bg: 'bg-brand-50/95 dark:bg-emerald-950/40',
+        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-emerald-950/50 dark:text-brand-50 dark:border-brand-500/50',
+        dot: 'bg-brand-500 dark:bg-brand-400',
         label: t.home_status_in_shift,
       };
     }
     if (e.punchIn && !e.actualEnd) {
       return {
-        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
-        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
-        badge: 'bg-emerald-100 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/50 dark:text-emerald-50 dark:border-emerald-500/50',
-        dot: 'animate-pulse bg-emerald-500 dark:bg-emerald-400',
+        border: 'border-l-brand-500 dark:border-l-brand-500/80',
+        bg: 'bg-brand-50/95 dark:bg-emerald-950/40',
+        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-emerald-950/50 dark:text-brand-50 dark:border-brand-500/50',
+        dot: 'animate-pulse bg-brand-500 dark:bg-brand-400',
         label: t.home_status_in_shift,
       };
     }
     if (e.punchIn && e.actualEnd) {
       return {
-        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
-        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
-        badge: 'bg-emerald-100 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/50 dark:text-emerald-50 dark:border-emerald-500/50',
-        dot: 'bg-emerald-500 dark:bg-emerald-400',
+        border: 'border-l-brand-500 dark:border-l-brand-500/80',
+        bg: 'bg-brand-50/95 dark:bg-emerald-950/40',
+        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-emerald-950/50 dark:text-brand-50 dark:border-brand-500/50',
+        dot: 'bg-brand-500 dark:bg-brand-400',
         label: t.home_status_complete,
       };
     }
@@ -673,7 +673,7 @@ export default function HomePage({
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {grouped[dateStr].sort((a, b) => a.start_time.localeCompare(b.start_time)).map((s) => (
-                        <span key={s.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${s.approval_status === 'draft' ? 'bg-slate-100 text-slate-600 border-slate-400 dark:bg-neutral-800 dark:text-neutral-300 dark:border-white/25' : 'bg-emerald-50/95 text-emerald-900 border-emerald-500/80 dark:bg-emerald-950/40 dark:text-emerald-50 dark:border-emerald-500/50'}`}>
+                        <span key={s.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${s.approval_status === 'draft' ? 'bg-slate-100 text-slate-600 border-slate-400 dark:bg-neutral-800 dark:text-neutral-300 dark:border-white/25' : 'bg-brand-50/95 text-brand-900 border-brand-500/80 dark:bg-emerald-950/40 dark:text-brand-50 dark:border-brand-500/50'}`}>
                           {s.start_time.slice(0, 5)}–{s.end_time?.slice(0, 5) ?? '…'}
                         </span>
                       ))}
@@ -813,10 +813,10 @@ export default function HomePage({
                 label: t.home_stat_in_shift,
                 value: inTurnoCount,
                 Icon: Users,
-                iconColor: 'text-emerald-600 dark:text-emerald-400',
+                iconColor: 'text-brand-600 dark:text-brand-400',
                 bg: 'bg-transparent dark:bg-transparent',
-                border: 'border-emerald-200 dark:border-emerald-800/40',
-                iconWell: 'bg-emerald-100/80 dark:bg-emerald-950/50',
+                border: 'border-brand-200 dark:border-brand-800/40',
+                iconWell: 'bg-brand-100/80 dark:bg-emerald-950/50',
               },
               {
                 label: t.home_stat_delays,
@@ -883,8 +883,8 @@ export default function HomePage({
                         <p className="font-bold text-slate-800 dark:text-neutral-100 text-sm">{e.user?.first_name ?? '—'}</p>
                         <p className="text-[11px] text-slate-500 dark:text-neutral-400">{e.user?.department ?? e.user?.role ?? ''}</p>
                       </div>
-                      <span className="ml-auto flex items-center gap-1 rounded-full border border-emerald-500/80 bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900 dark:border-emerald-500/50 dark:bg-emerald-950/50 dark:text-emerald-50">
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500 dark:bg-emerald-400" /> {t.home_badge_in_shift}
+                      <span className="ml-auto flex items-center gap-1 rounded-full border border-brand-500/80 bg-brand-100 px-2 py-0.5 text-[10px] font-bold text-brand-900 dark:border-brand-500/50 dark:bg-emerald-950/50 dark:text-brand-50">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500 dark:bg-brand-400" /> {t.home_badge_in_shift}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mb-3">
@@ -1182,7 +1182,7 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
   const deltaColor =
     e.deltaMins > 5 ? 'text-accent' : e.deltaMins < -5 ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-neutral-400';
   const notPunchedLineCls = style.border.includes('emerald')
-    ? 'text-emerald-900 dark:text-emerald-50'
+    ? 'text-brand-900 dark:text-brand-50'
     : style.border.includes('slate-400')
       ? 'text-slate-700 dark:text-neutral-200'
       : style.border.includes('rose-')

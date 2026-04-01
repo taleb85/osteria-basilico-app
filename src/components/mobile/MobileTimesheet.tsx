@@ -18,9 +18,9 @@ const STATUS_CONFIG = {
   approved: {
     label: 'Approvato',
     icon: CheckCircle2,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-50 dark:bg-emerald-500/10',
-    border: 'border-emerald-100 dark:border-emerald-500/20',
+    color: 'text-brand-500',
+    bg: 'bg-brand-50 dark:bg-brand-500/10',
+    border: 'border-brand-100 dark:border-brand-500/20',
   },
   confirmed: {
     label: 'Pendente',

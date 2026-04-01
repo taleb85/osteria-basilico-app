@@ -40,7 +40,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
 
   const getIcon = (_type: string, severity: string) => {
     switch (severity) {
-      case 'success': return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+      case 'success': return <CheckCircle2 className="h-4 w-4 text-brand-500" />;
       case 'warning': return <AlertTriangle className="h-4 w-4 text-amber-500" />;
       default: return <Info className="h-4 w-4 text-accent" />;
     }

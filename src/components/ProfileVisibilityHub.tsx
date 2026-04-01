@@ -47,7 +47,7 @@ import {
 } from '../utils/uiScreenWidgets';
 import AdminRow from './ui/AdminRow';
 
-const ACCENT = '#2D5A27';
+const ACCENT = 'var(--brand)';
 
 const PREVIEW_TAB_ICONS: Record<AppNavTab, typeof Home> = {
   home: Home,

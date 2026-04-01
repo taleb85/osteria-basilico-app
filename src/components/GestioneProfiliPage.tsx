@@ -9,7 +9,7 @@ import { getTranslations } from '../utils/translations';
 import AdminRow from './ui/AdminRow';
 import ProfileVisibilityHub from './ProfileVisibilityHub';
 
-const ACCENT = '#2D5A27';
+const ACCENT = 'var(--brand)';
 
 export default function GestioneProfiliPage() {
   const { users, currentUser, effectiveLanguage, updateUser, showSuccess, showError } = useApp();

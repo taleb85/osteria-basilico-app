@@ -378,7 +378,7 @@ export function NotificationModal({
                           setIsStaffSending(false);
                         }
                       }}
-                      className="w-full h-12 rounded-xl bg-[#2D5A27] text-white font-black uppercase tracking-[0.15em] text-[10px] shadow-lg shadow-accent/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
+                      className="w-full h-12 rounded-xl bg-[var(--brand)] text-white font-black uppercase tracking-[0.15em] text-[10px] shadow-lg shadow-accent/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
                     >
                       {isStaffSending ? 'INVIO...' : 'INVIA ORA'}
                     </button>
@@ -416,7 +416,7 @@ export function NotificationModal({
                           <div className="flex-shrink-0">
                             <div className={`flex h-9 w-9 items-center justify-center rounded-xl border-2 transition-transform group-hover:scale-105 ${
                               isBroadcast 
-                                ? 'bg-green-50 border-green-100 text-green-600 dark:bg-green-950/20 dark:border-green-900/30' 
+                                ? 'bg-brand-50 border-brand-100 text-brand-600 dark:bg-green-950/20 dark:border-brand-900/30' 
                                 : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-neutral-800 dark:border-neutral-700'
                             }`}>
                               {isBroadcast ? <span className="text-base">📢</span> : <Mail className="h-4 w-4" />}
@@ -462,7 +462,7 @@ export function NotificationModal({
           <div className="p-5 border-t border-slate-100 dark:border-neutral-800 bg-white dark:bg-neutral-950">
             <button
               onClick={onClose}
-              className="w-full h-12 rounded-2xl bg-[#2D5A27] text-white font-black uppercase tracking-[0.15em] text-[11px] active:scale-[0.98] transition-all shadow-xl shadow-[#2D5A27]/20"
+              className="w-full h-12 rounded-2xl bg-[var(--brand)] text-white font-black uppercase tracking-[0.15em] text-[11px] active:scale-[0.98] transition-all shadow-xl shadow-[var(--brand)]/20"
             >
               Chiudi
             </button>

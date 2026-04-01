@@ -23,7 +23,7 @@ import { getAdminModuleLabel, getTranslations } from '../utils/translations';
 import { buildSettingsPermissionRows } from '../utils/settingsPermissionRows';
 import { operationalPayloadForUser } from '../utils/roleTemplateUserSync';
 
-const ACCENT = '#2D5A27';
+const ACCENT = 'var(--brand)';
 function roleGroupExpandedStorageKey(g: RoleTemplateGroup) {
   return `osteria_rtg_expanded_${g}`;
 }
@@ -364,7 +364,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
           <div className="flex gap-2">
             <button
               type="button"
-              className={`px-2 py-1 rounded text-xs font-semibold ${allOn ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'} hover:bg-green-200`}
+              className={`px-2 py-1 rounded text-xs font-semibold ${allOn ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-700'} hover:bg-brand-200`}
               onClick={() => setAll(true)}
             >
               {t.role_templates_enable_all || 'Attiva tutto'}

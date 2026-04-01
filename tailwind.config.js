@@ -5,13 +5,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Verde bosco/salvia elegante — colore primario Osteria Basilico
+        // Colore brand dinamico — iniettato da TenantContext via CSS custom properties
         accent: {
-          DEFAULT: '#2D5A27',
-          hover:   '#264d21',
-          dark:    '#1e3d1a',
-          light:   '#d0dece',
-          muted:   'rgba(45, 90, 39, 0.12)',
+          DEFAULT: 'var(--brand)',
+          hover:   'var(--brand-hover)',
+          dark:    'var(--brand-dark)',
+          light:   'var(--brand-light)',
+          muted:   'var(--brand-muted)',
+        },
+        // Palette completa brand (brand-50 … brand-900) per rimpiazzare green-/emerald-
+        brand: {
+          DEFAULT: 'var(--brand)',
+          50:  'var(--brand-50)',
+          100: 'var(--brand-100)',
+          200: 'var(--brand-200)',
+          300: 'var(--brand-300)',
+          400: 'var(--brand-400)',
+          500: 'var(--brand-500)',
+          600: 'var(--brand-600)',
+          700: 'var(--brand-700)',
+          800: 'var(--brand-800)',
+          900: 'var(--brand-900)',
         },
         // Arancione revisione — per approvazioni e modifiche
         review: {
