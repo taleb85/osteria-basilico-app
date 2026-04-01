@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { supabaseAdmin as supabase } from '../lib/supabase';
 import type { Tenant, TenantSettings, UserRole, UserStatus } from '../types';
-import { applyTenantBrand } from '../context/TenantContext';
+import { applyTenantBrand, HEADER_FONTS } from '../context/TenantContext';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -797,6 +797,7 @@ function TenantForm({ initial, onSave, onCancel, saving }: TenantFormProps) {
   const [accent, setAccent] = useState(initial?.accent_color ?? 'var(--brand)');
   const [slugManual, setSlugManual] = useState(!!initial?.slug);
   const [logoUrl, setLogoUrl] = useState(initial?.logo_url ?? '');
+  const [headerFont, setHeaderFont] = useState(initial?.settings?.header_font ?? 'parisienne');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -836,7 +837,7 @@ function TenantForm({ initial, onSave, onCancel, saving }: TenantFormProps) {
       plan: 'basic',
       is_active: initial?.is_active ?? true,
       logo_url: logoUrl || null,
-      settings: initial?.settings ?? DEFAULT_SETTINGS,
+      settings: { ...(initial?.settings ?? DEFAULT_SETTINGS), header_font: headerFont },
     });
   };
 
@@ -901,6 +902,30 @@ function TenantForm({ initial, onSave, onCancel, saving }: TenantFormProps) {
         </div>
         <div className="rounded-xl px-4 py-2.5 text-white text-sm font-semibold" style={{ backgroundColor: accent }}>
           {name || 'Nome sede'}
+        </div>
+      </div>
+
+      {/* Font intestazione */}
+      <div className="space-y-2">
+        <label className="text-xs font-semibold text-slate-600 dark:text-neutral-300">Font intestazione app</label>
+        <div className="grid grid-cols-1 gap-1.5">
+          {HEADER_FONTS.map(f => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setHeaderFont(f.id)}
+              className={`flex items-center justify-between px-3 py-2 rounded-xl border transition text-left ${
+                headerFont === f.id
+                  ? 'border-accent bg-accent/10 text-accent dark:bg-accent/20'
+                  : 'border-slate-200 dark:border-neutral-700 hover:border-accent/40 text-slate-700 dark:text-neutral-300'
+              }`}
+            >
+              <span className="text-xs font-medium">{f.label}</span>
+              <span className="text-base" style={{ fontFamily: f.value }}>
+                {name || 'Sede'}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
 

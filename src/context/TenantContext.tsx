@@ -10,6 +10,16 @@ import type { Tenant, TenantSettings } from '../types';
 const DEFAULT_SLUG = import.meta.env.VITE_TENANT_SLUG ?? 'osteria-basilico';
 const DEFAULT_ACCENT = '#2D5A27';
 
+/** Opzioni font per l'intestazione dell'app. */
+export const HEADER_FONTS = [
+  { id: 'parisienne',  label: 'Parisienne',       value: "'Parisienne', 'Snell Roundhand', cursive" },
+  { id: 'great-vibes', label: 'Great Vibes',       value: "'Great Vibes', cursive" },
+  { id: 'inter',       label: 'Inter (moderno)',   value: "'Inter', sans-serif" },
+  { id: 'playfair',    label: 'Playfair Display',  value: "'Playfair Display', Georgia, serif" },
+  { id: 'montserrat',  label: 'Montserrat',        value: "'Montserrat', 'Inter', sans-serif" },
+] as const;
+export type HeaderFontId = typeof HEADER_FONTS[number]['id'];
+
 /** Legge lo slug dal sottodominio oppure dal path oppure dall'env var. */
 function readSlugFromEnv(): string {
   if (import.meta.env.VITE_TENANT_SLUG) return import.meta.env.VITE_TENANT_SLUG;
@@ -362,6 +372,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     setTenant(t);
     setDatabaseTenant(t.id);
     applyTenantBrand(t.accent_color);
+    // Font intestazione header (--brand-header-font)
+    const fontValue = HEADER_FONTS.find(f => f.id === t.settings?.header_font)?.value
+      ?? HEADER_FONTS[0].value;
+    document.documentElement.style.setProperty('--brand-header-font', fontValue);
     updatePWAManifest(t);
     // Titolo scheda browser + meta Apple
     document.title = t.name;
@@ -369,6 +383,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     if (appleTitleMeta) appleTitleMeta.content = t.name;
     const descMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     if (descMeta) descMeta.content = `Sistema di gestione per ${t.name}`;
+    // Barra superiore PWA (theme-color) → colore brand del tenant
+    document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach(m => {
+      m.content = t.accent_color;
+    });
     // Favicon dinamica: sostituisce l'icona statica OB con quella del tenant corrente
     const faviconSvg = t.logo_url ?? generateTenantLogoSvg(t.name, t.accent_color);
     updateFavicon(faviconSvg);

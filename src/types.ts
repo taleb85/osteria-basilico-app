@@ -1,5 +1,7 @@
 /** Parametri configurabili per sede — salvati in tenants.settings (JSONB). */
 export interface TenantSettings {
+  /** Font dell'intestazione app (id da HEADER_FONTS) */
+  header_font?: string;
   /** Timezone IANA, es. 'Europe/Rome' */
   timezone?: string;
   /** Lingua predefinita per i nuovi utenti */

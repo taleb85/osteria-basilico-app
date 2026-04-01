@@ -37,6 +37,7 @@
     --brand-nav-to:   rgb(35 69 30 / 0.88);
     --brand-nav-dark-from: rgb(45 90 39 / 0.88);
     --brand-nav-dark-to:   rgb(30 59 26 / 0.84);
+    --brand-header-font: 'Parisienne', 'Snell Roundhand', cursive;
     /* Retrocompatibilita con codice esistente */
     --basilico-primary: var(--brand);
     --accent: var(--brand);

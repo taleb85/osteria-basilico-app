@@ -46,12 +46,18 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
     <header className="sticky top-0 z-30 w-full border-b border-slate-100/90 bg-white/90 shadow-sm backdrop-blur-md safe-area-pad pt-0 dark:border-white/10 dark:bg-neutral-950/90">
       <div className="w-full px-3 sm:px-6 py-1.5 sm:py-2.5 flex items-center justify-between gap-2">
         {/* Logo — nascosto su desktop (gestito dalla Sidebar) */}
-        <h1 className="font-logo-snell text-[35px] text-accent dark:text-white tracking-tight min-w-0 flex-1 truncate pr-2 leading-[33px] md:hidden">
+        <h1
+          className="text-[35px] text-accent dark:text-white tracking-tight min-w-0 flex-1 truncate pr-2 leading-[33px] md:hidden"
+          style={{ fontFamily: 'var(--brand-header-font)' }}
+        >
           {tenantName}
         </h1>
         {/* Brand su desktop (la sidebar non ha più l'header) */}
         <div className="hidden md:flex flex-col justify-center min-w-0 flex-1">
-          <h1 className="font-logo-snell text-[22px] text-accent dark:text-white tracking-tight leading-tight truncate">
+          <h1
+            className="text-[22px] text-accent dark:text-white tracking-tight leading-tight truncate"
+            style={{ fontFamily: 'var(--brand-header-font)' }}
+          >
             {tenantName}
           </h1>
           <p className="text-[9px] text-slate-400 dark:text-neutral-400 font-semibold uppercase tracking-widest leading-none">
