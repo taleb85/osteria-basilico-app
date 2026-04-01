@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --config scripts/vite.config.mjs",
+    "prebuild": "node scripts/generate-tenant-favicon.mjs",
     "build": "vite build --config scripts/vite.config.mjs",
     "lint": "eslint .",
     "preview": "vite preview --config scripts/vite.config.mjs",
