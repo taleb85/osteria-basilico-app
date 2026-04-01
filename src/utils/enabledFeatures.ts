@@ -320,8 +320,9 @@ export function getEnabledFeatures(user: { role: string; enabled_features?: unkn
     for (const k of PERMISSION_MATRIX_KEYS) result[k] = true;
     result.home_tab = true;
     result.admin_tab = true;
-    result.ferie_tab = true;
-    result.timesheet_tab = true;
+    // Admin = profilo impostazioni puro: nessun tab operativo personale
+    result.ferie_tab = false;
+    result.timesheet_tab = false;
     return result;
   }
   const grp = getRolePermissionGroup(user.role);

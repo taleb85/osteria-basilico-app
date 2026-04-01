@@ -22,6 +22,7 @@ export default function GestioneProfiliPage() {
 
   const displayUsers = useMemo(() => {
     return users
+      .filter((u) => u.role !== 'admin')
       .filter((u) => u.status === 'active' || u.status === 'suspended' || u.status === 'inactive')
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   }, [users]);

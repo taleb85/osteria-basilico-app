@@ -331,7 +331,8 @@ export default function SettingsPage() {
 
   const displayUsers = users
     .filter((u) => {
-      if (isPurelyManagementRole(u.role) && !adminOnly) return false;
+      // Admin = profilo impostazioni puro: mai visibile nella lista team/dipendenti
+      if (isPurelyManagementRole(u.role)) return false;
       if (u.status === 'active') return true;
       return showSuspended && canSeeSuspended && (u.status === 'suspended' || u.status === 'inactive');
     })

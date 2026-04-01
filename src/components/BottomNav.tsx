@@ -113,7 +113,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   const filteredUsers = useMemo(() => {
     const q = quickSwitchSearch.toLowerCase().trim();
     return users
-      .filter(u => u.status === 'active')
+      .filter(u => u.status === 'active' && u.role !== 'admin')
       .filter(u => {
         if (!q) return true;
         const fullName = `${u.first_name ?? ''} ${u.last_name ?? ''}`.toLowerCase();

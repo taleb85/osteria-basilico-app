@@ -274,15 +274,11 @@ export default function Statistics() {
       return users.filter(u => u.id === currentUser.id);
     }
 
-    // Gestione: tutti gli utenti attivi.
-    // I ruoli puramente gestionali compaiono solo se hanno turni assegnati.
-    // Non si filtra per team_schedule_visible: le statistiche mostrano tutti i profili.
+    // Gestione: tutti gli utenti attivi eccetto admin (profilo impostazioni puro).
     return users
       .filter((u) => {
         if (u.status !== 'active') return false;
-        if (isPurelyManagementRole(u.role)) {
-          return shifts.some((s) => s.user_id === u.id);
-        }
+        if (isPurelyManagementRole(u.role)) return false;
         return true;
       })
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
