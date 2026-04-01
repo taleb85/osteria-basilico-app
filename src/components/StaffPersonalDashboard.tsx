@@ -219,15 +219,19 @@ export default function StaffPersonalDashboard({
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  const handleInstall = async () => {
+  const handleInstall = () => {
     if (!deferredInstallPrompt) return;
-    const prompt = deferredInstallPrompt as Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
-    prompt.prompt();
-    const { outcome } = await prompt.userChoice;
-    if (outcome === 'accepted') {
-      setShowInstallBanner(false);
-      setDeferredInstallPrompt(null);
-    }
+    const p = deferredInstallPrompt as Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
+    p.prompt();
+    p.userChoice
+      .then(({ outcome }) => {
+        if (outcome === 'accepted') {
+          setShowInstallBanner(false);
+          setDeferredInstallPrompt(null);
+          (window as { __deferredInstallPrompt?: Event }).__deferredInstallPrompt = undefined;
+        }
+      })
+      .catch(() => {});
   };
 
   const dismissInstallBanner = () => {

@@ -37,14 +37,19 @@ export default function PWAInstallRequired() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  const handleInstall = async () => {
+  const handleInstall = () => {
     if (!deferredPrompt) return;
+    const p = deferredPrompt as Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
+    // Chiamata sincrona immediata — nessun await prima, altrimenti Chrome perde il gesto utente
+    p.prompt();
     setInstalling(true);
-    const prompt = deferredPrompt as Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
-    prompt.prompt();
-    await prompt.userChoice;
-    setInstalling(false);
-    setDeferredPrompt(null);
+    p.userChoice
+      .then(() => {
+        setInstalling(false);
+        setDeferredPrompt(null);
+        (window as { __deferredInstallPrompt?: Event }).__deferredInstallPrompt = undefined;
+      })
+      .catch(() => setInstalling(false));
   };
 
   return (
