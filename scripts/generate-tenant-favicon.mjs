@@ -19,9 +19,10 @@ const slug   = process.env.VITE_TENANT_SLUG   ?? '';
 const title  = process.env.VITE_APP_TITLE      ?? 'Osteria Basilico';
 const accent = process.env.VITE_TENANT_ACCENT  ?? '#2D5A27';
 
-// Se non c'è uno slug specifico → Osteria Basilico → usa logo originale
+// Se non c'è uno slug specifico → Osteria Basilico → copia logo originale come icon.svg
 if (!slug || slug === 'osteria-basilico') {
-  console.log('[favicon] Osteria Basilico → favicon originale invariata');
+  copyFileSync(join(publicDir, 'logo-ob.svg'), join(publicDir, 'icon.svg'));
+  console.log('[favicon] Osteria Basilico → icon.svg = logo-ob.svg originale');
   process.exit(0);
 }
 

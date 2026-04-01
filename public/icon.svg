@@ -1,27 +1,50 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Osteria Basilico">
   <defs>
-    <linearGradient id="ibg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#3d6b36"/>
-      <stop offset="42%" stop-color="#2D5A27"/>
-      <stop offset="100%" stop-color="#234a1f"/>
+    <!-- Volume premium: chiarore caldo in alto al centro → verde basilico verso i bordi -->
+    <radialGradient id="ob-bg" cx="38%" cy="26%" r="78%" fx="36%" fy="24%">
+      <stop offset="0%" stop-color="#5A9E4E"/>
+      <stop offset="28%" stop-color="#3D7C34"/>
+      <stop offset="55%" stop-color="#2D5A27"/>
+      <stop offset="100%" stop-color="#1A3516"/>
+    </radialGradient>
+    <!-- Lucido superiore (pillowed) -->
+    <linearGradient id="ob-gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="35%" stop-color="#FFFFFF" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="ish" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
-      <stop offset="18%" stop-color="rgba(255,255,255,0.05)"/>
-      <stop offset="48%" stop-color="rgba(255,255,255,0)"/>
-      <stop offset="100%" stop-color="rgba(0,0,0,0.12)"/>
+    <!-- OB: grigio chiaro in alto → bianco verso il basso -->
+    <linearGradient id="ob-text" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D1D9D4"/>
+      <stop offset="38%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F4FAF3"/>
     </linearGradient>
-    <linearGradient id="itx" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#a8b8a3"/>
-      <stop offset="35%" stop-color="#eef2ec"/>
-      <stop offset="100%" stop-color="#ffffff"/>
-    </linearGradient>
+    <clipPath id="ob-squircle">
+      <rect width="512" height="512" rx="120" ry="120"/>
+    </clipPath>
+    <filter id="ob-drop" x="-8%" y="-6%" width="116%" height="118%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="113" ry="113" fill="url(#ibg)"/>
-  <rect width="512" height="512" rx="113" ry="113" fill="url(#ish)"/>
-  <g font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="800" font-size="184" letter-spacing="-0.06em" text-anchor="middle">
-    <text x="256" y="256" fill="rgba(12,28,10,0.42)" dominant-baseline="central" transform="translate(0, 2.5)">OB</text>
-    <text x="256" y="256" fill="rgba(255,255,255,0.28)" dominant-baseline="central" transform="translate(0, -1.5)">OB</text>
-    <text x="256" y="256" fill="url(#itx)" dominant-baseline="central">OB</text>
+
+  <g filter="url(#ob-drop)">
+    <g clip-path="url(#ob-squircle)">
+      <rect width="512" height="512" rx="120" ry="120" fill="url(#ob-bg)"/>
+      <rect width="512" height="220" x="0" y="0" fill="url(#ob-gloss)"/>
+    </g>
   </g>
+
+  <text
+    x="256"
+    y="250"
+    text-anchor="middle"
+    dominant-baseline="central"
+    text-rendering="geometricPrecision"
+    fill="url(#ob-text)"
+    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+    font-weight="800"
+    font-size="278"
+    letter-spacing="24"
+    font-feature-settings="'kern' 1"
+  >OB</text>
 </svg>
