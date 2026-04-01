@@ -201,26 +201,30 @@ function generatePngFavicon(logoSrc: string, size: number): Promise<string> {
  * reinstalla la PWA.
  */
 export function updatePWAManifest(tenant: Tenant): void {
-  const iconSrc = tenant.logo_url ?? '/icon-192.png';
+  // I blob URL non hanno base → tutti i path devono essere assoluti
+  const origin = window.location.origin;
+  const iconPng = `${origin}/icon-192.png`;
+  const iconLarge = `${origin}/icon-512.png`;
+  const iconSrc = tenant.logo_url ?? iconPng;
   const manifest = {
     name: tenant.name,
     short_name: tenant.name.split(' ')[0],
     description: `App di gestione per ${tenant.name}`,
-    start_url: '/',
-    scope: '/',
+    start_url: `${origin}/`,
+    scope: `${origin}/`,
     display: 'standalone',
     background_color: '#ffffff',
     theme_color: tenant.accent_color,
     orientation: 'any',
     icons: [
-      { src: iconSrc, sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: iconSrc, sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-      { src: iconSrc, sizes: '512x512', type: 'image/png', purpose: 'any' },
-      { src: iconSrc, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: iconSrc,    sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: iconSrc,    sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+      { src: iconLarge,  sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: iconLarge,  sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
     shortcuts: [
-      { name: 'Timbratura', short_name: 'Timbratura', url: '/timbratura' },
-      { name: 'Profilo',    short_name: 'Profilo',    url: '/profilo' },
+      { name: 'Timbratura', short_name: 'Timbratura', url: `${origin}/timbratura` },
+      { name: 'Profilo',    short_name: 'Profilo',    url: `${origin}/profilo` },
     ],
   };
 
