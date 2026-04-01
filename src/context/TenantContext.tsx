@@ -130,6 +130,71 @@ export function generateTenantLogoSvg(name: string, accent: string): string {
 }
 
 /**
+ * Aggiorna tutte le <link rel="icon"> e <link rel="apple-touch-icon">
+ * puntandole al logo del tenant (data URL SVG o URL remoto).
+ */
+function updateFavicon(logoSrc: string): void {
+  try {
+    // Rimuove tutti i favicon esistenti
+    document.querySelectorAll<HTMLLinkElement>(
+      'link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]'
+    ).forEach((el) => el.remove());
+
+    // Favicon principale SVG (tutti i browser moderni)
+    const svgLink = document.createElement('link');
+    svgLink.rel = 'icon';
+    svgLink.type = 'image/svg+xml';
+    svgLink.href = logoSrc;
+    document.head.appendChild(svgLink);
+
+    // Fallback PNG 32×32 (generato via Canvas)
+    generatePngFavicon(logoSrc, 32).then((png32) => {
+      const pngLink = document.createElement('link');
+      pngLink.rel = 'icon';
+      pngLink.type = 'image/png';
+      pngLink.sizes = '32x32';
+      pngLink.href = png32;
+      document.head.appendChild(pngLink);
+    }).catch(() => null);
+
+    // Apple touch icon 180×180
+    generatePngFavicon(logoSrc, 180).then((png180) => {
+      const appleLink = document.createElement('link');
+      appleLink.rel = 'apple-touch-icon';
+      appleLink.sizes = '180x180';
+      appleLink.href = png180;
+      document.head.appendChild(appleLink);
+    }).catch(() => null);
+  } catch {
+    // Silent fail in ambienti SSR/test
+  }
+}
+
+/**
+ * Renderizza il logo SVG su un Canvas e restituisce un PNG data URL.
+ * Usato per i fallback favicon PNG e apple-touch-icon.
+ */
+function generatePngFavicon(logoSrc: string, size: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('no ctx')); return; }
+        ctx.drawImage(img, 0, 0, size, size);
+        resolve(canvas.toDataURL('image/png'));
+      } catch (e) { reject(e); }
+    };
+    img.onerror = reject;
+    img.src = logoSrc;
+  });
+}
+
+/**
  * Aggiorna il Web App Manifest in-memory con i dati del tenant.
  * Funziona per la schermata "Aggiungi alla home" del browser.
  * Nota: le icone già installate non si aggiornano finché l'utente non
@@ -235,6 +300,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     if (appleTitleMeta) appleTitleMeta.content = t.name;
     const descMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     if (descMeta) descMeta.content = `Sistema di gestione per ${t.name}`;
+    // Favicon dinamica: sostituisce l'icona statica OB con quella del tenant corrente
+    const faviconSvg = t.logo_url ?? generateTenantLogoSvg(t.name, t.accent_color);
+    updateFavicon(faviconSvg);
   };
 
   useEffect(() => {
