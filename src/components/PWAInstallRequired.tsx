@@ -26,9 +26,9 @@ export default function PWAInstallRequired() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="w-24 h-24 rounded-2xl bg-white shadow-lg flex items-center justify-center mx-auto mb-8 overflow-hidden"
+          className="w-24 h-24 mx-auto mb-8 drop-shadow-xl"
         >
-          <img src={tenantLogoUrl} alt={tenantName} className="w-full h-full object-cover" />
+          <img src={tenantLogoUrl} alt={tenantName} className="w-full h-full" />
         </motion.div>
 
         {/* Titolo */}
@@ -96,7 +96,7 @@ export default function PWAInstallRequired() {
             <div>
               <p className="text-white font-semibold mb-2">{t.pwa_desktop_title}</p>
               <p className="text-white/90 text-sm leading-relaxed whitespace-pre-line">
-                {t.pwa_desktop_instructions}
+                {t.pwa_desktop_instructions.replace(/Osteria Basilico/g, tenantName)}
               </p>
             </div>
           )}

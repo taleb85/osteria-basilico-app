@@ -77,64 +77,56 @@ function darkenColor(hex: string, amount: number): string {
 /**
  * Genera un SVG stile "OB" con gradiente radiale, effetto vetro e testo gradiente.
  * Replica fedelmente il logo di Osteria Basilico sostituendo colore e iniziali.
+ * Nota: filtro drop-shadow rimosso per massima compatibilità browser quando usato come <img src>.
  * Restituisce un data URL usabile come <img src>.
  */
 export function generateTenantLogoSvg(name: string, accent: string): string {
   const initials = getTenantInitials(name);
-  // Lettere spaziatura: con 1 lettera usa font più grande, con 2 ok, con 3+ ridotto
   const fontSize = initials.length === 1 ? 310 : initials.length === 2 ? 278 : 190;
   const letterSpacing = initials.length <= 2 ? 24 : 10;
 
-  // Palette gradiente dal colore accent (replicando le proporzioni OB)
-  const c0 = lighten(accent, 0.42);   // stop 0%  — più chiaro (luce centro)
-  const c1 = lighten(accent, 0.18);   // stop 28% — leggermente chiaro
-  const c2 = accent;                   // stop 55% — colore base
-  const c3 = darkenColor(accent, 0.38); // stop 100% — scuro ai bordi
+  // Palette gradiente dal colore accent (proporzioni identiche al logo OB)
+  const c0 = lighten(accent, 0.42);      // stop 0%  — luce calda al centro
+  const c1 = lighten(accent, 0.18);      // stop 28% — leggermente chiaro
+  const c2 = accent;                      // stop 55% — colore base
+  const c3 = darkenColor(accent, 0.38);  // stop 100% — scuro ai bordi
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <radialGradient id="tg-bg" cx="38%" cy="26%" r="78%" fx="36%" fy="24%">
-      <stop offset="0%"   stop-color="${c0}"/>
-      <stop offset="28%"  stop-color="${c1}"/>
-      <stop offset="55%"  stop-color="${c2}"/>
-      <stop offset="100%" stop-color="${c3}"/>
-    </radialGradient>
-    <linearGradient id="tg-gloss" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.22"/>
-      <stop offset="35%"  stop-color="#FFFFFF" stop-opacity="0.06"/>
-      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
-    </linearGradient>
-    <linearGradient id="tg-text" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"   stop-color="#D1D9D4"/>
-      <stop offset="38%"  stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#F4FAF3"/>
-    </linearGradient>
-    <clipPath id="tg-clip">
-      <rect width="512" height="512" rx="120" ry="120"/>
-    </clipPath>
-    <filter id="tg-drop" x="-8%" y="-6%" width="116%" height="118%">
-      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.18"/>
-    </filter>
-  </defs>
-  <g filter="url(#tg-drop)">
-    <g clip-path="url(#tg-clip)">
-      <rect width="512" height="512" rx="120" ry="120" fill="url(#tg-bg)"/>
-      <rect width="512" height="220" x="0" y="0" fill="url(#tg-gloss)"/>
-    </g>
-  </g>
-  <text
-    x="256" y="250"
-    text-anchor="middle"
-    dominant-baseline="central"
-    text-rendering="geometricPrecision"
-    fill="url(#tg-text)"
-    font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
-    font-weight="800"
-    font-size="${fontSize}"
-    letter-spacing="${letterSpacing}"
-  >${initials}</text>
-</svg>`;
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  // SVG come stringa base64 — base64 è più robusto di encodeURIComponent per SVG complessi
+  const svg = [
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">',
+    '<defs>',
+    `<radialGradient id="g1" cx="38%" cy="26%" r="78%" fx="36%" fy="24%">`,
+    `<stop offset="0%" stop-color="${c0}"/>`,
+    `<stop offset="28%" stop-color="${c1}"/>`,
+    `<stop offset="55%" stop-color="${c2}"/>`,
+    `<stop offset="100%" stop-color="${c3}"/>`,
+    '</radialGradient>',
+    '<linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">',
+    '<stop offset="0%" stop-color="#fff" stop-opacity="0.22"/>',
+    '<stop offset="35%" stop-color="#fff" stop-opacity="0.07"/>',
+    '<stop offset="100%" stop-color="#fff" stop-opacity="0"/>',
+    '</linearGradient>',
+    '<linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">',
+    '<stop offset="0%" stop-color="#D1D9D4"/>',
+    '<stop offset="38%" stop-color="#FFFFFF"/>',
+    '<stop offset="100%" stop-color="#F4FAF3"/>',
+    '</linearGradient>',
+    '</defs>',
+    // Sfondo squircle con gradiente radiale
+    `<rect width="512" height="512" rx="120" ry="120" fill="url(#g1)"/>`,
+    // Gloss superiore (pillowed)
+    `<rect width="512" height="220" rx="120" ry="120" fill="url(#g2)"/>`,
+    // Testo iniziali con gradiente
+    `<text x="256" y="256" text-anchor="middle" dominant-baseline="central"`,
+    ` fill="url(#g3)"`,
+    ` font-family="system-ui,-apple-system,sans-serif"`,
+    ` font-weight="800" font-size="${fontSize}" letter-spacing="${letterSpacing}"`,
+    `>${initials}</text>`,
+    '</svg>',
+  ].join('');
+
+  // base64 garantisce compatibilità massima in tutti i browser per SVG come <img>
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
 
 /**
@@ -237,6 +229,12 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     setDatabaseTenant(t.id);
     applyTenantBrand(t.accent_color);
     updatePWAManifest(t);
+    // Titolo scheda browser + meta Apple
+    document.title = t.name;
+    const appleTitleMeta = document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-title"]');
+    if (appleTitleMeta) appleTitleMeta.content = t.name;
+    const descMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (descMeta) descMeta.content = `Sistema di gestione per ${t.name}`;
   };
 
   useEffect(() => {
