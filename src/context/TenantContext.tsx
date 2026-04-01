@@ -91,7 +91,7 @@ export function generateTenantLogoSvg(name: string, accent: string): string {
   const c2 = accent;                      // stop 55% — colore base
   const c3 = darkenColor(accent, 0.38);  // stop 100% — scuro ai bordi
 
-  // SVG come stringa base64 — base64 è più robusto di encodeURIComponent per SVG complessi
+  // SVG identico al logo OB: clipPath + drop shadow + gloss piatto clippato
   const svg = [
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">',
     '<defs>',
@@ -102,25 +102,32 @@ export function generateTenantLogoSvg(name: string, accent: string): string {
     `<stop offset="100%" stop-color="${c3}"/>`,
     '</radialGradient>',
     '<linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">',
-    '<stop offset="0%" stop-color="#fff" stop-opacity="0.22"/>',
-    '<stop offset="35%" stop-color="#fff" stop-opacity="0.07"/>',
-    '<stop offset="100%" stop-color="#fff" stop-opacity="0"/>',
+    '<stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.20"/>',
+    '<stop offset="35%" stop-color="#FFFFFF" stop-opacity="0.06"/>',
+    '<stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>',
     '</linearGradient>',
     '<linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">',
     '<stop offset="0%" stop-color="#D1D9D4"/>',
     '<stop offset="38%" stop-color="#FFFFFF"/>',
     '<stop offset="100%" stop-color="#F4FAF3"/>',
     '</linearGradient>',
+    '<clipPath id="gc"><rect width="512" height="512" rx="120" ry="120"/></clipPath>',
+    '<filter id="gd" x="-8%" y="-6%" width="116%" height="118%">',
+    '<feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.18"/>',
+    '</filter>',
     '</defs>',
-    // Sfondo squircle con gradiente radiale
-    `<rect width="512" height="512" rx="120" ry="120" fill="url(#g1)"/>`,
-    // Gloss superiore (pillowed)
-    `<rect width="512" height="220" rx="120" ry="120" fill="url(#g2)"/>`,
-    // Testo iniziali con gradiente
-    `<text x="256" y="256" text-anchor="middle" dominant-baseline="central"`,
+    '<g filter="url(#gd)">',
+    '<g clip-path="url(#gc)">',
+    '<rect width="512" height="512" rx="120" ry="120" fill="url(#g1)"/>',
+    '<rect width="512" height="220" x="0" y="0" fill="url(#g2)"/>',
+    '</g>',
+    '</g>',
+    `<text x="256" y="250" text-anchor="middle" dominant-baseline="central"`,
+    ` text-rendering="geometricPrecision"`,
     ` fill="url(#g3)"`,
-    ` font-family="system-ui,-apple-system,sans-serif"`,
+    ` font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"`,
     ` font-weight="800" font-size="${fontSize}" letter-spacing="${letterSpacing}"`,
+    ` font-feature-settings="'kern' 1"`,
     `>${initials}</text>`,
     '</svg>',
   ].join('');

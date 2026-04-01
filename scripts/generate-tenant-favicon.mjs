@@ -79,23 +79,35 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width
       <stop offset="100%" stop-color="${c3}"/>
     </radialGradient>
     <linearGradient id="tg-gl" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"   stop-color="#fff" stop-opacity="0.22"/>
-      <stop offset="35%"  stop-color="#fff" stop-opacity="0.07"/>
-      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.20"/>
+      <stop offset="35%"  stop-color="#FFFFFF" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="tg-tx" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%"   stop-color="#D1D9D4"/>
       <stop offset="38%"  stop-color="#FFFFFF"/>
       <stop offset="100%" stop-color="#F4FAF3"/>
     </linearGradient>
+    <clipPath id="tg-clip">
+      <rect width="512" height="512" rx="120" ry="120"/>
+    </clipPath>
+    <filter id="tg-drop" x="-8%" y="-6%" width="116%" height="118%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="120" ry="120" fill="url(#tg-bg)"/>
-  <rect width="512" height="220" rx="120" ry="120" fill="url(#tg-gl)"/>
-  <text x="256" y="256"
+  <g filter="url(#tg-drop)">
+    <g clip-path="url(#tg-clip)">
+      <rect width="512" height="512" rx="120" ry="120" fill="url(#tg-bg)"/>
+      <rect width="512" height="220" x="0" y="0" fill="url(#tg-gl)"/>
+    </g>
+  </g>
+  <text x="256" y="250"
     text-anchor="middle" dominant-baseline="central"
+    text-rendering="geometricPrecision"
     fill="url(#tg-tx)"
-    font-family="system-ui,-apple-system,sans-serif"
+    font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
     font-weight="800" font-size="${fontSize}" letter-spacing="${spacing}"
+    font-feature-settings="'kern' 1"
   >${inits}</text>
 </svg>`;
 
