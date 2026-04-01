@@ -51,19 +51,89 @@ export function getTenantInitials(name: string): string {
     .join('');
 }
 
+/** Converte un colore hex in { r, g, b }. */
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const n = parseInt(hex.replace('#', ''), 16);
+  return { r: (n >> 16) & 0xff, g: (n >> 8) & 0xff, b: n & 0xff };
+}
+
+/** Converte { r, g, b } in stringa hex. */
+function rgbToHex(r: number, g: number, b: number): string {
+  return `#${[r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** Schiarisce un colore hex mescolandolo con il bianco (amount 0-1). */
+function lighten(hex: string, amount: number): string {
+  const { r, g, b } = hexToRgb(hex);
+  return rgbToHex(r + (255 - r) * amount, g + (255 - g) * amount, b + (255 - b) * amount);
+}
+
+/** Scurisce un colore hex (amount 0-1). */
+function darkenColor(hex: string, amount: number): string {
+  const { r, g, b } = hexToRgb(hex);
+  return rgbToHex(r * (1 - amount), g * (1 - amount), b * (1 - amount));
+}
+
 /**
- * Genera un'icona SVG con le iniziali del tenant e il colore accent.
+ * Genera un SVG stile "OB" con gradiente radiale, effetto vetro e testo gradiente.
+ * Replica fedelmente il logo di Osteria Basilico sostituendo colore e iniziali.
  * Restituisce un data URL usabile come <img src>.
  */
 export function generateTenantLogoSvg(name: string, accent: string): string {
   const initials = getTenantInitials(name);
-  const fontSize = initials.length > 2 ? 28 : 36;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-    <rect width="100" height="100" rx="20" fill="${accent}"/>
-    <text x="50" y="52" text-anchor="middle" dominant-baseline="middle"
-      fill="white" font-family="system-ui,-apple-system,sans-serif"
-      font-weight="bold" font-size="${fontSize}">${initials}</text>
-  </svg>`;
+  // Lettere spaziatura: con 1 lettera usa font più grande, con 2 ok, con 3+ ridotto
+  const fontSize = initials.length === 1 ? 310 : initials.length === 2 ? 278 : 190;
+  const letterSpacing = initials.length <= 2 ? 24 : 10;
+
+  // Palette gradiente dal colore accent (replicando le proporzioni OB)
+  const c0 = lighten(accent, 0.42);   // stop 0%  — più chiaro (luce centro)
+  const c1 = lighten(accent, 0.18);   // stop 28% — leggermente chiaro
+  const c2 = accent;                   // stop 55% — colore base
+  const c3 = darkenColor(accent, 0.38); // stop 100% — scuro ai bordi
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="tg-bg" cx="38%" cy="26%" r="78%" fx="36%" fy="24%">
+      <stop offset="0%"   stop-color="${c0}"/>
+      <stop offset="28%"  stop-color="${c1}"/>
+      <stop offset="55%"  stop-color="${c2}"/>
+      <stop offset="100%" stop-color="${c3}"/>
+    </radialGradient>
+    <linearGradient id="tg-gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="35%"  stop-color="#FFFFFF" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="tg-text" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#D1D9D4"/>
+      <stop offset="38%"  stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F4FAF3"/>
+    </linearGradient>
+    <clipPath id="tg-clip">
+      <rect width="512" height="512" rx="120" ry="120"/>
+    </clipPath>
+    <filter id="tg-drop" x="-8%" y="-6%" width="116%" height="118%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <g filter="url(#tg-drop)">
+    <g clip-path="url(#tg-clip)">
+      <rect width="512" height="512" rx="120" ry="120" fill="url(#tg-bg)"/>
+      <rect width="512" height="220" x="0" y="0" fill="url(#tg-gloss)"/>
+    </g>
+  </g>
+  <text
+    x="256" y="250"
+    text-anchor="middle"
+    dominant-baseline="central"
+    text-rendering="geometricPrecision"
+    fill="url(#tg-text)"
+    font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+    font-weight="800"
+    font-size="${fontSize}"
+    letter-spacing="${letterSpacing}"
+  >${initials}</text>
+</svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
