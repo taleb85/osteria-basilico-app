@@ -218,6 +218,11 @@ export const database = {
       }
 
       if (error) {
+        // 409 = conflitto unico (utente già esistente): non è un errore critico nel seed
+        if (error.code === '23505' || (error as { status?: number }).status === 409) {
+          console.warn('[database.users.insert] utente già esistente, skip', error.message);
+          return null;
+        }
         console.error('[database.users.insert] insert core fallito', error);
         throw error;
       }

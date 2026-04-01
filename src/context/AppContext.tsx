@@ -603,8 +603,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const loadInitialData = async () => {
     try {
-      let loadedUsers = await database.users.getAll().catch(() => []);
-      if (loadedUsers.length === 0) {
+      let getAllError = false;
+      let loadedUsers = await database.users.getAll().catch(() => { getAllError = true; return []; });
+      // Seed solo se il DB è genuinamente vuoto (non in caso di errore di rete)
+      if (loadedUsers.length === 0 && !getAllError) {
         for (const staffMember of initialStaff) {
           await database.users.insert(staffMember).catch(() => null);
         }

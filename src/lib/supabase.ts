@@ -43,6 +43,8 @@ export const supabaseAdmin: SupabaseClient | null = supabaseUrl && serviceRoleKe
         persistSession: false,
         autoRefreshToken: false,
         detectSessionInUrl: false,
+        // Chiave storage separata per evitare il warning "Multiple GoTrueClient instances"
+        storageKey: 'sb-admin-auth-token',
       },
     })
   : null;
