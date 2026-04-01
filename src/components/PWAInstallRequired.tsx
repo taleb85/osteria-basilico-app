@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Share, MoreHorizontal } from 'lucide-react';
+import { Share, MoreHorizontal, Download } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { isIOS, isAndroid, isDesktop } from '../utils/pwaStandalone';
 import { useApp } from '../context/appContextCore';
 import { getTranslations } from '../utils/translations';
@@ -11,11 +12,32 @@ export default function PWAInstallRequired() {
   const t = getTranslations(effectiveLanguage);
   const tenantName = tenant?.name ?? 'Osteria Basilico';
   const BG_COLOR = tenant?.accent_color ?? '#2D5A27';
-  // Calcola il logo usando i fallback già corretti — evita il flash "A" durante il caricamento
   const logoSrc = tenant?.logo_url ?? generateTenantLogoSvg(tenantName, BG_COLOR);
   const ios = isIOS();
   const android = isAndroid();
   const desktop = isDesktop();
+
+  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
+  const [installing, setInstalling] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    setInstalling(true);
+    const prompt = deferredPrompt as Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
+    prompt.prompt();
+    await prompt.userChoice;
+    setInstalling(false);
+    setDeferredPrompt(null);
+  };
 
   return (
     <div
@@ -78,28 +100,56 @@ export default function PWAInstallRequired() {
             </div>
           )}
           {android && (
-            <div className="flex gap-4 items-start">
-              <motion.div
-                animate={{ scale: [1, 1.08, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 ring-2 ring-white/30"
-              >
-                <MoreHorizontal className="w-6 h-6 text-white" />
-              </motion.div>
-              <div>
-                <p className="text-white font-semibold mb-1">{t.pwa_android_title}</p>
-                <p className="text-white/90 text-sm leading-relaxed">
-                  {t.pwa_android_instructions}
-                </p>
-              </div>
+            <div className="space-y-4">
+              {deferredPrompt ? (
+                <button
+                  onClick={handleInstall}
+                  disabled={installing}
+                  className="w-full flex items-center justify-center gap-3 bg-white text-sm font-semibold py-3 px-5 rounded-xl shadow-md transition active:scale-95 disabled:opacity-60"
+                  style={{ color: BG_COLOR }}
+                >
+                  <Download className="w-5 h-5" />
+                  {installing ? 'Installazione…' : `Installa ${tenantName}`}
+                </button>
+              ) : (
+                <div className="flex gap-4 items-start">
+                  <motion.div
+                    animate={{ scale: [1, 1.08, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                    className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 ring-2 ring-white/30"
+                  >
+                    <MoreHorizontal className="w-6 h-6 text-white" />
+                  </motion.div>
+                  <div>
+                    <p className="text-white font-semibold mb-1">{t.pwa_android_title}</p>
+                    <p className="text-white/90 text-sm leading-relaxed">
+                      {t.pwa_android_instructions}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           {desktop && (
-            <div>
-              <p className="text-white font-semibold mb-2">{t.pwa_desktop_title}</p>
-              <p className="text-white/90 text-sm leading-relaxed whitespace-pre-line">
-                {t.pwa_desktop_instructions.replace(/Osteria Basilico/g, tenantName)}
-              </p>
+            <div className="space-y-4">
+              {deferredPrompt ? (
+                <button
+                  onClick={handleInstall}
+                  disabled={installing}
+                  className="w-full flex items-center justify-center gap-3 bg-white text-sm font-semibold py-3 px-5 rounded-xl shadow-md transition active:scale-95 disabled:opacity-60"
+                  style={{ color: BG_COLOR }}
+                >
+                  <Download className="w-5 h-5" />
+                  {installing ? 'Installazione…' : `Installa ${tenantName}`}
+                </button>
+              ) : (
+                <div>
+                  <p className="text-white font-semibold mb-2">{t.pwa_desktop_title}</p>
+                  <p className="text-white/90 text-sm leading-relaxed whitespace-pre-line">
+                    {t.pwa_desktop_instructions.replace(/Osteria Basilico/g, tenantName)}
+                  </p>
+                </div>
+              )}
             </div>
           )}
           {!ios && !android && !desktop && (
