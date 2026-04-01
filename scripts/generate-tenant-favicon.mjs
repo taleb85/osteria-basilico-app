@@ -10,6 +10,7 @@
 import { readFileSync, writeFileSync, copyFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import sharp from 'sharp';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
@@ -19,10 +20,18 @@ const slug   = process.env.VITE_TENANT_SLUG   ?? '';
 const title  = process.env.VITE_APP_TITLE      ?? 'Osteria Basilico';
 const accent = process.env.VITE_TENANT_ACCENT  ?? '#2D5A27';
 
+// Genera apple-touch-icon.png da un SVG buffer
+async function svgToPng(svgBuffer, outPath, size = 180) {
+  await sharp(svgBuffer).resize(size, size).png().toFile(outPath);
+}
+
 // Se non c'è uno slug specifico → Osteria Basilico → copia logo originale come icon.svg
 if (!slug || slug === 'osteria-basilico') {
   copyFileSync(join(publicDir, 'logo-ob.svg'), join(publicDir, 'icon.svg'));
-  console.log('[favicon] Osteria Basilico → icon.svg = logo-ob.svg originale');
+  // Rigenera apple-touch-icon.png da logo-ob.svg per Safari
+  const obSvg = readFileSync(join(publicDir, 'logo-ob.svg'));
+  await svgToPng(obSvg, join(publicDir, 'apple-touch-icon.png'), 180);
+  console.log('[favicon] Osteria Basilico → icon.svg = logo-ob.svg originale, apple-touch-icon.png rigenerato');
   process.exit(0);
 }
 
@@ -91,4 +100,8 @@ writeFileSync(join(publicDir, 'icon.svg'), svg, 'utf-8');
 // Sovrascrive anche favicon.ico con un SVG (browser moderni accettano SVG come favicon)
 writeFileSync(join(publicDir, 'favicon.ico'), svg, 'utf-8');
 
-console.log(`[favicon] Generato favicon per "${title}" (${inits}) con accent ${accent}`);
+// Genera apple-touch-icon.png per Safari (ignora SVG)
+const svgBuffer = Buffer.from(svg, 'utf-8');
+await svgToPng(svgBuffer, join(publicDir, 'apple-touch-icon.png'), 180);
+
+console.log(`[favicon] Generato favicon per "${title}" (${inits}) con accent ${accent} + apple-touch-icon.png per Safari`);
