@@ -201,9 +201,17 @@ export default function StaffPersonalDashboard({
       return;
     }
 
-    // Chrome/Android: listen for the browser's install prompt
+    // Legge il prompt già catturato in index.html prima del caricamento di React
+    const already = (window as { __deferredInstallPrompt?: Event }).__deferredInstallPrompt;
+    if (already) {
+      setDeferredInstallPrompt(already);
+      setShowInstallBanner(true);
+      return;
+    }
+    // Fallback: ascolta nel caso il componente monti prima del prompt
     const handler = (e: Event) => {
       e.preventDefault();
+      (window as { __deferredInstallPrompt?: Event }).__deferredInstallPrompt = e;
       setDeferredInstallPrompt(e);
       setShowInstallBanner(true);
     };

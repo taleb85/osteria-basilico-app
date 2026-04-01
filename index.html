@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="it">
   <head>
+    <!-- Cattura beforeinstallprompt prima che React carichi (race condition fix) -->
+    <script>
+      window.__deferredInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.__deferredInstallPrompt = e;
+      });
+    </script>
     <script>
       (function(){
         var t=localStorage.getItem('userTheme')||localStorage.getItem('theme');

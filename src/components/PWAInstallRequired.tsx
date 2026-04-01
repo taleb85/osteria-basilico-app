@@ -21,8 +21,16 @@ export default function PWAInstallRequired() {
   const [installing, setInstalling] = useState(false);
 
   useEffect(() => {
+    // Legge il prompt già catturato in index.html prima del caricamento di React
+    const already = (window as { __deferredInstallPrompt?: Event }).__deferredInstallPrompt;
+    if (already) {
+      setDeferredPrompt(already);
+      return;
+    }
+    // Fallback: ascolta nel caso il componente monti prima del prompt
     const handler = (e: Event) => {
       e.preventDefault();
+      (window as { __deferredInstallPrompt?: Event }).__deferredInstallPrompt = e;
       setDeferredPrompt(e);
     };
     window.addEventListener('beforeinstallprompt', handler);
