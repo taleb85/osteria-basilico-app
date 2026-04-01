@@ -3,14 +3,16 @@ import { Share, MoreHorizontal } from 'lucide-react';
 import { isIOS, isAndroid, isDesktop } from '../utils/pwaStandalone';
 import { useApp } from '../context/appContextCore';
 import { getTranslations } from '../utils/translations';
-import { useTenant } from '../context/TenantContext';
+import { useTenant, generateTenantLogoSvg } from '../context/TenantContext';
 
 export default function PWAInstallRequired() {
   const { effectiveLanguage } = useApp();
-  const { tenant, tenantLogoUrl } = useTenant();
+  const { tenant } = useTenant();
   const t = getTranslations(effectiveLanguage);
   const tenantName = tenant?.name ?? 'Osteria Basilico';
   const BG_COLOR = tenant?.accent_color ?? '#2D5A27';
+  // Calcola il logo usando i fallback già corretti — evita il flash "A" durante il caricamento
+  const logoSrc = tenant?.logo_url ?? generateTenantLogoSvg(tenantName, BG_COLOR);
   const ios = isIOS();
   const android = isAndroid();
   const desktop = isDesktop();
@@ -28,7 +30,7 @@ export default function PWAInstallRequired() {
           transition={{ duration: 0.4, ease: 'easeOut' }}
           className="w-24 h-24 mx-auto mb-8 drop-shadow-xl"
         >
-          <img src={tenantLogoUrl} alt={tenantName} className="w-full h-full" />
+          <img src={logoSrc} alt={tenantName} className="w-full h-full" />
         </motion.div>
 
         {/* Titolo */}

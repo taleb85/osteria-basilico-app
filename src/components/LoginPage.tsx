@@ -16,7 +16,7 @@ import {
   getLoginNamePinFailureKind,
   pinMatchesStored,
 } from '../utils/loginIdentifier';
-import { useTenant } from '../context/TenantContext';
+import { useTenant, generateTenantLogoSvg } from '../context/TenantContext';
 import {
   supportsPinUnlockWebAuthn,
   registerPinUnlockCredential,
@@ -32,8 +32,10 @@ interface LoginPageProps {
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const { users, setCurrentUser, setLanguage } = useApp();
-  const { tenant, tenantLogoUrl } = useTenant();
+  const { tenant } = useTenant();
   const tenantName = tenant?.name ?? 'Osteria Basilico';
+  const tenantAccent = tenant?.accent_color ?? '#2D5A27';
+  const logoSrc = tenant?.logo_url ?? generateTenantLogoSvg(tenantName, tenantAccent);
   const [searchParams] = useSearchParams();
   const inviteUserId = searchParams.get('u')?.trim() ?? '';
   const inviteNameFromUrl = (searchParams.get('n') ?? '').trim();
@@ -261,7 +263,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         {/* Logo — protagonista visivo: più spazio e tipografia grande */}
         <div className="flex flex-col items-center mb-5 sm:mb-6 min-h-[min(260px,46vh)] sm:min-h-[min(300px,50vh)] justify-center py-8 sm:py-10">
           <div className="w-[7.25rem] h-[7.25rem] sm:w-32 sm:h-32 mb-7 sm:mb-8 drop-shadow-2xl">
-            <img src={tenantLogoUrl} alt={tenantName} className="w-full h-full" />
+            <img src={logoSrc} alt={tenantName} className="w-full h-full" />
           </div>
           <h1 className="font-logo-snell text-[49px] leading-none text-accent dark:text-white tracking-tight mb-3 sm:mb-4 text-center px-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.12)] dark:drop-shadow-none dark:[text-shadow:none]">
             {tenantName}
