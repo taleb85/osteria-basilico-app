@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { LogOut, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useTenant } from '../context/TenantContext';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { getDateLocale, getTranslations } from '../utils/translations';
 import UserAvatarMenu from './UserAvatarMenu';
@@ -15,6 +16,8 @@ interface AppHeaderProps {
 
 export default function AppHeader({ onLogout }: AppHeaderProps) {
   const { currentUser, effectiveLanguage, setLanguage } = useApp();
+  const { tenant } = useTenant();
+  const tenantName = tenant?.name ?? 'Osteria Basilico';
   const now = useWallAlignedMinuteClock();
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
@@ -44,12 +47,12 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
       <div className="w-full px-3 sm:px-6 py-1.5 sm:py-2.5 flex items-center justify-between gap-2">
         {/* Logo — nascosto su desktop (gestito dalla Sidebar) */}
         <h1 className="font-logo-snell text-[35px] text-accent dark:text-white tracking-tight min-w-0 flex-1 truncate pr-2 leading-[33px] md:hidden">
-          Osteria Basilico
+          {tenantName}
         </h1>
         {/* Brand su desktop (la sidebar non ha più l'header) */}
         <div className="hidden md:flex flex-col justify-center min-w-0 flex-1">
           <h1 className="font-logo-snell text-[22px] text-accent dark:text-white tracking-tight leading-tight truncate">
-            Osteria Basilico
+            {tenantName}
           </h1>
           <p className="text-[9px] text-slate-400 dark:text-neutral-400 font-semibold uppercase tracking-widest leading-none">
             {t.header_tagline}

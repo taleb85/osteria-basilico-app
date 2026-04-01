@@ -3,12 +3,14 @@ import { Share, MoreHorizontal } from 'lucide-react';
 import { isIOS, isAndroid, isDesktop } from '../utils/pwaStandalone';
 import { useApp } from '../context/appContextCore';
 import { getTranslations } from '../utils/translations';
-
-const BG_COLOR = '#2D5A27'; // Verde Basilico
+import { useTenant } from '../context/TenantContext';
 
 export default function PWAInstallRequired() {
   const { effectiveLanguage } = useApp();
+  const { tenant, tenantLogoUrl } = useTenant();
   const t = getTranslations(effectiveLanguage);
+  const tenantName = tenant?.name ?? 'Osteria Basilico';
+  const BG_COLOR = tenant?.accent_color ?? '#2D5A27';
   const ios = isIOS();
   const android = isAndroid();
   const desktop = isDesktop();
@@ -26,7 +28,7 @@ export default function PWAInstallRequired() {
           transition={{ duration: 0.4, ease: 'easeOut' }}
           className="w-24 h-24 rounded-2xl bg-white shadow-lg flex items-center justify-center mx-auto mb-8 overflow-hidden"
         >
-          <img src="/logo-ob.svg" alt="Osteria Basilico" className="w-full h-full object-contain p-2" />
+          <img src={tenantLogoUrl} alt={tenantName} className="w-full h-full object-cover" />
         </motion.div>
 
         {/* Titolo */}
@@ -36,7 +38,7 @@ export default function PWAInstallRequired() {
           transition={{ duration: 0.4, delay: 0.1 }}
           className="font-logo-snell text-xl sm:text-2xl text-white tracking-tight leading-tight mb-3 px-1"
         >
-          {t.pwa_title}
+          {t.pwa_title.replace('Osteria Basilico', tenantName)}
         </motion.h1>
 
         {/* Sottotitolo */}

@@ -1,3 +1,40 @@
+/** Parametri configurabili per sede — salvati in tenants.settings (JSONB). */
+export interface TenantSettings {
+  /** Timezone IANA, es. 'Europe/Rome' */
+  timezone?: string;
+  /** Lingua predefinita per i nuovi utenti */
+  defaultLanguage?: 'it' | 'en' | 'es' | 'fr';
+  /** Feature flag attivi/disattivi per questa sede */
+  featureFlags?: Record<string, boolean>;
+  /** Regole lavoro predefinite */
+  workRules?: {
+    maxDailyHours?: number;
+    maxDailyHoursEnabled?: boolean;
+    maxWeeklyHours?: number;
+    maxWeeklyHoursEnabled?: boolean;
+    minRestHours?: number;
+    minRestHoursEnabled?: boolean;
+    lateThresholdMinutes?: number;
+    lateThresholdEnabled?: boolean;
+    criticEnabled?: boolean;
+    attentionEnabled?: boolean;
+    overlapEnabled?: boolean;
+  };
+  /** Geofence predefinita */
+  geofence?: {
+    lat: number;
+    lng: number;
+    radiusM: number;
+  } | null;
+  /** Moduli attivi per questa sede */
+  modules?: {
+    timesheets?: boolean;
+    shifts?: boolean;
+    holidays?: boolean;
+    statistics?: boolean;
+  };
+}
+
 /** Configurazione di una sede (tenant). */
 export interface Tenant {
   id: string;
@@ -7,6 +44,7 @@ export interface Tenant {
   logo_url?: string | null;
   plan?: string;
   is_active: boolean;
+  settings: TenantSettings;
   created_at: string;
   updated_at: string;
 }

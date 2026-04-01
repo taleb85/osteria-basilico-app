@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useTenant } from '../context/TenantContext';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import type { User as UserType, Shift, Language } from '../types';
 import { format } from 'date-fns';
@@ -99,8 +100,8 @@ function filterShiftsToClosestUnpunched(
   });
 }
 
-/** Logo Osteria Basilico - layout orizzontale (per overlay) */
-function BrandLogo({ className = '', light }: { className?: string; light?: boolean }) {
+/** Logo sede - layout orizzontale (per overlay) */
+function BrandLogo({ className = '', light, name }: { className?: string; light?: boolean; name: string }) {
   const textClass = light ? 'text-white' : 'text-slate-900';
   return (
     <div className={`flex items-center justify-center gap-2 ${className}`}>
@@ -112,23 +113,23 @@ function BrandLogo({ className = '', light }: { className?: string; light?: bool
         <Clock className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2} />
       </motion.div>
       <span className={`font-logo-snell text-xl sm:text-2xl font-medium tracking-tight ${textClass}`}>
-        Osteria Basilico
+        {name}
       </span>
     </div>
   );
 }
 
-/** Logo Osteria Basilico - Snell Roundhand Bold, extra large, centrato (font preservato) + ombra nera chic */
-function StraightLogo() {
+/** Logo sede - Snell Roundhand Bold, extra large, centrato (font preservato) + ombra nera chic */
+function StraightLogo({ name }: { name: string }) {
   return (
     <h1 className="font-logo-snell text-7xl sm:text-8xl text-accent dark:text-white text-center mt-6 sm:mt-8 tracking-tight w-full drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] [text-shadow:0_2px_8px_rgba(0,0,0,0.2),0_4px_16px_rgba(0,0,0,0.12)] dark:drop-shadow-none dark:[text-shadow:none]">
-      Osteria Basilico
+      {name}
     </h1>
   );
 }
 
 /** Header centrato: Logo + data/ora + eventuale azione sotto la data (font logo preservato) */
-function GiantBrandHeader({ now, locale, children }: { now: Date; locale: ReturnType<typeof getDateLocale>; children?: React.ReactNode }) {
+function GiantBrandHeader({ now, locale, name, children }: { now: Date; locale: ReturnType<typeof getDateLocale>; name: string; children?: React.ReactNode }) {
   return (
     <header className="flex flex-col items-center justify-center py-4 sm:py-6 flex-shrink-0">
       <motion.div
@@ -136,7 +137,7 @@ function GiantBrandHeader({ now, locale, children }: { now: Date; locale: Return
         animate={{ opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }}
         className="flex flex-col items-center w-full"
       >
-        <StraightLogo />
+        <StraightLogo name={name} />
         <p className="text-sm sm:text-base text-slate-600 dark:text-neutral-200 font-sans font-semibold tracking-tight mt-2">
           {format(now, 'EEEE d MMMM · HH:mm', { locale })}
         </p>
@@ -148,6 +149,8 @@ function GiantBrandHeader({ now, locale, children }: { now: Date; locale: Return
 
 export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   const { users, shifts, punchRecords, addPunchRecord, showError } = useApp();
+  const { tenant } = useTenant();
+  const tenantName = tenant?.name ?? 'Osteria Basilico';
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(KIOSK_UI_LANGUAGE);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
@@ -521,7 +524,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
 
   return (
     <div className="min-h-screen overflow-hidden bg-[#f8fafc] text-slate-900 dark:bg-[#0a0a0a] dark:text-neutral-100 flex flex-col p-6 sm:p-8 relative">
-      <GiantBrandHeader now={now} locale={dateLocale}>
+      <GiantBrandHeader now={now} locale={dateLocale} name={tenantName}>
         <button
           type="button"
           onClick={onGoToLogin}

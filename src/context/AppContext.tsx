@@ -28,6 +28,7 @@ import { formatTrans, getTranslations } from '../utils/translations';
 import { countUnreadNotifications } from '../utils/notifications';
 import { setAppLauncherBadgeUnreadCountAsync } from '../utils/appIconBadge';
 import { logHistory, logShiftEdit } from '../utils/scheduleHistory';
+import { useTenant } from './TenantContext';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
 import {
   canOperateTeamSchedule,
@@ -215,6 +216,8 @@ function sessionUserFromLoadedUsersList(prev: User | null, loadedUsers: User[]):
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { isLoading: tenantIsLoading, tenantSettings } = useTenant();
+  const tenantSettingsRef = useRef(tenantSettings);
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const currentUserRef = useRef<User | null>(null);
@@ -496,12 +499,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [markManagementDataTouched]);
 
+  useEffect(() => { tenantSettingsRef.current = tenantSettings; }, [tenantSettings]);
+
   useEffect(() => {
     // null → applyDocumentTheme segue prefers-color-scheme
     applyDocumentTheme(readStoredThemePreference() ?? null);
-    loadInitialData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once; loadInitialData omitted intentionally
   }, []);
+
+  useEffect(() => {
+    // Aspetta che TenantContext abbia caricato il tenant e impostato _tenantId
+    // in database.ts, altrimenti le query partono senza filtro tenant_id
+    if (tenantIsLoading) return;
+    loadInitialData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- si vuole eseguire una sola volta quando il tenant è pronto
+  }, [tenantIsLoading]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -674,6 +685,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 const merged = { ...local, ...sbFlagsOnly };
                 setFeatureFlagsState(merged);
                 writeFeatureFlagsToStorage(merged);
+              } else {
+                // Fallback: tenant.settings.featureFlags dal Super Admin
+                const ts = tenantSettingsRef.current;
+                if (ts?.featureFlags && Object.keys(ts.featureFlags).length > 0) {
+                  const local = getLocalFeatureFlags();
+                  const merged = { ...ts.featureFlags, ...local };
+                  setFeatureFlagsState(merged);
+                  writeFeatureFlagsToStorage(merged);
+                }
               }
             }
             applyAppSettingsBundle(bundle);
@@ -690,6 +710,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
               const merged = { ...local, ...sbFlags };
               setFeatureFlagsState(merged);
               writeFeatureFlagsToStorage(merged);
+            } else {
+              // Fallback: tenant.settings.featureFlags dal Super Admin
+              const ts = tenantSettingsRef.current;
+              if (ts?.featureFlags && Object.keys(ts.featureFlags).length > 0) {
+                const local = getLocalFeatureFlags();
+                const merged = { ...ts.featureFlags, ...local };
+                setFeatureFlagsState(merged);
+                writeFeatureFlagsToStorage(merged);
+              }
             }
             const rtRemote = await loadRoleFeatureTemplatesFromSupabase().catch(() => null);
             const rtLocal = getLocalRoleFeatureTemplates();
@@ -712,7 +741,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (wrSb) {
               setWorkRulesState(wrSb);
               saveWorkRules(wrSb);
-            } else setWorkRulesState(getWorkRules());
+            } else {
+              // Fallback: tenant.settings.workRules dal Super Admin
+              const ts = tenantSettingsRef.current;
+              const seedWr = ts?.workRules ? { ...DEFAULT_WORK_RULES, ...ts.workRules } : getWorkRules();
+              setWorkRulesState(seedWr);
+            }
             if (brSb) setBreakRulesState(brSb);
             else setBreakRulesState(getBreakRules());
             const deptRemoteBootElse = await loadDepartmentsFromSupabase().catch(() => null);
@@ -722,8 +756,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } else {
           await refreshGeofenceEffectiveConfig();
           await refreshPresenceVerificationConfig();
-          setWorkRulesState(getWorkRules());
+          const ts = tenantSettingsRef.current;
+          // Usa tenant.settings come fallback se non c'è nulla in localStorage
+          const localWr = getWorkRules();
+          const hasLocalWr = localStorage.getItem('osteria_work_rules') !== null;
+          setWorkRulesState(hasLocalWr ? localWr : (ts?.workRules ? { ...DEFAULT_WORK_RULES, ...ts.workRules } : localWr));
           setBreakRulesState(getBreakRules());
+          if (ts?.featureFlags && Object.keys(ts.featureFlags).length > 0 && localStorage.getItem('osteria_app_features_v2') === null) {
+            setFeatureFlagsState(ts.featureFlags as FeatureFlags);
+            writeFeatureFlagsToStorage(ts.featureFlags as FeatureFlags);
+          }
         }
     } catch (error) {
       console.error('Errore durante il caricamento iniziale:', error);
