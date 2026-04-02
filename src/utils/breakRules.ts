@@ -268,6 +268,12 @@ export function getBreakMinutesForShift(
   if (options?.autoBreaksFeatureEnabled === false) {
     return 0;
   }
+  // Turni che attraversano la mezzanotte: l'auto-break non si applica
+  const startStr = (options?.breakRuleWindow?.start ?? shift.start_time ?? '').slice(0, 5);
+  const endStr   = (options?.breakRuleWindow?.end   ?? shift.end_time   ?? '').slice(0, 5);
+  if (startStr && endStr && toMinutes(endStr) <= toMinutes(startStr)) {
+    return 0;
+  }
   if (grossMinutes >= AUTO_BREAK_THRESHOLD_MINUTES) {
     return DEFAULT_AUTO_BREAK_MINUTES;
   }

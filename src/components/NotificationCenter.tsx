@@ -54,7 +54,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
         className={`relative flex items-center justify-center transition-all h-full w-full text-slate-600 dark:text-slate-600 hover:text-slate-900 dark:hover:text-slate-900`}
         title={t.profile_notifications}
       >
-        <Bell className={`${denseTrigger ? 'h-4 w-4' : 'h-5 w-5'} ${unreadCount > 0 ? 'animate-ring text-accent dark:text-accent' : ''}`} />
+        <Bell className={`${denseTrigger ? 'h-4 w-4' : 'h-5 w-5'} ${unreadCount > 0 ? 'animate-ring text-red-500 dark:text-red-400' : ''}`} />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-neutral-950">
             {unreadCount > 9 ? '9+' : unreadCount}
@@ -88,7 +88,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
                   <div
                     key={n.id}
                     className={`relative flex gap-3 rounded-2xl p-4 transition-colors ${
-                      !seenIds.has(n.id) ? 'bg-accent/5 dark:bg-accent/10' : 'hover:bg-slate-50 dark:hover:bg-neutral-800/50'
+                      !seenIds.has(n.id) ? 'bg-accent/[0.06] dark:bg-accent/[0.10]' : 'hover:bg-slate-50 dark:hover:bg-neutral-800/50'
                     }`}
                   >
                     <div className="mt-0.5 shrink-0">{getIcon(n.type, n.severity)}</div>
@@ -100,7 +100,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
                       </p>
                     </div>
                     {!seenIds.has(n.id) && (
-                      <div className="absolute top-4 right-4 h-2 w-2 rounded-full bg-accent" />
+                      <div className="absolute top-4 right-4 h-2 w-2 rounded-full bg-red-500" />
                     )}
                   </div>
                 ))}

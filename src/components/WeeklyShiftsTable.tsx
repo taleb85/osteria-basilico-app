@@ -2,7 +2,7 @@ import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } fr
 import { format, startOfWeek, endOfWeek, addDays, differenceInCalendarDays, parseISO, isToday, eachDayOfInterval, getDay } from 'date-fns';
 import { database } from '../lib/database';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu, ClipboardCopy, ClipboardPaste } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu, ClipboardCopy, ClipboardPaste, Calendar } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
@@ -34,7 +34,10 @@ import {
   canEditTeamShifts,
   canPublishScheduleDrafts,
   canApproveShiftActions,
+  findFreezeVerifierByPin,
+  findFreezeVerifierById,
 } from '../utils/permissions';
+import { PinPadModal } from './ui/PinPadModal';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { isFeatureEnabled, isAdminModuleEnabled } from '../utils/enabledFeatures';
 import { getHiddenDates, toggleHiddenDate } from '../utils/hiddenPeriods';
@@ -313,15 +316,24 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [periodDraftStart, setPeriodDraftStart] = useState<string>(initialPeriod.startDate);
   const [periodDraftNumWeeks, setPeriodDraftNumWeeks] = useState<4 | 5>(initialPeriod.numWeeks);
   const [periodDraftSaved, setPeriodDraftSaved] = useState(true);
-  const [weekIndex, setWeekIndex] = useState(() => weekIndexForDateInPeriod(initialPeriod));
+  /** Stessa chiave sessionStorage usata da Timesheets per sincronizzare la settimana. */
+  const wstWeekStorageKey = `osteria_ts_weekIdx_${initialPeriod.startDate}_${initialPeriod.numWeeks}`;
+  const [weekIndex, setWeekIndex] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem(wstWeekStorageKey);
+      if (raw != null) {
+        const n = parseInt(raw, 10);
+        if (Number.isFinite(n) && n >= 0) return Math.min(n, initialPeriod.numWeeks - 1);
+      }
+    } catch { /* ignore */ }
+    return weekIndexForDateInPeriod(initialPeriod);
+  });
 
-  // Quando la scheda diventa attiva, riporta la visualizzazione alla settimana corrente
+  // Persisti la settimana selezionata in sessionStorage (sincronizza con Presenze)
   useEffect(() => {
-    const currentWeekIdx = weekIndexForDateInPeriod(periodConfig);
-    if (weekIndex !== currentWeekIdx) {
-      setWeekIndex(currentWeekIdx);
-    }
-  }, [periodConfig]);
+    try { sessionStorage.setItem(wstWeekStorageKey, String(weekIndex)); } catch { /* ignore */ }
+  }, [weekIndex, wstWeekStorageKey]);
+
   const [viewMode, setViewMode] = useState<'week' | '2weeks' | 'day' | 'month'>('week');
   /** Vista periodo: offset in settimane; frecce spostano di un intero periodo di paga (4 o 5 sett.). */
   const [periodPanOffsetWeeks, setPeriodPanOffsetWeeks] = useState(0);
@@ -392,6 +404,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [drawerPunchAudits, setDrawerPunchAudits] = useState<PunchAuditEntry[]>([]);
   const [drawerDeleteConfirm, setDrawerDeleteConfirm] = useState<string | null>(null);
   const [drawerSaving, setDrawerSaving] = useState(false);
+  const [panelPinUnlocked, setPanelPinUnlocked] = useState<string | null>(null); // shiftId sbloccato
+  const [panelPinModalOpen, setPanelPinModalOpen] = useState(false);
+  const [panelPinTargetShiftId, setPanelPinTargetShiftId] = useState<string | null>(null);
+  const [panelPin, setPanelPin] = useState('');
+  const [panelPinError, setPanelPinError] = useState('');
   const sidebarMenuRef = useRef<HTMLDivElement | null>(null);
   const [dragSelect, setDragSelect] = useState<{ userIdx: number; dayIdx: number; slotIdx: number } | null>(null);
   const dragStartRef = useRef<{ userIdx: number; dayIdx: number; slotIdx: number } | null>(null);
@@ -456,6 +473,24 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   useEffect(() => {
     setWeekIndex((i) => Math.min(i, maxWeekIndex));
   }, [maxWeekIndex]);
+
+  // Rilegge weekIndex da sessionStorage quando la tab Turni viene attivata
+  useEffect(() => {
+    const onActivated = (e: Event) => {
+      if ((e as CustomEvent).detail !== 'turni') return;
+      const stored = (() => {
+        try {
+          const raw = sessionStorage.getItem(wstWeekStorageKey);
+          if (raw == null) return null;
+          const n = parseInt(raw, 10);
+          return Number.isFinite(n) && n >= 0 ? Math.min(n, maxWeekIndex) : null;
+        } catch { return null; }
+      })();
+      if (stored !== null) setWeekIndex(stored);
+    };
+    window.addEventListener('osteria-tab-activated', onActivated);
+    return () => window.removeEventListener('osteria-tab-activated', onActivated);
+  }, [wstWeekStorageKey, maxWeekIndex]);
 
   useEffect(() => {
     syncScrollFromProgrammatic.current = true;
@@ -673,14 +708,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     finally { setPendingSaves(n => n - 1); }
   }, []);
 
-  /** Persist solo pianificazione (orari + pausa) dal drawer, solo in bozza. Timbrature solo da Scheda presenze. */
+  /** Persist pianificazione (orari + pausa) dal drawer. Se il turno era congelato o pubblicato e PIN sbloccato, de-congela. */
   const persistDrawerSingleShift = useCallback(
     async (shiftId: string): Promise<boolean> => {
       const shift = shifts.find((s) => s.id === shiftId);
       if (!shift) return false;
-      if (isShiftFrozenRecord(shift)) return false;
       if (isShiftAbsentRecord(shift)) return false;
-      if (!isShiftDraftLike(shift)) return true;
+      // Permetti salvataggio se bozza oppure PIN sbloccato
+      const pinOk = panelPinUnlocked === shiftId;
+      if (!isShiftDraftLike(shift) && !pinOk) return true;
 
       const stored = sidebarEdits[shiftId];
       const edits = stored ?? {
@@ -702,12 +738,19 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         shiftUpdates.end_time = endVal;
       }
       shiftUpdates.deduct_break = deductBreakVal;
+      // Se il turno era congelato, rimuovi il freeze così torna modificabile normalmente
+      if (isShiftFrozenRecord(shift) && pinOk) {
+        shiftUpdates.approved_at = null as unknown as string;
+        shiftUpdates.approved_by = null as unknown as string;
+        shiftUpdates.approved_start_time = null as unknown as string;
+        shiftUpdates.approved_end_time = null as unknown as string;
+      }
       if (Object.keys(shiftUpdates).length > 0) {
         await updateShift(shiftId, shiftUpdates);
       }
       return true;
     },
-    [shifts, sidebarEdits, updateShift, showError, t]
+    [shifts, sidebarEdits, updateShift, showError, t, panelPinUnlocked]
   );
 
   /** Staff: invia richiesta per un turno aperto (non assegna direttamente). */
@@ -862,6 +905,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     setSelectedShiftIds([]);
     setDrawerDeleteConfirm(null);
     setSidebarEdits({});
+    setPanelPinUnlocked(null);
+    setPanelPinModalOpen(false);
+    setPanelPinTargetShiftId(null);
+    setPanelPin('');
+    setPanelPinError('');
   }, []);
 
   const handleSavePeriodConfigWst = useCallback(() => {
@@ -1514,9 +1562,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     async (shiftId: string) => {
       const shift = shifts.find((s) => s.id === shiftId);
       if (!shift) return;
-      if (isShiftFrozenRecord(shift)) return;
       if (isShiftAbsentRecord(shift)) return;
-      if (!isShiftDraftLike(shift)) return;
+      // Blocca solo se non è né draft né sbloccato con PIN
+      if (!isShiftDraftLike(shift) && panelPinUnlocked !== shiftId) return;
 
       setDrawerSaving(true);
       try {
@@ -1549,17 +1597,38 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         setDrawerSaving(false);
       }
     },
-    [shifts, sidebarEdits, persistDrawerSingleShift, showError, showSuccess, t, closeShiftDetailPanel]
+    [shifts, sidebarEdits, persistDrawerSingleShift, showError, showSuccess, t, closeShiftDetailPanel, panelPinUnlocked]
   );
+
+  // Enter → Salva modifiche nel panel dettaglio turno (solo se il focus non è su un input)
+  // NOTA: posizionato qui perché dipende da visibleShifts (riga ~928) e handleDrawerSave (riga sopra)
+  useEffect(() => {
+    if (!sidebarOpen || !sidebarDay) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' || e.isComposing || drawerSaving) return;
+      const tgt = e.target as HTMLElement;
+      if (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.isContentEditable) return;
+      e.preventDefault();
+      const sh = visibleShifts
+        .filter((s) => s.date === sidebarDay)
+        .find((s) => (isShiftDraftLike(s) || panelPinUnlocked === s.id) && !isShiftAbsentRecord(s));
+      if (sh) void handleDrawerSave(sh.id);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [sidebarOpen, sidebarDay, drawerSaving, visibleShifts, panelPinUnlocked, handleDrawerSave]);
 
   const handleDropShift = useCallback(async (shiftId: string, targetUserId: string, targetDate: string) => {
     const shift = shifts.find((s) => s.id === shiftId);
     if (!shift || (shift.user_id === targetUserId && shift.date === targetDate)) return;
-    // Turni pubblicati: crea sempre una copia in bozza (non sposta l'originale)
-    if (!isShiftDraftLike(shift)) {
-      await handleDropShiftCopy(shiftId, targetUserId, targetDate);
+    // Turni congelati (payroll approvato): non spostabili
+    if (isShiftFrozenRecord(shift)) {
+      setShakeBadgeId(shiftId);
+      setTimeout(() => setShakeBadgeId(null), 600);
       return;
     }
+    // Turni assenti: non spostabili
+    if (isShiftAbsentRecord(shift)) return;
     // Verifica limite massimo turni al giorno nella destinazione
     const existingOnTarget = shifts.filter(s => s.id !== shiftId && s.user_id === targetUserId && s.date === targetDate);
     if (existingOnTarget.length >= 2) {
@@ -1673,7 +1742,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       {/* Toolbar: navigazione + pubblica + ☰ */}
       <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-between gap-1.5 overflow-x-auto relative z-[1000] mb-2">
         {/* ── Sinistra: navigazione periodo / vista ── */}
-        <div className="ui-toolbar-row-tight min-w-0 shrink-0 !gap-0">
+        <div className="ui-toolbar-row-tight min-w-0 shrink-0 md:gap-1.5">
           {/* Gruppo unificato: ◀ Prec. | Settimana | Mese | ▶ Pros. */}
           <div className="ui-toolbar-group md:scale-90 md:origin-left">
             {/* ◀ Prec. — settimana in week mode, periodo in month mode */}
@@ -1746,9 +1815,20 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             </>
           )}
           {viewMode !== 'month' && (
-            <span className="inline-flex h-9 shrink-0 items-center text-[10px] font-semibold tabular-nums leading-none text-slate-500 dark:text-neutral-300 px-1">
-              {weekIndex + 1}/{periodConfig.numWeeks}
-            </span>
+            <div
+              className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-2 !h-8 !text-[10px]"
+              role="status"
+              title={`${format(weekStart, 'dd/MM/yy', { locale: getDateLocale(effectiveLanguage) ?? it })} → ${format(addDays(weekStart, (viewMode === '2weeks' ? 13 : viewMode === 'day' ? 0 : 6)), 'dd/MM/yy', { locale: getDateLocale(effectiveLanguage) ?? it })}`}
+            >
+              <Calendar className="hidden sm:block h-3.5 w-3.5 shrink-0 text-slate-500 dark:text-neutral-400" aria-hidden />
+              <span className="min-w-0 truncate tabular-nums">
+                <span className="text-slate-400 dark:text-neutral-500">S.{weekIndex + 1}&nbsp;</span>
+                {format(weekStart, 'dd/MM', { locale: getDateLocale(effectiveLanguage) ?? it })}
+                <span className="text-slate-400 dark:text-neutral-500 hidden sm:inline">
+                  {' → '}{format(addDays(weekStart, (viewMode === '2weeks' ? 13 : viewMode === 'day' ? 0 : 6)), 'dd/MM/yy', { locale: getDateLocale(effectiveLanguage) ?? it })}
+                </span>
+              </span>
+            </div>
           )}
         </div>
 
@@ -2052,7 +2132,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     </div>
                     {[
                       {
-                        bg: 'bg-accent',
+                        bg: 'bg-emerald-600',
                         border: '',
                         textCls: 'text-white',
                         label: t.ts_status_approved,
@@ -2062,7 +2142,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       {
                         bg: 'bg-white dark:bg-neutral-900',
                         border: 'border border-slate-200 dark:border-white/15',
-                        textCls: 'text-accent',
+                        textCls: 'text-emerald-600 dark:text-emerald-400',
                         label: t.wst_filter_published,
                         sub: t.wst_status_sub_published,
                         check: false,
@@ -2862,14 +2942,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             <EyeOff className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-400" />
                           )}
                           <span
-                            className={`shrink-0 text-[9px] sm:text-[10px] font-bold uppercase tabular-nums leading-none ${hiddenDates.has(dayStr) ? 'text-slate-400 dark:text-neutral-400' : isTodayDate ? 'text-accent dark:text-emerald-400' : 'text-slate-600 dark:text-neutral-300'}`}
+                            className={`shrink-0 text-[9px] sm:text-[10px] font-bold uppercase tabular-nums leading-none ${hiddenDates.has(dayStr) ? 'text-slate-400 dark:text-neutral-400' : isTodayDate ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-neutral-300'}`}
                           >
                             {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it }).toUpperCase()}
                           </span>
                           <span
-                            className={`shrink-0 text-center font-extrabold tabular-nums leading-none ${hiddenDates.has(dayStr) ? 'text-[9px] sm:text-[10px] text-slate-400 dark:text-neutral-400' : isTodayDate ? 'text-[10px] sm:text-[11px] text-accent dark:text-emerald-400' : 'text-[9px] sm:text-[10px] text-slate-900 dark:text-neutral-50'}`}
+                            className={`shrink-0 text-center font-extrabold tabular-nums leading-none ${hiddenDates.has(dayStr) ? 'text-[9px] sm:text-[10px] text-slate-400 dark:text-neutral-400' : isTodayDate ? 'text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400' : 'text-[9px] sm:text-[10px] text-slate-900 dark:text-neutral-50'}`}
                           >
                             {format(day, 'd')}
+                            <span className={`font-semibold ${hiddenDates.has(dayStr) ? 'text-slate-400 dark:text-neutral-400' : isTodayDate ? 'text-emerald-600/70 dark:text-emerald-400/70' : 'text-slate-400 dark:text-neutral-400'}`}>
+                              /{format(day, 'M')}
+                            </span>
                           </span>
                         </span>
                       );
@@ -3240,7 +3323,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 onDragLeave={() => setDropTargetKey(null)}
                                 onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { if (e.shiftKey || dragCopyMode) { handleDropShiftCopy(draggedShiftId, user.id, dayStr); } else { handleDropShift(draggedShiftId, user.id, dayStr); } setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); } }}
                                 title={dayShift && needsCambioWarning(dayShift) ? t.no_change_at_16 : undefined}
-                                className={`flex flex-col ${
+                                className={`flex flex-col focus:outline-none ${
                                   dayShift
                                     ? dayVariant === 'planned'
                                       ? 'border-b-2 border-dashed border-slate-300 dark:border-white/55'
@@ -3321,7 +3404,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                           {canEditInApp ? (
                                             <span
                                               draggable={!isAbsentCell}
-                                              onDragStart={(e: React.DragEvent) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', dayShift.id); setDraggedShiftId(dayShift.id); const isCopy = e.shiftKey || !isShiftDraftLike(dayShift); setDragCopyMode(isCopy); e.dataTransfer.effectAllowed = isCopy ? 'copy' : 'move'; }}
+                                              onDragStart={(e: React.DragEvent) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', dayShift.id); setDraggedShiftId(dayShift.id); const isCopy = e.shiftKey; setDragCopyMode(isCopy); e.dataTransfer.effectAllowed = isCopy ? 'copy' : 'move'; }}
                                               onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
                                               className={`absolute inset-0 z-0 flex items-center justify-center px-2 touch-none ${!isAbsentCell ? 'cursor-grab active:cursor-grabbing' : ''} ${shakeBadgeId === dayShift.id ? 'animate-shake' : ''}`}
                                               style={{ opacity: 1 }}
@@ -3476,7 +3559,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 onDragLeave={() => setDropTargetKey(null)}
                                 onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { if (e.shiftKey || dragCopyMode) { handleDropShiftCopy(draggedShiftId, user.id, dayStr); } else { handleDropShift(draggedShiftId, user.id, dayStr); } setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); } }}
                                 title={eveningShift && needsCambioWarning(eveningShift) ? t.no_change_at_16 : undefined}
-                                className={`flex flex-col relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_1` ? (dragCopyMode ? 'bg-accent/10 dark:bg-accent/15 border-2 border-accent dark:border-accent/80' : 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600') : eveningShift ? getCellStyle(eveningShift, selectedShiftIds.includes(eveningShift.id) || isInDragRect(1), selectedShiftIds.length > 0, eveningVariant) : isInDragRect(1) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${eveningShift ? 'shift-card-hover-group' : ''} ${!eveningShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !eveningShift ? 'cursor-default' : eveningShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
+                                className={`flex flex-col relative select-none focus:outline-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_1` ? (dragCopyMode ? 'bg-accent/10 dark:bg-accent/15 border-2 border-accent dark:border-accent/80' : 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600') : eveningShift ? getCellStyle(eveningShift, selectedShiftIds.includes(eveningShift.id) || isInDragRect(1), selectedShiftIds.length > 0, eveningVariant) : isInDragRect(1) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${eveningShift ? 'shift-card-hover-group' : ''} ${!eveningShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !eveningShift ? 'cursor-default' : eveningShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
                               >
                                 {eveningShift ? (() => {
                                   const isAbsentEv = isShiftAbsentRecord(eveningShift);
@@ -3541,7 +3624,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                           {canEditInApp ? (
                                             <span
                                               draggable={!isAbsentEv}
-                                              onDragStart={(e: React.DragEvent) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', eveningShift.id); setDraggedShiftId(eveningShift.id); const isCopy = e.shiftKey || !isShiftDraftLike(eveningShift); setDragCopyMode(isCopy); e.dataTransfer.effectAllowed = isCopy ? 'copy' : 'move'; }}
+                                              onDragStart={(e: React.DragEvent) => { e.stopPropagation(); e.dataTransfer.setData('shiftId', eveningShift.id); setDraggedShiftId(eveningShift.id); const isCopy = e.shiftKey; setDragCopyMode(isCopy); e.dataTransfer.effectAllowed = isCopy ? 'copy' : 'move'; }}
                                               onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
                                               className={`absolute inset-0 z-0 flex items-center justify-center px-2 touch-none ${!isAbsentEv ? 'cursor-grab active:cursor-grabbing' : ''} ${shakeBadgeId === eveningShift.id ? 'animate-shake' : ''}`}
                                               style={{ opacity: 1 }}
@@ -3765,11 +3848,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   const alreadyRequestedByMe = requester?.id === currentUser?.id;
                                   const isAssigningThis = assigningOpenShiftId === s.id;
                                   const badgeBg = externalAssigned
-                                    ? 'bg-violet-100 border border-violet-300'
+                                    ? 'bg-accent/15 border border-accent/40'
                                     : requested
                                       ? 'bg-orange-300 border border-orange-400'
                                       : 'bg-amber-200';
-                                  const badgeText = externalAssigned ? 'text-violet-900' : requested ? 'text-orange-900' : 'text-amber-900';
+                                  const badgeText = externalAssigned ? 'text-accent-dark dark:text-accent' : requested ? 'text-orange-900' : 'text-amber-900';
                                   return (
                                     <div key={s.id} className={`relative group flex flex-col gap-0.5 rounded-xl px-1.5 py-1 text-[10px] font-semibold ${badgeBg} ${badgeText}`}>
                                       <div className="flex items-center gap-1">
@@ -3794,7 +3877,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                             <button
                                               type="button"
                                               onClick={() => handleFreeExternalShift(s.id)}
-                                              className="w-full rounded-xl bg-violet-200 px-1 py-0.5 text-center text-[9px] font-bold leading-none text-violet-800 transition-colors hover:bg-violet-300"
+                                              className="w-full rounded-xl bg-accent/20 px-1 py-0.5 text-center text-[9px] font-bold leading-none text-accent-dark dark:text-accent transition-colors hover:bg-accent/30"
                                             >
                                               {tv.wst_open_shift_free_label ?? t.wst_open_shift_free_label}
                                             </button>
@@ -3990,6 +4073,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   const approvalNorm = normalizedApprovalStatus(shift.approval_status);
                   const cannotRevertPublishedToDraft =
                     approvalNorm === 'confirmed' || approvalNorm === 'approved';
+                  /** PIN inserito con successo per questo turno → sblocca editing */
+                  const pinUnlocked = panelPinUnlocked === shift.id;
+                  /** Turno editabile: bozza sempre; altri stati solo con PIN */
+                  const isEditable = isDraft || pinUnlocked;
 
                   const updateEdits = (field: 'start' | 'end', val: string) => {
                     const next = { ...edits, [field]: val };
@@ -4116,7 +4203,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             <div className="col-start-1 row-start-2 min-w-0">
                               <TimeInputField
                                 size="lg"
-                                disabled={isFrozen || isAbsent || !isDraft}
+                                disabled={isAbsent || !isEditable}
                                 value={edits.start}
                                 onChange={(next) => updateEdits('start', next)}
                                 aria-label={t.start_time}
@@ -4132,7 +4219,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             <div className="col-start-3 row-start-2 min-w-0">
                               <TimeInputField
                                 size="lg"
-                                disabled={isFrozen || isAbsent || !isDraft}
+                                disabled={isAbsent || !isEditable}
                                 value={edits.end}
                                 onChange={(next) => updateEdits('end', next)}
                                 aria-label={t.end_time}
@@ -4141,7 +4228,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             </div>
                           </div>
                           {isFrozen && shift.approved_start_time && shift.approved_end_time && (
-                            <p className="text-[11px] text-accent font-semibold mt-2">
+                            <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold mt-2">
                               Ore congelate: {(shift.approved_start_time || '').slice(0, 5)} –{' '}
                               {(shift.approved_end_time || '').slice(0, 5)}
                             </p>
@@ -4159,7 +4246,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   <button
                                     type="button"
                                     onClick={() => setDeductBreak(!deductBreak)}
-                                    className="font-semibold text-accent underline-offset-2 hover:underline dark:text-accent-light"
+                                    className="font-semibold text-slate-600 underline-offset-2 hover:underline dark:text-neutral-300"
                                   >
                                     {t.wst_drawer_break_toggle}
                                   </button>
@@ -4174,7 +4261,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const hasIn = drawerTimbrature.inTime !== '—';
                           const hasOut = drawerTimbrature.outTime !== '—';
                           const timbCard = hasIn && hasOut
-                            ? 'border-2 border-l-4 border-teal-200/80 dark:border-teal-800/50 border-l-accent bg-teal-50 dark:bg-teal-950/35'
+                            ? 'border-2 border-l-4 border-teal-200/80 dark:border-teal-800/50 border-l-emerald-600 bg-teal-50 dark:bg-teal-950/35'
                             : hasIn
                             ? 'border-2 border-l-4 border-amber-300/80 dark:border-amber-700/50 border-l-review bg-amber-50 dark:bg-amber-950/35'
                             : 'border-2 border-l-4 border-slate-200 dark:border-white/10 border-l-slate-300 bg-slate-50/90 dark:bg-neutral-800/80';
@@ -4198,7 +4285,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   ) : drawerTimbrature.inMode === 'manual' ? (
                                     <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_manual}</p>
                                   ) : drawerTimbrature.inMode === 'frozen' ? (
-                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-accent">{t.wst_punch_mode_frozen}</p>
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-emerald-700 dark:text-emerald-400">{t.wst_punch_mode_frozen}</p>
                                   ) : null}
                                 </div>
                                 <div>
@@ -4212,7 +4299,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   ) : drawerTimbrature.outMode === 'manual' ? (
                                     <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_manual}</p>
                                   ) : drawerTimbrature.outMode === 'frozen' ? (
-                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-accent">{t.wst_punch_mode_frozen}</p>
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-emerald-700 dark:text-emerald-400">{t.wst_punch_mode_frozen}</p>
                                   ) : null}
                                 </div>
                               </div>
@@ -4225,7 +4312,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const delta = actualNetMins != null && plannedNetMins != null ? actualNetMins - plannedNetMins : null;
                           const hoursCard = actualNetMins != null && plannedNetMins != null
                             ? delta! >= 0
-                              ? 'border-2 border-l-4 border-teal-200/80 dark:border-teal-800/50 border-l-accent bg-teal-50 dark:bg-teal-950/35'
+                              ? 'border-2 border-l-4 border-teal-200/80 dark:border-teal-800/50 border-l-emerald-600 bg-teal-50 dark:bg-teal-950/35'
                               : 'border-2 border-l-4 border-amber-300/80 dark:border-amber-700/50 border-l-review bg-amber-50 dark:bg-amber-950/35'
                             : 'border-2 border-l-4 border-slate-200 dark:border-white/10 border-l-slate-300 bg-slate-50/90 dark:bg-neutral-800/80';
                           const hoursLabelCls = actualNetMins != null && plannedNetMins != null
@@ -4307,21 +4394,27 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           </div>
                         )}
 
-                        {isFrozen && (
-                          <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-center text-[11px] font-medium text-slate-600 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-300">
-                            {t.wst_frozen_manage_in_timesheets}
-                          </p>
+                        {(isFrozen || (isConfirmed && !isDraft)) && !pinUnlocked && !isAbsent && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPanelPinTargetShiftId(shift.id);
+                              setPanelPin('');
+                              setPanelPinError('');
+                              setPanelPinModalOpen(true);
+                            }}
+                            className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-[11px] font-semibold text-slate-600 transition-colors hover:bg-slate-100 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                          >
+                            <Lock className="h-3.5 w-3.5 shrink-0" />
+                            Sblocca modifica con PIN
+                          </button>
                         )}
                       </div>
 
                       {/* ── FOOTER ──────────────────────────────────── */}
                       <div className="flex-shrink-0 space-y-2 border-t border-slate-100 px-4 py-3 dark:border-white/10">
-                        {!isFrozen && !isAbsent && isConfirmed && !isDraft && (
-                          <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-center text-[11px] font-medium text-slate-600 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-300">
-                            {t.wst_schedule_readonly_after_publish}
-                          </p>
-                        )}
-                        {!isFrozen && !isAbsent && isDraft && (
+                        {/* placeholder rimosso: il bottone PIN è ora unificato nel blocco sopra */}
+                        {!isAbsent && isEditable && (
                           <button
                             type="button"
                             disabled={drawerSaving}
@@ -4603,6 +4696,44 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         />
       )}
 
+      {/* PIN modal per sblocco modifica turno */}
+      {panelPinModalOpen && (
+        <PinPadModal
+          title="Sblocca modifica"
+          subtitle="Inserisci il PIN di un manager per modificare questo turno"
+          pinLabel="PIN"
+          pin={panelPin}
+          onPinChange={(p) => { setPanelPin(p); setPanelPinError(''); }}
+          onConfirm={() => {
+            const verifier = findFreezeVerifierByPin(users, panelPin);
+            if (!verifier) {
+              setPanelPinError('PIN non valido o permessi insufficienti');
+              return;
+            }
+            setPanelPinUnlocked(panelPinTargetShiftId);
+            setPanelPinModalOpen(false);
+            setPanelPin('');
+            setPanelPinError('');
+          }}
+          onCancel={() => { setPanelPinModalOpen(false); setPanelPin(''); setPanelPinError(''); }}
+          error={panelPinError}
+          confirmLabel="Sblocca"
+          cancelLabel="Annulla"
+          backdropClass="bg-black/50 backdrop-blur-sm"
+          userId={currentUser?.id}
+          userDisplayName={[currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(' ')}
+          userEmail={currentUser?.email ?? ''}
+          onBiometricSuccess={() => {
+            const verifier = findFreezeVerifierById(users, currentUser?.id ?? '');
+            if (!verifier) { setPanelPinError('Ruolo insufficiente per lo sblocco'); return; }
+            setPanelPinUnlocked(panelPinTargetShiftId);
+            setPanelPinModalOpen(false);
+            setPanelPin('');
+            setPanelPinError('');
+          }}
+        />
+      )}
+
       {/* Barra azioni selezione multipla */}
       {canEditShifts && selectedShiftIds.length > 0 && !pasteMode && (
         <div
@@ -4718,6 +4849,8 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
   const [notifyEmployee, setNotifyEmployee] = useState(true);
   const [publicNote, setPublicNote] = useState('');
   const [saving, setSaving] = useState(false);
+  const endTimeHourRef = useRef<HTMLInputElement | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   const user = users.find((u) => u.id === userId);
   const startNormForType = toHHmm(tempShifts.start_time);
@@ -4811,6 +4944,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
         onClick={onClose}
       >
         <motion.form
+          ref={formRef}
           initial={{ scale: 0.92, opacity: 0, y: 12 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.92, opacity: 0, y: 12 }}
@@ -4921,6 +5055,10 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                   onChange={(next) => setTempShifts((s) => ({ ...s, start_time: next }))}
                   aria-label={t.start_time}
                   className="w-full font-sans shadow-sm"
+                  onMinutesEnter={() => {
+                    endTimeHourRef.current?.focus();
+                    endTimeHourRef.current?.select();
+                  }}
                 />
               </div>
               <div>
@@ -4933,6 +5071,8 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                     onChange={(next) => setTempShifts((s) => ({ ...s, end_time: next }))}
                     aria-label={t.end_time}
                     className="w-full font-sans shadow-sm"
+                    hourInputRef={endTimeHourRef}
+                    onMinutesEnter={() => formRef.current?.requestSubmit()}
                   />
                 )}
               </div>

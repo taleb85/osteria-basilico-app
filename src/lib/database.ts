@@ -121,6 +121,8 @@ const USER_INSERT_PATCH_KEYS = [
   'hourly_rate_eur',
   'employment_start_date',
   'employment_end_date',
+  'secondary_pin',
+  'elevated_role',
 ] as const;
 
 export function formatSupabaseError(err: unknown): string {
@@ -295,6 +297,8 @@ export const database = {
         'avatar_url',
         'employment_start_date',
         'employment_end_date',
+        'secondary_pin',
+        'elevated_role',
       ];
       const rawPayload: Record<string, unknown> = {};
       for (const key of safeKeys) {
@@ -317,6 +321,8 @@ export const database = {
         'avatar_url',
         'employment_start_date',
         'employment_end_date',
+        'secondary_pin',
+        'elevated_role',
       ];
 
       const onlyOptionalCols = (keys: string[]) =>

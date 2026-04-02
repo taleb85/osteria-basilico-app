@@ -23,14 +23,10 @@ import { splitPhoneForForm, joinPhone, DEFAULT_PHONE_PREFIX } from '../utils/pho
 import type { Language } from '../types';
 function serializeProfileForm(fd: ProfileFormSelfData): string {
   return JSON.stringify({
-    first_name: fd.first_name.trim(),
-    last_name: fd.last_name.trim(),
     email: fd.email.trim(),
     phone: joinPhone(fd.phone_prefix, fd.phone_national),
     language: fd.language,
-    role: fd.role,
     pin: fd.pin.replace(/\D/g, '').slice(0, 4),
-    department: fd.department ?? null,
   });
 }
 
@@ -198,12 +194,9 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
     setIsSaving(true);
     try {
       const ok = await updateUser(currentUser.id, {
-        first_name: formData.first_name.trim(),
-        last_name: formData.last_name.trim() || undefined,
         email: formData.email,
         phone: joinPhone(formData.phone_prefix, formData.phone_national),
         language: formData.language,
-        department: formData.department ?? null,
         ...(pinDigits.length === 4 ? { pin: pinDigits } : {}),
       });
       if (!ok) throw new Error('save failed');
@@ -415,8 +408,9 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
               isSaving={isSaving}
               readOnly={false}
               appearance="light"
-              departmentLocked={false}
-              roleLocked={false}
+              nameLocked={true}
+              departmentLocked={true}
+              roleLocked={true}
             />
           </div>
         </div>

@@ -93,6 +93,18 @@ export function findFreezeVerifierByPin(users: User[], pin: string): User | null
   return u;
 }
 
+/**
+ * Verifica tramite biometrica: restituisce l'utente se è attivo e ha ruolo sufficiente.
+ * Usato quando l'impronta digitale sostituisce il PIN.
+ */
+export function findFreezeVerifierById(users: User[], userId: string): User | null {
+  if (!userId) return null;
+  const u = users.find((x) => x.id === userId && x.status === 'active');
+  if (!u || !canApproveShiftActions(u)) return null;
+  if (!FREEZE_PIN_ROLES.has(u.role)) return null;
+  return u;
+}
+
 /** Pubblicazione settimana / bozze → confermati: Admin o `can_manage_drafts`. */
 export function canPublishScheduleDrafts(user: User | null): boolean {
   if (!user) return false;

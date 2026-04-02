@@ -19,6 +19,8 @@ function applyLock() {
       body.style.paddingRight = `${scrollbarWidth}px`;
     }
   }
+  // Segnale per nascondere la sticky header sopra gli overlay (iOS Safari backdrop-filter bug)
+  body.dataset.overlay = '1';
 }
 
 function removeLock() {
@@ -28,6 +30,7 @@ function removeLock() {
     body.style.overflow = savedOverflow;
     body.style.paddingRight = savedPaddingRight;
     body.style.touchAction = savedTouchAction;
+    delete body.dataset.overlay;
   }
 }
 

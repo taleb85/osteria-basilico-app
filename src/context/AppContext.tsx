@@ -222,6 +222,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const currentUserRef = useRef<User | null>(null);
   useEffect(() => { currentUserRef.current = currentUser; }, [currentUser]);
+  const [isSessionElevated, setIsSessionElevated] = useState(false);
   const [appLanguage, setAppLanguage] = useState<Language>(() => {
     const stored = readStoredUiLanguage();
     if (stored) return stored;
@@ -2455,6 +2456,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         departmentsRevision, notifyDepartmentsChanged,
         pushSettingsToCloud, settingsCloudLastSyncedAt, settingsCloudPushBusy,
         managementDataTouchedSinceLastSync,
+        isSessionElevated, setIsSessionElevated,
       } satisfies AppContextType}
     >
       <PwaGate>{children}</PwaGate>

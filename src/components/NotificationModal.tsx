@@ -184,7 +184,7 @@ export function NotificationModal({
                 <div className="flex flex-col items-start max-w-[90%] relative group">
                   <div className="bg-white dark:bg-neutral-800 rounded-2xl rounded-tl-none p-4 shadow-sm border border-slate-100 dark:border-white/5 w-full">
                     <div className="flex justify-between items-start gap-2 mb-1">
-                      <p className="text-[10px] font-black text-accent uppercase tracking-widest">
+                      <p className="text-[10px] font-black text-slate-500 dark:text-neutral-400 uppercase tracking-widest">
                         {users.find(u => u.id === selectedMessage.sender_id)?.first_name || 'Staff'}
                       </p>
                       {currentUser?.role === 'admin' && (
@@ -409,7 +409,7 @@ export function NotificationModal({
                           key={msg.id}
                           onClick={() => handleMessageClick(msg)}
                           className={`w-full flex items-center gap-3 px-5 py-4 transition-all active:bg-slate-50 dark:active:bg-neutral-800 text-left group ${
-                            isUnread ? 'bg-accent/5 dark:bg-accent/10' : 'bg-transparent'
+                            isUnread ? 'bg-accent/[0.06] dark:bg-accent/[0.10]' : 'bg-transparent'
                           }`}
                         >
                           {/* Icona Circolare (Sinistra) */}

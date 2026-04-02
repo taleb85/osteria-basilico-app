@@ -74,6 +74,35 @@ export function getLoginNamePinFailureKind(
   return 'homonym_or_ambiguous';
 }
 
+/**
+ * Login tramite PIN secondario: confronta `u.secondary_pin` invece di `u.pin`.
+ * Ritorna l'utente solo se ha `elevated_role` configurato.
+ * Supporta sia nome completo che solo nome (stessa logica di `findUserByNameAndPinAnyStatus`).
+ */
+export function findUserByNameAndSecondaryPin(
+  users: User[],
+  nameRaw: string,
+  pin: string
+): User | undefined {
+  const id = normalizeStaffName(nameRaw);
+  if (!id || !pin.trim()) return undefined;
+  const withSecPin = users.filter(
+    (u) =>
+      u.status === 'active' &&
+      u.secondary_pin &&
+      u.elevated_role &&
+      String(u.secondary_pin ?? '').trim() === pin.trim()
+  );
+
+  const fullHits = withSecPin.filter((u) => fullNameNorm(u) === id);
+  if (fullHits.length === 1) return fullHits[0];
+  if (fullHits.length > 1) return undefined;
+
+  const firstHits = withSecPin.filter((u) => firstNameNorm(u) === id);
+  if (firstHits.length === 1) return firstHits[0];
+  return undefined;
+}
+
 /** Altro dipendente attivo con lo stesso PIN (conflitto login). */
 export function findActiveUserWithSamePin(
   users: User[],

@@ -74,6 +74,8 @@ export function ProfileFormSelf({
   isSaving,
   readOnly = false,
   appearance = 'dark',
+  /** Se true: nome e cognome sono sola lettura (modificabili solo dal pannello admin). */
+  nameLocked = false,
   /** Se true: mostra solo il reparto assegnato (sola lettura), senza cambiare opzioni. */
   departmentLocked = false,
   /** Se true: solo il ruolo è bloccato (es. tab Profilo); PIN e resto restano modificabili se !readOnly. */
@@ -84,8 +86,9 @@ export function ProfileFormSelf({
   onSave: (e: React.FormEvent) => void;
   isSaving: boolean;
   readOnly?: boolean;
-  /** `light` = allineato al resto dell’app (card bianche / accent) */
+  /** `light` = allineato al resto dell'app (card bianche / accent) */
   appearance?: 'dark' | 'light';
+  nameLocked?: boolean;
   departmentLocked?: boolean;
   roleLocked?: boolean;
 }) {
@@ -109,7 +112,9 @@ export function ProfileFormSelf({
   const labelClass = appearance === 'light' ? labelClassLight : 'block text-xs font-medium text-white/80 mb-1.5';
   const iconMuted = appearance === 'light' ? 'text-slate-500 dark:text-neutral-400' : 'text-white/40';
 
-  const canEditRole = !readOnly;
+  const canEditName = !readOnly && !nameLocked;
+  const canEditRole = !readOnly && !roleLocked;
+  const canEditDepartment = !readOnly && !departmentLocked;
   const pinShownValue = readOnly ? (formData.pin.replace(/\D/g, '').length > 0 ? '••••' : '') : formData.pin;
 
   const phoneExample = useMemo(() => {
@@ -128,11 +133,11 @@ export function ProfileFormSelf({
           <input
             type="text"
             value={formData.first_name}
-            onChange={(e) => !readOnly && setFormData((prev) => ({ ...prev, first_name: e.target.value.toUpperCase() }))}
-            readOnly={readOnly}
-            className={readOnly ? inputClassDisabled : inputClass}
+            onChange={(e) => canEditName && setFormData((prev) => ({ ...prev, first_name: e.target.value.toUpperCase() }))}
+            readOnly={!canEditName}
+            className={!canEditName ? inputClassDisabled : inputClass}
             placeholder={t.placeholder_first_name}
-            required={!readOnly}
+            required={canEditName}
           />
         </div>
         <div>
@@ -143,9 +148,9 @@ export function ProfileFormSelf({
           <input
             type="text"
             value={formData.last_name}
-            onChange={(e) => !readOnly && setFormData((prev) => ({ ...prev, last_name: e.target.value.toUpperCase() }))}
-            readOnly={readOnly}
-            className={readOnly ? inputClassDisabled : inputClass}
+            onChange={(e) => canEditName && setFormData((prev) => ({ ...prev, last_name: e.target.value.toUpperCase() }))}
+            readOnly={!canEditName}
+            className={!canEditName ? inputClassDisabled : inputClass}
             placeholder={t.placeholder_last_name}
           />
         </div>
@@ -251,7 +256,7 @@ export function ProfileFormSelf({
 
       <div>
         <label className={labelClass}>{t.department_label}</label>
-        {readOnly ? (
+        {!canEditDepartment ? (
           <input
             type="text"
             readOnly

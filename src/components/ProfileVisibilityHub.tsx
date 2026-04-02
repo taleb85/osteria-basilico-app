@@ -669,7 +669,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                                     }`}
                                   >
                                     <div
-                                      className={`w-[3px] shrink-0 ${enabled ? 'bg-violet-500' : 'bg-slate-400 dark:bg-neutral-600'}`}
+                                      className={`w-[3px] shrink-0 ${enabled ? 'bg-accent' : 'bg-slate-400 dark:bg-neutral-600'}`}
                                       aria-hidden
                                     />
                                     <div className="flex min-w-0 flex-1 items-center justify-between gap-2 py-1.5 pl-2 pr-1.5">
@@ -752,7 +752,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                                   key={key}
                                   className={`rounded-lg surface-glass !border-b-0 !p-2 dark:border-white/10 ${
                                     key === 'view_estimated_cost'
-                                      ? '[&_.font-bold]:border-l-2 [&_.font-bold]:border-violet-200 [&_.font-bold]:pl-2 dark:[&_.font-bold]:border-violet-500/40'
+                                      ? '[&_.font-bold]:border-l-2 [&_.font-bold]:border-accent/30 [&_.font-bold]:pl-2 dark:[&_.font-bold]:border-accent/40'
                                       : ''
                                   }`}
                                   label={FEATURE_LABELS[key]}

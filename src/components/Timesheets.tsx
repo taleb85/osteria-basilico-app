@@ -39,6 +39,7 @@ import {
   canOperateTeamSchedule,
   canApproveShiftActions,
   findFreezeVerifierByPin,
+  findFreezeVerifierById,
 } from '../utils/permissions';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
@@ -594,6 +595,13 @@ export default function Timesheets() {
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null);
   const [drawerReviewQueue, setDrawerReviewQueue] = useState<DrawerReviewQueue | null>(null);
 
+  // Persisti weekIndex in sessionStorage ogni volta che cambia (sincronizza con Scheda Turni)
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(timesheetWeekStorageKey(periodConfig.startDate, periodConfig.numWeeks), String(weekIndex));
+    } catch { /* ignore */ }
+  }, [weekIndex, periodConfig.startDate, periodConfig.numWeeks]);
+
   // Quando la scheda diventa attiva, riporta la visualizzazione al giorno corrente
   // MA non se l'utente sta già operando (drawer aperto o review queue in corso)
   // IMPORTANTE: NON resettare la settimana - rimane quella selezionata anche dopo aver cambiato scheda
@@ -605,8 +613,21 @@ export default function Timesheets() {
     if (dayOffset !== diff) {
       setDayOffset(diff);
     }
-    // NON resettare weekIndex - rimane quella salvata in sessionStorage
+    // Risincronizza la settimana dalla sessionStorage (es. se Turni ha cambiato settimana nel frattempo)
+    const stored = readStoredWeekIndex(periodConfig.startDate, periodConfig.numWeeks);
+    if (stored !== weekIndex) setWeekIndex(stored);
   }, [periodConfig, drawerData, drawerReviewQueue]);
+
+  // Rilegge weekIndex da sessionStorage quando la tab Presenze viene attivata
+  useEffect(() => {
+    const onActivated = (e: Event) => {
+      if ((e as CustomEvent).detail !== 'timesheet') return;
+      const stored = readStoredWeekIndex(periodConfig.startDate, periodConfig.numWeeks);
+      if (stored !== weekIndex) setWeekIndex(stored);
+    };
+    window.addEventListener('osteria-tab-activated', onActivated);
+    return () => window.removeEventListener('osteria-tab-activated', onActivated);
+  }, [periodConfig, weekIndex]);
 
   /** Periodo effettivo in griglia: bozza (data/settimane) finché non si salva, altrimenti config persistita. */
   const displayPeriodConfig: PeriodConfig = useMemo(() => {
@@ -1127,7 +1148,9 @@ export default function Timesheets() {
             );
           const isCrossDay =
             !frozen && !!actualEndFull && actualEndDate !== dateStr && !nightRolloverOk;
-          /** Pausa sulle ore effettive: regole / fallback usano timbratura (o orari congelati), non il pianificato. */
+          /** Pausa sulle ore effettive: regole / fallback usano timbratura (o orari congelati), non il pianificato.
+           *  Per i turni congelati si disabilita il fallback auto-break (≥6h → 30min): le ore approvate
+           *  potrebbero essere più lunghe del pianificato (straordinario) e il break non era previsto. */
           const actualMins =
             displayActualStart && displayActualEnd
               ? getNetShiftMinutes(
@@ -1136,7 +1159,7 @@ export default function Timesheets() {
                   displayActualEnd,
                   user,
                   breakRules,
-                  breakComputeOpts
+                  frozen ? { ...breakComputeOpts, autoBreaksFeatureEnabled: false } : breakComputeOpts
                 )
               : Math.max(0, grossActualMins);
           const breakMinutesActual =
@@ -1538,9 +1561,11 @@ export default function Timesheets() {
   }, [employeeWeekFreezeBatch, pinGateModal, shifts, approveShift, showSuccess, showError, t]);
 
   const submitTimbraturePinGate = useCallback(
-    async (pin: string) => {
+    async (pinOrVerifier: string | User) => {
       if (!pinGateModal) return;
-      const verifier = findFreezeVerifierByPin(users, pin);
+      const verifier = typeof pinOrVerifier === 'string'
+        ? findFreezeVerifierByPin(users, pinOrVerifier)
+        : pinOrVerifier;
       if (!verifier) {
         setPinGateError(t.wst_freeze_pin_invalid);
         setPinGatePin('');
@@ -1721,7 +1746,8 @@ export default function Timesheets() {
     openSource: 'name' | 'date' | 'turno' | null = null,
     keepPinSession = false
   ) => {
-    const sameReviewSession = keepPinSession || (reviewQueue?.reviewScope === 'employee_week' && drawerReviewQueue?.reviewScope === 'employee_week');
+    // Mantieni la sessione PIN se: flag esplicito, stessa review employee_week, o PIN già sbloccato in questa sessione
+    const sameReviewSession = keepPinSession || (reviewQueue?.reviewScope === 'employee_week' && drawerReviewQueue?.reviewScope === 'employee_week') || !!drawerPinUnlockedSessionId || !!globalPinSessionId;
 
     // PIN come primo passo: se richiesto e sessione non già sbloccata, chiedi PIN prima di aprire
     const needsPinFirst = canTeamTimesheetOps &&
@@ -1748,25 +1774,15 @@ export default function Timesheets() {
     const punchAuditEntries = shift.punchInId ? (punchAudits[shift.punchInId] || []) : [];
     const shiftEdits = getShiftHistory(shift.id);
     setDrawerData({ shift, userId: user.id, employeeName: user.first_name, department: user.department, dateStr, punchAuditEntries, shiftEdits });
-    if (reviewQueue) {
-      setManualPunchIn(shift.actualStart ?? shift.plannedStart);
+    if (reviewQueue || (shift.punched && shift.punchInId)) {
+      setManualPunchIn(shift.actualStart || shift.plannedStart);
       if (shift.actualEndFull) {
         const d = new Date(shift.actualEndFull);
         setManualPunchOutDate(format(d, 'yyyy-MM-dd'));
         setManualPunchOut(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
       } else {
         setManualPunchOutDate(dateStr);
-        setManualPunchOut(shift.actualEnd ?? '');
-      }
-    } else if (shift.punched && shift.punchInId) {
-      setManualPunchIn(shift.actualStart ?? shift.plannedStart);
-      if (shift.actualEndFull) {
-        const d = new Date(shift.actualEndFull);
-        setManualPunchOutDate(format(d, 'yyyy-MM-dd'));
-        setManualPunchOut(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
-      } else {
-        setManualPunchOutDate(dateStr);
-        setManualPunchOut(shift.actualEnd ?? '');
+        setManualPunchOut(shift.actualEnd || shift.plannedEnd);
       }
     } else {
       setManualPunchIn(shift.plannedStart);
@@ -2393,12 +2409,12 @@ export default function Timesheets() {
     // Approvato / congelato contabilità — VARIANT approved
     if (s.status === 'approved' && shiftRowPayrollFrozen(s)) {
       return {
-        border: 'border-l-accent',
-        bg: 'bg-accent/5 dark:bg-accent/15',
-        ring: 'ring-1 ring-accent/20 dark:ring-accent/35',
-        dot: 'bg-accent',
+        border: 'border-l-emerald-600',
+        bg: 'bg-emerald-50/70 dark:bg-emerald-950/20',
+        ring: 'ring-1 ring-emerald-500/20 dark:ring-emerald-500/30',
+        dot: 'bg-emerald-600',
         label: t.wst_grid_shift_frozen_short,
-        labelCls: 'text-accent-dark bg-accent/10 dark:text-accent-light dark:bg-accent/20',
+        labelCls: 'text-emerald-900 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-900/30',
       };
     }
     // Bozza — VARIANT planned (priorità come tabellone: prima di ritardo / non timbrato)
@@ -2556,10 +2572,10 @@ export default function Timesheets() {
                   label: t.ts_stat_approved_week,
                   value: weekViewStats.approvati,
                   Icon: UserCheck,
-                  iconColor: 'text-accent dark:text-accent-light',
+                  iconColor: 'text-emerald-600 dark:text-emerald-400',
                   bg: 'bg-transparent dark:bg-transparent',
-                  border: 'border-accent/20 dark:border-accent/35',
-                  iconWell: 'bg-accent/15 dark:bg-accent/25',
+                  border: 'border-emerald-500/20 dark:border-emerald-500/35',
+                  iconWell: 'bg-emerald-500/15 dark:bg-emerald-500/25',
                 },
               ] as const).map(({ label, value, Icon, iconColor, bg, border, iconWell }) => (
                 <button
@@ -3301,26 +3317,7 @@ export default function Timesheets() {
                               aria-label={formatTrans(t.ts_employee_week_review_open_aria, { name: user.first_name })}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                // Unifica popup: apri lo stesso drawer del click sulla "data".
-                                // Seleziona il primo turno disponibile nella settimana visibile (ordine dei giorni).
-                                let first: { shift: ShiftRow; dateStr: string } | null = null;
-                                for (const day of weekDays) {
-                                  const dStr = format(day, 'yyyy-MM-dd');
-                                  const dayData = timesheetData[user.id]?.[dStr];
-                                  if (!dayData) continue;
-                                  for (const shift of dayData.shifts) {
-                                    if (!shiftEligibleForDayReview(shift)) continue;
-                                    first = { shift, dateStr: dStr };
-                                    break;
-                                  }
-                                  if (first) break;
-                                }
-                                if (!first) {
-                                  showError?.(t.ts_employee_week_review_empty);
-                                  return;
-                                }
-                                
-                                openDrawer(first.shift, user as any, first.dateStr, null, 'name');
+                                handleOpenEmployeeWeekReview(user);
                               }}
                             >
                               <div className="font-semibold text-sm text-slate-800 dark:text-neutral-100 md:text-xs">{user.first_name}</div>
@@ -3561,7 +3558,7 @@ export default function Timesheets() {
                               <div className="text-sm font-bold text-slate-900 dark:text-white md:text-xs">
                                 {formatMinutesToHoursAndMinutes(totals?.actualMins ?? 0)}
                               </div>
-                              <div className={`text-[10px] font-semibold ${(totals?.deltaMins ?? 0) >= 0 ? 'text-accent' : 'text-red-500'} md:text-[9px]`}>
+                              <div className={`text-[10px] font-semibold ${(totals?.deltaMins ?? 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'} md:text-[9px]`}>
                                 {(totals?.deltaMins ?? 0) >= 0 ? '+' : ''}
                                 {fmtHM(totals?.deltaMins ?? 0)}
                               </div>
@@ -3789,7 +3786,7 @@ export default function Timesheets() {
                       {
                         label: t.ts_kpi_delta,
                         val: `${(myTot?.deltaMins ?? 0) >= 0 ? '+' : ''}${fmtHM(myTot?.deltaMins ?? 0)}`,
-                        color: (myTot?.deltaMins ?? 0) >= 0 ? 'text-accent' : 'text-red-500',
+                        color: (myTot?.deltaMins ?? 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500',
                       },
                     ]
                   : plannedOnlyTimesheetGrid && frozenM > 0
@@ -3905,14 +3902,14 @@ export default function Timesheets() {
             fullShift ?? null
           );
           const deltaColor =
-            s.deltaMins > 5 ? 'text-accent' : s.deltaMins < -5 ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-neutral-400';
+            s.deltaMins > 5 ? 'text-emerald-600 dark:text-emerald-400' : s.deltaMins < -5 ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-neutral-400';
           const isEmployeeWeekReviewSheet = drawerReviewQueue?.reviewScope === 'employee_week';
 
           const plannedPublishedCard = s.status === 'confirmed' || s.status === 'approved';
           const plannedDraftCard = s.status === 'draft';
           const plannedAbsentCard = s.status === 'absent';
           const plannedCardBoxClass = plannedPublishedCard
-            ? 'rounded-xl border-2 border-l-4 border-emerald-200/80 dark:border-emerald-800/50 border-l-accent bg-emerald-50/95 dark:bg-emerald-950/40 p-3'
+            ? 'rounded-xl border-2 border-l-4 border-emerald-200/80 dark:border-emerald-800/50 border-l-emerald-600 bg-emerald-50/95 dark:bg-emerald-950/40 p-3'
             : plannedAbsentCard
               ? 'rounded-xl border-2 border-l-4 border-rose-200/80 dark:border-rose-800/50 border-l-error bg-rose-50 dark:bg-rose-950/35 p-3'
               : plannedDraftCard
@@ -4140,9 +4137,9 @@ export default function Timesheets() {
                           {translateDepartmentValue(drawerData.department, effectiveLanguage)}
                         </span>
                       )}
-                      {isApproved && <Lock className="h-3 w-3 shrink-0 text-accent" />}
+                      {isApproved && <Lock className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400" />}
                       {isEmployeeWeekReviewSheet && drawerReviewQueue && (
-                        <span className="shrink-0 text-[10px] font-semibold text-accent dark:text-accent-light">
+                        <span className="shrink-0 text-[10px] font-semibold text-slate-600 dark:text-neutral-300">
                           {formatTrans(t.ts_employee_week_review_progress, { current: String(drawerReviewQueue.currentIdx + 1), total: String(drawerReviewQueue.items.length) })}
                         </span>
                       )}
@@ -4298,7 +4295,7 @@ export default function Timesheets() {
                                 <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" strokeWidth={2.5} aria-hidden />
                               )}
                               {s.status === 'approved' && (
-                                <Lock className="h-4 w-4 text-accent dark:text-accent-light" strokeWidth={2.5} aria-hidden />
+                                <Lock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" strokeWidth={2.5} aria-hidden />
                               )}
                             </span>
                           )}
@@ -4323,7 +4320,7 @@ export default function Timesheets() {
                           s.punched
                             ? s.isCrossDay
                               ? 'border-red-200 dark:border-red-800/50 border-l-error bg-red-50 dark:bg-red-950/35'
-                              : 'border-teal-200/80 dark:border-teal-800/50 border-l-accent bg-teal-50 dark:bg-teal-950/35'
+                              : 'border-teal-200/80 dark:border-teal-800/50 border-l-emerald-600 bg-teal-50 dark:bg-teal-950/35'
                             : 'border-amber-400/90 dark:border-amber-500/70 border-l-review bg-amber-50 dark:bg-amber-950/45 animate-pulse'
                         }`}
                       >
@@ -4536,7 +4533,7 @@ export default function Timesheets() {
                                         {fmtAuditValue(e.oldValue)}
                                       </span>
                                       <ArrowRight className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-500" />
-                                      <span className="rounded-lg bg-accent/10 px-1.5 py-0.5 font-semibold text-accent-dark dark:bg-accent/20 dark:text-accent-light">
+                                      <span className="rounded-lg bg-emerald-50 px-1.5 py-0.5 font-semibold text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
                                         {fmtAuditValue(e.newValue)}
                                       </span>
                                     </div>
@@ -4575,7 +4572,7 @@ export default function Timesheets() {
                                         {fmtAuditValue(e.old_value)}
                                       </span>
                                       <ArrowRight className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-500" />
-                                      <span className="rounded-lg bg-accent/10 px-1.5 py-0.5 font-semibold text-accent-dark dark:bg-accent/20 dark:text-accent-light">
+                                      <span className="rounded-lg bg-emerald-50 px-1.5 py-0.5 font-semibold text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
                                         {fmtAuditValue(e.new_value)}
                                       </span>
                                     </div>
@@ -4603,7 +4600,7 @@ export default function Timesheets() {
                         const cardCls = punchCrossDay
                           ? 'border-red-200 dark:border-red-800/50 border-l-error bg-red-50/90 dark:bg-red-950/40'
                           : punchComplete
-                          ? 'border-teal-200/80 dark:border-teal-800/50 border-l-accent bg-teal-50/90 dark:bg-teal-950/40'
+                          ? 'border-teal-200/80 dark:border-teal-800/50 border-l-emerald-600 bg-teal-50/90 dark:bg-teal-950/40'
                           : 'border-amber-400/90 dark:border-amber-500/70 bg-white/85 dark:bg-amber-950/50';
                         const hoverCls = timbraturePinGateTarget
                           ? punchCrossDay
@@ -4694,8 +4691,8 @@ export default function Timesheets() {
                             <p className={`mb-0.5 text-[9px] font-semibold uppercase tracking-wide ${!s.actualStart ? 'text-red-600 dark:text-red-400' : punchCrossDay ? 'text-red-600/80 dark:text-red-400/90' : punchComplete ? 'text-teal-700/80 dark:text-teal-400/90' : 'text-amber-800/80 dark:text-amber-300/90'}`}>
                               {t.ts_drawer_manual_punch_in}
                             </p>
-                            <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualStart ? 'text-slate-900 dark:text-neutral-100' : 'text-red-500 dark:text-red-400'}`}>
-                              {s.actualStart ?? '—'}
+                            <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualStart ? 'text-slate-900 dark:text-neutral-100' : s.plannedStart ? 'text-slate-400 dark:text-neutral-500' : 'text-red-500 dark:text-red-400'}`}>
+                              {s.actualStart ?? s.plannedStart ?? '—'}
                             </p>
                           </div>
                           <div
@@ -4722,8 +4719,8 @@ export default function Timesheets() {
                             <p className={`mb-0.5 text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide ${!s.actualEnd ? 'text-red-600 dark:text-red-400' : punchCrossDay ? 'text-red-600/80 dark:text-red-400/90' : punchComplete ? 'text-teal-700/80 dark:text-teal-400/90' : 'text-amber-800/80 dark:text-amber-300/90'}`}>
                               {t.ts_drawer_manual_punch_out}
                             </p>
-                            <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualEnd ? 'text-slate-900 dark:text-neutral-100' : 'text-red-500 dark:text-red-400'}`}>
-                              {s.actualEnd ?? '—'}
+                            <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualEnd ? 'text-slate-900 dark:text-neutral-100' : s.plannedEnd ? 'text-slate-400 dark:text-neutral-500' : 'text-red-500 dark:text-red-400'}`}>
+                              {s.actualEnd ?? s.plannedEnd ?? '—'}
                             </p>
                             {s.isCrossDay && s.actualEndFull && s.actualEnd && (
                               <p className="mt-1 flex items-center gap-1 text-[10px] font-bold text-amber-900 dark:text-amber-200">
@@ -4870,13 +4867,13 @@ export default function Timesheets() {
                           const isInReviewQueue = !!(drawerReviewQueue && !drawerReviewQueue.completed);
 
                           // Dati completi: se il form è aperto servono entrambi i campi con 4 cifre,
-                          // altrimenti bastano i valori già salvati sul turno.
+                          // altrimenti bastano i valori già salvati sul turno o gli orari pianificati.
                           const hasValidIn = showTimbratureEditForm
                             ? (manualPunchIn ?? '').replace(/\D/g, '').length >= 4
-                            : !!s.actualStart;
+                            : !!(s.actualStart || s.plannedStart);
                           const hasValidOut = showTimbratureEditForm
                             ? (manualPunchOut ?? '').replace(/\D/g, '').length >= 4
-                            : !!s.actualEnd;
+                            : !!(s.actualEnd || s.plannedEnd);
                           const punchDataComplete = hasValidIn && hasValidOut;
 
                           // Il form deve salvare solo se è espanso e modificabile
@@ -4929,22 +4926,22 @@ export default function Timesheets() {
                   {/* ── Blocco Approvazione (sempre visibile se approvato) ── */}
                   {isApproved && (
                     <div className="border-b border-slate-100 dark:border-white/10 p-3 sm:p-5">
-                      <div className="rounded-xl border-2 border-l-4 border-accent/25 dark:border-accent/20 border-l-accent bg-accent/5 dark:bg-accent/10 p-3">
+                      <div className="rounded-xl border-2 border-l-4 border-emerald-200/60 dark:border-emerald-800/40 border-l-emerald-600 bg-emerald-50/70 dark:bg-emerald-950/25 p-3">
                         <div className="mb-3 flex items-center gap-2">
-                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-accent/15">
-                            <Lock className="h-4 w-4 text-accent" />
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-500/15">
+                            <Lock className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-accent-dark dark:text-accent-light">{t.ts_drawer_approved_frozen}</p>
-                            <p className="text-[11px] text-accent dark:text-accent-light/90">{t.ts_drawer_no_further_edits}</p>
+                            <p className="text-sm font-bold text-emerald-900 dark:text-emerald-300">{t.ts_drawer_approved_frozen}</p>
+                            <p className="text-[11px] text-emerald-700 dark:text-emerald-400/90">{t.ts_drawer_no_further_edits}</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-accent/15 dark:border-accent/10 p-3">
+                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-emerald-200/40 dark:border-emerald-800/30 p-3">
                             <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_drawer_approved_by}</p>
                             <p className="truncate text-sm font-bold text-slate-800 dark:text-neutral-100">{fullShift?.approved_by ?? s.approved_by ?? '—'}</p>
                           </div>
-                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-accent/15 dark:border-accent/10 p-3">
+                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-emerald-200/40 dark:border-emerald-800/30 p-3">
                             <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_drawer_approval_date}</p>
                             <p className="text-sm font-bold text-slate-800 dark:text-neutral-100">
                               {(fullShift?.approved_at ?? s.approved_at)
@@ -5318,6 +5315,14 @@ export default function Timesheets() {
               isLoading={pinGateUnlocking}
               confirmLabel={t.confirm ?? 'Conferma'}
               cancelLabel={t.cancel ?? 'Annulla'}
+              userId={currentUser?.id}
+              userDisplayName={[currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(' ')}
+              userEmail={currentUser?.email ?? ''}
+              onBiometricSuccess={() => {
+                const verifier = findFreezeVerifierById(users, currentUser?.id ?? '');
+                if (!verifier) { setPinGateError(t.wst_freeze_pin_invalid); return; }
+                void submitTimbraturePinGate(verifier);
+              }}
             />
           )}
         </AnimatePresence>,
@@ -5337,7 +5342,7 @@ export default function Timesheets() {
           const clockOutComplete = /^\d{2}:\d{2}$/.test((clockOutTime || '').trim());
           const showHoursPreview = clockOutComplete && !!shiftObj && !!userObj;
           const previewDelta = previewMins - closingShift.plannedMins;
-          const previewDeltaColor = previewDelta > 5 ? 'text-accent' : previewDelta < -5 ? 'text-red-500' : 'text-slate-500';
+          const previewDeltaColor = previewDelta > 5 ? 'text-emerald-600 dark:text-emerald-400' : previewDelta < -5 ? 'text-red-500' : 'text-slate-500';
 
           return (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -5453,6 +5458,17 @@ export default function Timesheets() {
                   isLoading={approvingShiftId === ac.shiftId}
                   confirmLabel={t.ts_btn_yes_approve_freeze}
                   cancelLabel={t.cancel}
+                  userId={currentUser?.id}
+                  userDisplayName={[currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(' ')}
+                  userEmail={currentUser?.email ?? ''}
+                  onBiometricSuccess={async () => {
+                    const verifier = findFreezeVerifierById(users, currentUser?.id ?? '');
+                    if (!verifier) { setApprovalPinError(t.ts_approval_pin_invalid); return; }
+                    setApprovalConfirm(null);
+                    await handleApproveShift(ac.shiftId, verifier, {
+                      afterSuccess: ac.afterFreeze === 'advance_review' ? 'advance_review' : 'close_drawer',
+                    });
+                  }}
                 />
               );
             })()}
@@ -5466,7 +5482,11 @@ export default function Timesheets() {
                   pinLabel={t.ts_approval_pin_label}
                   pin={approvalPin}
                   onPinChange={(p) => (setApprovalPin(p), setApprovalPinError(''))}
-                  onConfirm={() => void runEmployeeWeekBatchFreeze()}
+                  onConfirm={async () => {
+                    const verifier = findFreezeVerifierByPin(users, approvalPin);
+                    if (!verifier) { setApprovalPinError(t.ts_approval_pin_invalid); setApprovalPin(''); return; }
+                    void runEmployeeWeekBatchFreeze(verifier);
+                  }}
                   onCancel={() => {
                     setEmployeeWeekFreezeBatch(null);
                     setApprovalPin('');
@@ -5480,6 +5500,14 @@ export default function Timesheets() {
                   isLoading={employeeWeekFreezeBusy}
                   confirmLabel={tv.ts_employee_week_freeze_batch_cta ?? t.ts_btn_yes_approve_freeze}
                   cancelLabel={t.cancel}
+                  userId={currentUser?.id}
+                  userDisplayName={[currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(' ')}
+                  userEmail={currentUser?.email ?? ''}
+                  onBiometricSuccess={() => {
+                    const verifier = findFreezeVerifierById(users, currentUser?.id ?? '');
+                    if (!verifier) { setApprovalPinError(t.ts_approval_pin_invalid); return; }
+                    void runEmployeeWeekBatchFreeze(verifier);
+                  }}
                 />
               );
             })()}
@@ -5493,6 +5521,7 @@ export default function Timesheets() {
           <AnimatePresence>
             {pinGateModal && (() => {
               const pgm = pinGateModal;
+              void pgm;
               return (
                 <PinPadModal
                   title={t.sync_lock_title}
@@ -5510,6 +5539,14 @@ export default function Timesheets() {
                   isLoading={pinGateUnlocking}
                   confirmLabel={t.ts_btn_confirm}
                   cancelLabel={t.cancel}
+                  userId={currentUser?.id}
+                  userDisplayName={[currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(' ')}
+                  userEmail={currentUser?.email ?? ''}
+                  onBiometricSuccess={() => {
+                    const verifier = findFreezeVerifierById(users, currentUser?.id ?? '');
+                    if (!verifier) { setPinGateError(t.wst_freeze_pin_invalid); return; }
+                    void submitTimbraturePinGate(verifier);
+                  }}
                 />
               );
             })()}

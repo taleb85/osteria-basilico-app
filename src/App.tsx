@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback, useRef } from 'react';
+import SwUpdateOverlay from './components/SwUpdateOverlay';
 const SuperAdminPanel = lazy(() => import('./components/SuperAdminPanel'));
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -157,6 +158,18 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const isMobileViewport = useIsMobileViewport();
   const staffMobileCompactHeader = !isManagement && isMobileViewport;
+
+  // Nasconde la sticky header quando un overlay/modal è aperto (evita il bug iOS Safari
+  // dove il backdrop-filter della header appare sopra i modal con z-index superiore).
+  const [overlayOpen, setOverlayOpen] = useState(false);
+  useEffect(() => {
+    const check = () => setOverlayOpen(document.body.dataset.overlay === '1');
+    check();
+    const obs = new MutationObserver(check);
+    obs.observe(document.body, { attributes: true, attributeFilter: ['data-overlay'] });
+    return () => obs.disconnect();
+  }, []);
+
 
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
@@ -324,6 +337,15 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     });
   }, [currentUser?.id, activeTab]);
 
+  // Sincronizza settimana tra Turni e Presenze notificando il cambio tab
+  useEffect(() => {
+    if (activeTab === 'turni' || activeTab === 'timesheet') {
+      window.dispatchEvent(
+        new CustomEvent('osteria-tab-activated', { detail: activeTab })
+      );
+    }
+  }, [activeTab]);
+
   /** Da NotificationCenter / Ore: apre tab (es. Presenze) e scroll ad ancoraggio. */
   useEffect(() => {
     const onNavigate = (e: Event) => {
@@ -413,7 +435,11 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       */}
       <header
         ref={appStickyHeaderRef}
-        className={`sticky top-0 z-[10040] shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2 ${
+        className={`sticky top-0 z-[10040] shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2 transition-[visibility,opacity] duration-150 ${
+          activeTab === 'profile' ? 'hidden' : ''
+        } ${
+          overlayOpen ? 'invisible opacity-0 pointer-events-none' : ''
+        } ${
           isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''
         }`}
       >
@@ -508,7 +534,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 function ProtectedApp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, featureFlags, showError, effectiveLanguage } = useApp();
+  const { currentUser, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, featureFlags, showError, effectiveLanguage, setIsSessionElevated } = useApp();
 
   useEffect(() => {
     const state = location.state as { accessDenied?: boolean } | null;
@@ -528,6 +554,7 @@ function ProtectedApp() {
     if (currentUser?.language && ['it', 'en', 'es', 'fr'].includes(currentUser.language)) {
       persistStoredUiLanguage(currentUser.language);
     }
+    setIsSessionElevated(false);
     setCurrentUser(null);
     navigate(PATH_TIMBRATURA, { replace: true });
   };
@@ -544,6 +571,7 @@ function ProtectedApp() {
       if (currentUser?.language && ['it', 'en', 'es', 'fr'].includes(currentUser.language)) {
         persistStoredUiLanguage(currentUser.language);
       }
+      setIsSessionElevated(false);
       setCurrentUser(null);
       clearForceLogoutRequest();
       navigate(PATH_TIMBRATURA, { replace: true });
@@ -581,19 +609,49 @@ function AppContent() {
       <Route path="/app/*" element={<ProtectedApp />} />
       <Route path="/admin" element={<AdminGate><AdminLayout /></AdminGate>} />
       <Route path="/admin/*" element={<AdminGate><AdminLayout /></AdminGate>} />
-      <Route path="/super-admin" element={<Suspense fallback={null}><SuperAdminPanel /></Suspense>} />
       <Route path="*" element={<Navigate to={PATH_TIMBRATURA} replace />} />
     </Routes>
   );
 }
 
 function App() {
+  // Se il dominio è il progetto super-admin dedicato, reindirizza / → /super-admin
+  const isSuperAdminDomain =
+    typeof window !== 'undefined' &&
+    window.location.hostname.includes('super-admin');
+
+  // Overlay aggiornamento SW: mostrato quando viene rilevato un nuovo deploy
+  const [swUpdating, setSwUpdating] = useState(false);
+
+  useEffect(() => {
+    const onSwUpdate = () => setSwUpdating(true);
+    window.addEventListener('sw-update', onSwUpdate);
+    return () => window.removeEventListener('sw-update', onSwUpdate);
+  }, []);
+
+  // Priorità massima: se SW update in corso, mostra solo l'overlay
+  if (swUpdating) return <SwUpdateOverlay />;
+
   return (
-    <AppProvider>
-      <LayoutPresetProvider>
-        <AppContent />
-      </LayoutPresetProvider>
-    </AppProvider>
+    <Routes>
+      {/* Super admin: completamente isolato da AppProvider e TenantContext */}
+      <Route path="/super-admin" element={<Suspense fallback={null}><SuperAdminPanel /></Suspense>} />
+      {/* Redirect automatico dalla root per il dominio super-admin dedicato */}
+      {isSuperAdminDomain && (
+        <Route path="/" element={<Navigate to="/super-admin" replace />} />
+      )}
+      {/* Tutto il resto: avvolto nei provider normali */}
+      <Route
+        path="*"
+        element={
+          <AppProvider>
+            <LayoutPresetProvider>
+              <AppContent />
+            </LayoutPresetProvider>
+          </AppProvider>
+        }
+      />
+    </Routes>
   );
 }
 

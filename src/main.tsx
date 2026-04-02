@@ -12,7 +12,28 @@ import { RootErrorBoundary } from './components/RootErrorBoundary';
 import { TenantProvider } from './context/TenantContext';
 import './index.css';
 
-// autoUpdate: workbox-window ricarica su `activated` se c’è un aggiornamento (vedi vite-plugin-pwa register.js).
+// ── Rilevamento aggiornamento Service Worker ─────────────────────────────────
+// Quando un nuovo SW prende il controllo (dopo un deploy):
+//   1. Blocca il reload silenzioso automatico di workbox-window
+//   2. Notifica React tramite evento custom `sw-update`
+//   3. SwUpdateOverlay mostra il progresso e reindirizza a /app
+if ('serviceWorker' in navigator) {
+  let hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) {
+      hadController = true;
+      return; // Primo install — nessun overlay necessario
+    }
+    // Aggiornamento: blocca il reload automatico di workbox e delega a React
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      Object.defineProperty(window.location, 'reload', { value: () => {}, writable: true, configurable: true });
+    } catch { /* alcuni browser non permettono il monkey-patch */ }
+    window.dispatchEvent(new CustomEvent('sw-update'));
+  });
+}
+
+// autoUpdate: workbox-window ricarica su `activated` se c'e' un aggiornamento.
 // `onNeedRefresh` vale solo con registerType: 'prompt', qui non viene chiamato.
 registerSW({
   immediate: true,
@@ -33,7 +54,7 @@ function requestServiceWorkerUpdate() {
   void navigator.serviceWorker?.ready.then((r) => r.update());
 }
 
-// Torna in app / finestra → controlla subito nuovo SW (dopo un deploy)
+// Torna in app / finestra -> controlla subito nuovo SW (dopo un deploy)
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') requestServiceWorkerUpdate();
 });
@@ -45,7 +66,7 @@ window.addEventListener('pageshow', (e) => {
 const rootEl = document.getElementById('root');
 if (!rootEl) {
   document.body.innerHTML =
-    '<p style="font-family:system-ui;padding:1rem">Manca l’elemento #root in index.html.</p>';
+    '<p style="font-family:system-ui;padding:1rem">Manca l\'elemento #root in index.html.</p>';
 } else {
   createRoot(rootEl).render(
     <StrictMode>

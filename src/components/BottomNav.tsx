@@ -28,7 +28,7 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClassName }: BottomNavProps) {
   const navRef = useRef<HTMLElement>(null);
-  const { effectiveLanguage, currentUser, users, setCurrentUser } = useApp();
+  const { effectiveLanguage, currentUser, users, setCurrentUser, setIsSessionElevated } = useApp();
   /** Contenuto che scorre sotto la nav fissa → vetro trasparente; altrimenti tinta piena rgb(45,90,39). */
   const [navOverContent, setNavOverContent] = useState(false);
 
@@ -73,7 +73,19 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   const handleVerifyPinAndSwitch = useCallback(() => {
     if (!pendingSwitchUser) return;
     if (switchPin === pendingSwitchUser.pin) {
+      setIsSessionElevated(false);
       setCurrentUser(pendingSwitchUser);
+      setIsQuickSwitchOpen(false);
+      setPendingSwitchUser(null);
+      setSwitchPin('');
+    } else if (
+      pendingSwitchUser.secondary_pin &&
+      pendingSwitchUser.elevated_role &&
+      switchPin === pendingSwitchUser.secondary_pin
+    ) {
+      // Accesso tramite PIN secondario: eleva il ruolo per la sessione
+      setIsSessionElevated(true);
+      setCurrentUser({ ...pendingSwitchUser, role: pendingSwitchUser.elevated_role });
       setIsQuickSwitchOpen(false);
       setPendingSwitchUser(null);
       setSwitchPin('');
@@ -82,7 +94,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
       setSwitchPin('');
       setTimeout(() => setSwitchError(''), 2000);
     }
-  }, [pendingSwitchUser, switchPin, setCurrentUser, t.pin_invalid]);
+  }, [pendingSwitchUser, switchPin, setCurrentUser, setIsSessionElevated, t.pin_invalid]);
 
   useEffect(() => {
     if (switchPin.length === 4 && pendingSwitchUser) {
@@ -198,8 +210,8 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   const defs: { id: AppNavTab; icon: typeof Home; label: string }[] = [
     { id: 'home', icon: Home, label: t.sidebar_dashboard },
     { id: 'turni', icon: Calendar, label: t.sidebar_shifts },
-    { id: 'reports', icon: Clock, label: t.sidebar_statistics },
     { id: 'timesheet', icon: ClipboardList, label: t.sidebar_attendance },
+    { id: 'reports', icon: Clock, label: t.sidebar_statistics },
     { id: 'ferie', icon: Palmtree, label: t.sidebar_holidays },
     { id: 'profile', icon: User, label: tv.bottom_nav_profile_short ?? t.sidebar_profile },
     { id: 'settings', icon: ShieldCheck, label: t.sidebar_admin },

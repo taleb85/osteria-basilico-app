@@ -1,7 +1,13 @@
 import { motion } from 'framer-motion';
-import { Lock, ShieldCheck, Delete, Fingerprint, Loader2 } from 'lucide-react';
-import React, { ReactNode, useEffect } from 'react';
+import { Lock, ShieldCheck, Delete, Fingerprint, Loader2, Smartphone } from 'lucide-react';
+import React, { ReactNode, useEffect, useState, useCallback } from 'react';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import {
+  supportsPinUnlockWebAuthn,
+  hasPinUnlockCredential,
+  authenticatePinUnlockCredential,
+  registerPinUnlockCredential,
+} from '../../utils/pinUnlockWebAuthn';
 
 interface PinPadModalProps {
   title: string;
@@ -18,6 +24,14 @@ interface PinPadModalProps {
   leftActionButton?: ReactNode;
   /** Sovrascrive le classi dell'overlay (default: 'bg-black/30 backdrop-blur-[3px]') */
   backdropClass?: string;
+  /** ID utente per biometrica interna (usato solo se leftActionButton non è fornito) */
+  userId?: string;
+  /** Nome visualizzato per la registrazione biometrica */
+  userDisplayName?: string;
+  /** Email per la registrazione biometrica */
+  userEmail?: string;
+  /** Chiamato quando l'autenticazione biometrica riesce. Se assente, viene chiamato onConfirm() direttamente. */
+  onBiometricSuccess?: () => void | Promise<void>;
 }
 
 export function PinPadModal({
@@ -34,8 +48,53 @@ export function PinPadModal({
   cancelLabel = 'Annulla',
   leftActionButton,
   backdropClass,
+  userId,
+  userDisplayName,
+  userEmail,
+  onBiometricSuccess,
 }: PinPadModalProps) {
   useBodyScrollLock(true);
+
+  // ── Biometrica interna (solo se leftActionButton non è fornito) ─────────────
+  const webAuthnOk = !leftActionButton && !!userId && supportsPinUnlockWebAuthn();
+  const credRegistered = webAuthnOk && hasPinUnlockCredential(userId!);
+  const [bioLoading, setBioLoading] = useState(false);
+  const [bioRegLoading, setBioRegLoading] = useState(false);
+
+  const handleBiometric = useCallback(async () => {
+    if (!userId || bioLoading || isLoading) return;
+    setBioLoading(true);
+    try {
+      const ok = await authenticatePinUnlockCredential(userId);
+      if (ok) {
+        if (onBiometricSuccess) await onBiometricSuccess();
+        else onConfirm();
+      }
+    } finally {
+      setBioLoading(false);
+    }
+  }, [userId, bioLoading, isLoading, onBiometricSuccess, onConfirm]);
+
+  const handleBioRegister = useCallback(async () => {
+    if (!userId || bioRegLoading) return;
+    setBioRegLoading(true);
+    try {
+      await registerPinUnlockCredential(
+        userId,
+        userDisplayName ?? userId,
+        userEmail ?? '',
+      );
+    } finally {
+      setBioRegLoading(false);
+    }
+  }, [userId, bioRegLoading, userDisplayName, userEmail]);
+
+  // Auto-trigger biometrica al mount se credenziale già registrata
+  useEffect(() => {
+    if (credRegistered && !bioLoading) void handleBiometric();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // ────────────────────────────────────────────────────────────────────────────
 
   const handleKey = (n: number | 'del') => {
     if (isLoading) return;
@@ -105,7 +164,7 @@ export function PinPadModal({
 
         {/* PIN label + display */}
         <div className="relative flex flex-col items-center gap-1.5 mb-5 w-full">
-          <div className="flex items-center gap-1.5 text-brand-400/80">
+          <div className="flex items-center gap-1.5 text-white/90">
             <ShieldCheck className="w-4 h-4" strokeWidth={2.5} />
             <span className="text-[10px] font-bold uppercase tracking-widest">{pinLabel}</span>
           </div>
@@ -152,13 +211,50 @@ export function PinPadModal({
             </button>
           ))}
 
-          {/* Bottom row */}
-          <button type="button"
-            onClick={() => leftActionButton && typeof leftActionButton === 'object' && (leftActionButton as React.ReactElement<{ onClick?: () => void }>).props?.onClick?.()}
-            className="h-12 rounded-xl flex items-center justify-center text-white/40 hover:text-white/70 active:scale-95 transition-all"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <Fingerprint className="w-5 h-5" />
-          </button>
+          {/* Bottom row — sinistra: leftActionButton > biometrica interna > placeholder */}
+          {leftActionButton ? (
+            <div className="h-12 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              {leftActionButton}
+            </div>
+          ) : webAuthnOk ? (
+            credRegistered ? (
+              /* Impronta registrata → autenticazione */
+              <button
+                type="button"
+                onClick={handleBiometric}
+                disabled={bioLoading || isLoading}
+                className="h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 text-accent active:scale-95 transition-all disabled:opacity-50"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(74,222,128,0.25)' }}
+                title="Usa impronta digitale"
+              >
+                {bioLoading
+                  ? <Loader2 className="w-5 h-5 animate-spin" />
+                  : <Fingerprint className="w-5 h-5" />}
+              </button>
+            ) : (
+              /* Credenziale non ancora registrata → registra */
+              <button
+                type="button"
+                onClick={handleBioRegister}
+                disabled={bioRegLoading || isLoading}
+                className="h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-white/60 active:scale-95 transition-all"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                title="Collega impronta digitale"
+              >
+                {bioRegLoading
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <Smartphone className="w-4.5 h-4.5 text-[#455a3f]" style={{ width: '1.125rem', height: '1.125rem' }} />}
+                <span className="text-[7px] font-black uppercase tracking-tighter leading-none">Collega</span>
+              </button>
+            )
+          ) : (
+            /* WebAuthn non disponibile → placeholder */
+            <div className="h-12 rounded-xl flex items-center justify-center opacity-20"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <Fingerprint className="w-5 h-5 text-white/30" />
+            </div>
+          )}
 
           <button type="button" onClick={() => handleKey(0)}
             className="h-12 rounded-xl font-bold text-xl text-white active:scale-95 transition-all"

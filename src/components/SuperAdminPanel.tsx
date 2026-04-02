@@ -2,6 +2,8 @@
  * SuperAdminPanel — Pannello di gestione multi-sede.
  * Accessibile su /super-admin (route protetta da PIN super-admin).
  * Permette di creare, modificare, configurare e disattivare sedi (tenant).
+ *
+ * ISOLATO: non usa AppContext né TenantContext. Ha il proprio PIN gate.
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,11 +11,124 @@ import {
   Plus, Pencil, Check, X, Building2, Palette, Globe,
   ToggleLeft, ToggleRight, Copy, Settings, ChevronDown,
   MapPin, Clock, Languages, Layers, ExternalLink, Users,
-  UserPlus, Trash2, ChevronRight, Eye, EyeOff,
+  UserPlus, Trash2, ChevronRight, Eye, EyeOff, ShieldCheck, Delete,
 } from 'lucide-react';
 import { supabaseAdmin as supabase } from '../lib/supabase';
 import type { Tenant, TenantSettings, UserRole, UserStatus } from '../types';
-import { applyTenantBrand, HEADER_FONTS } from '../context/TenantContext';
+import { HEADER_FONTS } from '../context/TenantContext';
+import { seedTenantFromTemplate } from '../utils/seedTenantFromTemplate';
+
+// ---------------------------------------------------------------------------
+// Costanti PIN
+// ---------------------------------------------------------------------------
+
+const SUPER_ADMIN_PIN = import.meta.env.VITE_SUPER_ADMIN_PIN ?? '159753';
+const SESSION_KEY = 'sa_unlocked';
+
+// ---------------------------------------------------------------------------
+// PIN Gate
+// ---------------------------------------------------------------------------
+
+function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
+  const [digits, setDigits] = useState('');
+  const [error, setError] = useState(false);
+  const [shake, setShake] = useState(false);
+
+  const handleDigit = (d: string) => {
+    if (digits.length >= 6) return;
+    const next = digits + d;
+    setDigits(next);
+    setError(false);
+    if (next.length === SUPER_ADMIN_PIN.length) {
+      if (next === SUPER_ADMIN_PIN) {
+        sessionStorage.setItem(SESSION_KEY, '1');
+        onUnlocked();
+      } else {
+        setShake(true);
+        setError(true);
+        setTimeout(() => { setDigits(''); setShake(false); }, 600);
+      }
+    }
+  };
+
+  const handleDelete = () => setDigits((d) => d.slice(0, -1));
+
+  const PAD = [
+    ['1','2','3'],
+    ['4','5','6'],
+    ['7','8','9'],
+    ['','0','⌫'],
+  ];
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (/^\d$/.test(e.key)) handleDigit(e.key);
+      else if (e.key === 'Backspace') handleDelete();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  return (
+    <div className="min-h-screen min-h-dvh flex flex-col items-center justify-center bg-[#0f1117] px-6 select-none"
+      style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      {/* Logo / icona */}
+      <div className="mb-8 flex flex-col items-center gap-3">
+        <div className="w-16 h-16 rounded-2xl bg-[#1e2330] border border-white/10 flex items-center justify-center shadow-lg">
+          <ShieldCheck className="w-8 h-8 text-emerald-400" />
+        </div>
+        <div className="text-center">
+          <h1 className="text-lg font-bold text-white tracking-tight">Super Admin</h1>
+          <p className="text-sm text-white/40 mt-0.5">Inserisci il PIN per accedere</p>
+        </div>
+      </div>
+
+      {/* Indicatore cifre */}
+      <motion.div
+        animate={shake ? { x: [0, -8, 8, -6, 6, 0] } : {}}
+        transition={{ duration: 0.4 }}
+        className="flex gap-3 mb-8"
+      >
+        {Array.from({ length: SUPER_ADMIN_PIN.length }).map((_, i) => (
+          <div
+            key={i}
+            className={`w-3 h-3 rounded-full transition-all duration-150 ${
+              i < digits.length
+                ? error ? 'bg-red-400' : 'bg-emerald-400'
+                : 'bg-white/15'
+            }`}
+          />
+        ))}
+      </motion.div>
+
+      {/* Tastierino numerico */}
+      <div className="grid grid-cols-3 gap-3 w-full max-w-[260px]">
+        {PAD.flat().map((key, i) => {
+          if (key === '') return <div key={i} />;
+          const isDelete = key === '⌫';
+          return (
+            <button
+              key={i}
+              onClick={() => isDelete ? handleDelete() : handleDigit(key)}
+              className={`h-14 rounded-2xl text-lg font-bold transition-all active:scale-95 ${
+                isDelete
+                  ? 'bg-transparent text-white/40 hover:text-white/70'
+                  : 'bg-white/8 border border-white/10 text-white hover:bg-white/14 active:bg-white/20'
+              }`}
+            >
+              {isDelete ? <Delete className="w-5 h-5 mx-auto" /> : key}
+            </button>
+          );
+        })}
+      </div>
+
+      {error && (
+        <p className="mt-6 text-sm text-red-400 font-medium">PIN non corretto</p>
+      )}
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -789,9 +904,12 @@ interface TenantFormProps {
   onSave: (data: Omit<Tenant, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
   onCancel: () => void;
   saving: boolean;
+  /** Solo per nuova sede: se true, popola con dati demo da Osteria Basilico */
+  seedDemo?: boolean;
+  onSeedDemoChange?: (v: boolean) => void;
 }
 
-function TenantForm({ initial, onSave, onCancel, saving }: TenantFormProps) {
+function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeedDemoChange }: TenantFormProps) {
   const [name, setName] = useState(initial?.name ?? '');
   const [slug, setSlug] = useState(initial?.slug ?? '');
   const [accent, setAccent] = useState(initial?.accent_color ?? 'var(--brand)');
@@ -977,6 +1095,21 @@ function TenantForm({ initial, onSave, onCancel, saving }: TenantFormProps) {
         <p className="text-[10px] text-slate-400">PNG/JPG quadrata consigliata, max 2 MB. Usata come icona PWA e nell'app.</p>
       </div>
 
+      {/* Dati demo — solo per nuova sede */}
+      {!initial?.id && onSeedDemoChange && (
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3.5 py-3 flex items-start gap-3">
+          <Toggle value={seedDemo} onChange={onSeedDemoChange} />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-700 dark:text-neutral-200 leading-snug">
+              Carica dati demo
+            </p>
+            <p className="text-[11px] text-slate-400 dark:text-neutral-500 leading-snug mt-0.5">
+              Dipendenti anonimizzati + turni settimana corrente copiati da Osteria Basilico
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Bottoni */}
       <div className="flex gap-2 pt-1">
         <button
@@ -1000,6 +1133,37 @@ function TenantForm({ initial, onSave, onCancel, saving }: TenantFormProps) {
 // ---------------------------------------------------------------------------
 
 export default function SuperAdminPanel() {
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem(SESSION_KEY) === '1');
+
+  // Reset brand neutro: sovrascrive le CSS var del tenant con valori fissi
+  useEffect(() => {
+    const root = document.documentElement;
+    const prev: Record<string, string> = {};
+    const neutralVars: Record<string, string> = {
+      '--brand':       '#10b981',
+      '--brand-hover': '#059669',
+      '--accent':      '#10b981',
+      '--accent-hover':'#059669',
+    };
+    Object.entries(neutralVars).forEach(([k, v]) => {
+      prev[k] = root.style.getPropertyValue(k);
+      root.style.setProperty(k, v);
+    });
+    // Forza dark mode neutra
+    document.documentElement.classList.add('dark');
+    return () => {
+      Object.entries(prev).forEach(([k, v]) => root.style.setProperty(k, v));
+    };
+  }, []);
+
+  if (!unlocked) {
+    return <SuperAdminPinGate onUnlocked={() => setUnlocked(true)} />;
+  }
+
+  return <SuperAdminPanelInner />;
+}
+
+function SuperAdminPanelInner() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1008,6 +1172,7 @@ export default function SuperAdminPanel() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [expandedSettings, setExpandedSettings] = useState<string | null>(null);
+  const [seedDemo, setSeedDemo] = useState(true);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -1034,10 +1199,29 @@ export default function SuperAdminPanel() {
     if (!supabase) return;
     setSaving(true);
     try {
-      const { error: err } = await supabase.from('tenants').insert({ ...data });
+      // Recupera l'id della sede appena creata per il seeding dei dati demo
+      const { data: created, error: err } = await supabase
+        .from('tenants')
+        .insert({ ...data })
+        .select('id')
+        .maybeSingle();
       if (err) throw err;
-      showToast('Sede creata!');
+
+      if (seedDemo && created?.id) {
+        try {
+          await seedTenantFromTemplate(supabase, created.id);
+          showToast('Sede creata con dati demo!');
+        } catch (seedErr) {
+          // Il tenant è stato creato: segnala l'errore seed ma non bloccare
+          setError(`Sede creata, ma errore nel caricamento dati demo: ${seedErr instanceof Error ? seedErr.message : String(seedErr)}`);
+          showToast('Sede creata (dati demo parziali).');
+        }
+      } else {
+        showToast('Sede creata!');
+      }
+
       setShowForm(false);
+      setSeedDemo(true); // reset per la prossima creazione
       await fetchTenants();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Errore creazione.');
@@ -1077,41 +1261,56 @@ export default function SuperAdminPanel() {
     navigator.clipboard.writeText(slug).then(() => showToast('Slug copiato!'));
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    window.location.reload();
+  };
+
   return (
-    <div className="min-h-screen min-h-dvh bg-gray-50 dark:bg-neutral-950 font-sans"
+    <div className="min-h-screen min-h-dvh bg-[#0f1117] font-sans text-neutral-100"
       style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {/* Sticky header */}
-      <header className="sticky top-0 z-30 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-b border-slate-200 dark:border-neutral-800 shadow-sm"
+      <header className="sticky top-0 z-30 bg-[#0f1117]/95 backdrop-blur-md border-b border-white/8 shadow-sm"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center shrink-0">
-              <Building2 className="w-4.5 h-4.5 text-white" style={{ width: '1.125rem', height: '1.125rem' }} />
+            <span className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4.5 h-4.5 text-emerald-400" style={{ width: '1.125rem', height: '1.125rem' }} />
             </span>
             <div className="min-w-0">
-              <h1 className="text-base font-bold text-slate-900 dark:text-white leading-tight truncate">Super Admin</h1>
-              <p className="text-[11px] text-slate-400 dark:text-neutral-500 leading-tight hidden sm:block">Gestione sedi</p>
+              <h1 className="text-base font-bold text-white leading-tight truncate">Super Admin</h1>
+              <p className="text-[11px] text-white/40 leading-tight hidden sm:block">Gestione sedi</p>
             </div>
           </div>
-          <button
-            onClick={() => { setShowForm(true); setEditingTenant(null); }}
-            className="flex items-center gap-1.5 rounded-xl bg-accent px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold text-white hover:bg-accent-hover active:scale-95 transition shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nuova sede</span>
-            <span className="sm:hidden">Nuova</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => { setShowForm(true); setEditingTenant(null); }}
+              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold text-white active:scale-95 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Nuova sede</span>
+              <span className="sm:hidden">Nuova</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              title="Esci da Super Admin"
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/6 hover:bg-red-500/20 hover:text-red-400 text-white/40 transition active:scale-95"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4"
         style={{ paddingLeft: 'max(1rem, env(safe-area-inset-left))', paddingRight: 'max(1rem, env(safe-area-inset-right))' }}
       >
+
         {/* Error */}
         {error && (
-          <div className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300 flex gap-2 items-start">
+          <div className="rounded-xl bg-red-950/30 border border-red-800 px-4 py-3 text-sm text-red-300 flex gap-2 items-start">
             <X className="w-4 h-4 shrink-0 mt-0.5" />
             <span className="flex-1">{error}</span>
             <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 shrink-0 p-1"><X className="w-3.5 h-3.5" /></button>
@@ -1125,18 +1324,20 @@ export default function SuperAdminPanel() {
               onSave={handleCreate}
               onCancel={() => setShowForm(false)}
               saving={saving}
+              seedDemo={seedDemo}
+              onSeedDemoChange={setSeedDemo}
             />
           )}
         </AnimatePresence>
 
         {/* Lista sedi */}
-        {loading ? (
-          <div className="text-center py-16 text-slate-400">
-            <div className="w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-3" />
+          {loading ? (
+          <div className="text-center py-16 text-white/40">
+            <div className="w-8 h-8 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
             Caricamento…
           </div>
         ) : tenants.length === 0 ? (
-          <div className="text-center py-16 text-slate-400">
+          <div className="text-center py-16 text-white/40">
             <Building2 className="w-10 h-10 mx-auto mb-3 opacity-30" />
             Nessuna sede configurata.
           </div>
@@ -1146,7 +1347,7 @@ export default function SuperAdminPanel() {
               <motion.div
                 key={t.id}
                 layout
-                className={`rounded-2xl border ${t.is_active ? 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900' : 'border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-950 opacity-60'} shadow-sm overflow-hidden`}
+                className={`rounded-2xl border ${t.is_active ? 'border-white/10 bg-white/6' : 'border-white/6 bg-white/3 opacity-60'} overflow-hidden`}
               >
                 <AnimatePresence mode="wait">
                   {editingTenant?.id === t.id ? (
@@ -1173,15 +1374,15 @@ export default function SuperAdminPanel() {
                           {/* Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-slate-900 dark:text-white text-sm">{t.name}</span>
-                              {!t.is_active && <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-red-100 text-red-500">Inattiva</span>}
+                              <span className="font-bold text-white text-sm">{t.name}</span>
+                              {!t.is_active && <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-red-900/40 text-red-400 border border-red-700/40">Inattiva</span>}
                             </div>
 
                             {/* Slug */}
                             <div className="flex items-center gap-1 mt-1">
-                              <Globe className="w-3 h-3 text-slate-400 shrink-0" />
-                              <span className="text-xs font-mono text-slate-500 dark:text-neutral-400 truncate">{t.slug}</span>
-                              <button onClick={() => copySlug(t.slug)} className="text-slate-300 hover:text-accent transition p-0.5 shrink-0" title="Copia slug">
+                              <Globe className="w-3 h-3 text-white/30 shrink-0" />
+                              <span className="text-xs font-mono text-white/40 truncate">{t.slug}</span>
+                              <button onClick={() => copySlug(t.slug)} className="text-white/20 hover:text-emerald-400 transition p-0.5 shrink-0" title="Copia slug">
                                 <Copy className="w-3 h-3" />
                               </button>
                             </div>
@@ -1192,14 +1393,14 @@ export default function SuperAdminPanel() {
                                 href={`https://${t.slug}.vercel.app`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-xs text-accent hover:underline font-medium min-w-0"
+                                className="flex items-center gap-1 text-xs text-emerald-400 hover:underline font-medium min-w-0"
                               >
                                 <ExternalLink className="w-3 h-3 shrink-0" />
                                 <span className="truncate">{t.slug}.vercel.app</span>
                               </a>
                               <button
                                 onClick={() => navigator.clipboard.writeText(`https://${t.slug}.vercel.app`).then(() => showToast('URL copiato!'))}
-                                className="text-slate-300 hover:text-accent transition p-0.5 shrink-0"
+                                className="text-white/20 hover:text-emerald-400 transition p-0.5 shrink-0"
                                 title="Copia URL"
                               >
                                 <Copy className="w-3 h-3" />
@@ -1208,22 +1409,22 @@ export default function SuperAdminPanel() {
                           </div>
                         </div>
 
-                        {/* Barra azioni — piena larghezza sotto su mobile */}
-                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-neutral-800">
+                        {/* Barra azioni */}
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/8">
                           <button
                             onClick={() => setExpandedSettings(expandedSettings === t.id ? null : t.id)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition active:scale-95 ${
                               expandedSettings === t.id
-                                ? 'bg-accent/10 text-accent'
-                                : 'bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-accent/10 hover:text-accent'
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : 'bg-white/6 text-white/50 hover:bg-emerald-500/15 hover:text-emerald-400'
                             }`}
                           >
                             <Settings className="w-3.5 h-3.5" />
                             Impostazioni
                           </button>
                           <button
-                            onClick={() => { applyTenantBrand(t.accent_color); setEditingTenant(t); setShowForm(false); setExpandedSettings(null); }}
-                            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-accent/10 hover:text-accent text-xs font-semibold transition active:scale-95"
+                            onClick={() => { setEditingTenant(t); setShowForm(false); setExpandedSettings(null); }}
+                            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 bg-white/6 text-white/50 hover:bg-white/12 hover:text-white text-xs font-semibold transition active:scale-95"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                             Modifica
@@ -1232,8 +1433,8 @@ export default function SuperAdminPanel() {
                             onClick={() => toggleActive(t)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition active:scale-95 ${
                               t.is_active
-                                ? 'bg-brand-50 dark:bg-green-950/30 text-brand-600 dark:text-brand-400 hover:bg-red-50 hover:text-red-500'
-                                : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 hover:bg-brand-50 hover:text-brand-600'
+                                ? 'bg-emerald-500/15 text-emerald-400 hover:bg-red-500/15 hover:text-red-400'
+                                : 'bg-white/6 text-white/40 hover:bg-emerald-500/15 hover:text-emerald-400'
                             }`}
                           >
                             {t.is_active ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}
@@ -1249,11 +1450,11 @@ export default function SuperAdminPanel() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden border-t border-slate-100 dark:border-neutral-800"
+                            className="overflow-hidden border-t border-white/8"
                           >
                             <div className="px-4 pt-3 pb-1 flex items-center gap-1.5">
-                              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                              <span className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">Impostazioni sede</span>
+                              <ChevronDown className="w-3.5 h-3.5 text-white/30" />
+                              <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Impostazioni sede</span>
                             </div>
                             <div className="px-4 pb-4">
                               <SettingsConfigPanel

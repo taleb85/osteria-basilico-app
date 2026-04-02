@@ -14,7 +14,7 @@ import { safeFormatDate } from '../utils/safeDateFormat';
 const STATUS_CONFIG = {
   approved: {
     label: 'Approvata',
-    dot: 'bg-accent dark:bg-accent-light',
+    dot: 'bg-emerald-500',
     badge:
       'bg-[#bbf7d0] text-[#1a1a1a] dark:bg-emerald-900/55 dark:text-emerald-100 border border-emerald-200/80 dark:border-emerald-700/50',
   },
@@ -385,7 +385,7 @@ export default function HolidayRequests() {
                       ${status === 'approved' ? 'bg-[#bbf7d0] text-[#1a1a1a] dark:bg-emerald-900/50 dark:text-emerald-100' :
                         status === 'pending'  ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/45 dark:text-amber-200'  :
                         status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-200'    :
-                        today                 ? 'bg-accent text-white'      :
+                        today                 ? 'bg-slate-700 text-white dark:bg-neutral-200 dark:text-neutral-900' :
                         'text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800'}`}
                   >
                     {format(day, 'd')}

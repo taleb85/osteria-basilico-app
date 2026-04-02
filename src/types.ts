@@ -130,6 +130,10 @@ export interface User {
   employment_start_date?: string | null;
   /** Fine rapporto / sospensione (yyyy-MM-dd), opzionale */
   employment_end_date?: string | null;
+  /** PIN secondario per elevazione sessione temporanea (non persiste al refresh). */
+  secondary_pin?: string | null;
+  /** Ruolo effettivo concesso quando si usa il secondary_pin (session-only). */
+  elevated_role?: UserRole | null;
 }
 
 export interface Shift {

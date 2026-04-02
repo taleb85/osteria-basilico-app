@@ -155,8 +155,8 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
               estimatedCostStats.shiftsWithRate === 0 ? 'opacity-75' : ''
             }`}
           >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50 ring-1 ring-inset ring-violet-200/80 dark:bg-violet-950/50 dark:ring-violet-700/40">
-              <TrendingUp className="h-4 w-4 text-violet-500 dark:text-violet-300" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-inset ring-accent/20 dark:bg-accent/15 dark:ring-accent/25">
+              <TrendingUp className="h-4 w-4 text-accent dark:text-accent" />
             </div>
             <div className="min-w-0">
               <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400">{t.stats_estimated_cost}</p>

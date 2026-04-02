@@ -308,7 +308,7 @@ export function MessageWriter({
           rows={4}
           className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40 resize-none dark:border-accent/50 dark:bg-neutral-900 dark:text-neutral-100"
         />
-        <p className="mt-1 text-xs text-blue-700/70 dark:text-blue-300/70">
+        <p className="mt-1 text-xs text-slate-400 dark:text-neutral-500">
           {body.length}/500 caratteri
         </p>
       </div>

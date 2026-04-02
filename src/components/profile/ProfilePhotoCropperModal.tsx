@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Minus, Plus } from 'lucide-react';
+import { lockBodyScroll, unlockBodyScroll } from '../../utils/bodyScrollLock';
 
 const OUTPUT_SIZE = 400;
 const JPEG_QUALITY = 0.82;
@@ -38,6 +39,12 @@ export default function ProfilePhotoCropperModal({ imageSrc, labels, onClose, on
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const [cropSize, setCropSize] = useState(280);
   const [userScale, setUserScale] = useState(1);
+
+  // Nasconde la sticky header mentre il cropper è aperto
+  useEffect(() => {
+    lockBodyScroll();
+    return () => unlockBodyScroll();
+  }, []);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const dragRef = useRef<{ sx: number; sy: number; px: number; py: number } | null>(null);
 
@@ -148,7 +155,7 @@ export default function ProfilePhotoCropperModal({ imageSrc, labels, onClose, on
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[300] flex flex-col bg-[#0a0a0a] text-white"
+      className="fixed inset-0 z-[10060] flex flex-col bg-[#0a0a0a] text-white"
       style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 0px))' }}
       role="dialog"
       aria-modal="true"

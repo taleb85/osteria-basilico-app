@@ -154,7 +154,7 @@ function computeTimesheetGridForPdf(
                   displayActualEnd,
                   user,
                   breakRules,
-                  breakComputeOpts
+                  frozen ? { ...breakComputeOpts, autoBreaksFeatureEnabled: false } : breakComputeOpts
                 )
               : Math.max(0, grossActualMins);
           const deltaMins = actualMins - plannedMins;

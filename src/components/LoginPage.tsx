@@ -12,6 +12,7 @@ import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
 import { getDeviceUiLanguage } from '../utils/uiLanguagePreference';
 import {
   findUserByNameAndPinAnyStatus,
+  findUserByNameAndSecondaryPin,
   findUsersMatchingName,
   getLoginNamePinFailureKind,
   pinMatchesStored,
@@ -31,7 +32,7 @@ interface LoginPageProps {
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
-  const { users, setCurrentUser, setLanguage } = useApp();
+  const { users, setCurrentUser, setLanguage, setIsSessionElevated } = useApp();
   const { tenant } = useTenant();
   const tenantName = tenant?.name ?? 'Osteria Basilico';
   const tenantAccent = tenant?.accent_color ?? 'var(--brand)';
@@ -171,6 +172,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     const user = findUserByNameAndPinAnyStatus(users, staffName, password);
 
     if (!user) {
+      // Controlla PIN secondario (elevazione sessione temporanea)
+      const elevatedUser = findUserByNameAndSecondaryPin(users, staffName, password);
+      if (elevatedUser?.elevated_role) {
+        const asElevated = { ...elevatedUser, role: elevatedUser.elevated_role };
+        setIsSessionElevated(true);
+        finalizeSession(asElevated as UserType, () => setIsLoading(false));
+        return;
+      }
+
       const kind = getLoginNamePinFailureKind(users, staffName, password);
       const msg =
         kind === 'no_name_match'

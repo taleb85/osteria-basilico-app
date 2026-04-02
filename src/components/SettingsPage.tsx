@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud, RefreshCw, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { format, parseISO, addDays } from 'date-fns';
 import {
   loadPeriodConfig,
@@ -60,6 +60,7 @@ import { SettingsAccordionSection } from './ui/SettingsAccordionSection';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage';
 import ProfileVisibilityHub from './ProfileVisibilityHub';
+import ElevatedAccessPanel from './ElevatedAccessPanel';
 import type { WorkRules } from '../utils/workRules';
 import { getCurrentPositionCoords } from '../utils/geo';
 import { resolveEffectiveVerificationToken, generateRandomVerificationToken } from '../utils/presenceVerificationPayload';
@@ -179,11 +180,38 @@ export default function SettingsPage() {
     pushSettingsToCloud,
     settingsCloudLastSyncedAt,
     settingsCloudPushBusy,
+    silentRefreshData,
+    hardReloadFromDatabase,
     dataSyncInProgress,
     departmentsRevision,
     notifyDepartmentsChanged,
   } = useApp();
   const t = getTranslations(effectiveLanguage);
+
+  const [pullSyncBusy, setPullSyncBusy] = useState(false);
+  const [pushSyncBusy, setPushSyncBusy] = useState(false);
+
+  const handlePullSync = async () => {
+    if (pullSyncBusy || dataSyncInProgress) return;
+    setPullSyncBusy(true);
+    try {
+      await hardReloadFromDatabase();
+    } finally {
+      setPullSyncBusy(false);
+    }
+  };
+
+  const handlePushSync = async () => {
+    if (pushSyncBusy || settingsCloudPushBusy || dataSyncInProgress) return;
+    setPushSyncBusy(true);
+    try {
+      await pushSettingsToCloud();
+      // Hard reload locale per allineare lo stato dopo il push
+      await hardReloadFromDatabase();
+    } finally {
+      setPushSyncBusy(false);
+    }
+  };
 
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showCreateStaff, setShowCreateStaff] = useState(false);
@@ -1670,15 +1698,15 @@ export default function SettingsPage() {
         )}
 
         {adminOnly && (
-          <div className="rounded-2xl border border-brand-200/80 bg-brand-50/50 dark:border-brand-900/40 dark:bg-emerald-950/20 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="rounded-2xl border border-accent/25 bg-accent/[0.04] dark:border-accent/20 dark:bg-accent/[0.07] p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex gap-3 min-w-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
                 <UploadCloud className="h-5 w-5" aria-hidden />
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.settings_cloud_sync_heading}</p>
                 <p className="text-xs text-slate-600 dark:text-neutral-400 mt-0.5 leading-relaxed">{t.settings_cloud_sync_hint}</p>
-                <p className="text-[11px] font-medium text-brand-800/90 dark:text-brand-300/90 mt-1.5">
+                <p className="text-[11px] font-medium text-accent mt-1.5">
                   {settingsCloudLastSyncedAt
                     ? formatTrans(t.settings_cloud_synced_at, {
                         when: new Date(settingsCloudLastSyncedAt).toLocaleString(
@@ -1691,14 +1719,26 @@ export default function SettingsPage() {
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              disabled={settingsCloudPushBusy}
-              onClick={() => void pushSettingsToCloud()}
-              className="inline-flex min-h-[40px] shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-brand-800 disabled:opacity-60 dark:bg-brand-600 dark:hover:bg-brand-500"
-            >
-              {settingsCloudPushBusy ? t.ui_ellipsis : t.settings_cloud_save_all_devices}
-            </button>
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <button
+                type="button"
+                disabled={pullSyncBusy || pushSyncBusy || dataSyncInProgress}
+                onClick={() => void handlePullSync()}
+                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-accent/40 bg-white/80 dark:bg-neutral-800/60 px-4 text-xs font-bold uppercase tracking-wider text-accent hover:bg-accent/10 disabled:opacity-60 transition-colors"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${pullSyncBusy ? 'animate-spin' : ''}`} />
+                {pullSyncBusy ? t.ui_ellipsis : 'Sincronizza'}
+              </button>
+              <button
+                type="button"
+                disabled={pushSyncBusy || settingsCloudPushBusy || pullSyncBusy || dataSyncInProgress}
+                onClick={() => void handlePushSync()}
+                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl bg-accent px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-accent-dark disabled:opacity-60 shadow-sm shadow-accent/30 transition-colors"
+              >
+                <UploadCloud className={`h-3.5 w-3.5 ${pushSyncBusy ? 'animate-spin' : ''}`} />
+                {pushSyncBusy ? t.ui_ellipsis : t.settings_cloud_save_all_devices}
+              </button>
+            </div>
           </div>
         )}
 
@@ -2052,6 +2092,20 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   </div>
+          </SettingsAccordionSection>
+        )}
+
+        {adminOnly && (
+          <SettingsAccordionSection
+            storageKey="osteria_settings_acc_elevated_access"
+            title="Accesso elevato (PIN secondario)"
+            defaultOpen={false}
+          >
+            <div className="surface-glass-sm overflow-hidden">
+              <div className="p-4">
+                <ElevatedAccessPanel />
+              </div>
+            </div>
           </SettingsAccordionSection>
         )}
 

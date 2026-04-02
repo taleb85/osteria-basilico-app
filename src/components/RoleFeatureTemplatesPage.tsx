@@ -229,7 +229,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   };
 
   const switchRowClass =
-    'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-neutral-900';
+    'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 dark:focus:ring-offset-neutral-900';
 
   const renderAdminModulesBlock = () => (
     <div className="border-t border-slate-100 pt-3 dark:border-white/10">

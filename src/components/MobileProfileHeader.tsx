@@ -10,12 +10,13 @@ import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
 import { persistThemePreference } from '../utils/theme';
 import { UnifiedBellButton } from './UnifiedBellButton';
 import { useState, useEffect, useRef } from 'react';
+import { lockBodyScroll, unlockBodyScroll } from '../utils/bodyScrollLock';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { findFreezeVerifierByPin, isManagementRole } from '../utils/permissions';
+import { findFreezeVerifierByPin, findFreezeVerifierById, isManagementRole } from '../utils/permissions';
 import { PinPadModal } from './ui/PinPadModal';
 /**
  * Icona tema: due grafiche come riferimento foto — grigio/bianco in chiaro, nero/bianco in scuro.
@@ -93,6 +94,7 @@ export default function MobileProfileHeader({
     dataSyncInProgress,
     globalPinSessionId,
     setGlobalPinSessionId,
+    isSessionElevated,
   } = useApp();
   const { tenant } = useTenant();
   const { sendMessage } = useMessages(currentUser?.id);
@@ -127,6 +129,13 @@ export default function MobileProfileHeader({
       setIsRefreshing(false);
     }
   };
+  useEffect(() => {
+    if (showPinMenu) {
+      lockBodyScroll();
+      return () => unlockBodyScroll();
+    }
+  }, [showPinMenu]);
+
   const closePinMenu = () => {
     setShowPinMenu(false);
     setGlobalPinValue('');
@@ -195,6 +204,12 @@ export default function MobileProfileHeader({
             <h2 className="text-[11px] sm:text-[12px] font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight leading-tight mt-0.5 truncate uppercase">
               {pageTitle}
             </h2>
+            {isSessionElevated && (
+              <span className="inline-flex items-center gap-1 mt-1 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                <ShieldCheck className="h-3 w-3" />
+                Modalità Admin
+              </span>
+            )}
           </div>
 
           {/* Toolbar: sempre visibile con orologio, avatar e azioni. */}
@@ -309,6 +324,15 @@ export default function MobileProfileHeader({
               onConfirm={() => handleGlobalPinSubmit(globalPinValue)}
               onCancel={closePinMenu}
               confirmLabel="Sblocca"
+              userId={currentUser?.id}
+              userDisplayName={[currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(' ')}
+              userEmail={currentUser?.email ?? ''}
+              onBiometricSuccess={() => {
+                const verifier = findFreezeVerifierById(users, currentUser?.id ?? '');
+                if (!verifier) { setGlobalPinError('Ruolo insufficiente per lo sblocco'); return; }
+                setGlobalPinSessionId(Date.now().toString());
+                closePinMenu();
+              }}
             />
           )}
         </AnimatePresence>,

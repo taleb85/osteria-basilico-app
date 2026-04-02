@@ -114,7 +114,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
         <div className="flex flex-col gap-2 border-t border-slate-50 dark:border-white/5 pt-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
+              <div className="p-2 rounded-lg bg-accent/10 text-accent dark:bg-accent/15 dark:text-accent">
                 <Smartphone size={16} />
               </div>
               <span className="text-xs font-bold text-slate-700 dark:text-neutral-300">Feedback Aptico</span>

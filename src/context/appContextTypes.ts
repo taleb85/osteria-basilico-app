@@ -171,4 +171,7 @@ export interface AppContextType {
    * Si azzera dopo una `silentRefreshData` con `pullRemoteConfig: true` riuscita (o al logout).
    */
   managementDataTouchedSinceLastSync: boolean;
+  /** True se l'utente ha eseguito l'accesso tramite PIN secondario (elevazione sessione). Si perde al refresh. */
+  isSessionElevated: boolean;
+  setIsSessionElevated: (v: boolean) => void;
 }

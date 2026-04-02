@@ -271,16 +271,33 @@ function generatePngFavicon(logoSrc: string, size: number): Promise<string> {
 
 /**
  * Aggiorna il Web App Manifest in-memory con i dati del tenant.
- * Funziona per la schermata "Aggiungi alla home" del browser.
- * Nota: le icone già installate non si aggiornano finché l'utente non
- * reinstalla la PWA.
+ * Converte il logo SVG in PNG reale via Canvas per garantire compatibilità
+ * con Chrome/Android che non accetta SVG data URL come icona PWA.
  */
 export function updatePWAManifest(tenant: Tenant): void {
-  // I blob URL non hanno base → tutti i path devono essere assoluti
   const origin = window.location.origin;
-  const iconPng = `${origin}/icon-192.png`;
-  const iconLarge = `${origin}/icon-512.png`;
-  const iconSrc = tenant.logo_url ?? iconPng;
+  const logoSrc = tenant.logo_url ?? generateTenantLogoSvg(tenant.name, tenant.accent_color);
+
+  // Genera PNG reali via Canvas per i due formati richiesti dal manifest
+  Promise.all([
+    generatePngFavicon(logoSrc, 192),
+    generatePngFavicon(logoSrc, 512),
+  ])
+    .then(([png192, png512]) => {
+      _applyPWAManifest(tenant, origin, png192, png512);
+    })
+    .catch(() => {
+      // Fallback: icone statiche già presenti nel public folder
+      _applyPWAManifest(tenant, origin, `${origin}/icon-192.png`, `${origin}/icon-512.png`);
+    });
+}
+
+function _applyPWAManifest(
+  tenant: Tenant,
+  origin: string,
+  icon192: string,
+  icon512: string,
+): void {
   const manifest = {
     name: tenant.name,
     short_name: tenant.name.split(' ')[0],
@@ -292,10 +309,10 @@ export function updatePWAManifest(tenant: Tenant): void {
     theme_color: tenant.accent_color,
     orientation: 'any',
     icons: [
-      { src: iconSrc,    sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: iconSrc,    sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-      { src: iconLarge,  sizes: '512x512', type: 'image/png', purpose: 'any' },
-      { src: iconLarge,  sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
     shortcuts: [
       { name: 'Timbratura', short_name: 'Timbratura', url: `${origin}/timbratura` },
@@ -313,15 +330,13 @@ export function updatePWAManifest(tenant: Tenant): void {
       link.rel = 'manifest';
       document.head.appendChild(link);
     }
-    // Revoca il precedente blob URL per evitare memory leak
     if (link.href.startsWith('blob:')) URL.revokeObjectURL(link.href);
     link.href = blobUrl;
 
-    // Aggiorna anche il meta theme-color
     const themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     if (themeMeta) themeMeta.content = tenant.accent_color;
   } catch {
-    // In ambienti senza blob URL (SSR/test) ignora silenziosamente
+    // Silent fail in SSR/test
   }
 }
 
