@@ -18,6 +18,7 @@ import {
   pinMatchesStored,
 } from '../utils/loginIdentifier';
 import { useTenant } from '../context/TenantContext';
+import { supabase } from '../lib/supabase';
 import FlowLogo from './FlowLogo';
 import {
   supportsPinUnlockWebAuthn,
@@ -203,6 +204,52 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         return;
       }
 
+      // Fallback Option B: se users è vuota (nessun tenant caricato),
+      // cerca globalmente per nome → carica il tenant → ri-autentica
+      if (users.length === 0 && supabase) {
+        try {
+          const nameParts = staffName.trim().split(/\s+/);
+          const firstName = nameParts[0];
+          const { data: globalUsers } = await supabase
+            .from('users')
+            .select('id, first_name, last_name, pin, status, tenant_id')
+            .ilike('first_name', firstName)
+            .eq('status', 'active');
+
+          if (globalUsers && globalUsers.length > 0) {
+            // Trova utente con PIN corrispondente
+            const matched = globalUsers.find((u) =>
+              pinMatchesStored(password, u.pin) &&
+              `${u.first_name} ${u.last_name ?? ''}`.trim().toLowerCase() === staffName.trim().toLowerCase()
+            ) ?? globalUsers.find((u) => pinMatchesStored(password, u.pin));
+
+            if (matched?.tenant_id) {
+              // Carica il tenant e poi ricarica la pagina per far partire AppContext
+              const { data: tenantData } = await supabase
+                .from('tenants')
+                .select('slug')
+                .eq('id', matched.tenant_id)
+                .maybeSingle();
+              if (tenantData?.slug) {
+                await loadTenantBySlug(tenantData.slug);
+                // Piccola attesa per permettere ad AppContext di caricare gli utenti
+                await new Promise((r) => setTimeout(r, 1500));
+                setIsLoading(false);
+                setError('Sede trovata! Premi di nuovo "Accedi".');
+                return;
+              }
+            }
+          }
+        } catch {
+          // ignora errori nella ricerca globale
+        }
+        setTimeout(() => {
+          setIsLoading(false);
+          setError('Nessun dipendente trovato. Usa il tuo link personale per accedere.');
+        }, 600);
+        return;
+      }
+
       const kind = getLoginNamePinFailureKind(users, staffName, password);
       const msg =
         kind === 'no_name_match'
@@ -226,7 +273,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       return;
     }
     finalizeSession(user, () => setIsLoading(false));
-  }, [staffName, password, isLoading, users, finalizeSession, t]);
+  }, [staffName, password, isLoading, users, finalizeSession, t, loadTenantBySlug]);
 
   const handleDeviceLogin = useCallback(async () => {
     if (!webAuthnOk || deviceLoading || isLoading || linkDeviceLoading) return;
