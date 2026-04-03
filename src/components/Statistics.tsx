@@ -832,11 +832,11 @@ export default function Statistics() {
               </div>
             )}
             {showManagementStatsChrome && (
-              <div className="surface-glass border-l-4 border-l-teal-500 border border-teal-200/60 dark:border-teal-800/40 bg-teal-50/70 dark:bg-teal-950/30 p-5 sm:p-6">
-                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-teal-700 dark:text-teal-400">
+              <div className="surface-glass border-l-4 border-l-[#0052FF] border border-[#0052FF]/20 dark:border-[#0052FF]/18 bg-[#0052FF]/6 dark:bg-[#0052FF]/10 p-5 sm:p-6">
+                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#0052FF] dark:text-[#00D1FF]">
                   {deptFilter === 'all' ? (tv.stats_team_hours_period ?? t.stats_total) : `TOTALE ${translateDepartmentValue(deptFilter, effectiveLanguage).toUpperCase()}`}
                 </p>
-                <p className="text-3xl font-bold tabular-nums text-teal-800 dark:text-teal-200">
+                <p className="text-3xl font-bold tabular-nums text-[#0052FF] dark:text-[#00D1FF]/80">
                   {formatMinutesToHoursAndMinutes(totalMinutesFiltered)}
                 </p>
               </div>
@@ -860,12 +860,12 @@ export default function Statistics() {
                 const clampedEnd   = w.end   > rangeEnd   ? rangeEnd   : w.end;
                 const weekDays = eachDayOfInterval({ start: clampedStart, end: clampedEnd });
                 return (
-                  <div key={w.key} className="overflow-hidden rounded-2xl border border-teal-200/60 dark:border-teal-800/40 bg-gradient-to-br from-teal-50/50 via-white to-white dark:from-teal-950/30 dark:via-neutral-900 dark:to-neutral-900 shadow-sm">
+                  <div key={w.key} className="overflow-hidden rounded-2xl border border-[#0052FF]/20 dark:border-[#0052FF]/18 bg-gradient-to-br from-[#0052FF]/6 via-white to-white dark:from-[#0052FF]/10 dark:via-neutral-900 dark:to-neutral-900 shadow-sm">
                     {/* Intestazione settimana */}
-                    <div className="px-4 py-2.5 sm:px-5 border-b border-teal-100 dark:border-teal-900/50 bg-teal-500/8 dark:bg-teal-400/8 flex items-center justify-between gap-3">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-teal-600 dark:text-teal-400">{w.label}</p>
+                    <div className="px-4 py-2.5 sm:px-5 border-b border-[#0052FF]/15 dark:border-[#0052FF]/18 bg-[#0052FF]/80/8 dark:bg-[#0052FF]/8 flex items-center justify-between gap-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#0052FF] dark:text-[#00D1FF]">{w.label}</p>
                       {showManagementStatsChrome && weekTotal > 0 && (
-                        <span className="tabular-nums text-sm font-extrabold text-teal-700 dark:text-teal-300">
+                        <span className="tabular-nums text-sm font-extrabold text-[#0052FF] dark:text-[#00D1FF]">
                           {formatMinutesToHoursAndMinutes(weekTotal)}
                         </span>
                       )}
@@ -878,21 +878,21 @@ export default function Statistics() {
                         <div className="grid flex-1 gap-0" style={{ gridTemplateColumns: `repeat(${weekDays.length}, 1fr)` }}>
                           {weekDays.map((day) => (
                             <div key={format(day, 'yyyy-MM-dd')} className="flex flex-col items-center">
-                              <span className="text-[7px] font-bold uppercase text-teal-500 dark:text-teal-400 leading-none">
+                              <span className="text-[7px] font-bold uppercase text-[#0052FF] dark:text-[#00D1FF] leading-none">
                                 {format(day, 'EEE', { locale: statsLoc }).slice(0, 3)}
                               </span>
-                              <span className="text-[7px] text-teal-400/60 dark:text-teal-600/80 tabular-nums leading-none mt-0.5">
+                              <span className="text-[7px] text-[#0052FF]/45 dark:text-[#0052FF]/80 tabular-nums leading-none mt-0.5">
                                 {format(day, 'dd')}
                               </span>
                             </div>
                           ))}
                         </div>
-                        <div className="w-[44px] shrink-0 text-right text-[7px] font-bold uppercase text-teal-400/60 dark:text-teal-600">Tot.</div>
+                        <div className="w-[44px] shrink-0 text-right text-[7px] font-bold uppercase text-[#0052FF]/45 dark:text-[#0052FF]">Tot.</div>
                       </div>
                       {/* Righe utenti */}
                       {filteredUsers.map((u, i) => {
                         const userWeekTotal = minutesByUserByWeek[u.id]?.[w.key] ?? 0;
-                        const rowBg = i % 2 === 0 ? 'bg-teal-50/40 dark:bg-teal-900/10' : '';
+                        const rowBg = i % 2 === 0 ? 'bg-[#0052FF]/5 dark:bg-[#0052FF]/5' : '';
                         return (
                           <div key={u.id} className={`flex items-center gap-1 rounded-lg py-1.5 ${rowBg}`}>
                             <div className="w-[72px] shrink-0 pl-1">
@@ -912,18 +912,18 @@ export default function Statistics() {
                                 return (
                                   <div key={dayKey} className="flex items-center justify-center">
                                     {mins > 0 ? (
-                                      <span className="text-[10px] font-bold text-teal-800 dark:text-teal-200 tabular-nums">
+                                      <span className="text-[10px] font-bold text-[#0052FF] dark:text-[#00D1FF]/80 tabular-nums">
                                         {formatMinutesToHoursAndMinutes(mins)}
                                       </span>
                                     ) : (
-                                      <span className="text-[10px] text-teal-200/60 dark:text-teal-800/60">—</span>
+                                      <span className="text-[10px] text-slate-300 dark:text-neutral-700">—</span>
                                     )}
                                   </div>
                                 );
                               })}
                             </div>
                             <div className="w-[44px] shrink-0 text-right pr-1">
-                              <span className={`text-[11px] font-extrabold tabular-nums ${userWeekTotal > 0 ? 'text-teal-700 dark:text-teal-300' : 'text-teal-200/60 dark:text-teal-800/60'}`}>
+                              <span className={`text-[11px] font-extrabold tabular-nums ${userWeekTotal > 0 ? 'text-[#0052FF] dark:text-[#00D1FF]' : 'text-slate-300 dark:text-neutral-700'}`}>
                                 {userWeekTotal > 0 ? formatMinutesToHoursAndMinutes(userWeekTotal) : '—'}
                               </span>
                             </div>
@@ -932,8 +932,8 @@ export default function Statistics() {
                       })}
                       {/* Footer totali giornalieri su mobile */}
                       {showManagementStatsChrome && weekTotal > 0 && (
-                        <div className="flex items-center gap-1 pt-1 border-t border-teal-100 dark:border-teal-900/50 mt-1 bg-teal-50/60 dark:bg-teal-950/30 rounded-lg">
-                          <div className="w-[72px] shrink-0 pl-1 text-[9px] font-bold uppercase tracking-wide text-teal-600 dark:text-teal-400">
+                        <div className="flex items-center gap-1 pt-1 border-t border-[#0052FF]/15 dark:border-[#0052FF]/18 mt-1 bg-[#0052FF]/6 dark:bg-[#0052FF]/10 rounded-lg">
+                          <div className="w-[72px] shrink-0 pl-1 text-[9px] font-bold uppercase tracking-wide text-[#0052FF] dark:text-[#00D1FF]">
                             {t.stats_total}
                           </div>
                           <div className="grid flex-1 gap-0" style={{ gridTemplateColumns: `repeat(${weekDays.length}, 1fr)` }}>
@@ -946,18 +946,18 @@ export default function Statistics() {
                               return (
                                 <div key={dayKey} className="flex items-center justify-center">
                                   {dayTotal > 0 ? (
-                                    <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 tabular-nums">
+                                    <span className="text-[10px] font-bold text-[#0052FF] dark:text-[#00D1FF] tabular-nums">
                                       {formatMinutesToHoursAndMinutes(dayTotal)}
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] text-teal-200/60 dark:text-teal-800/60">—</span>
+                                    <span className="text-[10px] text-slate-300 dark:text-neutral-700">—</span>
                                   )}
                                 </div>
                               );
                             })}
                           </div>
                           <div className="w-[44px] shrink-0 text-right pr-1">
-                            <span className="text-[11px] font-extrabold text-teal-700 dark:text-teal-300 tabular-nums">
+                            <span className="text-[11px] font-extrabold text-[#0052FF] dark:text-[#00D1FF] tabular-nums">
                               {formatMinutesToHoursAndMinutes(weekTotal)}
                             </span>
                           </div>
@@ -975,21 +975,21 @@ export default function Statistics() {
                           <col style={{ width: '72px' }} />
                         </colgroup>
                         <thead>
-                          <tr className="bg-teal-50/60 dark:bg-teal-900/15">
-                            <th className="sticky left-0 z-10 bg-teal-50/80 dark:bg-teal-950/40 backdrop-blur-sm py-2 pl-5 pr-3 text-left text-[9px] font-bold uppercase tracking-wider text-teal-500 dark:text-teal-500">
+                          <tr className="bg-[#0052FF]/6 dark:bg-[#0052FF]/7">
+                            <th className="sticky left-0 z-10 bg-[#0052FF]/7 dark:bg-[#0052FF]/12 backdrop-blur-sm py-2 pl-5 pr-3 text-left text-[9px] font-bold uppercase tracking-wider text-[#0052FF] dark:text-[#0052FF]">
                               {tv.department_filter_label ?? 'Nome'}
                             </th>
                             {weekDays.map((day) => (
                               <th key={format(day, 'yyyy-MM-dd')} className="py-2 pr-3 text-right">
-                                <span className="block text-[9px] font-bold uppercase tracking-wider text-teal-500 dark:text-teal-400">
+                                <span className="block text-[9px] font-bold uppercase tracking-wider text-[#0052FF] dark:text-[#00D1FF]">
                                   {format(day, 'EEE', { locale: statsLoc })}
                                 </span>
-                                <span className="block text-[9px] font-semibold text-teal-400/70 dark:text-teal-600 tabular-nums">
+                                <span className="block text-[9px] font-semibold text-[#00D1FF]/70 dark:text-[#0052FF] tabular-nums">
                                   {format(day, 'dd/MM')}
                                 </span>
                               </th>
                             ))}
-                            <th className="py-2 pr-5 text-right text-[9px] font-bold uppercase tracking-wider text-teal-400/70 dark:text-teal-600">
+                            <th className="py-2 pr-5 text-right text-[9px] font-bold uppercase tracking-wider text-[#00D1FF]/70 dark:text-[#0052FF]">
                               Tot.
                             </th>
                           </tr>
@@ -997,10 +997,10 @@ export default function Statistics() {
                         <tbody>
                           {filteredUsers.map((u, i) => {
                             const userWeekTotal = minutesByUserByWeek[u.id]?.[w.key] ?? 0;
-                            const rowBg = i % 2 === 0 ? 'bg-teal-50/30 dark:bg-teal-900/8' : '';
+                            const rowBg = i % 2 === 0 ? 'bg-[#0052FF]/5 dark:bg-[#0052FF]/5' : '';
                             return (
                               <tr key={u.id} className={rowBg}>
-                                <td className={`sticky left-0 z-10 backdrop-blur-sm py-2.5 pl-5 pr-3 ${i % 2 === 0 ? 'bg-teal-50/50 dark:bg-teal-950/20' : 'bg-white dark:bg-neutral-900'}`}>
+                                <td className={`sticky left-0 z-10 backdrop-blur-sm py-2.5 pl-5 pr-3 ${i % 2 === 0 ? 'bg-[#0052FF]/5 dark:bg-[#0052FF]/7' : 'bg-white dark:bg-neutral-900'}`}>
                                   <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-800 dark:text-neutral-100 truncate">
                                     {(u.first_name ?? '').trim() || '—'}
                                   </span>
@@ -1016,17 +1016,17 @@ export default function Statistics() {
                                   return (
                                     <td key={dayKey} className="py-2.5 pr-3 text-right tabular-nums">
                                       {mins > 0 ? (
-                                        <span className="text-[13px] font-bold text-teal-800 dark:text-teal-200">
+                                        <span className="text-[13px] font-bold text-[#0052FF] dark:text-[#00D1FF]/80">
                                           {formatMinutesToHoursAndMinutes(mins)}
                                         </span>
                                       ) : (
-                                        <span className="text-[13px] font-normal text-teal-200/40 dark:text-teal-800/50">—</span>
+                                        <span className="text-[13px] font-normal text-slate-300 dark:text-neutral-700">—</span>
                                       )}
                                     </td>
                                   );
                                 })}
                                 <td className="py-2.5 pr-5 text-right tabular-nums">
-                                  <span className={`text-[13px] font-extrabold ${userWeekTotal > 0 ? 'text-teal-700 dark:text-teal-300' : 'text-teal-200/40 dark:text-teal-800/50'}`}>
+                                  <span className={`text-[13px] font-extrabold ${userWeekTotal > 0 ? 'text-[#0052FF] dark:text-[#00D1FF]' : 'text-slate-300 dark:text-neutral-700'}`}>
                                     {userWeekTotal > 0 ? formatMinutesToHoursAndMinutes(userWeekTotal) : '—'}
                                   </span>
                                 </td>
@@ -1036,8 +1036,8 @@ export default function Statistics() {
                         </tbody>
                         {showManagementStatsChrome && (
                           <tfoot>
-                            <tr className="border-t border-teal-100 dark:border-teal-900/50 bg-teal-50/60 dark:bg-teal-950/30">
-                              <td className="sticky left-0 z-10 bg-teal-50/80 dark:bg-teal-950/40 py-2.5 pl-5 pr-3 text-[9px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">
+                            <tr className="border-t border-[#0052FF]/15 dark:border-[#0052FF]/18 bg-[#0052FF]/6 dark:bg-[#0052FF]/10">
+                              <td className="sticky left-0 z-10 bg-[#0052FF]/7 dark:bg-[#0052FF]/12 py-2.5 pl-5 pr-3 text-[9px] font-bold uppercase tracking-wider text-[#0052FF] dark:text-[#00D1FF]">
                                 {t.stats_total}
                               </td>
                               {weekDays.map((day) => {
@@ -1049,17 +1049,17 @@ export default function Statistics() {
                                 return (
                                   <td key={dayKey} className="py-2.5 pr-3 text-right tabular-nums">
                                     {dayTotal > 0 ? (
-                                      <span className="text-[13px] font-bold text-teal-600 dark:text-teal-400">
+                                      <span className="text-[13px] font-bold text-[#0052FF] dark:text-[#00D1FF]">
                                         {formatMinutesToHoursAndMinutes(dayTotal)}
                                       </span>
                                     ) : (
-                                      <span className="text-[13px] font-normal text-teal-200/40 dark:text-teal-800/50">—</span>
+                                      <span className="text-[13px] font-normal text-slate-300 dark:text-neutral-700">—</span>
                                     )}
                                   </td>
                                 );
                               })}
                               <td className="py-2.5 pr-5 text-right tabular-nums">
-                                <span className="text-[13px] font-extrabold text-teal-700 dark:text-teal-300">
+                                <span className="text-[13px] font-extrabold text-[#0052FF] dark:text-[#00D1FF]">
                                   {weekTotal > 0 ? formatMinutesToHoursAndMinutes(weekTotal) : '—'}
                                 </span>
                               </td>

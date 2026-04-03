@@ -14,9 +14,9 @@ import { safeFormatDate } from '../utils/safeDateFormat';
 const STATUS_CONFIG = {
   approved: {
     label: 'Approvata',
-    dot: 'bg-emerald-500',
+    dot: 'bg-[#00C896]',
     badge:
-      'bg-[#bbf7d0] text-[#1a1a1a] dark:bg-emerald-900/55 dark:text-emerald-100 border border-emerald-200/80 dark:border-emerald-700/50',
+      'bg-[#00D1FF]/15 text-[#005a8a] dark:bg-[#00D1FF]/20 dark:text-[#00D1FF] border border-[#00D1FF]/30 dark:border-[#00D1FF]/40',
   },
   pending: {
     label: 'In attesa',
@@ -173,7 +173,7 @@ export default function HolidayRequests() {
     const mailSubject = encodeURIComponent(`Holiday Request - ${requesterName}`);
     const mailBody = encodeURIComponent(`Hi, hope you are well,\nI'd like to request a week of holiday that goes from the ${displayStart} until the ${displayEnd}.\nLooking forward to hear from you.\n\nKind Regards`);
     try {
-      window.location.href = `mailto:info@osteriabasilico.co.uk?subject=${mailSubject}&body=${mailBody}`;
+      window.location.href = `mailto:info@flow-workinmotion.com?subject=${mailSubject}&body=${mailBody}`;
     } catch (err) {
       console.warn('[HolidayRequests] mailto failed:', err);
     }
@@ -382,7 +382,7 @@ export default function HolidayRequests() {
                     onClick={() => isPending && isAdmin && setSelectedH(holiday)}
                     className={`min-h-[44px] min-w-[44px] aspect-square rounded-xl flex items-center justify-center text-xs font-semibold transition-all select-none touch-target
                       ${isPending && isAdmin ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}
-                      ${status === 'approved' ? 'bg-[#bbf7d0] text-[#1a1a1a] dark:bg-emerald-900/50 dark:text-emerald-100' :
+                      ${status === 'approved' ? 'bg-[#00D1FF]/15 text-[#005a8a] dark:bg-[#00D1FF]/20 dark:text-[#00D1FF]' :
                         status === 'pending'  ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/45 dark:text-amber-200'  :
                         status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-200'    :
                         today                 ? 'bg-slate-700 text-white dark:bg-neutral-200 dark:text-neutral-900' :
@@ -515,7 +515,7 @@ export default function HolidayRequests() {
                             </p>
                           </div>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full bg-[#bbf7d0] dark:bg-emerald-900/55 text-[#1a1a1a] dark:text-emerald-100 text-xs font-semibold uppercase border border-emerald-200/80 dark:border-emerald-700/50">
+                        <span className="px-2 py-0.5 rounded-full bg-[#00D1FF]/15 dark:bg-[#00D1FF]/20 text-[#005a8a] dark:text-[#00D1FF] text-xs font-semibold uppercase border border-[#00D1FF]/30 dark:border-[#00D1FF]/40">
                           Approvata
                         </span>
                       </div>
@@ -551,7 +551,7 @@ export default function HolidayRequests() {
                           {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                         </span>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full bg-[#bbf7d0] dark:bg-emerald-900/55 text-[#1a1a1a] dark:text-emerald-100 text-xs font-semibold uppercase border border-emerald-200/80 dark:border-emerald-700/50">Approvata</span>
+                      <span className="px-2 py-0.5 rounded-full bg-[#00D1FF]/15 dark:bg-[#00D1FF]/20 text-[#005a8a] dark:text-[#00D1FF] text-xs font-semibold uppercase border border-[#00D1FF]/30 dark:border-[#00D1FF]/40">Approvata</span>
                     </div>
                   ))}
               </div>

@@ -66,7 +66,7 @@ export default function MobileHome({
         <div className="flex flex-col gap-0.5">
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-neutral-100 leading-tight tracking-tight">{greetingText}</h1>
           <div className="flex items-center gap-1.5">
-            <div className={`h-1.5 w-1.5 rounded-full ${inProgress ? 'animate-pulse bg-green-500' : 'bg-slate-300 dark:bg-neutral-600'}`} />
+            <div className={`h-1.5 w-1.5 rounded-full ${inProgress ? 'animate-pulse bg-[#00D1FF]' : 'bg-slate-300 dark:bg-neutral-600'}`} />
             <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
               {inProgress ? statusInShift : 'Fuori Turno'}
             </span>
@@ -135,13 +135,13 @@ export default function MobileHome({
               <p className="mb-3 text-[9px] font-bold text-slate-400 max-w-[180px] uppercase tracking-wider text-center">
                 {todayWorkShiftsCount > 0 ? tapStartHint : noShiftsHint}
               </p>
-              {/* Pulsante INIZIA TURNO (Verde Basilico) */}
+              {/* Pulsante INIZIA TURNO */}
               {canStart ? (
                 <button
                   type="button"
                   disabled={punchBusy}
                   onClick={onStart}
-                  className="w-full h-16 bg-[#2D5A27] hover:bg-[#23471f] text-white rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-[#2D5A27]/20 transition-all active:scale-95"
+                  className="w-full h-16 bg-[#0052FF] hover:bg-[#0039CC] text-white rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-[#0052FF]/20 transition-all active:scale-95"
                 >
                   <Play className="w-6 h-6 fill-white" />
                   <span className="text-lg font-bold uppercase tracking-wider">
@@ -170,7 +170,7 @@ export default function MobileHome({
           {onNavigateToTimesheet && (
             <button 
               onClick={onNavigateToTimesheet}
-              className="text-xs font-bold text-[#2D5A27] flex items-center gap-0.5 hover:opacity-80 transition-opacity"
+              className="text-xs font-bold text-[#0052FF] flex items-center gap-0.5 hover:opacity-80 transition-opacity"
             >
               Vedi Dettaglio <ChevronRight className="w-3 h-3" />
             </button>

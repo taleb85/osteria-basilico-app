@@ -1445,10 +1445,10 @@ export default function SettingsPage() {
                   const ruleName = isLastSunday ? 'Ultima domenica' : 'Primo giorno';
                   const ruleColor = isLastSunday
                     ? 'text-accent dark:text-accent-light'
-                    : 'text-teal-600 dark:text-teal-400';
+                    : 'text-[#0052FF] dark:text-[#00D1FF]';
                   const borderColor = isLastSunday
                     ? 'border-accent/25 border-l-accent'
-                    : 'border-teal-400/30 border-l-teal-500';
+                    : 'border-[#0052FF]/25 border-l-[#0052FF]';
                   return (
                     <div className={`rounded-xl border-2 border-l-4 ${borderColor} bg-white px-3 py-2.5 dark:bg-neutral-900/60`}>
                       <div className="flex items-center gap-1.5 mb-1">
@@ -1531,11 +1531,11 @@ export default function SettingsPage() {
                     }}
                     className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
                       periodRuleMode === 'fixed_start'
-                        ? 'border-teal-500 bg-teal-500/8 dark:bg-teal-500/12'
+                        ? 'border-[#0052FF] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
                         : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-neutral-800/60 dark:hover:border-white/20'
                     }`}
                   >
-                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-neutral-300'}`}>
+                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-[#0052FF] dark:text-[#00D1FF]' : 'text-slate-600 dark:text-neutral-300'}`}>
                       Primo giorno
                     </span>
                     <span className="text-[10px] leading-snug text-slate-400 dark:text-neutral-500">
@@ -1571,10 +1571,10 @@ export default function SettingsPage() {
                     const cfg = periodConfigFromStartDate(draftStart);
                     const endDate = addDays(draftStart, cfg.numWeeks * 7 - 1);
                     return (
-                      <div className="flex items-center justify-between rounded-xl border border-teal-500/30 bg-teal-500/8 px-3 py-2.5 dark:border-teal-500/20 dark:bg-teal-500/10">
+                      <div className="flex items-center justify-between rounded-xl border border-[#0052FF]/22 bg-[#0052FF]/80/8 px-3 py-2.5 dark:border-[#0052FF]/18 dark:bg-[#0052FF]/80/10">
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold text-teal-600 dark:text-teal-400">Primo giorno</span>
-                          <span className="rounded-full bg-teal-500/15 px-2 py-0.5 text-[9px] font-bold text-teal-600 dark:text-teal-400">
+                          <span className="text-[11px] font-bold text-[#0052FF] dark:text-[#00D1FF]">Primo giorno</span>
+                          <span className="rounded-full bg-[#0052FF]/80/15 px-2 py-0.5 text-[9px] font-bold text-[#0052FF] dark:text-[#00D1FF]">
                             {cfg.numWeeks} sett.
                           </span>
                         </div>
@@ -1867,7 +1867,7 @@ export default function SettingsPage() {
                 {t.settings_geofence_editor_hint}
               </p>
               {geofenceEffectiveConfig && (
-                <div className="mb-3 flex items-start gap-2 rounded-xl border border-brand-200/80 bg-brand-50/90 px-3 py-2 dark:border-brand-800/50 dark:bg-emerald-950/40">
+                <div className="mb-3 flex items-start gap-2 rounded-xl border border-brand-200/80 bg-brand-50/90 px-3 py-2 dark:border-brand-800/50 dark:bg-[#0052FF]/8">
                   <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-600 dark:text-brand-400" aria-hidden />
                   <p className="text-[11px] leading-snug text-brand-900 dark:text-brand-100">
                     {formatTrans(t.settings_geofence_active_summary, {
@@ -2083,7 +2083,7 @@ export default function SettingsPage() {
                                 setSeedingDemoProfile(false);
                               }
                             }}
-                            className="w-full rounded-lg border border-brand-200 bg-brand-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-brand-800 hover:bg-brand-100 disabled:opacity-60 dark:border-brand-800/50 dark:bg-emerald-950/40 dark:text-brand-200 dark:hover:bg-emerald-950/55"
+                            className="w-full rounded-lg border border-brand-200 bg-brand-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-brand-800 hover:bg-brand-100 disabled:opacity-60 dark:border-brand-800/50 dark:bg-[#0052FF]/8 dark:text-brand-200 dark:hover:bg-[#0052FF]/12"
                           >
                             {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
                           </button>

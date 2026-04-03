@@ -12,34 +12,34 @@
 
 @layer base {
   :root {
-    --gray-dark: #1e3d1a;
+    --gray-dark: #001A80;
     --gray-medium: #475569;
     --gray-light: #64748b;
     --gray-lighter: #f1f5f9;
-    /* Brand dinamico -- TenantContext sovrascrive al caricamento del tenant */
-    --brand: #2D5A27;
-    --brand-rgb: 45 90 39;
-    --brand-50:  hsl(115 9% 97%);
-    --brand-100: hsl(115 13% 93%);
-    --brand-200: hsl(115 18% 85%);
-    --brand-300: hsl(115 25% 73%);
-    --brand-400: hsl(115 31% 57%);
-    --brand-500: hsl(115 36% 45%);
-    --brand-600: hsl(115 36% 35%);
-    --brand-700: hsl(115 36% 26%);
-    --brand-800: hsl(115 36% 17%);
-    --brand-900: hsl(115 36% 10%);
-    --brand-hover: hsl(115 36% 30%);
-    --brand-dark:  hsl(115 36% 20%);
-    --brand-light: hsl(115 10% 87%);
-    --brand-muted: rgb(45 90 39 / 0.12);
-    --brand-nav-from: rgb(45 90 39 / 0.92);
-    --brand-nav-to:   rgb(35 69 30 / 0.88);
-    --brand-nav-dark-from: rgb(45 90 39 / 0.88);
-    --brand-nav-dark-to:   rgb(30 59 26 / 0.84);
-    --brand-header-font: 'Parisienne', 'Snell Roundhand', cursive;
+    /* Brand FLOW — Blu Elettrico #0052FF (TenantContext sovrascrive al caricamento) */
+    --brand: #0052FF;
+    --brand-rgb: 0 82 255;
+    --brand-50:  hsl(222 100% 97%);
+    --brand-100: hsl(222 100% 93%);
+    --brand-200: hsl(222 100% 85%);
+    --brand-300: hsl(222 100% 73%);
+    --brand-400: hsl(222 100% 62%);
+    --brand-500: hsl(222 100% 50%);
+    --brand-600: hsl(222 100% 42%);
+    --brand-700: hsl(222 100% 33%);
+    --brand-800: hsl(222 100% 22%);
+    --brand-900: hsl(222 100% 13%);
+    --brand-hover: hsl(222 100% 42%);
+    --brand-dark:  hsl(222 100% 33%);
+    --brand-light: hsl(222 60% 92%);
+    --brand-muted: rgb(0 82 255 / 0.12);
+    --brand-nav-from: rgb(0 82 255 / 0.92);
+    --brand-nav-to:   rgb(0 60 200 / 0.88);
+    --brand-nav-dark-from: rgb(0 82 255 / 0.88);
+    --brand-nav-dark-to:   rgb(0 50 180 / 0.84);
+    --brand-header-font: 'Inter', system-ui, sans-serif;
     /* Retrocompatibilita con codice esistente */
-    --basilico-primary: var(--brand);
+    --flow-primary: var(--brand);
     --accent: var(--brand);
     --accent-hover: var(--brand-hover);
     --accent-dark: var(--brand-dark);
@@ -597,11 +597,11 @@
     font-weight: 600;
   }
 
-  /* Logo: Snell su macOS/iOS; Parisienne (Google Fonts in index.html) dove Snell non c’è (es. Windows) */
+  /* Font moderno FLOW — Inter bold (il Kiosk usa FlowLogo, non il font cursivo) */
   .font-logo-snell {
-    font-family: 'Snell Roundhand', 'Snell Roundhand Bold', 'Parisienne', 'Brush Script MT', 'Apple Chancery', 'Segoe Script',
-      cursive;
-    font-weight: 400;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.04em;
   }
 
   /* Alias storico: stessa stack dell’app (Inter + system UI) */
@@ -609,7 +609,7 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
 
-  /* Stile Corporate Osteria Basilico — animazione shake per avviso conflitti turno */
+  /* Animazione shake per avviso conflitti turno */
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
     15%       { transform: translateX(-5px) rotate(-1deg); }
@@ -639,7 +639,7 @@
   }
 }
 
-/* react-day-picker — calendario custom (accent Osteria Basilico) */
+/* react-day-picker — calendario custom (accent FLOW blue) */
 .rdp-modern.rdp-root {
   --rdp-accent-color: var(--brand);
   --rdp-accent-background-color: rgb(var(--brand-rgb) / 0.14);

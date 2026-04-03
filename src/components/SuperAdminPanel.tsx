@@ -76,7 +76,7 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
       {/* Logo / icona */}
       <div className="mb-8 flex flex-col items-center gap-3">
         <div className="w-16 h-16 rounded-2xl bg-[#1e2330] border border-white/10 flex items-center justify-center shadow-lg">
-          <ShieldCheck className="w-8 h-8 text-emerald-400" />
+          <ShieldCheck className="w-8 h-8 text-[#00D1FF]" />
         </div>
         <div className="text-center">
           <h1 className="text-lg font-bold text-white tracking-tight">Super Admin</h1>
@@ -95,7 +95,7 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
             key={i}
             className={`w-3 h-3 rounded-full transition-all duration-150 ${
               i < digits.length
-                ? error ? 'bg-red-400' : 'bg-emerald-400'
+                ? error ? 'bg-red-400' : 'bg-[#00D1FF]'
                 : 'bg-white/15'
             }`}
           />
@@ -475,7 +475,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
               {/* Azioni */}
               <div className="flex items-center gap-1 shrink-0">
                 <button onClick={() => toggleStatus(u)} title={u.status === 'active' ? 'Sospendi' : 'Riattiva'}
-                  className={`p-1.5 rounded-lg transition ${u.status === 'active' ? 'text-brand-500 hover:bg-brand-50 dark:hover:bg-green-950/30' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800'}`}>
+                  className={`p-1.5 rounded-lg transition ${u.status === 'active' ? 'text-brand-500 hover:bg-brand-50 dark:hover:bg-[#0052FF]/10' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800'}`}>
                   {u.status === 'active' ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
                 </button>
                 <button onClick={() => openEdit(u)} title="Modifica"
@@ -904,7 +904,7 @@ interface TenantFormProps {
   onSave: (data: Omit<Tenant, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
   onCancel: () => void;
   saving: boolean;
-  /** Solo per nuova sede: se true, popola con dati demo da Osteria Basilico */
+  /** Solo per nuova sede: se true, popola con dati demo del tenant template */
   seedDemo?: boolean;
   onSeedDemoChange?: (v: boolean) => void;
 }
@@ -1097,14 +1097,14 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
 
       {/* Dati demo — solo per nuova sede */}
       {!initial?.id && onSeedDemoChange && (
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3.5 py-3 flex items-start gap-3">
+        <div className="rounded-xl border border-[#0052FF]/20 bg-[#0052FF]/5 px-3.5 py-3 flex items-start gap-3">
           <Toggle value={seedDemo} onChange={onSeedDemoChange} />
           <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-700 dark:text-neutral-200 leading-snug">
               Carica dati demo
             </p>
             <p className="text-[11px] text-slate-400 dark:text-neutral-500 leading-snug mt-0.5">
-              Dipendenti anonimizzati + turni settimana corrente copiati da Osteria Basilico
+              Dipendenti anonimizzati + turni settimana corrente dal template demo
             </p>
           </div>
         </div>
@@ -1140,10 +1140,10 @@ export default function SuperAdminPanel() {
     const root = document.documentElement;
     const prev: Record<string, string> = {};
     const neutralVars: Record<string, string> = {
-      '--brand':       '#10b981',
-      '--brand-hover': '#059669',
-      '--accent':      '#10b981',
-      '--accent-hover':'#059669',
+      '--brand':       '#0052FF',
+      '--brand-hover': '#003ACC',
+      '--accent':      '#0052FF',
+      '--accent-hover':'#003ACC',
     };
     Object.entries(neutralVars).forEach(([k, v]) => {
       prev[k] = root.style.getPropertyValue(k);
@@ -1276,8 +1276,8 @@ function SuperAdminPanelInner() {
       >
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4.5 h-4.5 text-emerald-400" style={{ width: '1.125rem', height: '1.125rem' }} />
+            <span className="w-9 h-9 rounded-xl bg-[#0052FF]/20 border border-[#0052FF]/30 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4.5 h-4.5 text-[#00D1FF]" style={{ width: '1.125rem', height: '1.125rem' }} />
             </span>
             <div className="min-w-0">
               <h1 className="text-base font-bold text-white leading-tight truncate">Super Admin</h1>
@@ -1287,7 +1287,7 @@ function SuperAdminPanelInner() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => { setShowForm(true); setEditingTenant(null); }}
-              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold text-white active:scale-95 transition"
+              className="flex items-center gap-1.5 rounded-xl bg-[#0052FF] hover:bg-[#003ACC] px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold text-white active:scale-95 transition"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Nuova sede</span>
@@ -1333,7 +1333,7 @@ function SuperAdminPanelInner() {
         {/* Lista sedi */}
           {loading ? (
           <div className="text-center py-16 text-white/40">
-            <div className="w-8 h-8 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
+            <div className="w-8 h-8 border-2 border-[#0052FF]/30 border-t-[#00D1FF] rounded-full animate-spin mx-auto mb-3" />
             Caricamento…
           </div>
         ) : tenants.length === 0 ? (
@@ -1382,7 +1382,7 @@ function SuperAdminPanelInner() {
                             <div className="flex items-center gap-1 mt-1">
                               <Globe className="w-3 h-3 text-white/30 shrink-0" />
                               <span className="text-xs font-mono text-white/40 truncate">{t.slug}</span>
-                              <button onClick={() => copySlug(t.slug)} className="text-white/20 hover:text-emerald-400 transition p-0.5 shrink-0" title="Copia slug">
+                              <button onClick={() => copySlug(t.slug)} className="text-white/20 hover:text-[#00D1FF] transition p-0.5 shrink-0" title="Copia slug">
                                 <Copy className="w-3 h-3" />
                               </button>
                             </div>
@@ -1393,14 +1393,14 @@ function SuperAdminPanelInner() {
                                 href={`https://${t.slug}.vercel.app`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-xs text-emerald-400 hover:underline font-medium min-w-0"
+                                className="flex items-center gap-1 text-xs text-[#00D1FF] hover:underline font-medium min-w-0"
                               >
                                 <ExternalLink className="w-3 h-3 shrink-0" />
                                 <span className="truncate">{t.slug}.vercel.app</span>
                               </a>
                               <button
                                 onClick={() => navigator.clipboard.writeText(`https://${t.slug}.vercel.app`).then(() => showToast('URL copiato!'))}
-                                className="text-white/20 hover:text-emerald-400 transition p-0.5 shrink-0"
+                                className="text-white/20 hover:text-[#00D1FF] transition p-0.5 shrink-0"
                                 title="Copia URL"
                               >
                                 <Copy className="w-3 h-3" />
@@ -1415,8 +1415,8 @@ function SuperAdminPanelInner() {
                             onClick={() => setExpandedSettings(expandedSettings === t.id ? null : t.id)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition active:scale-95 ${
                               expandedSettings === t.id
-                                ? 'bg-emerald-500/20 text-emerald-400'
-                                : 'bg-white/6 text-white/50 hover:bg-emerald-500/15 hover:text-emerald-400'
+                                ? 'bg-[#0052FF]/20 text-[#00D1FF]'
+                                : 'bg-white/6 text-white/50 hover:bg-[#0052FF]/15 hover:text-[#00D1FF]'
                             }`}
                           >
                             <Settings className="w-3.5 h-3.5" />
@@ -1433,8 +1433,8 @@ function SuperAdminPanelInner() {
                             onClick={() => toggleActive(t)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition active:scale-95 ${
                               t.is_active
-                                ? 'bg-emerald-500/15 text-emerald-400 hover:bg-red-500/15 hover:text-red-400'
-                                : 'bg-white/6 text-white/40 hover:bg-emerald-500/15 hover:text-emerald-400'
+                                ? 'bg-[#0052FF]/15 text-[#00D1FF] hover:bg-red-500/15 hover:text-red-400'
+                                : 'bg-white/6 text-white/40 hover:bg-[#0052FF]/15 hover:text-[#00D1FF]'
                             }`}
                           >
                             {t.is_active ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}

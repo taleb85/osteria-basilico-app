@@ -17,7 +17,7 @@ interface AppHeaderProps {
 export default function AppHeader({ onLogout }: AppHeaderProps) {
   const { currentUser, effectiveLanguage, setLanguage } = useApp();
   const { tenant } = useTenant();
-  const tenantName = tenant?.name ?? 'Osteria Basilico';
+  const tenantName = tenant?.name ?? 'FLOW';
   const now = useWallAlignedMinuteClock();
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);

@@ -78,7 +78,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
       );
 
       try {
-        window.location.href = `mailto:info@osteriabasilico.co.uk?subject=${mailSubject}&body=${mailBody}`;
+        window.location.href = `mailto:info@flow-workinmotion.com?subject=${mailSubject}&body=${mailBody}`;
       } catch {
         /* silently ignore */
       }
@@ -171,7 +171,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
             exit={{ opacity: 0, y: 16 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
             onSubmit={handleSubmit}
-            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-[0_8px_40px_-12px_rgba(45,90,39,0.2)] dark:bg-neutral-950 dark:shadow-[0_8px_40px_-12px_rgba(0,0,0,0.55)]"
+            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-[0_8px_40px_-12px_rgba(0,82,255,0.12)] dark:bg-neutral-950 dark:shadow-[0_8px_40px_-12px_rgba(0,0,0,0.55)]"
           >
             <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))] dark:border-white/10">
               <h3 className="text-lg font-bold text-slate-900 dark:text-neutral-100">{title}</h3>
@@ -192,7 +192,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
               {fields}
             </div>
 
-            <div className="shrink-0 border-t border-slate-100 bg-white/98 px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom,0px))] shadow-[0_-8px_24px_-8px_rgba(45,90,39,0.08)] dark:border-white/10 dark:bg-neutral-950/98 dark:shadow-[0_-8px_24px_-8px_rgba(0,0,0,0.35)]">
+            <div className="shrink-0 border-t border-slate-100 bg-white/98 px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom,0px))] shadow-[0_-8px_24px_-8px_rgba(0,82,255,0.06)] dark:border-white/10 dark:bg-neutral-950/98 dark:shadow-[0_-8px_24px_-8px_rgba(0,0,0,0.35)]">
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -241,7 +241,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
           exit={{ scale: 0.95, opacity: 0, y: 12 }}
           onSubmit={handleSubmit}
           onClick={(e) => e.stopPropagation()}
-          className="modal-glass-panel w-full max-w-md rounded-3xl p-6 shadow-[0_8px_32px_-8px_rgba(45,90,39,0.2)]"
+          className="modal-glass-panel w-full max-w-md rounded-3xl p-6 shadow-[0_8px_32px_-8px_rgba(0,82,255,0.12)]"
         >
           <div className="mb-5 flex items-center justify-between">
             <h3 className="text-base font-semibold text-slate-900 dark:text-neutral-100">{title}</h3>

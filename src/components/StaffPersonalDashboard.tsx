@@ -712,7 +712,7 @@ export default function StaffPersonalDashboard({
                 {isIos ? <Share className="w-4 h-4 text-white" /> : <Download className="w-4 h-4 text-white" />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 leading-tight">Installa l'app Osteria</p>
+                <p className="text-sm font-semibold text-slate-800 leading-tight">Installa l'app FLOW</p>
                 {isIos ? (
                   <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-snug">
                     Tocca <strong>Condividi</strong> → <strong>Aggiungi a schermata Home</strong>

@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="FLOW">
+  <defs>
+    <!-- Background: Electric Blue gradient -->
+    <linearGradient id="flow-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A6FFF"/>
+      <stop offset="55%" stop-color="#0052FF"/>
+      <stop offset="100%" stop-color="#003ACC"/>
+    </linearGradient>
+    <!-- Glass highlight: white sheen top -->
+    <linearGradient id="flow-gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="45%"  stop-color="#FFFFFF" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Cyan accent for the mid bar -->
+    <linearGradient id="flow-cyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#00D1FF"/>
+      <stop offset="100%" stop-color="#00AAEE" stop-opacity="0.85"/>
+    </linearGradient>
+    <!-- Drop shadow for depth -->
+    <filter id="flow-shadow" x="-10%" y="-8%" width="120%" height="124%">
+      <feDropShadow dx="0" dy="8" stdDeviation="14" flood-color="#001566" flood-opacity="0.25"/>
+    </filter>
+    <!-- Squircle clip -->
+    <clipPath id="flow-squircle">
+      <rect width="512" height="512" rx="115" ry="115"/>
+    </clipPath>
+    <!-- Glow filter for cyan bar -->
+    <filter id="cyan-glow" x="-20%" y="-60%" width="140%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Squircle card with shadow -->
+  <g filter="url(#flow-shadow)">
+    <g clip-path="url(#flow-squircle)">
+      <!-- Background -->
+      <rect width="512" height="512" rx="115" ry="115" fill="url(#flow-bg)"/>
+      <!-- Glass sheen -->
+      <rect width="512" height="280" fill="url(#flow-gloss)"/>
+
+      <!-- ═══════════════════════════════════════════
+           F LETTERMARK — two flowing parallel curves
+           (Geometric pill-ended strokes, slightly italic via skewX)
+           Centered: ~x104..408  y92..420
+           ═══════════════════════════════════════════ -->
+      <g transform="translate(256,256) skewX(-4) translate(-256,-256)">
+
+        <!-- PILLAR (vertical, rounded both ends) -->
+        <rect x="104" y="92" width="62" height="328" rx="31" fill="white"/>
+
+        <!-- TOP BAR — upper flowing stroke (Electric Blue / white) -->
+        <!-- Full width, pill-ended, slight downward curve via a path -->
+        <path
+          d="M 104 92
+             L 368 92
+             Q 410 92 410 134
+             Q 410 164 368 164
+             L 104 164
+             Z"
+          rx="31"
+          fill="white"
+        />
+
+        <!-- MID BAR — lower flowing stroke (Cyan accent, shorter = suggests movement) -->
+        <path
+          d="M 104 216
+             L 296 216
+             Q 336 216 336 252
+             Q 336 288 296 288
+             L 104 288
+             Z"
+          fill="url(#flow-cyan)"
+          filter="url(#cyan-glow)"
+        />
+
+        <!-- Cyan motion dot — trailing accent at the end of the mid bar -->
+        <circle cx="336" cy="252" r="14" fill="#00D1FF" opacity="0.5"/>
+        <circle cx="358" cy="252" r="7" fill="#00D1FF" opacity="0.28"/>
+      </g>
+    </g>
+  </g>
+</svg>

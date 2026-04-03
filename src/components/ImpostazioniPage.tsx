@@ -260,10 +260,10 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
 
         {/* Sezione avanzate/demo profili */}
         <section
-          className="mt-8 space-y-3 rounded-xl border-2 border-brand-400/90 bg-brand-50/90 p-4 shadow-sm dark:border-brand-700/50 dark:bg-emerald-950/30 sm:p-5"
+          className="mt-8 space-y-3 rounded-xl border-2 border-brand-400/90 bg-brand-50/90 p-4 shadow-sm dark:border-brand-700/50 dark:bg-[#0052FF]/7 sm:p-5"
           aria-label={t.impostazioni_demo_profile_title}
         >
-          <h2 className="text-sm font-bold uppercase tracking-wide text-emerald-950 dark:text-brand-100">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-900 dark:text-white dark:text-brand-100">
             {t.impostazioni_demo_profile_title}
           </h2>
           <p className="max-w-2xl text-xs leading-relaxed text-brand-900/85 dark:text-brand-200/90">{t.impostazioni_demo_profile_lead}</p>

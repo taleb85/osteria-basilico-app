@@ -2,7 +2,7 @@ import { FileText, Wallet } from 'lucide-react';
 import { lightHaptic } from '../../utils/hapticFeedback';
 
 const cardShadow =
-  'shadow-[0_8px_30px_-12px_rgba(45,90,39,0.2),0_2px_8px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_10px_32px_-12px_rgba(0,0,0,0.5)]';
+  'shadow-[0_8px_30px_-12px_rgba(0,82,255,0.12),0_2px_8px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_10px_32px_-12px_rgba(0,0,0,0.5)]';
 
 export interface MobileProfileStatsProps {
   monthHoursLabel: string;

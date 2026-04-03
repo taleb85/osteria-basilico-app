@@ -196,7 +196,7 @@ export function getPunchDelayMinutes(
 }
 
 /**
- * Regola Inviolabile dell'Osteria — calcola il `calculated_time` da salvare al punch-IN.
+ * Regola di arrotondamento FLOW — calcola il `calculated_time` da salvare al punch-IN.
  *
  * - Entrata ANTICIPATA (rawTimestamp < shift.start_time): usa l'orario ufficiale pianificato.
  *   Le ore non partono mai prima del turno.

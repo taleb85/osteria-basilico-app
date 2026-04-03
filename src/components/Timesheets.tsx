@@ -81,7 +81,7 @@ import { PinPadModal } from './ui/PinPadModal';
 /** Pill reparto: sfondo colore reparto, testo bianco (scurisce il rgb se troppo chiaro per il contrasto). */
 function departmentChipStyle(hex: string): CSSProperties {
   const raw = hex.replace('#', '').trim();
-  const six = raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw) ? raw : '2D5A27';
+  const six = raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw) ? raw : '0052FF';
   let r = parseInt(six.slice(0, 2), 16);
   let g = parseInt(six.slice(2, 4), 16);
   let b = parseInt(six.slice(4, 6), 16);
@@ -2409,12 +2409,12 @@ export default function Timesheets() {
     // Approvato / congelato contabilità — VARIANT approved
     if (s.status === 'approved' && shiftRowPayrollFrozen(s)) {
       return {
-        border: 'border-l-emerald-600',
-        bg: 'bg-emerald-50/70 dark:bg-emerald-950/20',
-        ring: 'ring-1 ring-emerald-500/20 dark:ring-emerald-500/30',
-        dot: 'bg-emerald-600',
+        border: 'border-l-[#00C896]',
+        bg: 'bg-[#00D1FF]/8 dark:bg-[#00D1FF]/7',
+        ring: 'ring-1 ring-[#00D1FF]/18 dark:ring-[#00D1FF]/25',
+        dot: 'bg-[#00C896]',
         label: t.wst_grid_shift_frozen_short,
-        labelCls: 'text-emerald-900 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-900/30',
+        labelCls: 'text-slate-900 bg-[#00D1FF]/15 dark:text-[#00D1FF] dark:bg-[#00D1FF]/12',
       };
     }
     // Bozza — VARIANT planned (priorità come tabellone: prima di ritardo / non timbrato)
@@ -2464,12 +2464,12 @@ export default function Timesheets() {
     // Pubblicato senza timbratura — VARIANT inprogress (smeraldo)
     if (!s.punched && publishedOnBoard) {
       return {
-        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
-        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
-        ring: 'ring-1 ring-emerald-400/55 dark:ring-emerald-900/40',
-        dot: 'bg-emerald-500 dark:bg-emerald-400',
+        border: 'border-l-[#00D1FF] dark:border-l-[#00D1FF]/80',
+        bg: 'bg-[#00D1FF]/10 dark:bg-[#00D1FF]/12',
+        ring: 'ring-1 ring-[#00D1FF]/35 dark:ring-[#00D1FF]/20',
+        dot: 'bg-[#00D1FF] dark:bg-[#00D1FF]',
         label: t.ts_status_unpunched,
-        labelCls: 'text-emerald-900 bg-emerald-100 dark:text-emerald-50 dark:bg-emerald-950/50',
+        labelCls: 'text-slate-900 bg-[#00D1FF]/15 dark:text-[#00D1FF] dark:bg-[#00D1FF]/15',
       };
     }
     if (!s.punched) {
@@ -2485,32 +2485,32 @@ export default function Timesheets() {
     // In turno (oggi) / completato — VARIANT inprogress
     if (inTodayKpiWindow) {
       return {
-        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
-        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
-        ring: 'ring-1 ring-emerald-400/55 dark:ring-emerald-900/40',
-        dot: 'bg-emerald-500 dark:bg-emerald-400',
+        border: 'border-l-[#00D1FF] dark:border-l-[#00D1FF]/80',
+        bg: 'bg-[#00D1FF]/10 dark:bg-[#00D1FF]/12',
+        ring: 'ring-1 ring-[#00D1FF]/35 dark:ring-[#00D1FF]/20',
+        dot: 'bg-[#00D1FF] dark:bg-[#00D1FF]',
         label: t.ts_status_in_shift,
-        labelCls: 'text-emerald-900 bg-emerald-100 dark:text-emerald-50 dark:bg-emerald-950/50',
+        labelCls: 'text-slate-900 bg-[#00D1FF]/15 dark:text-[#00D1FF] dark:bg-[#00D1FF]/15',
       };
     }
     if (s.punched && !s.actualEnd) {
       return {
-        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
-        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
-        ring: 'ring-1 ring-emerald-400/55 dark:ring-emerald-900/40',
-        dot: 'bg-emerald-500 dark:bg-emerald-400',
+        border: 'border-l-[#00D1FF] dark:border-l-[#00D1FF]/80',
+        bg: 'bg-[#00D1FF]/10 dark:bg-[#00D1FF]/12',
+        ring: 'ring-1 ring-[#00D1FF]/35 dark:ring-[#00D1FF]/20',
+        dot: 'bg-[#00D1FF] dark:bg-[#00D1FF]',
         label: t.ts_status_in_shift,
-        labelCls: 'text-emerald-900 bg-emerald-100 dark:text-emerald-50 dark:bg-emerald-950/50',
+        labelCls: 'text-slate-900 bg-[#00D1FF]/15 dark:text-[#00D1FF] dark:bg-[#00D1FF]/15',
       };
     }
     if (s.punched && s.actualEnd) {
       return {
-        border: 'border-l-emerald-500 dark:border-l-emerald-500/80',
-        bg: 'bg-emerald-50/95 dark:bg-emerald-950/40',
-        ring: 'ring-1 ring-emerald-400/55 dark:ring-emerald-900/40',
-        dot: 'bg-emerald-500 dark:bg-emerald-400',
+        border: 'border-l-[#00D1FF] dark:border-l-[#00D1FF]/80',
+        bg: 'bg-[#00D1FF]/10 dark:bg-[#00D1FF]/12',
+        ring: 'ring-1 ring-[#00D1FF]/35 dark:ring-[#00D1FF]/20',
+        dot: 'bg-[#00D1FF] dark:bg-[#00D1FF]',
         label: t.ts_status_to_approve,
-        labelCls: 'text-emerald-900 bg-emerald-100 dark:text-emerald-50 dark:bg-emerald-950/50',
+        labelCls: 'text-slate-900 bg-[#00D1FF]/15 dark:text-[#00D1FF] dark:bg-[#00D1FF]/15',
       };
     }
     return {
@@ -2545,10 +2545,10 @@ export default function Timesheets() {
                   label: t.ts_stat_in_shift,
                   value: weekViewStats.inTurno,
                   Icon: Users,
-                  iconColor: 'text-emerald-600 dark:text-emerald-400',
+                  iconColor: 'text-[#00C896] dark:text-[#00D1FF]',
                   bg: 'bg-transparent dark:bg-transparent',
-                  border: 'border-emerald-200 dark:border-emerald-800/40',
-                  iconWell: 'bg-emerald-100/80 dark:bg-emerald-950/50',
+                  border: 'border-[#00D1FF]/30 dark:border-[#00D1FF]/18',
+                  iconWell: 'bg-[#00D1FF]/18 dark:bg-[#00D1FF]/15',
                 },
                 {
                   label: t.ts_stat_delays_week,
@@ -2572,10 +2572,10 @@ export default function Timesheets() {
                   label: t.ts_stat_approved_week,
                   value: weekViewStats.approvati,
                   Icon: UserCheck,
-                  iconColor: 'text-emerald-600 dark:text-emerald-400',
+                  iconColor: 'text-[#00C896] dark:text-[#00D1FF]',
                   bg: 'bg-transparent dark:bg-transparent',
-                  border: 'border-emerald-500/20 dark:border-emerald-500/35',
-                  iconWell: 'bg-emerald-500/15 dark:bg-emerald-500/25',
+                  border: 'border-[#00D1FF]/20 dark:border-[#00D1FF]/28',
+                  iconWell: 'bg-[#00D1FF]/12 dark:bg-[#00D1FF]/18',
                 },
               ] as const).map(({ label, value, Icon, iconColor, bg, border, iconWell }) => (
                 <button
@@ -2638,8 +2638,8 @@ export default function Timesheets() {
                         <p className="text-sm font-bold text-slate-800 dark:text-neutral-100">{item.user?.first_name ?? '—'}</p>
                         <p className="text-[11px] text-slate-500 dark:text-neutral-300 truncate">{item.user?.department ?? ''}</p>
                       </div>
-                      <span className="flex flex-shrink-0 items-center gap-1 rounded-full border border-teal-200 bg-teal-100 px-2 py-0.5 text-[10px] font-bold text-teal-800 dark:border-teal-800/50 dark:bg-teal-950/50 dark:text-teal-200">
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-teal-500" /> {t.ts_badge_in_shift}
+                      <span className="flex flex-shrink-0 items-center gap-1 rounded-full border border-[#0052FF]/25 bg-[#0052FF]/10 px-2 py-0.5 text-[10px] font-bold text-[#0052FF] dark:border-[#0052FF]/22 dark:bg-[#0052FF]/15 dark:text-[#00D1FF]/80">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#0052FF]/80" /> {t.ts_badge_in_shift}
                       </span>
                     </div>
                     {/* Times */}
@@ -2768,7 +2768,7 @@ export default function Timesheets() {
 
                 {viewMode === 'month' && payrollStripForToolbar && (
                   <span
-                    className="hidden min-[400px]:inline-flex h-8 max-w-[min(100%,12rem)] shrink-0 items-center truncate rounded-lg border border-emerald-200 bg-emerald-50 px-2 text-[9px] font-semibold text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100"
+                    className="hidden min-[400px]:inline-flex h-8 max-w-[min(100%,12rem)] shrink-0 items-center truncate rounded-lg border border-[#00D1FF]/30 bg-[#00D1FF]/10 px-2 text-[9px] font-semibold text-slate-900 dark:border-[#00C896]/50 dark:bg-[#00D1FF]/12 dark:text-[#00D1FF]"
                     title={tv.ts_timesheet_month_tab_hint}
                   >
                     {payrollStripForToolbar}
@@ -2801,7 +2801,7 @@ export default function Timesheets() {
                       const rule = (() => { try { return localStorage.getItem('osteria_period_rule') ?? 'last_sunday'; } catch { return 'last_sunday'; } })();
                       const isFixedStart = rule === 'fixed_start';
                       return (
-                        <span className={`text-[11px] font-extrabold ${isFixedStart ? 'text-teal-600 dark:text-teal-400' : (periodNumWeeks === 4 ? 'text-accent dark:text-accent-light' : 'text-teal-600 dark:text-teal-400')}`}>
+                        <span className={`text-[11px] font-extrabold ${isFixedStart ? 'text-[#0052FF] dark:text-[#00D1FF]' : (periodNumWeeks === 4 ? 'text-accent dark:text-accent-light' : 'text-[#0052FF] dark:text-[#00D1FF]')}`}>
                           {periodNumWeeks} sett.
                         </span>
                       );
@@ -2880,7 +2880,7 @@ export default function Timesheets() {
                                   : 'text-slate-400 dark:text-neutral-500'
                               }`}>
                                 {format(s, 'dd/MM', { locale })}–{format(e, 'dd/MM', { locale })}
-                                <span className={`ml-1 font-extrabold ${cfg.numWeeks === 5 ? 'text-teal-500' : ''}`}>
+                                <span className={`ml-1 font-extrabold ${cfg.numWeeks === 5 ? 'text-[#0052FF]' : ''}`}>
                                   {cfg.numWeeks}s
                                 </span>
                               </span>
@@ -3252,7 +3252,7 @@ export default function Timesheets() {
                           weekEndCol ? 'border-r-[3px] border-r-slate-500 dark:border-r-white/50' : 'border-r-2'
                         } ${
                           payrollHighlight
-                            ? 'bg-emerald-50 dark:bg-emerald-950/45 ring-1 ring-inset ring-emerald-200/90 dark:ring-emerald-800/50'
+                            ? 'bg-[#00D1FF]/10 dark:bg-[#00D1FF]/14 ring-1 ring-inset ring-[#00D1FF]/30 dark:ring-[#00D1FF]/22'
                             : todayDate
                               ? 'bg-accent/5 dark:bg-accent/15'
                               : 'bg-slate-50 dark:bg-neutral-800'
@@ -3272,14 +3272,14 @@ export default function Timesheets() {
                               : !inP
                                 ? 'text-slate-500 dark:text-neutral-400'
                                 : payrollHighlight
-                                  ? 'text-emerald-900 dark:text-emerald-100'
+                                  ? 'text-slate-900 dark:text-[#00D1FF]'
                                   : 'text-slate-700 dark:text-white'
                           }`}
                         >
                           {format(day, 'd MMM', { locale })}
                         </div>
                         {payrollHighlight && (
-                          <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
+                          <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-[#007A5E] dark:text-[#00D1FF]/80">
                             {tv.ts_payroll_day_abbr ?? 'Paga'}
                           </div>
                         )}
@@ -3349,7 +3349,7 @@ export default function Timesheets() {
                         const tdMuted = viewMode === 'month' && !inP;
                         const tdBg =
                           payrollHighlight
-                            ? 'bg-emerald-50/50 dark:bg-emerald-950/25'
+                            ? 'bg-[#00D1FF]/7 dark:bg-[#00D1FF]/8'
                             : todayDate && inP
                               ? 'bg-accent/5 dark:bg-accent/10'
                               : tdMuted
@@ -3398,7 +3398,7 @@ export default function Timesheets() {
                                       <span className="mr-1.5 flex shrink-0 flex-col items-center justify-center gap-0.5 self-stretch md:mr-1">
                                         {s.status === 'confirmed' && (
                                           <Check
-                                            className="h-2.5 w-2.5 shrink-0 text-emerald-600 dark:text-emerald-400 md:h-2 md:w-2"
+                                            className="h-2.5 w-2.5 shrink-0 text-[#00C896] dark:text-[#00D1FF] md:h-2 md:w-2"
                                             strokeWidth={2.5}
                                             aria-hidden
                                           />
@@ -3476,7 +3476,7 @@ export default function Timesheets() {
                                                 : punchMissingCell
                                                   ? 'text-amber-950 dark:text-amber-100'
                                                   : publishedCell
-                                                    ? 'text-emerald-900 dark:text-emerald-50'
+                                                    ? 'text-slate-900 dark:text-[#00D1FF]'
                                                     : 'text-amber-950 dark:text-amber-100'
                                             }`}
                                           >
@@ -3558,7 +3558,7 @@ export default function Timesheets() {
                               <div className="text-sm font-bold text-slate-900 dark:text-white md:text-xs">
                                 {formatMinutesToHoursAndMinutes(totals?.actualMins ?? 0)}
                               </div>
-                              <div className={`text-[10px] font-semibold ${(totals?.deltaMins ?? 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'} md:text-[9px]`}>
+                              <div className={`text-[10px] font-semibold ${(totals?.deltaMins ?? 0) >= 0 ? 'text-[#00C896] dark:text-[#00D1FF]' : 'text-red-500'} md:text-[9px]`}>
                                 {(totals?.deltaMins ?? 0) >= 0 ? '+' : ''}
                                 {fmtHM(totals?.deltaMins ?? 0)}
                               </div>
@@ -3689,7 +3689,7 @@ export default function Timesheets() {
                       const tdMuted = viewMode === 'month' && !inP;
                       const tdBg =
                         payrollHighlight
-                          ? 'bg-emerald-50/50 dark:bg-emerald-950/25'
+                          ? 'bg-[#00D1FF]/7 dark:bg-[#00D1FF]/8'
                           : tdMuted
                             ? 'bg-slate-100/90 dark:bg-neutral-900/80 opacity-70'
                             : '';
@@ -3786,7 +3786,7 @@ export default function Timesheets() {
                       {
                         label: t.ts_kpi_delta,
                         val: `${(myTot?.deltaMins ?? 0) >= 0 ? '+' : ''}${fmtHM(myTot?.deltaMins ?? 0)}`,
-                        color: (myTot?.deltaMins ?? 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500',
+                        color: (myTot?.deltaMins ?? 0) >= 0 ? 'text-[#00C896] dark:text-[#00D1FF]' : 'text-red-500',
                       },
                     ]
                   : plannedOnlyTimesheetGrid && frozenM > 0
@@ -3902,35 +3902,35 @@ export default function Timesheets() {
             fullShift ?? null
           );
           const deltaColor =
-            s.deltaMins > 5 ? 'text-emerald-600 dark:text-emerald-400' : s.deltaMins < -5 ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-neutral-400';
+            s.deltaMins > 5 ? 'text-[#00C896] dark:text-[#00D1FF]' : s.deltaMins < -5 ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-neutral-400';
           const isEmployeeWeekReviewSheet = drawerReviewQueue?.reviewScope === 'employee_week';
 
           const plannedPublishedCard = s.status === 'confirmed' || s.status === 'approved';
           const plannedDraftCard = s.status === 'draft';
           const plannedAbsentCard = s.status === 'absent';
           const plannedCardBoxClass = plannedPublishedCard
-            ? 'rounded-xl border-2 border-l-4 border-emerald-200/80 dark:border-emerald-800/50 border-l-emerald-600 bg-emerald-50/95 dark:bg-emerald-950/40 p-3'
+            ? 'rounded-xl border-2 border-l-4 border-[#00D1FF]/28 dark:border-[#00D1FF]/22 border-l-[#00C896] bg-[#00D1FF]/10 dark:bg-[#00D1FF]/12 p-3'
             : plannedAbsentCard
               ? 'rounded-xl border-2 border-l-4 border-rose-200/80 dark:border-rose-800/50 border-l-error bg-rose-50 dark:bg-rose-950/35 p-3'
               : plannedDraftCard
                 ? 'rounded-xl border-2 border-l-4 border-slate-200 dark:border-white/20 border-l-review bg-slate-50 dark:bg-neutral-950/85 p-3'
                 : 'rounded-xl border-2 border-l-4 border-slate-200 dark:border-white/15 border-l-slate-400 bg-slate-50/90 dark:bg-neutral-950/85 p-3';
           const plannedCardLabelCls = plannedPublishedCard
-            ? 'text-emerald-700 dark:text-emerald-400'
+            ? 'text-[#00A87A] dark:text-[#00D1FF]'
             : plannedAbsentCard
               ? 'text-rose-600 dark:text-rose-400'
               : plannedDraftCard
                 ? 'text-slate-600 dark:text-neutral-400'
                 : 'text-slate-500 dark:text-neutral-400';
           const plannedCardMainCls = plannedPublishedCard
-            ? 'text-emerald-900 dark:text-emerald-100'
+            ? 'text-slate-900 dark:text-[#00D1FF]'
             : plannedAbsentCard
               ? 'text-rose-900 dark:text-rose-100'
               : plannedDraftCard
                 ? 'text-slate-900 dark:text-white'
                 : 'text-slate-800 dark:text-neutral-100';
           const plannedCardSubCls = plannedPublishedCard
-            ? 'text-emerald-700/90 dark:text-emerald-300/90'
+            ? 'text-[#00A87A]/90 dark:text-[#00D1FF]/90'
             : plannedAbsentCard
               ? 'text-rose-700 dark:text-rose-300'
               : plannedDraftCard
@@ -3954,7 +3954,7 @@ export default function Timesheets() {
             pinRequiredForPlannedTimesEdit && plannedTimesEditUnlockedShiftId !== s.id && !drawerPinUnlockedSessionId && !globalPinSessionId;
 
           return (
-              <div className="flex flex-1 flex-col overflow-y-auto min-h-[500px] sm:min-h-0 lg:h-full sm:max-h-[calc(100vh-60px)] md:max-h-[calc(100vh-60px)]">
+              <div className="flex flex-1 flex-col overflow-hidden sm:overflow-y-auto lg:h-full sm:max-h-[calc(100vh-60px)] md:max-h-[calc(100vh-60px)]">
                 {/* Drawer header — strip colorato in base allo stato */}
                 <div className={`border-l-4 ${border} ${bg} ${ring} shrink-0`}>
                   <div className="px-4 pt-2.5 pb-2 sm:px-5 sm:pt-3 sm:pb-2.5">
@@ -4137,7 +4137,7 @@ export default function Timesheets() {
                           {translateDepartmentValue(drawerData.department, effectiveLanguage)}
                         </span>
                       )}
-                      {isApproved && <Lock className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400" />}
+                      {isApproved && <Lock className="h-3 w-3 shrink-0 text-[#00C896] dark:text-[#00D1FF]" />}
                       {isEmployeeWeekReviewSheet && drawerReviewQueue && (
                         <span className="shrink-0 text-[10px] font-semibold text-slate-600 dark:text-neutral-300">
                           {formatTrans(t.ts_employee_week_review_progress, { current: String(drawerReviewQueue.currentIdx + 1), total: String(drawerReviewQueue.items.length) })}
@@ -4252,7 +4252,7 @@ export default function Timesheets() {
                 )}
 
                 {/* Corpo popup (scroll) */}
-                <div className="min-h-0 flex-1 overflow-hidden min-h-[320px] lg:min-h-0">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain min-h-[320px] lg:min-h-0">
                   {s.status === 'absent' && canTeamTimesheetOps && !isFrozen && (
                     <div className="border-b border-rose-100 bg-rose-50/90 p-5 dark:border-rose-900/40 dark:bg-rose-950/35">
                       <p className="text-sm font-medium text-rose-900 dark:text-rose-100">{t.wst_status_sub_absent}</p>
@@ -4292,10 +4292,10 @@ export default function Timesheets() {
                           {(s.status === 'confirmed' || s.status === 'approved') && (
                             <span className="flex shrink-0 flex-col items-center justify-center gap-1 pr-1">
                               {s.status === 'confirmed' && (
-                                <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" strokeWidth={2.5} aria-hidden />
+                                <Check className="h-4 w-4 text-[#00C896] dark:text-[#00D1FF]" strokeWidth={2.5} aria-hidden />
                               )}
                               {s.status === 'approved' && (
-                                <Lock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" strokeWidth={2.5} aria-hidden />
+                                <Lock className="h-4 w-4 text-[#00C896] dark:text-[#00D1FF]" strokeWidth={2.5} aria-hidden />
                               )}
                             </span>
                           )}
@@ -4320,7 +4320,7 @@ export default function Timesheets() {
                           s.punched
                             ? s.isCrossDay
                               ? 'border-red-200 dark:border-red-800/50 border-l-error bg-red-50 dark:bg-red-950/35'
-                              : 'border-teal-200/80 dark:border-teal-800/50 border-l-emerald-600 bg-teal-50 dark:bg-teal-950/35'
+                              : 'border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#00C896] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
                             : 'border-amber-400/90 dark:border-amber-500/70 border-l-review bg-amber-50 dark:bg-amber-950/45 animate-pulse'
                         }`}
                       >
@@ -4329,7 +4329,7 @@ export default function Timesheets() {
                             s.punched
                               ? s.isCrossDay
                                 ? 'text-red-600 dark:text-red-400'
-                                : 'text-teal-700 dark:text-teal-400'
+                                : 'text-[#0052FF] dark:text-[#00D1FF]'
                               : 'text-amber-800/90 dark:text-amber-200/90'
                           }`}>{t.ts_label_punched}</p>
                           {(s.punched && !s.actualEnd) || !s.punched ? (
@@ -4386,7 +4386,7 @@ export default function Timesheets() {
                                 </>
                               )}
                             </p>
-                            <div className="mt-2 space-y-0.5 border-t border-teal-200/60 pt-2 dark:border-teal-800/40">
+                            <div className="mt-2 space-y-0.5 border-t border-[#0052FF]/20 pt-2 dark:border-[#0052FF]/18">
                               <p className="text-[10px] leading-snug text-slate-600 dark:text-neutral-400">
                                 <span className="font-semibold text-slate-500 dark:text-neutral-500">{t.ts_punch_source_row_in}</span>{' '}
                                 {punchSourceLabel(s.punchInSource, t)}
@@ -4533,7 +4533,7 @@ export default function Timesheets() {
                                         {fmtAuditValue(e.oldValue)}
                                       </span>
                                       <ArrowRight className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-500" />
-                                      <span className="rounded-lg bg-emerald-50 px-1.5 py-0.5 font-semibold text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                      <span className="rounded-lg bg-[#00D1FF]/10 px-1.5 py-0.5 font-semibold text-[#007A5E] dark:bg-[#00D1FF]/12 dark:text-[#00D1FF]">
                                         {fmtAuditValue(e.newValue)}
                                       </span>
                                     </div>
@@ -4572,7 +4572,7 @@ export default function Timesheets() {
                                         {fmtAuditValue(e.old_value)}
                                       </span>
                                       <ArrowRight className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-500" />
-                                      <span className="rounded-lg bg-emerald-50 px-1.5 py-0.5 font-semibold text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                      <span className="rounded-lg bg-[#00D1FF]/10 px-1.5 py-0.5 font-semibold text-[#007A5E] dark:bg-[#00D1FF]/12 dark:text-[#00D1FF]">
                                         {fmtAuditValue(e.new_value)}
                                       </span>
                                     </div>
@@ -4600,24 +4600,24 @@ export default function Timesheets() {
                         const cardCls = punchCrossDay
                           ? 'border-red-200 dark:border-red-800/50 border-l-error bg-red-50/90 dark:bg-red-950/40'
                           : punchComplete
-                          ? 'border-teal-200/80 dark:border-teal-800/50 border-l-emerald-600 bg-teal-50/90 dark:bg-teal-950/40'
+                          ? 'border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#00C896] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
                           : 'border-amber-400/90 dark:border-amber-500/70 bg-white/85 dark:bg-amber-950/50';
                         const hoverCls = timbraturePinGateTarget
                           ? punchCrossDay
                             ? 'hover:bg-red-50 dark:hover:bg-red-950/55'
                             : punchComplete
-                            ? 'hover:bg-teal-50 dark:hover:bg-teal-950/55'
+                            ? 'hover:bg-[#0052FF]/8 dark:hover:bg-[#0052FF]/15'
                             : 'hover:bg-amber-50/90 dark:hover:bg-amber-950/45'
                           : '';
                         const titleCls = punchCrossDay
                           ? 'text-red-900 dark:text-red-100'
                           : punchComplete
-                          ? 'text-teal-900 dark:text-teal-100'
+                          ? 'text-slate-900 dark:text-[#00D1FF]'
                           : 'text-amber-950 dark:text-amber-100';
                         const hintCls = punchCrossDay
                           ? 'text-red-700/80 dark:text-red-300/80'
                           : punchComplete
-                          ? 'text-teal-700/80 dark:text-teal-300/80'
+                          ? 'text-[#0052FF]/80 dark:text-[#00D1FF]/80'
                           : 'text-amber-900/85 dark:text-amber-200/90';
                         return (
                       <div className={`space-y-0.5 sm:space-y-1 rounded-xl border-2 border-l-4 p-1.5 sm:p-2 shadow-sm flex flex-col h-auto overflow-visible ${cardCls}`}>
@@ -4684,11 +4684,11 @@ export default function Timesheets() {
                                 : punchCrossDay
                                   ? 'bg-red-50/80 ring-red-200/70 dark:bg-red-950/30 dark:ring-red-800/50'
                                   : punchComplete
-                                  ? 'bg-teal-50/80 ring-teal-200/70 dark:bg-teal-950/30 dark:ring-teal-800/50'
+                                  ? 'bg-[#0052FF]/7 ring-[#0052FF]/25 dark:bg-[#0052FF]/10 dark:ring-[#0052FF]/22'
                                   : 'bg-white/80 ring-amber-200/80 dark:bg-neutral-900/40 dark:ring-amber-800/50'
                             } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-50/90 dark:hover:bg-amber-950/55' : ''}`}
                           >
-                            <p className={`mb-0.5 text-[9px] font-semibold uppercase tracking-wide ${!s.actualStart ? 'text-red-600 dark:text-red-400' : punchCrossDay ? 'text-red-600/80 dark:text-red-400/90' : punchComplete ? 'text-teal-700/80 dark:text-teal-400/90' : 'text-amber-800/80 dark:text-amber-300/90'}`}>
+                            <p className={`mb-0.5 text-[9px] font-semibold uppercase tracking-wide ${!s.actualStart ? 'text-red-600 dark:text-red-400' : punchCrossDay ? 'text-red-600/80 dark:text-red-400/90' : punchComplete ? 'text-[#0052FF]/80 dark:text-[#00D1FF]/90' : 'text-amber-800/80 dark:text-amber-300/90'}`}>
                               {t.ts_drawer_manual_punch_in}
                             </p>
                             <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualStart ? 'text-slate-900 dark:text-neutral-100' : s.plannedStart ? 'text-slate-400 dark:text-neutral-500' : 'text-red-500 dark:text-red-400'}`}>
@@ -4712,11 +4712,11 @@ export default function Timesheets() {
                                 : punchCrossDay
                                   ? 'bg-red-50/80 ring-red-200/70 dark:bg-red-950/30 dark:ring-red-800/50'
                                   : punchComplete
-                                  ? 'bg-teal-50/80 ring-teal-200/70 dark:bg-teal-950/30 dark:ring-teal-800/50'
+                                  ? 'bg-[#0052FF]/7 ring-[#0052FF]/25 dark:bg-[#0052FF]/10 dark:ring-[#0052FF]/22'
                                   : 'bg-white/80 ring-amber-200/80 dark:bg-neutral-900/40 dark:ring-amber-800/50'
                             } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-50/90 dark:hover:bg-amber-950/55' : ''}`}
                           >
-                            <p className={`mb-0.5 text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide ${!s.actualEnd ? 'text-red-600 dark:text-red-400' : punchCrossDay ? 'text-red-600/80 dark:text-red-400/90' : punchComplete ? 'text-teal-700/80 dark:text-teal-400/90' : 'text-amber-800/80 dark:text-amber-300/90'}`}>
+                            <p className={`mb-0.5 text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide ${!s.actualEnd ? 'text-red-600 dark:text-red-400' : punchCrossDay ? 'text-red-600/80 dark:text-red-400/90' : punchComplete ? 'text-[#0052FF]/80 dark:text-[#00D1FF]/90' : 'text-amber-800/80 dark:text-amber-300/90'}`}>
                               {t.ts_drawer_manual_punch_out}
                             </p>
                             <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualEnd ? 'text-slate-900 dark:text-neutral-100' : s.plannedEnd ? 'text-slate-400 dark:text-neutral-500' : 'text-red-500 dark:text-red-400'}`}>
@@ -4849,7 +4849,7 @@ export default function Timesheets() {
 
                     {/* Pulsante "REGISTRA E PROSSIMO" — fuori dal riquadro timbrature */}
                     {!isApproved && canTeamTimesheetOps && !isAbsentDraw && drawerData && (
-                      <div className="mt-auto pt-3 pb-1 px-3 sm:px-5 border-t border-slate-100 dark:border-white/10 sticky bottom-0">
+                      <div className="mt-auto pt-3 pb-3 px-3 sm:px-5 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-neutral-900 sticky bottom-0 z-10">
                         {(!drawerReviewQueue || drawerOpenSource) && (() => {
                           const navItems: Array<{ shift: ShiftRow; dateStr: string }> = [];
                           for (const day of weekDays) {
@@ -4912,7 +4912,7 @@ export default function Timesheets() {
                                   ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 dark:bg-neutral-800 dark:text-neutral-500 dark:border-white/10'
                                   : !hasValidOut
                                   ? 'bg-amber-500 text-white hover:bg-amber-600'
-                                  : 'bg-[#2D5A27] text-white hover:bg-accent-hover'
+                                  : 'bg-accent text-white hover:bg-accent-hover'
                               } ${reviewQueueSaving || manualPunchSaving || drawerJustOpened ? 'opacity-50' : ''}`}
                             >
                               {isLast ? 'SALVA E CHIUDI' : t.ts_drawer_manual_punches_save}
@@ -4926,22 +4926,22 @@ export default function Timesheets() {
                   {/* ── Blocco Approvazione (sempre visibile se approvato) ── */}
                   {isApproved && (
                     <div className="border-b border-slate-100 dark:border-white/10 p-3 sm:p-5">
-                      <div className="rounded-xl border-2 border-l-4 border-emerald-200/60 dark:border-emerald-800/40 border-l-emerald-600 bg-emerald-50/70 dark:bg-emerald-950/25 p-3">
+                      <div className="rounded-xl border-2 border-l-4 border-[#00D1FF]/22 dark:border-[#00D1FF]/18 border-l-[#00C896] bg-[#00D1FF]/8 dark:bg-[#00D1FF]/8 p-3">
                         <div className="mb-3 flex items-center gap-2">
-                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-500/15">
-                            <Lock className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-[#00D1FF]/12">
+                            <Lock className="h-4 w-4 text-[#00A87A] dark:text-[#00D1FF]" />
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-emerald-900 dark:text-emerald-300">{t.ts_drawer_approved_frozen}</p>
-                            <p className="text-[11px] text-emerald-700 dark:text-emerald-400/90">{t.ts_drawer_no_further_edits}</p>
+                            <p className="text-sm font-bold text-slate-900 dark:text-[#00D1FF]">{t.ts_drawer_approved_frozen}</p>
+                            <p className="text-[11px] text-[#00A87A] dark:text-[#00D1FF]/90">{t.ts_drawer_no_further_edits}</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-emerald-200/40 dark:border-emerald-800/30 p-3">
+                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-[#00D1FF]/18 dark:border-[#00D1FF]/15 p-3">
                             <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_drawer_approved_by}</p>
                             <p className="truncate text-sm font-bold text-slate-800 dark:text-neutral-100">{fullShift?.approved_by ?? s.approved_by ?? '—'}</p>
                           </div>
-                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-emerald-200/40 dark:border-emerald-800/30 p-3">
+                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-[#00D1FF]/18 dark:border-[#00D1FF]/15 p-3">
                             <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_drawer_approval_date}</p>
                             <p className="text-sm font-bold text-slate-800 dark:text-neutral-100">
                               {(fullShift?.approved_at ?? s.approved_at)
@@ -5162,7 +5162,7 @@ export default function Timesheets() {
         open={!!approveWeekSummary}
         onClose={() => setApproveWeekSummary(null)}
         maxWidthClass="max-w-[380px]"
-        panelClassName={`rounded-[40px] overflow-hidden ${approveWeekSummary?.approvedIds ? '!bg-emerald-50 dark:!bg-emerald-950/60 !border-emerald-200/80 dark:!border-emerald-800/40' : '!bg-teal-50/80 dark:!bg-teal-950/60 !border-teal-200/60 dark:!border-teal-800/40'}`}
+        panelClassName={`rounded-[40px] overflow-hidden ${approveWeekSummary?.approvedIds ? '!bg-[#00D1FF]/10 dark:!bg-[#00D1FF]/18 !border-[#00D1FF]/28 dark:!border-[#00D1FF]/18' : '!bg-[#0052FF]/7 dark:!bg-[#0052FF]/18 !border-[#0052FF]/20 dark:!border-[#0052FF]/25'}`}
         ariaLabel="Riepilogo approvazione settimana"
       >
         {approveWeekSummary && (() => {
@@ -5171,37 +5171,37 @@ export default function Timesheets() {
           <div className="p-6">
             {/* Header */}
             <div className="flex items-center gap-3 mb-4">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${isDone ? 'bg-emerald-200/70 dark:bg-emerald-900/50' : 'bg-teal-200/70 dark:bg-teal-900/50'}`}>
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${isDone ? 'bg-[#00D1FF]/22 dark:bg-[#00D1FF]/18' : 'bg-[#0052FF]/18 dark:bg-[#0052FF]/15'}`}>
                 {isDone
-                  ? <Check className="h-5 w-5 text-emerald-700 dark:text-emerald-300" strokeWidth={2.5} />
-                  : <Lock className="h-5 w-5 text-teal-700 dark:text-teal-300" />
+                  ? <Check className="h-5 w-5 text-[#00A87A] dark:text-[#00D1FF]" strokeWidth={2.5} />
+                  : <Lock className="h-5 w-5 text-[#0052FF] dark:text-[#00D1FF]" />
                 }
               </div>
               <div>
-                <h3 className={`font-bold text-base ${isDone ? 'text-emerald-900 dark:text-emerald-100' : 'text-teal-900 dark:text-teal-100'}`}>
+                <h3 className={`font-bold text-base ${isDone ? 'text-slate-900 dark:text-[#00D1FF]' : 'text-slate-900 dark:text-[#00D1FF]'}`}>
                   {isDone ? 'Approvazione Completata' : 'Approvazione Settimanale'}
                 </h3>
-                <p className={`text-sm ${isDone ? 'text-emerald-700/80 dark:text-emerald-300/70' : 'text-teal-700/80 dark:text-teal-300/70'}`}>
+                <p className={`text-sm ${isDone ? 'text-[#00A87A]/80 dark:text-[#00D1FF]/70' : 'text-[#0052FF]/80 dark:text-[#00D1FF]/70'}`}>
                   {approveWeekSummary.employeeName} · {approveWeekSummary.shiftIds.length} turni
                 </p>
               </div>
             </div>
 
             {/* Lista turni */}
-            <div className={`mb-4 max-h-[260px] overflow-y-auto rounded-xl border divide-y ${isDone ? 'border-emerald-200/60 dark:border-emerald-800/30 divide-emerald-100 dark:divide-emerald-900/40' : 'border-teal-200/60 dark:border-teal-800/30 divide-teal-100 dark:divide-teal-900/40'}`}>
+            <div className={`mb-4 max-h-[260px] overflow-y-auto rounded-xl border divide-y ${isDone ? 'border-[#00D1FF]/22 dark:border-[#00D1FF]/15 divide-[#00D1FF]/15 dark:divide-[#00D1FF]/15' : 'border-[#0052FF]/20 dark:border-[#0052FF]/20 divide-[#0052FF]/15 dark:divide-[#0052FF]/15'}`}>
               {approveWeekSummary.previewRows.map((row, i) => {
                 const approved = isDone;
                 return (
-                  <div key={i} className={`flex items-center justify-between px-3 py-2.5 transition-colors ${approved ? 'bg-emerald-50/80 dark:bg-emerald-950/30' : 'bg-teal-50/50 dark:bg-teal-950/20'}`}>
-                    <span className={`text-sm font-medium capitalize ${isDone ? 'text-emerald-800 dark:text-emerald-200' : 'text-teal-800 dark:text-teal-200'}`}>
+                  <div key={i} className={`flex items-center justify-between px-3 py-2.5 transition-colors ${approved ? 'bg-[#00D1FF]/9 dark:bg-[#00D1FF]/10' : 'bg-[#0052FF]/5 dark:bg-[#0052FF]/7'}`}>
+                    <span className={`text-sm font-medium capitalize ${isDone ? 'text-[#007A5E] dark:text-[#00D1FF]/80' : 'text-[#0052FF] dark:text-[#00D1FF]/80'}`}>
                       {safeFormatDate(row.dateStr, 'EEE d MMM', { locale })}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold tabular-nums ${isDone ? 'text-emerald-900 dark:text-emerald-100' : 'text-teal-900 dark:text-teal-100'}`}>
+                      <span className={`text-sm font-bold tabular-nums ${isDone ? 'text-slate-900 dark:text-[#00D1FF]' : 'text-slate-900 dark:text-[#00D1FF]'}`}>
                         {row.planned}
                       </span>
                       {approved && (
-                        <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" strokeWidth={2.5} />
+                        <Check className="h-4 w-4 text-[#00C896] dark:text-[#00D1FF] shrink-0" strokeWidth={2.5} />
                       )}
                     </div>
                   </div>
@@ -5240,7 +5240,7 @@ export default function Timesheets() {
                   type="button"
                   disabled={undoApprovalBusy}
                   onClick={() => setApproveWeekSummary(null)}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-sm shadow-emerald-900/20 disabled:opacity-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#00C896] hover:bg-[#00A87A] text-white text-sm font-bold shadow-sm shadow-[#00C896]/20 disabled:opacity-50 transition-colors"
                 >
                   Chiudi
                 </button>
@@ -5250,7 +5250,7 @@ export default function Timesheets() {
                 <button
                   type="button"
                   onClick={() => setApproveWeekSummary(null)}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-teal-200/70 dark:border-teal-800/50 bg-white/60 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 text-sm font-semibold hover:bg-teal-50 dark:hover:bg-teal-950/40 transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-[#0052FF]/22 dark:border-[#0052FF]/22 bg-white/60 dark:bg-[#0052FF]/7 text-[#0052FF] dark:text-[#00D1FF] text-sm font-semibold hover:bg-[#0052FF]/8 dark:hover:bg-[#0052FF]/12 transition-colors"
                 >
                   Annulla
                 </button>
@@ -5342,7 +5342,7 @@ export default function Timesheets() {
           const clockOutComplete = /^\d{2}:\d{2}$/.test((clockOutTime || '').trim());
           const showHoursPreview = clockOutComplete && !!shiftObj && !!userObj;
           const previewDelta = previewMins - closingShift.plannedMins;
-          const previewDeltaColor = previewDelta > 5 ? 'text-emerald-600 dark:text-emerald-400' : previewDelta < -5 ? 'text-red-500' : 'text-slate-500';
+          const previewDeltaColor = previewDelta > 5 ? 'text-[#00C896] dark:text-[#00D1FF]' : previewDelta < -5 ? 'text-red-500' : 'text-slate-500';
 
           return (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}

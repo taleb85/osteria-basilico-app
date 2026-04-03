@@ -14,7 +14,7 @@ export const exportToJSON = (data: ExportData) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `osteria-basilico-backup-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.json`;
+  link.download = `flow-backup-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.json`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -76,7 +76,7 @@ export const exportToCSV = (data: ExportData) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `osteria-basilico-report-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.csv`;
+  link.download = `flow-report-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.csv`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

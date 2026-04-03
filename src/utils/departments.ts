@@ -42,7 +42,7 @@ export const BUILTIN_DEPARTMENTS: Department[] = [
   { value: 'kitchen', label: 'Cucina', color: '#F44336' },
 ];
 
-const DEFAULT_CUSTOM_COLOR = 'var(--brand)'; // accent green
+const DEFAULT_CUSTOM_COLOR = 'var(--brand)'; // accent blue
 
 function mergeBuiltinsWithOverrides(): Department[] {
   const ov = getBuiltinOverrides();
@@ -177,8 +177,8 @@ export const DEPARTMENT_COLOR_PRESETS: readonly string[] = [
   '#CDDC39', // lime
   '#8BC34A', // verde chiaro
   '#4CAF50', // verde
-  'var(--brand)', // verde basilico (brand)
-  '#009688', // teal
+  'var(--brand)', // FLOW blue (brand)
+  '#0099CC', // blue-cyan
   '#00BCD4', // ciano
   '#03A9F4', // azzurro
   '#2196F3', // blu

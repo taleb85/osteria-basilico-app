@@ -165,10 +165,10 @@ export default function ManagementHomePreview({
                 label: t.home_stat_in_shift,
                 value: 0,
                 Icon: Users,
-                iconColor: 'text-teal-600 dark:text-teal-400',
+                iconColor: 'text-[#0052FF] dark:text-[#00D1FF]',
                 bg: 'bg-transparent dark:bg-transparent',
-                border: 'border-teal-100 dark:border-teal-800/40',
-                iconWell: 'bg-teal-100/80 dark:bg-teal-950/50',
+                border: 'border-[#0052FF]/15 dark:border-[#0052FF]/18',
+                iconWell: 'bg-[#0052FF]/12 dark:bg-[#0052FF]/15',
               },
               {
                 label: t.home_stat_delays,
@@ -292,7 +292,7 @@ export default function ManagementHomePreview({
               <div className="space-y-3">
                 {[
                   { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-accent' },
-                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-teal-600 dark:bg-teal-500' },
+                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-[#0052FF] dark:bg-[#0052FF]/80' },
                 ].map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="mb-1.5 flex justify-between text-xs">

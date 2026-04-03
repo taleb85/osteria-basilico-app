@@ -12,7 +12,7 @@ interface ToastProps {
 }
 
 /**
- * Banner globale in basso al centro: successo verde basilico, errore rosso.
+ * Banner globale in basso al centro: successo blu FLOW, errore rosso.
  * Posizione ~bottom-6 + safe area (sopra home indicator iOS).
  */
 export default function Toast({ message, type = 'error', onClose, duration = 3500 }: ToastProps) {

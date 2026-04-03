@@ -181,7 +181,7 @@ export function MessageWriter({
 
         {/* Successo */}
         {success && (
-          <div className="rounded bg-brand-100 p-2 text-xs font-semibold text-brand-700 dark:bg-green-950/40 dark:text-brand-300">
+          <div className="rounded bg-brand-100 p-2 text-xs font-semibold text-brand-700 dark:bg-[#0052FF]/12 dark:text-brand-300">
             ✓ Messaggio inviato!
           </div>
         )}
@@ -321,7 +321,7 @@ export function MessageWriter({
       )}
 
       {success && (
-        <div className="rounded-lg bg-brand-100 p-3 text-sm font-semibold text-brand-700 dark:bg-green-950/40 dark:text-brand-300">
+        <div className="rounded-lg bg-brand-100 p-3 text-sm font-semibold text-brand-700 dark:bg-[#0052FF]/12 dark:text-brand-300">
           ✓ Messaggio inviato con successo!
         </div>
       )}

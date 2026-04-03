@@ -79,7 +79,7 @@ export async function registerPinUnlockCredential(
   const cred = (await navigator.credentials.create({
     publicKey: {
       challenge: toBufferSource(challenge),
-      rp: { id: rpId, name: 'Osteria Basilico' },
+      rp: { id: rpId, name: 'FLOW' },
       user: {
         id: toBufferSource(userHandleFromId(userId)),
         name: email,

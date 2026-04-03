@@ -416,7 +416,7 @@ export function NotificationModal({
                           <div className="flex-shrink-0">
                             <div className={`flex h-9 w-9 items-center justify-center rounded-xl border-2 transition-transform group-hover:scale-105 ${
                               isBroadcast 
-                                ? 'bg-brand-50 border-brand-100 text-brand-600 dark:bg-green-950/20 dark:border-brand-900/30' 
+                                ? 'bg-brand-50 border-brand-100 text-brand-600 dark:bg-[#0052FF]/10 dark:border-[#0052FF]/20' 
                                 : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-neutral-800 dark:border-neutral-700'
                             }`}>
                               {isBroadcast ? <span className="text-base">📢</span> : <Mail className="h-4 w-4" />}

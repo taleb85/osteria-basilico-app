@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { setDatabaseTenant } from '../lib/database';
 import type { Tenant, TenantSettings } from '../types';
@@ -7,8 +7,10 @@ import type { Tenant, TenantSettings } from '../types';
 // Helpers
 // ---------------------------------------------------------------------------
 
-const DEFAULT_SLUG = import.meta.env.VITE_TENANT_SLUG ?? 'osteria-basilico';
-const DEFAULT_ACCENT = '#2D5A27';
+/** Slug di fallback — usato solo se VITE_TENANT_SLUG è impostato o se c'è sottodominio/path.
+ *  In modalità Option B (single-URL) rimane null finché LoginPage chiama loadTenantBySlug. */
+const DEFAULT_SLUG: string | null = null;
+const DEFAULT_ACCENT = '#0052FF';
 
 /** Opzioni font per l'intestazione dell'app. */
 export const HEADER_FONTS = [
@@ -20,17 +22,22 @@ export const HEADER_FONTS = [
 ] as const;
 export type HeaderFontId = typeof HEADER_FONTS[number]['id'];
 
-/** Legge lo slug dal sottodominio oppure dal path oppure dall'env var. */
-function readSlugFromEnv(): string {
-  if (import.meta.env.VITE_TENANT_SLUG) return import.meta.env.VITE_TENANT_SLUG;
+/**
+ * Legge lo slug dal env var, sottodominio, o path URL.
+ * Ritorna null se nessun slug è configurato (modalità Option B single-URL):
+ * in questo caso il tenant viene caricato dinamicamente tramite loadTenantBySlug().
+ */
+function readSlugFromEnv(): string | null {
+  if (import.meta.env.VITE_TENANT_SLUG) return import.meta.env.VITE_TENANT_SLUG as string;
   const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
   const parts = hostname.split('.');
-  if (parts.length >= 3) return parts[0];
+  // Sottodominio: slug.dominio.tld — solo se non è localhost o IP
+  if (parts.length >= 3 && !['localhost', '127'].includes(parts[0])) return parts[0];
   const pathMatch = typeof window !== 'undefined'
     ? window.location.pathname.match(/^\/t\/([^/]+)/)
     : null;
   if (pathMatch) return pathMatch[1];
-  return DEFAULT_SLUG;
+  return DEFAULT_SLUG; // null — aspetta loadTenantBySlug
 }
 
 /** Converte hex in HSL [hue 0-360, sat 0-100, l 0-100]. */
@@ -49,8 +56,12 @@ function hexToHsl(hex: string): [number, number, number] {
   return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
 }
 
+/** Override FLOW: forza il brand blu indipendentemente dal colore del tenant. */
+const FLOW_BRAND_COLOR = '#0052FF';
+
 /** Applica le CSS variables del brand al documento — genera tutte le varianti shade + nav + shadow. */
-export function applyTenantBrand(accent: string): void {
+export function applyTenantBrand(_accent: string): void {
+  const accent = FLOW_BRAND_COLOR; // FLOW rebranding — usa sempre il blu elettrico
   const root = document.documentElement;
   const { r, g, b } = hexToRgb(accent);
   const [hue, sat] = hexToHsl(accent);
@@ -64,7 +75,7 @@ export function applyTenantBrand(accent: string): void {
   root.style.setProperty('--brand-rgb',       `${r} ${g} ${b}`);
   root.style.setProperty('--accent',          accent);
   root.style.setProperty('--color-accent',    accent);
-  root.style.setProperty('--basilico-primary',accent);
+  root.style.setProperty('--flow-primary',accent);
   root.style.setProperty('--accent-hover',    hsl(30));
   root.style.setProperty('--accent-dark',     hsl(20));
   root.style.setProperty('--accent-light',    hsl(87, 0.28));
@@ -144,7 +155,7 @@ function darkenColor(hex: string, amount: number): string {
 
 /**
  * Genera un SVG stile "OB" con gradiente radiale, effetto vetro e testo gradiente.
- * Replica fedelmente il logo di Osteria Basilico sostituendo colore e iniziali.
+ * Genera un logo SVG con iniziali e colore brand del tenant.
  * Nota: filtro drop-shadow rimosso per massima compatibilità browser quando usato come <img src>.
  * Restituisce un data URL usabile come <img src>.
  */
@@ -274,9 +285,10 @@ function generatePngFavicon(logoSrc: string, size: number): Promise<string> {
  * Converte il logo SVG in PNG reale via Canvas per garantire compatibilità
  * con Chrome/Android che non accetta SVG data URL come icona PWA.
  */
-export function updatePWAManifest(tenant: Tenant): void {
+export function updatePWAManifest(_tenant: Tenant): void {
   const origin = window.location.origin;
-  const logoSrc = tenant.logo_url ?? generateTenantLogoSvg(tenant.name, tenant.accent_color);
+  // Usa sempre l'icona FLOW — ignorando logo/colori del tenant
+  const logoSrc = `${origin}/icon.svg`;
 
   // Genera PNG reali via Canvas per i due formati richiesti dal manifest
   Promise.all([
@@ -293,20 +305,20 @@ export function updatePWAManifest(tenant: Tenant): void {
 }
 
 function _applyPWAManifest(
-  tenant: Tenant,
+  _tenant: Tenant,
   origin: string,
   icon192: string,
   icon512: string,
 ): void {
   const manifest = {
-    name: tenant.name,
-    short_name: tenant.name.split(' ')[0],
-    description: `App di gestione per ${tenant.name}`,
-    start_url: `${origin}/`,
+    name: 'FLOW',
+    short_name: 'FLOW',
+    description: 'FLOW — Sistema di gestione turni e presenze. Work in Motion.',
+    start_url: `${origin}/profilo`,
     scope: `${origin}/`,
     display: 'standalone',
     background_color: '#ffffff',
-    theme_color: tenant.accent_color,
+    theme_color: '#0052FF',
     orientation: 'any',
     icons: [
       { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
@@ -334,7 +346,7 @@ function _applyPWAManifest(
     link.href = blobUrl;
 
     const themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    if (themeMeta) themeMeta.content = tenant.accent_color;
+    if (themeMeta) themeMeta.content = FLOW_BRAND_COLOR; // sempre FLOW blue — ignora colore DB tenant
   } catch {
     // Silent fail in SSR/test
   }
@@ -347,7 +359,7 @@ function _applyPWAManifest(
 interface TenantContextValue {
   tenant: Tenant | null;
   tenantId: string | null;
-  tenantSlug: string;
+  tenantSlug: string | null;
   tenantSettings: TenantSettings;
   /** Logo URL del tenant: logo_url se presente, altrimenti SVG generato dalle iniziali. */
   tenantLogoUrl: string;
@@ -355,6 +367,11 @@ interface TenantContextValue {
   error: string | null;
   updateTenantConfig: (patch: Partial<Pick<Tenant, 'name' | 'accent_color' | 'logo_url'>>) => Promise<void>;
   updateTenantSettings: (patch: Partial<TenantSettings>) => Promise<void>;
+  /**
+   * Option B — carica il tenant on-demand dallo slug.
+   * Chiamato da LoginPage dopo aver decodificato il tenantSlug dal token dell'invite link.
+   */
+  loadTenantBySlug: (slug: string) => Promise<void>;
 }
 
 const TenantContext = createContext<TenantContextValue>({
@@ -367,6 +384,7 @@ const TenantContext = createContext<TenantContextValue>({
   error: null,
   updateTenantConfig: async () => {},
   updateTenantSettings: async () => {},
+  loadTenantBySlug: async () => {},
 });
 
 export function useTenant(): TenantContextValue {
@@ -378,39 +396,49 @@ export function useTenant(): TenantContextValue {
 // ---------------------------------------------------------------------------
 
 export function TenantProvider({ children }: { children: ReactNode }) {
-  const slug = readSlugFromEnv();
+  // Slug come stato: parte da readSlugFromEnv() (null in modalità single-URL),
+  // poi aggiornato da loadTenantBySlug() quando LoginPage decodifica il token.
+  const [slug, setSlug] = useState<string | null>(readSlugFromEnv);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Applica subito FLOW blue al primo render — prima che i dati Supabase arrivino,
+  // così nessun componente mostrerà mai il verde del DB anche per un singolo frame.
+  useState(() => { applyTenantBrand(FLOW_BRAND_COLOR); });
 
   const applyTenant = (t: Tenant) => {
     setTenant(t);
     setDatabaseTenant(t.id);
     applyTenantBrand(t.accent_color);
-    // Font intestazione header (--brand-header-font)
-    const fontValue = HEADER_FONTS.find(f => f.id === t.settings?.header_font)?.value
-      ?? HEADER_FONTS[0].value;
-    document.documentElement.style.setProperty('--brand-header-font', fontValue);
-    updatePWAManifest(t);
-    // Titolo scheda browser + meta Apple
-    document.title = t.name;
+    // Font intestazione header — sempre Inter (FLOW brand, non override dal DB tenant)
+    document.documentElement.style.setProperty('--brand-header-font', "'Inter', system-ui, sans-serif");
+    updatePWAManifest(t);  // usa FLOW_BRAND_COLOR internamente — vedi sotto
+    // Titolo e meta — sempre FLOW (indipendente dal nome DB del tenant)
+    document.title = 'FLOW — Work in Motion';
     const appleTitleMeta = document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-title"]');
-    if (appleTitleMeta) appleTitleMeta.content = t.name;
+    if (appleTitleMeta) appleTitleMeta.content = 'FLOW';
     const descMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (descMeta) descMeta.content = `Sistema di gestione per ${t.name}`;
-    // Barra superiore PWA (theme-color) → colore brand del tenant
+    if (descMeta) descMeta.content = 'FLOW — Sistema di gestione turni e presenze. Work in Motion.';
+    // Barra superiore PWA (theme-color) → sempre FLOW blue
     document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach(m => {
-      m.content = t.accent_color;
+      m.content = FLOW_BRAND_COLOR;
     });
-    // Favicon dinamica: sostituisce l'icona statica OB con quella del tenant corrente
-    const faviconSvg = t.logo_url ?? generateTenantLogoSvg(t.name, t.accent_color);
-    updateFavicon(faviconSvg);
+    // Favicon → sempre icon.svg FLOW (ignora logo del tenant per il brand globale)
+    updateFavicon('/icon.svg');
   };
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
+      // Nessuno slug configurato — modalità single-URL in attesa di loadTenantBySlug().
+      // Non carichiamo nulla; isLoading = false così LoginPage è subito visibile.
+      if (!slug) {
+        if (!cancelled) setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
 
@@ -418,7 +446,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         const mock: Tenant = {
           id: 'local',
           slug,
-          name: 'Osteria Basilico',
+          name: 'FLOW',
           accent_color: DEFAULT_ACCENT,
           plan: 'basic',
           is_active: true,
@@ -457,6 +485,16 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
     load();
     return () => { cancelled = true; };
+  }, [slug]);
+
+  /**
+   * Option B — carica il tenant on-demand.
+   * Chiamato da LoginPage dopo aver decodificato il tenantSlug dal token dell'invite link.
+   * Aggiornare lo stato slug fa ri-eseguire l'useEffect sopra che carica il tenant.
+   */
+  const loadTenantBySlug = useCallback(async (newSlug: string) => {
+    if (!newSlug || newSlug === slug) return; // già caricato o uguale
+    setSlug(newSlug);
   }, [slug]);
 
   const updateTenantConfig = async (
@@ -505,6 +543,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         error,
         updateTenantConfig,
         updateTenantSettings,
+        loadTenantBySlug,
       }}
     >
       {children}

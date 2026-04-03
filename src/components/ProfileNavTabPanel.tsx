@@ -1,12 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { LogOut, Camera, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LogOut, Camera, ShieldCheck, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useProfileLeaveGuardRef } from '../context/ProfileLeaveGuardContext';
 import { getTranslations } from '../utils/translations';
 import { isManagementRole } from '../utils/permissions';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
+import { PinPadModal } from './ui/PinPadModal';
+import { hasPinUnlockCredential, authenticatePinUnlockCredential } from '../utils/pinUnlockWebAuthn';
 import { ProfileFormSelf, type ProfileFormSelfData } from './UserProfile';
 import { SoundSettings } from './SoundSettings';
 import ProfilePhotoSourceSheet from './profile/ProfilePhotoSourceSheet';
@@ -33,9 +35,16 @@ function serializeProfileForm(fd: ProfileFormSelfData): string {
 /**
  * Scheda bottom bar “Profilo”: hero + form impostazioni sempre visibile + riga Esci.
  */
-export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void }) {
+export default function ProfileNavTabPanel({
+  onLogout,
+  onGoToSettings,
+}: {
+  onLogout: () => void;
+  onGoToSettings?: () => void;
+}) {
   const { currentUser, effectiveLanguage, updateUser, showError } = useApp();
   const profileLeaveGuardRef = useProfileLeaveGuardRef();
+  const navigate = useNavigate();
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
   const [formData, setFormData] = useState<ProfileFormSelfData>({
@@ -51,6 +60,35 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
   });
   const [isSaving, setIsSaving] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
+
+  // PIN gate per Area Gestionale
+  const [showMgmtPinPad, setShowMgmtPinPad] = useState(false);
+  const [mgmtPin, setMgmtPin] = useState('');
+  const [mgmtPinError, setMgmtPinError] = useState('');
+
+  const openMgmtArea = useCallback(() => {
+    if (onGoToSettings) onGoToSettings();
+    else navigate('/admin');
+  }, [onGoToSettings, navigate]);
+
+  const handleMgmtPinConfirm = useCallback(() => {
+    if (!currentUser) return;
+    if (mgmtPin === currentUser.pin) {
+      setShowMgmtPinPad(false);
+      setMgmtPin('');
+      setMgmtPinError('');
+      openMgmtArea();
+    } else {
+      setMgmtPinError('PIN non valido');
+      setMgmtPin('');
+      setTimeout(() => setMgmtPinError(''), 2000);
+    }
+  }, [currentUser, mgmtPin, openMgmtArea]);
+
+  // Auto-submit a 4 cifre
+  useEffect(() => {
+    if (mgmtPin.length === 4) handleMgmtPinConfirm();
+  }, [mgmtPin, handleMgmtPinConfirm]);
   const [photoSourceSheetOpen, setPhotoSourceSheetOpen] = useState(false);
   const [cropObjectUrl, setCropObjectUrl] = useState<string | null>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -240,7 +278,6 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
   const displayName =
     (currentUser.first_name?.trim() || currentUser.email?.split('@')[0] || 'Utente').trim() || 'Utente';
   const profileInitial = (displayName.charAt(0) || '?').toUpperCase();
-  const navigate = useNavigate();
   const isMgmt = isManagementRole(currentUser.role);
   const isMobile = window.innerWidth < 768;
 
@@ -267,7 +304,7 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto pb-content pt-2 font-sans">
+    <div className="w-full max-w-lg mx-auto pb-content pt-2 sm:pt-4 font-sans">
       {cropObjectUrl ? (
         <ProfilePhotoCropperModal
           imageSrc={cropObjectUrl}
@@ -376,13 +413,13 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
 
         <p className="px-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-neutral-400">{sectionLabel}</p>
 
-        {/* Accesso Area Gestionale (solo Manager su mobile) */}
-        {isMgmt && isMobile && (
+        {/* Accesso Area Gestionale — richiede PIN */}
+        {isMgmt && (
           <div className="px-4">
             <button
               type="button"
-              onClick={() => navigate('/admin')}
-              className="w-full flex items-center justify-between gap-3 rounded-2xl bg-white dark:bg-neutral-800 px-5 py-4 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 shadow-sm active:scale-[0.98] transition-all"
+              onClick={() => { setMgmtPin(''); setMgmtPinError(''); setShowMgmtPinPad(true); }}
+              className="w-full flex items-center justify-between gap-3 rounded-2xl bg-white dark:bg-neutral-800 px-5 py-4 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 shadow-sm active:scale-[0.98] transition-all hover:border-accent/40 hover:bg-accent/[0.03]"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
@@ -393,10 +430,35 @@ export default function ProfileNavTabPanel({ onLogout }: { onLogout: () => void 
                   <p className="text-[10px] !text-slate-500 dark:!text-neutral-400">{tv.area_gestionale_subtitle ?? 'Gestisci turni, profili e impostazioni'}</p>
                 </div>
               </div>
-              <ShieldCheck className="w-5 h-5 !text-slate-300 dark:!text-neutral-600" />
+              <ChevronRight className="w-5 h-5 text-slate-300 dark:text-neutral-600 shrink-0" />
             </button>
           </div>
         )}
+
+        {/* PIN pad modal Area Gestionale */}
+        <AnimatePresence>
+          {showMgmtPinPad && currentUser && (
+            <PinPadModal
+              title="Area Gestionale"
+              subtitle="Inserisci il tuo PIN per accedere"
+              pinLabel="PIN"
+              pin={mgmtPin}
+              onPinChange={(v) => { setMgmtPinError(''); setMgmtPin(v); }}
+              error={mgmtPinError}
+              onConfirm={handleMgmtPinConfirm}
+              onCancel={() => { setShowMgmtPinPad(false); setMgmtPin(''); setMgmtPinError(''); }}
+              confirmLabel="Accedi"
+              userId={currentUser.id}
+              userDisplayName={`${currentUser.first_name} ${currentUser.last_name ?? ''}`.trim()}
+              userEmail={currentUser.email ?? ''}
+              onBiometricSuccess={() => {
+                setShowMgmtPinPad(false);
+                setMgmtPin('');
+                openMgmtArea();
+              }}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Form impostazioni profilo */}
         <div className="surface-glass overflow-hidden rounded-2xl mx-4">

@@ -99,7 +99,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
                   {pair.plannedStart} → {pair.plannedEnd}
                 </p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-teal-50/90 px-3 py-2 dark:border-white/10 dark:bg-teal-950/35">
+              <div className="rounded-xl border border-slate-200 bg-[#0052FF]/8 px-3 py-2 dark:border-white/10 dark:bg-[#0052FF]/12">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300 mb-1">{t.ts_label_punched}</p>
                 <p className="font-bold tabular-nums text-slate-800 dark:text-gray-100">
                   {pair.actualStart ?? '—'} → {pair.actualEnd ?? '—'}

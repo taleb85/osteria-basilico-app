@@ -119,7 +119,7 @@ export function NotificationDropdown({
                   {/* Icona */}
                   <div className="flex-shrink-0 pt-0.5">
                     {isBroadcast ? (
-                      <div className="flex h-5 w-5 items-center justify-center rounded bg-brand-100 dark:bg-green-950/40 text-sm">
+                      <div className="flex h-5 w-5 items-center justify-center rounded bg-brand-100 dark:bg-[#0052FF]/12 text-sm">
                         📢
                       </div>
                     ) : (

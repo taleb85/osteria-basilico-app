@@ -228,7 +228,7 @@ export function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams): void
                 doc.setFillColor(...BG_CONFIRMED);
                 doc.rect(x + 0.5, startY + oy, DAY_W - 1, shiftH - 0.5, 'F');
                 
-                // Bordo sinistro verde basilico
+                // Bordo sinistro FLOW blue
                 doc.setFillColor(...BD_CONFIRMED);
                 doc.rect(x + 0.5, startY + oy, 1.2, shiftH - 0.5, 'F');
 
@@ -312,13 +312,13 @@ export function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams): void
     doc.setDrawColor(...C_GRID); doc.setLineWidth(0.3);
     doc.line(MG, PH - H_FOOT - 1, PW - MG, PH - H_FOOT - 1);
     setTxt(6.5, 'normal', C_LIGHT);
-    doc.text("Osteria Basilico - Attendance System", MG, PH - 4);
+    doc.text("FLOW - Attendance System", MG, PH - 4);
     const pgStr = `Generated on ${format(new Date(), 'd MMMM yyyy HH:mm')} - Page ${pg} of ${totalPages}`;
     rightText(pgStr, PW - MG, PH - 4);
   }
 
   const rangeStartStr = format(sortedDays[0], 'yyyy-MM-dd');
   const rangeEndStr = format(sortedDays[sortedDays.length - 1], 'yyyy-MM-dd');
-  doc.save(`Osteria-Basilico_Presenze_${rangeStartStr}_${rangeEndStr}.pdf`);
+  doc.save(`FLOW_Presenze_${rangeStartStr}_${rangeEndStr}.pdf`);
 }
 

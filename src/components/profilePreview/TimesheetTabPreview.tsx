@@ -80,7 +80,7 @@ export default function TimesheetTabPreview({
       >
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { v: '4', l: t.home_stat_in_shift, b: 'border-teal-100 dark:border-teal-800/40' },
+            { v: '4', l: t.home_stat_in_shift, b: 'border-[#0052FF]/15 dark:border-[#0052FF]/18' },
             { v: '1', l: t.home_stat_delays, b: 'border-red-100 dark:border-red-900/40' },
             { v: '0', l: t.home_stat_missing_out, b: 'border-orange-100 dark:border-orange-900/40' },
             { v: '12', l: t.home_stat_approved, b: 'border-accent/20 dark:border-accent/30' },

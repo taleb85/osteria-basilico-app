@@ -64,7 +64,7 @@ export default function SwUpdateOverlay() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-gradient-to-br from-[#f8fafc] via-white to-[rgba(45,90,39,0.12)] px-6 text-center font-sans backdrop-blur-md dark:from-[#0a0a0a] dark:via-[#171717] dark:to-[rgba(45,90,39,0.14)]"
+      className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-gradient-to-br from-[#f8fafc] via-white to-[rgba(0,82,255,0.08)] px-6 text-center font-sans backdrop-blur-md dark:from-[#0a0a0a] dark:via-[#171717] dark:to-[rgba(0,82,255,0.08)]"
       role="status"
       aria-live="polite"
       aria-busy="true"
@@ -78,11 +78,11 @@ export default function SwUpdateOverlay() {
           style={{ transform: 'rotate(-90deg)' }}
         >
           <rect x="4" y="4" width="112" height="112" rx="26" ry="26"
-            fill="none" stroke="rgba(45,90,39,0.12)" strokeWidth="3"
+            fill="none" stroke="rgba(0,82,255,0.08)" strokeWidth="3"
           />
           <motion.rect
             x="4" y="4" width="112" height="112" rx="26" ry="26"
-            fill="none" stroke="#2D5A27" strokeWidth="3"
+            fill="none" stroke="#0052FF" strokeWidth="3"
             strokeLinecap="round"
             pathLength={1}
             initial={{ pathLength: 0 }}
@@ -124,7 +124,7 @@ export default function SwUpdateOverlay() {
               >
                 <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-colors duration-300 ${
                   done
-                    ? 'bg-emerald-500'
+                    ? 'bg-[#00D1FF]'
                     : 'border-2 border-slate-300 dark:border-neutral-600'
                 }`}>
                   {done && !isLast && (

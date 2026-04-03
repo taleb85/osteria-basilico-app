@@ -153,26 +153,26 @@ let geofenceMissingEnvWarned = false;
 
 const staffDefaults = { language: 'it' as const, theme: 'light' as const, can_edit_staff_pins: false, can_manage_drafts: false, can_view_total_hours: false, can_create_shifts: false, can_approve_shifts: false };
 const initialStaff: Omit<User, 'id'>[] = [
-  { first_name: 'Gustavo', last_name: 'Ghetta', email: 'gustavo.ghetta@basilico.it', role: 'manager', pin: '1111', status: 'active', sort_order: 1, ...staffDefaults },
-  { first_name: 'Alexis', last_name: 'Man', email: 'alexis.man@basilico.it', role: 'assistant_manager', pin: '2222', status: 'active', sort_order: 2, ...staffDefaults },
-  { first_name: 'Taleb', last_name: 'Barikhan', email: 'taleb.barikhan@basilico.it', role: 'admin', pin: '8888', status: 'active', sort_order: 3, ...staffDefaults, can_create_shifts: true, can_approve_shifts: true, can_manage_drafts: true, can_view_total_hours: true, can_edit_staff_pins: true },
-  { first_name: 'Mauricio', last_name: 'Man', email: 'mauricio.man@basilico.it', role: 'waiter', pin: '3333', status: 'active', sort_order: 4, ...staffDefaults },
-  { first_name: 'Freddy', last_name: 'Junior', email: 'freddy.junior@basilico.it', role: 'waiter', pin: '4444', status: 'active', sort_order: 5, ...staffDefaults },
-  { first_name: 'Dany', last_name: 'Man', email: 'dany.man@basilico.it', role: 'bartender', pin: '5555', status: 'active', sort_order: 6, ...staffDefaults },
-  { first_name: 'Marco', last_name: 'Rossi', email: 'marco.rossi@basilico.it', role: 'waiter', pin: '6666', status: 'active', sort_order: 7, ...staffDefaults },
-  { first_name: 'Giulia', last_name: 'Bianchi', email: 'giulia.bianchi@basilico.it', role: 'waiter', pin: '7777', status: 'active', sort_order: 8, ...staffDefaults },
-  { first_name: 'Luca', last_name: 'Ferrari', email: 'luca.ferrari@basilico.it', role: 'bartender', pin: '8889', status: 'active', sort_order: 9, ...staffDefaults },
-  { first_name: 'Sofia', last_name: 'Romano', email: 'sofia.romano@basilico.it', role: 'waiter', pin: '9999', status: 'active', sort_order: 10, ...staffDefaults },
-  { first_name: 'Alessandro', last_name: 'Colombo', email: 'alessandro.colombo@basilico.it', role: 'waiter', pin: '0001', status: 'active', sort_order: 11, ...staffDefaults },
-  { first_name: 'Chiara', last_name: 'Ricci', email: 'chiara.ricci@basilico.it', role: 'waiter', pin: '0002', status: 'active', sort_order: 12, ...staffDefaults },
-  { first_name: 'Matteo', last_name: 'Marino', email: 'matteo.marino@basilico.it', role: 'waiter', pin: '0003', status: 'active', sort_order: 13, ...staffDefaults },
-  { first_name: 'Elena', last_name: 'Greco', email: 'elena.greco@basilico.it', role: 'waiter', pin: '0004', status: 'active', sort_order: 14, ...staffDefaults },
-  { first_name: 'Francesco', last_name: 'Conti', email: 'francesco.conti@basilico.it', role: 'bartender', pin: '0005', status: 'active', sort_order: 15, ...staffDefaults },
-  { first_name: 'Valentina', last_name: 'Galli', email: 'valentina.galli@basilico.it', role: 'waiter', pin: '0006', status: 'active', sort_order: 16, ...staffDefaults },
-  { first_name: 'Andrea', last_name: 'Barbieri', email: 'andrea.barbieri@basilico.it', role: 'waiter', pin: '0007', status: 'active', sort_order: 17, ...staffDefaults },
-  { first_name: 'Martina', last_name: 'Fontana', email: 'martina.fontana@basilico.it', role: 'waiter', pin: '0008', status: 'active', sort_order: 18, ...staffDefaults },
-  { first_name: 'Davide', last_name: 'Moretti', email: 'davide.moretti@basilico.it', role: 'waiter', pin: '0009', status: 'active', sort_order: 19, ...staffDefaults },
-  { first_name: 'Federica', last_name: 'Caruso', email: 'federica.caruso@basilico.it', role: 'waiter', pin: '0010', status: 'active', sort_order: 20, ...staffDefaults },
+  { first_name: 'Gustavo', last_name: 'Ghetta', email: 'gustavo.ghetta@flow-app.com', role: 'manager', pin: '1111', status: 'active', sort_order: 1, ...staffDefaults },
+  { first_name: 'Alexis', last_name: 'Man', email: 'alexis.man@flow-app.com', role: 'assistant_manager', pin: '2222', status: 'active', sort_order: 2, ...staffDefaults },
+  { first_name: 'Taleb', last_name: 'Barikhan', email: 'taleb.barikhan@flow-app.com', role: 'admin', pin: '8888', status: 'active', sort_order: 3, ...staffDefaults, can_create_shifts: true, can_approve_shifts: true, can_manage_drafts: true, can_view_total_hours: true, can_edit_staff_pins: true },
+  { first_name: 'Mauricio', last_name: 'Man', email: 'mauricio.man@flow-app.com', role: 'waiter', pin: '3333', status: 'active', sort_order: 4, ...staffDefaults },
+  { first_name: 'Freddy', last_name: 'Junior', email: 'freddy.junior@flow-app.com', role: 'waiter', pin: '4444', status: 'active', sort_order: 5, ...staffDefaults },
+  { first_name: 'Dany', last_name: 'Man', email: 'dany.man@flow-app.com', role: 'bartender', pin: '5555', status: 'active', sort_order: 6, ...staffDefaults },
+  { first_name: 'Marco', last_name: 'Rossi', email: 'marco.rossi@flow-app.com', role: 'waiter', pin: '6666', status: 'active', sort_order: 7, ...staffDefaults },
+  { first_name: 'Giulia', last_name: 'Bianchi', email: 'giulia.bianchi@flow-app.com', role: 'waiter', pin: '7777', status: 'active', sort_order: 8, ...staffDefaults },
+  { first_name: 'Luca', last_name: 'Ferrari', email: 'luca.ferrari@flow-app.com', role: 'bartender', pin: '8889', status: 'active', sort_order: 9, ...staffDefaults },
+  { first_name: 'Sofia', last_name: 'Romano', email: 'sofia.romano@flow-app.com', role: 'waiter', pin: '9999', status: 'active', sort_order: 10, ...staffDefaults },
+  { first_name: 'Alessandro', last_name: 'Colombo', email: 'alessandro.colombo@flow-app.com', role: 'waiter', pin: '0001', status: 'active', sort_order: 11, ...staffDefaults },
+  { first_name: 'Chiara', last_name: 'Ricci', email: 'chiara.ricci@flow-app.com', role: 'waiter', pin: '0002', status: 'active', sort_order: 12, ...staffDefaults },
+  { first_name: 'Matteo', last_name: 'Marino', email: 'matteo.marino@flow-app.com', role: 'waiter', pin: '0003', status: 'active', sort_order: 13, ...staffDefaults },
+  { first_name: 'Elena', last_name: 'Greco', email: 'elena.greco@flow-app.com', role: 'waiter', pin: '0004', status: 'active', sort_order: 14, ...staffDefaults },
+  { first_name: 'Francesco', last_name: 'Conti', email: 'francesco.conti@flow-app.com', role: 'bartender', pin: '0005', status: 'active', sort_order: 15, ...staffDefaults },
+  { first_name: 'Valentina', last_name: 'Galli', email: 'valentina.galli@flow-app.com', role: 'waiter', pin: '0006', status: 'active', sort_order: 16, ...staffDefaults },
+  { first_name: 'Andrea', last_name: 'Barbieri', email: 'andrea.barbieri@flow-app.com', role: 'waiter', pin: '0007', status: 'active', sort_order: 17, ...staffDefaults },
+  { first_name: 'Martina', last_name: 'Fontana', email: 'martina.fontana@flow-app.com', role: 'waiter', pin: '0008', status: 'active', sort_order: 18, ...staffDefaults },
+  { first_name: 'Davide', last_name: 'Moretti', email: 'davide.moretti@flow-app.com', role: 'waiter', pin: '0009', status: 'active', sort_order: 19, ...staffDefaults },
+  { first_name: 'Federica', last_name: 'Caruso', email: 'federica.caruso@flow-app.com', role: 'waiter', pin: '0010', status: 'active', sort_order: 20, ...staffDefaults },
 ];
 
 const MAX_SHIFTS_PER_DAY = 2;
@@ -216,7 +216,7 @@ function sessionUserFromLoadedUsersList(prev: User | null, loadedUsers: User[]):
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const { isLoading: tenantIsLoading, tenantSettings } = useTenant();
+  const { isLoading: tenantIsLoading, tenantId, tenantSettings } = useTenant();
   const tenantSettingsRef = useRef(tenantSettings);
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -509,11 +509,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Aspetta che TenantContext abbia caricato il tenant e impostato _tenantId
-    // in database.ts, altrimenti le query partono senza filtro tenant_id
+    // in database.ts, altrimenti le query partono senza filtro tenant_id.
+    // In modalità single-URL (Option B), tenantId è null finché LoginPage chiama
+    // loadTenantBySlug → il tenant carica → tenantIsLoading torna false con tenantId valido.
     if (tenantIsLoading) return;
+    if (!tenantId) return; // nessun tenant ancora — aspetta loadTenantBySlug
     loadInitialData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- si vuole eseguire una sola volta quando il tenant è pronto
-  }, [tenantIsLoading]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- si vuole eseguire quando il tenant è pronto
+  }, [tenantIsLoading, tenantId]);
 
   useEffect(() => {
     if (!currentUser) {

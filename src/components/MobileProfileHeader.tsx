@@ -1,3 +1,4 @@
+import FlowLogo from './FlowLogo';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -191,19 +192,18 @@ export default function MobileProfileHeader({
 
   const shellClass = parentProvidesCardShell
     ? `w-full ${compact ? 'p-2' : ''}`
-    : `relative surface-glass overflow-hidden shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] ${embeddedInAppHeader ? 'mb-0' : 'mb-2'} ${showOnDesktop ? '' : 'md:hidden'} ${compact ? 'p-2' : ''} flex`;
+    : `relative surface-glass overflow-hidden shadow-[0_4px_16px_-4px_rgba(0,82,255,0.10),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] ${embeddedInAppHeader ? 'mb-0' : 'mb-2'} ${showOnDesktop ? '' : 'md:hidden'} ${compact ? 'p-2' : ''} flex`;
 
   const body = (
     <>
       <div className="px-3 sm:px-4 py-2">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h1 className="font-logo-snell text-[clamp(1.05rem,4.2vw,1.4375rem)] sm:text-[23px] text-accent dark:text-white tracking-tight leading-none break-words hyphens-auto font-normal">
-              {tenant?.name ?? 'Osteria Basilico'}
-            </h1>
-            <h2 className="text-[11px] sm:text-[12px] font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight leading-tight mt-0.5 truncate uppercase">
+            {/* Logo FLOW — componente con SVG mark + wordmark + subtitle */}
+            <FlowLogo size={compact ? 26 : 30} subtitle="Work in Motion" />
+            <p className="text-[10px] sm:text-[11px] font-extrabold text-slate-500 dark:text-neutral-400 tracking-widest leading-tight mt-1 truncate uppercase">
               {pageTitle}
-            </h2>
+            </p>
             {isSessionElevated && (
               <span className="inline-flex items-center gap-1 mt-1 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
                 <ShieldCheck className="h-3 w-3" />
@@ -212,85 +212,87 @@ export default function MobileProfileHeader({
             )}
           </div>
 
-          {/* Toolbar: sempre visibile con orologio, avatar e azioni. */}
-          <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-1.5 min-w-0">
-            <div className="mr-1 shrink-0 text-right min-w-0">
+          {/* Toolbar: icone uniformi FLOW */}
+          <div className="flex shrink-0 items-center justify-end gap-1.5 min-w-0">
+            {/* Orologio */}
+            <div className="mr-0.5 shrink-0 text-right min-w-0">
               <p className="text-[12px] sm:text-[13px] font-semibold tabular-nums leading-none text-slate-800 dark:text-neutral-200">{timeStr}</p>
-              <p
-                className="mt-0.5 text-[9px] sm:text-[10px] leading-tight text-slate-600 dark:text-neutral-400 whitespace-nowrap truncate"
-                title={dateLong}
-              >
+              <p className="mt-0.5 text-[9px] sm:text-[10px] leading-tight text-slate-400 dark:text-neutral-500 whitespace-nowrap truncate" title={dateLong}>
                 {dateStr}
               </p>
             </div>
+
+            {/* Tema */}
             <button
               type="button"
               onClick={toggleUiTheme}
               title={themeToggleTitle}
               aria-label={themeToggleTitle}
-              className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl border-0 bg-gradient-to-b from-white/75 to-white/55 dark:from-neutral-800/70 dark:to-neutral-900/60 shadow-[0_1px_0_0_rgba(255,255,255,0.85)_inset,0_-1px_0_0_rgba(0,0,0,0.05)_inset,0_4px_10px_-2px_rgba(45,90,39,0.14),0_2px_5px_-1px_rgba(15,23,42,0.09)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.07)_inset,0_-1px_0_0_rgba(0,0,0,0.4)_inset,0_4px_12px_-2px_rgba(0,0,0,0.45)] supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-[2] transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation text-slate-700 hover:text-slate-900 dark:text-neutral-200 dark:hover:text-white"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-neutral-900 border border-slate-100 dark:border-white/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
             >
-              <ThemeContrastIcon mode={uiTheme} className="h-5 w-5 sm:h-6 sm:w-6" />
+              <ThemeContrastIcon mode={uiTheme} className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
             </button>
-            {/* Campanella unificata: notifiche + mute audio */}
+
+            {/* Campanella */}
             <UnifiedBellButton
               userId={currentUser?.id}
               effectiveLanguage={effectiveLanguage}
-              onMessageClick={(messageId) => {
-                console.log('Navigating to message:', messageId);
-              }}
+              onMessageClick={(messageId) => { void messageId; }}
             />
+
+            {/* Cloud sync */}
             <button
               type="button"
               onClick={handleHardRefresh}
               disabled={isRefreshing || dataSyncInProgress}
-              title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Hard Refresh & Sincronizzazione'}
-              className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-0 bg-gradient-to-b from-white/75 to-white/55 dark:from-neutral-800/70 dark:to-neutral-900/60 shadow-[0_1px_0_0_rgba(255,255,255,0.85)_inset,0_-1px_0_0_rgba(0,0,0,0.05)_inset,0_4px_10px_-2px_rgba(45,90,39,0.14),0_2px_5px_-1px_rgba(15,23,42,0.09)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.07)_inset,0_-1px_0_0_rgba(0,0,0,0.4)_inset,0_4px_12px_-2px_rgba(0,0,0,0.45)] supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-[2] transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation ${
-                isRefreshing || dataSyncInProgress
-                  ? 'text-amber-500'
-                  : isSynced ? 'text-brand-600' : 'text-slate-400'
+              title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Sincronizza dati'}
+              className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 flex-col items-center justify-center gap-0.5 rounded-2xl bg-white dark:bg-neutral-900 border border-slate-100 dark:border-white/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation ${
+                isRefreshing || dataSyncInProgress ? 'text-amber-500' : isSynced ? 'text-accent' : 'text-slate-300 dark:text-neutral-600'
               }`}
             >
               {isRefreshing || dataSyncInProgress ? (
-                <RotateCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" strokeWidth={2.5} />
+                <RotateCw className="w-[17px] h-[17px] sm:w-[19px] sm:h-[19px] animate-spin" strokeWidth={2.5} />
               ) : isSynced ? (
-                <Cloud className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
+                <Cloud className="w-[17px] h-[17px] sm:w-[19px] sm:h-[19px]" strokeWidth={2.5} />
               ) : (
-                <CloudOff className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
+                <CloudOff className="w-[17px] h-[17px] sm:w-[19px] sm:h-[19px]" strokeWidth={2.5} />
               )}
-              <span className="text-[7px] sm:text-[8px] font-bold tracking-tight uppercase">
-                {isRefreshing || dataSyncInProgress ? 'SYNC' : isSynced ? 'OK' : 'OFF'}
+              <span className="text-[6.5px] sm:text-[7.5px] font-bold tracking-tight uppercase leading-none">
+                {isRefreshing || dataSyncInProgress ? 'sync' : isSynced ? 'ok' : 'off'}
               </span>
             </button>
+
+            {/* PIN lock (solo manager+) */}
             {featureFlags['unlock_with_pin'] !== false && currentUser && isManagementRole(currentUser.role) && (
               <button
                 type="button"
                 onClick={() => setShowPinMenu(true)}
                 title={globalPinSessionId ? 'Sessione PIN attiva' : 'Sblocca sessione PIN'}
                 aria-label={globalPinSessionId ? 'Gestisci sessione PIN' : 'Sblocca sessione PIN'}
-                className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl border shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation ${
+                className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl border shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation ${
                   globalPinSessionId
                     ? 'bg-accent border-accent/40 text-white hover:bg-accent-hover'
-                    : 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-white/10 text-slate-500 hover:bg-slate-50 dark:hover:bg-neutral-800'
+                    : 'bg-white dark:bg-neutral-900 border-slate-100 dark:border-white/10 text-accent hover:bg-blue-50 dark:hover:bg-blue-950/30'
                 }`}
               >
                 {globalPinSessionId
-                  ? <Unlock size={16} strokeWidth={2.5} aria-hidden />
-                  : <Lock size={16} strokeWidth={2.5} aria-hidden />
-                }
+                  ? <Unlock size={15} strokeWidth={2.5} aria-hidden />
+                  : <Lock size={15} strokeWidth={2.5} aria-hidden />}
               </button>
             )}
-            {onLogout && !hideHeaderLogout ? (
+
+            {/* Logout */}
+            {onLogout && !hideHeaderLogout && (
               <button
                 type="button"
                 onClick={onLogout}
                 title={t.header_logout}
                 aria-label={t.header_logout}
-                className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-white/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-neutral-900 border border-slate-100 dark:border-white/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40"
               >
-                <LogOut size={16} strokeWidth={2} aria-hidden />
+                <LogOut size={15} strokeWidth={2.5} aria-hidden />
               </button>
-            ) : null}
+            )}
           </div>
         </div>
       </div>

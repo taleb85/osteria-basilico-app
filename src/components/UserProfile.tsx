@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone, Calendar } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
-import { buildProfiloAccessLink } from '../config/appPaths';
+import { buildShortInviteLink } from '../config/appPaths';
 import type { User as UserType, Language, Department } from '../types';
 import { isPurelyManagementRole, isAdminOnly } from '../utils/permissions';
 import {
@@ -510,7 +510,7 @@ export function ProfileFormAdmin({
   /** Creazione dipendente da delegato: solo ruoli operativi sala/cucina/bar. */
   operationalRolesOnly?: boolean;
 }) {
-  const { effectiveLanguage, showSuccess, showError, departmentsRevision } = useApp();
+  const { effectiveLanguage, showSuccess, showError, departmentsRevision, users } = useApp();
   void departmentsRevision;
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
@@ -519,13 +519,16 @@ export function ProfileFormAdmin({
     variant === 'edit' && (user.status === 'suspended' || user.status === 'inactive');
   const invitePinComplete = formData.pin.replace(/\D/g, '').length === 4;
 
+  // Link breve leggibile: flow-workinmotion-app.vercel.app/i/alexis
+  // Option B: InviteRedirect risolve lo slug globalmente, trova il tenant e codifica
+  // il tenantSlug nel token → redirige a /profilo?t=<token-con-tenantSlug>.
+  // Non serve includere il tenantSlug nel link breve: è InviteRedirect a gestirlo.
   const accessLink = useMemo(
-    () =>
-      buildProfiloAccessLink(user.id, undefined, {
-        displayName: `${formData.first_name} ${formData.last_name ?? ''}`.trim(),
-        pin: formData.pin,
-      }),
-    [user.id, formData.first_name, formData.last_name, formData.pin]
+    () => buildShortInviteLink(
+      { id: user.id, first_name: formData.first_name, last_name: formData.last_name },
+      users
+    ),
+    [user.id, formData.first_name, formData.last_name, users]
   );
 
   const handleCopyAccessLink = useCallback(async () => {
@@ -603,7 +606,6 @@ export function ProfileFormAdmin({
             onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
             className={inputClass}
             placeholder={t.email_placeholder}
-            required={!readOnly}
             disabled={readOnly}
           />
         </div>

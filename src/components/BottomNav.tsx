@@ -29,7 +29,7 @@ interface BottomNavProps {
 export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClassName }: BottomNavProps) {
   const navRef = useRef<HTMLElement>(null);
   const { effectiveLanguage, currentUser, users, setCurrentUser, setIsSessionElevated } = useApp();
-  /** Contenuto che scorre sotto la nav fissa → vetro trasparente; altrimenti tinta piena rgb(45,90,39). */
+  /** Contenuto che scorre sotto la nav fissa → vetro trasparente; altrimenti tinta piena FLOW blue. */
   const [navOverContent, setNavOverContent] = useState(false);
 
   // Stato per il cambio rapido utente
@@ -283,7 +283,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   className={`keep-white-glass flex flex-1 min-w-0 min-h-[38px] sm:min-h-[44px] rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] items-center justify-center px-0.5 py-1 ${
                     over
                       ? 'text-accent/65 dark:text-neutral-400 hover:bg-accent/10 dark:hover:bg-white/10 hover:text-accent dark:hover:text-white focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
-                      : 'text-white/65 hover:bg-white/15 hover:text-white focus-visible:ring-white/35 focus-visible:ring-offset-transparent'
+                      : 'text-white/45 hover:bg-white/15 hover:text-white focus-visible:ring-white/35 focus-visible:ring-offset-transparent'
                   }`}
                 >
                   {showProfilePic ? (
@@ -305,7 +305,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                       className={`flex h-[22px] w-[22px] sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md text-[11px] sm:text-xs font-bold transition-all duration-200 ${
                         over
                           ? `bg-accent/10 dark:bg-white/10 ${isActive ? 'text-accent dark:text-white' : 'text-accent/65 dark:text-neutral-400'}`
-                          : `bg-white/15 ${isActive ? 'text-white' : 'text-white/65'}`
+                          : `bg-white/15 ${isActive ? 'text-white' : 'text-white/45'}`
                       }`}
                       aria-hidden
                     >
@@ -316,9 +316,9 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                       className={`h-[22px] w-[22px] sm:h-6 sm:w-6 flex-shrink-0 transition-[color] duration-200 ${
                         over
                           ? isActive ? 'text-accent dark:text-white' : 'text-accent/55 dark:text-neutral-400'
-                          : isActive ? 'text-white' : 'text-white/55'
+                          : isActive ? 'text-white' : 'text-white/45'
                       }`}
-                      strokeWidth={isActive ? 1.6 : 1.25}
+                      strokeWidth={isActive ? 1.75 : 1.2}
                       aria-hidden
                     />
                   )}

@@ -28,7 +28,7 @@ export function exportPersonalPDF(
   monthDate: Date,
   allShifts: Shift[],
   approvedHolidayDates: Set<string>,
-  restaurantName = 'Osteria Basilico',
+  restaurantName = 'FLOW',
   breakRules: BreakRule[] = [],
   breakComputeOpts?: BreakMinutesComputeOptions,
   punchRecords: PunchRecordLike[] = []

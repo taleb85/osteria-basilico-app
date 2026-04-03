@@ -110,11 +110,8 @@ export default function CreateStaffModal({
       showError?.(t.create_employee_name_required);
       return;
     }
+    // Email opzionale: il dipendente la inserirà al primo accesso via onboarding
     const email = formData.email.trim();
-    if (!email) {
-      showError?.(t.create_employee_email_required);
-      return;
-    }
     setIsSaving(true);
     try {
       const raw = formData.hourly_rate_eur.replace(',', '.').trim();

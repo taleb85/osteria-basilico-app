@@ -17,9 +17,10 @@ import BodyPullToRefresh from './components/BodyPullToRefresh';
 import HomePage from './components/HomePage';
 import PunchInKiosk from './components/PunchInKiosk';
 import LoginPage from './components/LoginPage';
+import InviteRedirect from './components/InviteRedirect';
 import StaffPersonalDashboard from './components/StaffPersonalDashboard';
 import ProfileNavTabPanel from './components/ProfileNavTabPanel';
-import { Wrench, MonitorOff } from 'lucide-react';
+import { Wrench } from 'lucide-react';
 import { persistStoredUiLanguage } from './utils/uiLanguagePreference';
 import { PATH_TIMBRATURA, PATH_PROFILO } from './config/appPaths';
 import { APP_SESSION_STORAGE_KEY } from './constants/appSession';
@@ -34,6 +35,7 @@ import { useIsMobileViewport } from './hooks/useIsMobileViewport';
 import { isAdminOnly, isManagementRole } from './utils/permissions';
 import AdminGate from './components/AdminGate';
 import AdminLayout from './components/AdminLayout';
+import OnboardingSetupModal from './components/OnboardingSetupModal';
 
 const WeeklyShiftsTable = lazy(() => import('./components/WeeklyShiftsTable'));
 const HolidayRequests = lazy(() => import('./components/HolidayRequests'));
@@ -60,22 +62,6 @@ function MaintenancePage() {
   );
 }
 
-// ─── Kiosk Disabled Page (/timbratura — sempre copy in inglese) ───────────────
-function KioskOffPage() {
-  return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-900 px-6 text-center font-sans antialiased">
-      <div className="w-20 h-20 rounded-2xl bg-slate-800 flex items-center justify-center mb-6 shadow-inner">
-        <MonitorOff className="w-10 h-10 text-slate-400 dark:text-neutral-400" />
-      </div>
-      <h1 className="text-2xl font-bold text-white mb-2">Terminal unavailable</h1>
-      <p className="text-slate-400 dark:text-neutral-400 text-base max-w-xs leading-relaxed">
-        The punch clock terminal is temporarily disabled.
-      </p>
-      <p className="text-slate-500 dark:text-neutral-300 text-sm mt-2">Contact a manager for assistance.</p>
-    </div>
-  );
-}
-
 // ─── Kiosk Route ──────────────────────────────────────────────────────────────
 function KioskRoute() {
   const navigate = useNavigate();
@@ -93,9 +79,14 @@ function KioskRoute() {
     if (currentUser) navigate('/app', { replace: true });
   }, [currentUser, navigate]);
 
-  if (featureFlags['kiosk_active'] === false) {
-    return <KioskOffPage />;
-  }
+  // Kiosk disabilitato → reindirizza alla login/dashboard
+  useEffect(() => {
+    if (featureFlags['kiosk_active'] === false) {
+      navigate(currentUser ? '/app' : PATH_PROFILO, { replace: true });
+    }
+  }, [featureFlags, currentUser, navigate]);
+
+  if (featureFlags['kiosk_active'] === false) return null;
 
   return (
     <div className="min-h-screen w-full flex flex-col safe-area-pad bg-[#f8fafc] dark:bg-[#0a0a0a] font-sans antialiased text-slate-900 dark:text-neutral-100">
@@ -158,6 +149,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const isMobileViewport = useIsMobileViewport();
   const staffMobileCompactHeader = !isManagement && isMobileViewport;
+
+  // ── Onboarding obbligatorio: email o telefono mancanti ──────────────────────
+  const needsOnboarding = Boolean(
+    currentUser &&
+    (!currentUser.email?.trim() || !currentUser.phone?.trim())
+  );
+  const [onboardingDone, setOnboardingDone] = useState(false);
+  const showOnboarding = needsOnboarding && !onboardingDone;
 
   // Nasconde la sticky header quando un overlay/modal è aperto (evita il bug iOS Safari
   // dove il backdrop-filter della header appare sopra i modal con z-index superiore).
@@ -412,18 +411,22 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       case 'settings':
         return <SettingsPage />;
       case 'profile':
-        return <ProfileNavTabPanel onLogout={onLogout} />;
+        return <ProfileNavTabPanel onLogout={onLogout} onGoToSettings={() => void handleTabChange('settings')} />;
       default:
         return null;
     }
   };
 
   /** `overflow-visible` così popover / menu non vengono tagliati dal bordo arrotondato della card. */
-  const appHeaderMainCardClass = 'w-full rounded-2xl border-0 bg-gradient-to-b from-white/75 to-white/55 dark:from-neutral-800/70 dark:to-neutral-900/60 shadow-[0_2px_0_0_rgba(255,255,255,0.85)_inset,0_-1px_0_0_rgba(0,0,0,0.05)_inset,0_10px_28px_-4px_rgba(45,90,39,0.18),0_4px_12px_-2px_rgba(15,23,42,0.10)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.07)_inset,0_-1px_0_0_rgba(0,0,0,0.45)_inset,0_12px_32px_-4px_rgba(0,0,0,0.55),0_4px_12px_-2px_rgba(0,0,0,0.35)] overflow-visible supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-[2]';
-  const appHeaderCardClass = 'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/80 dark:bg-neutral-900/80 shadow-[0_4px_16px_-4px_rgba(45,90,39,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-hidden supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
+  const appHeaderMainCardClass = 'w-full rounded-2xl border-0 bg-gradient-to-b from-white/75 to-white/55 dark:from-neutral-800/70 dark:to-neutral-900/60 shadow-[0_2px_0_0_rgba(255,255,255,0.85)_inset,0_-1px_0_0_rgba(0,0,0,0.05)_inset,0_10px_28px_-4px_rgba(0,82,255,0.12),0_4px_12px_-2px_rgba(15,23,42,0.10)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.07)_inset,0_-1px_0_0_rgba(0,0,0,0.45)_inset,0_12px_32px_-4px_rgba(0,0,0,0.55),0_4px_12px_-2px_rgba(0,0,0,0.35)] overflow-visible supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-[2]';
+  const appHeaderCardClass = 'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/80 dark:bg-neutral-900/80 shadow-[0_4px_16px_-4px_rgba(0,82,255,0.10),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-hidden supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
 
   return (
     <ProfileLeaveGuardRefContext.Provider value={profileLeaveGuardRef}>
+    {/* Onboarding obbligatorio: blocca l'interfaccia finché email/telefono non sono configurati */}
+    {showOnboarding && (
+      <OnboardingSetupModal onComplete={() => setOnboardingDone(true)} />
+    )}
     <div className="min-h-screen min-h-[100dvh] w-full bg-gray-50 dark:bg-[#0a0a0a] text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
       <BodyPullToRefresh
         onRefresh={() => silentRefreshData({ pullRemoteConfig: true })}
@@ -462,6 +465,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
       <main
         className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
+        style={activeTab === 'profile' ? { paddingTop: 'max(6px, env(safe-area-inset-top, 0px))' } : undefined}
       >
         <div className="w-full flex-1 app-main-top-pad app-horizontal-pad">
           {noNavTabs ? (
@@ -602,6 +606,7 @@ function AppContent() {
     <Routes>
       <Route path="/" element={<Navigate to={PATH_TIMBRATURA} replace />} />
       <Route path={PATH_TIMBRATURA} element={<KioskRoute />} />
+      <Route path="/i/:slug" element={<InviteRedirect />} />
       <Route path="/kiosk" element={<Navigate to={PATH_TIMBRATURA} replace />} />
       <Route path={PATH_PROFILO} element={<LoginRoute />} />
       <Route path="/login" element={<Navigate to={PATH_PROFILO} replace />} />

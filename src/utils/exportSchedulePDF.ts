@@ -10,18 +10,18 @@ import { formatTrans, getDateLocale, getTranslations } from './translations';
 // ── Colours ───────────────────────────────────────────────────────────────────
 
 const DEPT_FILL: Record<string, [number, number, number]> = {
-  sala_bar: [220, 230, 218], // tint basilico
-  sala:    [240, 253, 250],  // light teal (allinea a reparto Sala, no blu)
-  bar:     [220, 230, 218],  // tint basilico (accent light)
+  sala_bar: [220, 230, 218], // light blue tint
+  sala:    [237, 242, 255],  // light blue (allinea a reparto Sala)
+  bar:     [220, 230, 218],  // light blue tint (accent light)
   kitchen: [255, 237, 213],  // light orange
 };
 const DEPT_BORDER: Record<string, [number, number, number]> = {
   sala_bar: [45, 90, 39],
-  sala:    [13, 148, 136], // teal-600
+  sala:    [0, 82, 255],   // flow-blue
   bar:     [45, 90, 39],
   kitchen: [249, 115, 22],
 };
-/** Brand Osteria Basilico var(--brand) = rgb(45, 90, 39) */
+/** Brand FLOW var(--brand) = rgb(0, 82, 255) */
 const BASILICO: [number, number, number] = [45, 90, 39];
 const STATUS_COLOR: Record<string, [number, number, number]> = {
   approved: BASILICO,
@@ -72,7 +72,7 @@ export function exportSchedulePDF(
   } = {}
 ): void {
   const {
-    restaurantName = 'Osteria Basilico',
+    restaurantName = 'FLOW',
     filterLabel = '',
     includeOpen = false,
     breakRules = [],

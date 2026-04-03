@@ -57,7 +57,7 @@ export function UnifiedBellButton({
             ? `Errore caricamento notifiche`
             : `Campanella notifiche${unreadCount > 0 ? ` con ${unreadCount} nuovi messaggi` : ''}`
         }
-        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-white/10 shadow-sm transition-all duration-200 touch-manipulation hover:bg-brand-50 dark:hover:bg-emerald-950/30 ${
+        className={`relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-neutral-900 border border-slate-100 dark:border-white/10 shadow-sm transition-all duration-200 touch-manipulation hover:bg-blue-50 dark:hover:bg-blue-950/30 ${
           isDisabled
             ? 'opacity-50 cursor-not-allowed'
             : 'hover:scale-105 active:scale-95'
