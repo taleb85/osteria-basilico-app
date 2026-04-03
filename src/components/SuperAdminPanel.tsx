@@ -1084,6 +1084,8 @@ function SuperAdminPanelInner() {
   const [toast, setToast] = useState<string | null>(null);
   const [expandedSettings, setExpandedSettings] = useState<string | null>(null);
   const [seedDemo, setSeedDemo] = useState(true);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -1154,6 +1156,25 @@ function SuperAdminPanelInner() {
       setError(e instanceof Error ? e.message : 'Errore aggiornamento.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteTenant = async (tenant: Tenant) => {
+    if (!supabase) return;
+    setDeleting(true);
+    try {
+      // Elimina prima gli utenti collegati, poi la sede
+      await supabase.from('users').delete().eq('tenant_id', tenant.id);
+      const { error: err } = await supabase.from('tenants').delete().eq('id', tenant.id);
+      if (err) throw err;
+      setConfirmDeleteId(null);
+      setExpandedSettings(null);
+      showToast(`Sede "${tenant.name}" eliminata.`);
+      await fetchTenants();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Errore eliminazione sede.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -1351,7 +1372,50 @@ function SuperAdminPanelInner() {
                             {t.is_active ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}
                             {t.is_active ? 'Attiva' : 'Inattiva'}
                           </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(confirmDeleteId === t.id ? null : t.id)}
+                            className="flex items-center justify-center rounded-xl py-2 px-2.5 bg-white/6 text-white/30 hover:bg-red-500/20 hover:text-red-400 transition active:scale-95"
+                            title="Elimina sede"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
+
+                        {/* Pannello conferma eliminazione */}
+                        <AnimatePresence>
+                          {confirmDeleteId === t.id && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="mt-3 rounded-xl border border-red-500/30 bg-red-950/30 p-3 space-y-2">
+                                <p className="text-xs font-semibold text-red-400 text-center">
+                                  Eliminare <span className="font-bold text-red-300">"{t.name}"</span>?
+                                </p>
+                                <p className="text-[11px] text-red-400/70 text-center">
+                                  Questa azione è irreversibile. Verranno eliminati tutti i dipendenti e i dati della sede.
+                                </p>
+                                <div className="flex gap-2 pt-1">
+                                  <button
+                                    onClick={() => setConfirmDeleteId(null)}
+                                    className="flex-1 rounded-xl py-2 text-xs font-semibold bg-white/8 text-white/50 hover:bg-white/12 transition"
+                                  >
+                                    Annulla
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteTenant(t)}
+                                    disabled={deleting}
+                                    className="flex-1 rounded-xl py-2 text-xs font-bold bg-red-600 text-white hover:bg-red-500 transition disabled:opacity-50"
+                                  >
+                                    {deleting ? 'Eliminazione…' : 'Sì, elimina sede'}
+                                  </button>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
 
                       {/* Settings panel espandibile */}
