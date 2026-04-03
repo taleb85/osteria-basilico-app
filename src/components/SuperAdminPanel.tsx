@@ -912,50 +912,23 @@ interface TenantFormProps {
 function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeedDemoChange }: TenantFormProps) {
   const [name, setName] = useState(initial?.name ?? '');
   const [slug, setSlug] = useState(initial?.slug ?? '');
-  const [accent, setAccent] = useState(initial?.accent_color ?? 'var(--brand)');
   const [slugManual, setSlugManual] = useState(!!initial?.slug);
-  const [logoUrl, setLogoUrl] = useState(initial?.logo_url ?? '');
-  const [headerFont, setHeaderFont] = useState(initial?.settings?.header_font ?? 'parisienne');
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!slugManual) setSlug(slugify(name));
   }, [name, slugManual]);
-
-  const handleLogoUpload = async (file: File) => {
-    if (!supabase) return;
-    if (!file.type.startsWith('image/')) { setUploadError('Seleziona un file immagine'); return; }
-    if (file.size > 2 * 1024 * 1024) { setUploadError('Immagine troppo grande (max 2 MB)'); return; }
-    setUploading(true);
-    setUploadError(null);
-    try {
-      const ext = file.name.split('.').pop() ?? 'png';
-      const path = `logos/${slug || slugify(name) || 'sede'}-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from('app-config')
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (upErr) throw upErr;
-      const { data: { publicUrl } } = supabase.storage.from('app-config').getPublicUrl(path);
-      setLogoUrl(publicUrl);
-    } catch (e) {
-      setUploadError(e instanceof Error ? e.message : 'Errore upload');
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSave({
       name: name.trim(),
       slug: slug.trim(),
-      accent_color: accent,
+      // Branding sempre FLOW — colore e font non configurabili per sede
+      accent_color: '#0052FF',
       plan: 'basic',
       is_active: initial?.is_active ?? true,
-      logo_url: logoUrl || null,
-      settings: { ...(initial?.settings ?? DEFAULT_SETTINGS), header_font: headerFont },
+      logo_url: null,
+      settings: { ...(initial?.settings ?? DEFAULT_SETTINGS), header_font: 'inter' },
     });
   };
 
@@ -998,101 +971,14 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
         <p className="text-[10px] text-slate-400">Sarà il sottodominio: <span className="font-mono">{slug || '…'}.tuodominio.com</span></p>
       </div>
 
-      {/* Colore */}
-      <div className="space-y-2">
-        <label className="text-xs font-semibold text-slate-600 dark:text-neutral-300">Colore principale</label>
-        <div className="flex flex-wrap gap-2 items-center">
-          {ACCENT_PRESETS.map(({ label, value }) => (
-            <button
-              key={value}
-              type="button"
-              title={label}
-              onClick={() => setAccent(value)}
-              className={`w-7 h-7 rounded-full transition-all ${accent === value ? 'ring-2 ring-offset-2 ring-slate-400 scale-110' : 'hover:scale-105'}`}
-              style={{ backgroundColor: value }}
-            />
-          ))}
-          <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer rounded-lg border border-slate-200 dark:border-neutral-600 px-2 py-1 hover:bg-slate-50 dark:hover:bg-neutral-800 transition">
-            <span className="w-4 h-4 rounded-full border border-slate-300 shrink-0" style={{ backgroundColor: accent }} />
-            Custom
-            <input type="color" value={accent} onChange={(e) => setAccent(e.target.value)} className="sr-only" />
-          </label>
+      {/* Nota branding — colore e logo fissi FLOW */}
+      <div className="rounded-xl border border-[#0052FF]/20 bg-[#0052FF]/5 px-3.5 py-2.5 flex items-center gap-2.5">
+        <div className="w-6 h-6 rounded-full bg-[#0052FF] flex items-center justify-center shrink-0">
+          <span className="text-white text-[10px] font-bold">F</span>
         </div>
-        <div className="rounded-xl px-4 py-2.5 text-white text-sm font-semibold" style={{ backgroundColor: accent }}>
-          {name || 'Nome sede'}
-        </div>
-      </div>
-
-      {/* Font intestazione */}
-      <div className="space-y-2">
-        <label className="text-xs font-semibold text-slate-600 dark:text-neutral-300">Font intestazione app</label>
-        <div className="grid grid-cols-1 gap-1.5">
-          {HEADER_FONTS.map(f => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setHeaderFont(f.id)}
-              className={`flex items-center justify-between px-3 py-2 rounded-xl border transition text-left ${
-                headerFont === f.id
-                  ? 'border-accent bg-accent/10 text-accent dark:bg-accent/20'
-                  : 'border-slate-200 dark:border-neutral-700 hover:border-accent/40 text-slate-700 dark:text-neutral-300'
-              }`}
-            >
-              <span className="text-xs font-medium">{f.label}</span>
-              <span className="text-base" style={{ fontFamily: f.value }}>
-                {name || 'Sede'}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Logo */}
-      <div className="space-y-2">
-        <label className="text-xs font-semibold text-slate-600 dark:text-neutral-300">Logo sede</label>
-        <div className="flex items-center gap-3">
-          {/* Anteprima */}
-          <div className="w-14 h-14 rounded-xl border-2 border-dashed border-slate-200 dark:border-neutral-700 overflow-hidden flex items-center justify-center bg-slate-50 dark:bg-neutral-900 shrink-0">
-            {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg rounded-xl"
-                style={{ backgroundColor: accent }}>
-                {(name || 'A').split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()}
-              </div>
-            )}
-          </div>
-          {/* Controlli */}
-          <div className="flex-1 space-y-1.5">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold text-slate-600 dark:text-neutral-300 hover:bg-accent/5 hover:border-accent/40 hover:text-accent transition disabled:opacity-40 active:scale-95"
-            >
-              {uploading ? (
-                <><div className="w-4 h-4 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />Caricamento…</>
-              ) : (
-                <><Plus className="w-4 h-4" />Carica immagine</>
-              )}
-            </button>
-            {logoUrl && (
-              <button type="button" onClick={() => setLogoUrl('')}
-                className="w-full flex items-center justify-center gap-1.5 rounded-xl px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition">
-                <X className="w-3.5 h-3.5" />Rimuovi logo
-              </button>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ''; }}
-            />
-          </div>
-        </div>
-        {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
-        <p className="text-[10px] text-slate-400">PNG/JPG quadrata consigliata, max 2 MB. Usata come icona PWA e nell'app.</p>
+        <p className="text-[11px] text-slate-500 dark:text-neutral-400">
+          Colore, font e logo sono fissi — brand FLOW per tutte le sedi.
+        </p>
       </div>
 
       {/* Dati demo — solo per nuova sede */}
