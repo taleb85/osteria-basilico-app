@@ -109,8 +109,7 @@ export async function seedTenantFromTemplate(
     hide_from_team_schedule: u.hide_from_team_schedule ?? false,
     team_schedule_visible:   u.team_schedule_visible ?? true,
     enabled_features:        u.enabled_features ?? null,
-    // Non copiare: avatar_url, monthly_confirmed, employment_start/end, ui_section_overrides
-    avatar_url:              null,
+    // Non copiare: monthly_confirmed, employment_start/end, ui_section_overrides
     employment_start_date:   null,
     employment_end_date:     null,
   }));
