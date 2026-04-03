@@ -3,7 +3,7 @@ import { Download, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { isIOS, isAndroid, isDesktop } from '../utils/pwaStandalone';
 import { useApp } from '../context/appContextCore';
-import { useTenant, generateTenantLogoSvg } from '../context/TenantContext';
+import { useTenant } from '../context/TenantContext';
 import FlowLogo from './FlowLogo';
 
 /* ─── Icona Condividi Safari (SVG nativo iOS) ─── */
@@ -116,7 +116,6 @@ function SafariToolbarHint({ color }: { color: string }) {
 export default function PWAInstallRequired() {
   const { effectiveLanguage } = useApp();
   void useTenant(); // mantiene import attivo senza usare dati tenant
-  void generateTenantLogoSvg; // mantiene import attivo
   const tenantName = 'FLOW'; // sempre FLOW — ignora nome DB tenant
   const BG_COLOR = '#0052FF'; // colore FLOW blue — usato per accenti, bottoni e cerchi
   const PAGE_BG = '#ffffff';  // sfondo pagina bianco

@@ -527,9 +527,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     if (data) applyTenant(data as Tenant);
   };
 
-  // Logo URL: usa logo_url se presente, altrimenti genera SVG dalle iniziali
-  const tenantLogoUrl = tenant?.logo_url
-    ?? generateTenantLogoSvg(tenant?.name ?? 'App', tenant?.accent_color ?? DEFAULT_ACCENT);
+  // Logo URL: sempre FLOW — lo slug/tenant non influisce sul branding visivo
+  const tenantLogoUrl = '/flow-app-icon.svg';
 
   return (
     <TenantContext.Provider
