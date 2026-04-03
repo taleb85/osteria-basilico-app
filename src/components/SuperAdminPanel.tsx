@@ -1000,7 +1000,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
       <div className="flex gap-2 pt-1">
         <button
           type="submit"
-          disabled={saving || uploading || !name.trim() || !slug.trim()}
+          disabled={saving || !name.trim() || !slug.trim()}
           className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white hover:bg-accent-hover transition disabled:opacity-40"
         >
           <Check className="w-4 h-4" />
