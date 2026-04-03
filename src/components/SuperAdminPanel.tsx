@@ -566,30 +566,44 @@ interface SettingsConfigPanelProps {
 function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanelProps) {
   const [tab, setTab] = useState<SettingsTab>('features');
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [settings, setSettings] = useState<TenantSettings>(() => mergeSettings(DEFAULT_SETTINGS, initial));
+  const [dirty, setDirty] = useState(false);
 
-  const set = <K extends keyof TenantSettings>(key: K, value: TenantSettings[K]) =>
+  const set = <K extends keyof TenantSettings>(key: K, value: TenantSettings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
+    setDirty(true);
+    setSaved(false);
+  };
 
-  const setFlag = (slug: string, enabled: boolean) =>
+  const setFlag = (slug: string, enabled: boolean) => {
     setSettings((prev) => ({
       ...prev,
       featureFlags: { ...(prev.featureFlags ?? {}), [slug]: enabled },
     }));
+    setDirty(true);
+    setSaved(false);
+  };
 
   const setWorkRule = <K extends keyof NonNullable<TenantSettings['workRules']>>(
     key: K, value: NonNullable<TenantSettings['workRules']>[K]
-  ) =>
+  ) => {
     setSettings((prev) => ({
       ...prev,
       workRules: { ...(prev.workRules ?? {}), [key]: value },
     }));
+    setDirty(true);
+    setSaved(false);
+  };
 
-  const setModule = (key: keyof NonNullable<TenantSettings['modules']>, value: boolean) =>
+  const setModule = (key: keyof NonNullable<TenantSettings['modules']>, value: boolean) => {
     setSettings((prev) => ({
       ...prev,
       modules: { ...(prev.modules ?? {}), [key]: value },
     }));
+    setDirty(true);
+    setSaved(false);
+  };
 
   const handleSave = async () => {
     if (!supabase) return;
@@ -603,6 +617,9 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
         .maybeSingle();
       if (error) throw error;
       if (data) onSaved((data as Tenant).settings ?? settings);
+      setDirty(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
     } finally {
       setSaving(false);
     }
@@ -815,20 +832,28 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
           </div>
         )}
 
-        {/* Salva — non mostrato nel tab Dipendenti (ha salvataggio inline) */}
-        {tab !== 'staff' && (
-          <div className="pt-2 border-t border-slate-200 dark:border-neutral-800">
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white hover:bg-accent-hover transition disabled:opacity-40"
-            >
-              <Check className="w-4 h-4" />
-              {saving ? 'Salvataggio…' : 'Salva impostazioni sede'}
-            </button>
-          </div>
-        )}
+        {/* Salva impostazioni — sempre visibile, disabilitato nel tab Dipendenti (salvataggio inline per-utente) */}
+        <div className="pt-2 border-t border-slate-200 dark:border-neutral-800 space-y-1.5">
+          {dirty && !saving && (
+            <p className="text-center text-[11px] font-semibold text-amber-500 dark:text-amber-400">
+              ● Modifiche non salvate
+            </p>
+          )}
+          {saved && (
+            <p className="text-center text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+              ✓ Impostazioni salvate
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving || tab === 'staff'}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white hover:bg-accent-hover transition disabled:opacity-40"
+          >
+            <Check className="w-4 h-4" />
+            {saving ? 'Salvataggio…' : tab === 'staff' ? 'Salvataggio inline per dipendente' : 'Salva impostazioni sede'}
+          </button>
+        </div>
       </div>
     </div>
   );
