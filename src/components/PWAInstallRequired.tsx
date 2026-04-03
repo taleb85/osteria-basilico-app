@@ -118,7 +118,8 @@ export default function PWAInstallRequired() {
   void useTenant(); // mantiene import attivo senza usare dati tenant
   void generateTenantLogoSvg; // mantiene import attivo
   const tenantName = 'FLOW'; // sempre FLOW — ignora nome DB tenant
-  const BG_COLOR = '#0052FF'; // sempre FLOW blue — ignora colore DB tenant
+  const BG_COLOR = '#0052FF'; // colore FLOW blue — usato per accenti, bottoni e cerchi
+  const PAGE_BG = '#ffffff';  // sfondo pagina bianco
   const ios = isIOS();
   const android = isAndroid();
   const desktop = isDesktop();
@@ -160,7 +161,7 @@ export default function PWAInstallRequired() {
   return (
     <div
       className="min-h-screen min-h-[100dvh] w-full flex flex-col items-center justify-start px-5 pt-10 pb-40 text-center"
-      style={{ backgroundColor: BG_COLOR }}
+      style={{ backgroundColor: PAGE_BG }}
     >
       <div className="max-w-sm w-full">
 
@@ -171,7 +172,7 @@ export default function PWAInstallRequired() {
           transition={{ duration: 0.45, ease: 'easeOut' }}
           className="w-20 h-20 mx-auto mb-5 drop-shadow-xl"
         >
-          <FlowLogo size={80} showText={false} colorScheme="white" />
+          <FlowLogo size={80} showText={false} />
         </motion.div>
 
         {/* Titolo */}
@@ -179,17 +180,17 @@ export default function PWAInstallRequired() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="text-2xl font-extrabold text-white leading-tight mb-1"
+          className="text-2xl font-extrabold text-slate-800 leading-tight mb-1"
           style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.04em' }}
         >
-          <span style={{ color: '#00D1FF' }}>F</span>LOW
+          <span style={{ color: '#0052FF' }}>F</span>LOW
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.15 }}
-          className="text-white/70 text-sm mb-8"
+          className="text-slate-500 text-sm mb-8"
         >
           Installa l&apos;app per accedere
         </motion.p>
@@ -211,16 +212,16 @@ export default function PWAInstallRequired() {
                   transition={{ duration: 0.3 }}
                   className="flex items-center gap-4 rounded-2xl px-4 py-3.5 transition-colors"
                   style={{
-                    backgroundColor: isActive ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.10)',
-                    border: isActive ? '1.5px solid rgba(255,255,255,0.45)' : '1.5px solid transparent',
+                    backgroundColor: isActive ? `${BG_COLOR}0D` : '#f8fafc',
+                    border: isActive ? `1.5px solid ${BG_COLOR}40` : '1.5px solid #e2e8f0',
                   }}
                 >
                   {/* Numero */}
                   <div
                     className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0"
                     style={{
-                      backgroundColor: isActive ? 'white' : 'rgba(255,255,255,0.25)',
-                      color: isActive ? BG_COLOR : 'white',
+                      backgroundColor: isActive ? BG_COLOR : '#e2e8f0',
+                      color: isActive ? 'white' : '#64748b',
                     }}
                   >
                     {step.num}
@@ -231,15 +232,15 @@ export default function PWAInstallRequired() {
                     animate={isActive && step.num === 1 ? { y: [0, -4, 0] } : {}}
                     transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
                     className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)' }}
+                    style={{ backgroundColor: isActive ? `${BG_COLOR}15` : '#f1f5f9' }}
                   >
                     {step.icon}
                   </motion.div>
 
                   {/* Testo */}
                   <div className="min-w-0">
-                    <p className="text-white font-semibold text-sm leading-tight">{step.title}</p>
-                    <p className="text-white/75 text-xs leading-relaxed mt-0.5">{step.desc}</p>
+                    <p className="text-slate-800 font-semibold text-sm leading-tight">{step.title}</p>
+                    <p className="text-slate-500 text-xs leading-relaxed mt-0.5">{step.desc}</p>
                   </div>
                 </motion.div>
               );
@@ -252,7 +253,7 @@ export default function PWAInstallRequired() {
                   key={idx}
                   onClick={() => setActiveStep(idx)}
                   className="w-2 h-2 rounded-full transition-all"
-                  style={{ backgroundColor: activeStep === idx ? 'white' : 'rgba(255,255,255,0.35)' }}
+                  style={{ backgroundColor: activeStep === idx ? BG_COLOR : '#cbd5e1' }}
                 />
               ))}
             </div>
@@ -283,11 +284,11 @@ export default function PWAInstallRequired() {
                   { num: 2, title: 'Seleziona «Installa App»', desc: 'O «Aggiungi a schermata Home»' },
                   { num: 3, title: 'Conferma l\'installazione', desc: 'Tocca «Installa» nel popup' },
                 ].map((s) => (
-                  <div key={s.num} className="flex items-center gap-4 rounded-2xl bg-white/10 border border-white/20 px-4 py-3.5">
-                    <div className="w-7 h-7 rounded-full bg-white/25 flex items-center justify-center text-xs font-black text-white shrink-0">{s.num}</div>
+                  <div key={s.num} className="flex items-center gap-4 rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3.5">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0" style={{ backgroundColor: BG_COLOR, color: 'white' }}>{s.num}</div>
                     <div>
-                      <p className="text-white font-semibold text-sm">{s.title}</p>
-                      <p className="text-white/75 text-xs mt-0.5">{s.desc}</p>
+                      <p className="text-slate-800 font-semibold text-sm">{s.title}</p>
+                      <p className="text-slate-500 text-xs mt-0.5">{s.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -319,11 +320,11 @@ export default function PWAInstallRequired() {
                   { num: 1, title: 'Trova l\'icona di installazione', desc: 'Nella barra degli indirizzi del browser, a destra' },
                   { num: 2, title: 'Clicca «Installa»', desc: 'Chrome/Edge mostrano un popup di conferma' },
                 ].map((s) => (
-                  <div key={s.num} className="flex items-center gap-4 rounded-2xl bg-white/10 border border-white/20 px-4 py-3.5">
-                    <div className="w-7 h-7 rounded-full bg-white/25 flex items-center justify-center text-xs font-black text-white shrink-0">{s.num}</div>
+                  <div key={s.num} className="flex items-center gap-4 rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3.5">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0" style={{ backgroundColor: BG_COLOR, color: 'white' }}>{s.num}</div>
                     <div>
-                      <p className="text-white font-semibold text-sm">{s.title}</p>
-                      <p className="text-white/75 text-xs mt-0.5">{s.desc}</p>
+                      <p className="text-slate-800 font-semibold text-sm">{s.title}</p>
+                      <p className="text-slate-500 text-xs mt-0.5">{s.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -339,8 +340,8 @@ export default function PWAInstallRequired() {
           transition={{ duration: 0.4, delay: 0.5 }}
           className="mt-6 flex items-center justify-center gap-2"
         >
-          <Plus className="w-3.5 h-3.5 text-white/50 shrink-0" />
-          <p className="text-white/60 text-xs">
+          <Plus className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <p className="text-slate-400 text-xs">
             Dopo l&apos;installazione, apri l&apos;app dalla schermata Home
           </p>
         </motion.div>
