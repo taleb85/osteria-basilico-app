@@ -231,7 +231,27 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [showPin, setShowPin] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmClearDemo, setConfirmClearDemo] = useState(false);
+  const [clearingDemo, setClearingDemo] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
+
+  const demoUsers = users.filter((u) => u.email?.endsWith('@demo.local'));
+
+  const handleClearDemo = async () => {
+    if (!supabase || demoUsers.length === 0) return;
+    setClearingDemo(true);
+    try {
+      const ids = demoUsers.map((u) => u.id);
+      const { error: err } = await supabase.from('users').delete().in('id', ids);
+      if (err) throw err;
+      setConfirmClearDemo(false);
+      await loadUsers();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Errore rimozione dati demo');
+    } finally {
+      setClearingDemo(false);
+    }
+  };
 
   const loadUsers = useCallback(async () => {
     if (!supabase) return;
@@ -489,6 +509,51 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Banner dati demo */}
+      {demoUsers.length > 0 && editingId === null && (
+        <div className="rounded-xl border border-amber-400/30 bg-amber-950/20 p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400 text-xs">⚠</span>
+            <p className="text-xs font-semibold text-amber-300">
+              {demoUsers.length} dipendent{demoUsers.length === 1 ? 'e demo attivo' : 'i demo attivi'} — email <span className="font-mono">@demo.local</span>
+            </p>
+          </div>
+          {!confirmClearDemo ? (
+            <button
+              type="button"
+              onClick={() => setConfirmClearDemo(true)}
+              className="w-full flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition active:scale-95"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Rimuovi dati demo
+            </button>
+          ) : (
+            <div className="space-y-1.5">
+              <p className="text-[11px] text-amber-400/80 text-center">
+                Elimina {demoUsers.length} utenti demo? L'azione è irreversibile.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmClearDemo(false)}
+                  className="flex-1 rounded-xl py-1.5 text-xs font-semibold bg-white/8 text-white/50 hover:bg-white/12 transition"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearDemo}
+                  disabled={clearingDemo}
+                  className="flex-1 rounded-xl py-1.5 text-xs font-bold bg-amber-600 text-white hover:bg-amber-500 transition disabled:opacity-50"
+                >
+                  {clearingDemo ? 'Rimozione…' : 'Sì, rimuovi'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
