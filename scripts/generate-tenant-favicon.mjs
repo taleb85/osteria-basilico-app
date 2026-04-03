@@ -25,10 +25,23 @@ async function svgToPng(svgBuffer, outPath, size = 180) {
   await sharp(svgBuffer).resize(size, size).png().toFile(outPath);
 }
 
-// Se non c'è uno slug specifico → Osteria Basilico → copia logo originale come icon.svg
-if (!slug || slug === 'osteria-basilico') {
+// Se non c'è uno slug → modalità FLOW single-URL (Option B) → usa icona FLOW ufficiale
+if (!slug) {
+  copyFileSync(join(publicDir, 'flow-app-icon.svg'), join(publicDir, 'icon.svg'));
+  copyFileSync(join(publicDir, 'flow-app-icon.svg'), join(publicDir, 'favicon.svg'));
+  const flowSvg = readFileSync(join(publicDir, 'flow-app-icon.svg'));
+  await Promise.all([
+    svgToPng(flowSvg, join(publicDir, 'apple-touch-icon.png'), 180),
+    svgToPng(flowSvg, join(publicDir, 'icon-192.png'), 192),
+    svgToPng(flowSvg, join(publicDir, 'icon-512.png'), 512),
+  ]);
+  console.log('[favicon] FLOW (no tenant slug) → icon.svg = flow-app-icon.svg, tutti i PNG rigenerati');
+  process.exit(0);
+}
+
+// Slug esplicito Osteria Basilico → copia logo OB originale
+if (slug === 'osteria-basilico') {
   copyFileSync(join(publicDir, 'logo-ob.svg'), join(publicDir, 'icon.svg'));
-  // Rigenera tutti i PNG da logo-ob.svg (Chrome usa icon-192/512 per l'icona installata)
   const obSvg = readFileSync(join(publicDir, 'logo-ob.svg'));
   await Promise.all([
     svgToPng(obSvg, join(publicDir, 'apple-touch-icon.png'), 180),

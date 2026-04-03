@@ -23,7 +23,7 @@ export default defineConfig({
     VitePWA({
       devOptions: { enabled: false },
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon.svg', 'logo-ob.svg', 'pwa-splash.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon.svg', 'flow-app-icon.svg', 'logo-ob.svg', 'pwa-splash.svg'],
       manifest: {
         name: 'FLOW',
         short_name: 'FLOW',
@@ -38,7 +38,7 @@ export default defineConfig({
         orientation: 'any',
         scope: '/',
         icons: [
-          { src: '/icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: '/flow-app-icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' },
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

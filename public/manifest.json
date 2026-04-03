@@ -1,17 +1,17 @@
 {
-  "name": "Osteria Basilico",
-  "short_name": "Osteria Basilico",
-  "description": "Sistema di gestione turni per Osteria Basilico",
-  "start_url": "/",
+  "name": "FLOW",
+  "short_name": "FLOW",
+  "description": "FLOW — Work in Motion",
+  "start_url": "/profilo",
   "scope": "/",
   "lang": "it",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "theme_color": "#2D5A27",
+  "theme_color": "#0052FF",
   "orientation": "any",
   "icons": [
     {
-      "src": "/logo-ob.svg",
+      "src": "/flow-app-icon.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
