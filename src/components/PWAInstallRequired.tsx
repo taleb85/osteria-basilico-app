@@ -171,7 +171,7 @@ export default function PWAInstallRequired() {
           transition={{ duration: 0.45, ease: 'easeOut' }}
           className="w-20 h-20 mx-auto mb-5 drop-shadow-xl"
         >
-          <FlowLogo size={80} showText={false} />
+          <FlowLogo size={80} showText={false} colorScheme="white" />
         </motion.div>
 
         {/* Titolo */}
