@@ -24,30 +24,26 @@ export default defineConfig({
       /** In dev niente SW: evita cache / navigate che sembrano “/app non funziona” su 127.0.0.1:5173. */
       devOptions: { enabled: false },
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon.svg', 'logo-ob.svg', 'pwa-splash.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon.svg', 'flow-app-icon.svg', 'pwa-splash.svg'],
       manifest: {
-        name: 'Osteria Basilico',
-        short_name: 'Osteria Basilico',
-        description: 'Sistema di gestione turni per Osteria Basilico',
-        start_url: '/',
+        name: 'FLOW',
+        short_name: 'FLOW',
+        description: 'FLOW — Work in Motion. Gestione turni e presenze.',
+        start_url: '/profilo',
         lang: 'it',
-        // standalone = nessuna barra del browser (kiosk tablet + telefono staff)
         display: 'standalone',
-        // Splash: bianco (allineato a index.html); barra sistema = theme verde basilico
         background_color: '#FFFFFF',
-        theme_color: '#2D5A27',
-        // any = supporta portrait (telefono) e landscape (tablet kiosk)
+        theme_color: '#0052FF',
         orientation: 'any',
         scope: '/',
         icons: [
-          { src: '/logo-ob.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any' },
+          { src: '/flow-app-icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' },
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           { src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
         ],
-        // Scorciatoie launcher: URL separati timbratura vs profili
         shortcuts: [
           {
             name: 'Timbratura',
