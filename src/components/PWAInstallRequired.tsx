@@ -114,10 +114,10 @@ function SafariToolbarHint({ color }: { color: string }) {
 
 export default function PWAInstallRequired() {
   const { effectiveLanguage } = useApp();
-  const { tenant } = useTenant();
-  const tenantName = tenant?.name ?? 'FLOW';
+  void useTenant(); // mantiene import attivo senza usare dati tenant
+  const tenantName = 'FLOW'; // sempre FLOW — ignora nome DB tenant
   const BG_COLOR = '#0052FF'; // sempre FLOW blue — ignora colore DB tenant
-  const logoSrc = tenant?.logo_url ?? generateTenantLogoSvg(tenantName, BG_COLOR);
+  const logoSrc = '/icon.svg'; // sempre icona FLOW — ignora logo DB tenant
   const ios = isIOS();
   const android = isAndroid();
   const desktop = isDesktop();
@@ -178,9 +178,10 @@ export default function PWAInstallRequired() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="font-logo-snell text-xl text-white tracking-tight leading-tight mb-1"
+          className="text-2xl font-extrabold text-white leading-tight mb-1"
+          style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.04em' }}
         >
-          {tenantName}
+          <span style={{ color: '#00D1FF' }}>F</span>LOW
         </motion.h1>
 
         <motion.p
