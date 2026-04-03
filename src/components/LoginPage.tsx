@@ -89,6 +89,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [deviceLoading, setDeviceLoading] = useState(false);
   const [linkDeviceLoading, setLinkDeviceLoading] = useState(false);
+  // Credenziali in attesa che il tenant carichi (fallback Option B)
+  const [pendingCreds, setPendingCreds] = useState<{ name: string; pin: string } | null>(null);
 
   const webAuthnOk = supportsPinUnlockWebAuthn();
   const hasDeviceLogin = hasAnyPinUnlockCredentialOnDevice();
@@ -100,6 +102,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const pinMatches = !!(resolvedUser && pinMatchesStored(resolvedUser, password));
   const canShowLinkDevice = webAuthnOk && pinMatches && resolvedUser && !hasPinUnlockCredential(resolvedUser.id);
   const showDeviceSection = webAuthnOk && (hasDeviceLogin || canShowLinkDevice);
+
+  // Retry automatico dopo caricamento tenant (fallback Option B)
+  useEffect(() => {
+    if (!pendingCreds || users.length === 0) return;
+    const user = findUserByNameAndPinAnyStatus(users, pendingCreds.name, pendingCreds.pin);
+    setPendingCreds(null);
+    setIsLoading(false);
+    if (user && user.status === 'active') {
+      setError('');
+      finalizeSession(user, () => {});
+    } else {
+      setError('PIN non corretto. Riprova.');
+    }
+  }, [users, pendingCreds, finalizeSession]);
 
   // Auto-trigger biometric login if device has credentials
   useEffect(() => {
@@ -205,37 +221,42 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       }
 
       // Fallback Option B: se users è vuota (nessun tenant caricato),
-      // cerca globalmente per nome → carica il tenant → ri-autentica
+      // cerca globalmente per nome+PIN → carica tenant → retry automatico via useEffect
       if (users.length === 0 && supabase) {
         try {
-          const nameParts = staffName.trim().split(/\s+/);
-          const firstName = nameParts[0];
+          const firstName = staffName.trim().split(/\s+/)[0];
           const { data: globalUsers } = await supabase
             .from('users')
             .select('id, first_name, last_name, pin, status, tenant_id')
-            .ilike('first_name', firstName)
+            .ilike('first_name', `%${firstName}%`)
             .eq('status', 'active');
 
           if (globalUsers && globalUsers.length > 0) {
-            // Trova utente con PIN corrispondente
-            const matched = globalUsers.find((u) =>
-              pinMatchesStored(password, u.pin) &&
-              `${u.first_name} ${u.last_name ?? ''}`.trim().toLowerCase() === staffName.trim().toLowerCase()
-            ) ?? globalUsers.find((u) => pinMatchesStored(password, u.pin));
+            // Cerca per nome completo prima, poi solo per PIN
+            const nameNorm = staffName.trim().toLowerCase();
+            const matched =
+              globalUsers.find((u) =>
+                `${u.first_name} ${u.last_name ?? ''}`.trim().toLowerCase() === nameNorm &&
+                u.pin === password
+              ) ??
+              globalUsers.find((u) =>
+                u.first_name.toLowerCase() === nameNorm &&
+                u.pin === password
+              ) ??
+              globalUsers.find((u) => u.pin === password);
 
             if (matched?.tenant_id) {
-              // Carica il tenant e poi ricarica la pagina per far partire AppContext
               const { data: tenantData } = await supabase
                 .from('tenants')
                 .select('slug')
                 .eq('id', matched.tenant_id)
                 .maybeSingle();
               if (tenantData?.slug) {
+                // Salva credenziali e carica tenant — l'useEffect farà il retry
+                setPendingCreds({ name: staffName, pin: password });
+                setError('');
                 await loadTenantBySlug(tenantData.slug);
-                // Piccola attesa per permettere ad AppContext di caricare gli utenti
-                await new Promise((r) => setTimeout(r, 1500));
-                setIsLoading(false);
-                setError('Sede trovata! Premi di nuovo "Accedi".');
+                // isLoading rimane true finché l'effect non completa
                 return;
               }
             }
@@ -243,10 +264,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         } catch {
           // ignora errori nella ricerca globale
         }
-        setTimeout(() => {
-          setIsLoading(false);
-          setError('Nessun dipendente trovato. Usa il tuo link personale per accedere.');
-        }, 600);
+        setIsLoading(false);
+        setError('Nessun dipendente trovato. Controlla nome e PIN o usa il tuo link personale.');
         return;
       }
 
