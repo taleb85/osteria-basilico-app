@@ -1151,6 +1151,7 @@ function SuperAdminPanelInner() {
   const [seedDemo, setSeedDemo] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -1283,7 +1284,15 @@ function SuperAdminPanelInner() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => { setShowForm(true); setEditingTenant(null); }}
+              onClick={() => { setShowImport(!showImport); setShowForm(false); setEditingTenant(null); }}
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold active:scale-95 transition ${showImport ? 'bg-amber-500/20 text-amber-300' : 'bg-white/8 text-white/60 hover:bg-white/14 hover:text-white'}`}
+            >
+              <ChevronRight className="w-4 h-4 rotate-90" />
+              <span className="hidden sm:inline">Importa storico</span>
+              <span className="sm:hidden">Import</span>
+            </button>
+            <button
+              onClick={() => { setShowForm(true); setEditingTenant(null); setShowImport(false); }}
               className="flex items-center gap-1.5 rounded-xl bg-[#0052FF] hover:bg-[#003ACC] px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold text-white active:scale-95 transition"
             >
               <Plus className="w-4 h-4" />
@@ -1313,6 +1322,15 @@ function SuperAdminPanelInner() {
             <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 shrink-0 p-1"><X className="w-3.5 h-3.5" /></button>
           </div>
         )}
+
+        {/* Import storico turni */}
+        <AnimatePresence>
+          {showImport && (
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+              <ImportStorico tenants={tenants} onClose={() => setShowImport(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Form nuova sede */}
         <AnimatePresence>
@@ -1535,6 +1553,209 @@ function SuperAdminPanelInner() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ImportStorico — upload CSV turni storici
+// ---------------------------------------------------------------------------
+
+interface ParsedRow {
+  rawName: string;
+  userId: string | null;
+  userName: string | null;
+  date: string;
+  startTime: string;
+  endTime: string;
+  type: 'lunch' | 'dinner';
+}
+
+function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () => void }) {
+  const [selectedTenantId, setSelectedTenantId] = useState(tenants[0]?.id ?? '');
+  const [tenantUsers, setTenantUsers] = useState<{ id: string; first_name: string; last_name?: string }[]>([]);
+  const [rows, setRows] = useState<ParsedRow[]>([]);
+  const [fileName, setFileName] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ ok: number; skipped: string[] } | null>(null);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!supabase || !selectedTenantId) return;
+    supabase.from('users').select('id,first_name,last_name').eq('tenant_id', selectedTenantId).eq('status', 'active')
+      .then(({ data }) => setTenantUsers((data ?? []) as { id: string; first_name: string; last_name?: string }[]));
+  }, [selectedTenantId]);
+
+  const matchUser = (name: string) => {
+    const n = name.trim().toLowerCase();
+    return tenantUsers.find((u) => {
+      const full = `${u.first_name} ${u.last_name ?? ''}`.trim().toLowerCase();
+      return full === n || u.first_name.toLowerCase() === n;
+    }) ?? null;
+  };
+
+  const downloadTemplate = () => {
+    const csv = 'Nome,Data,Inizio,Fine\nGUSTAVO,29/01/2026,10:00,16:00\nGUSTAVO,29/01/2026,16:30,23:00\nALEXIS,30/01/2026,10:00,16:00\n';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    a.download = 'template_turni_storici.csv';
+    a.click();
+  };
+
+  const parseDate = (raw: string): string | null => {
+    const p = raw.trim().split(/[\/\-\.]/);
+    if (p.length !== 3) return null;
+    if (p[2].length === 4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+    if (p[0].length === 4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+    return null;
+  };
+
+  const parseTime = (raw: string): string | null => {
+    const t = raw.trim();
+    return /^\d{1,2}:\d{2}$/.test(t) ? t.padStart(5, '0') : null;
+  };
+
+  const handleFile = (file: File) => {
+    setParseError(null); setRows([]); setImportResult(null); setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = (e.target?.result as string) ?? '';
+      const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      if (lines.length < 2) { setParseError('File vuoto o non valido.'); return; }
+      const dataLines = lines[0].toLowerCase().includes('nome') ? lines.slice(1) : lines;
+      const parsed: ParsedRow[] = [];
+      const errors: string[] = [];
+      dataLines.forEach((line, i) => {
+        const cols = line.split(',').map((c) => c.trim().replace(/^"|"$/g, ''));
+        if (cols.length < 4) return;
+        const [rawName, rawDate, rawStart, rawEnd] = cols;
+        if (!rawName || !rawDate || !rawStart || !rawEnd) return;
+        const date = parseDate(rawDate);
+        const startTime = parseTime(rawStart);
+        const endTime = parseTime(rawEnd);
+        if (!date) { errors.push(`Riga ${i + 2}: data non valida "${rawDate}"`); return; }
+        if (!startTime || !endTime) { errors.push(`Riga ${i + 2}: ora non valida`); return; }
+        const matched = matchUser(rawName);
+        parsed.push({ rawName, userId: matched?.id ?? null, userName: matched ? `${matched.first_name} ${matched.last_name ?? ''}`.trim() : null, date, startTime, endTime, type: startTime < '15:00' ? 'lunch' : 'dinner' });
+      });
+      if (errors.length) setParseError(errors.slice(0, 3).join(' | '));
+      setRows(parsed);
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+
+  const handleImport = async () => {
+    if (!supabase || !selectedTenantId) return;
+    const valid = rows.filter((r) => r.userId);
+    const skipped = [...new Set(rows.filter((r) => !r.userId).map((r) => r.rawName))];
+    setImporting(true);
+    try {
+      const payload = valid.map((r) => ({ tenant_id: selectedTenantId, user_id: r.userId!, date: r.date, start_time: r.startTime, end_time: r.endTime, type: r.type, approval_status: 'confirmed' as const }));
+      for (let i = 0; i < payload.length; i += 200) {
+        const { error } = await supabase.from('shifts').insert(payload.slice(i, i + 200));
+        if (error) throw error;
+      }
+      setImportResult({ ok: valid.length, skipped });
+      setRows([]); setFileName('');
+    } catch (e) {
+      setParseError(e instanceof Error ? e.message : 'Errore import');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const matched = rows.filter((r) => r.userId);
+  const unmatched = [...new Set(rows.filter((r) => !r.userId).map((r) => r.rawName))];
+
+  return (
+    <div className="rounded-2xl border border-amber-500/20 bg-amber-950/10 p-4 sm:p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-bold text-amber-300">Importa turni storici</h2>
+          <p className="text-[11px] text-amber-400/60 mt-0.5">CSV con turni passati. I nomi non riconosciuti vengono ignorati.</p>
+        </div>
+        <button onClick={onClose} className="text-white/30 hover:text-white transition p-1"><X className="w-4 h-4" /></button>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">Sede di destinazione</label>
+        <select value={selectedTenantId} onChange={(e) => { setSelectedTenantId(e.target.value); setRows([]); setImportResult(null); }}
+          className="w-full rounded-xl border border-white/10 bg-white/6 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40">
+          {tenants.map((t) => <option key={t.id} value={t.id} className="bg-neutral-900">{t.name}</option>)}
+        </select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={downloadTemplate}
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/6 py-2.5 text-xs font-semibold text-white/60 hover:bg-white/12 hover:text-white transition">
+          <ChevronRight className="w-3.5 h-3.5 -rotate-90" />
+          Scarica template CSV
+        </button>
+        <button onClick={() => fileRef.current?.click()}
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 py-2.5 text-xs font-bold text-amber-300 hover:bg-amber-500/20 transition">
+          <ChevronRight className="w-3.5 h-3.5 rotate-90" />
+          {fileName ? fileName.slice(0, 22) + (fileName.length > 22 ? '…' : '') : 'Carica CSV'}
+        </button>
+        <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
+      </div>
+
+      <div className="rounded-xl bg-white/4 border border-white/8 p-3">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-white/30 mb-1.5">Formato CSV</p>
+        <code className="text-[11px] text-white/50 leading-relaxed whitespace-pre">{`Nome,Data,Inizio,Fine\nGUSTAVO,29/01/2026,10:00,16:00\nGUSTAVO,29/01/2026,16:30,23:00`}</code>
+        <p className="text-[10px] text-white/30 mt-1.5">Una riga per turno &nbsp;·&nbsp; Data: GG/MM/AAAA &nbsp;·&nbsp; Ora: HH:MM</p>
+      </div>
+
+      {parseError && <div className="rounded-xl bg-red-950/30 border border-red-800 px-3 py-2 text-xs text-red-300">{parseError}</div>}
+
+      {importResult && (
+        <div className="rounded-xl bg-emerald-950/30 border border-emerald-700 px-3 py-3 space-y-1">
+          <p className="text-sm font-bold text-emerald-400">✓ {importResult.ok} turni importati con successo!</p>
+          {importResult.skipped.length > 0 && <p className="text-[11px] text-amber-400">Ignorati (non trovati): {importResult.skipped.join(', ')}</p>}
+        </div>
+      )}
+
+      {rows.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex gap-2 flex-wrap">
+            <span className="px-2.5 py-1 rounded-full bg-emerald-900/40 border border-emerald-700/40 text-[11px] font-bold text-emerald-400">✓ {matched.length} turni pronti</span>
+            {unmatched.length > 0 && <span className="px-2.5 py-1 rounded-full bg-red-900/40 border border-red-700/40 text-[11px] font-bold text-red-400">✗ Non riconosciuti: {unmatched.join(', ')}</span>}
+          </div>
+          <div className="rounded-xl border border-white/10 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-[11px]">
+                <thead><tr className="bg-white/6 text-white/40">
+                  <th className="px-3 py-2 text-left">Nome CSV</th>
+                  <th className="px-3 py-2 text-left">Trovato</th>
+                  <th className="px-3 py-2 text-left">Data</th>
+                  <th className="px-3 py-2 text-left">Inizio</th>
+                  <th className="px-3 py-2 text-left">Fine</th>
+                </tr></thead>
+                <tbody className="divide-y divide-white/6">
+                  {rows.slice(0, 15).map((r, i) => (
+                    <tr key={i} className={r.userId ? 'text-white/70' : 'text-red-400/70'}>
+                      <td className="px-3 py-1.5 font-mono">{r.rawName}</td>
+                      <td className="px-3 py-1.5">{r.userName ?? <span className="text-red-500">non trovato</span>}</td>
+                      <td className="px-3 py-1.5 font-mono">{r.date}</td>
+                      <td className="px-3 py-1.5 font-mono">{r.startTime}</td>
+                      <td className="px-3 py-1.5 font-mono">{r.endTime}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {rows.length > 15 && <p className="text-center text-[10px] text-white/30 py-2 border-t border-white/6">… e altri {rows.length - 15} turni</p>}
+          </div>
+          {matched.length > 0 && (
+            <button onClick={handleImport} disabled={importing}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 py-3 text-sm font-bold text-white transition disabled:opacity-50 active:scale-95">
+              <Check className="w-4 h-4" />
+              {importing ? 'Importazione in corso…' : `Importa ${matched.length} turni nel DB`}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
