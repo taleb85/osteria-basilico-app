@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { isIOS, isAndroid, isDesktop } from '../utils/pwaStandalone';
 import { useApp } from '../context/appContextCore';
 import { useTenant, generateTenantLogoSvg } from '../context/TenantContext';
+import FlowLogo from './FlowLogo';
 
 /* ─── Icona Condividi Safari (SVG nativo iOS) ─── */
 function SafareShareIcon({ size = 28, color = 'currentColor' }: { size?: number; color?: string }) {
@@ -115,9 +116,9 @@ function SafariToolbarHint({ color }: { color: string }) {
 export default function PWAInstallRequired() {
   const { effectiveLanguage } = useApp();
   void useTenant(); // mantiene import attivo senza usare dati tenant
+  void generateTenantLogoSvg; // mantiene import attivo
   const tenantName = 'FLOW'; // sempre FLOW — ignora nome DB tenant
   const BG_COLOR = '#0052FF'; // sempre FLOW blue — ignora colore DB tenant
-  const logoSrc = '/icon.svg'; // sempre icona FLOW — ignora logo DB tenant
   const ios = isIOS();
   const android = isAndroid();
   const desktop = isDesktop();
@@ -170,7 +171,7 @@ export default function PWAInstallRequired() {
           transition={{ duration: 0.45, ease: 'easeOut' }}
           className="w-20 h-20 mx-auto mb-5 drop-shadow-xl"
         >
-          <img src={logoSrc} alt={tenantName} className="w-full h-full" />
+          <FlowLogo size={80} showText={false} />
         </motion.div>
 
         {/* Titolo */}
