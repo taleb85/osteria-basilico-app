@@ -14,9 +14,9 @@ import { safeFormatDate } from '../utils/safeDateFormat';
 const STATUS_CONFIG = {
   approved: {
     label: 'Approvata',
-    dot: 'bg-[#00C896]',
+    dot: 'bg-[#06B6D4]',
     badge:
-      'bg-[#00D1FF]/15 text-[#005a8a] dark:bg-[#00D1FF]/20 dark:text-[#00D1FF] border border-[#00D1FF]/30 dark:border-[#00D1FF]/40',
+      'bg-[#06B6D4]/15 text-[#0284C7] dark:bg-[#06B6D4]/20 dark:text-[#06B6D4] border border-[#06B6D4]/30 dark:border-[#06B6D4]/40',
   },
   pending: {
     label: 'In attesa',
@@ -172,8 +172,10 @@ export default function HolidayRequests() {
 
     const mailSubject = encodeURIComponent(`Holiday Request - ${requesterName}`);
     const mailBody = encodeURIComponent(`Hi, hope you are well,\nI'd like to request a week of holiday that goes from the ${displayStart} until the ${displayEnd}.\nLooking forward to hear from you.\n\nKind Regards`);
+    const configuredEmail = (() => { try { return localStorage.getItem('osteria_holiday_request_email')?.trim() ?? ''; } catch { return ''; } })();
+    const toEmail = configuredEmail || 'info@flow-workinmotion.com';
     try {
-      window.location.href = `mailto:info@flow-workinmotion.com?subject=${mailSubject}&body=${mailBody}`;
+      window.location.href = `mailto:${toEmail}?subject=${mailSubject}&body=${mailBody}`;
     } catch (err) {
       console.warn('[HolidayRequests] mailto failed:', err);
     }
@@ -184,8 +186,8 @@ export default function HolidayRequests() {
 
   // ── Shared input style ────────────────────────────────────────────────────
   const inputCls =
-    'w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-950 px-3 py-2 text-sm text-slate-900 dark:text-neutral-100 outline-none transition-all placeholder:text-slate-500 dark:placeholder:text-neutral-500 focus:border-accent focus:ring-2 focus:ring-accent/20';
-  const labelCls = 'block text-xs font-semibold text-slate-600 dark:text-neutral-400 uppercase tracking-wider mb-1';
+    'w-full rounded-lg border border-[#06B6D4]/25 dark:border-[#06B6D4]/20 bg-white dark:bg-neutral-950 px-3 py-2 text-sm text-slate-900 dark:text-neutral-100 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:border-[#06B6D4] focus:ring-2 focus:ring-[#06B6D4]/20 focus:shadow-[0_0_0_3px_rgba(6,182,212,0.10)]';
+  const labelCls = 'block text-xs font-semibold text-[#0284C7]/80 dark:text-[#06B6D4]/70 uppercase tracking-wider mb-1';
 
   return (
     <div className="pb-content pt-6 w-full max-w-full font-sans">
@@ -358,15 +360,15 @@ export default function HolidayRequests() {
               <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">
                 {format(now, 'MMMM yyyy', { locale: it })}
               </h3>
-              <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-neutral-300">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />In attesa</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-accent dark:bg-accent-light inline-block" />Approvata</span>
+              <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-neutral-400">
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />In attesa</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#06B6D4] inline-block" />Approvata</span>
               </div>
             </div>
 
             <div className="grid grid-cols-7 gap-0.5 mb-1">
               {weekDays.map((d, i) => (
-                <div key={i} className="text-center text-xs font-semibold text-slate-600 dark:text-neutral-400 uppercase">{d}</div>
+                <div key={i} className="text-center text-xs font-semibold text-[#0284C7]/70 dark:text-[#06B6D4]/60 uppercase">{d}</div>
               ))}
             </div>
             <div className="grid grid-cols-7 gap-1">
@@ -382,11 +384,12 @@ export default function HolidayRequests() {
                     onClick={() => isPending && isAdmin && setSelectedH(holiday)}
                     className={`min-h-[44px] min-w-[44px] aspect-square rounded-xl flex items-center justify-center text-xs font-semibold transition-all select-none touch-target
                       ${isPending && isAdmin ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}
-                      ${status === 'approved' ? 'bg-[#00D1FF]/15 text-[#005a8a] dark:bg-[#00D1FF]/20 dark:text-[#00D1FF]' :
+                      ${status === 'approved' ? 'bg-[#06B6D4]/15 text-[#0284C7] dark:bg-[#06B6D4]/18 dark:text-[#06B6D4] ring-1 ring-[#06B6D4]/25' :
                         status === 'pending'  ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/45 dark:text-amber-200'  :
                         status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-200'    :
-                        today                 ? 'bg-slate-700 text-white dark:bg-neutral-200 dark:text-neutral-900' :
-                        'text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800'}`}
+                        today                 ? 'text-white ring-1 ring-[#06B6D4]/40' :
+                        'text-slate-600 dark:text-neutral-300 hover:bg-[#06B6D4]/8 dark:hover:bg-[#06B6D4]/10'}`}
+                    style={today && !status ? { background: 'linear-gradient(110deg, #06B6D4, #0052FF)' } : undefined}
                   >
                     {format(day, 'd')}
                   </div>
@@ -399,10 +402,10 @@ export default function HolidayRequests() {
           {/* My requests list (staff only) */}
           {!isAdmin && uiW('ferie.list') && (
             <div className="surface-glass overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-50 dark:border-white/10">
+              <div className="px-5 py-4 border-b border-[#06B6D4]/15 dark:border-[#06B6D4]/12">
                 <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">Le mie richieste</h3>
               </div>
-              <div className="divide-y divide-slate-50 dark:divide-white/10 max-h-80 overflow-y-auto">
+              <div className="divide-y divide-[#06B6D4]/10 dark:divide-[#06B6D4]/8 max-h-80 overflow-y-auto">
                 {myHolidays.length === 0 ? (
                   <p className="text-slate-600 dark:text-neutral-300 text-sm text-center py-10">Nessuna richiesta</p>
                 ) : myHolidays
@@ -436,11 +439,11 @@ export default function HolidayRequests() {
           {/* Pending (manager) */}
           {isAdmin && uiW('ferie.list') && pendingAll.length > 0 && (
             <div className="surface-glass overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-50 dark:border-white/10 flex items-center justify-between">
+              <div className="px-5 py-4 border-b border-[#06B6D4]/15 dark:border-[#06B6D4]/12 flex items-center justify-between">
                 <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">Richieste in attesa</h3>
                 <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-200 text-xs font-bold border border-amber-200/80 dark:border-amber-800/50">{pendingAll.length}</span>
               </div>
-              <div className="divide-y divide-slate-50 dark:divide-white/10">
+              <div className="divide-y divide-[#06B6D4]/10 dark:divide-[#06B6D4]/8">
                 {pendingAll.map((h) => {
                   const u = users.find((u) => u.id === h.user_id);
                   return (
@@ -499,7 +502,7 @@ export default function HolidayRequests() {
               <div className="px-4 py-3 border-b border-slate-50 dark:border-white/10">
                 <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">Prossime ferie approvate</h3>
               </div>
-              <div className="divide-y divide-slate-50 dark:divide-white/10 max-h-80 overflow-y-auto">
+              <div className="divide-y divide-[#06B6D4]/10 dark:divide-[#06B6D4]/8 max-h-80 overflow-y-auto">
                 {approvedFuture
                   .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
                   .map((h) => {
@@ -515,7 +518,7 @@ export default function HolidayRequests() {
                             </p>
                           </div>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full bg-[#00D1FF]/15 dark:bg-[#00D1FF]/20 text-[#005a8a] dark:text-[#00D1FF] text-xs font-semibold uppercase border border-[#00D1FF]/30 dark:border-[#00D1FF]/40">
+                        <span className="px-2 py-0.5 rounded-full bg-[#06B6D4]/15 dark:bg-[#06B6D4]/20 text-[#0284C7] dark:text-[#06B6D4] text-xs font-semibold uppercase border border-[#06B6D4]/30 dark:border-[#06B6D4]/40">
                           Approvata
                         </span>
                       </div>
@@ -539,7 +542,7 @@ export default function HolidayRequests() {
               <div className="px-5 py-4 border-b border-slate-50">
                 <h3 className="text-slate-900 font-semibold text-xl">Prossime ferie</h3>
               </div>
-              <div className="divide-y divide-slate-50">
+              <div className="divide-y divide-[#06B6D4]/10">
                 {myHolidays
                   .filter(h => h.status === 'approved' && new Date(h.end_date) >= new Date())
                   .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
@@ -551,7 +554,7 @@ export default function HolidayRequests() {
                           {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                         </span>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full bg-[#00D1FF]/15 dark:bg-[#00D1FF]/20 text-[#005a8a] dark:text-[#00D1FF] text-xs font-semibold uppercase border border-[#00D1FF]/30 dark:border-[#00D1FF]/40">Approvata</span>
+                      <span className="px-2 py-0.5 rounded-full bg-[#06B6D4]/15 dark:bg-[#06B6D4]/20 text-[#0284C7] dark:text-[#06B6D4] text-xs font-semibold uppercase border border-[#06B6D4]/30 dark:border-[#06B6D4]/40">Approvata</span>
                     </div>
                   ))}
               </div>

@@ -117,7 +117,7 @@ export default function PWAInstallRequired() {
   const { effectiveLanguage } = useApp();
   void useTenant(); // mantiene import attivo senza usare dati tenant
   const tenantName = 'FLOW'; // sempre FLOW — ignora nome DB tenant
-  const BG_COLOR = '#0052FF'; // colore FLOW blue — usato per accenti, bottoni e cerchi
+  const BG_COLOR = '#0052FF'; // colore FLOW blue — usato per numeri, dots e sfondo icone
   const PAGE_BG = '#ffffff';  // sfondo pagina bianco
   const ios = isIOS();
   const android = isAndroid();
@@ -179,10 +179,10 @@ export default function PWAInstallRequired() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="text-2xl font-extrabold text-slate-800 leading-tight mb-1"
-          style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.04em' }}
+          className="text-2xl font-extrabold leading-tight mb-1"
+          style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.04em', background: 'linear-gradient(110deg, #06B6D4, #0052FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
         >
-          <span style={{ color: '#0052FF' }}>F</span>LOW
+          FLOW
         </motion.h1>
 
         <motion.p
@@ -231,7 +231,7 @@ export default function PWAInstallRequired() {
                     animate={isActive && step.num === 1 ? { y: [0, -4, 0] } : {}}
                     transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
                     className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: isActive ? `${BG_COLOR}15` : '#f1f5f9' }}
+                    style={{ backgroundColor: isActive ? BG_COLOR : `${BG_COLOR}99` }}
                   >
                     {step.icon}
                   </motion.div>

@@ -146,49 +146,51 @@ export function PinPadModal({
         exit={{ opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 360, damping: 30, mass: 0.9 }}
         className="relative flex flex-col items-center justify-center px-4 py-6 w-full max-w-[300px] mx-4 rounded-2xl"
-        style={{ background: 'radial-gradient(ellipse at 50% 20%, #0033CC 0%, #001A80 55%, #000D40 100%)' }}
+        style={{ background: 'radial-gradient(ellipse at 50% 10%, #0e5f75 0%, #003380 38%, #001055 75%, #000820 100%)' }}
       >
         {/* Inner glass overlay */}
-        <div className="absolute inset-0 rounded-3xl pointer-events-none"
-          style={{ border: '1px solid rgba(0,82,255,0.25)', boxShadow: '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)' }} />
+        <div className="absolute inset-0 rounded-2xl pointer-events-none"
+          style={{ border: '1px solid rgba(6,182,212,0.30)', boxShadow: '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(6,182,212,0.10)' }} />
 
         {/* Header */}
         <div className="relative flex flex-col items-center text-center mb-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl mb-3 shadow-lg shadow-accent/30"
-            style={{ background: 'linear-gradient(135deg, #1A6FFF 0%, #002299 100%)', border: '1px solid rgba(0,209,255,0.35)' }}>
-            <Lock className="w-4 h-4 text-brand-300" strokeWidth={2.5} />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl mb-3 shadow-lg"
+            style={{ background: 'linear-gradient(110deg, #06B6D4 0%, #0052FF 100%)', border: '1px solid rgba(6,182,212,0.45)', boxShadow: '0 4px 16px rgba(0,82,255,0.35)' }}>
+            <Lock className="w-4 h-4 text-white" strokeWidth={2.5} />
           </div>
           <h2 className="text-white font-bold uppercase tracking-widest text-sm mb-1">{title}</h2>
-          <p className="text-white/50 text-xs font-medium leading-tight px-2">{subtitle}</p>
+          <p className="text-[#06B6D4]/70 text-xs font-medium leading-tight px-2">{subtitle}</p>
         </div>
 
         {/* PIN label + display */}
         <div className="relative flex flex-col items-center gap-1.5 mb-5 w-full">
-          <div className="flex items-center gap-1.5 text-white/90">
+          <div className="flex items-center gap-1.5 text-[#06B6D4]/90">
             <ShieldCheck className="w-4 h-4" strokeWidth={2.5} />
             <span className="text-[10px] font-bold uppercase tracking-widest">{pinLabel}</span>
           </div>
 
           <div className="w-full h-12 rounded-xl flex items-center justify-center relative overflow-hidden"
-            style={{ background: 'rgba(0,82,255,0.15)', border: '2px solid rgba(0,82,255,0.3)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)' }}>
+            style={{ background: 'rgba(6,182,212,0.10)', border: '2px solid rgba(6,182,212,0.30)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}>
             <div className="flex items-center gap-5">
               {[0, 1, 2, 3].map((i) => (
                 <div key={i} className="relative flex items-center justify-center">
                   {filledCount === i && (
                     <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                      className="absolute -left-2.5 h-8 w-[2px] rounded-full bg-brand-400" />
+                      className="absolute -left-2.5 h-8 w-[2px] rounded-full"
+                      style={{ background: '#06B6D4' }} />
                   )}
                   <motion.div
                     animate={filledCount > i ? { scale: [1, 1.3, 1] } : { scale: 1 }}
                     transition={{ duration: 0.18 }}
                     className="w-3.5 h-3.5 rounded-full transition-colors duration-200"
                     style={filledCount > i
-                      ? { background: '#00D1FF', boxShadow: '0 0 10px 3px rgba(0,209,255,0.55)' }
+                      ? { background: 'linear-gradient(110deg, #06B6D4, #0052FF)', boxShadow: '0 0 10px 3px rgba(6,182,212,0.55)' }
                       : { background: 'rgba(255,255,255,0.18)' }}
                   />
                   {filledCount === 4 && i === 3 && (
                     <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                      className="absolute -right-2.5 h-8 w-[2px] rounded-full bg-brand-400" />
+                      className="absolute -right-2.5 h-8 w-[2px] rounded-full"
+                      style={{ background: '#06B6D4' }} />
                   )}
                 </div>
               ))}
@@ -203,9 +205,9 @@ export function PinPadModal({
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
             <button key={n} type="button" onClick={() => handleKey(n)}
               className="h-12 rounded-xl font-bold text-xl text-white active:scale-95 transition-all"
-              style={{ background: 'linear-gradient(160deg, rgba(0,52,180,0.55) 0%, rgba(0,26,102,0.7) 100%)', border: '1px solid rgba(0,82,255,0.22)', boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)' }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,209,255,0.5)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(0,82,255,0.22)')}
+              style={{ background: 'linear-gradient(160deg, rgba(6,100,140,0.50) 0%, rgba(0,40,120,0.65) 100%)', border: '1px solid rgba(6,182,212,0.22)', boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07)' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(6,182,212,0.55)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(6,182,212,0.22)')}
             >
               {n}
             </button>
@@ -214,7 +216,7 @@ export function PinPadModal({
           {/* Bottom row — sinistra: leftActionButton > biometrica interna > placeholder */}
           {leftActionButton ? (
             <div className="h-12 rounded-xl flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(6,182,212,0.15)' }}>
               {leftActionButton}
             </div>
           ) : webAuthnOk ? (
@@ -224,8 +226,8 @@ export function PinPadModal({
                 type="button"
                 onClick={handleBiometric}
                 disabled={bioLoading || isLoading}
-                className="h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 text-accent active:scale-95 transition-all disabled:opacity-50"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(0,82,255,0.25)' }}
+                className="h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 text-[#06B6D4] active:scale-95 transition-all disabled:opacity-50"
+                style={{ background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.30)' }}
                 title="Usa impronta digitale"
               >
                 {bioLoading
@@ -238,35 +240,35 @@ export function PinPadModal({
                 type="button"
                 onClick={handleBioRegister}
                 disabled={bioRegLoading || isLoading}
-                className="h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-white/60 active:scale-95 transition-all"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                className="h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 text-[#06B6D4]/60 hover:text-[#06B6D4] active:scale-95 transition-all"
+                style={{ background: 'rgba(6,182,212,0.05)', border: '1px solid rgba(6,182,212,0.15)' }}
                 title="Collega impronta digitale"
               >
                 {bioRegLoading
                   ? <Loader2 className="w-4 h-4 animate-spin" />
-                  : <Smartphone className="w-4.5 h-4.5 text-[#455a3f]" style={{ width: '1.125rem', height: '1.125rem' }} />}
+                  : <Smartphone style={{ width: '1.125rem', height: '1.125rem' }} />}
                 <span className="text-[7px] font-black uppercase tracking-tighter leading-none">Collega</span>
               </button>
             )
           ) : (
             /* WebAuthn non disponibile → placeholder */
             <div className="h-12 rounded-xl flex items-center justify-center opacity-20"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(6,182,212,0.10)' }}>
               <Fingerprint className="w-5 h-5 text-white/30" />
             </div>
           )}
 
           <button type="button" onClick={() => handleKey(0)}
             className="h-12 rounded-xl font-bold text-xl text-white active:scale-95 transition-all"
-            style={{ background: 'linear-gradient(160deg, rgba(0,52,180,0.55) 0%, rgba(0,26,102,0.7) 100%)', border: '1px solid rgba(0,82,255,0.22)', boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)' }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,209,255,0.5)')}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(0,82,255,0.22)')}>
+            style={{ background: 'linear-gradient(160deg, rgba(6,100,140,0.50) 0%, rgba(0,40,120,0.65) 100%)', border: '1px solid rgba(6,182,212,0.22)', boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07)' }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(6,182,212,0.55)')}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(6,182,212,0.22)')}>
             0
           </button>
 
           <button type="button" onClick={() => handleKey('del')}
-            className="h-12 rounded-xl flex items-center justify-center text-white/40 hover:text-white/75 active:scale-95 transition-all"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            className="h-12 rounded-xl flex items-center justify-center text-white/40 hover:text-[#06B6D4]/80 active:scale-95 transition-all"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(6,182,212,0.12)' }}>
             <Delete className="w-5 h-5" />
           </button>
         </div>
@@ -274,13 +276,13 @@ export function PinPadModal({
         {/* Action Buttons */}
         <div className="relative flex gap-2 w-full">
           <button type="button" onClick={onCancel}
-            className="flex-1 h-11 rounded-xl font-bold text-sm text-white/70 hover:text-white active:scale-95 transition-all"
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.14)' }}>
+            className="flex-1 h-11 rounded-xl font-bold text-sm text-white/60 hover:text-white active:scale-95 transition-all"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(6,182,212,0.15)' }}>
             {cancelLabel}
           </button>
           <button type="button" disabled={pin.length !== 4 || isLoading} onClick={onConfirm}
             className="flex-1 h-11 rounded-xl text-white font-bold text-sm disabled:opacity-35 disabled:grayscale active:scale-95 transition-all flex items-center justify-center gap-2"
-            style={{ background: 'linear-gradient(135deg, #0052FF 0%, #003ACC 100%)', border: '1px solid rgba(0,209,255,0.35)', boxShadow: '0 4px 20px rgba(0,82,255,0.45)' }}>
+            style={{ background: 'linear-gradient(110deg, #06B6D4 0%, #0052FF 100%)', border: '1px solid rgba(6,182,212,0.45)', boxShadow: '0 4px 20px rgba(0,82,255,0.40)' }}>
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : confirmLabel}
           </button>
         </div>

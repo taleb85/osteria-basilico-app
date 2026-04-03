@@ -24,7 +24,7 @@ export default defineConfig({
       /** In dev niente SW: evita cache / navigate che sembrano “/app non funziona” su 127.0.0.1:5173. */
       devOptions: { enabled: false },
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon.svg', 'flow-app-icon.svg', 'pwa-splash.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'flow-app-icon.png', 'flow-app-icon-new.png', 'pwa-splash.svg'],
       manifest: {
         name: 'FLOW',
         short_name: 'FLOW',
@@ -37,7 +37,7 @@ export default defineConfig({
         orientation: 'any',
         scope: '/',
         icons: [
-          { src: '/flow-app-icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: '/flow-app-icon.png', sizes: '1024x1024', type: 'image/png', purpose: 'any' },
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

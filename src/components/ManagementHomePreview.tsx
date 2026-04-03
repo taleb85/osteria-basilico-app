@@ -21,7 +21,7 @@ import type { User, Language } from '../types';
 import { isPurelyManagementRole } from '../utils/permissions';
 import { getTranslations } from '../utils/translations';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
-import { HomeManagementShiftCard, type HomeManagementShiftCardProps } from './HomePage';
+import { HomeManagementShiftCard, type HomeManagementShiftCardProps } from './HomeManagementShiftCard';
 import { WidgetChrome } from './profilePreview/WidgetChrome';
 
 type ShiftEntry = HomeManagementShiftCardProps['e'];

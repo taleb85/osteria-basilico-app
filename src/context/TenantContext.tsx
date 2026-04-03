@@ -288,7 +288,7 @@ function generatePngFavicon(logoSrc: string, size: number): Promise<string> {
 export function updatePWAManifest(_tenant: Tenant): void {
   const origin = window.location.origin;
   // Usa sempre l'icona FLOW — ignorando logo/colori del tenant
-  const logoSrc = `${origin}/icon.svg`;
+  const logoSrc = `${origin}/flow-app-icon.png`;
 
   // Genera PNG reali via Canvas per i due formati richiesti dal manifest
   Promise.all([
@@ -296,11 +296,11 @@ export function updatePWAManifest(_tenant: Tenant): void {
     generatePngFavicon(logoSrc, 512),
   ])
     .then(([png192, png512]) => {
-      _applyPWAManifest(tenant, origin, png192, png512);
+      _applyPWAManifest(_tenant, origin, png192, png512);
     })
     .catch(() => {
       // Fallback: icone statiche già presenti nel public folder
-      _applyPWAManifest(tenant, origin, `${origin}/icon-192.png`, `${origin}/icon-512.png`);
+      _applyPWAManifest(_tenant, origin, `${origin}/icon-192.png`, `${origin}/icon-512.png`);
     });
 }
 
@@ -424,8 +424,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach(m => {
       m.content = FLOW_BRAND_COLOR;
     });
-    // Favicon → sempre icon.svg FLOW (ignora logo del tenant per il brand globale)
-    updateFavicon('/icon.svg');
+    // Favicon → sempre icona FLOW PNG (ignora logo del tenant per il brand globale)
+    updateFavicon('/icon-192.png');
   };
 
   useEffect(() => {
@@ -528,7 +528,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   };
 
   // Logo URL: sempre FLOW — lo slug/tenant non influisce sul branding visivo
-  const tenantLogoUrl = '/flow-app-icon.svg';
+  const tenantLogoUrl = '/flow-app-icon.png';
 
   return (
     <TenantContext.Provider

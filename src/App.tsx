@@ -24,7 +24,7 @@ import { Wrench } from 'lucide-react';
 import { persistStoredUiLanguage } from './utils/uiLanguagePreference';
 import { PATH_TIMBRATURA, PATH_PROFILO } from './config/appPaths';
 import { APP_SESSION_STORAGE_KEY } from './constants/appSession';
-import { getUnifiedNavTabs, getBottomNavTabsForMainApp, type AppNavTab } from './utils/enabledModules';
+import { getUnifiedNavTabs, getBottomNavTabsForMainApp, getAppNavTabTitle, type AppNavTab } from './utils/enabledModules';
 import {
   readMainViewState,
   writeMainViewState,
@@ -468,6 +468,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         style={activeTab === 'profile' ? { paddingTop: 'max(6px, env(safe-area-inset-top, 0px))' } : undefined}
       >
         <div className="w-full flex-1 app-main-top-pad app-horizontal-pad">
+          {activeTab !== 'profile' && (
+            <p
+              className="text-sm sm:text-base font-extrabold tracking-widest leading-tight truncate uppercase mb-3"
+              style={{ background: 'linear-gradient(110deg, #06B6D4 0%, #0052FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
+            >
+              {getAppNavTabTitle(tr, activeTab)}
+            </p>
+          )}
           {noNavTabs ? (
             <div className="rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-10 pb-content text-center text-sm text-amber-950 max-w-lg mx-auto">
               {(tr as Record<string, string>).app_all_nav_tabs_disabled}

@@ -1330,16 +1330,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       border: 'border-2 border-dashed border-slate-400 dark:border-white/75 rounded-xl shadow-sm',
     },
     inprogress: {
-      bg: 'bg-accent/8 hover:bg-accent/12 dark:bg-accent/10 dark:hover:bg-accent/15',
+      bg: 'bg-[#06B6D4]/8 hover:bg-[#06B6D4]/12 dark:bg-[#06B6D4]/10 dark:hover:bg-[#06B6D4]/15',
       text: 'text-slate-900 dark:text-white',
-      selRing: 'ring-accent/55',
-      border: 'border-2 border-accent/70 dark:border-accent/50 rounded-xl shadow-sm',
+      selRing: 'ring-[#06B6D4]/55',
+      border: 'border-2 border-[#06B6D4]/70 dark:border-[#06B6D4]/50 rounded-xl shadow-sm',
     },
     approved: {
       bg: 'bg-accent hover:bg-accent-hover',
       text: 'text-white',
       selRing: 'ring-white/80',
-      border: 'border-2 border-accent rounded-xl',
+      border: 'border-2 border-[#06B6D4]/60 rounded-xl',
     },
     punchMissing: {
       bg: 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/45 dark:hover:bg-amber-950/60',
@@ -1804,7 +1804,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               </span>
               {periodPayrollChipDatesWst && (
                 <span
-                  className="hidden min-[480px]:inline-flex h-[22px] max-w-[min(100%,20rem)] shrink-0 items-center truncate rounded-lg border border-[#00D1FF]/40 dark:border-[#00D1FF]/25 bg-[#00D1FF]/10 dark:bg-[#00D1FF]/5 px-2 text-[10px] font-bold text-[#0099CC] dark:text-[#00D1FF]"
+                  className="hidden min-[480px]:inline-flex h-[22px] max-w-[min(100%,20rem)] shrink-0 items-center truncate rounded-lg border border-[#06B6D4]/40 dark:border-[#06B6D4]/25 bg-[#06B6D4]/10 dark:bg-[#06B6D4]/5 px-2 text-[10px] font-bold text-[#0284C7] dark:text-[#06B6D4]"
                   title={periodPayrollChipDatesWst}
                 >
                   {formatTrans((t as Record<string, string>).wst_month_payroll_chip ?? 'Pagamento: {date}', {
@@ -2140,9 +2140,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         check: true,
                       },
                       {
-                        bg: 'bg-white dark:bg-neutral-900',
-                        border: 'border border-slate-200 dark:border-white/15',
-                        textCls: 'text-accent dark:text-accent',
+                        bg: 'bg-[#06B6D4]/8 dark:bg-[#06B6D4]/10',
+                        border: 'border-2 border-[#06B6D4]/70 dark:border-[#06B6D4]/50',
+                        textCls: 'text-[#0284C7] dark:text-[#06B6D4]',
                         label: t.wst_filter_published,
                         sub: t.wst_status_sub_published,
                         check: false,
@@ -3071,7 +3071,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       !inPlanning
                         ? 'bg-slate-50/80 dark:bg-neutral-900/90 hover:bg-slate-100/90 dark:hover:bg-neutral-800'
                         : isPayrollDay
-                          ? 'bg-[#00D1FF]/10 dark:bg-[#00D1FF]/5 ring-1 ring-inset ring-[#00D1FF]/40 dark:ring-[#00D1FF]/20 hover:bg-[#00D1FF]/15'
+                          ? 'bg-[#06B6D4]/10 dark:bg-[#06B6D4]/5 ring-1 ring-inset ring-[#06B6D4]/40 dark:ring-[#06B6D4]/20 hover:bg-[#06B6D4]/15'
                           : isTodayDate
                             ? 'bg-accent/5 hover:bg-accent/10'
                             : 'bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800'
@@ -3084,17 +3084,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           ? 'bg-accent text-white'
                           : !inPlanning
                             ? isPayrollDay
-                              ? 'bg-[#00D1FF]/20 dark:bg-[#00D1FF]/10 text-slate-700 dark:text-neutral-200 ring-1 ring-[#00D1FF]/40'
+                              ? 'bg-[#06B6D4]/20 dark:bg-[#06B6D4]/10 text-slate-700 dark:text-neutral-200 ring-1 ring-[#06B6D4]/40'
                               : 'text-slate-300 dark:text-neutral-600'
                             : isPayrollDay
-                              ? 'bg-[#00D1FF] text-white'
+                              ? 'bg-[#06B6D4] text-white'
                               : 'text-slate-700 dark:text-neutral-200'
                       }`}
                     >
                       {format(day, 'd')}
                     </span>
                     {isPayrollDay && (
-                      <span className="mt-1 block text-[8px] font-bold uppercase tracking-wide text-[#0099CC] dark:text-[#00D1FF]">
+                      <span className="mt-1 block text-[8px] font-bold uppercase tracking-wide text-[#0284C7] dark:text-[#06B6D4]">
                         {tr.ts_payroll_day_abbr ?? 'Paga'}
                       </span>
                     )}
@@ -3328,13 +3328,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     ? dayVariant === 'planned'
                                       ? 'border-b-2 border-dashed border-slate-300 dark:border-white/55'
                                       : dayVariant === 'inprogress'
-                                        ? 'border-b-2 border-[#00D1FF]/55 dark:border-[#00D1FF]/40'
+                                        ? 'border-b-2 border-[#06B6D4]/60 dark:border-[#06B6D4]/45'
                                         : dayVariant === 'punchMissing'
                                           ? 'border-b-2 border-amber-500/55 dark:border-amber-600/40'
                                           : dayVariant === 'absent'
                                             ? 'border-b-2 border-rose-400/60 dark:border-rose-600/40'
                                             : dayVariant === 'approved'
-                                              ? 'border-b-2 border-[#0052FF]/35 dark:border-[#00D1FF]/35'
+                                              ? 'border-b-2 border-[#06B6D4]/50 dark:border-[#0052FF]/45'
                                               : 'border-b-2 border-slate-400 dark:border-white/45'
                                     : 'border-b-2 border-slate-400 dark:border-white/45'
                                 } relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? (dragCopyMode ? 'bg-accent/10 dark:bg-accent/15 border-2 border-accent dark:border-accent/80' : 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600') : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
@@ -3394,7 +3394,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       {/* Barra sinistra: turno pubblicato (tabellone) */}
                                       {showPublishedBarDay && (
                                         <span
-                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-[#00D1FF] dark:bg-[#00D1FF]`}
+                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-[#06B6D4] dark:bg-[#06B6D4]`}
                                           title={t.wst_filter_published}
                                           aria-hidden
                                         />
@@ -3498,7 +3498,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                                         : dayVariant === 'punchMissing'
                                                           ? 'bg-amber-200/90 text-amber-950 dark:bg-amber-900/45 dark:text-amber-100'
                                                           : dayVariant === 'inprogress'
-                                                            ? 'bg-[#00D1FF]/20 text-slate-900 dark:bg-[#00D1FF]/20 dark:text-white'
+                                                            ? 'bg-[#06B6D4]/20 text-slate-900 dark:bg-[#06B6D4]/20 dark:text-white'
                                                             : 'bg-slate-200 text-slate-600 dark:bg-slate-600/80 dark:text-slate-200'
                                                   }`}
                                                 >
@@ -3614,7 +3614,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       {/* Barra sinistra: turno pubblicato (tabellone) */}
                                       {showPublishedBarEv && (
                                         <span
-                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-[#00D1FF] dark:bg-[#00D1FF]`}
+                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-[#06B6D4] dark:bg-[#06B6D4]`}
                                           title={t.wst_filter_published}
                                           aria-hidden
                                         />
@@ -4228,7 +4228,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             </div>
                           </div>
                           {isFrozen && shift.approved_start_time && shift.approved_end_time && (
-                            <p className="text-[11px] text-[#0052FF] dark:text-[#00D1FF] font-semibold mt-2">
+                            <p className="text-[11px] text-[#0052FF] dark:text-[#06B6D4] font-semibold mt-2">
                               Ore congelate: {(shift.approved_start_time || '').slice(0, 5)} –{' '}
                               {(shift.approved_end_time || '').slice(0, 5)}
                             </p>
@@ -4261,12 +4261,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const hasIn = drawerTimbrature.inTime !== '—';
                           const hasOut = drawerTimbrature.outTime !== '—';
                           const timbCard = hasIn && hasOut
-                            ? 'border-2 border-l-4 border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#00C896] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
+                            ? 'border-2 border-l-4 border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#06B6D4] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
                             : hasIn
                             ? 'border-2 border-l-4 border-amber-300/80 dark:border-amber-700/50 border-l-review bg-amber-50 dark:bg-amber-950/35'
                             : 'border-2 border-l-4 border-slate-200 dark:border-white/10 border-l-slate-300 bg-slate-50/90 dark:bg-neutral-800/80';
                           const labelCls = hasIn && hasOut
-                            ? 'text-[#0052FF] dark:text-[#00D1FF]'
+                            ? 'text-[#0052FF] dark:text-[#06B6D4]'
                             : hasIn
                             ? 'text-amber-700 dark:text-amber-400'
                             : 'text-slate-400 dark:text-neutral-400';
@@ -4276,7 +4276,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-neutral-300">
-                                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasIn ? 'bg-[#00D1FF]' : 'bg-slate-300 dark:bg-neutral-600'}`} aria-hidden />
+                                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasIn ? 'bg-[#06B6D4]' : 'bg-slate-300 dark:bg-neutral-600'}`} aria-hidden />
                                     {t.wst_punch_in_label}
                                   </p>
                                   <p className={`text-sm font-bold tabular-nums ${hasIn ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-400 dark:text-neutral-500'}`}>{drawerTimbrature.inTime}</p>
@@ -4285,7 +4285,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   ) : drawerTimbrature.inMode === 'manual' ? (
                                     <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_manual}</p>
                                   ) : drawerTimbrature.inMode === 'frozen' ? (
-                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-[#0052FF] dark:text-[#00D1FF]">{t.wst_punch_mode_frozen}</p>
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-[#0052FF] dark:text-[#06B6D4]">{t.wst_punch_mode_frozen}</p>
                                   ) : null}
                                 </div>
                                 <div>
@@ -4299,7 +4299,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   ) : drawerTimbrature.outMode === 'manual' ? (
                                     <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_manual}</p>
                                   ) : drawerTimbrature.outMode === 'frozen' ? (
-                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-[#0052FF] dark:text-[#00D1FF]">{t.wst_punch_mode_frozen}</p>
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-[#0052FF] dark:text-[#06B6D4]">{t.wst_punch_mode_frozen}</p>
                                   ) : null}
                                 </div>
                               </div>
@@ -4312,14 +4312,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const delta = actualNetMins != null && plannedNetMins != null ? actualNetMins - plannedNetMins : null;
                           const hoursCard = actualNetMins != null && plannedNetMins != null
                             ? delta! >= 0
-                              ? 'border-2 border-l-4 border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#00C896] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
+                              ? 'border-2 border-l-4 border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#06B6D4] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
                               : 'border-2 border-l-4 border-amber-300/80 dark:border-amber-700/50 border-l-review bg-amber-50 dark:bg-amber-950/35'
                             : 'border-2 border-l-4 border-slate-200 dark:border-white/10 border-l-slate-300 bg-slate-50/90 dark:bg-neutral-800/80';
                           const hoursLabelCls = actualNetMins != null && plannedNetMins != null
-                            ? delta! >= 0 ? 'text-[#0052FF] dark:text-[#00D1FF]' : 'text-amber-700 dark:text-amber-400'
+                            ? delta! >= 0 ? 'text-[#0052FF] dark:text-[#06B6D4]' : 'text-amber-700 dark:text-amber-400'
                             : 'text-slate-400 dark:text-neutral-400';
                           const actualCls = actualNetMins != null && plannedNetMins != null
-                            ? delta! > 0 ? 'text-[#0052FF] dark:text-[#00D1FF]' : delta! < 0 ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-neutral-100'
+                            ? delta! > 0 ? 'text-[#0052FF] dark:text-[#06B6D4]' : delta! < 0 ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-neutral-100'
                             : 'text-accent';
                           return (
                             <div className={`space-y-2 rounded-xl p-3.5 ${hoursCard}`}>

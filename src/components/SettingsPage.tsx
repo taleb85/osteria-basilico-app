@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud, RefreshCw, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud, RefreshCw, ChevronLeft, ChevronRight, Calendar, Mail } from 'lucide-react';
 import { format, parseISO, addDays } from 'date-fns';
 import {
   loadPeriodConfig,
@@ -230,6 +230,23 @@ export default function SettingsPage() {
   const [geoSaving, setGeoSaving] = useState(false);
   const [geoAcquiring, setGeoAcquiring] = useState(false);
   const [presenceQrBusy, setPresenceQrBusy] = useState(false);
+
+  // ── Email richieste ferie ─────────────────────────────────────────────────
+  const HOLIDAY_EMAIL_KEY = 'osteria_holiday_request_email';
+  const [holidayEmail, setHolidayEmail] = useState<string>(() => {
+    try { return localStorage.getItem(HOLIDAY_EMAIL_KEY) ?? ''; } catch { return ''; }
+  });
+  const [holidayEmailDraft, setHolidayEmailDraft] = useState<string>(holidayEmail);
+  const [holidayEmailSaved, setHolidayEmailSaved] = useState(false);
+
+  const saveHolidayEmail = () => {
+    try {
+      localStorage.setItem(HOLIDAY_EMAIL_KEY, holidayEmailDraft.trim());
+      setHolidayEmail(holidayEmailDraft.trim());
+      setHolidayEmailSaved(true);
+      setTimeout(() => setHolidayEmailSaved(false), 2000);
+    } catch { /* ignore */ }
+  };
 
   // ── Periodo Presenze ──────────────────────────────────────────────────────
   const [periodCfg, setPeriodCfg] = useState<PeriodConfig>(() => loadPeriodConfig());
@@ -1697,49 +1714,74 @@ export default function SettingsPage() {
           </SettingsAccordionSection>
         )}
 
-        {adminOnly && (
-          <div className="rounded-2xl border border-accent/25 bg-accent/[0.04] dark:border-accent/20 dark:bg-accent/[0.07] p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex gap-3 min-w-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
-                <UploadCloud className="h-5 w-5" aria-hidden />
+        {/* ── Email richieste ferie ──────────────────────────────────────────── */}
+        {isManager && (
+          <SettingsAccordionSection
+            storageKey="osteria_settings_acc_holiday_email"
+            title="Email richieste ferie"
+            subtitle={holidayEmail ? holidayEmail : 'Nessuna email configurata'}
+            defaultOpen={false}
+          >
+            <div className="surface-glass bg-slate-50/50 p-4 dark:bg-neutral-900/20 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#06B6D4]/10 text-[#0284C7] dark:text-[#06B6D4]">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100 leading-tight">
+                    Destinatario richieste ferie
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-neutral-400 leading-snug">
+                    Quando un dipendente invia una richiesta di ferie, la mail viene indirizzata a questo indirizzo.
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.settings_cloud_sync_heading}</p>
-                <p className="text-xs text-slate-600 dark:text-neutral-400 mt-0.5 leading-relaxed">{t.settings_cloud_sync_hint}</p>
-                <p className="text-[11px] font-medium text-accent mt-1.5">
-                  {settingsCloudLastSyncedAt
-                    ? formatTrans(t.settings_cloud_synced_at, {
-                        when: new Date(settingsCloudLastSyncedAt).toLocaleString(
-                          effectiveLanguage === 'en' ? 'en-GB' : effectiveLanguage === 'es' ? 'es-ES' : effectiveLanguage === 'fr' ? 'fr-FR' : 'it-IT',
-                          { dateStyle: 'short', timeStyle: 'short' }
-                        ),
-                      })
-                    : t.settings_cloud_never}
-                  {dataSyncInProgress ? ` · ${t.ui_ellipsis}` : ''}
-                </p>
+
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#06B6D4]/60 pointer-events-none" />
+                  <input
+                    type="email"
+                    value={holidayEmailDraft}
+                    onChange={(e) => setHolidayEmailDraft(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveHolidayEmail(); }}
+                    placeholder="es. direzione@azienda.it"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#06B6D4]/25 dark:border-[#06B6D4]/20 bg-white dark:bg-neutral-900 text-sm text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 outline-none transition-all focus:border-[#06B6D4] focus:ring-2 focus:ring-[#06B6D4]/20 focus:shadow-[0_0_0_3px_rgba(6,182,212,0.10)]"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={saveHolidayEmail}
+                  disabled={holidayEmailDraft.trim() === holidayEmail}
+                  className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]"
+                  style={{ background: 'linear-gradient(110deg, #06B6D4, #0052FF)' }}
+                >
+                  {holidayEmailSaved ? (
+                    <><Check className="h-3.5 w-3.5" />Salvata</>
+                  ) : (
+                    'Salva'
+                  )}
+                </button>
               </div>
+
+              {holidayEmail && (
+                <div className="flex items-center justify-between rounded-xl border border-[#06B6D4]/20 bg-[#06B6D4]/5 dark:bg-[#06B6D4]/8 px-3 py-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Check className="h-3.5 w-3.5 flex-shrink-0 text-[#0284C7] dark:text-[#06B6D4]" />
+                    <span className="text-xs font-medium text-[#0284C7] dark:text-[#06B6D4] truncate">{holidayEmail}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setHolidayEmailDraft(''); setHolidayEmail(''); try { localStorage.removeItem(HOLIDAY_EMAIL_KEY); } catch { /* */ } }}
+                    className="ml-2 flex-shrink-0 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    title="Rimuovi email"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
-            <div className="flex flex-wrap gap-2 shrink-0">
-              <button
-                type="button"
-                disabled={pullSyncBusy || pushSyncBusy || dataSyncInProgress}
-                onClick={() => void handlePullSync()}
-                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-accent/40 bg-white/80 dark:bg-neutral-800/60 px-4 text-xs font-bold uppercase tracking-wider text-accent hover:bg-accent/10 disabled:opacity-60 transition-colors"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${pullSyncBusy ? 'animate-spin' : ''}`} />
-                {pullSyncBusy ? t.ui_ellipsis : 'Sincronizza'}
-              </button>
-              <button
-                type="button"
-                disabled={pushSyncBusy || settingsCloudPushBusy || pullSyncBusy || dataSyncInProgress}
-                onClick={() => void handlePushSync()}
-                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl bg-accent px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-accent-dark disabled:opacity-60 shadow-sm shadow-accent/30 transition-colors"
-              >
-                <UploadCloud className={`h-3.5 w-3.5 ${pushSyncBusy ? 'animate-spin' : ''}`} />
-                {pushSyncBusy ? t.ui_ellipsis : t.settings_cloud_save_all_devices}
-              </button>
-            </div>
-          </div>
+          </SettingsAccordionSection>
         )}
 
         {/* ── MASTER CONTROL PANEL (solo Admin — le funzioni si assegnano da Impostazioni e Permessi) ── */}
@@ -2007,91 +2049,106 @@ export default function SettingsPage() {
                           {t.report_csv}
                         </button>
                       </div>
-                      <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/90 p-3 dark:border-white/10 dark:bg-neutral-800/60">
-                        <button
-                          type="button"
-                          disabled={resettingData}
-                          onClick={async () => {
-                            if (!window.confirm(t.settings_reset_data_confirm)) return;
-                            setResettingData(true);
-                            try {
-                              await hardResetTestData();
-                              showSuccess(t.settings_reset_done);
-                              setImportStatus({ type: 'success', message: t.settings_dashboard_cleared });
-                              setTimeout(() => setImportStatus(null), 4000);
-                            } catch (e) {
-                              showError(e instanceof Error ? e.message : t.settings_reset_error);
-                              setImportStatus({ type: 'error', message: t.settings_reset_data_error_detail });
-                              setTimeout(() => setImportStatus(null), 3000);
-                            } finally {
-                              setResettingData(false);
-                            }
-                          }}
-                          className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-amber-800 hover:bg-amber-100 disabled:opacity-60 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/55"
-                        >
-                          {resettingData ? t.ui_ellipsis : t.settings_reset_test_data_btn}
-                        </button>
-                        <div className="space-y-2">
-                          <label htmlFor="osteria-demo-profile-user-settings" className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
-                            {t.settings_seed_demo_profile_pick_user}
-                          </label>
-                          {demoProfileCandidates.length === 0 ? (
-                            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200">
-                              {t.settings_seed_demo_profile_no_staff}
-                            </p>
-                          ) : (
-                            <select
-                              id="osteria-demo-profile-user-settings"
-                              value={demoProfileTargetUserId}
-                              onChange={(e) => setDemoProfileTargetUserId(e.target.value)}
-                              className={deptPermissionCategorySelectClass}
-                            >
-                              {demoProfileCandidates.map((u) => (
-                                <option key={u.id} value={u.id}>
-                                  {[u.first_name, u.last_name].filter(Boolean).join(' ').trim() || u.email}
-                                </option>
-                              ))}
-                            </select>
-                          )}
-                          <button
-                            type="button"
-                            disabled={
-                              seedingDemoProfile ||
-                              resettingData ||
-                              !demoProfileTargetUserId ||
-                              demoProfileCandidates.length === 0
-                            }
-                            onClick={async () => {
-                              if (!window.confirm(t.settings_seed_demo_profile_confirm)) return;
-                              setSeedingDemoProfile(true);
-                              try {
-                                await seedDemoProfileForUser(demoProfileTargetUserId);
-                                showSuccess(t.settings_seed_demo_profile_done);
-                                setImportStatus({
-                                  type: 'success',
-                                  message: t.settings_seed_demo_profile_done,
-                                });
-                                setTimeout(() => setImportStatus(null), 4000);
-                              } catch (e) {
-                                showError(e instanceof Error ? e.message : t.settings_seed_demo_profile_error);
-                                setImportStatus({
-                                  type: 'error',
-                                  message: t.settings_seed_demo_profile_error,
-                                });
-                                setTimeout(() => setImportStatus(null), 3000);
-                              } finally {
-                                setSeedingDemoProfile(false);
-                              }
-                            }}
-                            className="w-full rounded-lg border border-brand-200 bg-brand-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-brand-800 hover:bg-brand-100 disabled:opacity-60 dark:border-brand-800/50 dark:bg-[#0052FF]/8 dark:text-brand-200 dark:hover:bg-[#0052FF]/12"
-                          >
-                            {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
-                          </button>
-                          <p className="text-[10px] text-slate-500 dark:text-neutral-300 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
-                        </div>
-                      </div>
                     </div>
                   </div>
+          </SettingsAccordionSection>
+        )}
+
+        {/* ── Dati demo — estratto come sezione separata ─────────────────────── */}
+        {adminOnly && (
+          <SettingsAccordionSection
+            storageKey="osteria_settings_acc_demo_data"
+            title="Dati demo"
+            subtitle="Reset dati di test e profilo demo"
+            defaultOpen={false}
+          >
+            <div className="surface-glass-sm overflow-hidden">
+              <div className="space-y-3 p-4">
+                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/90 p-3 dark:border-white/10 dark:bg-neutral-800/60">
+                  <button
+                    type="button"
+                    disabled={resettingData}
+                    onClick={async () => {
+                      if (!window.confirm(t.settings_reset_data_confirm)) return;
+                      setResettingData(true);
+                      try {
+                        await hardResetTestData();
+                        showSuccess(t.settings_reset_done);
+                        setImportStatus({ type: 'success', message: t.settings_dashboard_cleared });
+                        setTimeout(() => setImportStatus(null), 4000);
+                      } catch (e) {
+                        showError(e instanceof Error ? e.message : t.settings_reset_error);
+                        setImportStatus({ type: 'error', message: t.settings_reset_data_error_detail });
+                        setTimeout(() => setImportStatus(null), 3000);
+                      } finally {
+                        setResettingData(false);
+                      }
+                    }}
+                    className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-amber-800 hover:bg-amber-100 disabled:opacity-60 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/55"
+                  >
+                    {resettingData ? t.ui_ellipsis : t.settings_reset_test_data_btn}
+                  </button>
+                  <div className="space-y-2">
+                    <label htmlFor="osteria-demo-profile-user-settings" className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
+                      {t.settings_seed_demo_profile_pick_user}
+                    </label>
+                    {demoProfileCandidates.length === 0 ? (
+                      <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200">
+                        {t.settings_seed_demo_profile_no_staff}
+                      </p>
+                    ) : (
+                      <select
+                        id="osteria-demo-profile-user-settings"
+                        value={demoProfileTargetUserId}
+                        onChange={(e) => setDemoProfileTargetUserId(e.target.value)}
+                        className={deptPermissionCategorySelectClass}
+                      >
+                        {demoProfileCandidates.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {[u.first_name, u.last_name].filter(Boolean).join(' ').trim() || u.email}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <button
+                      type="button"
+                      disabled={
+                        seedingDemoProfile ||
+                        resettingData ||
+                        !demoProfileTargetUserId ||
+                        demoProfileCandidates.length === 0
+                      }
+                      onClick={async () => {
+                        if (!window.confirm(t.settings_seed_demo_profile_confirm)) return;
+                        setSeedingDemoProfile(true);
+                        try {
+                          await seedDemoProfileForUser(demoProfileTargetUserId);
+                          showSuccess(t.settings_seed_demo_profile_done);
+                          setImportStatus({
+                            type: 'success',
+                            message: t.settings_seed_demo_profile_done,
+                          });
+                          setTimeout(() => setImportStatus(null), 4000);
+                        } catch (e) {
+                          showError(e instanceof Error ? e.message : t.settings_seed_demo_profile_error);
+                          setImportStatus({
+                            type: 'error',
+                            message: t.settings_seed_demo_profile_error,
+                          });
+                          setTimeout(() => setImportStatus(null), 3000);
+                        } finally {
+                          setSeedingDemoProfile(false);
+                        }
+                      }}
+                      className="w-full rounded-lg border border-brand-200 bg-brand-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-brand-800 hover:bg-brand-100 disabled:opacity-60 dark:border-brand-800/50 dark:bg-[#0052FF]/8 dark:text-brand-200 dark:hover:bg-[#0052FF]/12"
+                    >
+                      {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
+                    </button>
+                    <p className="text-[10px] text-slate-500 dark:text-neutral-300 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </SettingsAccordionSection>
         )}
 
@@ -2107,6 +2164,52 @@ export default function SettingsPage() {
               </div>
             </div>
           </SettingsAccordionSection>
+        )}
+
+        {/* ── Sincronizzazione cloud — in fondo alla scheda ─────────────────── */}
+        {adminOnly && (
+          <div className="rounded-2xl border border-accent/25 bg-accent/[0.04] dark:border-accent/20 dark:bg-accent/[0.07] p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex gap-3 min-w-0">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
+                <UploadCloud className="h-5 w-5" aria-hidden />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.settings_cloud_sync_heading}</p>
+                <p className="text-xs text-slate-600 dark:text-neutral-400 mt-0.5 leading-relaxed">{t.settings_cloud_sync_hint}</p>
+                <p className="text-[11px] font-medium text-accent mt-1.5">
+                  {settingsCloudLastSyncedAt
+                    ? formatTrans(t.settings_cloud_synced_at, {
+                        when: new Date(settingsCloudLastSyncedAt).toLocaleString(
+                          effectiveLanguage === 'en' ? 'en-GB' : effectiveLanguage === 'es' ? 'es-ES' : effectiveLanguage === 'fr' ? 'fr-FR' : 'it-IT',
+                          { dateStyle: 'short', timeStyle: 'short' }
+                        ),
+                      })
+                    : t.settings_cloud_never}
+                  {dataSyncInProgress ? ` · ${t.ui_ellipsis}` : ''}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <button
+                type="button"
+                disabled={pullSyncBusy || pushSyncBusy || dataSyncInProgress}
+                onClick={() => void handlePullSync()}
+                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-accent/40 bg-white/80 dark:bg-neutral-800/60 px-4 text-xs font-bold uppercase tracking-wider text-accent hover:bg-accent/10 disabled:opacity-60 transition-colors"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${pullSyncBusy ? 'animate-spin' : ''}`} />
+                {pullSyncBusy ? t.ui_ellipsis : 'Sincronizza'}
+              </button>
+              <button
+                type="button"
+                disabled={pushSyncBusy || settingsCloudPushBusy || pullSyncBusy || dataSyncInProgress}
+                onClick={() => void handlePushSync()}
+                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl bg-accent px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-accent-dark disabled:opacity-60 shadow-sm shadow-accent/30 transition-colors"
+              >
+                <UploadCloud className={`h-3.5 w-3.5 ${pushSyncBusy ? 'animate-spin' : ''}`} />
+                {pushSyncBusy ? t.ui_ellipsis : t.settings_cloud_save_all_devices}
+              </button>
+            </div>
+          </div>
         )}
 
       </motion.div>

@@ -11,7 +11,7 @@ import {
   Plus, Pencil, Check, X, Building2, Palette, Globe,
   ToggleLeft, ToggleRight, Copy, Settings, ChevronDown,
   MapPin, Clock, Languages, Layers, ExternalLink, Users,
-  UserPlus, Trash2, ChevronRight, Eye, EyeOff, ShieldCheck, Delete,
+  UserPlus, Trash2, ChevronRight, Eye, EyeOff, ShieldCheck, Delete, LogOut,
 } from 'lucide-react';
 import { supabaseAdmin as supabase } from '../lib/supabase';
 import type { Tenant, TenantSettings, UserRole, UserStatus } from '../types';
@@ -70,17 +70,32 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
   });
 
   return (
-    <div className="min-h-screen min-h-dvh flex flex-col items-center justify-center bg-[#0f1117] px-6 select-none"
-      style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+    <div
+      className="min-h-screen min-h-dvh flex flex-col items-center justify-center px-6 select-none"
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        background: 'radial-gradient(ellipse at 50% 10%, #0e5f75 0%, #003380 38%, #001055 75%, #000820 100%)',
+      }}
     >
+      {/* Bordo luminoso in alto */}
+      <div className="pointer-events-none fixed inset-0" style={{ background: 'linear-gradient(180deg, rgba(6,182,212,0.08) 0%, transparent 30%)' }} />
+
       {/* Logo / icona */}
-      <div className="mb-8 flex flex-col items-center gap-3">
-        <div className="w-16 h-16 rounded-2xl bg-[#1e2330] border border-white/10 flex items-center justify-center shadow-lg">
-          <ShieldCheck className="w-8 h-8 text-[#00D1FF]" />
+      <div className="mb-8 flex flex-col items-center gap-3 relative">
+        <div style={{ padding: 4, borderRadius: 22, background: 'linear-gradient(135deg, rgba(6,182,212,0.5), rgba(0,82,255,0.5))', boxShadow: '0 8px 32px rgba(0,82,255,0.35)' }}>
+          <img
+            src="/flow-app-icon.png"
+            alt="FLOW"
+            width={68}
+            height={68}
+            style={{ borderRadius: 18, display: 'block' }}
+            draggable={false}
+          />
         </div>
         <div className="text-center">
           <h1 className="text-lg font-bold text-white tracking-tight">Super Admin</h1>
-          <p className="text-sm text-white/40 mt-0.5">Inserisci il PIN per accedere</p>
+          <p className="text-sm mt-0.5" style={{ color: 'rgba(6,182,212,0.65)' }}>Inserisci il PIN per accedere</p>
         </div>
       </div>
 
@@ -93,17 +108,17 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
         {Array.from({ length: SUPER_ADMIN_PIN.length }).map((_, i) => (
           <div
             key={i}
-            className={`w-3 h-3 rounded-full transition-all duration-150 ${
-              i < digits.length
-                ? error ? 'bg-red-400' : 'bg-[#00D1FF]'
-                : 'bg-white/15'
-            }`}
+            className="w-3 h-3 rounded-full transition-all duration-150"
+            style={i < digits.length
+              ? { background: error ? '#f87171' : 'linear-gradient(110deg, #06B6D4, #0052FF)', boxShadow: error ? '0 0 8px rgba(248,113,113,0.5)' : '0 0 8px rgba(6,182,212,0.55)' }
+              : { background: 'rgba(255,255,255,0.15)' }
+            }
           />
         ))}
       </motion.div>
 
       {/* Tastierino numerico */}
-      <div className="grid grid-cols-3 gap-3 w-full max-w-[260px]">
+      <div className="grid grid-cols-3 gap-3 w-full max-w-[260px] relative">
         {PAD.flat().map((key, i) => {
           if (key === '') return <div key={i} />;
           const isDelete = key === '⌫';
@@ -112,10 +127,15 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
               key={i}
               onClick={() => isDelete ? handleDelete() : handleDigit(key)}
               className={`h-14 rounded-2xl text-lg font-bold transition-all active:scale-95 ${
-                isDelete
-                  ? 'bg-transparent text-white/40 hover:text-white/70'
-                  : 'bg-white/8 border border-white/10 text-white hover:bg-white/14 active:bg-white/20'
+                isDelete ? 'bg-transparent text-white/40 hover:text-white/70' : 'text-white'
               }`}
+              style={isDelete ? undefined : {
+                background: 'linear-gradient(160deg, rgba(6,100,140,0.50) 0%, rgba(0,40,120,0.65) 100%)',
+                border: '1px solid rgba(6,182,212,0.25)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07)',
+              }}
+              onMouseEnter={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.55)'; }}
+              onMouseLeave={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.25)'; }}
             >
               {isDelete ? <Delete className="w-5 h-5 mx-auto" /> : key}
             </button>
@@ -1125,8 +1145,6 @@ export default function SuperAdminPanel() {
       prev[k] = root.style.getPropertyValue(k);
       root.style.setProperty(k, v);
     });
-    // Forza dark mode neutra
-    document.documentElement.classList.add('dark');
     return () => {
       Object.entries(prev).forEach(([k, v]) => root.style.setProperty(k, v));
     };
@@ -1137,6 +1155,80 @@ export default function SuperAdminPanel() {
   }
 
   return <SuperAdminPanelInner />;
+}
+
+/** Credenziali admin create automaticamente alla nascita di una sede. */
+interface NewAdminCredentials {
+  tenantName: string;
+  firstName: string;
+  pin: string;
+}
+
+function NewAdminCredentialsModal({ creds, onClose }: { creds: NewAdminCredentials; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const text = `Sede: ${creds.tenantName}\nNome: ${creds.firstName}\nPIN: ${creds.pin}\nRuolo: Admin`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div>
+            <p className="font-bold text-slate-900 dark:text-white text-sm">Admin creato automaticamente</p>
+            <p className="text-xs text-slate-500 dark:text-neutral-400">Salva queste credenziali in un posto sicuro</p>
+          </div>
+        </div>
+
+        <div className="bg-slate-50 dark:bg-neutral-800 rounded-xl p-4 space-y-2 font-mono text-sm">
+          <div className="flex justify-between">
+            <span className="text-slate-500 dark:text-neutral-400 text-xs font-sans">Sede</span>
+            <span className="font-semibold text-slate-800 dark:text-white">{creds.tenantName}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-slate-500 dark:text-neutral-400 text-xs font-sans">Nome login</span>
+            <span className="font-semibold text-slate-800 dark:text-white">{creds.firstName}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500 dark:text-neutral-400 text-xs font-sans">PIN</span>
+            <span className="text-2xl font-bold tracking-widest text-accent">{creds.pin}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-slate-500 dark:text-neutral-400 text-xs font-sans">Ruolo</span>
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">Admin</span>
+          </div>
+        </div>
+
+        <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2">
+          ⚠ Cambia il PIN subito dopo il primo accesso tramite il profilo utente nell'app.
+        </p>
+
+        <div className="flex gap-2">
+          <button
+            onClick={handleCopy}
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-neutral-700 py-2.5 text-sm font-semibold text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800 transition"
+          >
+            {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+            {copied ? 'Copiato!' : 'Copia'}
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl bg-accent py-2.5 text-sm font-bold text-white hover:bg-accent-hover transition"
+          >
+            Ho salvato
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function SuperAdminPanelInner() {
@@ -1152,6 +1244,16 @@ function SuperAdminPanelInner() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [newAdminCreds, setNewAdminCreds] = useState<NewAdminCredentials | null>(null);
+
+  // Modalità chiara per il pannello admin
+  useEffect(() => {
+    const wasDark = document.documentElement.classList.contains('dark');
+    document.documentElement.classList.remove('dark');
+    return () => {
+      if (wasDark) document.documentElement.classList.add('dark');
+    };
+  }, []);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -1186,13 +1288,50 @@ function SuperAdminPanelInner() {
         .maybeSingle();
       if (err) throw err;
 
-      if (seedDemo && created?.id) {
+      if (!created?.id) throw new Error('ID sede non ricevuto dal server.');
+
+      // ── Crea automaticamente un profilo Admin con PIN casuale ────────────────
+      const adminPin = String(Math.floor(1000 + Math.random() * 9000)); // 4 cifre casuali
+      const adminFirstName = 'Admin';
+      const adminLastName = data.name; // usa il nome della sede come cognome
+      const { error: adminErr } = await supabase.from('users').insert({
+        tenant_id:            created.id,
+        first_name:           adminFirstName,
+        last_name:            adminLastName,
+        email:                `admin@${data.slug}.local`,
+        pin:                  adminPin,
+        role:                 'admin',
+        status:               'active',
+        sort_order:           0,
+        language:             'it',
+        theme:                'light',
+        can_create_shifts:    true,
+        can_approve_shifts:   true,
+        can_view_total_hours: true,
+        can_edit_staff_pins:  true,
+        can_manage_drafts:    true,
+        can_request_holidays: false,
+        can_punch_from_app:   true,
+        hide_from_team_schedule: false,
+        department:           null,
+        hourly_rate_eur:      null,
+        enabled_features:     null,
+        employment_start_date: null,
+        employment_end_date:   null,
+      });
+      if (adminErr) {
+        // Non blocca la creazione sede — segnala solo
+        setError(`Sede creata, ma errore creazione admin: ${adminErr.message}`);
+      } else {
+        setNewAdminCreds({ tenantName: data.name, firstName: adminFirstName, pin: adminPin });
+      }
+
+      if (seedDemo) {
         try {
           await seedTenantFromTemplate(supabase, created.id);
           showToast('Sede creata con dati demo!');
         } catch (seedErr) {
-          // Il tenant è stato creato: segnala l'errore seed ma non bloccare
-          setError(`Sede creata, ma errore nel caricamento dati demo: ${seedErr instanceof Error ? seedErr.message : String(seedErr)}`);
+          setError(`Sede creata, ma errore dati demo: ${seedErr instanceof Error ? seedErr.message : String(seedErr)}`);
           showToast('Sede creata (dati demo parziali).');
         }
       } else {
@@ -1265,27 +1404,38 @@ function SuperAdminPanelInner() {
   };
 
   return (
-    <div className="min-h-screen min-h-dvh bg-[#0f1117] font-sans text-neutral-100"
+    // light mode panel
+    <div className="min-h-screen min-h-dvh font-sans text-slate-900 bg-[#f8fafc]"
       style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
+      {/* Modal credenziali admin create automaticamente */}
+      {newAdminCreds && (
+        <NewAdminCredentialsModal creds={newAdminCreds} onClose={() => setNewAdminCreds(null)} />
+      )}
+
       {/* Sticky header */}
-      <header className="sticky top-0 z-30 bg-[#0f1117]/95 backdrop-blur-md border-b border-white/8 shadow-sm"
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#06B6D4]/20 shadow-sm"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="w-9 h-9 rounded-xl bg-[#0052FF]/20 border border-[#0052FF]/30 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4.5 h-4.5 text-[#00D1FF]" style={{ width: '1.125rem', height: '1.125rem' }} />
-            </span>
+            <img
+              src="/flow-app-icon.png"
+              alt="FLOW"
+              width={36}
+              height={36}
+              style={{ borderRadius: 10, flexShrink: 0 }}
+              draggable={false}
+            />
             <div className="min-w-0">
-              <h1 className="text-base font-bold text-white leading-tight truncate">Super Admin</h1>
-              <p className="text-[11px] text-white/40 leading-tight hidden sm:block">Gestione sedi</p>
+              <h1 className="text-base font-bold text-slate-900 leading-tight truncate">Super Admin</h1>
+              <p className="text-[11px] text-[#0284C7] leading-tight hidden sm:block">Gestione sedi</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => { setShowImport(!showImport); setShowForm(false); setEditingTenant(null); }}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold active:scale-95 transition ${showImport ? 'bg-amber-500/20 text-amber-300' : 'bg-white/8 text-white/60 hover:bg-white/14 hover:text-white'}`}
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold active:scale-95 transition ${showImport ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800'}`}
             >
               <ChevronRight className="w-4 h-4 rotate-90" />
               <span className="hidden sm:inline">Importa storico</span>
@@ -1293,7 +1443,8 @@ function SuperAdminPanelInner() {
             </button>
             <button
               onClick={() => { setShowForm(true); setEditingTenant(null); setShowImport(false); }}
-              className="flex items-center gap-1.5 rounded-xl bg-[#0052FF] hover:bg-[#003ACC] px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold text-white active:scale-95 transition"
+              className="flex items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold text-white active:scale-95 transition"
+              style={{ background: 'linear-gradient(110deg, #06B6D4, #0052FF)' }}
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Nuova sede</span>
@@ -1302,9 +1453,9 @@ function SuperAdminPanelInner() {
             <button
               onClick={handleLogout}
               title="Esci da Super Admin"
-              className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/6 hover:bg-red-500/20 hover:text-red-400 text-white/40 transition active:scale-95"
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-500 text-slate-400 transition active:scale-95"
             >
-              <X className="w-4 h-4" />
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -1316,7 +1467,7 @@ function SuperAdminPanelInner() {
 
         {/* Error */}
         {error && (
-          <div className="rounded-xl bg-red-950/30 border border-red-800 px-4 py-3 text-sm text-red-300 flex gap-2 items-start">
+          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 flex gap-2 items-start">
             <X className="w-4 h-4 shrink-0 mt-0.5" />
             <span className="flex-1">{error}</span>
             <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 shrink-0 p-1"><X className="w-3.5 h-3.5" /></button>
@@ -1347,12 +1498,12 @@ function SuperAdminPanelInner() {
 
         {/* Lista sedi */}
           {loading ? (
-          <div className="text-center py-16 text-white/40">
-            <div className="w-8 h-8 border-2 border-[#0052FF]/30 border-t-[#00D1FF] rounded-full animate-spin mx-auto mb-3" />
+          <div className="text-center py-16 text-slate-400">
+            <div className="w-8 h-8 border-2 border-[#06B6D4]/30 border-t-[#0052FF] rounded-full animate-spin mx-auto mb-3" />
             Caricamento…
           </div>
         ) : tenants.length === 0 ? (
-          <div className="text-center py-16 text-white/40">
+          <div className="text-center py-16 text-slate-400">
             <Building2 className="w-10 h-10 mx-auto mb-3 opacity-30" />
             Nessuna sede configurata.
           </div>
@@ -1362,7 +1513,7 @@ function SuperAdminPanelInner() {
               <motion.div
                 key={t.id}
                 layout
-                className={`rounded-2xl border ${t.is_active ? 'border-white/10 bg-white/6' : 'border-white/6 bg-white/3 opacity-60'} overflow-hidden`}
+                className={`rounded-2xl border shadow-sm ${t.is_active ? 'border-[#06B6D4]/20 bg-white' : 'border-slate-200 bg-slate-50/80 opacity-60'} overflow-hidden`}
               >
                 <AnimatePresence mode="wait">
                   {editingTenant?.id === t.id ? (
@@ -1389,15 +1540,15 @@ function SuperAdminPanelInner() {
                           {/* Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-white text-sm">{t.name}</span>
-                              {!t.is_active && <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-red-900/40 text-red-400 border border-red-700/40">Inattiva</span>}
+                              <span className="font-bold text-slate-900 text-sm">{t.name}</span>
+                              {!t.is_active && <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200">Inattiva</span>}
                             </div>
 
                             {/* Slug */}
                             <div className="flex items-center gap-1 mt-1">
-                              <Globe className="w-3 h-3 text-white/30 shrink-0" />
-                              <span className="text-xs font-mono text-white/40 truncate">{t.slug}</span>
-                              <button onClick={() => copySlug(t.slug)} className="text-white/20 hover:text-[#00D1FF] transition p-0.5 shrink-0" title="Copia slug">
+                              <Globe className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span className="text-xs font-mono text-slate-400 truncate">{t.slug}</span>
+                              <button onClick={() => copySlug(t.slug)} className="text-slate-300 hover:text-[#0284C7] transition p-0.5 shrink-0" title="Copia slug">
                                 <Copy className="w-3 h-3" />
                               </button>
                             </div>
@@ -1408,14 +1559,14 @@ function SuperAdminPanelInner() {
                                 href={`https://${t.slug}.vercel.app`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-xs text-[#00D1FF] hover:underline font-medium min-w-0"
+                                className="flex items-center gap-1 text-xs text-[#0284C7] hover:underline font-medium min-w-0"
                               >
                                 <ExternalLink className="w-3 h-3 shrink-0" />
                                 <span className="truncate">{t.slug}.vercel.app</span>
                               </a>
                               <button
                                 onClick={() => navigator.clipboard.writeText(`https://${t.slug}.vercel.app`).then(() => showToast('URL copiato!'))}
-                                className="text-white/20 hover:text-[#00D1FF] transition p-0.5 shrink-0"
+                                className="text-slate-300 hover:text-[#0284C7] transition p-0.5 shrink-0"
                                 title="Copia URL"
                               >
                                 <Copy className="w-3 h-3" />
@@ -1425,13 +1576,13 @@ function SuperAdminPanelInner() {
                         </div>
 
                         {/* Barra azioni */}
-                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/8">
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#06B6D4]/12">
                           <button
                             onClick={() => setExpandedSettings(expandedSettings === t.id ? null : t.id)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition active:scale-95 ${
                               expandedSettings === t.id
-                                ? 'bg-[#0052FF]/20 text-[#00D1FF]'
-                                : 'bg-white/6 text-white/50 hover:bg-[#0052FF]/15 hover:text-[#00D1FF]'
+                                ? 'bg-[#06B6D4]/10 text-[#0284C7]'
+                                : 'bg-slate-100 text-slate-500 hover:bg-[#06B6D4]/8 hover:text-[#0284C7]'
                             }`}
                           >
                             <Settings className="w-3.5 h-3.5" />
@@ -1439,7 +1590,7 @@ function SuperAdminPanelInner() {
                           </button>
                           <button
                             onClick={() => { setEditingTenant(t); setShowForm(false); setExpandedSettings(null); }}
-                            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 bg-white/6 text-white/50 hover:bg-white/12 hover:text-white text-xs font-semibold transition active:scale-95"
+                            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 text-xs font-semibold transition active:scale-95"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                             Modifica
@@ -1448,8 +1599,8 @@ function SuperAdminPanelInner() {
                             onClick={() => toggleActive(t)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition active:scale-95 ${
                               t.is_active
-                                ? 'bg-[#0052FF]/15 text-[#00D1FF] hover:bg-red-500/15 hover:text-red-400'
-                                : 'bg-white/6 text-white/40 hover:bg-[#0052FF]/15 hover:text-[#00D1FF]'
+                                ? 'bg-[#06B6D4]/10 text-[#0284C7] hover:bg-red-50 hover:text-red-500'
+                                : 'bg-slate-100 text-slate-400 hover:bg-[#06B6D4]/8 hover:text-[#0284C7]'
                             }`}
                           >
                             {t.is_active ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}
@@ -1457,7 +1608,7 @@ function SuperAdminPanelInner() {
                           </button>
                           <button
                             onClick={() => setConfirmDeleteId(confirmDeleteId === t.id ? null : t.id)}
-                            className="flex items-center justify-center rounded-xl py-2 px-2.5 bg-white/6 text-white/30 hover:bg-red-500/20 hover:text-red-400 transition active:scale-95"
+                            className="flex items-center justify-center rounded-xl py-2 px-2.5 bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-500 transition active:scale-95"
                             title="Elimina sede"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1473,17 +1624,17 @@ function SuperAdminPanelInner() {
                               exit={{ opacity: 0, height: 0 }}
                               className="overflow-hidden"
                             >
-                              <div className="mt-3 rounded-xl border border-red-500/30 bg-red-950/30 p-3 space-y-2">
-                                <p className="text-xs font-semibold text-red-400 text-center">
-                                  Eliminare <span className="font-bold text-red-300">"{t.name}"</span>?
+                              <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 space-y-2">
+                                <p className="text-xs font-semibold text-red-600 text-center">
+                                  Eliminare <span className="font-bold text-red-700">"{t.name}"</span>?
                                 </p>
-                                <p className="text-[11px] text-red-400/70 text-center">
+                                <p className="text-[11px] text-red-500/80 text-center">
                                   Questa azione è irreversibile. Verranno eliminati tutti i dipendenti e i dati della sede.
                                 </p>
                                 <div className="flex gap-2 pt-1">
                                   <button
                                     onClick={() => setConfirmDeleteId(null)}
-                                    className="flex-1 rounded-xl py-2 text-xs font-semibold bg-white/8 text-white/50 hover:bg-white/12 transition"
+                                    className="flex-1 rounded-xl py-2 text-xs font-semibold bg-slate-100 text-slate-500 hover:bg-slate-200 transition"
                                   >
                                     Annulla
                                   </button>
@@ -1508,11 +1659,11 @@ function SuperAdminPanelInner() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden border-t border-white/8"
+                            className="overflow-hidden border-t border-[#06B6D4]/12"
                           >
                             <div className="px-4 pt-3 pb-1 flex items-center gap-1.5">
-                              <ChevronDown className="w-3.5 h-3.5 text-white/30" />
-                              <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Impostazioni sede</span>
+                              <ChevronDown className="w-3.5 h-3.5 text-[#0284C7]/50" />
+                              <span className="text-xs font-bold text-[#0284C7]/70 uppercase tracking-wider">Impostazioni sede</span>
                             </div>
                             <div className="px-4 pb-4">
                               <SettingsConfigPanel
@@ -1546,7 +1697,7 @@ function SuperAdminPanelInner() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold px-5 py-2.5 rounded-full shadow-lg z-50 whitespace-nowrap"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-lg z-50 whitespace-nowrap"
             style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
           >
             {toast}
@@ -1669,31 +1820,31 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
   const unmatched = [...new Set(rows.filter((r) => !r.userId).map((r) => r.rawName))];
 
   return (
-    <div className="rounded-2xl border border-amber-500/20 bg-amber-950/10 p-4 sm:p-5 space-y-4">
+    <div className="rounded-2xl border border-amber-400/30 bg-amber-50 p-4 sm:p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-bold text-amber-300">Importa turni storici</h2>
-          <p className="text-[11px] text-amber-400/60 mt-0.5">CSV con turni passati. I nomi non riconosciuti vengono ignorati.</p>
+          <h2 className="text-sm font-bold text-amber-700">Importa turni storici</h2>
+          <p className="text-[11px] text-amber-600/70 mt-0.5">CSV con turni passati. I nomi non riconosciuti vengono ignorati.</p>
         </div>
-        <button onClick={onClose} className="text-white/30 hover:text-white transition p-1"><X className="w-4 h-4" /></button>
+        <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition p-1"><X className="w-4 h-4" /></button>
       </div>
 
       <div className="space-y-1">
-        <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">Sede di destinazione</label>
+        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Sede di destinazione</label>
         <select value={selectedTenantId} onChange={(e) => { setSelectedTenantId(e.target.value); setRows([]); setImportResult(null); }}
-          className="w-full rounded-xl border border-white/10 bg-white/6 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40">
-          {tenants.map((t) => <option key={t.id} value={t.id} className="bg-neutral-900">{t.name}</option>)}
+          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400/40">
+          {tenants.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         <button onClick={downloadTemplate}
-          className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/6 py-2.5 text-xs font-semibold text-white/60 hover:bg-white/12 hover:text-white transition">
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition">
           <ChevronRight className="w-3.5 h-3.5 -rotate-90" />
           Scarica template CSV
         </button>
         <button onClick={() => fileRef.current?.click()}
-          className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 py-2.5 text-xs font-bold text-amber-300 hover:bg-amber-500/20 transition">
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-400/40 bg-amber-100 py-2.5 text-xs font-bold text-amber-700 hover:bg-amber-200 transition">
           <ChevronRight className="w-3.5 h-3.5 rotate-90" />
           {fileName ? fileName.slice(0, 22) + (fileName.length > 22 ? '…' : '') : 'Carica CSV'}
         </button>
@@ -1701,40 +1852,40 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
       </div>
 
-      <div className="rounded-xl bg-white/4 border border-white/8 p-3">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-white/30 mb-1.5">Formato CSV</p>
-        <code className="text-[11px] text-white/50 leading-relaxed whitespace-pre">{`Nome,Data,Inizio,Fine\nGUSTAVO,29/01/2026,10:00,16:00\nGUSTAVO,29/01/2026,16:30,23:00`}</code>
-        <p className="text-[10px] text-white/30 mt-1.5">Una riga per turno &nbsp;·&nbsp; Data: GG/MM/AAAA &nbsp;·&nbsp; Ora: HH:MM</p>
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Formato CSV</p>
+        <code className="text-[11px] text-slate-500 leading-relaxed whitespace-pre">{`Nome,Data,Inizio,Fine\nGUSTAVO,29/01/2026,10:00,16:00\nGUSTAVO,29/01/2026,16:30,23:00`}</code>
+        <p className="text-[10px] text-slate-400 mt-1.5">Una riga per turno &nbsp;·&nbsp; Data: GG/MM/AAAA &nbsp;·&nbsp; Ora: HH:MM</p>
       </div>
 
-      {parseError && <div className="rounded-xl bg-red-950/30 border border-red-800 px-3 py-2 text-xs text-red-300">{parseError}</div>}
+      {parseError && <div className="rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-600">{parseError}</div>}
 
       {importResult && (
-        <div className="rounded-xl bg-emerald-950/30 border border-emerald-700 px-3 py-3 space-y-1">
-          <p className="text-sm font-bold text-emerald-400">✓ {importResult.ok} turni importati con successo!</p>
-          {importResult.skipped.length > 0 && <p className="text-[11px] text-amber-400">Ignorati (non trovati): {importResult.skipped.join(', ')}</p>}
+        <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-3 space-y-1">
+          <p className="text-sm font-bold text-emerald-700">✓ {importResult.ok} turni importati con successo!</p>
+          {importResult.skipped.length > 0 && <p className="text-[11px] text-amber-600">Ignorati (non trovati): {importResult.skipped.join(', ')}</p>}
         </div>
       )}
 
       {rows.length > 0 && (
         <div className="space-y-3">
           <div className="flex gap-2 flex-wrap">
-            <span className="px-2.5 py-1 rounded-full bg-emerald-900/40 border border-emerald-700/40 text-[11px] font-bold text-emerald-400">✓ {matched.length} turni pronti</span>
-            {unmatched.length > 0 && <span className="px-2.5 py-1 rounded-full bg-red-900/40 border border-red-700/40 text-[11px] font-bold text-red-400">✗ Non riconosciuti: {unmatched.join(', ')}</span>}
+            <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-700">✓ {matched.length} turni pronti</span>
+            {unmatched.length > 0 && <span className="px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-[11px] font-bold text-red-600">✗ Non riconosciuti: {unmatched.join(', ')}</span>}
           </div>
-          <div className="rounded-xl border border-white/10 overflow-hidden">
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-[11px]">
-                <thead><tr className="bg-white/6 text-white/40">
+                <thead><tr className="bg-slate-50 text-slate-500">
                   <th className="px-3 py-2 text-left">Nome CSV</th>
                   <th className="px-3 py-2 text-left">Trovato</th>
                   <th className="px-3 py-2 text-left">Data</th>
                   <th className="px-3 py-2 text-left">Inizio</th>
                   <th className="px-3 py-2 text-left">Fine</th>
                 </tr></thead>
-                <tbody className="divide-y divide-white/6">
+                <tbody className="divide-y divide-slate-100">
                   {rows.slice(0, 15).map((r, i) => (
-                    <tr key={i} className={r.userId ? 'text-white/70' : 'text-red-400/70'}>
+                    <tr key={i} className={r.userId ? 'text-slate-700' : 'text-red-500'}>
                       <td className="px-3 py-1.5 font-mono">{r.rawName}</td>
                       <td className="px-3 py-1.5">{r.userName ?? <span className="text-red-500">non trovato</span>}</td>
                       <td className="px-3 py-1.5 font-mono">{r.date}</td>
@@ -1745,7 +1896,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
                 </tbody>
               </table>
             </div>
-            {rows.length > 15 && <p className="text-center text-[10px] text-white/30 py-2 border-t border-white/6">… e altri {rows.length - 15} turni</p>}
+            {rows.length > 15 && <p className="text-center text-[10px] text-slate-400 py-2 border-t border-slate-100">… e altri {rows.length - 15} turni</p>}
           </div>
           {matched.length > 0 && (
             <button onClick={handleImport} disabled={importing}

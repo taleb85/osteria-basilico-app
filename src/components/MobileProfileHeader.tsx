@@ -2,7 +2,6 @@ import FlowLogo from './FlowLogo';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { useTenant } from '../context/TenantContext';
 import { LogOut, Cloud, CloudOff, RotateCw, Lock, Unlock, ShieldCheck, ShieldOff, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getDateLocale } from '../utils/translations';
@@ -97,7 +96,6 @@ export default function MobileProfileHeader({
     setGlobalPinSessionId,
     isSessionElevated,
   } = useApp();
-  const { tenant } = useTenant();
   const { sendMessage } = useMessages(currentUser?.id);
   const { triggerHapticFeedback, playNotificationSound } = useMultisensorialFeedback();
 
@@ -199,11 +197,8 @@ export default function MobileProfileHeader({
       <div className="px-3 sm:px-4 py-2">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
-            {/* Logo FLOW — componente con SVG mark + wordmark + subtitle */}
-            <FlowLogo size={compact ? 26 : 30} subtitle="Work in Motion" />
-            <p className="text-[10px] sm:text-[11px] font-extrabold text-slate-500 dark:text-neutral-400 tracking-widest leading-tight mt-1 truncate uppercase">
-              {pageTitle}
-            </p>
+            {/* Logo FLOW — solo wordmark nell'header, senza icona */}
+            <FlowLogo size={compact ? 26 : 30} subtitle="Work in Motion" showIcon={false} />
             {isSessionElevated && (
               <span className="inline-flex items-center gap-1 mt-1 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
                 <ShieldCheck className="h-3 w-3" />

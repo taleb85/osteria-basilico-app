@@ -112,7 +112,7 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
         {/* Contenitore logo */}
         <div className="flex h-full w-full items-center justify-center rounded-[1.75rem] bg-accent/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] dark:bg-accent/15 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
           <img
-            src="/logo-ob.svg"
+            src="/flow-app-icon.png"
             width={512}
             height={512}
             alt=""

@@ -104,8 +104,8 @@ function filterShiftsToClosestUnpunched(
 /** Logo FLOW — centrato, grande, per la testata del kiosk */
 function StraightLogo() {
   return (
-    <div className="flex justify-center mt-6 sm:mt-8">
-      <FlowLogo size={56} subtitle="Work in Motion" />
+    <div className="flex flex-col items-center justify-center mt-4 sm:mt-6 gap-3">
+      <FlowLogo size={140} showText={false} />
     </div>
   );
 }
@@ -505,7 +505,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#f8fafc] text-slate-900 dark:bg-[#0a0a0a] dark:text-neutral-100 flex flex-col p-6 sm:p-8 relative">
+    <div className="min-h-screen overflow-hidden bg-white text-slate-900 dark:bg-[#0a0a0a] dark:text-neutral-100 flex flex-col p-6 sm:p-8 relative">
       <GiantBrandHeader now={now} locale={dateLocale}>
         <button
           type="button"

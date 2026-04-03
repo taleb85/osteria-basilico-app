@@ -18,7 +18,6 @@ import {
   pinMatchesStored,
 } from '../utils/loginIdentifier';
 import { useTenant } from '../context/TenantContext';
-import { supabase } from '../lib/supabase';
 import FlowLogo from './FlowLogo';
 import {
   supportsPinUnlockWebAuthn,
@@ -102,20 +101,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const pinMatches = !!(resolvedUser && pinMatchesStored(resolvedUser, password));
   const canShowLinkDevice = webAuthnOk && pinMatches && resolvedUser && !hasPinUnlockCredential(resolvedUser.id);
   const showDeviceSection = webAuthnOk && (hasDeviceLogin || canShowLinkDevice);
-
-  // Retry automatico dopo caricamento tenant (fallback Option B)
-  useEffect(() => {
-    if (!pendingCreds || users.length === 0) return;
-    const user = findUserByNameAndPinAnyStatus(users, pendingCreds.name, pendingCreds.pin);
-    setPendingCreds(null);
-    setIsLoading(false);
-    if (user && user.status === 'active') {
-      setError('');
-      finalizeSession(user, () => {});
-    } else {
-      setError('PIN non corretto. Riprova.');
-    }
-  }, [users, pendingCreds, finalizeSession]);
 
   // Auto-trigger biometric login if device has credentials
   useEffect(() => {
@@ -202,6 +187,21 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     [loginLang, setLanguage, setCurrentUser, onLogin]
   );
 
+  // Retry automatico dopo caricamento tenant (fallback Option B)
+  // NOTA: deve stare DOPO la dichiarazione di finalizeSession per evitare TDZ
+  useEffect(() => {
+    if (!pendingCreds || users.length === 0) return;
+    const user = findUserByNameAndPinAnyStatus(users, pendingCreds.name, pendingCreds.pin);
+    setPendingCreds(null);
+    setIsLoading(false);
+    if (user && user.status === 'active') {
+      setError('');
+      finalizeSession(user, () => {});
+    } else {
+      setError('PIN non corretto. Riprova.');
+    }
+  }, [users, pendingCreds, finalizeSession]);
+
   const handleLogin = useCallback(async () => {
     if (!staffName.trim() || !password.trim() || isLoading) return;
     setError('');
@@ -222,7 +222,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
       // Fallback Option B: se users è vuota (nessun tenant caricato),
       // cerca globalmente per nome+PIN → carica tenant → retry automatico via useEffect
-      if (users.length === 0 && supabase) {
+      if (users.length === 0) {
+        const { supabase } = await import('../lib/supabase');
+        if (!supabase) {
+          setIsLoading(false);
+          setError('Nessun dipendente trovato. Controlla nome e PIN.');
+          return;
+        }
         try {
           const firstName = staffName.trim().split(/\s+/)[0];
           const { data: globalUsers } = await supabase
@@ -361,46 +367,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         {/* Logo FLOW — verticale, protagonista visivo */}
         <div className="flex flex-col items-center mb-5 sm:mb-6 min-h-[min(260px,46vh)] sm:min-h-[min(300px,50vh)] justify-center py-8 sm:py-10 gap-4">
           {/* Icona grande centrata */}
-          <FlowLogo size={96} showText={false} />
-          {/* Wordmark + sottotitolo verticale */}
-          <div className="flex flex-col items-center gap-1 leading-none select-none">
-            <span
-              style={{
-                fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-                fontSize: '2.6rem',
-                fontWeight: 800,
-                letterSpacing: '-0.05em',
-                lineHeight: 1,
-              }}
-            >
-              <span style={{ color: '#0052FF' }}>F</span>
-              <span className="text-slate-800 dark:text-neutral-100">LOW</span>
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: '0.42rem',
-                  height: '0.42rem',
-                  borderRadius: '50%',
-                  background: '#00D1FF',
-                  marginLeft: '0.18rem',
-                  marginBottom: '0.32rem',
-                  verticalAlign: 'baseline',
-                }}
-              />
-            </span>
-            <span
-              style={{
-                fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-                fontSize: '0.65rem',
-                fontWeight: 600,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-              }}
-              className="text-slate-400 dark:text-neutral-500"
-            >
-              Work in Motion
-            </span>
-          </div>
+          <FlowLogo size={220} showText={false} />
         </div>
 
         {/* Scheda login — compatta e più stretta del blocco superiore */}
@@ -410,7 +377,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <h2 className="text-sm font-bold text-slate-800 dark:text-neutral-100 leading-tight">
               {t.login_welcome ?? 'Bentornato'}
             </h2>
-            <p className="text-[11px] text-slate-500 dark:text-neutral-200 mt-0.5 leading-snug">
+            <p className="text-[11px] text-slate-500 dark:text-[#06B6D4]/80 mt-0.5 leading-snug">
               {t.login_subtitle ?? 'Accedi con le tue credenziali'}
             </p>
           </div>
@@ -433,11 +400,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
           {/* Nome */}
           <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-slate-600 dark:text-neutral-400 uppercase tracking-wide">
+            <label className="text-[10px] font-semibold text-[#0284C7] dark:text-[#06B6D4]/80 uppercase tracking-wide">
               {t.login_name_label}
             </label>
             <div className="relative">
-              <UserIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 dark:text-neutral-400" aria-hidden />
+              <UserIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#06B6D4]/70 dark:text-[#06B6D4]/60" aria-hidden />
               <input
                 ref={staffNameInputRef}
                 type="text"
@@ -449,18 +416,18 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 placeholder={t.login_name_ph}
                 autoComplete="name"
                 autoFocus={!isInviteLink}
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 dark:border-white/15 bg-slate-50 dark:bg-neutral-900 text-slate-800 dark:text-neutral-100 text-xs uppercase placeholder:text-[11px] placeholder:normal-case placeholder:text-slate-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-[#0052FF] focus:ring-2 focus:ring-[#0052FF]/35 focus:shadow-[0_0_0_3px_rgba(0,82,255,0.15)] dark:focus:border-[#00D1FF] dark:focus:ring-[#00D1FF]/40 dark:focus:shadow-[0_0_0_3px_rgba(0,82,255,0.22),0_0_14px_rgba(0,82,255,0.15)] transition-all"
+                className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#06B6D4]/25 dark:border-[#06B6D4]/20 bg-white dark:bg-neutral-900 text-slate-800 dark:text-neutral-100 text-xs uppercase placeholder:text-[11px] placeholder:normal-case placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-[#06B6D4] focus:ring-2 focus:ring-[#06B6D4]/30 focus:shadow-[0_0_0_3px_rgba(6,182,212,0.12)] dark:focus:border-[#06B6D4] dark:focus:ring-[#06B6D4]/35 dark:focus:shadow-[0_0_0_3px_rgba(6,182,212,0.18),0_0_14px_rgba(0,82,255,0.12)] transition-all"
               />
             </div>
           </div>
 
           {/* PIN */}
           <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-slate-600 dark:text-neutral-400 uppercase tracking-wide">
+            <label className="text-[10px] font-semibold text-[#0052FF]/80 dark:text-[#0052FF]/70 uppercase tracking-wide">
               {t.login_password_label ?? 'Password'}
             </label>
             <div className="relative">
-              <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 dark:text-neutral-400" />
+              <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#0052FF]/60 dark:text-[#0052FF]/50" />
               <input
                 type="text"
                 inputMode="numeric"
@@ -479,7 +446,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 ref={pinInputRef}
                 placeholder="••••"
                 style={!showPassword ? ({ WebkitTextSecurity: 'disc' } as CSSProperties) : undefined}
-                className="w-full pl-9 pr-9 py-2 rounded-lg border border-slate-200 dark:border-white/15 bg-slate-50 dark:bg-neutral-900 text-slate-800 dark:text-neutral-100 text-xs placeholder-slate-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-[#0052FF] focus:ring-2 focus:ring-[#0052FF]/35 focus:shadow-[0_0_0_3px_rgba(0,82,255,0.15)] dark:focus:border-[#00D1FF] dark:focus:ring-[#00D1FF]/40 dark:focus:shadow-[0_0_0_3px_rgba(0,82,255,0.22),0_0_14px_rgba(0,82,255,0.15)] transition-all"
+                className="w-full pl-9 pr-9 py-2 rounded-lg border border-[#0052FF]/25 dark:border-[#0052FF]/20 bg-white dark:bg-neutral-900 text-slate-800 dark:text-neutral-100 text-xs placeholder-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-[#0052FF] focus:ring-2 focus:ring-[#0052FF]/30 focus:shadow-[0_0_0_3px_rgba(0,82,255,0.12)] dark:focus:border-[#06B6D4] dark:focus:ring-[#06B6D4]/35 dark:focus:shadow-[0_0_0_3px_rgba(6,182,212,0.18),0_0_14px_rgba(0,82,255,0.12)] transition-all"
               />
               <button
                 type="button"
@@ -519,7 +486,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             type="button"
             onClick={handleLogin}
             disabled={!staffName.trim() || !password.trim() || isLoading || deviceLoading || linkDeviceLoading}
-            className="w-full py-2 rounded-lg bg-[#0052FF] hover:bg-[#003ACC] text-white font-semibold text-xs active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+            className="w-full py-2 rounded-lg text-white font-semibold text-xs active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+            style={{ background: 'linear-gradient(110deg, #06B6D4, #0052FF)' }}
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

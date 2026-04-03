@@ -1,30 +1,22 @@
 /**
- * Script di build: genera icon.svg, favicon.svg e tutti i PNG PWA.
- * Usa sempre l'icona FLOW ufficiale indipendentemente dal tenant/slug.
- * Lo slug identifica solo i dati da caricare, non il branding.
+ * Script di build: genera tutti i PNG PWA dall'icona ufficiale FLOW.
+ * Usa sempre flow-app-icon.png — ignora tenant/slug per il branding.
  */
 
-import { readFileSync, copyFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { join } from 'path';
+import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
 
-async function svgToPng(svgBuffer, outPath, size = 180) {
-  await sharp(svgBuffer).resize(size, size).png().toFile(outPath);
-}
+const src = join(publicDir, 'flow-app-icon.png');
 
-// Sempre FLOW — lo slug non influisce sul branding
-copyFileSync(join(publicDir, 'flow-app-icon.svg'), join(publicDir, 'icon.svg'));
-copyFileSync(join(publicDir, 'flow-app-icon.svg'), join(publicDir, 'favicon.svg'));
-
-const flowSvg = readFileSync(join(publicDir, 'flow-app-icon.svg'));
 await Promise.all([
-  svgToPng(flowSvg, join(publicDir, 'apple-touch-icon.png'), 180),
-  svgToPng(flowSvg, join(publicDir, 'icon-192.png'), 192),
-  svgToPng(flowSvg, join(publicDir, 'icon-512.png'), 512),
+  sharp(src).resize(180, 180).png().toFile(join(publicDir, 'apple-touch-icon.png')),
+  sharp(src).resize(192, 192).png().toFile(join(publicDir, 'icon-192.png')),
+  sharp(src).resize(512, 512).png().toFile(join(publicDir, 'icon-512.png')),
 ]);
 
-console.log('[favicon] FLOW — icone generate (slug ignorato per il branding)');
+console.log('[favicon] FLOW — icone PNG generate da flow-app-icon.png');

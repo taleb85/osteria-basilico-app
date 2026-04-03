@@ -16,27 +16,30 @@
     --gray-medium: #475569;
     --gray-light: #64748b;
     --gray-lighter: #f1f5f9;
-    /* Brand FLOW — Blu Elettrico #0052FF (TenantContext sovrascrive al caricamento) */
+    /* Brand FLOW — Gradiente Ciano→Blu (opzione C) */
     --brand: #0052FF;
+    --brand-from: #06B6D4;     /* ciano */
+    --brand-to:   #0052FF;     /* blu elettrico */
+    --brand-gradient: linear-gradient(110deg, #06B6D4, #0052FF);
     --brand-rgb: 0 82 255;
-    --brand-50:  hsl(222 100% 97%);
-    --brand-100: hsl(222 100% 93%);
-    --brand-200: hsl(222 100% 85%);
-    --brand-300: hsl(222 100% 73%);
-    --brand-400: hsl(222 100% 62%);
+    --brand-50:  hsl(197 100% 97%);
+    --brand-100: hsl(210 100% 93%);
+    --brand-200: hsl(210 100% 85%);
+    --brand-300: hsl(210 100% 73%);
+    --brand-400: hsl(210 100% 62%);
     --brand-500: hsl(222 100% 50%);
     --brand-600: hsl(222 100% 42%);
     --brand-700: hsl(222 100% 33%);
     --brand-800: hsl(222 100% 22%);
     --brand-900: hsl(222 100% 13%);
-    --brand-hover: hsl(222 100% 42%);
-    --brand-dark:  hsl(222 100% 33%);
-    --brand-light: hsl(222 60% 92%);
-    --brand-muted: rgb(0 82 255 / 0.12);
-    --brand-nav-from: rgb(0 82 255 / 0.92);
-    --brand-nav-to:   rgb(0 60 200 / 0.88);
-    --brand-nav-dark-from: rgb(0 82 255 / 0.88);
-    --brand-nav-dark-to:   rgb(0 50 180 / 0.84);
+    --brand-hover: #0048D8;
+    --brand-dark:  #003CB0;
+    --brand-light: hsl(197 80% 92%);
+    --brand-muted: rgb(6 182 212 / 0.12);
+    --brand-nav-from: rgb(6 182 212 / 0.92);
+    --brand-nav-to:   rgb(0 82 255 / 0.92);
+    --brand-nav-dark-from: rgb(6 182 212 / 0.88);
+    --brand-nav-dark-to:   rgb(0 60 200 / 0.88);
     --brand-header-font: 'Inter', system-ui, sans-serif;
     /* Retrocompatibilita con codice esistente */
     --flow-primary: var(--brand);
@@ -292,7 +295,13 @@
   }
 
   .surface-glass-sm {
-    @apply rounded-xl border border-slate-200/85 bg-white/[0.88] text-slate-900 shadow-md backdrop-blur-lg transition-colors duration-200 dark:border-white/10 dark:bg-neutral-900/[0.88] dark:text-neutral-100 supports-[backdrop-filter]:backdrop-saturate-150;
+    @apply rounded-xl border bg-white/[0.92] text-slate-900 shadow-md backdrop-blur-lg transition-colors duration-200 dark:bg-neutral-900/[0.88] dark:text-neutral-100 supports-[backdrop-filter]:backdrop-saturate-150;
+    border-color: rgba(6, 182, 212, 0.22);
+    box-shadow: 0 4px 24px -4px rgba(0, 82, 255, 0.10), 0 1px 0 0 rgba(255,255,255,0.8) inset;
+  }
+  html.dark .surface-glass-sm {
+    border-color: rgba(6, 182, 212, 0.15);
+    box-shadow: 0 4px 24px -4px rgba(0, 82, 255, 0.18), 0 1px 0 0 rgba(255,255,255,0.05) inset;
   }
 
   /**
@@ -316,7 +325,7 @@
    */
   .bottom-nav-glass {
     border: none;
-    background: linear-gradient(to bottom, var(--brand-nav-from), var(--brand-nav-to));
+    background: linear-gradient(110deg, var(--brand-nav-from), var(--brand-nav-to));
     box-shadow:
       inset 0 2px 0 rgba(255, 255, 255, 0.14),
       inset 0 -1px 0 rgba(0, 0, 0, 0.18),
@@ -340,7 +349,7 @@
     backdrop-filter: blur(32px) saturate(1.4);
   }
   html.dark .bottom-nav-glass {
-    background: linear-gradient(to bottom, var(--brand-nav-dark-from), var(--brand-nav-dark-to));
+    background: linear-gradient(110deg, var(--brand-nav-dark-from), var(--brand-nav-dark-to));
     box-shadow:
       inset 0 2px 0 rgba(255, 255, 255, 0.10),
       inset 0 -1px 0 rgba(0, 0, 0, 0.4),
@@ -500,6 +509,20 @@
   .ui-toolbar-page-band-presences .ui-toolbar-accent {
     @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-accent px-3 text-sm font-semibold leading-none text-white shadow-sm transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60;
   }
+}
+
+/* ── Gradiente brand ciano→blu su tutti i bottoni primari ──────────────────── */
+[class~="bg-accent"]:not([class*="bg-accent/"]):not([class*="bg-accent-"]) {
+  background: var(--brand-gradient) !important;
+}
+.ui-toolbar-accent,
+.ui-toolbar-page-band-presences .ui-toolbar-accent {
+  background: var(--brand-gradient) !important;
+}
+[class~="bg-accent"]:hover:not([class*="bg-accent/"]):not([class*="bg-accent-"]),
+[class~="hover:bg-accent-hover"]:hover {
+  background: linear-gradient(110deg, #05A3BE, #0048D8) !important;
+  filter: brightness(1.07);
 }
 
 @layer utilities {
