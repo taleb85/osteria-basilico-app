@@ -107,7 +107,6 @@ export async function seedTenantFromTemplate(
     can_punch_from_app:      u.can_punch_from_app ?? false,
     hourly_rate_eur:         u.hourly_rate_eur ?? null,
     hide_from_team_schedule: u.hide_from_team_schedule ?? false,
-    team_schedule_visible:   u.team_schedule_visible ?? true,
     enabled_features:        u.enabled_features ?? null,
     // Non copiare: monthly_confirmed, employment_start/end, ui_section_overrides
     employment_start_date:   null,
