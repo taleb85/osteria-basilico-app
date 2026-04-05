@@ -79,23 +79,23 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
       }}
     >
       {/* Bordo luminoso in alto */}
-      <div className="pointer-events-none fixed inset-0" style={{ background: 'linear-gradient(180deg, rgba(6,182,212,0.08) 0%, transparent 30%)' }} />
+      <div className="pointer-events-none fixed inset-0" style={{ background: 'linear-gradient(180deg, rgba(51,102,204,0.08) 0%, transparent 30%)' }} />
 
       {/* Logo / icona */}
       <div className="mb-8 flex flex-col items-center gap-3 relative">
-        <div style={{ padding: 4, borderRadius: 22, background: 'linear-gradient(135deg, rgba(6,182,212,0.5), rgba(0,82,255,0.5))', boxShadow: '0 8px 32px rgba(0,82,255,0.35)' }}>
+        <div style={{ borderRadius: 22, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,26,128,0.35)' }}>
           <img
             src="/flow-app-icon.png"
             alt="FLOW"
-            width={68}
-            height={68}
-            style={{ borderRadius: 18, display: 'block' }}
+            width={76}
+            height={76}
+            style={{ display: 'block' }}
             draggable={false}
           />
         </div>
         <div className="text-center">
           <h1 className="text-lg font-bold text-white tracking-tight">Super Admin</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'rgba(6,182,212,0.65)' }}>Inserisci il PIN per accedere</p>
+          <p className="text-sm mt-0.5" style={{ color: 'rgba(51,102,204,0.65)' }}>Inserisci il PIN per accedere</p>
         </div>
       </div>
 
@@ -110,7 +110,7 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
             key={i}
             className="w-3 h-3 rounded-full transition-all duration-150"
             style={i < digits.length
-              ? { background: error ? '#f87171' : 'linear-gradient(110deg, #06B6D4, #0052FF)', boxShadow: error ? '0 0 8px rgba(248,113,113,0.5)' : '0 0 8px rgba(6,182,212,0.55)' }
+              ? { background: error ? '#f87171' : 'linear-gradient(110deg, #3366CC, #001A80)', boxShadow: error ? '0 0 8px rgba(248,113,113,0.5)' : '0 0 8px rgba(51,102,204,0.55)' }
               : { background: 'rgba(255,255,255,0.15)' }
             }
           />
@@ -131,11 +131,11 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
               }`}
               style={isDelete ? undefined : {
                 background: 'linear-gradient(160deg, rgba(6,100,140,0.50) 0%, rgba(0,40,120,0.65) 100%)',
-                border: '1px solid rgba(6,182,212,0.25)',
+                border: '1px solid rgba(51,102,204,0.25)',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07)',
               }}
-              onMouseEnter={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.55)'; }}
-              onMouseLeave={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.25)'; }}
+              onMouseEnter={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(51,102,204,0.55)'; }}
+              onMouseLeave={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(51,102,204,0.25)'; }}
             >
               {isDelete ? <Delete className="w-5 h-5 mx-auto" /> : key}
             </button>
@@ -515,7 +515,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
               {/* Azioni */}
               <div className="flex items-center gap-1 shrink-0">
                 <button onClick={() => toggleStatus(u)} title={u.status === 'active' ? 'Sospendi' : 'Riattiva'}
-                  className={`p-1.5 rounded-lg transition ${u.status === 'active' ? 'text-brand-500 hover:bg-brand-50 dark:hover:bg-[#0052FF]/10' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800'}`}>
+                  className={`p-1.5 rounded-lg transition ${u.status === 'active' ? 'text-brand-500 hover:bg-brand-50 dark:hover:bg-[#001A80]/10' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800'}`}>
                   {u.status === 'active' ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
                 </button>
                 <button onClick={() => openEdit(u)} title="Modifica"
@@ -1034,7 +1034,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
       name: name.trim(),
       slug: slug.trim(),
       // Branding sempre FLOW — colore e font non configurabili per sede
-      accent_color: '#0052FF',
+      accent_color: '#001A80',
       plan: 'basic',
       is_active: initial?.is_active ?? true,
       logo_url: null,
@@ -1082,8 +1082,8 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
       </div>
 
       {/* Nota branding — colore e logo fissi FLOW */}
-      <div className="rounded-xl border border-[#0052FF]/20 bg-[#0052FF]/5 px-3.5 py-2.5 flex items-center gap-2.5">
-        <div className="w-6 h-6 rounded-full bg-[#0052FF] flex items-center justify-center shrink-0">
+      <div className="rounded-xl border border-[#001A80]/20 bg-[#001A80]/5 px-3.5 py-2.5 flex items-center gap-2.5">
+        <div className="w-6 h-6 rounded-full bg-[#001A80] flex items-center justify-center shrink-0">
           <span className="text-white text-[10px] font-bold">F</span>
         </div>
         <p className="text-[11px] text-slate-500 dark:text-neutral-400">
@@ -1093,7 +1093,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
 
       {/* Dati demo — solo per nuova sede */}
       {!initial?.id && onSeedDemoChange && (
-        <div className="rounded-xl border border-[#0052FF]/20 bg-[#0052FF]/5 px-3.5 py-3 flex items-start gap-3">
+        <div className="rounded-xl border border-[#001A80]/20 bg-[#001A80]/5 px-3.5 py-3 flex items-start gap-3">
           <Toggle value={seedDemo} onChange={onSeedDemoChange} />
           <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-700 dark:text-neutral-200 leading-snug">
@@ -1136,9 +1136,9 @@ export default function SuperAdminPanel() {
     const root = document.documentElement;
     const prev: Record<string, string> = {};
     const neutralVars: Record<string, string> = {
-      '--brand':       '#0052FF',
+      '--brand':       '#001A80',
       '--brand-hover': '#003ACC',
-      '--accent':      '#0052FF',
+      '--accent':      '#001A80',
       '--accent-hover':'#003ACC',
     };
     Object.entries(neutralVars).forEach(([k, v]) => {
@@ -1176,7 +1176,7 @@ function NewAdminCredentialsModal({ creds, onClose }: { creds: NewAdminCredentia
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 backdrop-blur-sm dark:bg-black/50 p-4">
       <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
@@ -1414,7 +1414,7 @@ function SuperAdminPanelInner() {
       )}
 
       {/* Sticky header */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#06B6D4]/20 shadow-sm"
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#3366CC]/20 shadow-sm"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
@@ -1424,12 +1424,12 @@ function SuperAdminPanelInner() {
               alt="FLOW"
               width={36}
               height={36}
-              style={{ borderRadius: 10, flexShrink: 0 }}
+              style={{ borderRadius: 10, flexShrink: 0, overflow: 'hidden' }}
               draggable={false}
             />
             <div className="min-w-0">
               <h1 className="text-base font-bold text-slate-900 leading-tight truncate">Super Admin</h1>
-              <p className="text-[11px] text-[#0284C7] leading-tight hidden sm:block">Gestione sedi</p>
+              <p className="text-[11px] text-[#2255BB] leading-tight hidden sm:block">Gestione sedi</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -1444,7 +1444,7 @@ function SuperAdminPanelInner() {
             <button
               onClick={() => { setShowForm(true); setEditingTenant(null); setShowImport(false); }}
               className="flex items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold text-white active:scale-95 transition"
-              style={{ background: 'linear-gradient(110deg, #06B6D4, #0052FF)' }}
+              style={{ background: 'linear-gradient(110deg, #3366CC, #001A80)' }}
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Nuova sede</span>
@@ -1499,7 +1499,7 @@ function SuperAdminPanelInner() {
         {/* Lista sedi */}
           {loading ? (
           <div className="text-center py-16 text-slate-400">
-            <div className="w-8 h-8 border-2 border-[#06B6D4]/30 border-t-[#0052FF] rounded-full animate-spin mx-auto mb-3" />
+            <div className="w-8 h-8 border-2 border-[#3366CC]/30 border-t-[#001A80] rounded-full animate-spin mx-auto mb-3" />
             Caricamento…
           </div>
         ) : tenants.length === 0 ? (
@@ -1513,7 +1513,7 @@ function SuperAdminPanelInner() {
               <motion.div
                 key={t.id}
                 layout
-                className={`rounded-2xl border shadow-sm ${t.is_active ? 'border-[#06B6D4]/20 bg-white' : 'border-slate-200 bg-slate-50/80 opacity-60'} overflow-hidden`}
+                className={`rounded-2xl border shadow-sm ${t.is_active ? 'border-[#3366CC]/20 bg-white' : 'border-slate-200 bg-slate-50/80 opacity-60'} overflow-hidden`}
               >
                 <AnimatePresence mode="wait">
                   {editingTenant?.id === t.id ? (
@@ -1548,7 +1548,7 @@ function SuperAdminPanelInner() {
                             <div className="flex items-center gap-1 mt-1">
                               <Globe className="w-3 h-3 text-slate-400 shrink-0" />
                               <span className="text-xs font-mono text-slate-400 truncate">{t.slug}</span>
-                              <button onClick={() => copySlug(t.slug)} className="text-slate-300 hover:text-[#0284C7] transition p-0.5 shrink-0" title="Copia slug">
+                              <button onClick={() => copySlug(t.slug)} className="text-slate-300 hover:text-[#2255BB] transition p-0.5 shrink-0" title="Copia slug">
                                 <Copy className="w-3 h-3" />
                               </button>
                             </div>
@@ -1559,14 +1559,14 @@ function SuperAdminPanelInner() {
                                 href={`https://${t.slug}.vercel.app`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-xs text-[#0284C7] hover:underline font-medium min-w-0"
+                                className="flex items-center gap-1 text-xs text-[#2255BB] hover:underline font-medium min-w-0"
                               >
                                 <ExternalLink className="w-3 h-3 shrink-0" />
                                 <span className="truncate">{t.slug}.vercel.app</span>
                               </a>
                               <button
                                 onClick={() => navigator.clipboard.writeText(`https://${t.slug}.vercel.app`).then(() => showToast('URL copiato!'))}
-                                className="text-slate-300 hover:text-[#0284C7] transition p-0.5 shrink-0"
+                                className="text-slate-300 hover:text-[#2255BB] transition p-0.5 shrink-0"
                                 title="Copia URL"
                               >
                                 <Copy className="w-3 h-3" />
@@ -1576,13 +1576,13 @@ function SuperAdminPanelInner() {
                         </div>
 
                         {/* Barra azioni */}
-                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#06B6D4]/12">
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#3366CC]/12">
                           <button
                             onClick={() => setExpandedSettings(expandedSettings === t.id ? null : t.id)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition active:scale-95 ${
                               expandedSettings === t.id
-                                ? 'bg-[#06B6D4]/10 text-[#0284C7]'
-                                : 'bg-slate-100 text-slate-500 hover:bg-[#06B6D4]/8 hover:text-[#0284C7]'
+                                ? 'bg-[#3366CC]/10 text-[#2255BB]'
+                                : 'bg-slate-100 text-slate-500 hover:bg-[#3366CC]/8 hover:text-[#2255BB]'
                             }`}
                           >
                             <Settings className="w-3.5 h-3.5" />
@@ -1599,8 +1599,8 @@ function SuperAdminPanelInner() {
                             onClick={() => toggleActive(t)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition active:scale-95 ${
                               t.is_active
-                                ? 'bg-[#06B6D4]/10 text-[#0284C7] hover:bg-red-50 hover:text-red-500'
-                                : 'bg-slate-100 text-slate-400 hover:bg-[#06B6D4]/8 hover:text-[#0284C7]'
+                                ? 'bg-[#3366CC]/10 text-[#2255BB] hover:bg-red-50 hover:text-red-500'
+                                : 'bg-slate-100 text-slate-400 hover:bg-[#3366CC]/8 hover:text-[#2255BB]'
                             }`}
                           >
                             {t.is_active ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}
@@ -1659,11 +1659,11 @@ function SuperAdminPanelInner() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden border-t border-[#06B6D4]/12"
+                            className="overflow-hidden border-t border-[#3366CC]/12"
                           >
                             <div className="px-4 pt-3 pb-1 flex items-center gap-1.5">
-                              <ChevronDown className="w-3.5 h-3.5 text-[#0284C7]/50" />
-                              <span className="text-xs font-bold text-[#0284C7]/70 uppercase tracking-wider">Impostazioni sede</span>
+                              <ChevronDown className="w-3.5 h-3.5 text-[#2255BB]/50" />
+                              <span className="text-xs font-bold text-[#2255BB]/70 uppercase tracking-wider">Impostazioni sede</span>
                             </div>
                             <div className="px-4 pb-4">
                               <SettingsConfigPanel
@@ -1722,13 +1722,137 @@ interface ParsedRow {
   type: 'lunch' | 'dinner';
 }
 
+/** Es. `04-01-26` nel nome file → domenica 4 gennaio 2026 (DD-MM-YY). */
+function parseSundayDateFromFileName(fileName: string): { y: number; m: number; d: number } | null {
+  const m = fileName.match(/(\d{2})-(\d{2})-(\d{2})/);
+  if (!m) return null;
+  const dd = parseInt(m[1], 10);
+  const mm = parseInt(m[2], 10);
+  const yy = 2000 + parseInt(m[3], 10);
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+  return { y: yy, m: mm, d: dd };
+}
+
+function toYmd(d: Date): string {
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${mo}-${day}`;
+}
+
+/**
+ * Griglia settimanale con `;` (export da planning / "Ore dipendenti"):
+ * riga 1: DATA: ;MONDAY 29;;TUESDAY 30;; … ;SUNDAY 04;
+ * righe successive: nome in prima colonna (o vuota = stesso dipendente), poi coppie Inizio/Fine per ogni giorno.
+ * La data della domenica si ricava dal nome file (es. `04-01-26`) oppure dalla cella SUNDAY DD + anno corrente.
+ */
+function parseWeekGridSemicolon(
+  text: string,
+  fileName: string,
+  matchUser: (name: string) => { id: string; first_name: string; last_name?: string } | null,
+  parseTimeFn: (raw: string) => string | null
+): { rows: ParsedRow[]; error: string | null } {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
+  if (lines.length < 2) return { rows: [], error: 'File vuoto o non valido.' };
+
+  const headerLine = lines[0];
+  const headerCells = headerLine.split(';').map((c) => c.trim());
+  const dayLabels: string[] = [];
+  for (let i = 1; i < headerCells.length; i += 2) {
+    if (headerCells[i]) dayLabels.push(headerCells[i]);
+  }
+  if (dayLabels.length < 7) {
+    return { rows: [], error: 'Intestazione settimanale incompleta: servono 7 giorni (Lun–Dom) nella prima riga.' };
+  }
+
+  const fnDate = parseSundayDateFromFileName(fileName);
+  let sunday: Date;
+  if (fnDate) {
+    sunday = new Date(fnDate.y, fnDate.m - 1, fnDate.d);
+    if (Number.isNaN(sunday.getTime())) return { rows: [], error: 'Data nel nome file non valida (usa DD-MM-YY, es. 04-01-26).' };
+  } else {
+    const sunCell = dayLabels[6] ?? '';
+    const dm = sunCell.match(/(\d{1,2})\s*$/);
+    const dNum = dm ? parseInt(dm[1], 10) : NaN;
+    if (!Number.isFinite(dNum)) {
+      return { rows: [], error: 'Aggiungi la domenica nel nome file (es. 04-01-26-finale.csv) oppure una cella SUNDAY GG.' };
+    }
+    const y = new Date().getFullYear();
+    sunday = new Date(y, 0, dNum);
+    if (Number.isNaN(sunday.getTime())) return { rows: [], error: 'Impossibile ricavare la domenica.' };
+  }
+
+  if (sunday.getDay() !== 0) {
+    return {
+      rows: [],
+      error: `La data nel nome file (${toYmd(sunday)}) non è una domenica. Verifica DD-MM-YY (es. 04-01-26 = 4 gen 2026).`,
+    };
+  }
+
+  const monday = new Date(sunday);
+  monday.setDate(sunday.getDate() - 6);
+  const dates: string[] = [];
+  for (let d = 0; d < 7; d++) {
+    const dt = new Date(monday);
+    dt.setDate(monday.getDate() + d);
+    dates.push(toYmd(dt));
+  }
+
+  const isTime = (s: string) => /^\d{1,2}:\d{2}$/.test(s.trim());
+  const looksLikeName = (s: string) =>
+    s.length > 0 && !isTime(s) && /^[A-Za-zÀ-ÿ'.\-\s]+$/i.test(s.trim());
+
+  const parsed: ParsedRow[] = [];
+  let currentEmployee = '';
+
+  for (let li = 1; li < lines.length; li++) {
+    const cols = lines[li].split(';').map((c) => c.trim());
+    while (cols.length < 15) cols.push('');
+
+    if (looksLikeName(cols[0])) {
+      currentEmployee = cols[0].toUpperCase().trim();
+    }
+    if (!currentEmployee) continue;
+
+    for (let d = 0; d < 7; d++) {
+      const rawStart = cols[1 + 2 * d];
+      const rawEnd = cols[2 + 2 * d];
+      if (!rawStart || !rawEnd) continue;
+      if (!isTime(rawStart) || !isTime(rawEnd)) continue;
+      const startTime = parseTimeFn(rawStart);
+      const endTime = parseTimeFn(rawEnd);
+      if (!startTime || !endTime) continue;
+      const matched = matchUser(currentEmployee);
+      parsed.push({
+        rawName: currentEmployee,
+        userId: matched?.id ?? null,
+        userName: matched ? `${matched.first_name} ${matched.last_name ?? ''}`.trim() : null,
+        date: dates[d]!,
+        startTime,
+        endTime,
+        type: startTime < '15:00' ? 'lunch' : 'dinner',
+      });
+    }
+  }
+
+  if (parsed.length === 0) {
+    return { rows: [], error: 'Nessun turno letto: controlla orari HH:MM e nomi dipendenti.' };
+  }
+  return { rows: parsed, error: null };
+}
+
 function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () => void }) {
   const [selectedTenantId, setSelectedTenantId] = useState(tenants[0]?.id ?? '');
   const [tenantUsers, setTenantUsers] = useState<{ id: string; first_name: string; last_name?: string }[]>([]);
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [fileName, setFileName] = useState('');
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ ok: number; skipped: string[] } | null>(null);
+  const [importResult, setImportResult] = useState<{
+    ok: number;
+    skipped: string[];
+    duplicateInFile?: number;
+    alreadyInDb?: number;
+  } | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -1774,6 +1898,23 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
       const text = (e.target?.result as string) ?? '';
       const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
       if (lines.length < 2) { setParseError('File vuoto o non valido.'); return; }
+
+      const firstLine = lines[0] ?? '';
+      const isWeekGrid =
+        /DATA:|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY/i.test(firstLine) ||
+        (firstLine.includes(';') && firstLine.split(';').length >= 12);
+
+      if (isWeekGrid) {
+        const grid = parseWeekGridSemicolon(text, file.name, matchUser, parseTime);
+        if (grid.error) {
+          setParseError(grid.error);
+          setRows([]);
+          return;
+        }
+        setRows(grid.rows);
+        return;
+      }
+
       const dataLines = lines[0].toLowerCase().includes('nome') ? lines.slice(1) : lines;
       const parsed: ParsedRow[] = [];
       const errors: string[] = [];
@@ -1796,19 +1937,77 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
     reader.readAsText(file, 'UTF-8');
   };
 
+  const slotKey = (r: ParsedRow) => `${r.userId}|${r.date}|${r.startTime}|${r.endTime}|${r.type}`;
+
   const handleImport = async () => {
     if (!supabase || !selectedTenantId) return;
     const valid = rows.filter((r) => r.userId);
-    const skipped = [...new Set(rows.filter((r) => !r.userId).map((r) => r.rawName))];
+    const skippedNames = [...new Set(rows.filter((r) => !r.userId).map((r) => r.rawName))];
+    const uniqueParsed = [...new Map(valid.map((r) => [slotKey(r), r])).values()];
+    const duplicateInFile = valid.length - uniqueParsed.length;
+
+    if (uniqueParsed.length === 0) {
+      setParseError('Nessun turno con dipendente riconosciuto.');
+      return;
+    }
+
     setImporting(true);
     try {
-      const payload = valid.map((r) => ({ tenant_id: selectedTenantId, user_id: r.userId!, date: r.date, start_time: r.startTime, end_time: r.endTime, type: r.type, approval_status: 'confirmed' as const }));
+      const sortedDates = [...new Set(uniqueParsed.map((r) => r.date))].sort();
+      const minDate = sortedDates[0]!;
+      const maxDate = sortedDates[sortedDates.length - 1]!;
+      const userIds = [...new Set(uniqueParsed.map((r) => r.userId!))];
+      const normalizeTime = (t: string | null | undefined) => (t ?? '').trim().slice(0, 5);
+      const existingKeys = new Set<string>();
+      const uidChunk = 80;
+      for (let u = 0; u < userIds.length; u += uidChunk) {
+        const chunk = userIds.slice(u, u + uidChunk);
+        const { data: existing, error: exErr } = await supabase
+          .from('shifts')
+          .select('user_id,date,start_time,end_time,type')
+          .eq('tenant_id', selectedTenantId)
+          .gte('date', minDate)
+          .lte('date', maxDate)
+          .in('user_id', chunk);
+        if (exErr) throw exErr;
+        for (const e of existing ?? []) {
+          const st = normalizeTime(e.start_time);
+          const en = normalizeTime(e.end_time) || st;
+          existingKeys.add(`${e.user_id}|${e.date}|${st}|${en}|${e.type}`);
+        }
+      }
+
+      const toInsert = uniqueParsed.filter((r) => !existingKeys.has(slotKey(r)));
+      const alreadyInDb = uniqueParsed.length - toInsert.length;
+
+      if (toInsert.length === 0) {
+        setImportResult({ ok: 0, skipped: skippedNames, duplicateInFile, alreadyInDb });
+        setRows([]);
+        setFileName('');
+        return;
+      }
+
+      const approvedAt = new Date().toISOString();
+      const payload = toInsert.map((r) => ({
+        tenant_id: selectedTenantId,
+        user_id: r.userId!,
+        date: r.date,
+        start_time: r.startTime,
+        end_time: r.endTime,
+        type: r.type,
+        approval_status: 'approved' as const,
+        approved_at: approvedAt,
+        approved_start_time: r.startTime,
+        approved_end_time: r.endTime,
+        approved_by: 'import_storico',
+      }));
       for (let i = 0; i < payload.length; i += 200) {
         const { error } = await supabase.from('shifts').insert(payload.slice(i, i + 200));
         if (error) throw error;
       }
-      setImportResult({ ok: valid.length, skipped });
-      setRows([]); setFileName('');
+      setImportResult({ ok: toInsert.length, skipped: skippedNames, duplicateInFile, alreadyInDb });
+      setRows([]);
+      setFileName('');
     } catch (e) {
       setParseError(e instanceof Error ? e.message : 'Errore import');
     } finally {
@@ -1824,7 +2023,9 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-sm font-bold text-amber-700">Importa turni storici</h2>
-          <p className="text-[11px] text-amber-600/70 mt-0.5">CSV con turni passati. I nomi non riconosciuti vengono ignorati.</p>
+          <p className="text-[11px] text-amber-600/70 mt-0.5">
+            CSV con turni passati. I nomi non riconosciuti vengono ignorati. Stesso slot (sede, data, orari, tipo) non viene duplicato se è già in tabella.
+          </p>
         </div>
         <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition p-1"><X className="w-4 h-4" /></button>
       </div>
@@ -1852,17 +2053,32 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
       </div>
 
-      <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Formato CSV</p>
-        <code className="text-[11px] text-slate-500 leading-relaxed whitespace-pre">{`Nome,Data,Inizio,Fine\nGUSTAVO,29/01/2026,10:00,16:00\nGUSTAVO,29/01/2026,16:30,23:00`}</code>
-        <p className="text-[10px] text-slate-400 mt-1.5">Una riga per turno &nbsp;·&nbsp; Data: GG/MM/AAAA &nbsp;·&nbsp; Ora: HH:MM</p>
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-2">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Formato A — griglia settimanale (Ore dipendenti)</p>
+        <p className="text-[10px] text-slate-500 leading-snug">
+          Separatore <strong>;</strong>, prima riga con <code className="text-[10px]">DATA:</code> e giorni <code className="text-[10px]">MONDAY 29;;TUESDAY 30;;</code> … Poi una riga per dipendente (nome in maiuscolo) e righe successive senza nome per altri turni nella stessa settimana.
+          Includi nel <strong>nome file</strong> la domenica della settimana in <strong>DD-MM-YY</strong> (es. <code className="text-[10px]">04-01-26</code> = 4 gennaio 2026, deve essere una domenica).
+        </p>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-1">Formato B — una riga per turno</p>
+        <code className="text-[11px] text-slate-500 leading-relaxed whitespace-pre block">{`Nome,Data,Inizio,Fine\nGUSTAVO,29/01/2026,10:00,16:00`}</code>
+        <p className="text-[10px] text-slate-400">Virgola &nbsp;·&nbsp; Data GG/MM/AAAA &nbsp;·&nbsp; Ora HH:MM</p>
       </div>
 
       {parseError && <div className="rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-600">{parseError}</div>}
 
       {importResult && (
-        <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-3 space-y-1">
-          <p className="text-sm font-bold text-emerald-700">✓ {importResult.ok} turni importati con successo!</p>
+        <div className={`rounded-xl border px-3 py-3 space-y-1 ${importResult.ok > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'}`}>
+          {importResult.ok > 0 ? (
+            <p className="text-sm font-bold text-emerald-700">✓ {importResult.ok} turni importati con successo!</p>
+          ) : (
+            <p className="text-sm font-bold text-amber-800">Nessun turno nuovo: erano già tutti presenti nel database.</p>
+          )}
+          {(importResult.duplicateInFile ?? 0) > 0 && (
+            <p className="text-[11px] text-slate-600">Righe duplicate nel file (stesso slot): {importResult.duplicateInFile}</p>
+          )}
+          {(importResult.alreadyInDb ?? 0) > 0 && (
+            <p className="text-[11px] text-slate-600">Già in tabella (stessa settimana / stesso slot): {importResult.alreadyInDb}</p>
+          )}
           {importResult.skipped.length > 0 && <p className="text-[11px] text-amber-600">Ignorati (non trovati): {importResult.skipped.join(', ')}</p>}
         </div>
       )}
@@ -1898,15 +2114,44 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
             </div>
             {rows.length > 15 && <p className="text-center text-[10px] text-slate-400 py-2 border-t border-slate-100">… e altri {rows.length - 15} turni</p>}
           </div>
-          {matched.length > 0 && (
-            <button onClick={handleImport} disabled={importing}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 py-3 text-sm font-bold text-white transition disabled:opacity-50 active:scale-95">
-              <Check className="w-4 h-4" />
-              {importing ? 'Importazione in corso…' : `Importa ${matched.length} turni nel DB`}
-            </button>
-          )}
         </div>
       )}
+
+      {/* Pulsante importazione sempre visibile in fondo */}
+      <div className="rounded-xl border border-amber-400/40 bg-white p-4 space-y-3 shadow-sm">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-amber-800/80">Importazione nel database</p>
+        {rows.length === 0 && (
+          <p className="text-xs text-slate-600">
+            Carica un CSV con il pulsante sopra: comparirà l’anteprima e potrai confermare l’import.
+          </p>
+        )}
+        {rows.length > 0 && matched.length === 0 && (
+          <p className="text-xs text-red-700">
+            Nessun dipendente riconosciuto: la colonna <strong>Nome</strong> deve coincidere con il <strong>nome</strong> o <strong>nome e cognome</strong> (come in app) di un utente <strong>attivo</strong> della sede selezionata. Correggi il CSV e ricarica.
+          </p>
+        )}
+        {rows.length > 0 && matched.length > 0 && (
+          <p className="text-xs text-emerald-800">
+            Pronti <strong>{matched.length}</strong> turni da scrivere in tabella <code className="text-[10px] bg-slate-100 px-1 rounded">shifts</code>
+            {unmatched.length > 0 && (
+              <span className="text-amber-700"> · {rows.length - matched.length} righe saltate (nome non trovato)</span>
+            )}
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={handleImport}
+          disabled={importing || matched.length === 0}
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 py-3.5 text-sm font-bold text-white transition disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:bg-amber-500 active:scale-[0.99]"
+        >
+          <Check className="w-4 h-4 shrink-0" />
+          {importing
+            ? 'Importazione in corso…'
+            : matched.length > 0
+              ? `Importa ${matched.length} turni nel database`
+              : 'Importa nel database'}
+        </button>
+      </div>
     </div>
   );
 }

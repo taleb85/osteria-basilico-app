@@ -28,12 +28,12 @@ export default function StaffHomePreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div>
+        <div className="bg-white dark:bg-transparent p-4 rounded-2xl shadow-sm dark:shadow-none border border-slate-100 dark:border-white/10" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
           <h2 className="text-xl font-bold text-slate-900 dark:text-neutral-50">
             {t.home_greeting.replace('{name}', name)}
           </h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="surface-glass-sm !rounded-full px-3 py-1 text-xs font-semibold text-slate-600 dark:text-neutral-300">
+            <span className="surface-glass-sm !rounded-full px-3 py-1 text-xs font-semibold text-slate-600 dark:text-neutral-300 border border-slate-100 dark:border-white/10">
               24h {t.approved_hours_summary?.toLowerCase() ?? 'approvate'}
             </span>
             <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold text-accent">
@@ -50,7 +50,7 @@ export default function StaffHomePreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass flex items-center justify-between p-4">
+        <div className="surface-glass flex items-center justify-between p-4 shadow-sm dark:shadow-none border border-slate-100 dark:border-white/10" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-neutral-400">{t.hours_this_month}</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-neutral-50">32:00</p>

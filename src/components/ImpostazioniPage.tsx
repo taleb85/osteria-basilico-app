@@ -2,7 +2,7 @@
  * Scheda Impostazioni — attiva/disattiva le funzioni disponibili per i profili.
  * Solo Admin. Le modifiche sono immediate e salvate in DB o localStorage.
  */
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid,
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getFeatureStrings, formatTrans } from '../utils/translations';
-import { isAdminOnly, isPurelyManagementRole } from '../utils/permissions';
+import { isAdminOnly } from '../utils/permissions';
 import { FEATURE_DEFINITIONS } from '../utils/featureFlags';
 import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage';
 
@@ -42,20 +42,15 @@ type ImpostazioniPageProps = {
   onOpenProfilesTab?: () => void;
 };
 
-const demoProfileSelectClass =
-  'w-full max-w-md rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100';
-
 export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPageProps) {
   const {
     currentUser,
-    users,
     featureFlags,
     setFeatureFlag,
     effectiveLanguage,
     showSuccess,
     showError,
-    seedDemoProfileForUser,
-    logout, // Assicurati che logout sia disponibile in useApp
+    logout,
   } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [howOpen, setHowOpen] = useState(false);
@@ -70,24 +65,6 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     setDetailOpen((prev) => ({ ...prev, [slug]: !prev[slug] }));
   }, []);
 
-  const demoProfileCandidates = useMemo(
-    () =>
-      users
-        .filter((u) => u.status === 'active' && !isPurelyManagementRole(u.role))
-        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
-    [users]
-  );
-
-  const [demoProfileTargetUserId, setDemoProfileTargetUserId] = useState('');
-  const [seedingDemoProfile, setSeedingDemoProfile] = useState(false);
-
-  useEffect(() => {
-    const valid =
-      demoProfileTargetUserId &&
-      demoProfileCandidates.some((u) => u.id === demoProfileTargetUserId);
-    if (valid) return;
-    setDemoProfileTargetUserId(demoProfileCandidates[0]?.id ?? '');
-  }, [demoProfileCandidates, demoProfileTargetUserId]);
 
 
   if (!currentUser) return null;
@@ -152,7 +129,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
                 className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 ${enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${enabled ? 'translate-x-5' : 'translate-x-1'}`}
+                  className={`pointer-events-none absolute top-0 left-0 h-5 w-5 rounded-full bg-white toggle-knob shadow transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-0'}`}
                 />
               </button>
             </div>
@@ -255,68 +232,6 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
           ))}
         </div>
 
-        {/* Divider */}
-        <div className="h-0.5 bg-slate-200 dark:bg-neutral-800 rounded my-6" />
-
-        {/* Sezione avanzate/demo profili */}
-        <section
-          className="mt-8 space-y-3 rounded-xl border-2 border-brand-400/90 bg-brand-50/90 p-4 shadow-sm dark:border-brand-700/50 dark:bg-[#0052FF]/7 sm:p-5"
-          aria-label={t.impostazioni_demo_profile_title}
-        >
-          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-900 dark:text-white dark:text-brand-100">
-            {t.impostazioni_demo_profile_title}
-          </h2>
-          <p className="max-w-2xl text-xs leading-relaxed text-brand-900/85 dark:text-brand-200/90">{t.impostazioni_demo_profile_lead}</p>
-          <div className="space-y-2 max-w-md">
-            <label
-              htmlFor="osteria-demo-profile-user-impostazioni"
-              className="block text-[10px] font-bold uppercase tracking-wider text-brand-900/80 dark:text-brand-200/90"
-            >
-              {t.settings_seed_demo_profile_pick_user}
-            </label>
-            {demoProfileCandidates.length === 0 ? (
-              <p className="rounded-lg border border-amber-300/80 bg-amber-100 px-3 py-2 text-xs text-amber-900 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200">
-                {t.settings_seed_demo_profile_no_staff}
-              </p>
-            ) : (
-              <select
-                id="osteria-demo-profile-user-impostazioni"
-                value={demoProfileTargetUserId}
-                onChange={(e) => setDemoProfileTargetUserId(e.target.value)}
-                className={demoProfileSelectClass}
-              >
-                {demoProfileCandidates.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {[u.first_name, u.last_name].filter(Boolean).join(' ').trim() || u.email}
-                  </option>
-                ))}
-              </select>
-            )}
-            <button
-              type="button"
-              disabled={
-                seedingDemoProfile ||
-                !demoProfileTargetUserId ||
-                demoProfileCandidates.length === 0
-              }
-              onClick={async () => {
-                if (!window.confirm(t.settings_seed_demo_profile_confirm)) return;
-                setSeedingDemoProfile(true);
-                try {
-                  await seedDemoProfileForUser(demoProfileTargetUserId);
-                  showSuccess?.(t.settings_seed_demo_profile_done);
-                } catch (e) {
-                  showError?.(e instanceof Error ? e.message : t.settings_seed_demo_profile_error);
-                } finally {
-                  setSeedingDemoProfile(false);
-                }
-              }}
-              className="w-full px-3 py-3 rounded-xl bg-brand-600 border border-brand-700 text-white text-xs font-bold uppercase tracking-wider hover:bg-brand-700 disabled:opacity-50 disabled:pointer-events-none"
-            >
-              {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
-            </button>
-          </div>
-        </section>
       </motion.div>
     </div>
   );

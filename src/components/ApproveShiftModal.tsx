@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, RotateCcw } from 'lucide-react';
 import { Shift, User } from '../types';
@@ -19,6 +20,7 @@ interface ApproveShiftModalProps {
 }
 
 export default function ApproveShiftModal({ shift, punchRecords, userName, onClose, onApprove, onRevertToPending, currentUser }: ApproveShiftModalProps) {
+  useBodyScrollLock(true);
   const { effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
   const pair = getPunchPairForShift(shift, punchRecords);
@@ -55,7 +57,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/35 backdrop-blur-sm dark:bg-black/50 flex items-center justify-center z-50 p-4"
         onClick={onClose}
       >
         <motion.div
@@ -99,7 +101,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
                   {pair.plannedStart} → {pair.plannedEnd}
                 </p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-[#0052FF]/8 px-3 py-2 dark:border-white/10 dark:bg-[#0052FF]/12">
+              <div className="rounded-xl border border-slate-200 bg-[#001A80]/8 px-3 py-2 dark:border-white/10 dark:bg-[#001A80]/12">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300 mb-1">{t.ts_label_punched}</p>
                 <p className="font-bold tabular-nums text-slate-800 dark:text-gray-100">
                   {pair.actualStart ?? '—'} → {pair.actualEnd ?? '—'}

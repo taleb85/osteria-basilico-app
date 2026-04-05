@@ -148,7 +148,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-[99999] flex flex-col items-center justify-start overflow-y-auto font-sans"
       style={{
-        background: 'linear-gradient(160deg, #0052FF 0%, #0039CC 55%, #001F80 100%)',
+        background: 'linear-gradient(160deg, #001A80 0%, #001266 55%, #001F80 100%)',
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
@@ -186,8 +186,8 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               animate={{ scale: 1, opacity: 1 }}
               className="flex flex-col items-center justify-center gap-4 py-8 text-center"
             >
-              <div className="w-16 h-16 rounded-full bg-[#0052FF]/10 flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-[#0052FF]" strokeWidth={2} />
+              <div className="w-16 h-16 rounded-full bg-[#001A80]/10 flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-[#001A80] dark:text-[#6699FF]" strokeWidth={2} />
               </div>
               <p className="text-lg font-bold text-slate-900 dark:text-white">
                 {lang === 'it' ? 'Profilo configurato!' : lang === 'es' ? '¡Perfil configurado!' : lang === 'fr' ? 'Profil configuré !' : 'Profile set up!'}
@@ -201,7 +201,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               {/* EMAIL */}
               <div>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wide mb-1.5">
-                  <Mail className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#0052FF]" />
+                  <Mail className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#001A80] dark:text-[#6699FF]" />
                   {lang === 'it' ? 'Email personale' : lang === 'es' ? 'Email personal' : lang === 'fr' ? 'Email personnelle' : 'Personal email'}
                 </label>
                 <input
@@ -214,7 +214,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                   onBlur={() => setTouched((p) => ({ ...p, email: true }))}
                   onKeyDown={handleKeyDown}
                   placeholder={lang === 'it' ? 'Inserisci la tua email…' : 'Enter your email…'}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-slate-50 dark:bg-neutral-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:ring-2 focus:ring-[#0052FF]/30 focus:border-[#0052FF] ${
+                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-slate-50 dark:bg-neutral-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:ring-2 focus:ring-[#001A80]/30 focus:border-[#001A80] ${
                     emailError ? 'border-red-400 bg-red-50/50 dark:bg-red-950/20' : 'border-slate-200 dark:border-white/10'
                   }`}
                 />
@@ -229,7 +229,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               {/* TELEFONO */}
               <div>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wide mb-1.5">
-                  <Phone className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#0052FF]" />
+                  <Phone className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#001A80] dark:text-[#6699FF]" />
                   {lang === 'it' ? 'Numero di telefono' : lang === 'es' ? 'Número de teléfono' : lang === 'fr' ? 'Numéro de téléphone' : 'Phone number'}
                 </label>
                 <input
@@ -241,7 +241,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                   onBlur={() => setTouched((p) => ({ ...p, phone: true }))}
                   onKeyDown={handleKeyDown}
                   placeholder={lang === 'it' ? 'Es. +39 333 1234567' : lang === 'es' ? 'Ej. +34 600 000000' : '+1 555 000 0000'}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-slate-50 dark:bg-neutral-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:ring-2 focus:ring-[#0052FF]/30 focus:border-[#0052FF] ${
+                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-slate-50 dark:bg-neutral-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:ring-2 focus:ring-[#001A80]/30 focus:border-[#001A80] ${
                     phoneError ? 'border-red-400 bg-red-50/50 dark:bg-red-950/20' : 'border-slate-200 dark:border-white/10'
                   }`}
                 />
@@ -259,7 +259,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               {/* NUOVO PIN */}
               <div>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wide mb-1.5">
-                  <Lock className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#0052FF]" />
+                  <Lock className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#001A80] dark:text-[#6699FF]" />
                   {lang === 'it' ? 'Nuovo PIN (4 cifre)' : lang === 'es' ? 'Nuevo PIN (4 dígitos)' : lang === 'fr' ? 'Nouveau PIN (4 chiffres)' : 'New PIN (4 digits)'}
                 </label>
                 <div className="flex gap-2.5 justify-center">
@@ -268,7 +268,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                       key={i}
                       className={`flex h-12 w-12 items-center justify-center rounded-xl border-2 text-xl font-bold transition-all select-none ${
                         pinDigits.length > i
-                          ? 'border-[#0052FF] bg-[#0052FF]/8 dark:bg-[#0052FF]/15 text-[#0052FF]'
+                          ? 'border-[#001A80] bg-[#001A80]/8 dark:bg-[#001A80]/15 text-[#001A80]'
                           : pinError
                           ? 'border-red-300 bg-red-50/50 dark:bg-red-950/20'
                           : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-800'
@@ -310,7 +310,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                           ? 'pointer-events-none opacity-0'
                           : k === '⌫'
                           ? 'bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-200 dark:hover:bg-neutral-700'
-                          : 'bg-slate-100 dark:bg-neutral-800 text-slate-900 dark:text-white hover:bg-[#0052FF]/10 dark:hover:bg-[#0052FF]/20 hover:text-[#0052FF]'
+                          : 'bg-slate-100 dark:bg-neutral-800 text-slate-900 dark:text-white hover:bg-[#001A80]/10 dark:hover:bg-[#001A80]/20 hover:text-[#001A80]'
                       }`}
                     >
                       {k}
@@ -400,9 +400,9 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                 className="w-full flex items-center justify-center gap-2.5 rounded-2xl py-4 text-sm font-bold tracking-wide uppercase text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{
                   background: isFormValid
-                    ? 'linear-gradient(135deg, #0052FF 0%, #0039CC 100%)'
+                    ? 'linear-gradient(135deg, #001A80 0%, #001266 100%)'
                     : 'linear-gradient(135deg, #94a3b8 0%, #64748b 100%)',
-                  boxShadow: isFormValid ? '0 4px 20px rgba(0,82,255,0.35)' : 'none',
+                  boxShadow: isFormValid ? '0 4px 20px rgba(0,26,128,0.35)' : 'none',
                 }}
               >
                 {saving ? (

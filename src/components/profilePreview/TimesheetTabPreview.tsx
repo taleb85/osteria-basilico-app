@@ -46,7 +46,7 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
+        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3 shadow-sm dark:shadow-none border border-slate-100 dark:border-white/10" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-800">
             <ClipboardList className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
           </div>
@@ -80,12 +80,12 @@ export default function TimesheetTabPreview({
       >
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { v: '4', l: t.home_stat_in_shift, b: 'border-[#0052FF]/15 dark:border-[#0052FF]/18' },
-            { v: '1', l: t.home_stat_delays, b: 'border-red-100 dark:border-red-900/40' },
-            { v: '0', l: t.home_stat_missing_out, b: 'border-orange-100 dark:border-orange-900/40' },
-            { v: '12', l: t.home_stat_approved, b: 'border-accent/20 dark:border-accent/30' },
+            { v: '4', l: t.home_stat_in_shift, b: 'border-slate-100 dark:border-[#001A80]/18' },
+            { v: '1', l: t.home_stat_delays, b: 'border-slate-100 dark:border-red-900/40' },
+            { v: '0', l: t.home_stat_missing_out, b: 'border-slate-100 dark:border-orange-900/40' },
+            { v: '12', l: t.home_stat_approved, b: 'border-slate-100 dark:border-accent/30' },
           ].map((c) => (
-            <div key={c.l} className={`surface-glass-sm p-3 text-center ${c.b}`}>
+            <div key={c.l} className={`surface-glass-sm p-3 text-center ${c.b} shadow-sm dark:shadow-none border border-slate-100 dark:border-white/10`} style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
               <p className="text-xl font-bold text-slate-900 dark:text-neutral-50">{c.v}</p>
               <p className="mt-0.5 text-[10px] font-medium text-slate-500 dark:text-neutral-300">{c.l}</p>
             </div>
@@ -103,15 +103,15 @@ export default function TimesheetTabPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <div className="surface-glass-sm p-3">
+          <div className="surface-glass-sm p-3 shadow-sm dark:shadow-none border border-slate-100 dark:border-white/10" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
             <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.stats_approved_hours}</p>
             <p className="text-xl font-bold text-slate-900 dark:text-neutral-50">128:30</p>
           </div>
-          <div className="surface-glass-sm p-3">
+          <div className="surface-glass-sm p-3 shadow-sm dark:shadow-none border border-slate-100 dark:border-white/10" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
             <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.stats_estimated_cost}</p>
             <p className="text-xl font-bold text-slate-900 dark:text-neutral-50">—</p>
           </div>
-          <div className="surface-glass-sm p-3">
+          <div className="surface-glass-sm p-3 shadow-sm dark:shadow-none border border-slate-100 dark:border-white/10" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
             <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-400">{t.pending}</p>
             <p className="text-xl font-bold text-amber-800 dark:text-amber-300">3</p>
           </div>
@@ -163,19 +163,19 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm overflow-hidden">
-          <div className="grid grid-cols-[minmax(4rem,1fr)_repeat(4,minmax(0,1fr))] gap-px bg-slate-200 text-[9px]">
-            <div className="bg-slate-50 px-1 py-2 font-bold text-slate-500 dark:text-neutral-300">Staff</div>
+        <div className="surface-glass-sm overflow-hidden shadow-sm dark:shadow-none border border-slate-100 dark:border-white/10" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+          <div className="grid grid-cols-[minmax(4rem,1fr)_repeat(4,minmax(0,1fr))] gap-px bg-slate-100 text-[9px] dark:bg-white/10">
+            <div className="bg-white px-1 py-2 font-bold text-slate-400 dark:bg-neutral-800 dark:text-neutral-300">Staff</div>
             {['Lun', 'Mar', 'Mer', 'Gio'].map((d) => (
-              <div key={d} className="bg-slate-50 py-2 text-center font-bold text-slate-500 dark:text-neutral-300">
+              <div key={d} className="bg-white py-2 text-center font-bold text-slate-400 dark:bg-neutral-800 dark:text-neutral-300">
                 {d}
               </div>
             ))}
             <div className="contents">
-              <div className="bg-slate-50 px-2 py-2 font-semibold text-slate-700 dark:bg-neutral-900 dark:text-neutral-200">{previewUser.first_name}</div>
+              <div className="bg-white px-2 py-2 font-semibold text-slate-700 dark:bg-neutral-900 dark:text-neutral-200">{previewUser.first_name}</div>
               {dailyHours.map((hours, i) => (
-                <div key={i} className="min-h-[36px] bg-slate-50 p-0.5 dark:bg-neutral-900 text-center">
-                  {hours || <span className="text-slate-300 dark:text-neutral-700">—</span>}
+                <div key={i} className="min-h-[36px] bg-white p-0.5 dark:bg-neutral-900 text-center">
+                  {hours || <span className="text-slate-200 dark:text-neutral-700">—</span>}
                 </div>
               ))}
             </div>

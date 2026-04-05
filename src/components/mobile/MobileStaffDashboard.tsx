@@ -361,6 +361,9 @@ export default function MobileStaffDashboard({
             tapStartHint={tv.mobile_dash_tap_start ?? 'Tocca Inizia per timbrare l’entrata.'}
             shiftTimeHint={shiftTimeHint}
             statusInShift={t.home_status_in_shift}
+            todayShiftLabel={t.home_todays_shifts}
+            inProgressLabel={t.legend_in_progress}
+            nextShiftLabel={t.home_next_shift}
             savingLabel={t.saving}
             startLabel={tv.mobile_dash_start ?? 'Inizia'}
             endLabel={tv.mobile_dash_end ?? 'Fine turno'}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { X } from 'lucide-react';
 import { User as UserType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -61,6 +62,7 @@ export default function CreateStaffModal({
   onCreated,
   operationalRolesOnly = false,
 }: CreateStaffModalProps) {
+  useBodyScrollLock(isOpen);
   const { createUser, currentUser, effectiveLanguage, showError, users } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [formData, setFormData] = useState<ProfileFormAdminData>(emptyForm);
@@ -146,7 +148,7 @@ export default function CreateStaffModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-black/35 backdrop-blur-sm dark:bg-black/50 flex items-center justify-center z-50 p-4">
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}

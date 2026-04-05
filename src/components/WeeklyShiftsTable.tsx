@@ -1,8 +1,9 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { format, startOfWeek, endOfWeek, addDays, differenceInCalendarDays, parseISO, isToday, eachDayOfInterval, getDay } from 'date-fns';
 import { database } from '../lib/database';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu, ClipboardCopy, ClipboardPaste, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu, ClipboardCopy, ClipboardPaste, Calendar, RotateCcw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
@@ -51,6 +52,7 @@ import {
   getPeriodEndDate,
   weekIndexForDateInPeriod,
   dispatchPeriodConfigUpdated,
+  periodConfigForMonth,
   type PeriodConfig,
 } from '../utils/periodConfig';
 import { exportSchedulePDF } from '../utils/exportSchedulePDF';
@@ -60,6 +62,7 @@ import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase'
 import { motion, AnimatePresence } from 'framer-motion';
 import DatePickerField from './DatePickerField';
 import { TimeInputField } from './ui/TimeInputField';
+import { DatePickerInput } from './ui/CalendarDatePicker';
 import { isDatePickerPortalClick } from '../utils/datePickerPortal';
 import { HorizontalScrollArea } from './HorizontalScrollArea';
 
@@ -350,6 +353,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     return () => window.removeEventListener('osteria_period_updated', handler);
   }, []);
 
+  // ── Popover selezione periodo (come in Timesheets) ──
+  const [showPeriodPopover, setShowPeriodPopover] = useState(false);
+  const [periodPopoverPos, setPeriodPopoverPos] = useState<{ top: number; left: number } | null>(null);
+  const [periodPopoverYear, setPeriodPopoverYear] = useState(new Date().getFullYear());
+  const wstPeriodTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const wstPeriodPopoverRef = useRef<HTMLDivElement | null>(null);
+
   const [wstToolbarDrawerOpen, setWstToolbarDrawerOpen] = useState(false);
   const [wstToolbarDrawerSection, setWstToolbarDrawerSection] = useState<
     null | 'filters' | 'legend' | 'department'
@@ -392,6 +402,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   } | null>(null);
   // Modalità incolla: l'utente clicca la cella di destinazione
   const [pasteMode, setPasteMode] = useState(false);
+  // Menu contestuale tasto destro
+  const [contextMenu, setContextMenu] = useState<{
+    x: number; y: number;
+    shift: Shift | null;
+    userId: string; date: string;
+  } | null>(null);
+  // Clipboard rapido (copia singolo turno da tasto destro)
+  const [quickClipboard, setQuickClipboard] = useState<{
+    start_time: string; end_time: string;
+    deduct_break: boolean; type: ShiftType;
+  } | null>(null);
   // Conferma eliminazione inline nella barra azioni
   const [deleteConfirmPending, setDeleteConfirmPending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -409,6 +430,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [panelPinTargetShiftId, setPanelPinTargetShiftId] = useState<string | null>(null);
   const [panelPin, setPanelPin] = useState('');
   const [panelPinError, setPanelPinError] = useState('');
+  // PIN context menu: azione pendente dopo sblocco
+  const [contextPinPendingAction, setContextPinPendingAction] = useState<'edit' | 'delete' | null>(null);
+  // Undo stack — max 10 operazioni reversibili
+  const [undoStack, setUndoStack] = useState<Array<{ label: string; fn: () => Promise<void> }>>([]);
+  const pushUndo = (label: string, fn: () => Promise<void>) =>
+    setUndoStack((prev) => [{ label, fn }, ...prev].slice(0, 10));
   const sidebarMenuRef = useRef<HTMLDivElement | null>(null);
   const [dragSelect, setDragSelect] = useState<{ userIdx: number; dayIdx: number; slotIdx: number } | null>(null);
   const dragStartRef = useRef<{ userIdx: number; dayIdx: number; slotIdx: number } | null>(null);
@@ -427,6 +454,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const footerTotalsScrollRef = useRef<HTMLDivElement | null>(null);
   const cardScrollRefs = useRef<(HTMLDivElement | null)[]>([]);
   const syncScrollFromProgrammatic = useRef(false);
+  // Touch interceptor: swipe on nome/gap → scorri tutti i card insieme
+  const outerSwipeRef = useRef<{ x: number; y: number; lastX: number; dir: 'h' | 'v' | null } | null>(null);
   const syncScrollLeft = useCallback((source: HTMLDivElement | null) => {
     if (!source || syncScrollFromProgrammatic.current) return;
     const maxS = source.scrollWidth - source.clientWidth;
@@ -547,15 +576,18 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const { users, shifts, holidays, availability, toggleAvailability, updateShift, updateUser, currentUser, punchRecords, addShift, deleteShifts, showError, showSuccess, silentRefreshData, requestConfirmAndSaveOrder, requestConfirmAndPublishWeek, postRefreshLocked, effectiveLanguage, workRules, breakRules, featureFlags, departmentsRevision } = useApp();
   void departmentsRevision;
   // Ruoli gestionali: filtro libero. Staff operativo: vincolato al reparto del profilo.
+  // Capo: management ma bloccato al proprio reparto (non può cambiarlo).
   const isAdminWst = currentUser ? isManagementRole(currentUser.role) : false;
   const lockedDeptWst = (!isAdminWst && currentUser?.department) ? currentUser.department : null;
+  const capoLockedDeptWst = currentUser?.role === 'capo' && currentUser?.department ? currentUser.department : null;
   // Riallinea il filtro reparto quando cambia il profilo (deve stare dopo useApp/currentUser)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (lockedDeptWst) setLocalFilterDepartment(lockedDeptWst);
+    else if (capoLockedDeptWst) setLocalFilterDepartment(capoLockedDeptWst);
     else if (isAdminWst && currentUser?.department) setLocalFilterDepartment(currentUser.department);
     else if (!isAdminWst) setLocalFilterDepartment('');
-  }, [lockedDeptWst, isAdminWst, currentUser?.department]);
+  }, [lockedDeptWst, capoLockedDeptWst, isAdminWst, currentUser?.department]);
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
   const breakComputeOpts = useMemo(
@@ -857,6 +889,89 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     setDeleteConfirmPending(false);
   }, [selectedShiftIds, deleteShifts]);
 
+  /** Apre il context menu tasto destro su una cella/turno. */
+  const handleShiftContextMenu = useCallback((
+    e: React.MouseEvent,
+    userId: string,
+    date: string,
+    shift: Shift | null,
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, shift, userId, date });
+  }, []);
+
+  const handleContextCopy = useCallback(() => {
+    if (!contextMenu?.shift) return;
+    const { start_time, end_time, deduct_break, type } = contextMenu.shift;
+    setQuickClipboard({ start_time, end_time, deduct_break: deduct_break ?? false, type });
+    showSuccess?.('Turno copiato negli appunti');
+    setContextMenu(null);
+  }, [contextMenu, showSuccess]);
+
+  const handleContextPaste = useCallback(async () => {
+    if (!contextMenu || !quickClipboard) return;
+    setContextMenu(null);
+    await addShift({
+      user_id: contextMenu.userId,
+      date: contextMenu.date,
+      start_time: quickClipboard.start_time,
+      end_time: quickClipboard.end_time,
+      deduct_break: quickClipboard.deduct_break,
+      type: quickClipboard.type,
+      approval_status: 'draft',
+    });
+    showSuccess?.('Turno incollato');
+  }, [contextMenu, quickClipboard, addShift, showSuccess]);
+
+  const isShiftPublished = (shift: Shift) =>
+    shift.approval_status === 'confirmed' || shift.approval_status === 'approved';
+
+  const handleContextEdit = useCallback(() => {
+    if (!contextMenu?.shift) return;
+    const shift = contextMenu.shift;
+    // Richiede PIN se pubblicato e non ancora sbloccato
+    if (isShiftPublished(shift) && panelPinUnlocked !== shift.id) {
+      setContextPinPendingAction('edit');
+      setPanelPinTargetShiftId(shift.id);
+      setPanelPinModalOpen(true);
+      return;
+    }
+    setSelectedShiftIds([shift.id]);
+    setSidebarDay(contextMenu.date);
+    setSidebarOpen(true);
+    setContextMenu(null);
+  }, [contextMenu, panelPinUnlocked]);
+
+  const handleContextDelete = useCallback(async () => {
+    if (!contextMenu?.shift) return;
+    const shift = contextMenu.shift;
+    // Richiede PIN se pubblicato e non ancora sbloccato
+    if (isShiftPublished(shift) && panelPinUnlocked !== shift.id) {
+      setContextPinPendingAction('delete');
+      setPanelPinTargetShiftId(shift.id);
+      setPanelPinModalOpen(true);
+      return;
+    }
+    const id = shift.id;
+    // Push undo prima di eliminare
+    const snapshot = { ...shift };
+    pushUndo(`Ripristina turno ${snapshot.start_time}–${snapshot.end_time}`, async () => {
+      await addShift({
+        user_id: snapshot.user_id,
+        date: snapshot.date,
+        start_time: snapshot.start_time,
+        end_time: snapshot.end_time,
+        type: snapshot.type,
+        approval_status: 'draft',
+        notes: snapshot.notes,
+        deduct_break: snapshot.deduct_break ?? true,
+      });
+    });
+    setContextMenu(null);
+    await deleteShifts([id]);
+  }, [contextMenu, panelPinUnlocked, deleteShifts, addShift]);
+
   // ───────────────────────────────────────────────────────────────────────────
 
   /** Manager: rifiuta la richiesta → turno torna disponibile come aperto. */
@@ -1063,6 +1178,30 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     }
   }, [sidebarMenuShiftId, sidebarStatusSubmenuShiftId, wstToolbarDrawerOpen]);
 
+  useEffect(() => {
+    if (!showPeriodPopover) return;
+    const handleOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const insideTrigger = wstPeriodTriggerRef.current?.contains(target);
+      const insidePopover = wstPeriodPopoverRef.current?.contains(target);
+      if (!insideTrigger && !insidePopover) setShowPeriodPopover(false);
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [showPeriodPopover]);
+
+
+  const applyAndSavePeriodWst = useCallback((cfg: PeriodConfig) => {
+    setPeriodConfig(cfg);
+    setPeriodDraftStart(cfg.startDate);
+    setPeriodDraftNumWeeks(cfg.numWeeks);
+    setPeriodDraftSaved(true);
+    persistPeriodConfig(cfg);
+    dispatchPeriodConfigUpdated();
+    setWeekIndex(weekIndexForDateInPeriod(cfg));
+    setPeriodPanOffsetWeeks(0);
+    void saveTimesheetPeriodToSupabase(cfg).catch(() => {});
+  }, []);
 
   const activeUsers = useMemo(() => {
     let list = users.filter((u) => isUserVisibleOnTeamSchedule(u, shifts));
@@ -1324,22 +1463,22 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   const VARIANT_CLASSES: Record<ShiftColorVariant, { bg: string; text: string; selRing: string; border?: string; borderBottom?: string }> = {
     planned: {
-      bg: 'bg-slate-50 hover:bg-slate-100 dark:bg-neutral-950/85 dark:hover:bg-neutral-900/90',
+      bg: 'bg-slate-50 hover:bg-slate-100 dark:bg-transparent dark:hover:bg-white/[0.04]',
       text: 'text-slate-900 dark:text-white',
       selRing: 'ring-slate-300/50',
       border: 'border-2 border-dashed border-slate-400 dark:border-white/75 rounded-xl shadow-sm',
     },
     inprogress: {
-      bg: 'bg-[#06B6D4]/8 hover:bg-[#06B6D4]/12 dark:bg-[#06B6D4]/10 dark:hover:bg-[#06B6D4]/15',
+      bg: 'bg-[#0052FF]/8 hover:bg-[#0052FF]/12 dark:bg-[#0052FF]/10 dark:hover:bg-[#0052FF]/15',
       text: 'text-slate-900 dark:text-white',
-      selRing: 'ring-[#06B6D4]/55',
-      border: 'border-2 border-[#06B6D4]/70 dark:border-[#06B6D4]/50 rounded-xl shadow-sm',
+      selRing: 'ring-[#0052FF]/55',
+      border: 'border-2 border-[#0052FF]/60 dark:border-[#0052FF]/45 rounded-xl shadow-sm',
     },
     approved: {
-      bg: 'bg-accent hover:bg-accent-hover',
+      bg: 'bg-emerald-600 hover:bg-emerald-700',
       text: 'text-white',
       selRing: 'ring-white/80',
-      border: 'border-2 border-[#06B6D4]/60 rounded-xl',
+      border: 'border-2 border-emerald-700/60 rounded-xl',
     },
     punchMissing: {
       bg: 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/45 dark:hover:bg-amber-950/60',
@@ -1360,14 +1499,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   const getCellStyle = (shift: Shift, isSelected: boolean, _hasAnySelected: boolean, colorVariant: ShiftColorVariant = 'planned') => {
     const v = VARIANT_CLASSES[colorVariant];
-    let base = `relative group flex flex-col items-start justify-start ${v.bg} ${v.text} shadow-sm transition-all `;
+    let base = `relative group flex flex-col items-start justify-start ${v.bg} ${v.text} transition-all `;
     if (v.border) base += `${v.border} `;
     if (v.borderBottom) base += `${v.borderBottom} `;
     // Ring selezione: accent forte su tutti i varianti (bianco sull'approved già verde)
     const selectedStyle = isSelected
       ? colorVariant === 'approved'
-        ? 'ring-[3px] ring-white/90 shadow-[0_0_0_5px_rgba(0,82,255,0.35)] dark:shadow-[0_0_0_5px_rgba(0,82,255,0.5)] scale-[1.02] '
-        : 'ring-[3px] ring-accent shadow-[0_0_0_5px_rgba(0,82,255,0.2)] dark:shadow-[0_0_0_5px_rgba(0,82,255,0.4)] scale-[1.02] '
+        ? 'ring-[3px] ring-white/90 shadow-[0_0_0_5px_rgba(0,26,128,0.35)] dark:shadow-[0_0_0_5px_rgba(0,26,128,0.5)] scale-[1.02] '
+        : 'ring-[3px] ring-accent shadow-[0_0_0_5px_rgba(0,26,128,0.2)] dark:shadow-[0_0_0_5px_rgba(0,26,128,0.4)] scale-[1.02] '
       : '';
     /** Box-shadow invece di `ring-*`: su desktop la stessa cella ha `hover:ring-2` (canEditInApp) che in Tailwind mascherava anelli rosso/ambra. */
     let violationGlow = '';
@@ -1440,6 +1579,44 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
   const [dragCopyMode, setDragCopyMode] = useState(false);
   const [shakeBadgeId, setShakeBadgeId] = useState<string | null>(null);
+  const [slotRemapPicker, setSlotRemapPicker] = useState<{
+    shiftId: string;
+    targetUserId: string;
+    targetDate: string;
+    targetSlot: 'lunch' | 'evening';
+    x: number;
+    y: number;
+  } | null>(null);
+  const [slotPickerEditMode, setSlotPickerEditMode] = useState(false);
+  const [slotPickerNewStart, setSlotPickerNewStart] = useState('');
+  const [slotPickerNewEnd, setSlotPickerNewEnd] = useState('');
+
+  const DEFAULT_LUNCH_PRESETS = [
+    { start: '09:00', end: '14:00' },
+    { start: '10:00', end: '15:00' },
+    { start: '10:00', end: '16:00' },
+    { start: '11:00', end: '16:00' },
+    { start: '12:00', end: '16:00' },
+  ];
+  const DEFAULT_EVENING_PRESETS = [
+    { start: '16:00', end: '22:00' },
+    { start: '16:00', end: '23:00' },
+    { start: '18:00', end: '23:00' },
+    { start: '18:00', end: '00:00' },
+    { start: '19:00', end: '01:00' },
+  ];
+  const loadPresets = (slot: 'lunch' | 'evening') => {
+    try {
+      const raw = localStorage.getItem(`flow_slot_presets_${slot}`);
+      if (raw) return JSON.parse(raw) as { start: string; end: string }[];
+    } catch { /* ignore */ }
+    return slot === 'lunch' ? DEFAULT_LUNCH_PRESETS : DEFAULT_EVENING_PRESETS;
+  };
+  const savePresets = (slot: 'lunch' | 'evening', presets: { start: string; end: string }[]) => {
+    localStorage.setItem(`flow_slot_presets_${slot}`, JSON.stringify(presets));
+  };
+  const [lunchPresets, setLunchPresets] = useState<{ start: string; end: string }[]>(() => loadPresets('lunch'));
+  const [eveningPresets, setEveningPresets] = useState<{ start: string; end: string }[]>(() => loadPresets('evening'));
   /** Popup turno usa `CenteredModalPortal` (lock lì). Resto: overlay fissi senza portal. */
   const wstOverlayLocksScroll = useMemo(
     () =>
@@ -1648,6 +1825,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       setTimeout(() => setShakeBadgeId(null), 600);
       return; // block the move
     }
+    // Push undo prima di spostare
+    const origUserId = shift.user_id;
+    const origDate = shift.date;
+    pushUndo(`Annulla spostamento ${shift.start_time}–${shift.end_time}`, async () => {
+      await updateShift(shiftId, { user_id: origUserId, date: origDate });
+    });
     await trackSave(async () => {
       try {
         await updateShift(shiftId, { user_id: targetUserId, date: targetDate });
@@ -1688,6 +1871,81 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     });
   }, [shifts, addShift, showError, showSuccess, trackSave, t]);
 
+  /**
+   * Sposta un turno su un slot specifico (pranzo / sera).
+   * Se il turno è di tipo diverso dallo slot target, mostra il picker
+   * di orari preimpostati invece di rimappare automaticamente.
+   */
+  const handleDropShiftToSlot = useCallback((
+    shiftId: string,
+    targetUserId: string,
+    targetDate: string,
+    targetSlot: 'lunch' | 'evening',
+    dropEvent?: { clientX: number; clientY: number },
+  ) => {
+    const shift = shifts.find((s) => s.id === shiftId);
+    if (!shift) return;
+    if (isShiftFrozenRecord(shift)) {
+      setShakeBadgeId(shiftId);
+      setTimeout(() => setShakeBadgeId(null), 600);
+      return;
+    }
+    if (isShiftAbsentRecord(shift)) return;
+    const existingOnTarget = shifts.filter(s => s.id !== shiftId && s.user_id === targetUserId && s.date === targetDate);
+    if (existingOnTarget.length >= 2) { showError(t.max_two_shifts_same_day); return; }
+
+    const srcHour = parseInt((shift.start_time || '00:00').split(':')[0] ?? '0', 10);
+    const srcIsEvening = srcHour >= 16;
+    const needsRemap = (targetSlot === 'lunch' && srcIsEvening) || (targetSlot === 'evening' && !srcIsEvening);
+    const isSameDay = shift.user_id === targetUserId && shift.date === targetDate;
+
+    if (!needsRemap && isSameDay) return;
+
+    if (needsRemap) {
+      // Mostra picker orari preimpostati
+      setSlotRemapPicker({
+        shiftId,
+        targetUserId,
+        targetDate,
+        targetSlot,
+        x: dropEvent?.clientX ?? window.innerWidth / 2,
+        y: dropEvent?.clientY ?? window.innerHeight / 2,
+      });
+      return;
+    }
+
+    // Stesso tipo di slot, solo sposta data/dipendente
+    void trackSave(async () => {
+      try {
+        await updateShift(shiftId, { user_id: targetUserId, date: targetDate });
+        showSuccess?.(t.shift_moved);
+      } catch {
+        showError(t.shift_move_error);
+      }
+    });
+  }, [shifts, updateShift, showError, showSuccess, trackSave, t]);
+
+  /** Applica la scelta dal picker di orari preimpostati */
+  const handleSlotRemapConfirm = useCallback(async (start: string, end: string) => {
+    if (!slotRemapPicker) return;
+    const { shiftId, targetUserId, targetDate } = slotRemapPicker;
+    const origShift = shifts.find((s) => s.id === shiftId);
+    if (origShift) {
+      const { user_id: ou, date: od, start_time: os, end_time: oe } = origShift;
+      pushUndo(`Annulla spostamento ${os}–${oe}`, async () => {
+        await updateShift(shiftId, { user_id: ou, date: od, start_time: os, end_time: oe });
+      });
+    }
+    setSlotRemapPicker(null);
+    await trackSave(async () => {
+      try {
+        await updateShift(shiftId, { user_id: targetUserId, date: targetDate, start_time: start, end_time: end });
+        showSuccess?.(t.shift_moved);
+      } catch {
+        showError(t.shift_move_error);
+      }
+    });
+  }, [slotRemapPicker, shifts, updateShift, showSuccess, showError, trackSave, t]);
 
   if (!currentUser) return null;
 
@@ -1740,11 +1998,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       {wTurniToolbar && (
       <>
       {/* Toolbar: navigazione + pubblica + ☰ */}
-      <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-between gap-1.5 overflow-x-auto relative z-[1000] mb-2">
+      <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-1 overflow-x-auto relative z-[1000] mb-2">
         {/* ── Sinistra: navigazione periodo / vista ── */}
-        <div className="ui-toolbar-row-tight min-w-0 shrink-0 md:gap-1.5">
+        <div className="ui-toolbar-row-tight min-w-0 shrink-0 !gap-1">
+          {/* Wrapper compatto: nav + chip data sempre vicini */}
+          <div className="flex shrink-0 flex-nowrap items-center gap-1.5">
           {/* Gruppo unificato: ◀ Prec. | Settimana | Mese | ▶ Pros. */}
-          <div className="ui-toolbar-group md:scale-90 md:origin-left">
+          <div className="ui-toolbar-group">
             {/* ◀ Prec. — settimana in week mode, periodo in month mode */}
             <button
               type="button"
@@ -1753,10 +2013,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 else setPeriodPanOffsetWeeks(p => p - displayPeriodConfig.numWeeks);
               }}
               disabled={viewMode === 'week' && weekIndex <= 0}
-              className="ui-toolbar-tab !px-2 !text-[10px] shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
+              className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
               aria-label={viewMode === 'week' ? 'Settimana precedente' : 'Periodo precedente'}
             >
-              <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
+              <ChevronLeft className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
               <span className="hidden sm:inline">Prec.</span>
             </button>
 
@@ -1764,7 +2024,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             <button
               type="button"
               onClick={() => { setViewMode('week'); setPeriodPanOffsetWeeks(0); setWeekIndex(weekIndexForDateInPeriod(periodConfig)); }}
-              className={`ui-toolbar-tab !px-2.5 !text-[10px] shrink-0 ${viewMode === 'week' ? 'bg-accent text-white font-extrabold' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}
+              className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${viewMode === 'week' ? 'bg-accent text-white font-extrabold' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}
             >
               {t.view_week}
             </button>
@@ -1773,7 +2033,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             <button
               type="button"
               onClick={() => { setViewMode('month'); setPeriodPanOffsetWeeks(0); }}
-              className={`ui-toolbar-tab !px-2.5 !text-[10px] shrink-0 ${viewMode === 'month' && periodPanOffsetWeeks === 0 ? 'bg-accent text-white font-extrabold' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}
+              className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${viewMode === 'month' && periodPanOffsetWeeks === 0 ? 'bg-accent text-white font-extrabold' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'}`}
             >
               {t.view_month}
             </button>
@@ -1786,17 +2046,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 else setPeriodPanOffsetWeeks(p => p + displayPeriodConfig.numWeeks);
               }}
               disabled={viewMode === 'week' && weekIndex >= maxWeekIndex}
-              className="ui-toolbar-tab !px-2 !text-[10px] shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
+              className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
               aria-label={viewMode === 'week' ? 'Settimana successiva' : 'Periodo successivo'}
             >
               <span className="hidden sm:inline">Pros.</span>
-              <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+              <ChevronRight className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
             </button>
           </div>
           {viewMode === 'month' && (
             <>
               <span
-                className="hidden sm:inline-flex h-[22px] max-w-[min(100%,16rem)] items-center truncate rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-900/80 px-2 text-[11px] font-semibold tabular-nums text-slate-600 dark:text-neutral-300 shrink-0"
+                className="hidden sm:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,16rem)] items-center truncate rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-900/80 px-2 lg:px-2.5 text-[11px] lg:text-sm font-semibold tabular-nums text-slate-600 dark:text-neutral-300 shrink-0"
                 title={`${format(monthViewPeriodStart, 'd MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })} → ${format(monthViewPeriodEnd, 'd MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })}`}
               >
                 {format(monthViewPeriodStart, 'd MMM', { locale: getDateLocale(effectiveLanguage) ?? it })} –{' '}
@@ -1804,7 +2064,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               </span>
               {periodPayrollChipDatesWst && (
                 <span
-                  className="hidden min-[480px]:inline-flex h-[22px] max-w-[min(100%,20rem)] shrink-0 items-center truncate rounded-lg border border-[#06B6D4]/40 dark:border-[#06B6D4]/25 bg-[#06B6D4]/10 dark:bg-[#06B6D4]/5 px-2 text-[10px] font-bold text-[#0284C7] dark:text-[#06B6D4]"
+                  className="hidden min-[480px]:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,20rem)] shrink-0 items-center truncate rounded-lg border border-[#0052FF]/40 dark:border-[#0052FF]/25 bg-[#0052FF]/10 dark:bg-[#0052FF]/5 px-2 lg:px-2.5 text-[10px] lg:text-xs font-bold text-[#0052FF] dark:text-[#0052FF]"
                   title={periodPayrollChipDatesWst}
                 >
                   {formatTrans((t as Record<string, string>).wst_month_payroll_chip ?? 'Pagamento: {date}', {
@@ -1816,13 +2076,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           )}
           {viewMode !== 'month' && (
             <div
-              className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-2 !h-8 !text-[10px]"
+              className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-2.5 !h-9 lg:!h-10 !text-[11px] lg:!text-sm"
               role="status"
               title={`${format(weekStart, 'dd/MM/yy', { locale: getDateLocale(effectiveLanguage) ?? it })} → ${format(addDays(weekStart, (viewMode === '2weeks' ? 13 : viewMode === 'day' ? 0 : 6)), 'dd/MM/yy', { locale: getDateLocale(effectiveLanguage) ?? it })}`}
             >
-              <Calendar className="hidden sm:block h-3.5 w-3.5 shrink-0 text-slate-500 dark:text-neutral-400" aria-hidden />
+              <Calendar className="hidden sm:block h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-slate-500 dark:text-neutral-400" aria-hidden />
               <span className="min-w-0 truncate tabular-nums">
-                <span className="text-slate-400 dark:text-neutral-500">S.{weekIndex + 1}&nbsp;</span>
+                <span className="text-[#0052FF] dark:text-[#0052FF] font-extrabold">S.{weekIndex + 1}&nbsp;</span>
                 {format(weekStart, 'dd/MM', { locale: getDateLocale(effectiveLanguage) ?? it })}
                 <span className="text-slate-400 dark:text-neutral-500 hidden sm:inline">
                   {' → '}{format(addDays(weekStart, (viewMode === '2weeks' ? 13 : viewMode === 'day' ? 0 : 6)), 'dd/MM/yy', { locale: getDateLocale(effectiveLanguage) ?? it })}
@@ -1830,12 +2090,138 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               </span>
             </div>
           )}
+          </div>{/* end wrapper nav+chip */}
+
+          {/* ── Chip selettore periodo (come in Presenze) ── */}
+          <div className="hidden w-full min-w-0 flex-nowrap items-center justify-start gap-1 border-t border-slate-200 pt-2 dark:border-white/10 md:flex md:w-auto md:border-none md:border-t-0 md:pl-0 md:pt-0">
+            <div className="relative">
+              <div className="ui-toolbar-group">
+                <button
+                  ref={wstPeriodTriggerRef}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const next = !showPeriodPopover;
+                    if (next) {
+                      const rect = wstPeriodTriggerRef.current?.getBoundingClientRect();
+                      if (rect) setPeriodPopoverPos({ top: rect.bottom + 4, left: rect.left });
+                      setPeriodPopoverYear(new Date().getFullYear());
+                    }
+                    setShowPeriodPopover(next);
+                  }}
+                  className={`ui-toolbar-tab !px-4 lg:!px-5 !text-[11px] lg:!text-sm shrink-0 ${
+                    showPeriodPopover ? 'bg-accent/8 text-accent dark:text-accent-light' : 'text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/80'
+                  }`}
+                  title="Seleziona periodo"
+                >
+                  <span className="text-[12px] lg:text-sm font-bold tabular-nums capitalize text-slate-800 dark:text-neutral-100">
+                    {format(getPeriodStartDate(periodConfig), 'MMM yy', { locale: getDateLocale(effectiveLanguage) ?? it })}
+                  </span>
+                  <span className="h-3 w-px bg-slate-300 dark:bg-white/20 shrink-0 mx-1" aria-hidden />
+                  {(() => {
+                    const rule = (() => { try { return localStorage.getItem('osteria_period_rule') ?? 'last_sunday'; } catch { return 'last_sunday'; } })();
+                    const isFixedStart = rule === 'fixed_start';
+                    return (
+                      <span className={`text-[12px] lg:text-sm font-extrabold ${isFixedStart ? 'text-[#0052FF] dark:text-[#0052FF]' : (periodConfig.numWeeks === 4 ? 'text-accent dark:text-accent-light' : 'text-[#0052FF] dark:text-[#0052FF]')}`}>
+                        {periodConfig.numWeeks} sett.
+                      </span>
+                    );
+                  })()}
+                  <ChevronDown className={`h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-slate-500 transition-transform ${showPeriodPopover ? 'rotate-180' : ''}`} aria-hidden />
+                </button>
+              </div>
+
+              {showPeriodPopover && periodPopoverPos && createPortal(
+                (() => {
+                  const nowYear = new Date().getFullYear();
+                  const listYear = periodPopoverYear;
+                  const twelveMonths = Array.from({ length: 12 }, (_, i) => {
+                    const refDate = new Date(listYear, i, 15);
+                    const cfg = periodConfigForMonth(refDate);
+                    const s = getPeriodStartDate(cfg);
+                    const e = getPeriodEndDate(cfg);
+                    const isActive = cfg.startDate === periodConfig.startDate && cfg.numWeeks === periodConfig.numWeeks;
+                    const isCurrentMonth = i === new Date().getMonth() && listYear === nowYear;
+                    return { cfg, s, e, isActive, isCurrentMonth, monthIdx: i };
+                  });
+                  return (
+                    <div
+                      ref={wstPeriodPopoverRef}
+                      style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999 }}
+                      className="w-64 rounded-xl border border-[#0052FF]/25 bg-white shadow-2xl dark:border-[#0052FF]/18 dark:bg-neutral-900 overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between border-b border-[#0052FF]/15 dark:border-[#0052FF]/12 px-3 py-2 bg-[#0052FF]/5 dark:bg-[#0052FF]/8">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y - 1); }}
+                          className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#0052FF]/12 dark:text-neutral-500 dark:hover:bg-[#0052FF]/15"
+                        >
+                          <ChevronLeft className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="text-[11px] font-extrabold text-[#0052FF] dark:text-[#0052FF] tabular-nums">
+                          {listYear}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y + 1); }}
+                          className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#0052FF]/12 dark:text-neutral-500 dark:hover:bg-[#0052FF]/15"
+                        >
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <div className="max-h-[340px] overflow-y-auto py-1">
+                        {twelveMonths.map(({ cfg, s, e, isActive, isCurrentMonth, monthIdx }) => (
+                          <button
+                            key={monthIdx}
+                            type="button"
+                            onClick={() => { applyAndSavePeriodWst(cfg); setShowPeriodPopover(false); }}
+                            className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors ${
+                              isActive
+                                ? 'bg-[#0052FF]/10 dark:bg-[#0052FF]/15'
+                                : 'hover:bg-[#0052FF]/5 dark:hover:bg-[#0052FF]/8'
+                            }`}
+                          >
+                            <span className={`text-[12px] font-bold capitalize ${
+                              isActive
+                                ? 'text-[#0052FF] dark:text-[#0052FF]'
+                                : isCurrentMonth
+                                  ? 'text-slate-800 dark:text-neutral-100'
+                                  : 'text-slate-600 dark:text-neutral-400'
+                            }`}>
+                              {format(s, 'MMMM', { locale: getDateLocale(effectiveLanguage) ?? it })}
+                              {listYear !== nowYear && (
+                                <span className="ml-1 text-[10px] font-normal text-slate-400 dark:text-neutral-500">{listYear}</span>
+                              )}
+                              {isCurrentMonth && !isActive && (
+                                <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#0052FF] align-middle" />
+                              )}
+                            </span>
+                            <span className={`shrink-0 text-[10px] tabular-nums ${
+                              isActive
+                                ? 'text-[#0052FF] dark:text-[#0052FF] font-bold'
+                                : 'text-slate-400 dark:text-neutral-500'
+                            }`}>
+                              {format(s, 'dd/MM', { locale: getDateLocale(effectiveLanguage) ?? it })}–{format(e, 'dd/MM', { locale: getDateLocale(effectiveLanguage) ?? it })}
+                              <span className={`ml-1 font-extrabold ${cfg.numWeeks === 5 ? 'text-[#0052FF] dark:text-[#0052FF]' : ''}`}>
+                                {cfg.numWeeks}s
+                              </span>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })(),
+                document.body
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ── Destra: pubblica settimana (se bozze) + menu hamburger ── */}
-        <div className="flex shrink-0 items-center gap-1.5">
-          <div className={`relative ${!isAdminWst ? 'hidden' : ''}`} ref={wstDeptDrawerRef}>
-            <div className="ui-toolbar-group md:scale-90 md:origin-left">
+        <div className="flex min-h-9 lg:min-h-10 shrink-0 items-center gap-1.5 ml-auto">
+          <div className={`relative ${(!isAdminWst || capoLockedDeptWst) ? 'hidden' : ''}`} ref={wstDeptDrawerRef}>
+            <div className="ui-toolbar-group md:scale-90 md:origin-left lg:scale-100">
             <button
               type="button"
               onClick={(e) => {
@@ -1850,7 +2236,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   return true;
                 });
               }}
-              className={`ui-toolbar-tab !px-2 !text-[10px] shrink-0 ${
+              className={`ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 ${
                 wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department'
                   ? 'bg-accent/8 text-accent dark:text-accent-light'
                   : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
@@ -1859,11 +2245,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               aria-haspopup="true"
               title={t.wst_department_button}
             >
-              <Filter className="h-3 w-3 shrink-0" strokeWidth={2.5} aria-hidden />
+              <Filter className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
               <span>
                 {localFilterDepartment === '' ? t.wst_department_button : translateDepartmentValue(localFilterDepartment, effectiveLanguage)}
               </span>
-              <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department' ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-3 w-3 lg:h-3.5 lg:w-3.5 text-slate-400 transition-transform ${wstToolbarDrawerOpen && wstToolbarDrawerSection === 'department' ? 'rotate-180' : ''}`} />
               {localFilterDepartment !== '' && (
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
               )}
@@ -1983,14 +2369,35 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           </div>
           {!isStaff && (
           <>
+          {/* Undo button */}
+          {undoStack.length > 0 && (
+            <button
+              type="button"
+              onClick={async () => {
+                const [top, ...rest] = undoStack;
+                setUndoStack(rest);
+                await top.fn();
+              }}
+              className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold text-slate-700 dark:text-neutral-200 shadow-sm transition-all hover:bg-slate-50 dark:hover:bg-white/5"
+              title={undoStack[0]?.label ?? 'Annulla ultima azione'}
+            >
+              <RotateCcw className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
+              <span className="hidden sm:inline max-w-[7rem] truncate">{undoStack[0]?.label ?? 'Annulla'}</span>
+              {undoStack.length > 1 && (
+                <span className="tabular-nums rounded-md bg-slate-100 dark:bg-white/10 px-1 py-px text-[9px] font-bold leading-none text-slate-500 dark:text-neutral-400">
+                  {undoStack.length}
+                </span>
+              )}
+            </button>
+          )}
           {canManageDrafts && isWideShiftViewport && draftCountInWeek > 0 && (
             <button
               type="button"
               onClick={() => requestConfirmAndPublishWeek(weekStart)}
-              className="inline-flex h-[22px] max-h-[22px] shrink-0 items-center gap-1 rounded-lg bg-accent px-2 text-[11px] font-bold text-white shadow-sm transition-colors hover:bg-accent-hover"
+              className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg bg-accent px-2 lg:px-2.5 text-[11px] lg:text-sm font-bold text-white shadow-sm transition-colors hover:bg-accent-hover"
               title={t.publish_week}
             >
-              <Cloud className="h-3 w-3 shrink-0 opacity-95" strokeWidth={2.25} aria-hidden />
+              <Cloud className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 opacity-95" strokeWidth={2.25} aria-hidden />
               <span className="hidden min-[420px]:inline">{t.publish_week}</span>
               <span className="tabular-nums rounded-md bg-white/20 px-1 py-px text-[10px] font-bold leading-none">
                 {draftCountInWeek}
@@ -2009,7 +2416,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   return true;
                 });
               }}
-              className={`ui-toolbar-chip shrink-0 text-slate-600 dark:text-neutral-300 hover:bg-slate-50/90 dark:hover:bg-white/[0.06] ${
+              className={`ui-toolbar-chip !inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs shrink-0 text-slate-600 dark:text-neutral-300 hover:bg-slate-50/90 dark:hover:bg-white/[0.06] ${
                 wstToolbarDrawerOpen && wstToolbarDrawerSection !== 'department' ? 'border-accent/35 bg-accent/8 ring-1 ring-accent/15' : ''
               } ${localFilterStatus !== 'all' ? 'border-accent/25 bg-accent/5 dark:bg-accent/10' : ''}`}
               aria-expanded={wstToolbarDrawerOpen}
@@ -2017,7 +2424,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               title={(t as Record<string, string>).wst_toolbar_hamburger_title}
               aria-label={(t as Record<string, string>).wst_toolbar_hamburger_aria}
             >
-              <Menu className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+              <Menu className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" strokeWidth={2.25} aria-hidden />
               {localFilterStatus !== 'all' && (
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
               )}
@@ -2140,9 +2547,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         check: true,
                       },
                       {
-                        bg: 'bg-[#06B6D4]/8 dark:bg-[#06B6D4]/10',
-                        border: 'border-2 border-[#06B6D4]/70 dark:border-[#06B6D4]/50',
-                        textCls: 'text-[#0284C7] dark:text-[#06B6D4]',
+                        bg: 'bg-[#0052FF]/8 dark:bg-[#0052FF]/10',
+                        border: 'border-2 border-[#0052FF]/70 dark:border-[#0052FF]/50',
+                        textCls: 'text-[#0052FF] dark:text-[#0052FF]',
                         label: t.wst_filter_published,
                         sub: t.wst_status_sub_published,
                         check: false,
@@ -2209,7 +2616,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               <span className={`h-2.5 w-2.5 rounded-full ${dot} shadow-sm`} />
                             </span>
                             <span className="min-w-0">
-                              <p className="text-xs font-semibold text-slate-700 leading-snug">{label}</p>
+                              <p className="text-xs font-semibold text-slate-700 dark:text-neutral-200 leading-snug">{label}</p>
                               <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-0.5 leading-snug">{sub}</p>
                             </span>
                           </div>
@@ -2333,35 +2740,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     <div className="border-b border-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:border-white/10 dark:text-neutral-400">
                       {t.wst_export_section}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const n = viewMode === 'day' ? 1 : viewMode === '2weeks' ? 14 : 7;
-                        const rangeStart = viewMode === 'day' ? allWeekDays[0] : weekStart;
-                        const weekStr = format(rangeStart, 'yyyy-MM-dd');
-                        const weekEnd = format(addDays(rangeStart, n), 'yyyy-MM-dd');
-                        const weekShifts = shifts.filter((s) => s.date >= weekStr && s.date < weekEnd);
-                        const header = `${t.wst_export_csv_header_row}\n`;
-                        const rows = weekShifts
-                          .map((s) => {
-                            const u = users.find((x) => x.id === s.user_id);
-                            return `${s.date};${u?.first_name ?? '-'};${s.start_time};${s.end_time};${s.approval_status}`;
-                          })
-                          .join('\n');
-                        const blob = new Blob(['\ufeff' + header + rows], { type: 'text/csv;charset=utf-8' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `turni_${weekStr}_${weekEnd}.csv`;
-                        a.click();
-                        URL.revokeObjectURL(url);
-                        closeWstToolbarDrawer();
-                      }}
-                      className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
-                    >
-                      <Download className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
-                      {t.export_csv}
-                    </button>
                     {currentUser && isFeatureEnabled(currentUser, 'export_pdf') && (
                       <button
                         type="button"
@@ -2571,7 +2949,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
       {/* Modale Storico schedule */}
       {showHistoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/65" onClick={() => setShowHistoryModal(false)}>
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55" onClick={() => setShowHistoryModal(false)}>
           <div className="modal-glass-panel flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/10">
               <div className="flex items-center gap-2">
@@ -2621,7 +2999,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
       {/* Modale Periodi nascosti */}
       {showHiddenPeriodsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/65" onClick={() => setShowHiddenPeriodsModal(false)}>
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55" onClick={() => setShowHiddenPeriodsModal(false)}>
           <div className="modal-glass-panel flex max-h-[70vh] w-full max-w-sm flex-col overflow-hidden rounded-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/10">
               <div className="flex items-center gap-2">
@@ -2663,7 +3041,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
       {/* Modale elenco nomi nella tabella turni */}
       {showEditViewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/65" onClick={() => { setShowEditViewModal(false); setEditingNameUserId(null); setDraggingEditViewUserId(null); setDropTargetEditViewIdx(null); }}>
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55" onClick={() => { setShowEditViewModal(false); setEditingNameUserId(null); setDraggingEditViewUserId(null); setDropTargetEditViewIdx(null); }}>
           <div className="modal-glass-panel flex max-h-[80vh] min-h-0 w-full max-w-sm flex-col overflow-hidden rounded-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/10">
               <h3 className="text-sm font-bold text-slate-800 dark:text-neutral-100">{t.names_list_title}</h3>
@@ -2773,7 +3151,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       />
                     ) : (
                       <>
-                        <span className="text-sm font-semibold text-slate-800 truncate flex-1 min-w-0">{u.first_name.toUpperCase()}</span>
+                        <span className="text-sm font-semibold text-slate-800 dark:text-neutral-100 truncate flex-1 min-w-0">{u.first_name.toUpperCase()}</span>
                         {isManagement && !isPurelyManagementRole(u.role) && (
                           <button
                             type="button"
@@ -2832,7 +3210,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             </div>
         </div>
       )}
-      {wTurniDate && (
+      {wTurniDate && !(isWideShiftViewport && viewMode !== 'month') && (
       <>
       {/* Sentinel: sopra la sticky bar — usato per ombra “elevata” dopo scroll */}
       <div
@@ -2927,7 +3305,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         ? `${format(day, 'EEEE d MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })} — ${trBar.ts_payroll_day_abbr ?? 'Paga'}`
                         : '';
                       const dateBarTitle = payrollTitleBar || undefined;
-                      const dayBarCellClass = `flex-1 flex h-[30px] min-h-[30px] max-h-[30px] min-w-0 items-center justify-center gap-0.5 sm:gap-1 snap-center whitespace-nowrap font-inherit rounded-md border border-slate-200/70 dark:border-white/12 ${
+                      const dayBarCellClass = `flex-1 flex h-[30px] min-h-[30px] max-h-[30px] min-w-0 items-center justify-center gap-0.5 sm:gap-1 snap-center whitespace-nowrap font-inherit rounded-md border-2 border-slate-300 dark:border-white/20 ${
                         hiddenDates.has(dayStr)
                           ? 'bg-slate-200/60 dark:bg-neutral-700/50'
                           : isPayrollDayBar
@@ -3014,7 +3392,39 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
       {/* Contenuto: vista mese (calendario) o schede turni */}
       {wTurniGrid && (
-      <div ref={scrollContainerRef} className="flex flex-col gap-2">
+      <div
+        ref={scrollContainerRef}
+        className="flex flex-col gap-2"
+        onTouchStart={(e) => {
+          // Se il touch parte dentro un'area di scroll card, lascia gestire a lei
+          const target = e.target as HTMLElement;
+          const insideCardScroll = cardScrollRefs.current.some(el => el && el.contains(target));
+          if (insideCardScroll) return;
+          const touch = e.touches[0];
+          outerSwipeRef.current = { x: touch.clientX, y: touch.clientY, lastX: touch.clientX, dir: null };
+        }}
+        onTouchMove={(e) => {
+          if (!outerSwipeRef.current) return;
+          const touch = e.touches[0];
+          const { x, y, lastX, dir } = outerSwipeRef.current;
+          const dx = touch.clientX - x;
+          const dy = touch.clientY - y;
+          let direction = dir;
+          if (direction === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+            direction = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+            outerSwipeRef.current.dir = direction;
+          }
+          if (direction !== 'h') return;
+          const delta = lastX - touch.clientX;
+          outerSwipeRef.current.lastX = touch.clientX;
+          const first = cardScrollRefs.current.find(Boolean);
+          if (!first) return;
+          const maxScroll = first.scrollWidth - first.clientWidth;
+          const next = Math.max(0, Math.min(first.scrollLeft + delta, maxScroll));
+          cardScrollRefs.current.forEach(el => { if (el) el.scrollLeft = next; });
+        }}
+        onTouchEnd={() => { outerSwipeRef.current = null; }}
+      >
         {viewMode === 'month' ? (
           <HorizontalScrollArea
             remeasureKey={`${displayPeriodConfig.startDate}-${displayPeriodConfig.numWeeks}-${periodPanOffsetWeeks}`}
@@ -3025,11 +3435,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           >
           <div className="min-w-[640px] surface-ghost-sm overflow-hidden">
             {/* Intestazione giorni settimana */}
-            <div className="grid grid-cols-7 bg-slate-50 dark:bg-neutral-800/80 border-b-2 border-slate-200 dark:border-white/10">
+            <div className="grid grid-cols-7 bg-slate-50 dark:bg-neutral-800/80 border-b-2 border-slate-400 dark:border-white/20">
               {allWeekDays.slice(0, 7).map((d, i) => (
                 <div
                   key={d.toString()}
-                  className={`py-2 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 ${i < 6 ? 'border-r-2 border-slate-200 dark:border-white/10' : ''}`}
+                  className={`py-2 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 ${i < 6 ? 'border-r-2 border-slate-400 dark:border-white/20' : ''}`}
                 >
                   {format(d, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it })}
                 </div>
@@ -3071,7 +3481,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       !inPlanning
                         ? 'bg-slate-50/80 dark:bg-neutral-900/90 hover:bg-slate-100/90 dark:hover:bg-neutral-800'
                         : isPayrollDay
-                          ? 'bg-[#06B6D4]/10 dark:bg-[#06B6D4]/5 ring-1 ring-inset ring-[#06B6D4]/40 dark:ring-[#06B6D4]/20 hover:bg-[#06B6D4]/15'
+                          ? 'bg-[#0052FF]/10 dark:bg-[#0052FF]/5 ring-1 ring-inset ring-[#0052FF]/40 dark:ring-[#0052FF]/20 hover:bg-[#0052FF]/15'
                           : isTodayDate
                             ? 'bg-accent/5 hover:bg-accent/10'
                             : 'bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800'
@@ -3084,17 +3494,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           ? 'bg-accent text-white'
                           : !inPlanning
                             ? isPayrollDay
-                              ? 'bg-[#06B6D4]/20 dark:bg-[#06B6D4]/10 text-slate-700 dark:text-neutral-200 ring-1 ring-[#06B6D4]/40'
+                              ? 'bg-[#0052FF]/20 dark:bg-[#0052FF]/10 text-slate-700 dark:text-neutral-200 ring-1 ring-[#0052FF]/40'
                               : 'text-slate-300 dark:text-neutral-600'
                             : isPayrollDay
-                              ? 'bg-[#06B6D4] text-white'
+                              ? 'bg-[#0052FF] text-white'
                               : 'text-slate-700 dark:text-neutral-200'
                       }`}
                     >
                       {format(day, 'd')}
                     </span>
                     {isPayrollDay && (
-                      <span className="mt-1 block text-[8px] font-bold uppercase tracking-wide text-[#0284C7] dark:text-[#06B6D4]">
+                      <span className="mt-1 block text-[8px] font-bold uppercase tracking-wide text-[#0052FF] dark:text-[#0052FF]">
                         {tr.ts_payroll_day_abbr ?? 'Paga'}
                       </span>
                     )}
@@ -3119,6 +3529,270 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             </div>
           </div>
           </HorizontalScrollArea>
+        ) : isWideShiftViewport ? (
+          /* ── DESKTOP: flat unified table ─────────────────────────── */
+          <div
+            className="overflow-hidden rounded-2xl"
+            style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+              ? { border: '1px solid rgba(255,255,255,0.08)' }
+              : { border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+          >
+            {(() => {
+              const isDarkGrid = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+              const cellBorder = isDarkGrid ? '1px solid rgba(255,255,255,0.06)' : '1px solid #E2E8F0';
+              const headBorder = isDarkGrid ? '1px solid rgba(255,255,255,0.10)' : '1px solid #CBD5E1';
+              return (
+            <table className="w-full border-collapse table-fixed">
+              <colgroup>
+                <col style={{ width: '160px' }} />
+                {allWeekDays.map((_, ci) => <col key={ci} />)}
+              </colgroup>
+              <thead>
+                <tr>
+                  <th
+                    className="text-left px-4 py-4 text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30"
+                    style={{ borderBottom: headBorder, borderRight: cellBorder }}
+                  >
+                    Staff
+                  </th>
+                  {allWeekDays.map((day, di) => {
+                    const isTodayDH = isToday(day);
+                    return (
+                      <th
+                        key={di}
+                        className="text-center px-2 py-2"
+                        style={{
+                          borderBottom: headBorder,
+                          borderRight: di < allWeekDays.length - 1 ? cellBorder : undefined,
+                          background: isTodayDH
+                            ? (isDarkGrid ? 'rgba(0,82,255,0.07)' : 'rgba(0,82,255,0.04)')
+                            : undefined,
+                        }}
+                      >
+                        <div className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-[#0052FF]/60 dark:text-[#93c5fd]/60' : 'text-slate-400 dark:text-white/30'}`}>
+                          {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it })}
+                        </div>
+                        <div className={`text-[13px] font-black tabular-nums ${isTodayDH ? 'text-[#0052FF] dark:text-[#93c5fd]' : 'text-slate-700 dark:text-white/70'}`}>
+                          {format(day, 'd/MM')}
+                        </div>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {activeUsers.map((user, userIdx) => {
+                  const canManageFlat = canEditInApp && !isPurelyManagementRole(user.role);
+                  return (
+                    <tr key={user.id} style={{ height: '76px' }}>
+                      <td
+                        className="px-4"
+                        style={{ borderTop: cellBorder, borderRight: cellBorder, verticalAlign: 'middle', paddingTop: '22px', paddingBottom: '22px' }}
+                      >
+                        <span className="text-[12px] font-semibold text-slate-800 dark:text-white/80 truncate">
+                          {user.first_name}
+                        </span>
+                      </td>
+                      {allWeekDays.map((day, dayIdx) => {
+                        const dayStr = format(day, 'yyyy-MM-dd');
+                        const isTodayCell = isToday(day);
+                        const flatShifts = visibleShifts
+                          .filter((s) => s.user_id === user.id && s.date === dayStr)
+                          .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+                        return (
+                          <td
+                            key={dayStr}
+                            className="px-2"
+                            style={{
+                              cursor: pasteMode && selectionClipboard
+                                ? 'crosshair'
+                                : (flatShifts.length > 0 && canEditInApp) || (flatShifts.length === 0 && canManageFlat)
+                                  ? 'pointer'
+                                  : 'default',
+                              verticalAlign: 'top',
+                              borderTop: dropTargetKey === `flat_${user.id}_${dayStr}`
+                                ? (dragCopyMode ? '1px solid rgba(0,82,255,0.8)' : '1px solid rgba(251,191,36,0.8)')
+                                : cellBorder,
+                              borderRight: dayIdx < allWeekDays.length - 1
+                                ? dropTargetKey === `flat_${user.id}_${dayStr}`
+                                  ? (dragCopyMode ? '1px solid rgba(0,82,255,0.8)' : '1px solid rgba(251,191,36,0.8)')
+                                  : cellBorder
+                                : undefined,
+                              background: dropTargetKey === `flat_${user.id}_${dayStr}`
+                                ? (dragCopyMode ? (isDarkGrid ? 'rgba(0,82,255,0.12)' : 'rgba(0,82,255,0.07)') : (isDarkGrid ? 'rgba(251,191,36,0.12)' : 'rgba(251,191,36,0.08)'))
+                                : isTodayCell
+                                  ? (isDarkGrid ? 'rgba(0,82,255,0.05)' : 'rgba(0,82,255,0.03)')
+                                  : undefined,
+                            }}
+                            onContextMenu={(e) => canEditInApp ? handleShiftContextMenu(e, user.id, dayStr, null) : e.preventDefault()}
+                            onDragOver={(e) => {
+                              if (draggedShiftId) {
+                                e.preventDefault();
+                                const isCopy = e.shiftKey;
+                                setDragCopyMode(isCopy);
+                                e.dataTransfer.dropEffect = isCopy ? 'copy' : 'move';
+                                setDropTargetKey(`flat_${user.id}_${dayStr}`);
+                              }
+                            }}
+                            onDragLeave={() => setDropTargetKey(null)}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              if (draggedShiftId) {
+                                if (e.shiftKey || dragCopyMode) {
+                                  handleDropShiftCopy(draggedShiftId, user.id, dayStr);
+                                } else {
+                                  handleDropShift(draggedShiftId, user.id, dayStr);
+                                }
+                                setDraggedShiftId(null);
+                                setDropTargetKey(null);
+                                setDragCopyMode(false);
+                              }
+                            }}
+                            onClick={(e) => {
+                              if (pasteMode && selectionClipboard) {
+                                void handlePasteToCell(user.id, dayStr);
+                                return;
+                              }
+                              if (flatShifts.length > 0 && canEditInApp) {
+                                // Ctrl/Cmd+Click → toggle selezione multipla
+                                if (e.ctrlKey || e.metaKey) {
+                                  const ids = flatShifts.map((s) => s.id);
+                                  const allSelected = ids.every((id) => selectedShiftIds.includes(id));
+                                  setSelectedShiftIds((prev) =>
+                                    allSelected
+                                      ? prev.filter((id) => !ids.includes(id))
+                                      : [...new Set([...prev, ...ids])]
+                                  );
+                                  return;
+                                }
+                                setSelectedShiftIds(flatShifts.map((s) => s.id));
+                                setSidebarDay(dayStr);
+                                setSidebarOpen(true);
+                              } else if (flatShifts.length === 0 && canManageFlat) {
+                                setCreatingShift({ userId: user.id, date: dayStr, defaultTime: '10:00' });
+                              }
+                            }}
+                          >
+                            {(() => {
+                              const lunchShift = flatShifts.find((s) => parseInt((s.start_time || '').split(':')[0] || '0', 10) < 16);
+                              const eveningShift = flatShifts.find((s) => parseInt((s.start_time || '').split(':')[0] || '0', 10) >= 16);
+                              const renderBadge = (shift: Shift) => {
+                                const flatVariant = getShiftColorVariant(shift);
+                                const fv = VARIANT_CLASSES[flatVariant];
+                                const isAbs = flatVariant === 'absent';
+                                const flatActual = getActualShiftTime(shift, punchRecords);
+                                const { start: flatDispS, end: flatDispE } = getResolvedStartEndForHours(shift, punchRecords);
+                                const flatLabel = isAbs
+                                  ? (t.status_absent ?? '—')
+                                  : shift.approved_at && shift.approved_start_time && shift.approved_end_time
+                                    ? `${toShortTime(flatDispS)}–${toShortTime(flatDispE)}`
+                                    : `${toShortTime(flatActual.startTime || shift.start_time || '')}–${toShortTime(flatActual.endTime || shift.end_time || '')}`;
+                                const flatBorderCls = isAbs
+                                  ? 'border-2 border-dashed border-rose-400/85 dark:border-rose-500/65'
+                                  : flatVariant === 'approved'
+                                    ? 'border-2 border-emerald-700/60'
+                                    : flatVariant === 'punchMissing'
+                                      ? 'border-2 border-amber-400/90 dark:border-amber-500/70'
+                                      : flatVariant === 'inprogress'
+                                        ? 'border-2 border-[#0052FF]/60 dark:border-[#0052FF]/45'
+                                        : 'border-2 border-dashed border-slate-400 dark:border-white/55';
+                                const delayMins = !isAbs ? getPunchDelayMinutes(shift, punchRecords) : null;
+                                const isLate = delayMins !== null && delayMins > 5;
+                                const isSelected = selectedShiftIds.includes(shift.id);
+                                return (
+                                  <div
+                                    key={shift.id}
+                                    draggable={canEditInApp}
+                                    onDragStart={(e) => {
+                                      e.stopPropagation();
+                                      e.dataTransfer.setData('shiftId', shift.id);
+                                      setDraggedShiftId(shift.id);
+                                      const isCopy = e.shiftKey;
+                                      setDragCopyMode(isCopy);
+                                      e.dataTransfer.effectAllowed = isCopy ? 'copy' : 'move';
+                                    }}
+                                    onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
+                                    onContextMenu={(e) => canEditInApp ? handleShiftContextMenu(e, user.id, dayStr, shift) : e.preventDefault()}
+                                    className={`w-full rounded-md flex items-center justify-between gap-1 px-1.5 text-[12px] font-bold select-none transition-all cursor-grab active:cursor-grabbing ${fv.bg} ${fv.text} ${flatBorderCls} ${isSelected ? 'ring-2 ring-[#0052FF] dark:ring-[#93c5fd] ring-offset-1 dark:ring-offset-[#0e1117]' : ''}`}
+                                    style={{ height: '28px' }}
+                                  >
+                                    {isSelected && (
+                                      <Check className="shrink-0 w-3 h-3 opacity-90" strokeWidth={3} />
+                                    )}
+                                    <span className="flex-1 text-center">{flatLabel}</span>
+                                    {isLate && (
+                                      <span
+                                        className="shrink-0 w-1 self-stretch rounded-full bg-orange-400 dark:bg-orange-400"
+                                        title={`Ritardo: +${delayMins}min`}
+                                      />
+                                    )}
+                                  </div>
+                                );
+                              };
+                              const emptySlot = (defaultTime: string) =>
+                                canManageFlat && !pasteMode ? (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setCreatingShift({ userId: user.id, date: dayStr, defaultTime });
+                                    }}
+                                    className="w-full rounded-md flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity border border-dashed border-slate-300 dark:border-white/15 text-slate-400 dark:text-white/30 hover:border-[#0052FF]/40 hover:text-[#0052FF] dark:hover:border-[#93c5fd]/40 dark:hover:text-[#93c5fd] text-[16px] font-light"
+                                    style={{ height: '28px' }}
+                                  >
+                                    +
+                                  </button>
+                                ) : (
+                                  <div style={{ height: '28px' }} />
+                                );
+                              const slotDropHandlers = (slot: 'lunch' | 'evening') => ({
+                                onDragOver: (e: React.DragEvent) => {
+                                  if (draggedShiftId) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const isCopy = e.shiftKey;
+                                    setDragCopyMode(isCopy);
+                                    e.dataTransfer.dropEffect = isCopy ? 'copy' : 'move';
+                                    setDropTargetKey(`flat_${user.id}_${dayStr}_${slot}`);
+                                  }
+                                },
+                                onDragLeave: (e: React.DragEvent) => {
+                                  e.stopPropagation();
+                                  setDropTargetKey(null);
+                                },
+                                onDrop: (e: React.DragEvent) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (draggedShiftId) {
+                                    handleDropShiftToSlot(draggedShiftId, user.id, dayStr, slot, { clientX: e.clientX, clientY: e.clientY });
+                                    setDraggedShiftId(null);
+                                    setDropTargetKey(null);
+                                    setDragCopyMode(false);
+                                  }
+                                },
+                              });
+                              const slotHighlight = (slot: 'lunch' | 'evening') =>
+                                dropTargetKey === `flat_${user.id}_${dayStr}_${slot}`
+                                  ? { outline: `2px dashed ${dragCopyMode ? 'rgba(0,82,255,0.7)' : 'rgba(251,191,36,0.8)'}`, borderRadius: '6px' }
+                                  : {};
+                              return (
+                                <div className="flex flex-col justify-between group/cell" style={{ height: '72px', paddingTop: '4px', paddingBottom: '4px', gap: '6px' }}>
+                                  <div className="w-full" {...slotDropHandlers('lunch')} style={slotHighlight('lunch')}>{lunchShift ? renderBadge(lunchShift) : emptySlot('10:00')}</div>
+                                  <div className="w-full" {...slotDropHandlers('evening')} style={slotHighlight('evening')}>{eveningShift ? renderBadge(eveningShift) : emptySlot('18:00')}</div>
+                                </div>
+                              );
+                            })()}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+              );
+            })()}
+          </div>
         ) : (
               activeUsers.map((user, userIdx) => {
                 const canManageThisUser = canEditInApp && !isPurelyManagementRole(user.role);
@@ -3129,13 +3803,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     initial={{ y: -10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.04 + 0.03 * userIdx, duration: 0.28 }}
-                    className="w-full rounded-xl !p-0 overflow-hidden border-2 border-slate-300/85 bg-transparent shadow-none dark:border-neutral-600 dark:bg-transparent"
+                    className="w-full rounded-xl !p-0 overflow-hidden bg-white dark:bg-transparent shadow-sm dark:shadow-none"
+                    style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', boxShadow: 'none' } : { border: '1px solid #F1F5F9' }}
                   >
                     {/* Header scheda: nome + ore (fisso, non scorre) — verde bottomnav */}
                     <div
                       onClick={() => canViewTotalHours && setLocalFilterUserId(prev => prev === user.id ? null : user.id)}
                       title={canEditInApp ? t.wst_name_row_filter_title : undefined}
-                      className={`flex items-center justify-between min-h-0 px-2.5 py-1 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-800/70 ${user.status === 'suspended' || user.status === 'inactive' ? 'opacity-60' : ''} ${canEditInApp ? 'cursor-pointer' : ''}`}
+                      className={`flex items-center justify-between min-h-0 px-2.5 py-1 border-b-2 border-slate-300 dark:border-white/15 bg-white dark:bg-neutral-800/70 ${user.status === 'suspended' || user.status === 'inactive' ? 'opacity-60' : ''} ${canEditInApp ? 'cursor-pointer' : ''}`}
+                      style={{ borderLeft: '3px solid #0052FF' }}
                     >
                       <span className="flex items-center gap-1.5 min-w-0 flex-1">
                         {canEditInApp && editingNameUserId === user.id ? (
@@ -3257,7 +3933,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         return (
                           <td
                             key={dayStr}
-                            className={`px-0 py-0 min-w-0 snap-start group border-r border-slate-300 dark:border-neutral-600 ${pasteMode ? 'cursor-crosshair' : ''} ${
+                            className={`px-0 py-0 min-w-0 snap-start group border-r border-slate-400 dark:border-neutral-500 ${pasteMode ? 'cursor-crosshair' : ''} ${
                               pasteMode
                                 ? 'ring-2 ring-inset ring-accent/20 hover:ring-accent/60 hover:bg-accent/5 dark:hover:bg-accent/10 transition-colors'
                                 : isPayrollCol
@@ -3290,15 +3966,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             )}
                               {/* Slot Superiore - Turno Diurno */}
                               <div
+                                onContextMenu={(e) => canEditInApp ? handleShiftContextMenu(e, user.id, dayStr, dayShift ?? null) : e.preventDefault()}
                                 onClick={(e) => {
                                   // Paste mode: click su cella → incolla qui
-                                  if (pasteMode && selectionClipboard) {
+                                  if (pasteMode && selectionClipboard && canEditInApp) {
                                     void handlePasteToCell(user.id, dayStr);
                                     return;
                                   }
                                   if (dayShift) {
                                     if ((e.target as HTMLElement).closest('button')) return;
-                                    if (canEditShifts) {
+                                    if (canEditInApp) {
                                       // Ctrl/Cmd+Click → toggle selezione senza aprire sidebar
                                       if (e.ctrlKey || e.metaKey) {
                                         setSelectedShiftIds(prev =>
@@ -3312,7 +3989,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       setSidebarDay(dayStr);
                                       setSidebarOpen(true);
                                     }
-                                  } else if (canManageThisUser) {
+                                  } else if (canManageThisUser && canEditInApp) {
                                     if (pasteMode) return; // in paste mode, click su cella vuota incolla
                                     setCreatingShift({ userId: user.id, date: dayStr, defaultTime: '10:00' });
                                   }
@@ -3328,13 +4005,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     ? dayVariant === 'planned'
                                       ? 'border-b-2 border-dashed border-slate-300 dark:border-white/55'
                                       : dayVariant === 'inprogress'
-                                        ? 'border-b-2 border-[#06B6D4]/60 dark:border-[#06B6D4]/45'
+                                        ? 'border-b-2 border-[#0052FF]/60 dark:border-[#0052FF]/45'
                                         : dayVariant === 'punchMissing'
                                           ? 'border-b-2 border-amber-500/55 dark:border-amber-600/40'
                                           : dayVariant === 'absent'
                                             ? 'border-b-2 border-rose-400/60 dark:border-rose-600/40'
                                             : dayVariant === 'approved'
-                                              ? 'border-b-2 border-[#06B6D4]/50 dark:border-[#0052FF]/45'
+                                              ? 'border-b-2 border-[#0052FF]/50 dark:border-[#0052FF]/45'
                                               : 'border-b-2 border-slate-400 dark:border-white/45'
                                     : 'border-b-2 border-slate-400 dark:border-white/45'
                                 } relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? (dragCopyMode ? 'bg-accent/10 dark:bg-accent/15 border-2 border-accent dark:border-accent/80' : 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600') : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-800/60' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
@@ -3394,7 +4071,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       {/* Barra sinistra: turno pubblicato (tabellone) */}
                                       {showPublishedBarDay && (
                                         <span
-                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-[#06B6D4] dark:bg-[#06B6D4]`}
+                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-[#0052FF] dark:bg-[#0052FF]`}
                                           title={t.wst_filter_published}
                                           aria-hidden
                                         />
@@ -3498,7 +4175,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                                         : dayVariant === 'punchMissing'
                                                           ? 'bg-amber-200/90 text-amber-950 dark:bg-amber-900/45 dark:text-amber-100'
                                                           : dayVariant === 'inprogress'
-                                                            ? 'bg-[#06B6D4]/20 text-slate-900 dark:bg-[#06B6D4]/20 dark:text-white'
+                                                            ? 'bg-[#0052FF]/20 text-slate-900 dark:bg-[#0052FF]/20 dark:text-white'
                                                             : 'bg-slate-200 text-slate-600 dark:bg-slate-600/80 dark:text-slate-200'
                                                   }`}
                                                 >
@@ -3526,15 +4203,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
                               {/* Slot Inferiore - Turno Serale */}
                               <div
+                                onContextMenu={(e) => canEditInApp ? handleShiftContextMenu(e, user.id, dayStr, eveningShift ?? null) : e.preventDefault()}
                                 onClick={(e) => {
                                   // Paste mode: click su cella → incolla qui
-                                  if (pasteMode && selectionClipboard) {
+                                  if (pasteMode && selectionClipboard && canEditInApp) {
                                     void handlePasteToCell(user.id, dayStr);
                                     return;
                                   }
                                   if (eveningShift) {
                                     if ((e.target as HTMLElement).closest('button')) return;
-                                    if (canEditShifts) {
+                                    if (canEditInApp) {
                                       // Ctrl/Cmd+Click → toggle selezione senza aprire sidebar
                                       if (e.ctrlKey || e.metaKey) {
                                         setSelectedShiftIds(prev =>
@@ -3548,7 +4226,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       setSidebarDay(dayStr);
                                       setSidebarOpen(true);
                                     }
-                                  } else if (canManageThisUser) {
+                                  } else if (canManageThisUser && canEditInApp) {
                                     if (pasteMode) return;
                                     setCreatingShift({ userId: user.id, date: dayStr, defaultTime: '18:00' });
                                   }
@@ -3614,7 +4292,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       {/* Barra sinistra: turno pubblicato (tabellone) */}
                                       {showPublishedBarEv && (
                                         <span
-                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-[#06B6D4] dark:bg-[#06B6D4]`}
+                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-[#0052FF] dark:bg-[#0052FF]`}
                                           title={t.wst_filter_published}
                                           aria-hidden
                                         />
@@ -3769,14 +4447,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               initial={{ y: 12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.06, duration: 0.22 }}
-              className="pointer-events-auto relative z-10 mt-1 flex w-full max-w-full shrink-0 flex-col overflow-hidden rounded-xl border-2 border-dashed border-amber-400 bg-amber-50/95 backdrop-blur-sm dark:border-amber-600/60 dark:bg-amber-950/90 max-h-[min(42vh,320px)] min-h-0 shadow-[0_4px_16px_-4px_rgba(0,82,255,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.4),0_2px_8px_-4px_rgba(0,0,0,0.25)]"
+              className="pointer-events-auto relative z-10 mt-1 flex w-full max-w-full shrink-0 flex-col overflow-hidden rounded-xl border-2 border-dashed border-amber-400 bg-amber-50/95 backdrop-blur-sm dark:border-amber-600/60 dark:bg-transparent max-h-[min(42vh,320px)] min-h-0 shadow-[0_4px_16px_-4px_rgba(0,26,128,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-none"
             >
-              <div className="flex h-8 shrink-0 items-center justify-between gap-2 border-b border-amber-200 bg-amber-100 px-2 py-0 dark:border-amber-800/50 dark:bg-amber-950/40 sm:px-3">
+              <div className="flex h-8 shrink-0 items-center justify-between gap-2 border-b border-amber-200 bg-amber-100 px-2 py-0 dark:border-amber-600/30 dark:bg-transparent sm:px-3">
                 <div className="flex min-h-0 min-w-0 items-center gap-1">
                   <button
                     type="button"
                     onClick={toggleOpenShiftsBarCollapsed}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-amber-300/80 bg-amber-50/70 text-amber-800 transition-colors hover:bg-amber-100/80 dark:border-amber-700/60 dark:bg-amber-950/50 dark:text-amber-100 dark:hover:bg-amber-900/50"
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-amber-300/80 bg-amber-50/70 text-amber-800 transition-colors hover:bg-amber-100/80 dark:border-amber-600/40 dark:bg-transparent dark:text-amber-300 dark:hover:bg-amber-600/10"
                     aria-expanded={!openShiftsBarCollapsed}
                     aria-label={
                       openShiftsBarCollapsed
@@ -3804,7 +4482,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   <button
                     type="button"
                     onClick={() => setCreatingOpenShift({ date: format(weekStart, 'yyyy-MM-dd') })}
-                    className="flex h-6 shrink-0 items-center rounded-md border border-amber-300/90 bg-amber-50/60 px-2 text-[9px] font-semibold leading-none text-amber-800 hover:bg-amber-100/70 hover:text-amber-950 dark:border-amber-700/70 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-900/45 dark:hover:text-amber-50 sm:text-[10px]"
+                    className="flex h-6 shrink-0 items-center rounded-md border border-amber-300/90 bg-amber-50/60 px-2 text-[9px] font-semibold leading-none text-amber-800 hover:bg-amber-100/70 hover:text-amber-950 dark:border-amber-600/40 dark:bg-transparent dark:text-amber-300 dark:hover:bg-amber-600/10 dark:hover:text-amber-200 sm:text-[10px]"
                   >
                     + {t.new_open_shift}
                   </button>
@@ -3816,7 +4494,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   ref={(el) => { if (el) cardScrollRefs.current[activeUsers.length] = el; }}
                   onScroll={(e) => syncScrollLeft(e.currentTarget)}
                 >
-                  <table className="w-[233.33%] sm:w-full table-fixed border-collapse">
+                  <table className="w-[233.33%] sm:w-full table-fixed border-collapse [&_td]:border-none">
                     <colgroup>
                       {allWeekDays.map((_, i) => <col key={i} className="w-[14.28%]" />)}
                     </colgroup>
@@ -3827,7 +4505,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const dayOpenShifts = openVisibleShifts.filter((s) => s.date === dayStr);
                           const isStaffUser = !isManagement;
                           return (
-                            <td key={dayStr} className="border border-slate-100 p-0 h-10 align-top snap-start">
+                            <td key={dayStr} className="p-0 h-10 align-top snap-start">
                               <div className="flex h-full flex-col gap-0.5 p-1">
                                 {dayOpenShifts.length === 0 && canEditInApp && (
                                   <button
@@ -4002,12 +4680,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
       {/* ── Popup dettaglio turno (centrato) ── */}
       <CenteredModalPortal
-        open={canEditShifts && sidebarOpen && !!sidebarDay}
+        open={canEditInApp && sidebarOpen && !!sidebarDay}
         onClose={closeShiftDetailPanel}
         panelRef={shiftDetailModalPanelRef}
         maxWidthClass="max-w-sm"
         maxHeightClass="max-h-[min(92dvh,820px)]"
-        overlayZClass="z-[10050]"
+        overlayZClass="z-[999999]"
         ariaLabel={t.edit_shift}
         panelClassName="!overflow-hidden flex flex-col p-0"
       >
@@ -4228,7 +4906,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             </div>
                           </div>
                           {isFrozen && shift.approved_start_time && shift.approved_end_time && (
-                            <p className="text-[11px] text-[#0052FF] dark:text-[#06B6D4] font-semibold mt-2">
+                            <p className="text-[11px] text-[#0052FF] dark:text-[#0052FF] font-semibold mt-2">
                               Ore congelate: {(shift.approved_start_time || '').slice(0, 5)} –{' '}
                               {(shift.approved_end_time || '').slice(0, 5)}
                             </p>
@@ -4261,12 +4939,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const hasIn = drawerTimbrature.inTime !== '—';
                           const hasOut = drawerTimbrature.outTime !== '—';
                           const timbCard = hasIn && hasOut
-                            ? 'border-2 border-l-4 border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#06B6D4] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
+                            ? 'border-2 border-l-4 border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#0052FF] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
                             : hasIn
                             ? 'border-2 border-l-4 border-amber-300/80 dark:border-amber-700/50 border-l-review bg-amber-50 dark:bg-amber-950/35'
                             : 'border-2 border-l-4 border-slate-200 dark:border-white/10 border-l-slate-300 bg-slate-50/90 dark:bg-neutral-800/80';
                           const labelCls = hasIn && hasOut
-                            ? 'text-[#0052FF] dark:text-[#06B6D4]'
+                            ? 'text-[#0052FF] dark:text-[#0052FF]'
                             : hasIn
                             ? 'text-amber-700 dark:text-amber-400'
                             : 'text-slate-400 dark:text-neutral-400';
@@ -4276,7 +4954,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-neutral-300">
-                                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasIn ? 'bg-[#06B6D4]' : 'bg-slate-300 dark:bg-neutral-600'}`} aria-hidden />
+                                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasIn ? 'bg-[#0052FF]' : 'bg-slate-300 dark:bg-neutral-600'}`} aria-hidden />
                                     {t.wst_punch_in_label}
                                   </p>
                                   <p className={`text-sm font-bold tabular-nums ${hasIn ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-400 dark:text-neutral-500'}`}>{drawerTimbrature.inTime}</p>
@@ -4285,7 +4963,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   ) : drawerTimbrature.inMode === 'manual' ? (
                                     <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_manual}</p>
                                   ) : drawerTimbrature.inMode === 'frozen' ? (
-                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-[#0052FF] dark:text-[#06B6D4]">{t.wst_punch_mode_frozen}</p>
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-[#0052FF] dark:text-[#0052FF]">{t.wst_punch_mode_frozen}</p>
                                   ) : null}
                                 </div>
                                 <div>
@@ -4299,7 +4977,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   ) : drawerTimbrature.outMode === 'manual' ? (
                                     <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500 dark:text-neutral-400">{t.wst_punch_mode_manual}</p>
                                   ) : drawerTimbrature.outMode === 'frozen' ? (
-                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-[#0052FF] dark:text-[#06B6D4]">{t.wst_punch_mode_frozen}</p>
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-[#0052FF] dark:text-[#0052FF]">{t.wst_punch_mode_frozen}</p>
                                   ) : null}
                                 </div>
                               </div>
@@ -4312,14 +4990,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const delta = actualNetMins != null && plannedNetMins != null ? actualNetMins - plannedNetMins : null;
                           const hoursCard = actualNetMins != null && plannedNetMins != null
                             ? delta! >= 0
-                              ? 'border-2 border-l-4 border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#06B6D4] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
+                              ? 'border-2 border-l-4 border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#0052FF] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
                               : 'border-2 border-l-4 border-amber-300/80 dark:border-amber-700/50 border-l-review bg-amber-50 dark:bg-amber-950/35'
                             : 'border-2 border-l-4 border-slate-200 dark:border-white/10 border-l-slate-300 bg-slate-50/90 dark:bg-neutral-800/80';
                           const hoursLabelCls = actualNetMins != null && plannedNetMins != null
-                            ? delta! >= 0 ? 'text-[#0052FF] dark:text-[#06B6D4]' : 'text-amber-700 dark:text-amber-400'
+                            ? delta! >= 0 ? 'text-[#0052FF] dark:text-[#0052FF]' : 'text-amber-700 dark:text-amber-400'
                             : 'text-slate-400 dark:text-neutral-400';
                           const actualCls = actualNetMins != null && plannedNetMins != null
-                            ? delta! > 0 ? 'text-[#0052FF] dark:text-[#06B6D4]' : delta! < 0 ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-neutral-100'
+                            ? delta! > 0 ? 'text-[#0052FF] dark:text-[#0052FF]' : delta! < 0 ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-neutral-100'
                             : 'text-accent';
                           return (
                             <div className={`space-y-2 rounded-xl p-3.5 ${hoursCard}`}>
@@ -4710,37 +5388,371 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               setPanelPinError('PIN non valido o permessi insufficienti');
               return;
             }
-            setPanelPinUnlocked(panelPinTargetShiftId);
+            const targetId = panelPinTargetShiftId;
+            const pendingAction = contextPinPendingAction;
+            setPanelPinUnlocked(targetId);
             setPanelPinModalOpen(false);
             setPanelPin('');
             setPanelPinError('');
+            setContextPinPendingAction(null);
+            // Esegui l'azione del context menu pendente
+            if (pendingAction === 'edit' && targetId) {
+              const shiftForEdit = contextMenu?.shift;
+              const dateForEdit = contextMenu?.date;
+              if (shiftForEdit && dateForEdit) {
+                setSelectedShiftIds([shiftForEdit.id]);
+                setSidebarDay(dateForEdit);
+                setSidebarOpen(true);
+                setContextMenu(null);
+              }
+            } else if (pendingAction === 'delete' && targetId) {
+              const shiftForDelete = contextMenu?.shift;
+              if (shiftForDelete) {
+                const snapshot = { ...shiftForDelete };
+                pushUndo(`Ripristina turno ${snapshot.start_time}–${snapshot.end_time}`, async () => {
+                  await addShift({
+                    user_id: snapshot.user_id,
+                    date: snapshot.date,
+                    start_time: snapshot.start_time,
+                    end_time: snapshot.end_time,
+                    type: snapshot.type,
+                    approval_status: 'draft',
+                    notes: snapshot.notes,
+                    deduct_break: snapshot.deduct_break ?? true,
+                  });
+                });
+                setContextMenu(null);
+                void deleteShifts([targetId]);
+              }
+            }
           }}
-          onCancel={() => { setPanelPinModalOpen(false); setPanelPin(''); setPanelPinError(''); }}
+          onCancel={() => {
+            setPanelPinModalOpen(false);
+            setPanelPin('');
+            setPanelPinError('');
+            setContextPinPendingAction(null);
+          }}
           error={panelPinError}
           confirmLabel="Sblocca"
           cancelLabel="Annulla"
-          backdropClass="bg-black/50 backdrop-blur-sm"
+          backdropClass="bg-black/35 backdrop-blur-sm dark:bg-black/50"
           userId={currentUser?.id}
           userDisplayName={[currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(' ')}
           userEmail={currentUser?.email ?? ''}
           onBiometricSuccess={() => {
             const verifier = findFreezeVerifierById(users, currentUser?.id ?? '');
             if (!verifier) { setPanelPinError('Ruolo insufficiente per lo sblocco'); return; }
-            setPanelPinUnlocked(panelPinTargetShiftId);
+            const targetId = panelPinTargetShiftId;
+            const pendingAction = contextPinPendingAction;
+            setPanelPinUnlocked(targetId);
             setPanelPinModalOpen(false);
             setPanelPin('');
             setPanelPinError('');
+            setContextPinPendingAction(null);
+            if (pendingAction === 'edit' && targetId) {
+              const shiftForEdit = contextMenu?.shift;
+              const dateForEdit = contextMenu?.date;
+              if (shiftForEdit && dateForEdit) {
+                setSelectedShiftIds([shiftForEdit.id]);
+                setSidebarDay(dateForEdit);
+                setSidebarOpen(true);
+                setContextMenu(null);
+              }
+            } else if (pendingAction === 'delete' && targetId) {
+              const shiftForDelete = contextMenu?.shift;
+              if (shiftForDelete) {
+                const snapshot = { ...shiftForDelete };
+                pushUndo(`Ripristina turno ${snapshot.start_time}–${snapshot.end_time}`, async () => {
+                  await addShift({
+                    user_id: snapshot.user_id,
+                    date: snapshot.date,
+                    start_time: snapshot.start_time,
+                    end_time: snapshot.end_time,
+                    type: snapshot.type,
+                    approval_status: 'draft',
+                    notes: snapshot.notes,
+                    deduct_break: snapshot.deduct_break ?? true,
+                  });
+                });
+                setContextMenu(null);
+                void deleteShifts([targetId]);
+              }
+            }
           }}
         />
       )}
 
+      {/* ── Picker orari preimpostati (cross-slot drag) ── */}
+      {slotRemapPicker && createPortal(
+        (() => {
+          const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+          const slot = slotRemapPicker.targetSlot;
+          const presets = slot === 'lunch' ? lunchPresets : eveningPresets;
+          const setPresets = slot === 'lunch' ? setLunchPresets : setEveningPresets;
+          const addPreset = () => {
+            if (!slotPickerNewStart || !slotPickerNewEnd) return;
+            const next = [...presets, { start: slotPickerNewStart, end: slotPickerNewEnd }];
+            setPresets(next);
+            savePresets(slot, next);
+            setSlotPickerNewStart('');
+            setSlotPickerNewEnd('');
+          };
+          const removePreset = (i: number) => {
+            const next = presets.filter((_, idx) => idx !== i);
+            setPresets(next);
+            savePresets(slot, next);
+          };
+          return (
+            <>
+              <div className="fixed inset-0 z-[999997]" onClick={() => { setSlotRemapPicker(null); setSlotPickerEditMode(false); }} />
+              <div
+                className="fixed z-[999998] rounded-2xl shadow-2xl border flex flex-col"
+                style={{
+                  left: Math.min(slotRemapPicker.x, window.innerWidth - 240),
+                  top: Math.min(slotRemapPicker.y, window.innerHeight - 380),
+                  width: 232,
+                  maxHeight: 420,
+                  background: isDark ? 'rgba(18,22,30,0.97)' : 'rgba(255,255,255,0.98)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.10)' : '#e2e8f0',
+                  backdropFilter: 'blur(16px)',
+                }}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-2.5 border-b shrink-0" style={{ borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0' }}>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/40">
+                    {slot === 'lunch' ? '☀️ Orario Pranzo' : '🌙 Orario Cena'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setSlotPickerEditMode(!slotPickerEditMode); setSlotPickerNewStart(''); setSlotPickerNewEnd(''); }}
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-lg transition-colors"
+                    style={{ background: slotPickerEditMode ? (isDark ? 'rgba(0,82,255,0.3)' : 'rgba(0,82,255,0.1)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'), color: slotPickerEditMode ? '#3366CC' : (isDark ? 'rgba(255,255,255,0.5)' : '#64748b') }}
+                  >
+                    {slotPickerEditMode ? 'Fatto' : 'Modifica'}
+                  </button>
+                </div>
+
+                {/* Lista presets */}
+                <div className="overflow-y-auto flex-1 py-1">
+                  {presets.length === 0 && (
+                    <p className="px-4 py-3 text-[12px] text-slate-400 dark:text-white/30 text-center">Nessun orario salvato</p>
+                  )}
+                  {presets.map(({ start, end }, i) => (
+                    <div key={`${start}-${end}-${i}`} className="flex items-center group/preset">
+                      <button
+                        type="button"
+                        onClick={() => !slotPickerEditMode && void handleSlotRemapConfirm(start, end)}
+                        disabled={slotPickerEditMode}
+                        className="flex-1 flex items-center px-4 py-2 text-[13px] font-semibold transition-colors hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-800 dark:text-white/85 disabled:cursor-default disabled:opacity-60"
+                      >
+                        <span className="tabular-nums">{start} – {end}</span>
+                      </button>
+                      {slotPickerEditMode && (
+                        <button
+                          type="button"
+                          onClick={() => removePreset(i)}
+                          className="mr-3 w-5 h-5 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/50 text-red-500 dark:text-red-400 text-[11px] font-black hover:bg-red-200 dark:hover:bg-red-800/60 transition-colors shrink-0"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Aggiungi nuovo (solo in edit mode) */}
+                {slotPickerEditMode && (
+                  <div className="border-t px-3 py-2.5 shrink-0" style={{ borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0' }}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-white/30 mb-1.5">Aggiungi orario</p>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <input
+                        type="time"
+                        value={slotPickerNewStart}
+                        onChange={(e) => setSlotPickerNewStart(e.target.value)}
+                        className="flex-1 rounded-lg px-2 py-1 text-[12px] font-mono border text-slate-800 dark:text-white/85"
+                        style={{ background: isDark ? 'rgba(255,255,255,0.06)' : '#f8fafc', borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0' }}
+                      />
+                      <span className="text-[11px] text-slate-400 dark:text-white/30">–</span>
+                      <input
+                        type="time"
+                        value={slotPickerNewEnd}
+                        onChange={(e) => setSlotPickerNewEnd(e.target.value)}
+                        className="flex-1 rounded-lg px-2 py-1 text-[12px] font-mono border text-slate-800 dark:text-white/85"
+                        style={{ background: isDark ? 'rgba(255,255,255,0.06)' : '#f8fafc', borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0' }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addPreset}
+                      disabled={!slotPickerNewStart || !slotPickerNewEnd}
+                      className="w-full rounded-xl py-1.5 text-[12px] font-bold transition-colors disabled:opacity-40"
+                      style={{ background: isDark ? 'rgba(0,82,255,0.25)' : 'rgba(0,82,255,0.10)', color: '#3366CC' }}
+                    >
+                      + Aggiungi
+                    </button>
+                  </div>
+                )}
+
+                {/* Footer annulla */}
+                {!slotPickerEditMode && (
+                  <div className="border-t px-4 py-2 shrink-0" style={{ borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSlotRemapPicker(null)}
+                      className="w-full text-[11px] font-semibold text-slate-400 dark:text-white/30 hover:text-slate-600 dark:hover:text-white/60 transition-colors"
+                    >
+                      Annulla
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          );
+        })(),
+        document.body
+      )}
+
+      {/* ── Menu contestuale tasto destro ── */}
+      {contextMenu && createPortal(
+        <>
+          {/* Backdrop invisibile per chiudere */}
+          <div
+            className="fixed inset-0 z-[999998]"
+            onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }}
+            onClick={() => setContextMenu(null)}
+          />
+          {/* Menu */}
+          <div
+            className="fixed z-[999999] min-w-[172px] rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-xl py-1 font-sans text-sm overflow-hidden"
+            style={{
+              left: Math.min(contextMenu.x, window.innerWidth - 192),
+              top: Math.min(contextMenu.y, window.innerHeight - 220),
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* ── Azioni su turno singolo ── */}
+            {contextMenu.shift && selectedShiftIds.length <= 1 && (
+              <>
+                {/* Badge PIN se turno pubblicato */}
+                {isShiftPublished(contextMenu.shift) && panelPinUnlocked !== contextMenu.shift.id && (
+                  <div className="flex items-center gap-1.5 px-3 pt-2 pb-1">
+                    <Lock className="h-3 w-3 shrink-0 text-amber-500" />
+                    <span className="text-[10px] font-semibold text-amber-500 uppercase tracking-wide">Richiede PIN</span>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={handleContextCopy}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  <ClipboardCopy className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  Copia turno
+                </button>
+                <button
+                  type="button"
+                  onClick={handleContextEdit}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  <Pencil className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  Modifica
+                  {isShiftPublished(contextMenu.shift) && panelPinUnlocked !== contextMenu.shift.id && (
+                    <Lock className="ml-auto h-3 w-3 shrink-0 text-amber-400" />
+                  )}
+                </button>
+                <div className="my-1 border-t border-slate-100 dark:border-white/8" />
+              </>
+            )}
+
+            {/* ── Azioni su selezione multipla ── */}
+            {selectedShiftIds.length > 1 && (
+              <>
+                <div className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                  {selectedShiftIds.length} turni selezionati
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { handleCopySelection(); setContextMenu(null); }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  <ClipboardCopy className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  Copia {selectedShiftIds.length} turni
+                </button>
+                <div className="my-1 border-t border-slate-100 dark:border-white/8" />
+              </>
+            )}
+
+            {/* ── Incolla (clipboard singolo) ── */}
+            {quickClipboard && selectedShiftIds.length <= 1 && (
+              <button
+                type="button"
+                onClick={() => void handleContextPaste()}
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <ClipboardPaste className="h-3.5 w-3.5 shrink-0 text-accent" />
+                <span>
+                  Incolla turno
+                  <span className="ml-1.5 text-[10px] text-slate-400 dark:text-neutral-500 font-normal tabular-nums">
+                    {quickClipboard.start_time}–{quickClipboard.end_time}
+                  </span>
+                </span>
+              </button>
+            )}
+
+            {/* ── Incolla (clipboard multiplo da selectionClipboard) ── */}
+            {selectionClipboard && selectionClipboard.shifts.length > 1 && (
+              <button
+                type="button"
+                onClick={() => { void handlePasteToCell(contextMenu.userId, contextMenu.date); setContextMenu(null); }}
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <ClipboardPaste className="h-3.5 w-3.5 shrink-0 text-accent" />
+                Incolla {selectionClipboard.shifts.length} turni qui
+              </button>
+            )}
+
+            {/* Placeholder se clipboard vuoto */}
+            {!contextMenu.shift && !quickClipboard && !selectionClipboard && selectedShiftIds.length === 0 && (
+              <div className="px-3 py-2 text-[12px] text-slate-400 dark:text-neutral-500 italic">
+                Nessun turno copiato
+              </div>
+            )}
+
+            {/* ── Elimina ── */}
+            {contextMenu.shift && selectedShiftIds.length <= 1 && (
+              <>
+                <div className="my-1 border-t border-slate-100 dark:border-white/8" />
+                <button
+                  type="button"
+                  onClick={() => void handleContextDelete()}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                >
+                  <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                  Elimina turno
+                </button>
+              </>
+            )}
+            {selectedShiftIds.length > 1 && (
+              <button
+                type="button"
+                onClick={() => { void handleDeleteSelection(); setContextMenu(null); }}
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                Elimina {selectedShiftIds.length} turni
+              </button>
+            )}
+          </div>
+        </>,
+        document.body,
+      )}
+
       {/* Barra azioni selezione multipla */}
-      {canEditShifts && selectedShiftIds.length > 0 && !pasteMode && (
+      {canEditInApp && selectedShiftIds.length > 0 && !pasteMode && (
         <div
           className="pointer-events-auto fixed left-1/2 z-[9000] -translate-x-1/2"
           style={{ bottom: 'calc(var(--app-bottom-nav-offset, 72px) + 8px)' }}
         >
-          <div className="flex items-center gap-1 rounded-2xl bg-[#0052FF] px-3 py-2 shadow-[0_4px_24px_-4px_rgba(0,82,255,0.55)] ring-1 ring-white/10">
+          <div className="flex items-center gap-1 rounded-2xl bg-[#0052FF] px-3 py-2 shadow-[0_4px_24px_-4px_rgba(0,26,128,0.55)] ring-1 ring-white/10">
             {/* Contatore */}
             <span className="mr-1 text-[11px] font-extrabold text-white/90 tabular-nums whitespace-nowrap">
               {formatTrans(tv.selection_bar_label ?? t.selection_bar_label, { n: selectedShiftIds.length })}
@@ -4840,6 +5852,16 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
   const rawDefault = (defaultTime || '').trim().slice(0, 5);
   const defaultHour = rawDefault ? parseInt(rawDefault.split(':')[0], 10) : 10;
   const isEveningDefault = defaultHour >= 16;
+
+  const loadModalPresets = (slot: 'lunch' | 'evening') => {
+    try {
+      const raw = localStorage.getItem(`flow_slot_presets_${slot}`);
+      if (raw) return JSON.parse(raw) as { start: string; end: string }[];
+    } catch { /* ignore */ }
+    return slot === 'lunch'
+      ? [{ start: '09:00', end: '14:00' }, { start: '10:00', end: '15:00' }, { start: '10:00', end: '16:00' }, { start: '11:00', end: '16:00' }, { start: '12:00', end: '16:00' }]
+      : [{ start: '16:00', end: '22:00' }, { start: '16:00', end: '23:00' }, { start: '18:00', end: '23:00' }, { start: '18:00', end: '00:00' }, { start: '19:00', end: '01:00' }];
+  };
   const [tempShifts, setTempShifts] = useState({
     start_time: isEveningDefault ? '18:00' : (rawDefault || '10:00'),
     end_time: isEveningDefault ? '23:00' : '16:00',
@@ -4940,7 +5962,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/65"
+        className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55"
         onClick={onClose}
       >
         <motion.form
@@ -5039,11 +6061,9 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
             {/* ── Data ── */}
             <div>
               <label className={labelClass}>Data</label>
-              <input
-                type="date"
+              <DatePickerInput
                 value={selectedDate}
-                onChange={(e) => { if (e.target.value) setSelectedDate(e.target.value); }}
-                className={inputClass}
+                onChange={(val) => setSelectedDate(val)}
               />
             </div>
             {/* ── Time inputs side by side ── */}
@@ -5077,6 +6097,39 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                 )}
               </div>
             </div>
+
+            {/* ── Preset orari ── */}
+            {(() => {
+              const currentSlot = startHour < 16 ? 'lunch' : 'evening';
+              const presets = loadModalPresets(currentSlot);
+              if (presets.length === 0) return null;
+              return (
+                <div>
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-500">
+                    {currentSlot === 'lunch' ? '☀️ Preset pranzo' : '🌙 Preset cena'}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {presets.map(({ start, end }) => {
+                      const isActive = tempShifts.start_time.slice(0, 5) === start && tempShifts.end_time.slice(0, 5) === end;
+                      return (
+                        <button
+                          key={`${start}-${end}`}
+                          type="button"
+                          onClick={() => setTempShifts({ start_time: start, end_time: end })}
+                          className={`rounded-lg px-2.5 py-1 text-[12px] font-bold tabular-nums transition-all ${
+                            isActive
+                              ? 'bg-accent text-white shadow-sm'
+                              : 'bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-white/60 hover:bg-slate-200 dark:hover:bg-white/[0.12]'
+                          }`}
+                        >
+                          {start}–{end}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
 
             <label className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 shadow-sm transition-colors ${
               deductBreak

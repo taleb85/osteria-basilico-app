@@ -413,8 +413,8 @@ export default function HomePage({
     if (e.canApprove) {
       return {
         border: 'border-l-brand-500 dark:border-l-brand-500/80',
-        bg: 'bg-brand-50/95 dark:bg-[#0052FF]/8',
-        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-[#0052FF]/10 dark:text-brand-50 dark:border-brand-500/50',
+        bg: 'bg-brand-50/95 dark:bg-[#001A80]/8',
+        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-[#001A80]/10 dark:text-brand-50 dark:border-brand-500/50',
         dot: 'bg-brand-500 dark:bg-brand-400',
         label: t.home_status_to_approve,
       };
@@ -432,8 +432,8 @@ export default function HomePage({
       if (publishedHome) {
         return {
           border: 'border-l-brand-500 dark:border-l-brand-500/80',
-          bg: 'bg-brand-50/95 dark:bg-[#0052FF]/8',
-          badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-[#0052FF]/10 dark:text-brand-50 dark:border-brand-500/50',
+          bg: 'bg-brand-50/95 dark:bg-[#001A80]/8',
+          badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-[#001A80]/10 dark:text-brand-50 dark:border-brand-500/50',
           dot: 'bg-brand-500 dark:bg-brand-400',
           label: t.home_status_not_punched,
         };
@@ -449,8 +449,8 @@ export default function HomePage({
     if (inTodayKpiWindow && e.punchIn && !e.isLate && !e.hasMissingOut) {
       return {
         border: 'border-l-brand-500 dark:border-l-brand-500/80',
-        bg: 'bg-brand-50/95 dark:bg-[#0052FF]/8',
-        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-[#0052FF]/10 dark:text-brand-50 dark:border-brand-500/50',
+        bg: 'bg-brand-50/95 dark:bg-[#001A80]/8',
+        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-[#001A80]/10 dark:text-brand-50 dark:border-brand-500/50',
         dot: 'bg-brand-500 dark:bg-brand-400',
         label: t.home_status_in_shift,
       };
@@ -458,8 +458,8 @@ export default function HomePage({
     if (e.punchIn && !e.actualEnd) {
       return {
         border: 'border-l-brand-500 dark:border-l-brand-500/80',
-        bg: 'bg-brand-50/95 dark:bg-[#0052FF]/8',
-        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-[#0052FF]/10 dark:text-brand-50 dark:border-brand-500/50',
+        bg: 'bg-brand-50/95 dark:bg-[#001A80]/8',
+        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-[#001A80]/10 dark:text-brand-50 dark:border-brand-500/50',
         dot: 'animate-pulse bg-brand-500 dark:bg-brand-400',
         label: t.home_status_in_shift,
       };
@@ -467,8 +467,8 @@ export default function HomePage({
     if (e.punchIn && e.actualEnd) {
       return {
         border: 'border-l-brand-500 dark:border-l-brand-500/80',
-        bg: 'bg-brand-50/95 dark:bg-[#0052FF]/8',
-        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-[#0052FF]/10 dark:text-brand-50 dark:border-brand-500/50',
+        bg: 'bg-brand-50/95 dark:bg-[#001A80]/8',
+        badge: 'bg-brand-100 text-brand-900 border-brand-500/80 dark:bg-[#001A80]/10 dark:text-brand-50 dark:border-brand-500/50',
         dot: 'bg-brand-500 dark:bg-brand-400',
         label: t.home_status_complete,
       };
@@ -673,7 +673,7 @@ export default function HomePage({
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {grouped[dateStr].sort((a, b) => a.start_time.localeCompare(b.start_time)).map((s) => (
-                        <span key={s.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${s.approval_status === 'draft' ? 'bg-slate-100 text-slate-600 border-slate-400 dark:bg-neutral-800 dark:text-neutral-300 dark:border-white/25' : 'bg-brand-50/95 text-brand-900 border-brand-500/80 dark:bg-[#0052FF]/8 dark:text-brand-50 dark:border-brand-500/50'}`}>
+                        <span key={s.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${s.approval_status === 'draft' ? 'bg-slate-100 text-slate-600 border-slate-400 dark:bg-neutral-800 dark:text-neutral-300 dark:border-white/25' : 'bg-brand-50/95 text-brand-900 border-brand-500/80 dark:bg-[#001A80]/8 dark:text-brand-50 dark:border-brand-500/50'}`}>
                           {s.start_time.slice(0, 5)}–{s.end_time?.slice(0, 5) ?? '…'}
                         </span>
                       ))}
@@ -816,7 +816,7 @@ export default function HomePage({
                 iconColor: 'text-brand-600 dark:text-brand-400',
                 bg: 'bg-transparent dark:bg-transparent',
                 border: 'border-brand-200 dark:border-brand-800/40',
-                iconWell: 'bg-brand-100/80 dark:bg-[#0052FF]/10',
+                iconWell: 'bg-brand-100/80 dark:bg-[#001A80]/10',
               },
               {
                 label: t.home_stat_delays,
@@ -883,7 +883,7 @@ export default function HomePage({
                         <p className="font-bold text-slate-800 dark:text-neutral-100 text-sm">{e.user?.first_name ?? '—'}</p>
                         <p className="text-[11px] text-slate-500 dark:text-neutral-400">{e.user?.department ?? e.user?.role ?? ''}</p>
                       </div>
-                      <span className="ml-auto flex items-center gap-1 rounded-full border border-brand-500/80 bg-brand-100 px-2 py-0.5 text-[10px] font-bold text-brand-900 dark:border-brand-500/50 dark:bg-[#0052FF]/10 dark:text-brand-50">
+                      <span className="ml-auto flex items-center gap-1 rounded-full border border-brand-500/80 bg-brand-100 px-2 py-0.5 text-[10px] font-bold text-brand-900 dark:border-brand-500/50 dark:bg-[#001A80]/10 dark:text-brand-50">
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500 dark:bg-brand-400" /> {t.home_badge_in_shift}
                       </span>
                     </div>
@@ -985,7 +985,7 @@ export default function HomePage({
               <div className="space-y-3">
                 {[
                   { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-accent' },
-                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-[#0052FF] dark:bg-[#0052FF]/80' },
+                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-[#001A80] dark:bg-[#001A80]/80' },
                 ].map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="flex justify-between text-xs mb-1.5">
@@ -1086,7 +1086,7 @@ export default function HomePage({
                     <p className="text-[10px] text-slate-500 dark:text-neutral-400 uppercase font-semibold mb-1">{t.home_label_planned}</p>
                     <p className="font-bold text-slate-700 dark:text-neutral-200 tabular-nums">{closeModal.actualStart} → {closeModal.plannedEnd}</p>
                   </div>
-                  <div className="rounded-xl bg-[#0052FF]/8 p-3 text-center dark:bg-[#0052FF]/12">
+                  <div className="rounded-xl bg-[#001A80]/8 p-3 text-center dark:bg-[#001A80]/12">
                     <p className="text-[10px] text-slate-500 dark:text-neutral-400 uppercase font-semibold mb-1">{t.home_label_entry}</p>
                     <p className="font-bold text-slate-800 dark:text-neutral-100 tabular-nums">{closeModal.actualStart}</p>
                   </div>

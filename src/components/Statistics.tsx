@@ -367,7 +367,7 @@ export default function Statistics() {
   const staffRangeTotalMins = Object.values(minutesByUserByWeek[currentUser.id] ?? {}).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="pb-content pt-6 w-full max-w-full font-sans">
+    <div className="pb-content pt-4 px-4 w-full max-w-full font-sans">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -376,27 +376,57 @@ export default function Statistics() {
         {/* ── Toolbar 4-tab (tutti gli utenti) ──────────────────────── */}
         {true && (
           <>
-            <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-between gap-1.5 overflow-x-auto relative z-[1000] mb-5">
+            <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-1 overflow-x-auto relative z-[1000] mb-5">
               <div className="flex min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-1.5 overflow-visible relative z-[1001]">
                 <div className="ui-toolbar-row-tight min-w-0 shrink-0 md:gap-1.5">
-                  {/* Toolbar navigazione */}
-                  <div className="ui-toolbar-group md:scale-90 md:origin-left">
-                    {/* Prec. — naviga per settimana o per periodo in base al tab attivo */}
+                  {/* ── MOBILE: stile semplificato (PERIODO pill + ← date →) ── */}
+                  <div className="flex sm:hidden shrink-0 flex-nowrap items-center gap-2">
+                    <span className="h-9 inline-flex items-center px-3 rounded-2xl bg-accent text-white text-[10px] font-extrabold uppercase tracking-wider shrink-0 shadow-sm">
+                      {statsTab === 'current_week' ? 'Settimana' : 'Periodo'}
+                    </span>
+                    <div className="flex items-center bg-white dark:bg-transparent border border-slate-100 dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm dark:shadow-none" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent', boxShadow: 'none' } : {}}>
+                      <button
+                        type="button"
+                        onClick={() => setNavOffset(o => o - 1)}
+                        className="flex items-center justify-center h-9 w-9 text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <ChevronLeft className="h-4 w-4" aria-hidden />
+                      </button>
+                      <div className="flex items-center gap-1.5 px-2">
+                        <Calendar className="h-3 w-3 text-slate-400 dark:text-neutral-500 shrink-0" aria-hidden />
+                        <span className="text-[10px] font-bold text-slate-700 dark:text-neutral-200 tabular-nums whitespace-nowrap">
+                          {statsTab === 'current_week'
+                            ? `S.${getISOWeek(rangeStart)} · ${format(rangeStart, 'd MMM', { locale: statsLoc })} – ${format(rangeEnd, 'd MMM', { locale: statsLoc })}`
+                            : `${format(rangeStart, 'd MMM', { locale: statsLoc })} – ${format(rangeEnd, 'd MMM yy', { locale: statsLoc })}`
+                          }
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setNavOffset(o => o + 1)}
+                        className="flex items-center justify-center h-9 w-9 text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <ChevronRight className="h-4 w-4" aria-hidden />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ── DESKTOP: toolbar originale ── */}
+                  <div className="hidden sm:flex shrink-0 flex-nowrap items-center gap-1.5">
+                  <div className="ui-toolbar-group">
                     <button
                       type="button"
                       onClick={() => setNavOffset(o => o - 1)}
-                      className="ui-toolbar-tab !px-2 !text-[10px] shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
+                      className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
                       aria-label={statsTab === 'current_week' ? 'Settimana precedente' : 'Periodo precedente'}
                     >
-                      <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
-                      <span className="hidden sm:inline">Prec.</span>
+                      <ChevronLeft className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
+                      <span>Prec.</span>
                     </button>
-
-                    {/* Tab Settimana: seleziona vista settimanale */}
                     <button
                       type="button"
                       onClick={() => { setStatsTab('current_week'); setNavOffset(0); }}
-                      className={`ui-toolbar-tab !px-2.5 !text-[10px] shrink-0 ${
+                      className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
                         statsTab === 'current_week'
                           ? 'bg-accent text-white font-extrabold'
                           : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
@@ -404,12 +434,10 @@ export default function Statistics() {
                     >
                       Settimana
                     </button>
-
-                    {/* Mese: seleziona vista periodo e resetta a 0 */}
                     <button
                       type="button"
                       onClick={() => { setStatsTab('period'); setNavOffset(0); }}
-                      className={`ui-toolbar-tab !px-2.5 !text-[10px] shrink-0 ${
+                      className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
                         statsTab === 'period' && navOffset === 0
                           ? 'bg-accent text-white font-extrabold'
                           : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
@@ -417,29 +445,25 @@ export default function Statistics() {
                     >
                       Mese
                     </button>
-
-                    {/* Pros. — naviga per settimana o per periodo */}
                     <button
                       type="button"
                       onClick={() => setNavOffset(o => o + 1)}
-                      className="ui-toolbar-tab !px-2 !text-[10px] shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
+                      className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
                       aria-label={statsTab === 'current_week' ? 'Settimana successiva' : 'Periodo successivo'}
                     >
-                      <span className="hidden sm:inline">Pros.</span>
-                      <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+                      <span>Pros.</span>
+                      <ChevronRight className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
                     </button>
                   </div>
-
-                  {/* Chip date range */}
                   <div
-                    className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-2 !h-8 !text-[10px]"
+                    className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-2.5 !h-9 lg:!h-10 !text-[11px] lg:!text-sm"
                     role="status"
                   >
-                    <Calendar className="hidden sm:block h-3.5 w-3.5 shrink-0 text-slate-500 dark:text-neutral-400" aria-hidden />
+                    <Calendar className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-slate-500 dark:text-neutral-400" aria-hidden />
                     <span className="min-w-0 truncate tabular-nums">
                       {statsTab === 'current_week' ? (
                         <>
-                          <span className="text-slate-400 dark:text-neutral-500">S.{getISOWeek(rangeStart)}&nbsp;</span>
+                          <span className="text-[#001A80] dark:text-[#3366CC] font-extrabold">S.{getISOWeek(rangeStart)}&nbsp;</span>
                           {format(rangeStart, 'dd/MM', { locale: statsLoc })}
                           <span className="text-slate-400 dark:text-neutral-500"> → {format(rangeEnd, 'dd/MM', { locale: statsLoc })}</span>
                         </>
@@ -452,42 +476,43 @@ export default function Statistics() {
                       )}
                     </span>
                   </div>
+                  </div>{/* end desktop wrapper */}
                 </div>
 
               </div>
 
               {/* PDF + Filtro reparto — lato destro */}
               <div className="flex justify-end md:contents">
-                <div className="relative md:ml-auto flex items-center gap-1">
+                <div className="relative md:ml-auto flex min-h-9 lg:min-h-10 items-center gap-1">
                   {showManagementStatsChrome && isFeatureEnabled(currentUser, 'export_pdf') && (
-                    <div className="ui-toolbar-group md:scale-90 md:origin-left">
+                    <div className="ui-toolbar-group">
                       <button
                         type="button"
                         onClick={() => void handleExportStatsPdf()}
-                        className="ui-toolbar-tab !px-2 !text-[10px] shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80"
+                        className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80"
                         title={t.download_pdf}
                         aria-label={t.download_pdf}
                       >
-                        <FileDown className="h-3 w-3 shrink-0" aria-hidden />
+                        <FileDown className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" aria-hidden />
                         <span className="hidden sm:inline">{t.download_pdf}</span>
                       </button>
                     </div>
                   )}
                   {isAdmin && departments.length > 0 && (
                   <div className="relative">
-                    <div className="ui-toolbar-group md:scale-90 md:origin-left">
+                    <div className="ui-toolbar-group">
                     <button
                       type="button"
                       onClick={() => setShowDeptMenu(prev => !prev)}
-                      className={`ui-toolbar-tab !px-2 !text-[10px] shrink-0 ${
+                      className={`ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 ${
                         showDeptMenu ? 'bg-accent/8 text-accent dark:text-accent-light' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
                       } ${deptFilter !== 'all' ? 'font-extrabold' : ''}`}
                     >
-                      <Filter className="h-3 w-3 shrink-0" strokeWidth={2.5} aria-hidden />
+                      <Filter className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
                       <span className="max-w-[80px] truncate">
                         {deptFilter === 'all' ? 'Reparti' : translateDepartmentValue(deptFilter, effectiveLanguage)}
                       </span>
-                      <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${showDeptMenu ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`h-3 w-3 lg:h-3.5 lg:w-3.5 text-slate-400 transition-transform ${showDeptMenu ? 'rotate-180' : ''}`} />
                     </button>
                     </div>
 
@@ -500,7 +525,7 @@ export default function Statistics() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
                             transition={{ duration: 0.1 }}
-                            className="hidden lg:block absolute right-0 top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                            className="hidden lg:block absolute right-0 top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-[#0d1117]"
                             style={{ isolation: 'isolate' }}
                           >
                             <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 border-b border-slate-100 dark:border-white/10 mb-1">
@@ -571,7 +596,7 @@ export default function Statistics() {
         )}
 
         {showManagementStatsChrome && payrollForCalendarMonth && uiW('stats.table') && (
-          <div className="mb-4 rounded-2xl border border-accent/25 bg-accent/5 px-4 py-3.5 text-sm dark:border-accent/35 dark:bg-accent/10">
+          <div className="mb-4 rounded-2xl border border-accent/25 bg-accent/5 px-4 py-3.5 text-sm dark:border-accent/35 dark:bg-transparent">
             <p className="font-bold text-slate-900 dark:text-neutral-100">
               {tv.stats_payroll_title ?? 'Pagamento stipendi'}
             </p>
@@ -589,7 +614,76 @@ export default function Statistics() {
         {/* ── Tabella ore: solo card (stesso stile “Le tue ore nell’intervallo…”), niente scroll orizzontale ─ */}
         {!showManagementStatsChrome && (
           <div className="mb-8 md:mb-6">
-            <div className="surface-glass overflow-hidden border-l-4 border-l-accent border border-accent/20 dark:border-accent/15 bg-accent/5 dark:bg-accent/10">
+
+            {/* ── MOBILE: header totale + scheda per ogni settimana ── */}
+            <div className="sm:hidden flex flex-col gap-3">
+              {/* Totale periodo */}
+              <div className="surface-glass overflow-hidden border-l-4 border-l-accent border border-accent/20 dark:border-accent/[0.12] flex items-center justify-between px-5 py-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-accent dark:text-accent-light">
+                  {t.stats_your_hours_in_range}
+                </p>
+                <p className="text-2xl font-bold tabular-nums text-accent-dark dark:text-accent-light">
+                  {staffRangeTotalMins > 0 ? formatMinutesToHoursAndMinutes(staffRangeTotalMins) : '–'}
+                </p>
+              </div>
+
+              {staffRangeTotalMins === 0 ? (
+                <div className="surface-glass border border-accent/20 dark:border-accent/15 flex flex-col items-center gap-3 p-8 pb-12 text-center">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 dark:bg-accent/20">
+                    <Calendar className="h-5 w-5 text-accent/50 dark:text-accent-light/50" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.stats_no_data}</p>
+                  <p className="max-w-xs text-xs leading-relaxed text-slate-500 dark:text-neutral-300">{t.stats_no_confirmed_shifts_period}</p>
+                </div>
+              ) : (
+                weeksInRange.map((w) => {
+                  const weekMins = minutesByUserByWeek[currentUser.id]?.[w.key] ?? 0;
+                  const clampedStart = w.start < rangeStart ? rangeStart : w.start;
+                  const clampedEnd   = w.end   > rangeEnd   ? rangeEnd   : w.end;
+                  const weekDays = eachDayOfInterval({ start: clampedStart, end: clampedEnd });
+                  return (
+                    <div key={`staff-m-${w.key}`} className="surface-glass overflow-hidden border-l-4 border-l-accent border border-accent/20 dark:border-accent/[0.12]">
+                      {/* Header scheda settimana */}
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-accent/60 dark:text-accent-light/50">
+                          {format(clampedStart, 'dd/MM')} → {format(clampedEnd, 'dd/MM')}
+                        </span>
+                        <span className={`text-sm font-extrabold tabular-nums ${weekMins > 0 ? 'text-accent-dark dark:text-accent-light' : 'text-accent/25 dark:text-accent-light/20'}`}>
+                          {weekMins > 0 ? formatMinutesToHoursAndMinutes(weekMins) : '—'}
+                        </span>
+                      </div>
+                      {/* Griglia giorni */}
+                      <div className="border-t border-accent/10 dark:border-accent/15 grid gap-px px-2 py-3" style={{ gridTemplateColumns: `repeat(${weekDays.length}, 1fr)` }}>
+                        {weekDays.map((day) => {
+                          const dayKey = format(day, 'yyyy-MM-dd');
+                          const mins = minutesByUserByDay[currentUser.id]?.[dayKey] ?? 0;
+                          return (
+                            <div key={dayKey} className="flex flex-col items-center py-1.5">
+                              <span className="block text-[9px] font-bold uppercase text-accent/40 dark:text-accent-light/35 leading-none mb-0.5">
+                                {format(day, 'EEE', { locale: statsLoc }).slice(0, 3)}
+                              </span>
+                              <span className="block text-[9px] text-accent/30 dark:text-accent-light/25 tabular-nums leading-none mb-1">
+                                {format(day, 'dd')}
+                              </span>
+                              {mins > 0 ? (
+                                <span className="text-[12px] font-bold text-accent-dark dark:text-accent-light tabular-nums leading-none">
+                                  {formatMinutesToHoursAndMinutes(mins)}
+                                </span>
+                              ) : (
+                                <span className="text-[12px] text-accent/20 dark:text-accent-light/20 leading-none">—</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* ── DESKTOP: card unica con tabella (invariato) ── */}
+            <div className="hidden sm:block surface-glass overflow-hidden border-l-4 border-l-accent border border-accent/20 dark:border-accent/[0.12]">
               <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-6">
                 <p className="text-xs font-bold uppercase tracking-widest text-accent dark:text-accent-light">
                   {t.stats_your_hours_in_range}
@@ -614,85 +708,49 @@ export default function Statistics() {
                     const clampedEnd   = w.end   > rangeEnd   ? rangeEnd   : w.end;
                     const weekDays = eachDayOfInterval({ start: clampedStart, end: clampedEnd });
                     return (
-                      <div key={`staff-${w.key}`} className="border-b border-accent/10 last:border-0 dark:border-accent/15">
-                        {/* Mobile: layout fisso senza scroll */}
-                        <div className="sm:hidden px-3 py-2">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-[9px] font-bold uppercase tracking-wide text-accent/60 dark:text-accent-light/50">
-                              {format(clampedStart, 'dd/MM')} → {format(clampedEnd, 'dd/MM')}
-                            </span>
-                            <span className={`text-sm font-extrabold tabular-nums ${weekMins > 0 ? 'text-accent-dark dark:text-accent-light' : 'text-accent/25 dark:text-accent-light/20'}`}>
-                              {weekMins > 0 ? formatMinutesToHoursAndMinutes(weekMins) : '—'}
-                            </span>
-                          </div>
-                          <div className="grid gap-px" style={{ gridTemplateColumns: `repeat(${weekDays.length}, 1fr)` }}>
-                            {weekDays.map((day) => {
-                              const dayKey = format(day, 'yyyy-MM-dd');
-                              const mins = minutesByUserByDay[currentUser.id]?.[dayKey] ?? 0;
-                              return (
-                                <div key={dayKey} className="flex flex-col items-center py-1.5">
-                                  <span className="block text-[8px] font-bold uppercase text-accent/40 dark:text-accent-light/35 leading-none mb-0.5">
-                                    {format(day, 'EEE', { locale: statsLoc }).slice(0, 3)}
-                                  </span>
-                                  <span className="block text-[8px] text-accent/30 dark:text-accent-light/25 tabular-nums leading-none mb-1">
-                                    {format(day, 'dd')}
-                                  </span>
-                                  {mins > 0 ? (
-                                    <span className="text-[11px] font-bold text-accent-dark dark:text-accent-light tabular-nums leading-none">
-                                      {formatMinutesToHoursAndMinutes(mins)}
-                                    </span>
-                                  ) : (
-                                    <span className="text-[11px] text-accent/20 dark:text-accent-light/20 leading-none">—</span>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        {/* Desktop: tabella scrollabile */}
-                        <div className="hidden sm:block overflow-x-auto [-webkit-overflow-scrolling:touch]">
-                          <table className="w-full border-collapse" style={{ minWidth: `${weekDays.length * 60 + 120}px` }}>
+                      <div key={`staff-d-${w.key}`} className="border-b border-accent/10 last:border-0 dark:border-accent/15">
+                        <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
+                            <table className="w-full border-collapse border border-slate-200 dark:border-white/10" style={{ minWidth: `${weekDays.length * 60 + 120}px` }}>
                             <thead>
-                              <tr>
-                                <th className="py-2 pl-5 pr-2 text-left text-[9px] font-bold uppercase tracking-wider text-accent/50 dark:text-accent-light/40">
+                              <tr className="bg-slate-100 dark:bg-white/[0.04]">
+                                <th className="py-2 pl-5 pr-2 text-left text-[9px] font-bold uppercase tracking-wider text-slate-600 dark:text-neutral-300 border border-slate-200 dark:border-white/10">
                                   {w.label}
                                 </th>
                                 {weekDays.map((day) => (
-                                  <th key={format(day, 'yyyy-MM-dd')} className="px-2 py-2 text-center min-w-[60px]">
-                                    <span className="block text-[9px] font-bold uppercase tracking-wider text-accent/50 dark:text-accent-light/40">
+                                  <th key={format(day, 'yyyy-MM-dd')} className="px-2 py-2 text-center min-w-[60px] border border-slate-200 dark:border-white/10">
+                                    <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-600 dark:text-neutral-300">
                                       {format(day, 'EEE', { locale: statsLoc })}
                                     </span>
-                                    <span className="block text-[9px] font-semibold text-accent/40 dark:text-accent-light/30 tabular-nums">
+                                    <span className="block text-[9px] font-semibold text-slate-400 dark:text-neutral-400 tabular-nums">
                                       {format(day, 'dd/MM')}
                                     </span>
                                   </th>
                                 ))}
-                                <th className="py-2 pl-2 pr-5 text-right text-[9px] font-bold uppercase tracking-wider text-accent/50 dark:text-accent-light/40 min-w-[60px]">
+                                <th className="py-2 pl-2 pr-5 text-right text-[9px] font-bold uppercase tracking-wider text-slate-600 dark:text-neutral-300 min-w-[60px] border border-slate-200 dark:border-white/10 bg-slate-200/60 dark:bg-white/[0.03]">
                                   Tot.
                                 </th>
                               </tr>
                             </thead>
                             <tbody>
                               <tr>
-                                {/* Colonna label settimana (allineata con l'header) */}
-                                <td />
+                                <td className="py-2 pl-5 pr-2 border border-slate-200 dark:border-white/10 text-[9px] text-slate-400" />
                                 {weekDays.map((day) => {
                                   const dayKey = format(day, 'yyyy-MM-dd');
                                   const mins = minutesByUserByDay[currentUser.id]?.[dayKey] ?? 0;
                                   return (
-                                    <td key={dayKey} className="px-2 py-2.5 text-right tabular-nums">
+                                    <td key={dayKey} className="px-2 py-2.5 text-center tabular-nums border border-slate-200 dark:border-white/10">
                                       {mins > 0 ? (
                                         <span className="text-[13px] font-bold text-accent-dark dark:text-accent-light">
                                           {formatMinutesToHoursAndMinutes(mins)}
                                         </span>
                                       ) : (
-                                        <span className="text-[13px] font-normal text-accent/20 dark:text-accent-light/20">—</span>
+                                        <span className="text-[13px] text-slate-300 dark:text-neutral-600">—</span>
                                       )}
                                     </td>
                                   );
                                 })}
-                                <td className="py-2.5 pl-2 pr-5 text-right tabular-nums">
-                                  <span className={`text-[13px] font-extrabold ${weekMins > 0 ? 'text-accent-dark dark:text-accent-light' : 'text-accent/20 dark:text-accent-light/20'}`}>
+                                <td className="py-2.5 pl-2 pr-5 text-right tabular-nums border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02]">
+                                  <span className={`text-[13px] font-extrabold ${weekMins > 0 ? 'text-accent-dark dark:text-accent-light' : 'text-slate-300 dark:text-neutral-600'}`}>
                                     {weekMins > 0 ? formatMinutesToHoursAndMinutes(weekMins) : '—'}
                                   </span>
                                 </td>
@@ -706,13 +764,14 @@ export default function Statistics() {
                 </div>
               )}
             </div>
+
           </div>
         )}
 
         {uiW('stats.table') && displayUsers.length > 1 && (
           <div className="mb-6 space-y-4">
             {showManagementStatsChrome && (
-              <div className="surface-glass overflow-hidden border-l-4 border-l-accent border border-accent/20 dark:border-accent/15 bg-accent/5 dark:bg-accent/10">
+              <div className="surface-glass overflow-hidden border-l-4 border-l-accent border border-accent/20 dark:border-accent/[0.12]">
                 {/* Intestazione totale */}
                 <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-6">
                   <p className="text-xs font-bold uppercase tracking-widest text-accent dark:text-accent-light">
@@ -832,19 +891,19 @@ export default function Statistics() {
               </div>
             )}
             {showManagementStatsChrome && (
-              <div className="surface-glass border-l-4 border-l-[#0052FF] border border-[#0052FF]/20 dark:border-[#0052FF]/18 bg-[#0052FF]/6 dark:bg-[#0052FF]/10 p-5 sm:p-6">
-                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#0052FF] dark:text-[#00D1FF]">
+              <div className="surface-glass border-l-4 border-l-[#001A80] border border-[#001A80]/20 dark:border-[#001A80]/35 bg-[#001A80]/6 dark:bg-transparent p-5 sm:p-6">
+                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#001A80] dark:text-[#00D1FF]">
                   {deptFilter === 'all' ? (tv.stats_team_hours_period ?? t.stats_total) : `TOTALE ${translateDepartmentValue(deptFilter, effectiveLanguage).toUpperCase()}`}
                 </p>
-                <p className="text-3xl font-bold tabular-nums text-[#0052FF] dark:text-[#00D1FF]/80">
+                <p className="text-3xl font-bold tabular-nums text-[#001A80] dark:text-[#00D1FF]/80">
                   {formatMinutesToHoursAndMinutes(totalMinutesFiltered)}
                 </p>
               </div>
             )}
             {!hasDataInRange ? (
               <div className="surface-glass flex flex-col items-center gap-3 p-8 text-center sm:p-10">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 dark:bg-neutral-800">
-                  <Calendar className="h-6 w-6 text-slate-300 dark:text-neutral-500" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 dark:bg-white/[0.06]">
+                  <Calendar className="h-6 w-6 text-slate-300 dark:text-neutral-400" />
                 </div>
                 <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.stats_no_data}</p>
                 <p className="max-w-xs text-xs text-slate-500 dark:text-neutral-300">{t.stats_no_confirmed_shifts_period}</p>
@@ -860,12 +919,12 @@ export default function Statistics() {
                 const clampedEnd   = w.end   > rangeEnd   ? rangeEnd   : w.end;
                 const weekDays = eachDayOfInterval({ start: clampedStart, end: clampedEnd });
                 return (
-                  <div key={w.key} className="overflow-hidden rounded-2xl border border-[#0052FF]/20 dark:border-[#0052FF]/18 bg-gradient-to-br from-[#0052FF]/6 via-white to-white dark:from-[#0052FF]/10 dark:via-neutral-900 dark:to-neutral-900 shadow-sm">
+                  <div key={w.key} className="overflow-hidden rounded-2xl border border-[#001A80]/20 dark:border-white/[0.09] bg-gradient-to-br from-[#001A80]/6 via-white to-white dark:from-white/[0.04] dark:via-transparent dark:to-transparent" style={{ boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.90), inset 0 -2px 8px rgba(0,0,0,0.04), 0 4px 16px -4px rgba(0,26,128,0.10), 0 1px 3px -1px rgba(0,0,0,0.07)' }}>
                     {/* Intestazione settimana */}
-                    <div className="px-4 py-2.5 sm:px-5 border-b border-[#0052FF]/15 dark:border-[#0052FF]/18 bg-[#0052FF]/80/8 dark:bg-[#0052FF]/8 flex items-center justify-between gap-3">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#0052FF] dark:text-[#00D1FF]">{w.label}</p>
+                    <div className="px-4 py-2.5 sm:px-5 border-b border-[#001A80]/15 dark:border-[#001A80]/30 bg-[#001A80]/80/8 dark:bg-[#001A80]/8 flex items-center justify-between gap-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#001A80] dark:text-[#00D1FF]">{w.label}</p>
                       {showManagementStatsChrome && weekTotal > 0 && (
-                        <span className="tabular-nums text-sm font-extrabold text-[#0052FF] dark:text-[#00D1FF]">
+                        <span className="tabular-nums text-sm font-extrabold text-[#001A80] dark:text-[#00D1FF]">
                           {formatMinutesToHoursAndMinutes(weekTotal)}
                         </span>
                       )}
@@ -878,21 +937,21 @@ export default function Statistics() {
                         <div className="grid flex-1 gap-0" style={{ gridTemplateColumns: `repeat(${weekDays.length}, 1fr)` }}>
                           {weekDays.map((day) => (
                             <div key={format(day, 'yyyy-MM-dd')} className="flex flex-col items-center">
-                              <span className="text-[7px] font-bold uppercase text-[#0052FF] dark:text-[#00D1FF] leading-none">
+                              <span className="text-[7px] font-bold uppercase text-[#001A80] dark:text-[#00D1FF] leading-none">
                                 {format(day, 'EEE', { locale: statsLoc }).slice(0, 3)}
                               </span>
-                              <span className="text-[7px] text-[#0052FF]/45 dark:text-[#0052FF]/80 tabular-nums leading-none mt-0.5">
+                              <span className="text-[7px] text-[#001A80]/45 dark:text-[#93BBFF]/70 tabular-nums leading-none mt-0.5">
                                 {format(day, 'dd')}
                               </span>
                             </div>
                           ))}
                         </div>
-                        <div className="w-[44px] shrink-0 text-right text-[7px] font-bold uppercase text-[#0052FF]/45 dark:text-[#0052FF]">Tot.</div>
+                        <div className="w-[44px] shrink-0 text-right text-[7px] font-bold uppercase text-[#001A80]/45 dark:text-[#93BBFF]">Tot.</div>
                       </div>
                       {/* Righe utenti */}
                       {filteredUsers.map((u, i) => {
                         const userWeekTotal = minutesByUserByWeek[u.id]?.[w.key] ?? 0;
-                        const rowBg = i % 2 === 0 ? 'bg-[#0052FF]/5 dark:bg-[#0052FF]/5' : '';
+                        const rowBg = i % 2 === 0 ? 'bg-[#001A80]/5 dark:bg-[#001A80]/5' : '';
                         return (
                           <div key={u.id} className={`flex items-center gap-1 rounded-lg py-1.5 ${rowBg}`}>
                             <div className="w-[72px] shrink-0 pl-1">
@@ -912,7 +971,7 @@ export default function Statistics() {
                                 return (
                                   <div key={dayKey} className="flex items-center justify-center">
                                     {mins > 0 ? (
-                                      <span className="text-[10px] font-bold text-[#0052FF] dark:text-[#00D1FF]/80 tabular-nums">
+                                      <span className="text-[10px] font-bold text-[#001A80] dark:text-[#00D1FF]/80 tabular-nums">
                                         {formatMinutesToHoursAndMinutes(mins)}
                                       </span>
                                     ) : (
@@ -923,7 +982,7 @@ export default function Statistics() {
                               })}
                             </div>
                             <div className="w-[44px] shrink-0 text-right pr-1">
-                              <span className={`text-[11px] font-extrabold tabular-nums ${userWeekTotal > 0 ? 'text-[#0052FF] dark:text-[#00D1FF]' : 'text-slate-300 dark:text-neutral-700'}`}>
+                              <span className={`text-[11px] font-extrabold tabular-nums ${userWeekTotal > 0 ? 'text-[#001A80] dark:text-[#00D1FF]' : 'text-slate-300 dark:text-neutral-700'}`}>
                                 {userWeekTotal > 0 ? formatMinutesToHoursAndMinutes(userWeekTotal) : '—'}
                               </span>
                             </div>
@@ -932,8 +991,8 @@ export default function Statistics() {
                       })}
                       {/* Footer totali giornalieri su mobile */}
                       {showManagementStatsChrome && weekTotal > 0 && (
-                        <div className="flex items-center gap-1 pt-1 border-t border-[#0052FF]/15 dark:border-[#0052FF]/18 mt-1 bg-[#0052FF]/6 dark:bg-[#0052FF]/10 rounded-lg">
-                          <div className="w-[72px] shrink-0 pl-1 text-[9px] font-bold uppercase tracking-wide text-[#0052FF] dark:text-[#00D1FF]">
+                        <div className="flex items-center gap-1 pt-1 border-t border-[#001A80]/15 dark:border-[#001A80]/30 mt-1 bg-[#001A80]/6 dark:bg-transparent rounded-lg">
+                          <div className="w-[72px] shrink-0 pl-1 text-[9px] font-bold uppercase tracking-wide text-[#001A80] dark:text-[#00D1FF]">
                             {t.stats_total}
                           </div>
                           <div className="grid flex-1 gap-0" style={{ gridTemplateColumns: `repeat(${weekDays.length}, 1fr)` }}>
@@ -946,7 +1005,7 @@ export default function Statistics() {
                               return (
                                 <div key={dayKey} className="flex items-center justify-center">
                                   {dayTotal > 0 ? (
-                                    <span className="text-[10px] font-bold text-[#0052FF] dark:text-[#00D1FF] tabular-nums">
+                                    <span className="text-[10px] font-bold text-[#001A80] dark:text-[#00D1FF] tabular-nums">
                                       {formatMinutesToHoursAndMinutes(dayTotal)}
                                     </span>
                                   ) : (
@@ -957,7 +1016,7 @@ export default function Statistics() {
                             })}
                           </div>
                           <div className="w-[44px] shrink-0 text-right pr-1">
-                            <span className="text-[11px] font-extrabold text-[#0052FF] dark:text-[#00D1FF] tabular-nums">
+                            <span className="text-[11px] font-extrabold text-[#001A80] dark:text-[#00D1FF] tabular-nums">
                               {formatMinutesToHoursAndMinutes(weekTotal)}
                             </span>
                           </div>
@@ -975,21 +1034,21 @@ export default function Statistics() {
                           <col style={{ width: '72px' }} />
                         </colgroup>
                         <thead>
-                          <tr className="bg-[#0052FF]/6 dark:bg-[#0052FF]/7">
-                            <th className="sticky left-0 z-10 bg-[#0052FF]/7 dark:bg-[#0052FF]/12 backdrop-blur-sm py-2 pl-5 pr-3 text-left text-[9px] font-bold uppercase tracking-wider text-[#0052FF] dark:text-[#0052FF]">
+                          <tr className="bg-[#001A80]/6 dark:bg-[#001A80]/7" style={{ boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.70), 0 2px 0 rgba(0,26,128,0.12), 0 3px 0 rgba(255,255,255,0.60)' }}>
+                            <th className="sticky left-0 z-10 bg-[#001A80]/7 dark:bg-[#001A80]/12 backdrop-blur-sm py-2 pl-5 pr-3 text-left text-[9px] font-bold uppercase tracking-wider text-[#001A80] dark:text-[#93BBFF] border-r border-[#001A80]/15 dark:border-[#001A80]/35">
                               {tv.department_filter_label ?? 'Nome'}
                             </th>
                             {weekDays.map((day) => (
-                              <th key={format(day, 'yyyy-MM-dd')} className="py-2 pr-3 text-right">
-                                <span className="block text-[9px] font-bold uppercase tracking-wider text-[#0052FF] dark:text-[#00D1FF]">
+                              <th key={format(day, 'yyyy-MM-dd')} className="py-2 pr-3 text-right border-r border-[#001A80]/10 dark:border-[#001A80]/15 last:border-r-0">
+                                <span className="block text-[9px] font-bold uppercase tracking-wider text-[#001A80] dark:text-[#00D1FF]">
                                   {format(day, 'EEE', { locale: statsLoc })}
                                 </span>
-                                <span className="block text-[9px] font-semibold text-[#00D1FF]/70 dark:text-[#0052FF] tabular-nums">
+                                <span className="block text-[9px] font-semibold text-[#001A80] dark:text-[#3366CC] tabular-nums">
                                   {format(day, 'dd/MM')}
                                 </span>
                               </th>
                             ))}
-                            <th className="py-2 pr-5 text-right text-[9px] font-bold uppercase tracking-wider text-[#00D1FF]/70 dark:text-[#0052FF]">
+                            <th className="py-2 pr-5 text-right text-[9px] font-bold uppercase tracking-wider text-[#001A80] dark:text-[#3366CC]">
                               Tot.
                             </th>
                           </tr>
@@ -997,10 +1056,10 @@ export default function Statistics() {
                         <tbody>
                           {filteredUsers.map((u, i) => {
                             const userWeekTotal = minutesByUserByWeek[u.id]?.[w.key] ?? 0;
-                            const rowBg = i % 2 === 0 ? 'bg-[#0052FF]/5 dark:bg-[#0052FF]/5' : '';
+                            const rowBg = i % 2 === 0 ? 'bg-[#001A80]/5 dark:bg-[#001A80]/5' : '';
                             return (
-                              <tr key={u.id} className={rowBg}>
-                                <td className={`sticky left-0 z-10 backdrop-blur-sm py-2.5 pl-5 pr-3 ${i % 2 === 0 ? 'bg-[#0052FF]/5 dark:bg-[#0052FF]/7' : 'bg-white dark:bg-neutral-900'}`}>
+                              <tr key={u.id} className={`${rowBg} depth-row`}>
+                                <td className={`sticky left-0 z-10 backdrop-blur-sm py-2.5 pl-5 pr-3 border-r border-[#001A80]/15 dark:border-[#001A80]/35 ${i % 2 === 0 ? 'bg-[#001A80]/5 dark:bg-[#001A80]/7' : 'bg-white dark:bg-white/[0.02]'}`}>
                                   <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-800 dark:text-neutral-100 truncate">
                                     {(u.first_name ?? '').trim() || '—'}
                                   </span>
@@ -1014,9 +1073,9 @@ export default function Statistics() {
                                   const dayKey = format(day, 'yyyy-MM-dd');
                                   const mins = minutesByUserByDay[u.id]?.[dayKey] ?? 0;
                                   return (
-                                    <td key={dayKey} className="py-2.5 pr-3 text-right tabular-nums">
+                                    <td key={dayKey} className="py-2.5 pr-3 text-right tabular-nums border-r border-[#001A80]/8 dark:border-[#001A80]/12 last:border-r-0">
                                       {mins > 0 ? (
-                                        <span className="text-[13px] font-bold text-[#0052FF] dark:text-[#00D1FF]/80">
+                                        <span className="text-[13px] font-bold text-[#001A80] dark:text-[#00D1FF]/80">
                                           {formatMinutesToHoursAndMinutes(mins)}
                                         </span>
                                       ) : (
@@ -1026,7 +1085,7 @@ export default function Statistics() {
                                   );
                                 })}
                                 <td className="py-2.5 pr-5 text-right tabular-nums">
-                                  <span className={`text-[13px] font-extrabold ${userWeekTotal > 0 ? 'text-[#0052FF] dark:text-[#00D1FF]' : 'text-slate-300 dark:text-neutral-700'}`}>
+                                  <span className={`text-[13px] font-extrabold ${userWeekTotal > 0 ? 'text-[#001A80] dark:text-[#00D1FF]' : 'text-slate-300 dark:text-neutral-700'}`}>
                                     {userWeekTotal > 0 ? formatMinutesToHoursAndMinutes(userWeekTotal) : '—'}
                                   </span>
                                 </td>
@@ -1036,8 +1095,8 @@ export default function Statistics() {
                         </tbody>
                         {showManagementStatsChrome && (
                           <tfoot>
-                            <tr className="border-t border-[#0052FF]/15 dark:border-[#0052FF]/18 bg-[#0052FF]/6 dark:bg-[#0052FF]/10">
-                              <td className="sticky left-0 z-10 bg-[#0052FF]/7 dark:bg-[#0052FF]/12 py-2.5 pl-5 pr-3 text-[9px] font-bold uppercase tracking-wider text-[#0052FF] dark:text-[#00D1FF]">
+                            <tr className="bg-[#001A80]/6 dark:bg-transparent" style={{ boxShadow: 'inset 0 2px 0 rgba(0,26,128,0.14), inset 0 3px 0 rgba(255,255,255,0.55), inset 0 -1.5px 5px rgba(0,0,0,0.04)' }}>
+                              <td className="sticky left-0 z-10 bg-[#001A80]/7 dark:bg-[#001A80]/12 py-2.5 pl-5 pr-3 text-[9px] font-bold uppercase tracking-wider text-[#001A80] dark:text-[#00D1FF] border-r border-[#001A80]/15 dark:border-[#001A80]/22">
                                 {t.stats_total}
                               </td>
                               {weekDays.map((day) => {
@@ -1047,9 +1106,9 @@ export default function Statistics() {
                                   0
                                 );
                                 return (
-                                  <td key={dayKey} className="py-2.5 pr-3 text-right tabular-nums">
+                                  <td key={dayKey} className="py-2.5 pr-3 text-right tabular-nums border-r border-[#001A80]/10 dark:border-[#001A80]/15 last:border-r-0">
                                     {dayTotal > 0 ? (
-                                      <span className="text-[13px] font-bold text-[#0052FF] dark:text-[#00D1FF]">
+                                      <span className="text-[13px] font-bold text-[#001A80] dark:text-[#00D1FF]">
                                         {formatMinutesToHoursAndMinutes(dayTotal)}
                                       </span>
                                     ) : (
@@ -1059,7 +1118,7 @@ export default function Statistics() {
                                 );
                               })}
                               <td className="py-2.5 pr-5 text-right tabular-nums">
-                                <span className="text-[13px] font-extrabold text-[#0052FF] dark:text-[#00D1FF]">
+                                <span className="text-[13px] font-extrabold text-[#001A80] dark:text-[#00D1FF]">
                                   {weekTotal > 0 ? formatMinutesToHoursAndMinutes(weekTotal) : '—'}
                                 </span>
                               </td>

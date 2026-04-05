@@ -1,10 +1,12 @@
+import type React from 'react';
 import { format, startOfWeek, endOfWeek, isSameWeek } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { it, es, enUS } from 'date-fns/locale';
 import { Clock, CheckCircle2, AlertCircle, XCircle, Calendar } from 'lucide-react';
 import type { Shift, PunchRecord } from '../../types';
 import { safeFormatDate } from '../../utils/safeDateFormat';
 import { getResolvedStartEndForHours } from '../../utils/shiftResolvedClockTimes';
 import { getNetShiftMinutes } from '../../utils/breakRules';
+import { getTranslations } from '../../utils/translations';
 
 interface MobileTimesheetProps {
   shifts: Shift[];
@@ -12,34 +14,46 @@ interface MobileTimesheetProps {
   user: any;
   breakRules: any;
   breakComputeOpts: any;
+  language?: string;
 }
 
-const STATUS_CONFIG = {
-  approved: {
-    label: 'Approvato',
-    icon: CheckCircle2,
-    color: 'text-brand-500',
-    bg: 'bg-brand-50 dark:bg-brand-500/10',
-    border: 'border-brand-100 dark:border-brand-500/20',
-  },
-  confirmed: {
-    label: 'Pendente',
-    icon: AlertCircle,
-    color: 'text-amber-500',
-    bg: 'bg-amber-50 dark:bg-amber-500/10',
-    border: 'border-amber-100 dark:border-amber-500/20',
-  },
-  absent: {
-    label: 'Assente',
-    icon: XCircle,
-    color: 'text-red-500',
-    bg: 'bg-red-50 dark:bg-red-500/10',
-    border: 'border-red-100 dark:border-red-500/20',
-  },
-} as const;
+function getLocale(lang = 'it') {
+  if (lang === 'es') return es;
+  if (lang === 'en') return enUS;
+  return it;
+}
 
-export default function MobileTimesheet({ shifts, punchRecords, user, breakRules, breakComputeOpts }: MobileTimesheetProps) {
-  const locale = it;
+function getDarkCard() {
+  const dark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  return {
+    cls: dark ? 'rounded-2xl border border-white/[0.08] overflow-hidden' : 'rounded-2xl border bg-white border-slate-100 shadow-sm overflow-hidden',
+    style: dark ? { background: 'transparent' } as React.CSSProperties : {},
+  };
+}
+
+export default function MobileTimesheet({
+  shifts, punchRecords, user, breakRules, breakComputeOpts, language = 'it',
+}: MobileTimesheetProps) {
+  const locale = getLocale(language);
+  const t = getTranslations(language as 'it' | 'en' | 'es');
+
+  const STATUS_CONFIG = {
+    approved: {
+      label: t.ts_status_approved ?? 'Approvato',
+      icon: CheckCircle2,
+      pill: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/30',
+    },
+    confirmed: {
+      label: t.ts_status_confirmed ?? 'Confermato',
+      icon: AlertCircle,
+      pill: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 dark:border-amber-500/30',
+    },
+    absent: {
+      label: t.status_absent ?? 'Assente',
+      icon: XCircle,
+      pill: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20 dark:border-red-500/30',
+    },
+  } as const;
 
   const history = shifts
     .filter(s => s.date <= format(new Date(), 'yyyy-MM-dd'))
@@ -47,117 +61,144 @@ export default function MobileTimesheet({ shifts, punchRecords, user, breakRules
 
   if (history.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <div className="w-16 h-16 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-4">
-          <Clock className="w-8 h-8 text-slate-400" />
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-white/[0.08]">
+          <Clock className="w-7 h-7 text-slate-400 dark:text-white/30" />
         </div>
-        <p className="text-slate-500 dark:text-neutral-400 font-medium uppercase tracking-wider text-xs">Nessuno storico disponibile</p>
+        <p className="text-slate-400 dark:text-white/30 font-bold uppercase tracking-widest text-[10px]">
+          {t.no_shifts_scheduled ?? 'Nessuno storico disponibile'}
+        </p>
       </div>
     );
   }
 
-  // Raggruppamento per settimana
+  // Raggruppa per settimana
   const weeks: { start: Date; end: Date; shifts: Shift[] }[] = [];
   history.forEach(shift => {
     const shiftDate = new Date(shift.date);
     const s = startOfWeek(shiftDate, { weekStartsOn: 1 });
     const e = endOfWeek(shiftDate, { weekStartsOn: 1 });
-    
     let week = weeks.find(w => isSameWeek(w.start, s, { weekStartsOn: 1 }));
-    if (!week) {
-      week = { start: s, end: e, shifts: [] };
-      weeks.push(week);
-    }
+    if (!week) { week = { start: s, end: e, shifts: [] }; weeks.push(week); }
     week.shifts.push(shift);
   });
 
   return (
-    <div className="flex flex-col gap-8 px-4 pb-24">
+    <div className="flex flex-col gap-3 px-4 pb-24 pt-2">
       {weeks.map((week, wIdx) => {
-        // Calcolo totale ore settimana
+        // Totale ore settimana
         let totalMins = 0;
         week.shifts.forEach(shift => {
           const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
           totalMins += getNetShiftMinutes(shift, start, end, user, breakRules, breakComputeOpts);
         });
-        const totalHours = Math.floor(totalMins / 60);
-        const totalRemainingMins = totalMins % 60;
+        const totalH = Math.floor(totalMins / 60);
+        const totalM = totalMins % 60;
+        const totalLabel = totalM > 0 ? `${totalH}h ${totalM}m` : `${totalH}h`;
 
+        // Raggruppa per giorno
+        const days: { date: string; shifts: Shift[] }[] = [];
+        week.shifts.forEach(shift => {
+          let day = days.find(d => d.date === shift.date);
+          if (!day) { day = { date: shift.date, shifts: [] }; days.push(day); }
+          day.shifts.push(shift);
+        });
+        days.forEach(day => day.shifts.sort((a, b) => a.start_time.localeCompare(b.start_time)));
+
+        const { cls: cardCls, style: cardStyle } = getDarkCard();
         return (
-          <div key={wIdx} className="flex flex-col gap-4">
-            {/* Header Settimana */}
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <Calendar className="w-4 h-4 text-accent" />
+          <div key={wIdx} className={cardCls} style={cardStyle}>
+            {/* Header settimana */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/[0.06]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#4361EE]/15 dark:bg-transparent dark:border dark:border-[#3366CC]/30 flex items-center justify-center shrink-0">
+                  <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-[#93c5fd]" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
-                    Settimana
+                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 leading-none mb-0.5">
+                    {t.week_label ?? 'Sett.'}
                   </p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-neutral-100 leading-none">
+                  <p className="text-sm font-bold text-slate-800 dark:text-white leading-none">
                     {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM', { locale })}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
-                  Totale
-                </p>
-                <p className="text-sm font-bold text-accent leading-none">
-                  {totalHours}h {totalRemainingMins > 0 ? `${totalRemainingMins}m` : ''}
-                </p>
-              </div>
+              {totalMins > 0 && (
+                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 dark:bg-transparent text-blue-700 dark:text-[#93c5fd] border border-[#4361EE]/15 dark:border-[#3366CC]/30">
+                  {totalLabel}
+                </span>
+              )}
             </div>
 
-            {/* Lista Turni */}
-            <div className="flex flex-col gap-3">
-              {week.shifts.map((shift) => {
-                const status = (shift.approval_status as keyof typeof STATUS_CONFIG) || 'confirmed';
-                const config = STATUS_CONFIG[status] || STATUS_CONFIG.confirmed;
-                const Icon = config.icon;
-                
-                const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
-                const mins = getNetShiftMinutes(shift, start, end, user, breakRules, breakComputeOpts);
-                const hours = Math.floor(mins / 60);
-                const remainingMins = mins % 60;
+            {/* Giorni */}
+            <div className="flex flex-col divide-y divide-slate-50 dark:divide-white/[0.06]">
+              {days.map((day) => (
+                <div key={day.date} className="px-4 py-3 flex flex-col gap-2">
+                  {/* Label giorno */}
+                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-[#93c5fd]">
+                    {safeFormatDate(day.date, 'EEEE d MMMM', { locale })}
+                  </p>
 
-                return (
-                  <div 
-                    key={shift.id}
-                    className="bg-white dark:bg-neutral-900 rounded-3xl p-5 shadow-sm border border-slate-100 dark:border-white/5 flex flex-col gap-4"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex flex-col">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
-                          {safeFormatDate(shift.date, 'EEEE d MMMM', { locale })}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-2xl font-bold text-slate-900 dark:text-neutral-100 tabular-nums">
-                            {hours}h {remainingMins > 0 ? `${remainingMins}m` : ''}
-                          </p>
+                  {/* Turni del giorno */}
+                  <div className="flex flex-col gap-1.5">
+                    {day.shifts.map((shift) => {
+                      const statusKey = (shift.approval_status as keyof typeof STATUS_CONFIG) || 'confirmed';
+                      const config = STATUS_CONFIG[statusKey] ?? STATUS_CONFIG.confirmed;
+                      const Icon = config.icon;
+                      const isAbsent = shift.approval_status === 'absent';
+
+                      const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
+                      const mins = getNetShiftMinutes(shift, start, end, user, breakRules, breakComputeOpts);
+                      const hh = Math.floor(mins / 60);
+                      const mm = mins % 60;
+                      const hoursWorked = mm > 0 ? `${hh}h ${mm}m` : `${hh}h`;
+
+                      return (
+                        <div
+                          key={shift.id}
+                          className={`rounded-xl px-3 py-2.5 border ${
+                            isAbsent
+                              ? 'border-red-500/10 dark:border-red-500/[0.15]'
+                              : 'bg-slate-50 dark:border-white/[0.08] border-slate-100'
+                          }`}
+                          style={
+                            typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+                              ? { background: 'transparent' }
+                              : isAbsent ? { background: 'rgba(239,68,68,0.04)' } : {}
+                          }
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            {/* Ore lavorate */}
+                            <p className={`font-black tabular-nums text-xl leading-none ${
+                              isAbsent ? 'text-slate-400 dark:text-white/25' : 'text-slate-800 dark:text-white'
+                            }`}>
+                              {isAbsent ? '—' : hoursWorked}
+                            </p>
+                            {/* Badge stato */}
+                            <span className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${config.pill}`}>
+                              <Icon className="w-3 h-3" />
+                              {config.label}
+                            </span>
+                          </div>
+                          {/* Orario pianificato + tipo */}
+                          <div className="flex items-center justify-between">
+                            <p className={`text-[10px] font-bold tabular-nums ${
+                              isAbsent ? 'text-slate-400 dark:text-white/25 line-through' : 'text-slate-500 dark:text-white/40'
+                            }`}>
+                              {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
+                            </p>
+                            {shift.type && (
+                              <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-400 dark:text-white/25">
+                                {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      
-                      <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${config.bg} ${config.border} ${config.color}`}>
-                        <Icon className="w-3.5 h-3.5" />
-                        <span className="text-[10px] font-black uppercase tracking-wider">
-                          {config.label}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-white/5">
-                      <p className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
-                        {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
-                      </p>
-                      <p className="text-[11px] text-slate-400 italic">
-                        {shift.type === 'lunch' ? 'Pranzo' : 'Cena'}
-                      </p>
-                    </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         );

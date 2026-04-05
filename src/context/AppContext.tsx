@@ -22,7 +22,7 @@ import { format, addDays, parseISO, isValid } from 'date-fns';
 import { database, formatSupabaseError } from '../lib/database';
 import { supabase } from '../lib/supabase';
 import { hasShiftConflictSameDay, computeEffectivePunchIn, calculateShiftMinutesGross } from '../utils/timeCalculations';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import Toast from '../components/Toast';
 import { formatTrans, getTranslations } from '../utils/translations';
 import { countUnreadNotifications } from '../utils/notifications';
@@ -89,6 +89,7 @@ import PwaGate from '../components/PwaGate';
 import i18n from '../utils/i18n';
 import { userRowToSessionUser, defaultPermissionFieldsForNewUser } from '../utils/staffPermissionDefaults';
 import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
+import { sendForceReloadPush } from '../utils/sendForceReloadPush';
 import {
   bumpClientSyncRevisionOnSupabase,
   fetchClientSyncRevisionFromSupabase,
@@ -216,8 +217,12 @@ function sessionUserFromLoadedUsersList(prev: User | null, loadedUsers: User[]):
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const { isLoading: tenantIsLoading, tenantId, tenantSettings } = useTenant();
+  const { isLoading: tenantIsLoading, tenantId, tenantSettings, tenant, loadTenantBySlug } = useTenant();
   const tenantSettingsRef = useRef(tenantSettings);
+  const tenantRef = useRef(tenant);
+  useEffect(() => {
+    tenantRef.current = tenant;
+  }, [tenant]);
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const currentUserRef = useRef<User | null>(null);
@@ -260,6 +265,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [availability, setAvailability] = useState<HolidayRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGlobalRefreshing, setIsGlobalRefreshing] = useState(false);
+  const [syncStage, setSyncStage] = useState('');
   const [dataSyncInProgress, setDataSyncInProgress] = useState(false);
   const silentSyncDepthRef = useRef(0);
   /** Opzioni accumulate mentre un refresh è in coda (evita depth>1 e banner “infinito”). */
@@ -518,6 +524,56 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- si vuole eseguire quando il tenant è pronto
   }, [tenantIsLoading, tenantId]);
 
+  /** Sessioni salvate senza tenantSlug (pre-fix): recupera slug da Supabase e chiama loadTenantBySlug. */
+  const sessionTenantBackfillUserIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (tenantId) return;
+    if (tenantIsLoading) return;
+    try {
+      const raw = localStorage.getItem(APP_SESSION_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { userId?: string; email?: string; tenantSlug?: string };
+      if (parsed.tenantSlug) return;
+      const uid = parsed.userId?.trim();
+      if (!uid) return;
+      if (sessionTenantBackfillUserIdRef.current === uid) return;
+      sessionTenantBackfillUserIdRef.current = uid;
+      void (async () => {
+        const { supabase } = await import('../lib/supabase');
+        if (!supabase) return;
+        const { data: row } = await supabase
+          .from('users')
+          .select('tenant_id')
+          .eq('id', uid)
+          .eq('status', 'active')
+          .maybeSingle();
+        if (!row?.tenant_id) return;
+        const { data: ten } = await supabase
+          .from('tenants')
+          .select('slug')
+          .eq('id', row.tenant_id)
+          .eq('is_active', true)
+          .maybeSingle();
+        if (!ten?.slug) return;
+        try {
+          localStorage.setItem(
+            APP_SESSION_STORAGE_KEY,
+            JSON.stringify({
+              userId: uid,
+              email: parsed.email,
+              tenantSlug: ten.slug,
+            })
+          );
+        } catch {
+          /* ignore */
+        }
+        void loadTenantBySlug(ten.slug);
+      })();
+    } catch {
+      /* ignore */
+    }
+  }, [tenantId, tenantIsLoading, loadTenantBySlug]);
+
   useEffect(() => {
     if (!currentUser) {
       applyDocumentTheme(readStoredThemePreference() ?? null);
@@ -622,7 +678,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const saved = localStorage.getItem(APP_SESSION_STORAGE_KEY);
         if (saved) {
-          const parsed = JSON.parse(saved) as { userId?: string; email?: string };
+          const parsed = JSON.parse(saved) as { userId?: string; email?: string; tenantSlug?: string };
           const { userId, email: savedEmail } = parsed;
           let restored =
             userId != null && userId !== ''
@@ -638,11 +694,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
             const safeUser = userRowToSessionUser(restored as User);
             setCurrentUser(safeUser);
             try {
+              const slugPersist =
+                tenantRef.current?.slug ?? (typeof parsed.tenantSlug === 'string' ? parsed.tenantSlug.trim() : '');
               localStorage.setItem(
                 APP_SESSION_STORAGE_KEY,
                 JSON.stringify({
                   userId: restored.id,
                   email: (restored.email || '').trim().toLowerCase() || undefined,
+                  ...(slugPersist ? { tenantSlug: slugPersist } : {}),
                 })
               );
             } catch {
@@ -2004,18 +2063,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
   silentRefreshDataRef.current = silentRefreshData;
 
   const hardReloadFromDatabase = useCallback(async () => {
+    const SLOW_WARN_MS = 6_000;
+    const HARD_LIMIT_MS = 15_000;
+
     setIsGlobalRefreshing(true);
     try {
+      setSyncStage('Pulizia cache locale…');
       const shiftCacheKeys = Object.keys(localStorage).filter(
         (k) => k.toLowerCase().includes('shift') || k.toLowerCase().includes('turni')
       );
       shiftCacheKeys.forEach((k) => localStorage.removeItem(k));
-      await silentRefreshData({
-        pullRemoteConfig: isAppCloudSyncEnabled(),
-        skipRemoteRevisionCheck: true,
-        throwOnError: true,
-        forceSettingsBundle: true,
-      });
+
+      setSyncStage('Caricamento dati dal server…');
+
+      const slowTimer = window.setTimeout(
+        () => setSyncStage('Connessione lenta, attendere…'),
+        SLOW_WARN_MS,
+      );
+
+      const hardTimeout = new Promise<never>((_, reject) =>
+        window.setTimeout(() => reject(new Error('SYNC_TIMEOUT')), HARD_LIMIT_MS),
+      );
+
+      await Promise.race([
+        silentRefreshData({
+          pullRemoteConfig: isAppCloudSyncEnabled(),
+          skipRemoteRevisionCheck: true,
+          throwOnError: true,
+          forceSettingsBundle: true,
+        }),
+        hardTimeout,
+      ]);
+
+      clearTimeout(slowTimer);
+
+      setSyncStage('Aggiornamento revisione…');
       pendingClientSyncRevRef.current = null;
       const rev = isAppCloudSyncEnabled()
         ? await fetchClientSyncRevisionFromSupabase().catch(() => null)
@@ -2026,6 +2108,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       console.error('[hardReloadFromDatabase]', err);
       showError(getTranslations(effectiveLanguage).hard_reload_error);
     } finally {
+      setSyncStage('');
       setIsGlobalRefreshing(false);
     }
   }, [silentRefreshData, showError, showSuccess, effectiveLanguage]);
@@ -2146,6 +2229,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setSettingsCloudLastSyncedAt(new Date().toISOString());
           markManagementDataTouched();
           showSuccess(getTranslations(effectiveLanguage).settings_cloud_save_all_success);
+          // Invia notifica push force_reload a tutti gli altri dispositivi
+          void sendForceReloadPush(currentUser?.id);
         })(),
         PUSH_SETTINGS_CLOUD_MAX_MS,
         'pushSettingsToCloud'
@@ -2207,8 +2292,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [availability, markManagementDataTouched]);
 
   const forceGlobalRefresh = useCallback(async () => {
+    const SLOW_WARN_MS = 6_000;
+    const HARD_LIMIT_MS = 15_000;
+
     setIsGlobalRefreshing(true);
     try {
+      setSyncStage('Pulizia cache locale…');
       const shiftCacheKeys = Object.keys(localStorage).filter(
         (k) => k.toLowerCase().includes('shift') || k.toLowerCase().includes('turni')
       );
@@ -2218,20 +2307,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUsers([]);
       setPunchRecords([]);
 
-      const [loadedUsers, loadedShifts, loadedPunchRecords, loadedHolidays, loadedAvailability] = await Promise.all([
-        database.users.getAll().catch(() => []),
-        database.shifts.getAll().catch(() => []),
-        database.punchRecords.getAll().catch(() => []),
-        database.holidays.getAll().catch(() => []),
-        database.availability.getAll().catch(() => []),
-      ]);
+      setSyncStage('Connessione al server…');
 
+      const slowTimer = window.setTimeout(
+        () => setSyncStage('Connessione lenta, attendere…'),
+        SLOW_WARN_MS,
+      );
+
+      const hardTimeout = new Promise<never>((_, reject) =>
+        window.setTimeout(() => reject(new Error('SYNC_TIMEOUT')), HARD_LIMIT_MS),
+      );
+
+      const [loadedUsers, loadedShifts, loadedPunchRecords, loadedHolidays, loadedAvailability] =
+        await Promise.race([
+          Promise.all([
+            database.users.getAll().catch(() => []),
+            database.shifts.getAll().catch(() => []),
+            database.punchRecords.getAll().catch(() => []),
+            database.holidays.getAll().catch(() => []),
+            database.availability.getAll().catch(() => []),
+          ]),
+          hardTimeout,
+        ]);
+
+      clearTimeout(slowTimer);
+
+      setSyncStage('Applicazione aggiornamenti…');
       setUsers(loadedUsers);
       setShifts(loadedShifts);
       setPunchRecords(loadedPunchRecords);
       setHolidays(loadedHolidays);
       setAvailability(loadedAvailability);
       setCurrentUser((prev) => sessionUserFromLoadedUsersList(prev, loadedUsers));
+      setSyncStage('');
       setIsGlobalRefreshing(false);
       postRefreshLockedRef.current = true;
       setPostRefreshLocked(true);
@@ -2239,6 +2347,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       console.error('Errore durante il refresh globale:', err);
       pendingClientSyncRevRef.current = null;
       showError(getTranslations(effectiveLanguage).app_sync_failed_retry);
+      setSyncStage('');
       setIsGlobalRefreshing(false);
     }
   }, [showError, effectiveLanguage]);
@@ -2436,9 +2545,76 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   if (isLoading) {
+    const SIZE = 110; const SHRINK = 4; const PAD = 5; const SW = 2.5;
+    const d = PAD + SW / 2 + SHRINK; const inner = SIZE - d * 2; const R = Math.round(inner * 0.19); const cx = SIZE / 2; const cy = SIZE / 2;
+    const loopT = { duration: 2.4, ease: 'easeInOut' as const, repeat: Infinity, repeatType: 'loop' as const, repeatDelay: 0.4 };
+    const rot = {};
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0a0a0a]">
-        <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-xl animate-spin"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000000 72%)' }}>
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative" style={{ width: 112, height: 112 }}>
+
+            {/* ── GLOW — mix-blend screen → vivido sul nero ── */}
+            <svg aria-hidden className="pointer-events-none absolute"
+              style={{ inset: -(PAD + SW), width: SIZE + (PAD + SW) * 2, height: SIZE + (PAD + SW) * 2, overflow: 'visible', mixBlendMode: 'screen' }}
+              viewBox={`0 0 ${SIZE} ${SIZE}`}>
+              <defs>
+                <linearGradient id="ring-boot-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%"   stopColor="#F72585" />
+                  <stop offset="50%"  stopColor="#7B2FBE" />
+                  <stop offset="100%" stopColor="#4361EE" />
+                </linearGradient>
+              </defs>
+              <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+                fill="none" stroke="url(#ring-boot-glow)" strokeWidth={SW * 36}
+                strokeLinecap="round" pathLength={1} strokeDasharray="1"
+                initial={{ strokeDashoffset: 1 }} animate={{ strokeDashoffset: 0 }} transition={loopT}
+                style={{ filter: 'blur(80px)', opacity: 1 }}
+              />
+              <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+                fill="none" stroke="url(#ring-boot-glow)" strokeWidth={SW * 16}
+                strokeLinecap="round" pathLength={1} strokeDasharray="1"
+                initial={{ strokeDashoffset: 1 }} animate={{ strokeDashoffset: 0 }} transition={loopT}
+                style={{ filter: 'blur(35px)', opacity: 1 }}
+              />
+              <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+                fill="none" stroke="url(#ring-boot-glow)" strokeWidth={SW * 6}
+                strokeLinecap="round" pathLength={1} strokeDasharray="1"
+                initial={{ strokeDashoffset: 1 }} animate={{ strokeDashoffset: 0 }} transition={loopT}
+                style={{ filter: 'blur(10px)', opacity: 1 }}
+              />
+            </svg>
+
+            {/* ── RING NITIDO ── */}
+            <svg aria-hidden className="pointer-events-none absolute"
+              style={{ inset: -(PAD + SW), width: SIZE + (PAD + SW) * 2, height: SIZE + (PAD + SW) * 2, overflow: 'visible' }}
+              viewBox={`0 0 ${SIZE} ${SIZE}`}>
+              <defs>
+                <linearGradient id="ring-boot" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%"   stopColor="#F72585" />
+                  <stop offset="50%"  stopColor="#7B2FBE" />
+                  <stop offset="100%" stopColor="#4361EE" />
+                </linearGradient>
+              </defs>
+              <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={SW} pathLength={1} />
+              <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+                fill="none" stroke="url(#ring-boot)" strokeWidth={SW}
+                strokeLinecap="round" pathLength={1} strokeDasharray="1"
+                initial={{ strokeDashoffset: 1 }} animate={{ strokeDashoffset: 0 }} transition={loopT}
+                style={rot}
+              />
+            </svg>
+
+            {/* ── ICONA in primo piano ── */}
+            <img src="/flow-app-icon.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
+          </div>
+
+          {/* Testo — dopo nel DOM → sopra al glow automaticamente */}
+          <div className="flex flex-col items-center gap-1 select-none">
+            <span className="text-white font-extrabold tracking-[0.28em] text-xl leading-none uppercase">FLOW</span>
+            <span className="text-white/55 font-semibold tracking-[0.18em] text-[11px] uppercase">Work in Motion</span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -2446,10 +2622,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider
       value={{
+        isLoading,
         currentUser, setCurrentUser, users, shifts, holidays, punchRecords, availability, toggleAvailability,
         addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift,
         publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
-        updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing, dataSyncInProgress,
+        updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing, syncStage, dataSyncInProgress,
         postRefreshLocked, postUnlockReloadPending, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest, globalPinSessionId, setGlobalPinSessionId,
         featureFlags, setFeatureFlag, geofenceEffectiveConfig, saveGeofenceConfig,
         presenceVerificationConfig, savePresenceVerificationConfig,

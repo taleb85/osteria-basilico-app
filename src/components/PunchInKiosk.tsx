@@ -510,9 +510,9 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
         <button
           type="button"
           onClick={onGoToLogin}
-          className="group flex items-center gap-2 rounded-xl border-2 border-[#0052FF]/30 bg-[#0052FF]/8 dark:border-[#0052FF]/40 dark:bg-[#0052FF]/12 px-4 py-2.5 text-xs font-semibold text-[#0052FF] dark:text-[#00D1FF] shadow-[0_2px_8px_-2px_rgba(0,82,255,0.12)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-[#0052FF]/60 hover:bg-[#0052FF]/15 hover:shadow-[0_4px_12px_-3px_rgba(0,82,255,0.2)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
+          className="group flex items-center gap-2 rounded-xl border-2 border-[#001A80]/30 bg-[#001A80]/8 dark:border-[#001A80]/40 dark:bg-[#001A80]/12 px-4 py-2.5 text-xs font-semibold text-[#001A80] dark:text-[#00D1FF] shadow-[0_2px_8px_-2px_rgba(0,26,128,0.12)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-[#001A80]/60 hover:bg-[#001A80]/15 hover:shadow-[0_4px_12px_-3px_rgba(0,26,128,0.2)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
         >
-          <User className="h-4 w-4 shrink-0 text-[#0052FF] dark:text-[#00D1FF]" strokeWidth={2} />
+          <User className="h-4 w-4 shrink-0 text-[#001A80] dark:text-[#00D1FF]" strokeWidth={2} />
           {t.area_personale}
         </button>
       </GiantBrandHeader>

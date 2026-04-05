@@ -68,7 +68,7 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         /** Background Sync: evento `sync` → postMessage alle finestre (`src/utils/backgroundSync.ts`). */
-        importScripts: ['pwa-background-sync.js'],
+        importScripts: ['pwa-background-sync.js', 'pwa-push-notifications.js'],
         // Precache: icone/manifest + index.html (obbligatorio se navigateFallback punta a index.html,
         // altrimenti Workbox lancia non-precached-url). NO js/css: evita cache stale sui chunk.
         globPatterns: ['**/*.{ico,png,svg,webmanifest}', 'index.html'],

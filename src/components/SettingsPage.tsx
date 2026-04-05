@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud, RefreshCw, ChevronLeft, ChevronRight, Calendar, Mail } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud, RefreshCw, ChevronLeft, ChevronRight, Calendar, Mail, Lock, KeyRound, Copy } from 'lucide-react';
+import { PinPadModal } from './ui/PinPadModal';
 import { format, parseISO, addDays } from 'date-fns';
 import {
   loadPeriodConfig,
@@ -34,9 +35,10 @@ import {
 } from '../utils/permissions';
 import StaffOperationalPermissionsEditor from './StaffOperationalPermissionsEditor';
 import { AdminTimesheetGridPrivacyEditor } from './UserProfile';
-import { exportToJSON, exportToCSV } from '../utils/exportData';
+import { exportToJSON } from '../utils/exportData';
 import { importDataToSupabase, clearAllData } from '../utils/importData';
 import EditStaffModal from './EditStaffModal';
+import { buildShortInviteLink } from '../config/appPaths';
 import CreateStaffModal from './CreateStaffModal';
 import { BreakRule, DayOfWeek } from '../utils/breakRules';
 import {
@@ -163,8 +165,6 @@ export default function SettingsPage() {
     updateUser,
     deleteUser,
     effectiveLanguage,
-    hardResetTestData,
-    seedDemoProfileForUser,
     showSuccess,
     showError,
     featureFlags,
@@ -221,9 +221,11 @@ export default function SettingsPage() {
   const [showImportConfirm, setShowImportConfirm] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importStatus, setImportStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [teamSectionExpanded, setTeamSectionExpanded] = useState(readTeamSectionExpanded);
-  const [resettingData, setResettingData] = useState(false);
-  const [seedingDemoProfile, setSeedingDemoProfile] = useState(false);
+  const [teamSectionExpanded, setTeamSectionExpanded] = useState(false);
+  const [dataToolsLocked, setDataToolsLocked] = useState(true);
+  const [showDataToolsPinPad, setShowDataToolsPinPad] = useState(false);
+  const [dataToolsPin, setDataToolsPin] = useState('');
+  const [dataToolsPinError, setDataToolsPinError] = useState('');
   const [geoLat, setGeoLat] = useState('');
   const [geoLng, setGeoLng] = useState('');
   const [geoRadius, setGeoRadius] = useState('120');
@@ -310,7 +312,7 @@ export default function SettingsPage() {
   const builtinValues = new Set(BUILTIN_DEPARTMENTS.map((d) => d.value));
 
   const deptPermissionCategorySelectClass =
-    'w-full min-w-[10rem] max-w-[16rem] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100';
+    'w-full min-w-[10rem] max-w-[16rem] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100';
 
   const updateWorkRule = useCallback(<K extends keyof WorkRules>(key: K, value: WorkRules[K]) => {
     const next = { ...workRules, [key]: value };
@@ -342,25 +344,6 @@ export default function SettingsPage() {
       return next;
     });
   }, []);
-
-  const demoProfileCandidates = useMemo(
-    () =>
-      users
-        .filter((u) => u.status === 'active' && !isPurelyManagementRole(u.role))
-        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
-    [users]
-  );
-
-  const [demoProfileTargetUserId, setDemoProfileTargetUserId] = useState('');
-
-  useEffect(() => {
-    const valid =
-      demoProfileTargetUserId &&
-      demoProfileCandidates.some((u) => u.id === demoProfileTargetUserId);
-    if (valid) return;
-    setDemoProfileTargetUserId(demoProfileCandidates[0]?.id ?? '');
-  }, [demoProfileCandidates, demoProfileTargetUserId]);
-
 
   if (!currentUser) return null;
 
@@ -489,7 +472,14 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-            <div className="panel divide-y divide-slate-100 overflow-hidden rounded-xl shadow-none dark:divide-white/10">
+            <div
+              className="divide-y divide-slate-100 overflow-hidden rounded-xl dark:divide-white/[0.06]"
+              style={
+                typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+                  ? { background: 'transparent', border: '1px solid rgba(255,255,255,0.08)' }
+                  : { background: '#ffffff', border: '1px solid #f1f5f9', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }
+              }
+            >
               {displayUsersDelegated.length === 0 ? (
                 <p className="px-4 py-6 text-center text-sm text-slate-500 dark:text-neutral-400">
                   {t.settings_delegated_empty_list}
@@ -521,8 +511,25 @@ export default function SettingsPage() {
                       <div className="flex flex-shrink-0 items-center gap-1.5">
                         <button
                           type="button"
+                          title={(t as { copy_access_link?: string }).copy_access_link ?? 'Copia link accesso'}
+                          onClick={async () => {
+                            const link = buildShortInviteLink(user, users);
+                            try {
+                              await navigator.clipboard.writeText(link);
+                              showSuccess?.((t as { admin_employee_access_link_copied?: string }).admin_employee_access_link_copied ?? 'Link copiato.');
+                            } catch {
+                              showError?.((t as { copy_failed?: string }).copy_failed ?? 'Copia non riuscita.');
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/20 dark:text-white/70 dark:hover:bg-white/5"
+                        >
+                          <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                          Link accesso
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setEditingUser(user)}
-                          className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                          className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/20 dark:text-white/70 dark:hover:bg-white/5"
                         >
                           {t.settings_delegated_view_profile}
                         </button>
@@ -661,7 +668,14 @@ export default function SettingsPage() {
                 transition={{ duration: 0.22 }}
                 className="overflow-hidden"
               >
-                <div className="panel divide-y divide-slate-100 overflow-hidden rounded-xl shadow-none dark:divide-white/10">
+                <div
+                  className="divide-y divide-slate-100 overflow-hidden rounded-xl dark:divide-white/[0.06]"
+                  style={
+                    typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+                      ? { background: 'transparent', border: '1px solid rgba(255,255,255,0.08)' }
+                      : { background: '#ffffff', border: '1px solid #f1f5f9', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }
+                  }
+                >
               {displayUsers.map((user) => {
                 const isPermsOpen = expandedPermsUserId === user.id;
                 return (
@@ -689,14 +703,14 @@ export default function SettingsPage() {
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         {/* Permessi toggle */}
                         {canEdit && (
-                          <div className="flex bg-slate-100 dark:bg-neutral-800 rounded-lg p-0.5">
+                          <div className="flex rounded-lg p-0.5 border border-slate-100 dark:border-white/[0.08]" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'rgba(255,255,255,0.04)' } : { background: '#f1f5f9' }}>
                             <button
                               type="button"
                               onClick={() => {
                                 setExpandedPermsUserId(isPermsOpen ? null : user.id);
                                 setExpandedVisibilityUserId(null);
                               }}
-                              className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${isPermsOpen ? 'bg-white dark:bg-neutral-700 text-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-neutral-300'}`}
+                              className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${isPermsOpen ? 'bg-white dark:bg-white/[0.08] text-accent shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
                             >
                               {t.settings_user_perms_button}
                             </button>
@@ -706,7 +720,7 @@ export default function SettingsPage() {
                                 setExpandedVisibilityUserId(user.id);
                                 setExpandedPermsUserId(null);
                               }}
-                              className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${expandedVisibilityUserId === user.id ? 'bg-white dark:bg-neutral-700 text-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-neutral-300'}`}
+                              className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${expandedVisibilityUserId === user.id ? 'bg-white dark:bg-white/[0.08] text-accent shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
                             >
                               Cosa vede
                             </button>
@@ -735,7 +749,7 @@ export default function SettingsPage() {
                             }}
                             className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-semibold transition-colors ${
                               isUserVisibleOnTeamSchedule(user)
-                                ? 'border-accent/30 bg-accent/10 text-accent'
+                                ? 'border-accent/30 dark:border-accent/50 bg-accent/10 dark:bg-accent/25 text-accent dark:text-[#6699FF]'
                                 : 'border-slate-200 bg-slate-50 text-slate-400 dark:border-white/10 dark:bg-neutral-800/80 dark:text-neutral-400'
                             }`}
                           >
@@ -788,7 +802,7 @@ export default function SettingsPage() {
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden"
                         >
-                          <div className="bg-slate-50 border-t border-slate-100 px-4 py-4 space-y-4 dark:bg-neutral-900/30">
+                          <div className="border-t border-slate-100 dark:border-white/[0.06] px-4 py-4 space-y-4" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'rgba(255,255,255,0.02)' } : { background: '#f8fafc' }}>
                             {expandedVisibilityUserId === user.id && (
                               <ProfileVisibilityHub 
                                 initialSelectedUserId={user.id} 
@@ -926,7 +940,7 @@ export default function SettingsPage() {
             title={t.settings_departments_section_title}
             defaultOpen={false}
           >
-            <div className="panel p-4 rounded-xl space-y-4">
+            <div className="p-4 rounded-xl space-y-4 border border-slate-100 dark:border-white/[0.08]" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent' } : { background: '#ffffff' }}>
               <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-snug">{t.settings_departments_cloud_hint}</p>
               {/* Lista reparti */}
               <div className="flex flex-wrap gap-2">
@@ -1029,7 +1043,7 @@ export default function SettingsPage() {
                           setHiddenBuiltins(getHiddenBuiltinValues());
                           void notifyDepartmentsChanged();
                         }}
-                        className="flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:border-accent/50 hover:text-accent dark:border-white/15 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:border-accent/40 dark:hover:text-accent-light"
+                        className="flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:border-accent/50 hover:text-accent dark:border-white/15 dark:bg-white/[0.04] dark:text-neutral-400 dark:hover:border-accent/40 dark:hover:text-accent-light"
                       >
                         <span
                           className="h-2.5 w-2.5 shrink-0 rounded-full"
@@ -1051,7 +1065,7 @@ export default function SettingsPage() {
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="space-y-3 rounded-xl border border-accent/25 bg-slate-50/90 p-3 dark:border-accent/30 dark:bg-neutral-800/60">
+                    <div className="space-y-3 rounded-xl border border-accent/25 bg-slate-50/90 p-3 dark:border-accent/30 dark:bg-accent/[0.06]">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
                         {t.settings_dept_edit_title}
                       </p>
@@ -1083,7 +1097,7 @@ export default function SettingsPage() {
                               void notifyDepartmentsChanged();
                             }
                           }}
-                          className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100 sm:min-w-[12rem]"
+                          className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100 sm:min-w-[12rem]"
                         />
                         {!builtinValues.has(editingDeptValue) && (
                           <div>
@@ -1167,7 +1181,7 @@ export default function SettingsPage() {
                       }
                     }}
                     placeholder={t.settings_new_dept_placeholder}
-                    className="min-w-[8rem] flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+                    className="min-w-[8rem] flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-transparent dark:bg-white/[0.04] text-sm text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
                   />
                   <button
                     type="button"
@@ -1225,7 +1239,7 @@ export default function SettingsPage() {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {/* Critico */}
-              <div className="surface-glass-sm flex flex-col gap-3 p-4">
+              <div className="surface-glass-sm depth-card flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
                   <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-100 dark:bg-red-950/50">
                     <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
@@ -1255,7 +1269,7 @@ export default function SettingsPage() {
                         max={14}
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
-                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100"
                       />
                     </div>
                     <div>
@@ -1266,7 +1280,7 @@ export default function SettingsPage() {
                         max={24}
                         value={workRules.minRestHours}
                         onChange={(e) => updateWorkRule('minRestHours', Math.max(6, Math.min(24, +e.target.value || 11)))}
-                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100"
                       />
                     </div>
                   </div>
@@ -1274,7 +1288,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Attenzione */}
-              <div className="surface-glass-sm flex flex-col gap-3 p-4">
+              <div className="surface-glass-sm depth-card flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
                   <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950/45">
                     <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
@@ -1304,7 +1318,7 @@ export default function SettingsPage() {
                         max={14}
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
-                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100"
                       />
                     </div>
                     <div>
@@ -1315,7 +1329,7 @@ export default function SettingsPage() {
                         max={60}
                         value={workRules.maxWeeklyHours}
                         onChange={(e) => updateWorkRule('maxWeeklyHours', Math.max(20, Math.min(60, +e.target.value || 48)))}
-                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100"
                       />
                     </div>
                   </div>
@@ -1323,7 +1337,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Sovrapposizione */}
-              <div className="surface-glass-sm flex flex-col gap-3 p-4">
+              <div className="surface-glass-sm depth-card flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
                   <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-100 bg-red-50 shadow-[0_0_6px_rgba(239,68,68,0.3)] dark:border-red-900/40 dark:bg-red-950/35">
                     <span className="h-2.5 w-2.5 rounded-full bg-red-300" />
@@ -1415,10 +1429,10 @@ export default function SettingsPage() {
                         >
                           <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${isEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
-                        <button type="button" onClick={() => setEditingBreakRule(rule)} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 dark:text-neutral-400 hover:text-slate-700 transition-colors">
+                        <button type="button" onClick={() => setEditingBreakRule(rule)} className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-neutral-100 transition-colors">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" onClick={() => handleDeleteBreakRule(rule.id)} className="p-1.5 rounded-xl hover:bg-red-50 text-slate-400 dark:text-neutral-400 hover:text-red-500 transition-colors">
+                        <button type="button" onClick={() => handleDeleteBreakRule(rule.id)} className="p-1.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-400 dark:text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1450,7 +1464,7 @@ export default function SettingsPage() {
             })()}
             defaultOpen={false}
           >
-            <div className="surface-glass bg-slate-50/50 p-4 dark:bg-neutral-900/20 space-y-4">
+            <div className="surface-glass depth-card p-4 dark:bg-transparent space-y-4">
 
               {/* Periodo attivo + bozza */}
               <div className="grid grid-cols-2 gap-3">
@@ -1462,12 +1476,12 @@ export default function SettingsPage() {
                   const ruleName = isLastSunday ? 'Ultima domenica' : 'Primo giorno';
                   const ruleColor = isLastSunday
                     ? 'text-accent dark:text-accent-light'
-                    : 'text-[#0052FF] dark:text-[#00D1FF]';
+                    : 'text-[#001A80] dark:text-[#00D1FF]';
                   const borderColor = isLastSunday
                     ? 'border-accent/25 border-l-accent'
-                    : 'border-[#0052FF]/25 border-l-[#0052FF]';
+                    : 'border-[#001A80]/25 border-l-[#001A80]';
                   return (
-                    <div className={`rounded-xl border-2 border-l-4 ${borderColor} bg-white px-3 py-2.5 dark:bg-neutral-900/60`}>
+                    <div className={`rounded-xl border-2 border-l-4 ${borderColor} bg-white px-3 py-2.5 dark:bg-white/[0.04]`}>
                       <div className="flex items-center gap-1.5 mb-1">
                         <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                           Periodo attivo
@@ -1528,7 +1542,7 @@ export default function SettingsPage() {
                     className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
                       periodRuleMode === 'last_sunday'
                         ? 'border-accent bg-accent/8 dark:bg-accent/12'
-                        : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-neutral-800/60 dark:hover:border-white/20'
+                        : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-white/20'
                     }`}
                   >
                     <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'last_sunday' ? 'text-accent dark:text-accent-light' : 'text-slate-600 dark:text-neutral-300'}`}>
@@ -1548,11 +1562,11 @@ export default function SettingsPage() {
                     }}
                     className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
                       periodRuleMode === 'fixed_start'
-                        ? 'border-[#0052FF] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
-                        : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-neutral-800/60 dark:hover:border-white/20'
+                        ? 'border-[#001A80] bg-[#001A80]/8 dark:bg-[#001A80]/12'
+                        : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-white/20'
                     }`}
                   >
-                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-[#0052FF] dark:text-[#00D1FF]' : 'text-slate-600 dark:text-neutral-300'}`}>
+                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-[#001A80] dark:text-[#00D1FF]' : 'text-slate-600 dark:text-neutral-300'}`}>
                       Primo giorno
                     </span>
                     <span className="text-[10px] leading-snug text-slate-400 dark:text-neutral-500">
@@ -1588,10 +1602,10 @@ export default function SettingsPage() {
                     const cfg = periodConfigFromStartDate(draftStart);
                     const endDate = addDays(draftStart, cfg.numWeeks * 7 - 1);
                     return (
-                      <div className="flex items-center justify-between rounded-xl border border-[#0052FF]/22 bg-[#0052FF]/80/8 px-3 py-2.5 dark:border-[#0052FF]/18 dark:bg-[#0052FF]/80/10">
+                      <div className="flex items-center justify-between rounded-xl border border-[#001A80]/22 bg-[#001A80]/80/8 px-3 py-2.5 dark:border-[#001A80]/18 dark:bg-[#001A80]/80/10">
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold text-[#0052FF] dark:text-[#00D1FF]">Primo giorno</span>
-                          <span className="rounded-full bg-[#0052FF]/80/15 px-2 py-0.5 text-[9px] font-bold text-[#0052FF] dark:text-[#00D1FF]">
+                          <span className="text-[11px] font-bold text-[#001A80] dark:text-[#00D1FF]">Primo giorno</span>
+                          <span className="rounded-full bg-[#001A80]/80/15 px-2 py-0.5 text-[9px] font-bold text-[#001A80] dark:text-[#00D1FF]">
                             {cfg.numWeeks} sett.
                           </span>
                         </div>
@@ -1629,7 +1643,7 @@ export default function SettingsPage() {
             subtitle={t.settings_presence_accordion_subtitle}
             defaultOpen={true}
           >
-            <div className="surface-glass bg-slate-50/50 p-4 dark:bg-neutral-900/20">
+            <div className="surface-glass depth-card p-4 dark:bg-transparent">
               <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-3 leading-snug">{t.settings_presence_section_hint}</p>
               {(() => {
                 const effectiveTok = resolveEffectiveVerificationToken(presenceVerificationConfig);
@@ -1722,9 +1736,9 @@ export default function SettingsPage() {
             subtitle={holidayEmail ? holidayEmail : 'Nessuna email configurata'}
             defaultOpen={false}
           >
-            <div className="surface-glass bg-slate-50/50 p-4 dark:bg-neutral-900/20 space-y-4">
+            <div className="surface-glass depth-card p-4 dark:bg-transparent space-y-4">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#06B6D4]/10 text-[#0284C7] dark:text-[#06B6D4]">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#3366CC]/10 dark:bg-[#3366CC]/20 text-[#2255BB] dark:text-[#93BBFF]">
                   <Mail className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -1739,14 +1753,14 @@ export default function SettingsPage() {
 
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#06B6D4]/60 pointer-events-none" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#3366CC]/60 dark:text-[#6699FF]/80 pointer-events-none" />
                   <input
                     type="email"
                     value={holidayEmailDraft}
                     onChange={(e) => setHolidayEmailDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') saveHolidayEmail(); }}
                     placeholder="es. direzione@azienda.it"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#06B6D4]/25 dark:border-[#06B6D4]/20 bg-white dark:bg-neutral-900 text-sm text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 outline-none transition-all focus:border-[#06B6D4] focus:ring-2 focus:ring-[#06B6D4]/20 focus:shadow-[0_0_0_3px_rgba(6,182,212,0.10)]"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#3366CC]/25 dark:border-[#3366CC]/35 bg-white dark:bg-neutral-900 text-sm text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 outline-none transition-all focus:border-[#3366CC] focus:ring-2 focus:ring-[#3366CC]/20 focus:shadow-[0_0_0_3px_rgba(51,102,204,0.10)]"
                   />
                 </div>
                 <button
@@ -1754,7 +1768,7 @@ export default function SettingsPage() {
                   onClick={saveHolidayEmail}
                   disabled={holidayEmailDraft.trim() === holidayEmail}
                   className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]"
-                  style={{ background: 'linear-gradient(110deg, #06B6D4, #0052FF)' }}
+                  style={{ background: 'linear-gradient(110deg, #3366CC, #001A80)' }}
                 >
                   {holidayEmailSaved ? (
                     <><Check className="h-3.5 w-3.5" />Salvata</>
@@ -1765,10 +1779,10 @@ export default function SettingsPage() {
               </div>
 
               {holidayEmail && (
-                <div className="flex items-center justify-between rounded-xl border border-[#06B6D4]/20 bg-[#06B6D4]/5 dark:bg-[#06B6D4]/8 px-3 py-2">
+                <div className="flex items-center justify-between rounded-xl border border-[#3366CC]/20 bg-[#3366CC]/5 dark:bg-[#3366CC]/8 px-3 py-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <Check className="h-3.5 w-3.5 flex-shrink-0 text-[#0284C7] dark:text-[#06B6D4]" />
-                    <span className="text-xs font-medium text-[#0284C7] dark:text-[#06B6D4] truncate">{holidayEmail}</span>
+                    <Check className="h-3.5 w-3.5 flex-shrink-0 text-[#2255BB] dark:text-[#93BBFF]" />
+                    <span className="text-xs font-medium text-[#2255BB] dark:text-[#93BBFF] truncate">{holidayEmail}</span>
                   </div>
                   <button
                     type="button"
@@ -1833,8 +1847,8 @@ export default function SettingsPage() {
                                 ? 'bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-300'
                                 : 'bg-amber-100 text-amber-600 dark:bg-amber-950/45 dark:text-amber-300'
                               : enabled
-                                ? 'bg-accent/10 text-accent'
-                                : 'bg-slate-100 text-slate-400 dark:bg-neutral-800 dark:text-neutral-500'
+                                ? 'bg-accent/10 dark:bg-accent/25 text-accent dark:text-[#6699FF]'
+                                : 'bg-slate-100 text-slate-400 dark:bg-neutral-800 dark:text-neutral-400'
                           }`}
                         >
                           {iconMap[feature.slug]}
@@ -1909,7 +1923,7 @@ export default function SettingsPage() {
                 {t.settings_geofence_editor_hint}
               </p>
               {geofenceEffectiveConfig && (
-                <div className="mb-3 flex items-start gap-2 rounded-xl border border-brand-200/80 bg-brand-50/90 px-3 py-2 dark:border-brand-800/50 dark:bg-[#0052FF]/8">
+                <div className="mb-3 flex items-start gap-2 rounded-xl border border-brand-200/80 bg-brand-50/90 px-3 py-2 dark:border-brand-800/50 dark:bg-[#001A80]/8">
                   <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-600 dark:text-brand-400" aria-hidden />
                   <p className="text-[11px] leading-snug text-brand-900 dark:text-brand-100">
                     {formatTrans(t.settings_geofence_active_summary, {
@@ -2025,137 +2039,94 @@ export default function SettingsPage() {
           >
             <div className="surface-glass-sm overflow-hidden">
               <div className="space-y-3 p-4">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.settings_backup_data_section}</p>
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={handleImportClick}
-                          className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive dark:text-neutral-200"
-                        >
-                          {t.restore}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => exportToJSON({ users, shifts, punchRecords, holidays })}
-                          className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive dark:text-neutral-200"
-                        >
-                          {t.backup_json}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => exportToCSV({ users, shifts, punchRecords, holidays })}
-                          className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive dark:text-neutral-200"
-                        >
-                          {t.report_csv}
-                        </button>
-                      </div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.settings_backup_data_section}</p>
+
+                {dataToolsLocked ? (
+                  /* ── Stato bloccato ── */
+                  <div className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 py-5 px-4 dark:border-white/10 dark:bg-neutral-800/40">
+                    <Lock className="h-7 w-7 text-slate-400 dark:text-neutral-500" />
+                    <p className="text-[12px] text-center text-slate-500 dark:text-neutral-400 leading-snug">
+                      Sezione protetta.<br/>Inserisci il tuo PIN per sbloccare.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { setDataToolsPin(''); setDataToolsPinError(''); setShowDataToolsPinPad(true); }}
+                      className="flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-[12px] font-semibold text-white shadow-sm hover:bg-accent/90 active:scale-95 transition-all"
+                    >
+                      <KeyRound className="h-3.5 w-3.5" />
+                      Sblocca con PIN
+                    </button>
+                  </div>
+                ) : (
+                  /* ── Stato sbloccato ── */
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <Unlock className="h-3 w-3" /> Sbloccato
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setDataToolsLocked(true)}
+                        className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 transition-colors"
+                      >
+                        Blocca di nuovo
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={handleImportClick}
+                        className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive dark:text-neutral-200"
+                      >
+                        {t.restore}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => exportToJSON({ users, shifts, punchRecords, holidays })}
+                        className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive dark:text-neutral-200"
+                      >
+                        {t.backup_json}
+                      </button>
                     </div>
                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* PIN pad per sblocco */}
+            {showDataToolsPinPad && (
+              <PinPadModal
+                title="Sblocca strumenti dati"
+                subtitle="Inserisci il tuo PIN amministratore"
+                pin={dataToolsPin}
+                onPinChange={(p) => { setDataToolsPin(p); setDataToolsPinError(''); }}
+                onConfirm={() => {
+                  if (dataToolsPin === currentUser?.pin || dataToolsPin === currentUser?.secondary_pin) {
+                    setDataToolsLocked(false);
+                    setShowDataToolsPinPad(false);
+                    setDataToolsPin('');
+                  } else {
+                    setDataToolsPinError('PIN non corretto');
+                    setDataToolsPin('');
+                    setTimeout(() => setDataToolsPinError(''), 2000);
+                  }
+                }}
+                onCancel={() => { setShowDataToolsPinPad(false); setDataToolsPin(''); }}
+                error={dataToolsPinError}
+                isLoading={false}
+                confirmLabel="Sblocca"
+                cancelLabel="Annulla"
+              />
+            )}
           </SettingsAccordionSection>
         )}
 
-        {/* ── Dati demo — estratto come sezione separata ─────────────────────── */}
-        {adminOnly && (
-          <SettingsAccordionSection
-            storageKey="osteria_settings_acc_demo_data"
-            title="Dati demo"
-            subtitle="Reset dati di test e profilo demo"
-            defaultOpen={false}
-          >
-            <div className="surface-glass-sm overflow-hidden">
-              <div className="space-y-3 p-4">
-                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/90 p-3 dark:border-white/10 dark:bg-neutral-800/60">
-                  <button
-                    type="button"
-                    disabled={resettingData}
-                    onClick={async () => {
-                      if (!window.confirm(t.settings_reset_data_confirm)) return;
-                      setResettingData(true);
-                      try {
-                        await hardResetTestData();
-                        showSuccess(t.settings_reset_done);
-                        setImportStatus({ type: 'success', message: t.settings_dashboard_cleared });
-                        setTimeout(() => setImportStatus(null), 4000);
-                      } catch (e) {
-                        showError(e instanceof Error ? e.message : t.settings_reset_error);
-                        setImportStatus({ type: 'error', message: t.settings_reset_data_error_detail });
-                        setTimeout(() => setImportStatus(null), 3000);
-                      } finally {
-                        setResettingData(false);
-                      }
-                    }}
-                    className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-amber-800 hover:bg-amber-100 disabled:opacity-60 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/55"
-                  >
-                    {resettingData ? t.ui_ellipsis : t.settings_reset_test_data_btn}
-                  </button>
-                  <div className="space-y-2">
-                    <label htmlFor="osteria-demo-profile-user-settings" className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
-                      {t.settings_seed_demo_profile_pick_user}
-                    </label>
-                    {demoProfileCandidates.length === 0 ? (
-                      <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200">
-                        {t.settings_seed_demo_profile_no_staff}
-                      </p>
-                    ) : (
-                      <select
-                        id="osteria-demo-profile-user-settings"
-                        value={demoProfileTargetUserId}
-                        onChange={(e) => setDemoProfileTargetUserId(e.target.value)}
-                        className={deptPermissionCategorySelectClass}
-                      >
-                        {demoProfileCandidates.map((u) => (
-                          <option key={u.id} value={u.id}>
-                            {[u.first_name, u.last_name].filter(Boolean).join(' ').trim() || u.email}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                    <button
-                      type="button"
-                      disabled={
-                        seedingDemoProfile ||
-                        resettingData ||
-                        !demoProfileTargetUserId ||
-                        demoProfileCandidates.length === 0
-                      }
-                      onClick={async () => {
-                        if (!window.confirm(t.settings_seed_demo_profile_confirm)) return;
-                        setSeedingDemoProfile(true);
-                        try {
-                          await seedDemoProfileForUser(demoProfileTargetUserId);
-                          showSuccess(t.settings_seed_demo_profile_done);
-                          setImportStatus({
-                            type: 'success',
-                            message: t.settings_seed_demo_profile_done,
-                          });
-                          setTimeout(() => setImportStatus(null), 4000);
-                        } catch (e) {
-                          showError(e instanceof Error ? e.message : t.settings_seed_demo_profile_error);
-                          setImportStatus({
-                            type: 'error',
-                            message: t.settings_seed_demo_profile_error,
-                          });
-                          setTimeout(() => setImportStatus(null), 3000);
-                        } finally {
-                          setSeedingDemoProfile(false);
-                        }
-                      }}
-                      className="w-full rounded-lg border border-brand-200 bg-brand-50 px-3 py-2.5 text-center text-xs font-medium uppercase text-brand-800 hover:bg-brand-100 disabled:opacity-60 dark:border-brand-800/50 dark:bg-[#0052FF]/8 dark:text-brand-200 dark:hover:bg-[#0052FF]/12"
-                    >
-                      {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
-                    </button>
-                    <p className="text-[10px] text-slate-500 dark:text-neutral-300 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </SettingsAccordionSection>
-        )}
 
         {adminOnly && (
           <SettingsAccordionSection
             storageKey="osteria_settings_acc_elevated_access"
-            title="Accesso elevato (PIN secondario)"
+            title="Accesso scheda Admin"
+            subtitle="Abilita il tab Admin nella navigazione del profilo"
             defaultOpen={false}
           >
             <div className="surface-glass-sm overflow-hidden">
@@ -2176,7 +2147,7 @@ export default function SettingsPage() {
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.settings_cloud_sync_heading}</p>
                 <p className="text-xs text-slate-600 dark:text-neutral-400 mt-0.5 leading-relaxed">{t.settings_cloud_sync_hint}</p>
-                <p className="text-[11px] font-medium text-accent mt-1.5">
+                <p className="text-[11px] font-medium text-accent dark:text-[#6699FF] mt-1.5">
                   {settingsCloudLastSyncedAt
                     ? formatTrans(t.settings_cloud_synced_at, {
                         when: new Date(settingsCloudLastSyncedAt).toLocaleString(

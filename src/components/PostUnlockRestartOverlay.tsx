@@ -80,7 +80,8 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[110] flex flex-col items-center justify-center bg-gradient-to-br from-[#f8fafc] via-white to-[rgba(0,82,255,0.10)] px-6 text-center font-sans backdrop-blur-md dark:from-[#0a0a0a] dark:via-[#171717] dark:to-[rgba(0,82,255,0.10)]"
+      className="fixed inset-0 z-[110] flex flex-col items-center justify-center bg-gradient-to-br from-[#f8fafc] via-white to-[rgba(0,26,128,0.10)] px-6 text-center font-sans"
+      style={document.documentElement.classList.contains('dark') ? { background: 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000 72%)' } : undefined}
       role="status"
       aria-live="polite"
       aria-busy="true"

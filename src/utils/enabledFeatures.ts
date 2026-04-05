@@ -199,6 +199,16 @@ const DEFAULT_MANAGER_FEATURES: EnabledFeatures = {
   admin_tab: false,
 };
 
+/** Default Capo: accesso turni e presenze in sola lettura, PDF abilitato, nessuna modifica. */
+const DEFAULT_CAPO_FEATURES: EnabledFeatures = {
+  ...DEFAULT_MANAGER_FEATURES,
+  edit_shifts: false,
+  approve_shifts: false,
+  export_pdf: true,
+  view_stats: true,
+  admin_tab: false,
+};
+
 /** Default staff: stessi limiti management; tabellone team spento di default (template può riaccenderlo). */
 const DEFAULT_STAFF_FEATURES: EnabledFeatures = {
   ...DEFAULT_MANAGER_FEATURES,
@@ -207,7 +217,8 @@ const DEFAULT_STAFF_FEATURES: EnabledFeatures = {
 
 export function getDefaultEnabledFeatures(role: string): EnabledFeatures {
   if (role === 'admin') return { ...DEFAULT_ADMIN_FEATURES };
-  if (role === 'manager' || role === 'assistant_manager' || role === 'capo') return { ...DEFAULT_MANAGER_FEATURES };
+  if (role === 'capo') return { ...DEFAULT_CAPO_FEATURES };
+  if (role === 'manager' || role === 'assistant_manager') return { ...DEFAULT_MANAGER_FEATURES };
   return { ...DEFAULT_STAFF_FEATURES };
 }
 

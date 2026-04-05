@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { Check, AlertCircle } from 'lucide-react';
@@ -24,25 +24,43 @@ export default function Toast({ message, type = 'error', onClose, duration = 350
   const isSuccess = type === 'success';
   const isError = type === 'error';
 
-  const barClass = isSuccess
-    ? 'bg-[var(--brand)] text-white border border-white/10 shadow-lg'
+  const barStyle: React.CSSProperties = isSuccess
+    ? {
+        background: 'linear-gradient(110deg, #3366CC, #001A80)',
+        backdropFilter: 'blur(28px) saturate(2.2) brightness(1.08)',
+        WebkitBackdropFilter: 'blur(28px) saturate(2.2) brightness(1.08)',
+        border: '1px solid rgba(255,255,255,0.28)',
+        boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.15), 0 8px 32px rgba(0,26,128,0.40), 0 2px 8px rgba(0,0,0,0.20)',
+      }
     : isError
-      ? 'bg-red-600 text-white border border-red-500/80 shadow-lg'
-      : 'bg-slate-800 text-white border border-slate-600/80 shadow-lg';
+      ? {
+          background: 'linear-gradient(135deg, rgba(239,68,68,0.85), rgba(185,28,28,0.90))',
+          backdropFilter: 'blur(28px) saturate(2.2) brightness(1.08)',
+          WebkitBackdropFilter: 'blur(28px) saturate(2.2) brightness(1.08)',
+          border: '1px solid rgba(255,255,255,0.22)',
+          boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.15), 0 8px 32px rgba(220,38,38,0.40), 0 2px 8px rgba(0,0,0,0.20)',
+        }
+      : {
+          background: 'rgba(30,41,59,0.82)',
+          backdropFilter: 'blur(28px) saturate(2.0)',
+          WebkitBackdropFilter: 'blur(28px) saturate(2.0)',
+          border: '1px solid rgba(255,255,255,0.14)',
+          boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.20), 0 8px 32px rgba(0,0,0,0.45)',
+        };
+  const barClass = 'text-white';
 
   const el = (
     <motion.div
       role="status"
       aria-live="polite"
-      initial={{ y: 40, opacity: 0 }}
+      initial={{ y: -40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 24, opacity: 0 }}
+      exit={{ y: -24, opacity: 0 }}
       transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
-      className={`fixed left-1/2 z-[9999] flex max-w-[min(90vw,28rem)] -translate-x-1/2 items-center gap-3 rounded-[12px] px-4 py-3 sm:max-w-md ${barClass}`}
+      className={`fixed left-1/2 z-[9999] flex max-w-[min(90vw,28rem)] -translate-x-1/2 items-center gap-3 rounded-[16px] px-4 py-3 sm:max-w-md ${barClass}`}
       style={{
-        // Sopra la bottom nav quando montata (`--app-bottom-nav-offset` da BottomNav), altrimenti come prima.
-        bottom:
-          'max(calc(var(--app-bottom-nav-offset, 0px) + 12px), calc(1.5rem + env(safe-area-inset-bottom, 0px)))',
+        top: 'calc(env(safe-area-inset-top, 0px) + 80px)',
+        ...barStyle,
       }}
     >
       {isSuccess ? (

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import React, { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 type Variant = 'toolbar' | 'overlay';
@@ -44,10 +44,12 @@ type Props = {
    * Se impostato con `variant="overlay"`, i bottoni overlay NON vengono renderizzati internamente.
    */
   onNavStateChange?: (state: HorizontalScrollNavState) => void;
+  /** Espone il div scroll interno al genitore (per sincronizzare header mirror). */
+  scrollSyncRef?: React.RefObject<HTMLDivElement>;
 };
 
 const overlayBtnClass =
-  'absolute top-0 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200/80 dark:border-white/12 bg-slate-50/55 text-slate-500 shadow-sm backdrop-blur-md transition-[color,box-shadow,transform] hover:border-slate-300 hover:bg-slate-50/90 hover:text-slate-800 dark:bg-neutral-900/45 dark:hover:border-white/18 dark:hover:bg-neutral-800/55 dark:hover:text-neutral-100 active:scale-95 disabled:pointer-events-none disabled:opacity-0';
+  'absolute top-0 bottom-0 z-30 flex w-6 items-center justify-center text-slate-400 transition-[opacity,color,background] duration-200 opacity-0 group-hover:opacity-100 hover:text-[#001A80] dark:text-neutral-500 dark:hover:text-[#3366CC] disabled:pointer-events-none disabled:opacity-0';
 
 export function HorizontalScrollArea({
   children,
@@ -61,6 +63,7 @@ export function HorizontalScrollArea({
   navRowClassName = '',
   variant = 'toolbar',
   onNavStateChange,
+  scrollSyncRef,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
@@ -124,7 +127,7 @@ export function HorizontalScrollArea({
 
   const rootClass =
     variant === 'overlay'
-      ? `relative ${className}`.trim()
+      ? `group relative ${className}`.trim()
       : className;
 
   return (
@@ -151,7 +154,7 @@ export function HorizontalScrollArea({
           </button>
         </div>
       )}
-      <div ref={scrollRef} onScroll={update} className={scrollClassName}>
+      <div ref={(el) => { (scrollRef as React.MutableRefObject<HTMLDivElement | null>).current = el; if (scrollSyncRef) (scrollSyncRef as React.MutableRefObject<HTMLDivElement | null>).current = el; }} onScroll={update} className={scrollClassName}>
         {children}
       </div>
       {variant === 'overlay' && showNav && !onNavStateChange && (
@@ -160,19 +163,19 @@ export function HorizontalScrollArea({
             type="button"
             disabled={prevDisabled}
             onClick={onPrevClick}
-            className={`left-[-1px] ${overlayBtnClass}`}
+            className={`left-0 rounded-l-[inherit] bg-gradient-to-r from-white/70 to-transparent hover:from-[#001A80]/40 dark:from-neutral-900/70 dark:hover:from-[#3366CC]/40 ${overlayBtnClass}`}
             aria-label={ariaLabelPrev}
           >
-            <ChevronLeft className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+            <ChevronLeft className="h-5 w-5 shrink-0 drop-shadow-sm" strokeWidth={2} aria-hidden />
           </button>
           <button
             type="button"
             disabled={nextDisabled}
             onClick={onNextClick}
-            className={`right-0 ${overlayBtnClass}`}
+            className={`right-0 rounded-r-[inherit] bg-gradient-to-l from-white/70 to-transparent hover:from-[#001A80]/40 dark:from-neutral-900/70 dark:hover:from-[#3366CC]/40 ${overlayBtnClass}`}
             aria-label={ariaLabelNext}
           >
-            <ChevronRight className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+            <ChevronRight className="h-5 w-5 shrink-0 drop-shadow-sm" strokeWidth={2} aria-hidden />
           </button>
         </>
       )}

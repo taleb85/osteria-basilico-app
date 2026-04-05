@@ -120,8 +120,8 @@ export default function ManagementHomePreview({
             onUiToggle={onUiToggle}
             hiddenBadge={hiddenBadge}
           >
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-neutral-800/60">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-200 dark:bg-neutral-700">
+            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-neutral-800/60 shadow-sm">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-700">
                 <Users className="h-4 w-4 text-slate-500 dark:text-neutral-300" />
               </div>
               <div>
@@ -139,7 +139,7 @@ export default function ManagementHomePreview({
           onUiToggle={onUiToggle}
           hiddenBadge={hiddenBadge}
         >
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-white/15 dark:bg-neutral-900/50">
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white/50 px-4 py-3 dark:border-white/15 dark:bg-neutral-900/50">
             <div className="flex items-start gap-3">
               <Megaphone size={15} className="mt-0.5 shrink-0 text-slate-400 dark:text-neutral-400" />
               <div className="min-w-0 flex-1">
@@ -165,40 +165,40 @@ export default function ManagementHomePreview({
                 label: t.home_stat_in_shift,
                 value: 0,
                 Icon: Users,
-                iconColor: 'text-[#0052FF] dark:text-[#00D1FF]',
-                bg: 'bg-transparent dark:bg-transparent',
-                border: 'border-[#0052FF]/15 dark:border-[#0052FF]/18',
-                iconWell: 'bg-[#0052FF]/12 dark:bg-[#0052FF]/15',
+                iconColor: 'text-[#3366CC] dark:text-[#00D1FF]',
+                bg: 'bg-white dark:bg-transparent',
+                border: 'border-slate-100 dark:border-[#001A80]/18',
+                iconWell: 'bg-[#3366CC]/10 dark:bg-[#001A80]/15',
               },
               {
                 label: t.home_stat_delays,
                 value: 0,
                 Icon: Clock,
                 iconColor: 'text-red-600 dark:text-red-400',
-                bg: 'bg-transparent dark:bg-transparent',
-                border: 'border-red-100 dark:border-red-900/40',
-                iconWell: 'bg-red-100/80 dark:bg-red-950/45',
+                bg: 'bg-white dark:bg-transparent',
+                border: 'border-slate-100 dark:border-red-900/40',
+                iconWell: 'bg-red-50 dark:bg-red-950/45',
               },
               {
                 label: t.home_stat_missing_out,
                 value: 0,
                 Icon: AlertCircle,
                 iconColor: 'text-orange-600 dark:text-orange-400',
-                bg: 'bg-transparent dark:bg-transparent',
-                border: 'border-orange-100 dark:border-orange-900/40',
-                iconWell: 'bg-orange-100/80 dark:bg-orange-950/45',
+                bg: 'bg-white dark:bg-transparent',
+                border: 'border-slate-100 dark:border-orange-900/40',
+                iconWell: 'bg-orange-50 dark:bg-orange-950/45',
               },
               {
                 label: t.home_stat_approved,
                 value: 2,
                 Icon: UserCheck,
                 iconColor: 'text-accent dark:text-accent-light',
-                bg: 'bg-transparent dark:bg-transparent',
-                border: 'border-accent/20 dark:border-accent/30',
-                iconWell: 'bg-accent/15 dark:bg-accent/25',
+                bg: 'bg-white dark:bg-transparent',
+                border: 'border-slate-100 dark:border-accent/30',
+                iconWell: 'bg-accent/10 dark:bg-accent/25',
               },
             ].map(({ label, value, Icon, iconColor, bg, border, iconWell }) => (
-              <div key={label} className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 ${border} ${bg}`}>
+              <div key={label} className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 ${border} ${bg} shadow-sm dark:shadow-none`}>
                 <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${border} ${iconWell}`}>
                   <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
                 </div>
@@ -292,7 +292,7 @@ export default function ManagementHomePreview({
               <div className="space-y-3">
                 {[
                   { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-accent' },
-                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-[#0052FF] dark:bg-[#0052FF]/80' },
+                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-[#001A80] dark:bg-[#001A80]/80' },
                 ].map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="mb-1.5 flex justify-between text-xs">

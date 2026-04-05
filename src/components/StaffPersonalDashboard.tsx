@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Palmtree, Clock, CheckCircle, Download, X, Share, ChevronRight, ChevronLeft, LogOut, Shield } from 'lucide-react';
+import { TrendingUp, Palmtree, Clock, CheckCircle, Download, X, Share, ChevronRight, ChevronLeft, LogOut, Shield, Calendar } from 'lucide-react';
 import { database } from '../lib/database';
 import { useApp } from '../context/AppContext';
 import { User as UserType, Shift, HolidayRequest, PunchRecord } from '../types';
-import { format, isToday, isFuture, startOfWeek, addDays, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { format, isToday, isFuture, startOfWeek, endOfWeek, addWeeks, addDays, startOfMonth, endOfMonth, parseISO, isWithinInterval, startOfDay, endOfDay, getISOWeek } from 'date-fns';
+import { it as itLocale } from 'date-fns/locale';
+import { loadPeriodConfig, getPeriodDateRange, prevPeriodConfig, nextPeriodConfig, type PeriodConfig } from '../utils/periodConfig';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
 import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
@@ -19,13 +21,19 @@ import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import MobileStaffDashboard from './mobile/MobileStaffDashboard';
 import MobileShifts from './mobile/MobileShifts';
 import MobileTimesheet from './mobile/MobileTimesheet';
+import ManagementMobileShifts from './mobile/ManagementMobileShifts';
+import ManagementMobileTimesheet from './mobile/ManagementMobileTimesheet';
 import MobileRequests from './mobile/MobileRequests';
 import { useIsMobileViewport } from '../hooks/useIsMobileViewport';
 const Timesheets = lazy(() => import('./Timesheets'));
 const HolidayRequests = lazy(() => import('./HolidayRequests'));
 const Statistics = lazy(() => import('./Statistics'));
 const WeeklyShiftsTable = lazy(() => import('./WeeklyShiftsTable'));
+const SettingsPage = lazy(() => import('./SettingsPage'));
 
+import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { isSameWeek, eachDayOfInterval } from 'date-fns';
+import { safeFormatDate } from '../utils/safeDateFormat';
 import { isPurelyManagementRole } from '../utils/permissions';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { userRowToSessionUser } from '../utils/staffPermissionDefaults';
@@ -36,6 +44,359 @@ import RequestHolidayModal from './RequestHolidayModal';
 import LanguageToggleGrid from './LanguageToggleGrid';
 import NotificationCenter from './NotificationCenter';
 import ProfileNavTabPanel from './ProfileNavTabPanel';
+
+// ─── Desktop grid view for staff shifts ───────────────────────────────────────
+function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; language?: string }) {
+  const locale = getDateLocale(language) ?? itLocale;
+  const t = getTranslations(language as 'it' | 'en' | 'es');
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+
+  const STATUS_CFG = {
+    approved:  { label: t.ts_status_approved  ?? 'Approvato',  Icon: CheckCircle2, pill: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/30' },
+    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle,  pill: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 dark:border-amber-500/30' },
+    draft:     { label: t.status_draft        ?? 'Bozza',      Icon: AlertCircle,  pill: 'bg-slate-100 text-slate-500 dark:text-white/30 border-slate-200 dark:border-white/10' },
+    absent:    { label: t.status_absent       ?? 'Assente',    Icon: XCircle,      pill: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20 dark:border-red-500/30' },
+  } as const;
+
+  const weeks = useMemo(() => {
+    const sorted = [...shifts].sort((a, b) => a.date.localeCompare(b.date));
+    const map: { start: Date; end: Date; shifts: any[] }[] = [];
+    sorted.forEach(shift => {
+      const d = parseISO(shift.date);
+      const s = startOfWeek(d, { weekStartsOn: 1 });
+      const e = endOfWeek(d, { weekStartsOn: 1 });
+      let week = map.find(w => isSameWeek(w.start, s, { weekStartsOn: 1 }));
+      if (!week) { week = { start: s, end: e, shifts: [] }; map.push(week); }
+      week.shifts.push(shift);
+    });
+    return map;
+  }, [shifts]);
+
+  if (shifts.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-slate-200 dark:border-white/[0.08]">
+          <Calendar className="w-7 h-7 text-slate-300 dark:text-white/20" />
+        </div>
+        <p className="text-slate-400 dark:text-white/30 font-bold uppercase tracking-widest text-[10px]">
+          {t.no_shifts_scheduled}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4 pb-8">
+      {weeks.map((week, wIdx) => {
+        const weekDays = eachDayOfInterval({ start: week.start, end: week.end });
+        const byDay = new Map<string, any[]>();
+        weekDays.forEach(d => byDay.set(format(d, 'yyyy-MM-dd'), []));
+        week.shifts.forEach(s => {
+          const k = format(parseISO(s.date), 'yyyy-MM-dd');
+          const arr = byDay.get(k) ?? [];
+          arr.push(s);
+          byDay.set(k, arr);
+        });
+
+        const totalMins = week.shifts.reduce((acc, s) => {
+          if (!s.start_time || !s.end_time || s.approval_status === 'absent') return acc;
+          const [sh, sm] = s.start_time.split(':').map(Number);
+          const [eh, em] = s.end_time.split(':').map(Number);
+          return acc + (eh * 60 + em - sh * 60 - sm);
+        }, 0);
+        const totalH = Math.floor(totalMins / 60);
+        const totalM = totalMins % 60;
+        const totalLabel = totalMins > 0 ? (totalM > 0 ? `${totalH}h ${totalM}m` : `${totalH}h`) : '';
+
+        return (
+          <div key={wIdx}
+            className="rounded-2xl border border-slate-100 dark:border-white/[0.08] overflow-hidden"
+            style={isDark ? { background: 'transparent' } : { background: '#ffffff', boxShadow: '0 1px 4px 0 rgba(0,0,0,0.06)' }}
+          >
+            {/* Week header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-white/[0.06]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#4361EE]/10 dark:bg-transparent dark:border dark:border-[#3366CC]/30 flex items-center justify-center">
+                  <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-[#93c5fd]" />
+                </div>
+                <div>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 leading-none mb-0.5">
+                    {t.week_label ?? 'Sett.'}
+                  </p>
+                  <p className="text-sm font-bold text-slate-800 dark:text-white">
+                    {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM', { locale })}
+                  </p>
+                </div>
+              </div>
+              {totalLabel && (
+                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 dark:bg-transparent text-blue-700 dark:text-[#93c5fd] border border-[#4361EE]/15 dark:border-[#3366CC]/30">
+                  {totalLabel}
+                </span>
+              )}
+            </div>
+
+            {/* 7-column day grid */}
+            <div className="grid grid-cols-7">
+              {weekDays.map((day, dIdx) => {
+                const dateStr = format(day, 'yyyy-MM-dd');
+                const dayShifts = (byDay.get(dateStr) ?? []).sort((a: any, b: any) => a.start_time.localeCompare(b.start_time));
+                const isWeekend = dIdx >= 5;
+                const today = isToday(day);
+
+                return (
+                  <div
+                    key={dateStr}
+                    className={`flex flex-col min-h-[120px] ${dIdx < 6 ? 'border-r border-slate-100 dark:border-white/[0.06]' : ''} ${today ? 'bg-[#3366CC]/[0.04] dark:bg-[#3366CC]/[0.06]' : isWeekend ? 'bg-slate-50/60 dark:bg-transparent' : ''}`}
+                  >
+                    {/* Day header */}
+                    <div className="px-2.5 py-2 border-b border-slate-100 dark:border-white/[0.05]">
+                      <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${today ? 'text-[#3366CC] dark:text-[#93c5fd]' : 'text-slate-400 dark:text-white/30'}`}>
+                        {format(day, 'EEE', { locale })}
+                      </p>
+                      <p className={`text-sm font-black tabular-nums ${today ? 'text-[#001A80] dark:text-[#93c5fd]' : 'text-slate-700 dark:text-white/60'}`}>
+                        {format(day, 'd')}
+                      </p>
+                    </div>
+
+                    {/* Shifts */}
+                    <div className="flex flex-col gap-1.5 p-2 flex-1">
+                      {dayShifts.length === 0 ? (
+                        <div className="flex-1 flex items-center justify-center">
+                          <span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/[0.06]" />
+                        </div>
+                      ) : dayShifts.map((shift: any) => {
+                        const sk = (shift.approval_status as keyof typeof STATUS_CFG) in STATUS_CFG
+                          ? shift.approval_status as keyof typeof STATUS_CFG
+                          : 'confirmed';
+                        const cfg = STATUS_CFG[sk];
+                        const { Icon } = cfg;
+                        const isAbsent = shift.approval_status === 'absent';
+
+                        // Planned hours
+                        const [sh, sm2] = (shift.start_time ?? '00:00').split(':').map(Number);
+                        const [eh, em2] = (shift.end_time ?? '00:00').split(':').map(Number);
+                        const plannedMins = isAbsent ? 0 : Math.max(0, eh * 60 + em2 - sh * 60 - sm2);
+                        const ph = Math.floor(plannedMins / 60);
+                        const pm = plannedMins % 60;
+                        const hoursLabel = isAbsent ? '—' : (pm > 0 ? `${ph}h ${pm}m` : `${ph}h`);
+
+                        return (
+                          <div
+                            key={shift.id}
+                            className={`rounded-lg px-2 py-1.5 border text-left ${isAbsent ? 'border-red-500/10' : 'border-slate-100 dark:border-white/[0.08]'}`}
+                            style={isDark ? { background: 'transparent' } : isAbsent ? { background: 'rgba(239,68,68,0.04)' } : { background: '#f8fafc' }}
+                          >
+                            {/* Hours (primary) */}
+                            <p className={`text-sm font-black tabular-nums leading-none mb-1 ${isAbsent ? 'text-slate-400 dark:text-white/25' : 'text-slate-800 dark:text-white'}`}>
+                              {hoursLabel}
+                            </p>
+                            {/* Time range (secondary) */}
+                            <p className={`text-[9px] font-bold tabular-nums ${isAbsent ? 'text-slate-400 dark:text-white/20 line-through' : 'text-slate-500 dark:text-white/35'}`}>
+                              {shift.start_time.slice(0, 5)}–{shift.end_time?.slice(0, 5) ?? '…'}
+                            </p>
+                            {/* Type + badge with icon */}
+                            <div className="flex items-center justify-between mt-1 gap-1">
+                              {shift.type && (
+                                <p className="text-[8px] font-bold uppercase tracking-wide text-slate-400 dark:text-white/25">
+                                  {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
+                                </p>
+                              )}
+                              <span className={`flex items-center gap-0.5 text-[8px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-full border ml-auto ${cfg.pill}`}>
+                                <Icon className="w-2.5 h-2.5" />
+                                {cfg.label}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Desktop grid view for staff timesheet ────────────────────────────────────
+function StaffDesktopTimesheet({
+  shifts, punchRecords, user, breakRules, breakComputeOpts, language = 'it',
+}: {
+  shifts: any[]; punchRecords: any[]; user: any; breakRules: any; breakComputeOpts: any; language?: string;
+}) {
+  const locale = getDateLocale(language) ?? itLocale;
+  const t = getTranslations(language as 'it' | 'en' | 'es');
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+
+  const STATUS_CONFIG = {
+    approved: { label: t.ts_status_approved ?? 'Approvato', Icon: CheckCircle2, pill: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/30' },
+    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle, pill: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 dark:border-amber-500/30' },
+    absent: { label: t.status_absent ?? 'Assente', Icon: XCircle, pill: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20 dark:border-red-500/30' },
+  } as const;
+
+  const history = shifts
+    .filter(s => s.date <= format(new Date(), 'yyyy-MM-dd'))
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  if (history.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-slate-200 dark:border-white/[0.08]">
+          <Clock className="w-7 h-7 text-slate-300 dark:text-white/20" />
+        </div>
+        <p className="text-slate-400 dark:text-white/30 font-bold uppercase tracking-widest text-[10px]">
+          {t.no_shifts_scheduled ?? 'Nessuno storico disponibile'}
+        </p>
+      </div>
+    );
+  }
+
+  // Group by week
+  const weeks: { start: Date; end: Date; shifts: any[] }[] = [];
+  history.forEach(shift => {
+    const sd = new Date(shift.date);
+    const s = startOfWeek(sd, { weekStartsOn: 1 });
+    const e = endOfWeek(sd, { weekStartsOn: 1 });
+    let week = weeks.find(w => isSameWeek(w.start, s, { weekStartsOn: 1 }));
+    if (!week) { week = { start: s, end: e, shifts: [] }; weeks.push(week); }
+    week.shifts.push(shift);
+  });
+
+  return (
+    <div className="flex flex-col gap-4 pb-8">
+      {weeks.map((week, wIdx) => {
+        // Total hours
+        let totalMins = 0;
+        week.shifts.forEach(shift => {
+          const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
+          totalMins += getNetShiftMinutes(shift, start, end, user, breakRules, breakComputeOpts);
+        });
+        const totalH = Math.floor(totalMins / 60);
+        const totalM = totalMins % 60;
+        const totalLabel = totalM > 0 ? `${totalH}h ${totalM}m` : `${totalH}h`;
+
+        // All 7 days of the week
+        const weekDays = eachDayOfInterval({ start: week.start, end: week.end });
+
+        // Map date → shifts
+        const dayMap = new Map<string, any[]>();
+        week.shifts.forEach(shift => {
+          const arr = dayMap.get(shift.date) ?? [];
+          arr.push(shift);
+          dayMap.set(shift.date, arr);
+        });
+        weekDays.forEach(d => {
+          const k = format(d, 'yyyy-MM-dd');
+          if (!dayMap.has(k)) dayMap.set(k, []);
+        });
+
+        return (
+          <div key={wIdx}
+            className="rounded-2xl border border-slate-100 dark:border-white/[0.08] overflow-hidden"
+            style={isDark ? { background: 'transparent' } : { background: '#ffffff', boxShadow: '0 1px 4px 0 rgba(0,0,0,0.06)' }}
+          >
+            {/* Week header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-white/[0.06]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#4361EE]/10 dark:bg-transparent dark:border dark:border-[#3366CC]/30 flex items-center justify-center">
+                  <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-[#93c5fd]" />
+                </div>
+                <div>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 leading-none mb-0.5">
+                    {t.week_label ?? 'Sett.'}
+                  </p>
+                  <p className="text-sm font-bold text-slate-800 dark:text-white">
+                    {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM', { locale })}
+                  </p>
+                </div>
+              </div>
+              {totalMins > 0 && (
+                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 dark:bg-transparent text-blue-700 dark:text-[#93c5fd] border border-[#4361EE]/15 dark:border-[#3366CC]/30">
+                  {totalLabel}
+                </span>
+              )}
+            </div>
+
+            {/* Day grid: 7 columns */}
+            <div className="grid grid-cols-7">
+              {weekDays.map((day, dIdx) => {
+                const dateStr = format(day, 'yyyy-MM-dd');
+                const dayShifts = (dayMap.get(dateStr) ?? []).sort((a: any, b: any) => a.start_time.localeCompare(b.start_time));
+                const isWeekend = dIdx >= 5;
+                const today = isToday(day);
+
+                return (
+                  <div
+                    key={dateStr}
+                    className={`flex flex-col min-h-[120px] ${dIdx < 6 ? 'border-r border-slate-100 dark:border-white/[0.06]' : ''} ${today ? 'bg-[#3366CC]/[0.04] dark:bg-[#3366CC]/[0.06]' : isWeekend ? 'bg-slate-50/60 dark:bg-transparent' : ''}`}
+                  >
+                    {/* Day header */}
+                    <div className={`px-2.5 py-2 border-b border-slate-100 dark:border-white/[0.05] ${today ? 'border-b-[#3366CC]/30 dark:border-b-[#3366CC]/30' : ''}`}>
+                      <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${today ? 'text-[#3366CC] dark:text-[#93c5fd]' : 'text-slate-400 dark:text-white/30'}`}>
+                        {format(day, 'EEE', { locale })}
+                      </p>
+                      <p className={`text-sm font-black tabular-nums ${today ? 'text-[#001A80] dark:text-[#93c5fd]' : 'text-slate-700 dark:text-white/60'}`}>
+                        {format(day, 'd')}
+                      </p>
+                    </div>
+
+                    {/* Shifts */}
+                    <div className="flex flex-col gap-1.5 p-2 flex-1">
+                      {dayShifts.length === 0 ? (
+                        <div className="flex-1 flex items-center justify-center">
+                          <span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/[0.06]" />
+                        </div>
+                      ) : dayShifts.map((shift: any) => {
+                        const sk = (shift.approval_status as keyof typeof STATUS_CONFIG) || 'confirmed';
+                        const cfg = STATUS_CONFIG[sk] ?? STATUS_CONFIG.confirmed;
+                        const { Icon } = cfg;
+                        const isAbsent = shift.approval_status === 'absent';
+                        const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
+                        const mins = getNetShiftMinutes(shift, start, end, user, breakRules, breakComputeOpts);
+                        const hh = Math.floor(mins / 60);
+                        const mm = mins % 60;
+                        const hoursLabel = isAbsent ? '—' : (mm > 0 ? `${hh}h ${mm}m` : `${hh}h`);
+
+                        return (
+                          <div
+                            key={shift.id}
+                            className={`rounded-lg px-2 py-1.5 border text-left ${isAbsent ? 'border-red-500/10' : 'border-slate-100 dark:border-white/[0.08]'}`}
+                            style={isDark ? { background: 'transparent' } : isAbsent ? { background: 'rgba(239,68,68,0.04)' } : { background: '#f8fafc' }}
+                          >
+                            <p className={`text-sm font-black tabular-nums leading-none mb-1 ${isAbsent ? 'text-slate-400 dark:text-white/25' : 'text-slate-800 dark:text-white'}`}>
+                              {hoursLabel}
+                            </p>
+                            <p className={`text-[9px] font-bold tabular-nums ${isAbsent ? 'text-slate-400 dark:text-white/20 line-through' : 'text-slate-500 dark:text-white/35'}`}>
+                              {shift.start_time.slice(0, 5)}–{shift.end_time?.slice(0, 5) ?? '…'}
+                            </p>
+                            <div className="flex items-center justify-between mt-1 gap-1">
+                              {shift.type && (
+                                <p className="text-[8px] font-bold uppercase tracking-wide text-slate-400 dark:text-white/25">
+                                  {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
+                                </p>
+                              )}
+                              <span className={`flex items-center gap-0.5 text-[8px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-full border ${cfg.pill} ml-auto`}>
+                                <Icon className="w-2.5 h-2.5" />
+                                {cfg.label}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 interface StaffPersonalDashboardProps {
   user: UserType;
@@ -306,152 +667,21 @@ export default function StaffPersonalDashboard({
     const todayStr = format(now, 'yyyy-MM-dd');
 
     return (
-      <div className="space-y-4">
-        <div className="block md:hidden space-y-4">
-          <MobileStaffDashboard
-            user={displayUser}
-            language={effectiveLanguage}
-            todayStr={todayStr}
-            now={now}
-            myShifts={shifts}
-            punchRecords={punchRecords}
-            weeklyMinutes={staffHomeWeeklyMonthly.weeklyMinutes}
-            monthlyMinutes={staffHomeWeeklyMonthly.monthlyMinutes}
-            monthDaysWorked={staffHomeWeeklyMonthly.monthDaysWorked}
-            weekCapMinutes={40 * 60}
-            onTabChange={onTabChange}
-            greetingText={t.home_greeting.replace('{name}', displayUser.first_name ?? '')}
-            activeTab={activeTab}
-          />
-        </div>
-
-        <div className="hidden md:block space-y-4">
-
-        {/* Card ORE MESE (se disponibile) */}
-        {uiW('staff_home.month_hours') && confirmedThisMonth && (
-          <div className="surface-glass flex items-center justify-between p-4">
-            <div>
-              <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-1">{t.hours_this_month}</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-neutral-100">{formatMinutesToHoursAndMinutes(confirmedThisMonth.minutes)}</p>
-              <p className="text-xs text-slate-400 dark:text-neutral-400 mt-0.5">{confirmedThisMonth.shiftsCount} {t.shifts_confirmed}</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-accent/10 dark:bg-accent/20 flex items-center justify-center ring-1 ring-inset ring-accent/15 dark:ring-accent/30">
-              <TrendingUp className="w-5 h-5 text-accent dark:text-accent-light" />
-            </div>
-          </div>
-        )}
-
-        {/* Turno di oggi — card read-only */}
-        {uiW('staff_home.today_shift') && todayShifts.length > 0 && (() => {
-          const shift = todayShifts[0];
-          const isPunched = punchRecords.some(r => r.type === 'in' && isToday(new Date(r.timestamp)));
-          return (
-            <div className="bg-accent rounded-2xl p-5 shadow-md">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-white/70 text-[10px] font-semibold uppercase tracking-widest mb-1">
-                    {t.scheduled_today}
-                  </p>
-                  <p className="text-white text-2xl font-bold">
-                    {shift.start_time.slice(0,5)} – {shift.end_time ? shift.end_time.slice(0,5) : '…'}
-                  </p>
-                  <p className="text-white/60 text-xs mt-1 capitalize">
-                    {shift.type === 'lunch' ? t.lunch : t.dinner}
-                  </p>
-                </div>
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${isPunched ? 'bg-white/25 border-white/30' : 'bg-white/15 border-white/20'}`}>
-                  {isPunched
-                    ? <CheckCircle className="w-5 h-5 text-white" />
-                    : <Clock className="w-5 h-5 text-white" />
-                  }
-                </div>
-              </div>
-              {isPunched && (
-                <div className="mt-3 flex items-center gap-1.5 bg-white/15 rounded-xl px-3 py-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-white/80 flex-shrink-0" />
-                  <span className="text-white/80 text-[11px] font-medium">{t.already_punched}</span>
-                </div>
-              )}
-            </div>
-          );
-        })()}
-
-        {/* Prossimi turni */}
-        {uiW('staff_home.upcoming') && (
-        <div ref={shiftsListRef} className="surface-glass overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-white/10">
-            <h3 className="text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase tracking-[0.18em]">{t.upcoming_shifts}</h3>
-            <ChevronRight className="w-4 h-4 text-slate-300 dark:text-neutral-400" />
-          </div>
-
-          {upcomingShifts.length === 0 && todayShifts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 px-4">
-              <Clock className="w-7 h-7 mb-3 text-slate-500 dark:text-neutral-400 shrink-0" aria-hidden />
-              <p className="text-sm font-medium text-center text-slate-600 dark:text-neutral-300 leading-snug max-w-[16rem]">
-                {t.no_shifts_scheduled}
-              </p>
-            </div>
-          ) : sortedDates.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 px-4">
-              <CheckCircle className="w-7 h-7 mb-3 text-slate-500 dark:text-neutral-400 shrink-0" aria-hidden />
-              <p className="text-sm font-medium text-center text-slate-600 dark:text-neutral-300 leading-snug max-w-[16rem]">
-                Nessun turno futuro
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-50 dark:divide-white/5">
-              {sortedDates.map((dateStr) => {
-                const dayShifts = grouped[dateStr].sort((a, b) => a.start_time.localeCompare(b.start_time));
-                return (
-                  <div key={dateStr} className="flex items-center px-5 py-3.5 gap-4">
-                    <p className="text-slate-500 dark:text-neutral-400 font-semibold text-xs uppercase tracking-wide flex-shrink-0 w-[68px] leading-tight">
-                      {format(new Date(dateStr), 'EEE d MMM', { locale: dateLocale })}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {dayShifts.map(s => (
-                        <div
-                          key={s.id}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-accent/8 border border-accent/20 text-accent-dark dark:text-accent"
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
-                          <span className="font-semibold text-xs">
-                            {s.start_time.slice(0,5)} – {s.end_time ? s.end_time.slice(0,5) : '…'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-        )}
-
-        {uiW('staff_home.holidays_button') &&
-          visibleStaffTabs.includes('holidays') &&
-          isStaffRequestsFeatureEnabled(featureFlags) &&
-          !staffUnifiedTabs.includes('ferie') && (
-          <button
-            type="button"
-            onClick={() => setHolidaysFocus(true)}
-            className="surface-glass surface-ghost-interactive flex min-h-[52px] w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:border-accent/40 dark:hover:border-accent/35"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-accent/10 dark:bg-accent/20 flex items-center justify-center flex-shrink-0 ring-1 ring-inset ring-accent/15 dark:ring-accent/30">
-                <Palmtree className="w-5 h-5 text-accent dark:text-accent-light" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase tracking-widest">{t.sidebar_holidays}</p>
-                <p className="text-sm text-slate-500 dark:text-neutral-400 truncate">{t.holiday_management}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-slate-300 dark:text-neutral-400 flex-shrink-0" />
-          </button>
-        )}
-
-        </div>
-      </div>
+      <MobileStaffDashboard
+        user={displayUser}
+        language={effectiveLanguage}
+        todayStr={todayStr}
+        now={now}
+        myShifts={shifts}
+        punchRecords={punchRecords}
+        weeklyMinutes={staffHomeWeeklyMonthly.weeklyMinutes}
+        monthlyMinutes={staffHomeWeeklyMonthly.monthlyMinutes}
+        monthDaysWorked={staffHomeWeeklyMonthly.monthDaysWorked}
+        weekCapMinutes={40 * 60}
+        onTabChange={onTabChange}
+        greetingText={t.home_greeting.replace('{name}', displayUser.first_name ?? '')}
+        activeTab={activeTab}
+      />
     );
   };
 
@@ -465,28 +695,102 @@ export default function StaffPersonalDashboard({
 
   const isMobile = useIsMobileViewport();
 
+  /** Sub-tab interno scheda Presenze/Ore: presenze oppure statistiche. */
+  const [tsStaffView, setTsStaffView] = useState<'presence' | 'stats'>('presence');
+  const showStatsSubTabStaff = featureFlags['view_stats'] !== false;
+
+  // ── Navigazione periodo mobile (turni + presenze) ──────────────
+  type MobileNavTab = 'week' | 'period';
+  const [mobileNavTab, setMobileNavTab] = useState<MobileNavTab>('period');
+  const [mobileNavOffset, setMobileNavOffset] = useState(0);
+
+  const getMobileRange = useCallback((tab: MobileNavTab, offset: number): { start: Date; end: Date } => {
+    const today = new Date();
+    if (tab === 'week') {
+      const base = addWeeks(startOfWeek(today, { weekStartsOn: 1 }), offset);
+      return { start: startOfDay(base), end: endOfDay(endOfWeek(base, { weekStartsOn: 1 })) };
+    }
+    let cfg: PeriodConfig = loadPeriodConfig();
+    if (offset > 0) for (let i = 0; i < offset; i++) cfg = nextPeriodConfig(cfg);
+    else if (offset < 0) for (let i = 0; i > offset; i--) cfg = prevPeriodConfig(cfg);
+    const r = getPeriodDateRange(cfg);
+    return { start: startOfDay(new Date(r.startDate)), end: endOfDay(new Date(r.endDate)) };
+  }, []);
+
+  const mobileRange = useMemo(
+    () => getMobileRange(mobileNavTab, mobileNavOffset),
+    [getMobileRange, mobileNavTab, mobileNavOffset]
+  );
+
+  const mobileShiftsFiltered = useMemo(
+    () => shiftsSortedMobile.filter(s => {
+      const d = parseISO(s.date);
+      return isWithinInterval(d, { start: mobileRange.start, end: mobileRange.end });
+    }),
+    [shiftsSortedMobile, mobileRange]
+  );
+
+  const mobileTimesheetFiltered = useMemo(
+    () => visibleShifts.filter(s => {
+      const d = parseISO(s.date);
+      return isWithinInterval(d, { start: mobileRange.start, end: mobileRange.end });
+    }),
+    [visibleShifts, mobileRange]
+  );
+
+  const mobileLocale = dateLocale ?? itLocale;
+
+  const MobileNavBar = () => (
+    <div className="flex items-center gap-2 mb-4 px-4">
+      {/* Etichetta "Periodo" a sinistra */}
+      <span className="h-9 inline-flex items-center px-3 rounded-2xl bg-accent text-white text-[10px] font-extrabold uppercase tracking-wider shrink-0 shadow-sm">
+        Periodo
+      </span>
+
+      {/* Frecce + chip data a destra */}
+      <div className="flex items-center border border-slate-100 dark:border-white/[0.08] rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md" style={{ background: 'transparent', boxShadow: 'none' }}>
+        <button
+          type="button"
+          onClick={() => setMobileNavOffset(o => o - 1)}
+          className="flex items-center justify-center h-9 w-9 text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors shrink-0 border-r border-slate-100 dark:border-white/[0.08]"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+
+        <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0">
+          <Calendar className="h-3 w-3 text-slate-400 dark:text-neutral-500 shrink-0" />
+          <span className="text-[10px] font-bold text-slate-700 dark:text-neutral-200 tabular-nums truncate">
+            {mobileNavTab === 'week'
+              ? `S.${getISOWeek(mobileRange.start)} · ${format(mobileRange.start, 'd MMM', { locale: mobileLocale })} – ${format(mobileRange.end, 'd MMM', { locale: mobileLocale })}`
+              : `${format(mobileRange.start, 'd MMM', { locale: mobileLocale })} – ${format(mobileRange.end, 'd MMM yy', { locale: mobileLocale })}`
+            }
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setMobileNavOffset(o => o + 1)}
+          className="flex items-center justify-center h-9 w-9 text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors shrink-0 border-l border-slate-100 dark:border-white/[0.08]"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+
   const renderShifts = () => (
     <div className="space-y-4">
       {isMobile ? (
-        <MobileShifts shifts={shiftsSortedMobile} language={effectiveLanguage} />
+        <ManagementMobileShifts
+          shifts={mobileShiftsFiltered}
+          users={users}
+          currentUserId={displayUser.id}
+          language={effectiveLanguage}
+        />
       ) : (
         <>
-          {uiW('staff_shifts.summary') && (
-            <div className="surface-glass flex items-center justify-between p-5 rounded-3xl">
-              <div>
-                <p className="text-[10px] font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-widest mb-1">{t.approved_hours_summary}</p>
-                <p className="text-4xl font-bold text-slate-900 dark:text-neutral-100">{totalApprovedHours}</p>
-              </div>
-              <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-accent" />
-              </div>
-            </div>
-          )}
-          {uiW('staff_shifts.table') && (
-            <Suspense fallback={tabSpinner}>
-              <WeeklyShiftsTable filterUserId={user.id} />
-            </Suspense>
-          )}
+          <MobileNavBar />
+          <StaffDesktopShifts shifts={mobileShiftsFiltered} language={effectiveLanguage} />
         </>
       )}
     </div>
@@ -502,7 +806,7 @@ export default function StaffPersonalDashboard({
         <div>
           <AdminRow
             label={t.sidebar_profile}
-            action={<span className="text-sm font-semibold text-slate-900 uppercase tracking-wide truncate max-w-[55%] text-right">{displayName}</span>}
+            action={<span className="text-sm font-semibold text-slate-900 dark:text-neutral-100 uppercase tracking-wide truncate max-w-[55%] text-right">{displayName}</span>}
           />
           <AdminRow
             label={(t as { email?: string }).email ?? 'Email'}
@@ -631,11 +935,11 @@ export default function StaffPersonalDashboard({
         <div className="hidden md:block pb-4 pt-1">
           <div className="surface-glass p-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-50 dark:bg-neutral-950/80 border border-slate-100 dark:border-white/10 rounded-2xl px-4 py-3 text-center">
+              <div className="bg-slate-50 dark:bg-transparent border border-slate-100 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-center">
                 <p className="text-slate-500 dark:text-neutral-400 text-[10px] font-medium uppercase tracking-widest mb-1">{t.week_hours}</p>
                 <p className="text-slate-900 dark:text-neutral-100 text-2xl font-bold tabular-nums">{totalApprovedHours}</p>
               </div>
-              <div className="bg-slate-50 dark:bg-neutral-950/80 border border-slate-100 dark:border-white/10 rounded-2xl px-4 py-3 text-center">
+              <div className="bg-slate-50 dark:bg-transparent border border-slate-100 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-center">
                 <p className="text-slate-500 dark:text-neutral-400 text-[10px] font-medium uppercase tracking-widest mb-1">{t.shifts_week}</p>
                 <p className="text-slate-900 dark:text-neutral-100 text-2xl font-bold tabular-nums">{upcomingShifts.length + todayShifts.length}</p>
               </div>
@@ -661,26 +965,67 @@ export default function StaffPersonalDashboard({
                 {activeTab === 'turni' && renderShifts()}
                 {activeTab === 'ferie' && renderHolidays()}
                 {activeTab === 'timesheet' && (
-                  isMobile ? (
-                    <MobileTimesheet 
-                      shifts={visibleShifts} 
-                      punchRecords={punchRecords} 
-                      user={displayUser} 
-                      breakRules={breakRules} 
-                      breakComputeOpts={breakComputeOpts} 
-                    />
-                  ) : (
-                    <Suspense fallback={tabSpinner}>
-                      <Timesheets />
-                    </Suspense>
-                  )
-                )}
-                {activeTab === 'reports' && (
-                  <div className="min-h-0 overflow-y-auto overscroll-y-contain scroll-smooth [-webkit-overflow-scrolling:touch] pb-1">
-                    <Suspense fallback={tabSpinner}>
-                      <Statistics />
-                    </Suspense>
-                  </div>
+                  <>
+                    {/* ── Sub-tab: Presenze | Statistiche ── */}
+                    {showStatsSubTabStaff && (
+                      <div className="flex items-center gap-1.5 mb-4 px-4">
+                        {(['presence', 'stats'] as const).map((v) => {
+                          const label = v === 'presence' ? 'Presenze' : 'Statistiche';
+                          const active = tsStaffView === v;
+                          return (
+                            <button
+                              key={v}
+                              type="button"
+                              onClick={() => setTsStaffView(v)}
+                              className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
+                                active
+                                  ? 'bg-[#3366CC] text-white shadow-sm'
+                                  : 'bg-transparent border border-slate-200 dark:border-white/[0.12] text-slate-500 dark:text-white/40 hover:border-[#3366CC]/40 hover:text-[#3366CC] dark:hover:text-[#93c5fd]'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* ── Statistiche ── */}
+                    {tsStaffView === 'stats' && showStatsSubTabStaff && (
+                      <div className="min-h-0 overflow-y-auto overscroll-y-contain scroll-smooth [-webkit-overflow-scrolling:touch] pb-1">
+                        <Suspense fallback={tabSpinner}>
+                          <Statistics />
+                        </Suspense>
+                      </div>
+                    )}
+
+                    {/* ── Presenze ── */}
+                    {tsStaffView === 'presence' && (
+                      <>
+                        {isMobile ? (
+                          <ManagementMobileTimesheet
+                            shifts={mobileTimesheetFiltered}
+                            punchRecords={punchRecords}
+                            users={users}
+                            currentUserId={displayUser.id}
+                            language={effectiveLanguage}
+                          />
+                        ) : (
+                          <>
+                            <MobileNavBar />
+                            <StaffDesktopTimesheet
+                              shifts={mobileTimesheetFiltered}
+                              punchRecords={punchRecords}
+                              user={displayUser}
+                              breakRules={breakRules}
+                              breakComputeOpts={breakComputeOpts}
+                              language={effectiveLanguage}
+                            />
+                          </>
+                        )}
+                      </>
+                    )}
+                  </>
                 )}
                 {activeTab === 'profile' && (
                   <div className="space-y-4">
@@ -689,7 +1034,10 @@ export default function StaffPersonalDashboard({
                 )}
                 {activeTab === 'settings' && (
                   <Suspense fallback={tabSpinner}>
-                    {renderProfile()}
+                    {currentUser?.elevated_role
+                      ? <SettingsPage />
+                      : renderProfile()
+                    }
                   </Suspense>
                 )}
               </>
@@ -712,7 +1060,7 @@ export default function StaffPersonalDashboard({
                 {isIos ? <Share className="w-4 h-4 text-white" /> : <Download className="w-4 h-4 text-white" />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 leading-tight">Installa l'app FLOW</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100 leading-tight">Installa l'app FLOW</p>
                 {isIos ? (
                   <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-snug">
                     Tocca <strong>Condividi</strong> → <strong>Aggiungi a schermata Home</strong>

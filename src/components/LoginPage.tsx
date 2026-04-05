@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef, type CSSProperties } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { User as UserIcon, Lock, Loader2, Eye, EyeOff, Fingerprint } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { User as UserType, Language as LangType, Theme } from '../types';
@@ -85,9 +85,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [deviceSuccess, setDeviceSuccess] = useState('');
+  const shakeControls = useAnimation();
+  useEffect(() => {
+    if (!error) return;
+    void shakeControls.start({
+      x: [0, -11, 11, -8, 8, -5, 5, -2, 2, 0],
+      transition: { duration: 0.45, ease: 'easeInOut' },
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
   const [isLoading, setIsLoading] = useState(false);
   const [deviceLoading, setDeviceLoading] = useState(false);
   const [linkDeviceLoading, setLinkDeviceLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   // Credenziali in attesa che il tenant carichi (fallback Option B)
   const [pendingCreds, setPendingCreds] = useState<{ name: string; pin: string } | null>(null);
 
@@ -168,6 +178,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           JSON.stringify({
             userId: user.id,
             email: (user.email || '').trim().toLowerCase() || undefined,
+            ...(tenant?.slug ? { tenantSlug: tenant.slug } : {}),
           })
         );
       } catch {
@@ -184,7 +195,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         onLogin();
       }, 300);
     },
-    [loginLang, setLanguage, setCurrentUser, onLogin]
+    [loginLang, setLanguage, setCurrentUser, onLogin, tenant?.slug]
   );
 
   // Retry automatico dopo caricamento tenant (fallback Option B)
@@ -227,6 +238,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         if (!supabase) {
           setIsLoading(false);
           setError('Nessun dipendente trovato. Controlla nome e PIN.');
+          setPassword('');
+          requestAnimationFrame(() => pinInputRef.current?.focus());
           return;
         }
         try {
@@ -272,6 +285,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         }
         setIsLoading(false);
         setError('Nessun dipendente trovato. Controlla nome e PIN o usa il tuo link personale.');
+        setPassword('');
+        requestAnimationFrame(() => pinInputRef.current?.focus());
         return;
       }
 
@@ -287,6 +302,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       setTimeout(() => {
         setIsLoading(false);
         setError(msg);
+        setPassword('');
+        requestAnimationFrame(() => pinInputRef.current?.focus());
       }, 600);
       return;
     }
@@ -294,6 +311,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       setTimeout(() => {
         setIsLoading(false);
         setError(t.login_account_not_active);
+        setPassword('');
+        requestAnimationFrame(() => pinInputRef.current?.focus());
       }, 600);
       return;
     }
@@ -356,42 +375,159 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-white to-[#0052FF]/5 dark:from-[#0a0a0a] dark:via-neutral-950 dark:to-[#0052FF]/[0.07] flex flex-col items-center justify-center p-6 safe-area-pad font-sans antialiased text-slate-900 dark:text-neutral-100"
+      className="relative min-h-screen w-full bg-gradient-to-br from-slate-50 via-white to-[#0052FF]/5 flex flex-col items-center justify-center p-6 safe-area-pad font-sans antialiased text-slate-900 dark:text-neutral-100 overflow-hidden"
+      style={document.documentElement.classList.contains('dark') ? { background: 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000 72%)' } : undefined}
     >
+      {/* F watermark di sfondo */}
+      <div
+        aria-hidden
+        className="pointer-events-none select-none absolute inset-0 flex items-center justify-center"
+      >
+        <img
+          src="/flow-f-mark.png"
+          alt=""
+          draggable={false}
+          style={{
+            width: '110vw',
+            maxWidth: 860,
+            minWidth: 320,
+            opacity: 0.055,
+            filter: 'saturate(0) brightness(0) blur(6px)',
+          }}
+          className="dark:opacity-[0.07] dark:[filter:saturate(0)_brightness(10)_blur(6px)]"
+        />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
         className="w-full max-w-lg"
       >
-        {/* Logo FLOW — verticale, protagonista visivo */}
-        <div className="flex flex-col items-center mb-5 sm:mb-6 min-h-[min(260px,46vh)] sm:min-h-[min(300px,50vh)] justify-center py-8 sm:py-10 gap-4">
-          {/* Icona grande centrata */}
-          <FlowLogo size={220} showText={false} />
-        </div>
+        <>
+        {/* Logo FLOW — nascosto quando il popup è aperto */}
+        <AnimatePresence>
+        {!showForm && (
+        <motion.div
+          key="logoblock"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.25 }}
+          className="flex flex-col items-center mb-5 sm:mb-6 min-h-[min(260px,46vh)] sm:min-h-[min(300px,50vh)] justify-center py-8 sm:py-10 gap-4"
+        >
+          {/* Icona grande centrata — float + illuminazione rotante + click apre form */}
+          <motion.button
+            type="button"
+            aria-label="Apri form di accesso"
+            onClick={() => setShowForm(true)}
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 4, ease: 'easeInOut', repeat: Infinity }}
+            whileTap={{ scale: 0.95 }}
+            className="relative focus:outline-none"
+            style={{ width: 220, height: 220 }}
+          >
+            {/* Alone diffuso pulsante */}
+            <motion.div
+              aria-hidden
+              animate={{ opacity: [0.4, 0.75, 0.4], scale: [1, 1.15, 1] }}
+              transition={{ duration: 4, ease: 'easeInOut', repeat: Infinity }}
+              style={{
+                position: 'absolute',
+                inset: -28,
+                borderRadius: 80,
+                background: 'radial-gradient(ellipse at 50% 60%, rgba(0,82,255,0.32) 0%, rgba(0,82,255,0.10) 55%, transparent 75%)',
+                filter: 'blur(16px)',
+                zIndex: 0,
+              }}
+            />
+            {/* Logo */}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <FlowLogo size={220} showText={false} />
+            </div>
+          </motion.button>
 
-        {/* Scheda login — compatta e più stretta del blocco superiore */}
-        <div className="surface-glass-sm mx-auto w-full max-w-[17.5rem] space-y-2.5 p-3 sm:max-w-xs sm:p-3.5">
+          {/* Hint "Tocca per accedere" — sparisce quando il form è aperto */}
+          <AnimatePresence>
+            {!showForm && (
+              <motion.p
+                key="hint"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.3 }}
+                className="text-[13px] font-semibold text-slate-500 dark:text-neutral-300 tracking-widest uppercase select-none"
+              >
+                Tocca per accedere
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </motion.div>
+        )}
+        </AnimatePresence>
 
-          <div className="mb-0">
-            <h2 className="text-sm font-bold text-slate-800 dark:text-neutral-100 leading-tight">
+        {/* Popup login — overlay centrato */}
+        <AnimatePresence>
+        {showForm && (
+        <motion.div
+          key="loginoverlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-6"
+          style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', background: 'rgba(0,0,0,0.45)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowForm(false); }}
+        >
+        <motion.div
+          key="loginform"
+          initial={{ opacity: 0, y: 32, scale: 0.93 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          transition={{ duration: 0.32, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+        <motion.div animate={shakeControls}>
+        <div
+          className="w-full max-w-xs space-y-2.5 p-5 relative rounded-2xl overflow-hidden"
+          style={{
+            minWidth: 300,
+            background: 'radial-gradient(ellipse at 50% 10%, #0e5f75 0%, #003380 38%, #001055 75%, #000820 100%)',
+            border: '1px solid rgba(51,102,204,0.32)',
+            boxShadow: 'inset 0 2.5px 0 rgba(255,255,255,0.28), inset 0 -1.5px 0 rgba(0,0,0,0.25), inset 1px 0 0 rgba(255,255,255,0.12), inset -1px 0 0 rgba(255,255,255,0.12), 0 24px 60px rgba(0,0,0,0.6), 0 8px 24px rgba(0,26,128,0.35)',
+          }}
+        >
+          {/* Shimmer speculare */}
+          <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 28%, rgba(255,255,255,0.00) 55%, rgba(51,102,204,0.04) 100%)',
+            zIndex: 0,
+          }} />
+          {/* Tasto chiudi */}
+          <button
+            type="button"
+            onClick={() => setShowForm(false)}
+            className="absolute top-2.5 right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors text-base leading-none"
+            aria-label="Chiudi"
+          >✕</button>
+
+          <div className="mb-0 relative z-10">
+            <h2 className="text-sm font-bold text-white leading-tight">
               {t.login_welcome ?? 'Bentornato'}
             </h2>
-            <p className="text-[11px] text-slate-500 dark:text-[#06B6D4]/80 mt-0.5 leading-snug">
+            <p className="text-[11px] text-white/55 mt-0.5 leading-snug">
               {t.login_subtitle ?? 'Accedi con le tue credenziali'}
             </p>
           </div>
 
           {isInviteLink && (
-            <div className="rounded-lg border border-[#0052FF]/25 dark:border-[#0052FF]/35 bg-[#0052FF]/5 dark:bg-[#0052FF]/10 px-2.5 py-2 text-xs text-slate-700 dark:text-neutral-200 space-y-1">
-              <p className="font-semibold text-slate-800 dark:text-neutral-100">{t.login_invite_banner}</p>
+            <div className="relative z-10 rounded-lg px-2.5 py-2 text-xs text-white/80 space-y-1" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.14)' }}>
+              <p className="font-semibold text-white">{t.login_invite_banner}</p>
               {inviteUserId && !linkedUser && users.length > 0 && (
-                <p className="text-xs text-amber-800 dark:text-amber-300">
+                <p className="text-xs text-amber-300">
                   {(t as { login_invite_user_unknown?: string }).login_invite_user_unknown}
                 </p>
               )}
               {linkedUser && linkedUser.status !== 'active' && (
-                <p className="text-xs text-amber-800 dark:text-amber-300">
+                <p className="text-xs text-amber-300">
                   {(t as { admin_employee_access_link_inactive?: string }).admin_employee_access_link_inactive}
                 </p>
               )}
@@ -399,12 +535,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           )}
 
           {/* Nome */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-[#0284C7] dark:text-[#06B6D4]/80 uppercase tracking-wide">
+          <div className="space-y-1 relative z-10">
+            <label className="text-[10px] font-semibold text-white/60 uppercase tracking-wide">
               {t.login_name_label}
             </label>
             <div className="relative">
-              <UserIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#06B6D4]/70 dark:text-[#06B6D4]/60" aria-hidden />
+              <UserIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40" aria-hidden />
               <input
                 ref={staffNameInputRef}
                 type="text"
@@ -416,18 +552,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 placeholder={t.login_name_ph}
                 autoComplete="name"
                 autoFocus={!isInviteLink}
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#06B6D4]/25 dark:border-[#06B6D4]/20 bg-white dark:bg-neutral-900 text-slate-800 dark:text-neutral-100 text-xs uppercase placeholder:text-[11px] placeholder:normal-case placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-[#06B6D4] focus:ring-2 focus:ring-[#06B6D4]/30 focus:shadow-[0_0_0_3px_rgba(6,182,212,0.12)] dark:focus:border-[#06B6D4] dark:focus:ring-[#06B6D4]/35 dark:focus:shadow-[0_0_0_3px_rgba(6,182,212,0.18),0_0_14px_rgba(0,82,255,0.12)] transition-all"
+                className="w-full pl-9 pr-3 py-2 rounded-lg text-white text-xs uppercase placeholder:text-[11px] placeholder:normal-case placeholder:text-white/30 focus:outline-none transition-all"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
               />
             </div>
           </div>
 
           {/* PIN */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-[#0052FF]/80 dark:text-[#0052FF]/70 uppercase tracking-wide">
-              {t.login_password_label ?? 'Password'}
+          <div className="space-y-1 relative z-10">
+            <label className="text-[10px] font-semibold text-white/60 uppercase tracking-wide">
+              {t.login_password_label ?? 'PIN'}
             </label>
             <div className="relative">
-              <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#0052FF]/60 dark:text-[#0052FF]/50" />
+              <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40" />
               <input
                 type="text"
                 inputMode="numeric"
@@ -445,13 +582,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 onKeyDown={handleKeyDown}
                 ref={pinInputRef}
                 placeholder="••••"
-                style={!showPassword ? ({ WebkitTextSecurity: 'disc' } as CSSProperties) : undefined}
-                className="w-full pl-9 pr-9 py-2 rounded-lg border border-[#0052FF]/25 dark:border-[#0052FF]/20 bg-white dark:bg-neutral-900 text-slate-800 dark:text-neutral-100 text-xs placeholder-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-[#0052FF] focus:ring-2 focus:ring-[#0052FF]/30 focus:shadow-[0_0_0_3px_rgba(0,82,255,0.12)] dark:focus:border-[#06B6D4] dark:focus:ring-[#06B6D4]/35 dark:focus:shadow-[0_0_0_3px_rgba(6,182,212,0.18),0_0_14px_rgba(0,82,255,0.12)] transition-all"
+                style={!showPassword ? ({ WebkitTextSecurity: 'disc', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' } as CSSProperties) : { background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
+                className="w-full pl-9 pr-9 py-2 rounded-lg text-white text-xs placeholder-white/30 focus:outline-none transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-400 hover:text-slate-600 dark:hover:text-neutral-200 transition-colors p-0.5"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors p-0.5"
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -464,7 +601,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <motion.p
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-red-600 dark:text-red-400 text-[11px] font-medium text-center bg-red-50 dark:bg-red-950/40 rounded-lg px-2 py-1.5 leading-snug"
+              className="relative z-10 text-red-300 text-[11px] font-medium text-center rounded-lg px-2 py-1.5 leading-snug"
+              style={{ background: 'rgba(255,80,80,0.18)', border: '1px solid rgba(255,100,100,0.25)' }}
             >
               {error}
             </motion.p>
@@ -474,7 +612,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <motion.p
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-[#0052FF] text-[11px] font-medium text-center bg-[#0052FF]/10 dark:bg-[#0052FF]/15 rounded-lg px-2 py-1.5 border border-[#0052FF]/20 dark:border-[#0052FF]/30 leading-snug"
+              className="relative z-10 text-emerald-300 text-[11px] font-medium text-center rounded-lg px-2 py-1.5 leading-snug"
+              style={{ background: 'rgba(0,200,120,0.12)', border: '1px solid rgba(0,200,120,0.22)' }}
             >
               {deviceSuccess}
             </motion.p>
@@ -486,8 +625,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             type="button"
             onClick={handleLogin}
             disabled={!staffName.trim() || !password.trim() || isLoading || deviceLoading || linkDeviceLoading}
-            className="w-full py-2 rounded-lg text-white font-semibold text-xs active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
-            style={{ background: 'linear-gradient(110deg, #06B6D4, #0052FF)' }}
+            className="relative z-10 w-full py-2 rounded-lg text-white font-semibold text-xs active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+            style={{ background: 'rgba(0,82,255,0.80)', border: '1px solid rgba(100,150,255,0.35)' }}
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -497,11 +636,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </button>
 
           {showDeviceSection && (
-            <div className="space-y-2 pt-0.5">
-              <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-400 text-[10px] font-semibold uppercase tracking-wider">
-                <span className="h-px flex-1 bg-slate-200 dark:bg-white/10" aria-hidden />
+            <div className="space-y-2 pt-0.5 relative z-10">
+              <div className="flex items-center gap-2 text-white/35 text-[10px] font-semibold uppercase tracking-wider">
+                <span className="h-px flex-1 bg-white/15" aria-hidden />
                 <span>{t.login_device_or}</span>
-                <span className="h-px flex-1 bg-slate-200 dark:bg-white/10" aria-hidden />
+                <span className="h-px flex-1 bg-white/15" aria-hidden />
               </div>
 
               {hasDeviceLogin && (
@@ -509,7 +648,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   type="button"
                   onClick={handleDeviceLogin}
                   disabled={deviceLoading || isLoading || linkDeviceLoading}
-                  className="w-full py-2 rounded-lg border-2 border-[#0052FF]/35 bg-[#0052FF]/5 text-[#0052FF] font-semibold text-xs hover:bg-[#0052FF]/10 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-2 rounded-lg text-white/80 font-semibold text-xs active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.14)' }}
                 >
                   {deviceLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -526,7 +666,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   onClick={handleLinkDevice}
                   disabled={linkDeviceLoading || isLoading || deviceLoading}
                   title={t.login_device_link_title}
-                  className="w-full py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-neutral-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-2 rounded-lg text-white/60 text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}
                 >
                   {linkDeviceLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -537,6 +678,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </div>
           )}
         </div>
+        </motion.div>
+        </motion.div>
+        </motion.div>
+        )}
+        </AnimatePresence>
 
         {/* Kiosk link — nascosto se kiosk_active è false */}
         {kioskEnabled && (
@@ -544,12 +690,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             {t.login_kiosk_hint ?? 'Stai timbrando?'}{' '}
             <Link
               to={PATH_TIMBRATURA}
-              className="text-[#0052FF] font-semibold hover:text-[#003ACC] transition-colors"
+              className="text-[#001A80] font-semibold hover:text-[#003ACC] transition-colors"
             >
               {t.login_kiosk_link ?? 'Vai al Kiosk →'}
             </Link>
           </p>
         )}
+        </>
       </motion.div>
     </motion.div>
   );

@@ -2,14 +2,63 @@ import { useCallback, useEffect, useState } from 'react';
 
 export type HapticType = 'success' | 'warning' | 'error' | 'click' | 'heavy' | 'medium' | 'light';
 
+/** True se siamo su iOS Safari (non supporta navigator.vibrate) */
+const isIOS = typeof navigator !== 'undefined' &&
+  /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+  !(window as any).MSStream;
+
+/**
+ * Haptic per iOS via Web Audio API:
+ * - oscilla a frequenza sub-bass (1–5 Hz) per pochi ms
+ * - attiva il Taptic Engine indirettamente
+ * - la durata/intensità cambia il tipo di feedback percepito
+ */
+function iosHaptic(type: HapticType) {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    // Frequenza sub-bass — attiva il Taptic Engine senza emettere suono udibile
+    const config: Record<HapticType, { freq: number; dur: number; amp: number }> = {
+      light:   { freq: 1,  dur: 0.008, amp: 0.3 },
+      click:   { freq: 2,  dur: 0.010, amp: 0.5 },
+      medium:  { freq: 2,  dur: 0.015, amp: 0.7 },
+      success: { freq: 3,  dur: 0.020, amp: 0.8 },
+      warning: { freq: 4,  dur: 0.025, amp: 0.9 },
+      heavy:   { freq: 5,  dur: 0.030, amp: 1.0 },
+      error:   { freq: 5,  dur: 0.040, amp: 1.0 },
+    };
+
+    const { freq, dur, amp } = config[type] ?? config.success;
+    const now = ctx.currentTime;
+
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(amp, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    osc.start(now);
+    osc.stop(now + dur);
+    osc.onended = () => ctx.close();
+  } catch {
+    // AudioContext non disponibile — silenzio
+  }
+}
+
 /**
  * Hook per gestire feedback multisensoriale:
- * - Vibrazione tattile (Haptic Feedback)
+ * - Vibrazione tattile (Haptic Feedback) — Android: navigator.vibrate, iOS: Web Audio sub-bass
  * - Suoni notifica
  */
 export function useMultisensorialFeedback() {
   const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
-    // Leggi da localStorage
     const stored = localStorage.getItem('app:soundEnabled');
     return stored !== 'false'; // Default: true
   });
@@ -21,7 +70,9 @@ export function useMultisensorialFeedback() {
 
   const [hapticIntensity, setHapticIntensity] = useState(() => {
     const stored = localStorage.getItem('app:hapticIntensity');
-    return stored ? parseInt(stored, 10) : 100; // Default: 100%
+    const v = stored ? parseInt(stored, 10) : 100;
+    // Ripristina il default se il valore salvato è 0 (evita feedback silenziosi)
+    return v > 0 ? v : 100;
   });
 
   // Persisti le impostazioni
@@ -38,70 +89,62 @@ export function useMultisensorialFeedback() {
   }, [hapticIntensity]);
 
   /**
-   * Feedback aptico (vibrazione tattile).
-   * Ottimizzato per batteria: check supporto e tipo dispositivo.
+   * Feedback aptico.
+   * - iOS: Web Audio sub-bass (attiva Taptic Engine)
+   * - Android/altri: navigator.vibrate
    */
   const triggerHapticFeedback = useCallback((type: HapticType = 'success') => {
-    // Check supporto
-    if (!('vibrate' in navigator) || hapticIntensity === 0) return;
+    if (hapticIntensity === 0) return;
+
+    if (isIOS) {
+      iosHaptic(type);
+      return;
+    }
+
+    if (!('vibrate' in navigator)) return;
 
     try {
       const factor = hapticIntensity / 100;
-      
-      // Vibration patterns (in millisecondi: vibra, pausa, vibra, ...)
       const patterns: Record<HapticType, number[]> = {
-        success: [20 * factor, 40, 20 * factor],
-        warning: [40 * factor, 30, 40 * factor],
-        error: [60 * factor, 40, 60 * factor],
-        click: [25 * factor],
-        heavy: [70 * factor],
-        medium: [40 * factor],
-        light: [15 * factor],
+        success: [Math.round(20 * factor), 40, Math.round(20 * factor)],
+        warning: [Math.round(40 * factor), 30, Math.round(40 * factor)],
+        error:   [Math.round(60 * factor), 40, Math.round(60 * factor)],
+        click:   [Math.round(25 * factor)],
+        heavy:   [Math.round(70 * factor)],
+        medium:  [Math.round(40 * factor)],
+        light:   [Math.round(15 * factor)],
       };
-
-      navigator.vibrate(patterns[type] || patterns.success);
+      navigator.vibrate(patterns[type] ?? patterns.success);
     } catch (err) {
       console.warn('[Haptic] Vibration not available:', err);
     }
   }, [hapticIntensity]);
 
   /**
-   * Riproduci suono di notifica.
-   * Controlla se abilitato e volume.
+   * Riproduci suono di notifica via Web Audio API.
    */
   const playNotificationSound = useCallback(async () => {
     if (!isSoundEnabled) return;
 
     try {
-      // Crea AudioContext per riprodurre il suono
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      // Generare un semplice "ping" sinteticamente
-      // Oppure usare: const audio = new Audio('/sounds/notification.mp3');
-      
-      // Per semplicità, generiamo un suono via Web Audio API
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const audioContext = new AudioCtx();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
-      // Imposta volume (0-1)
+
       gainNode.gain.setValueAtTime(soundVolume / 100, audioContext.currentTime);
-      
-      // Frequenza "ping" più cristallina (A5: 880 Hz)
       oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
       oscillator.type = 'sine';
-      
-      // Durata leggermente più lunga: 150ms
+
       const duration = 0.15;
-      
-      // Envelope ADSR (Attack, Decay, Sustain, Release)
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime); // Attack
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
       gainNode.gain.linearRampToValueAtTime(soundVolume / 100, audioContext.currentTime + 0.01);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration - 0.02);
       gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration);
-      
+
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + duration);
     } catch (err) {
@@ -128,9 +171,9 @@ export function useMultisensorialFeedback() {
     triggerFeedback,
     hapticIntensity,
     setHapticIntensity,
-    isSoundEnabled, 
-    setIsSoundEnabled, 
-    soundVolume, 
+    isSoundEnabled,
+    setIsSoundEnabled,
+    soundVolume,
     setSoundVolume,
   };
 }

@@ -71,7 +71,7 @@ export function MessagesList({
               {/* Icona tipo messaggio */}
               <div className="flex-shrink-0">
                 {isBroadcast ? (
-                  <div className="flex h-5 w-5 items-center justify-center rounded bg-brand-100 dark:bg-[#0052FF]/12 text-brand-700 dark:text-brand-300 text-xs font-bold">
+                  <div className="flex h-5 w-5 items-center justify-center rounded bg-brand-100 dark:bg-[#001A80]/12 text-brand-700 dark:text-brand-300 text-xs font-bold">
                     📢
                   </div>
                 ) : (

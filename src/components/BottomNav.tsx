@@ -211,7 +211,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     { id: 'home', icon: Home, label: t.sidebar_dashboard },
     { id: 'turni', icon: Calendar, label: t.sidebar_shifts },
     { id: 'timesheet', icon: ClipboardList, label: t.sidebar_attendance },
-    { id: 'reports', icon: Clock, label: t.sidebar_statistics },
+    // 'reports' removed — Statistiche now lives as sub-tab inside 'timesheet'
     { id: 'ferie', icon: Palmtree, label: t.sidebar_holidays },
     { id: 'profile', icon: User, label: tv.bottom_nav_profile_short ?? t.sidebar_profile },
     { id: 'settings', icon: ShieldCheck, label: t.sidebar_admin },
@@ -219,6 +219,8 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
 
   const tabs = defs.filter((d) => visible.has(d.id));
   const settingsShort = (t as { bottom_nav_settings_short?: string }).bottom_nav_settings_short;
+  // Tab Admin aggiuntivo per utenti con accesso elevato (non-admin con elevated_role)
+  const hasElevatedAdminTab = !!currentUser?.elevated_role && currentUser.role !== 'admin' && !visible.has('settings');
 
   return (
     <nav
@@ -226,19 +228,36 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
       className={`fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none font-sans ${navClassName ?? ''}`}
       style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 0px))',
-        paddingLeft: 'max(12px, env(safe-area-inset-left, 0px))',
-        paddingRight: 'max(12px, env(safe-area-inset-right, 0px))',
+        paddingLeft: 'max(var(--layout-app-px), env(safe-area-inset-left, 0px))',
+        paddingRight: 'max(var(--layout-app-px), env(safe-area-inset-right, 0px))',
       }}
       aria-label="Navigazione principale"
     >
       <div className="w-full max-w-screen-xl mx-auto pointer-events-auto pb-safe">
         {/* Barra flottante vetro sul brand — `.bottom-nav-glass` in index.css */}
-        <div
-          className={`bottom-nav-glass w-full rounded-2xl px-1 py-1 sm:px-2.5 sm:py-1.5${
-            navOverContent ? ' bottom-nav-glass--over-content' : ''
-          }`}
-        >
-          <div className="flex min-h-[38px] items-stretch justify-between gap-0.5 sm:min-h-[44px]">
+        <div className="bottom-nav-glass w-full rounded-2xl px-1 py-2 sm:px-2.5 sm:py-2.5">
+          <div className="flex items-center justify-around gap-1 sm:gap-1.5">
+            {hasElevatedAdminTab && (
+              <button
+                type="button"
+                onClick={() => onTabChange('settings')}
+                title="Admin"
+                aria-label="Scheda Admin"
+                className={`keep-white-glass flex h-[46px] w-[46px] sm:h-[52px] sm:w-[52px] shrink-0 rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.97] items-center justify-center ${
+                  activeTab === 'settings'
+                    ? 'bg-white/22 text-white'
+                    : 'bg-white/8 text-white/45 hover:bg-white/18 hover:text-white'
+                }`}
+              >
+                <ShieldCheck
+                  className={`h-[22px] w-[22px] sm:h-6 sm:w-6 flex-shrink-0 transition-[color,filter] duration-200 ${
+                    activeTab === 'settings' ? 'nav-icon-3d-active text-white' : 'nav-icon-3d text-white/45'
+                  }`}
+                  strokeWidth={activeTab === 'settings' ? 1.75 : 1.2}
+                  aria-hidden
+                />
+              </button>
+            )}
             {tabs.map(({ id, icon: Icon, label }) => {
               const isActive = activeTab === id;
               const displayLabel =
@@ -255,7 +274,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                 id === 'profile' && profileNavLabel
                   ? `${t.sidebar_profile}, ${profileNavLabel}`
                   : displayLabel;
-              const over = navOverContent;
+              const over = false;
 
               return (
                 <button
@@ -280,10 +299,14 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   onTouchMove={handleLongPressEnd}
                   title={buttonTitle}
                   aria-label={ariaLabel}
-                  className={`keep-white-glass flex flex-1 min-w-0 min-h-[38px] sm:min-h-[44px] rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] items-center justify-center px-0.5 py-1 ${
+                  className={`keep-white-glass flex h-[46px] w-[46px] sm:h-[52px] sm:w-[52px] shrink-0 rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] items-center justify-center ${
                     over
-                      ? 'text-accent/65 dark:text-neutral-400 hover:bg-accent/10 dark:hover:bg-white/10 hover:text-accent dark:hover:text-white focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
-                      : 'text-white/45 hover:bg-white/15 hover:text-white focus-visible:ring-white/35 focus-visible:ring-offset-transparent'
+                      ? isActive
+                        ? 'bg-white dark:bg-neutral-900 shadow-[0_0_6px_1px_rgba(0,26,128,0.22),0_0_14px_3px_rgba(51,102,204,0.12)] text-accent dark:text-white focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
+                        : 'bg-white/60 dark:bg-neutral-800/50 text-accent/55 dark:text-neutral-400 hover:bg-white dark:hover:bg-neutral-900 hover:text-accent dark:hover:text-white focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
+                      : isActive
+                        ? 'bg-white/22 text-white focus-visible:ring-white/35 focus-visible:ring-offset-transparent'
+                        : 'bg-white/8 text-white/45 hover:bg-white/18 hover:text-white focus-visible:ring-white/35 focus-visible:ring-offset-transparent'
                   }`}
                 >
                   {showProfilePic ? (
@@ -313,7 +336,9 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                     </span>
                   ) : (
                     <Icon
-                      className={`h-[22px] w-[22px] sm:h-6 sm:w-6 flex-shrink-0 transition-[color] duration-200 ${
+                      className={`h-[22px] w-[22px] sm:h-6 sm:w-6 flex-shrink-0 transition-[color,filter] duration-200 ${
+                        !over ? (isActive ? 'nav-icon-3d-active' : 'nav-icon-3d') : ''
+                      } ${
                         over
                           ? isActive ? 'text-accent dark:text-white' : 'text-accent/55 dark:text-neutral-400'
                           : isActive ? 'text-white' : 'text-white/45'

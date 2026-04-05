@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { X, Save, Copy, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
@@ -14,6 +15,7 @@ interface EditShiftModalProps {
 }
 
 export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) {
+  useBodyScrollLock(true);
   const { users, shifts, updateShift, deleteShift, copyShift, effectiveLanguage, showError } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [tempShifts, setTempShifts] = useState({
@@ -69,7 +71,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/35 backdrop-blur-sm dark:bg-black/50 z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div

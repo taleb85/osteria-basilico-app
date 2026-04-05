@@ -11,24 +11,7 @@ import type { HolidayRequest } from '../types';
 import { safeFormatDate } from '../utils/safeDateFormat';
 
 // ─── Status helpers ────────────────────────────────────────────────────────────
-const STATUS_CONFIG = {
-  approved: {
-    label: 'Approvata',
-    dot: 'bg-[#06B6D4]',
-    badge:
-      'bg-[#06B6D4]/15 text-[#0284C7] dark:bg-[#06B6D4]/20 dark:text-[#06B6D4] border border-[#06B6D4]/30 dark:border-[#06B6D4]/40',
-  },
-  pending: {
-    label: 'In attesa',
-    dot: 'bg-amber-400',
-    badge: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-200 border border-amber-200/80 dark:border-amber-800/50',
-  },
-  rejected: {
-    label: 'Rifiutata',
-    dot: 'bg-red-500',
-    badge: 'bg-red-100 text-red-800 dark:bg-red-950/45 dark:text-red-200 border border-red-200/80 dark:border-red-800/50',
-  },
-} as const;
+// STATUS_CONFIG is built inside the component to use translations
 
 export default function HolidayRequests() {
   const { currentUser, holidays, users, addHolidayRequest, updateHolidayStatus, showSuccess, silentRefreshData, effectiveLanguage, featureFlags } = useApp();
@@ -52,6 +35,24 @@ export default function HolidayRequests() {
   if (!currentUser) return null;
 
   const t = getTranslations(effectiveLanguage);
+
+  const STATUS_CONFIG = {
+    approved: {
+      label: t.status_approved,
+      dot: 'bg-[#3366CC]',
+      badge: 'bg-[#3366CC]/15 text-[#2255BB] dark:bg-[#3366CC]/20 dark:text-[#3366CC] border border-[#3366CC]/30 dark:border-[#3366CC]/40',
+    },
+    pending: {
+      label: t.pending,
+      dot: 'bg-amber-400',
+      badge: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-200 border border-amber-200/80 dark:border-amber-800/50',
+    },
+    rejected: {
+      label: t.rejected,
+      dot: 'bg-red-500',
+      badge: 'bg-red-100 text-red-800 dark:bg-red-950/45 dark:text-red-200 border border-red-200/80 dark:border-red-800/50',
+    },
+  } as const;
 
   if (featureFlags['staff_requests'] === false) {
     return (
@@ -186,11 +187,11 @@ export default function HolidayRequests() {
 
   // ── Shared input style ────────────────────────────────────────────────────
   const inputCls =
-    'w-full rounded-lg border border-[#06B6D4]/25 dark:border-[#06B6D4]/20 bg-white dark:bg-neutral-950 px-3 py-2 text-sm text-slate-900 dark:text-neutral-100 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:border-[#06B6D4] focus:ring-2 focus:ring-[#06B6D4]/20 focus:shadow-[0_0_0_3px_rgba(6,182,212,0.10)]';
-  const labelCls = 'block text-xs font-semibold text-[#0284C7]/80 dark:text-[#06B6D4]/70 uppercase tracking-wider mb-1';
+    'w-full rounded-lg border border-[#3366CC]/25 dark:border-[#3366CC]/35 bg-white dark:bg-neutral-950 px-3 py-2 text-sm text-slate-900 dark:text-neutral-100 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:border-[#3366CC] focus:ring-2 focus:ring-[#3366CC]/20 focus:shadow-[0_0_0_3px_rgba(51,102,204,0.10)]';
+  const labelCls = 'block text-xs font-semibold text-[#2255BB]/80 dark:text-[#3366CC]/70 uppercase tracking-wider mb-1';
 
   return (
-    <div className="pb-content pt-6 w-full max-w-full font-sans">
+    <div className="pb-content pt-4 px-4 w-full max-w-full font-sans">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -201,7 +202,7 @@ export default function HolidayRequests() {
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-neutral-300">
-            {isAdmin ? `${pendingAll.length} richieste in attesa` : `${myHolidays.length} richieste totali`}
+            {isAdmin ? `${pendingAll.length} ${t.pending}` : `${myHolidays.length} ${t.request_holiday}`}
           </p>
         </div>
         <button
@@ -233,7 +234,7 @@ export default function HolidayRequests() {
               className="modal-glass-panel w-full max-w-md rounded-2xl p-6"
             >
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-base">Nuova richiesta</h3>
+                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-base">{t.new_request}</h3>
                 <button type="button" onClick={() => setShowForm(false)}
                   className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 transition-colors hover:bg-slate-200 dark:hover:bg-neutral-700">
                   <X className="h-4 w-4" />
@@ -243,28 +244,28 @@ export default function HolidayRequests() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelCls}>Data inizio</label>
+                    <label className={labelCls}>{t.holiday_start_date ?? 'Data inizio'}</label>
                     <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required className={inputCls} />
                   </div>
                   <div>
-                    <label className={labelCls}>Data fine</label>
+                    <label className={labelCls}>{t.holiday_end_date ?? 'Data fine'}</label>
                     <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required min={startDate} className={inputCls} />
                   </div>
                 </div>
 
                 <div>
-                  <label className={labelCls}>Motivazione <span className="text-slate-400 dark:text-neutral-500 normal-case font-normal">(opzionale)</span></label>
+                  <label className={labelCls}>{t.holiday_request_reason} <span className="text-slate-400 dark:text-neutral-500 normal-case font-normal">{t.holiday_request_reason_optional}</span></label>
                   <textarea
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder="Es. Visita medica, ferie estive…"
+                    placeholder={t.holiday_request_reason_placeholder}
                     className={`${inputCls} resize-none h-20`}
                   />
                 </div>
 
                 <button type="submit" className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-accent text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent-hover">
                   <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                  Invia richiesta
+                  {t.request_holiday}
                 </button>
               </div>
             </motion.form>
@@ -290,7 +291,7 @@ export default function HolidayRequests() {
               className="modal-glass-panel w-full max-w-sm rounded-2xl p-6"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold">Richiesta in attesa</h3>
+                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold">{t.pending}</h3>
                 <button type="button" onClick={() => setSelectedH(null)}
                   className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 transition-colors hover:bg-slate-200 dark:hover:bg-neutral-700">
                   <X className="h-4 w-4" />
@@ -300,7 +301,7 @@ export default function HolidayRequests() {
                 const u = users.find((u) => u.id === selectedH.user_id);
                 return (
                   <>
-                    <div className="surface-glass-sm mb-4 bg-slate-50/40 p-4 dark:bg-neutral-900/25">
+                    <div className="surface-glass-sm mb-4 bg-slate-50/40 p-4 dark:bg-transparent">
                       <p className="text-slate-900 dark:text-neutral-100 font-semibold text-sm">{u?.first_name} {u?.last_name}</p>
                       <p className="text-slate-600 dark:text-neutral-300 text-xs mt-1">
                         {safeFormatDate(selectedH.start_date, 'd MMM', { locale: it })} – {safeFormatDate(selectedH.end_date, 'd MMM yyyy', { locale: it })}
@@ -321,7 +322,7 @@ export default function HolidayRequests() {
                         ) : (
                           <>
                             <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                            Approva
+                            {t.approve}
                           </>
                         )}
                       </button>
@@ -336,7 +337,7 @@ export default function HolidayRequests() {
                         ) : (
                           <>
                             <X className="w-3.5 h-3.5" strokeWidth={3} />
-                            Rifiuta
+                            {t.rejected}
                           </>
                         )}
                       </button>
@@ -361,14 +362,14 @@ export default function HolidayRequests() {
                 {format(now, 'MMMM yyyy', { locale: it })}
               </h3>
               <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-neutral-400">
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />In attesa</span>
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#06B6D4] inline-block" />Approvata</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />{t.pending}</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#3366CC] inline-block" />{t.status_approved}</span>
               </div>
             </div>
 
             <div className="grid grid-cols-7 gap-0.5 mb-1">
               {weekDays.map((d, i) => (
-                <div key={i} className="text-center text-xs font-semibold text-[#0284C7]/70 dark:text-[#06B6D4]/60 uppercase">{d}</div>
+                <div key={i} className="text-center text-xs font-semibold text-[#2255BB]/70 dark:text-[#3366CC]/60 uppercase">{d}</div>
               ))}
             </div>
             <div className="grid grid-cols-7 gap-1">
@@ -384,12 +385,12 @@ export default function HolidayRequests() {
                     onClick={() => isPending && isAdmin && setSelectedH(holiday)}
                     className={`min-h-[44px] min-w-[44px] aspect-square rounded-xl flex items-center justify-center text-xs font-semibold transition-all select-none touch-target
                       ${isPending && isAdmin ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}
-                      ${status === 'approved' ? 'bg-[#06B6D4]/15 text-[#0284C7] dark:bg-[#06B6D4]/18 dark:text-[#06B6D4] ring-1 ring-[#06B6D4]/25' :
+                      ${status === 'approved' ? 'bg-[#3366CC]/15 text-[#2255BB] dark:bg-[#3366CC]/18 dark:text-[#3366CC] ring-1 ring-[#3366CC]/25' :
                         status === 'pending'  ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/45 dark:text-amber-200'  :
                         status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-200'    :
-                        today                 ? 'text-white ring-1 ring-[#06B6D4]/40' :
-                        'text-slate-600 dark:text-neutral-300 hover:bg-[#06B6D4]/8 dark:hover:bg-[#06B6D4]/10'}`}
-                    style={today && !status ? { background: 'linear-gradient(110deg, #06B6D4, #0052FF)' } : undefined}
+                        today                 ? 'text-white ring-1 ring-[#3366CC]/40' :
+                        'text-slate-600 dark:text-neutral-300 hover:bg-[#3366CC]/8 dark:hover:bg-[#3366CC]/10'}`}
+                    style={today && !status ? { background: 'linear-gradient(110deg, #3366CC, #001A80)' } : undefined}
                   >
                     {format(day, 'd')}
                   </div>
@@ -402,12 +403,12 @@ export default function HolidayRequests() {
           {/* My requests list (staff only) */}
           {!isAdmin && uiW('ferie.list') && (
             <div className="surface-glass overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#06B6D4]/15 dark:border-[#06B6D4]/12">
-                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">Le mie richieste</h3>
+              <div className="px-5 py-4 border-b border-[#3366CC]/15 dark:border-[#3366CC]/12">
+                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">{t.request_holiday}</h3>
               </div>
-              <div className="divide-y divide-[#06B6D4]/10 dark:divide-[#06B6D4]/8 max-h-80 overflow-y-auto">
+              <div className="divide-y divide-[#3366CC]/10 dark:divide-[#3366CC]/8 max-h-80 overflow-y-auto">
                 {myHolidays.length === 0 ? (
-                  <p className="text-slate-600 dark:text-neutral-300 text-sm text-center py-10">Nessuna richiesta</p>
+                  <p className="text-slate-600 dark:text-neutral-300 text-sm text-center py-10">{t.no_holidays_yet}</p>
                 ) : myHolidays
                     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                     .map((h) => {
@@ -439,18 +440,18 @@ export default function HolidayRequests() {
           {/* Pending (manager) */}
           {isAdmin && uiW('ferie.list') && pendingAll.length > 0 && (
             <div className="surface-glass overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#06B6D4]/15 dark:border-[#06B6D4]/12 flex items-center justify-between">
-                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">Richieste in attesa</h3>
+              <div className="px-5 py-4 border-b border-[#3366CC]/15 dark:border-[#3366CC]/12 flex items-center justify-between">
+                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">{t.pending}</h3>
                 <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-200 text-xs font-bold border border-amber-200/80 dark:border-amber-800/50">{pendingAll.length}</span>
               </div>
-              <div className="divide-y divide-[#06B6D4]/10 dark:divide-[#06B6D4]/8">
+              <div className="divide-y divide-[#3366CC]/10 dark:divide-[#3366CC]/8">
                 {pendingAll.map((h) => {
                   const u = users.find((u) => u.id === h.user_id);
                   return (
                     <div key={h.id} className="flex items-center justify-between px-5 py-3.5">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="min-w-0">
-                          <p className="text-slate-900 text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
+                          <p className="text-slate-900 dark:text-neutral-100 text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
                           <p className="text-slate-600 text-xs">
                             {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                             {h.reason && ` · ${h.reason}`}
@@ -469,7 +470,7 @@ export default function HolidayRequests() {
                           ) : (
                             <>
                               <Check className="h-3 w-3" strokeWidth={3} />
-                              Approva
+                              {t.approve}
                             </>
                           )}
                         </button>
@@ -484,7 +485,7 @@ export default function HolidayRequests() {
                           ) : (
                             <>
                               <X className="w-3 h-3" strokeWidth={3} />
-                              Rifiuta
+                              {t.rejected}
                             </>
                           )}
                         </button>
@@ -500,9 +501,9 @@ export default function HolidayRequests() {
           {isAdmin && uiW('ferie.list') && approvedFuture.length > 0 && (
             <div className="surface-glass p-4 overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-50 dark:border-white/10">
-                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">Prossime ferie approvate</h3>
+                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">{t.home_upcoming_holidays}</h3>
               </div>
-              <div className="divide-y divide-[#06B6D4]/10 dark:divide-[#06B6D4]/8 max-h-80 overflow-y-auto">
+              <div className="divide-y divide-[#3366CC]/10 dark:divide-[#3366CC]/8 max-h-80 overflow-y-auto">
                 {approvedFuture
                   .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
                   .map((h) => {
@@ -518,8 +519,8 @@ export default function HolidayRequests() {
                             </p>
                           </div>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full bg-[#06B6D4]/15 dark:bg-[#06B6D4]/20 text-[#0284C7] dark:text-[#06B6D4] text-xs font-semibold uppercase border border-[#06B6D4]/30 dark:border-[#06B6D4]/40">
-                          Approvata
+                        <span className="px-2 py-0.5 rounded-full bg-[#3366CC]/15 dark:bg-[#3366CC]/20 text-[#2255BB] dark:text-[#3366CC] text-xs font-semibold uppercase border border-[#3366CC]/30 dark:border-[#3366CC]/40">
+                          {t.status_approved}
                         </span>
                       </div>
                     );
@@ -532,17 +533,17 @@ export default function HolidayRequests() {
           {isAdmin && uiW('ferie.list') && pendingAll.length === 0 && approvedFuture.length === 0 && (
             <div className="surface-glass p-12 flex flex-col items-center justify-center text-center">
               <Palmtree className="w-10 h-10 text-accent dark:text-accent-light mb-3 opacity-90" />
-              <p className="text-slate-600 dark:text-neutral-300 text-sm">Nessuna richiesta di ferie</p>
+              <p className="text-slate-600 dark:text-neutral-300 text-sm">{t.no_holidays_yet}</p>
             </div>
           )}
 
           {/* Staff: my upcoming approved */}
           {!isAdmin && uiW('ferie.list') && myHolidays.filter(h => h.status === 'approved' && new Date(h.end_date) >= new Date()).length > 0 && (
             <div className="surface-glass overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-50">
-                <h3 className="text-slate-900 font-semibold text-xl">Prossime ferie</h3>
+              <div className="px-5 py-4 border-b border-slate-100 dark:border-white/8">
+                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">{t.home_upcoming_holidays}</h3>
               </div>
-              <div className="divide-y divide-[#06B6D4]/10">
+              <div className="divide-y divide-[#3366CC]/10">
                 {myHolidays
                   .filter(h => h.status === 'approved' && new Date(h.end_date) >= new Date())
                   .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
@@ -554,7 +555,7 @@ export default function HolidayRequests() {
                           {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                         </span>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full bg-[#06B6D4]/15 dark:bg-[#06B6D4]/20 text-[#0284C7] dark:text-[#06B6D4] text-xs font-semibold uppercase border border-[#06B6D4]/30 dark:border-[#06B6D4]/40">Approvata</span>
+                      <span className="px-2 py-0.5 rounded-full bg-[#3366CC]/15 dark:bg-[#3366CC]/20 text-[#2255BB] dark:text-[#3366CC] text-xs font-semibold uppercase border border-[#3366CC]/30 dark:border-[#3366CC]/40">{t.status_approved}</span>
                     </div>
                   ))}
               </div>

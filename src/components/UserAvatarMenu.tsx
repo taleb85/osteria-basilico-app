@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, LogOut } from 'lucide-react';
@@ -29,6 +30,7 @@ export default function UserAvatarMenu({
   const t = getTranslations(effectiveLanguage);
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const [isOpen, setIsOpen] = useState(false);
+  useBodyScrollLock(isOpen);
   const [showPortal, setShowPortal] = useState(false);
   const [formData, setFormData] = useState<ProfileFormSelfData>({
     first_name: '',
@@ -213,7 +215,7 @@ export default function UserAvatarMenu({
               >
                 <div
                   onClick={() => setIsOpen(false)}
-                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
+                  className="fixed inset-0 bg-black/35 backdrop-blur-sm dark:bg-black/50 z-[9998]"
                 />
                 <motion.div
                   ref={modalRef}

@@ -1,47 +1,53 @@
-import { Bell, BellOff, Loader2, AlertCircle } from 'lucide-react';
+import { Bell, BellOff, Loader2, AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import { usePushNotifications } from '../hooks/usePushNotifications';
-import { getTranslations } from '../utils/translations';
 
 interface NotificationPermissionButtonProps {
   effectiveLanguage?: string;
   compact?: boolean;
+  userId?: string;
 }
 
-/**
- * Componente per richiedere e gestire le Push Notifications.
- * Mostra uno stato visivo dell'iscrizione alle notifiche.
- */
 export function NotificationPermissionButton({
-  effectiveLanguage = 'it',
   compact = false,
+  userId,
 }: NotificationPermissionButtonProps) {
-  const t = getTranslations(effectiveLanguage);
   const {
     notificationPermission,
     isSubscribed,
     isLoading,
     error,
+    savedOk,
     requestNotificationPermission,
     unsubscribeFromPushNotifications,
     isPushNotificationSupported,
-  } = usePushNotifications();
+  } = usePushNotifications(userId);
 
-  // Se il browser non supporta le push notifications, non mostrare il pulsante
+  // Browser che non supporta push (es. Safari < 16, Firefox su iOS)
   if (!isPushNotificationSupported) {
-    return null;
-  }
-
-  // Se il permesso è stato negato, mostra un messaggio
-  if (notificationPermission === 'denied') {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
-        <AlertCircle className="h-4 w-4 flex-shrink-0" />
-        <span>Notifiche disabilitate nel browser</span>
+      <div className="flex items-start gap-2 px-3 py-2.5 text-xs font-medium text-slate-500 dark:text-neutral-400 bg-slate-50 dark:bg-neutral-800/50 rounded-lg border border-slate-100 dark:border-neutral-700">
+        <Info className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+        <span>Notifiche push non supportate su questo browser. Usa Chrome, Edge o Firefox.</span>
       </div>
     );
   }
 
-  const handleToggleNotifications = async () => {
+  // Permesso bloccato esplicitamente dall'utente
+  if (notificationPermission === 'denied') {
+    return (
+      <div className="flex items-start gap-2 px-3 py-2.5 text-xs font-semibold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
+        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+        <div className="flex flex-col gap-0.5">
+          <span>Notifiche bloccate nel browser</span>
+          <span className="font-normal text-red-600 dark:text-red-400">
+            Vai su: Impostazioni browser → Sito → Notifiche → Consenti
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  const handleToggle = async () => {
     if (isSubscribed) {
       await unsubscribeFromPushNotifications();
     } else {
@@ -49,30 +55,25 @@ export function NotificationPermissionButton({
     }
   };
 
-  const buttonText = isSubscribed ? 'Notifiche Attive' : 'Attiva Notifiche';
-  const buttonClass = isSubscribed
-    ? 'bg-brand-50 dark:bg-[#0052FF]/10 text-brand-700 dark:text-brand-300 border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-[#0052FF]/15'
-    : 'bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800';
-
   if (compact) {
     return (
       <button
         type="button"
-        onClick={handleToggleNotifications}
+        onClick={handleToggle}
         disabled={isLoading}
-        title={isSubscribed ? 'Disattiva notifiche' : 'Attiva notifiche'}
-        className={`inline-flex items-center justify-center h-10 w-10 rounded-lg transition-colors ${
+        title={isSubscribed ? 'Notifiche attive — clicca per disattivare' : 'Attiva notifiche push'}
+        className={`inline-flex items-center justify-center h-10 w-10 rounded-lg transition-colors disabled:opacity-50 ${
           isSubscribed
-            ? 'bg-brand-100 dark:bg-[#0052FF]/12 text-brand-700 dark:text-brand-300 hover:bg-brand-200 dark:hover:bg-[#0052FF]/18'
-            : 'bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
-        } disabled:opacity-50`}
+            ? 'bg-brand-100 dark:bg-[#001A80]/12 text-brand-700 dark:text-brand-300'
+            : 'bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+        }`}
       >
         {isLoading ? (
           <Loader2 className="h-5 w-5 animate-spin" />
         ) : isSubscribed ? (
-          <Bell className="h-5 w-5 flex-shrink-0" />
+          <Bell className="h-5 w-5" />
         ) : (
-          <BellOff className="h-5 w-5 flex-shrink-0" />
+          <BellOff className="h-5 w-5" />
         )}
       </button>
     );
@@ -82,30 +83,47 @@ export function NotificationPermissionButton({
     <div className="flex flex-col gap-2">
       <button
         type="button"
-        onClick={handleToggleNotifications}
+        onClick={handleToggle}
         disabled={isLoading}
-        className={`flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${buttonClass}`}
+        className={`flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-semibold rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+          isSubscribed
+            ? 'bg-brand-50 dark:bg-[#001A80]/10 text-brand-700 dark:text-brand-300 border-brand-200 dark:border-brand-800'
+            : 'bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800'
+        }`}
       >
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : isSubscribed ? (
-          <Bell className="h-4 w-4 flex-shrink-0" />
+          <Bell className="h-4 w-4" />
         ) : (
-          <BellOff className="h-4 w-4 flex-shrink-0" />
+          <BellOff className="h-4 w-4" />
         )}
-        <span>{buttonText}</span>
+        <span>{isSubscribed ? 'Notifiche Attive' : 'Attiva Notifiche'}</span>
+        {isSubscribed && savedOk && (
+          <CheckCircle2 className="h-3.5 w-3.5 text-green-500 ml-auto" />
+        )}
       </button>
 
+      {/* Conferma salvataggio */}
+      {isSubscribed && savedOk && (
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-green-600 dark:text-green-400">
+          <CheckCircle2 className="h-3 w-3" />
+          <span>Subscription salvata — riceverai notifiche su questo dispositivo</span>
+        </div>
+      )}
+
+      {/* Errore */}
       {error && (
-        <div className="flex items-center gap-2 text-xs text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-800">
-          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+        <div className="flex items-start gap-2 text-xs text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-800">
+          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
 
+      {/* Suggerimento iniziale */}
       {notificationPermission === 'default' && !isSubscribed && (
-        <p className="text-[11px] text-slate-600 dark:text-slate-400">
-          Attiva le notifiche per ricevere aggiornamenti su approvazioni e modifiche turni.
+        <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-relaxed">
+          Attiva su ogni dispositivo per ricevere messaggi anche a schermo spento.
         </p>
       )}
     </div>

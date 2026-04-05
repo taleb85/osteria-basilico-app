@@ -1,0 +1,547 @@
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Send, Plus, X, Loader2, MessageCircle } from 'lucide-react';
+import { useMessages, groupIntoConversations } from '../hooks/useMessages';
+import { useApp } from '../context/AppContext';
+import { isManagementRole } from '../utils/permissions';
+import type { User } from '../types';
+
+const BRAND = '#0052FF';
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDateLabel(iso: string) {
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (d.toDateString() === today.toDateString()) return 'Oggi';
+  if (d.toDateString() === yesterday.toDateString()) return 'Ieri';
+  return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+}
+
+function UserAvatar({ user, size = 40 }: { user?: User; size?: number }) {
+  const initial = (user?.first_name?.charAt(0) ?? '?').toUpperCase();
+  const colors = ['#0052FF', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2'];
+  const colorIndex = user
+    ? user.first_name?.charCodeAt(0) ?? 0
+    : 0;
+  const bg = colors[colorIndex % colors.length];
+
+  if (user?.avatar_url) {
+    return (
+      <img
+        src={user.avatar_url}
+        alt=""
+        className="rounded-full object-cover flex-shrink-0"
+        style={{ width: size, height: size }}
+        draggable={false}
+      />
+    );
+  }
+  return (
+    <div
+      className="rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold select-none"
+      style={{ width: size, height: size, background: bg, fontSize: size * 0.38 }}
+    >
+      {initial}
+    </div>
+  );
+}
+
+// ─── New chat picker overlay ──────────────────────────────────────────────────
+function NewChatPicker({
+  users,
+  currentUserId,
+  currentUserIsManagement,
+  onSelect,
+  onClose,
+}: {
+  users: User[];
+  currentUserId: string;
+  currentUserIsManagement: boolean;
+  onSelect: (user: User) => void;
+  onClose: () => void;
+}) {
+  const [search, setSearch] = useState('');
+  const filtered = users
+    .filter(
+      (u) =>
+        u.id !== currentUserId &&
+        u.status === 'active' &&
+        // Dipendenti non-gestionali possono scrivere solo a manager/admin
+        (currentUserIsManagement || isManagementRole(u.role)) &&
+        `${u.first_name} ${u.last_name ?? ''}`.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => (a.first_name ?? '').localeCompare(b.first_name ?? ''));
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="absolute inset-0 z-20 flex min-h-0 flex-col bg-white dark:bg-neutral-900 rounded-[inherit]"
+    >
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-100 dark:border-neutral-800">
+        <button
+          onClick={onClose}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white flex-1">Nuova conversazione</h3>
+      </div>
+      <div className="px-4 pt-3 pb-2">
+        <input
+          autoFocus
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cerca dipendente..."
+          className="w-full rounded-xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#0052FF] transition-colors"
+        />
+      </div>
+      <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-2 pb-4 [-webkit-overflow-scrolling:touch]">
+        {filtered.length === 0 ? (
+          <p className="text-center text-xs text-slate-400 py-8">Nessun dipendente trovato</p>
+        ) : (
+          filtered.map((u) => (
+            <button
+              key={u.id}
+              onClick={() => onSelect(u)}
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors text-left"
+            >
+              <UserAvatar user={u} size={38} />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                  {u.first_name} {u.last_name ?? ''}
+                </p>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wide">{u.role}</p>
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Chat bubble ──────────────────────────────────────────────────────────────
+function ChatBubble({ body, time, isMine }: { body: string; time: string; isMine: boolean }) {
+  return (
+    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+      <div
+        className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm ${
+          isMine
+            ? 'rounded-br-[4px]'
+            : 'bg-slate-100 dark:bg-white/[0.10] rounded-bl-[4px]'
+        }`}
+        style={isMine ? { background: BRAND, borderBottomRightRadius: 4 } : undefined}
+      >
+        <p
+          className={`text-sm leading-snug whitespace-pre-wrap break-words ${
+            isMine ? 'text-white' : 'text-slate-900 dark:text-neutral-100'
+          }`}
+        >
+          {body}
+        </p>
+        <p
+          className={`text-[10px] mt-1 text-right ${
+            isMine ? 'text-white/65' : 'text-slate-400 dark:text-neutral-400'
+          }`}
+        >
+          {time}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Chat View ────────────────────────────────────────────────────────────────
+function ChatView({
+  contactId,
+  currentUserId,
+  onBack,
+  messages,
+  sendMessage,
+  markAsRead,
+  users,
+}: {
+  contactId: string;
+  currentUserId: string;
+  onBack: () => void;
+  messages: ReturnType<typeof useMessages>['messages'];
+  sendMessage: ReturnType<typeof useMessages>['sendMessage'];
+  markAsRead: ReturnType<typeof useMessages>['markAsRead'];
+  users: User[];
+}) {
+  const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const contact = users.find((u) => u.id === contactId);
+
+  const threadMessages = useMemo(
+    () =>
+      messages
+        .filter(
+          (m) =>
+            m.message_type === 'private' &&
+            ((m.sender_id === currentUserId && m.recipient_id === contactId) ||
+              (m.sender_id === contactId && m.recipient_id === currentUserId))
+        )
+        .sort(
+          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        ),
+    [messages, currentUserId, contactId]
+  );
+
+  // Mark unread incoming messages as read when thread opens
+  useEffect(() => {
+    const unread = threadMessages.filter(
+      (m) => !m.is_read && m.sender_id === contactId
+    );
+    unread.forEach((m) => markAsRead(m.id));
+  }, [contactId]); // intentionally only on mount / contact change
+
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [threadMessages.length]);
+
+  // Group messages by date for separators
+  const grouped = useMemo(() => {
+    const result: { label: string; msgs: typeof threadMessages }[] = [];
+    let lastLabel = '';
+    for (const msg of threadMessages) {
+      const label = formatDateLabel(msg.created_at);
+      if (label !== lastLabel) {
+        result.push({ label, msgs: [] });
+        lastLabel = label;
+      }
+      result[result.length - 1].msgs.push(msg);
+    }
+    return result;
+  }, [threadMessages]);
+
+  const handleSend = useCallback(async () => {
+    const body = text.trim();
+    if (!body || sending) return;
+    setSending(true);
+    setText('');
+    try {
+      await sendMessage(body.slice(0, 40) || 'Messaggio', body, contactId);
+    } finally {
+      setSending(false);
+      inputRef.current?.focus();
+    }
+  }, [text, sending, sendMessage, contactId]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <motion.div
+      key="chat"
+      initial={{ x: '100%', opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: '100%', opacity: 0 }}
+      transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+      className="absolute inset-0 flex min-h-0 flex-col bg-white dark:bg-neutral-900 rounded-[inherit]"
+    >
+      {/* Header */}
+      <div
+        className="flex items-center gap-3 px-3 py-3 shrink-0 border-b border-slate-100 dark:border-neutral-800"
+        style={{ background: BRAND }}
+      >
+        <button
+          onClick={onBack}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-white/80 hover:bg-white/15 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <UserAvatar user={contact} size={34} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-white truncate leading-tight">
+            {contact ? `${contact.first_name} ${contact.last_name ?? ''}`.trim() : '—'}
+          </p>
+          <p className="text-[10px] text-white/60 uppercase tracking-wide leading-none mt-0.5">
+            {contact?.role ?? ''}
+          </p>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-4 py-4 space-y-1 [-webkit-overflow-scrolling:touch]">
+        {grouped.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-400">
+            <MessageCircle className="w-10 h-10 opacity-20" />
+            <p className="text-xs">Inizia la conversazione</p>
+          </div>
+        )}
+        {grouped.map(({ label, msgs }) => (
+          <div key={label}>
+            <div className="flex items-center justify-center my-3">
+              <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-neutral-800 text-[10px] font-semibold text-slate-400 uppercase tracking-wide">
+                {label}
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {msgs.map((m) => (
+                <ChatBubble
+                  key={m.id}
+                  body={m.body}
+                  time={formatTime(m.created_at)}
+                  isMine={m.sender_id === currentUserId}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div className="px-3 py-3 border-t border-slate-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shrink-0">
+        <div className="flex items-end gap-2">
+          <textarea
+            ref={inputRef}
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value);
+              const el = e.target as HTMLTextAreaElement;
+              el.style.height = 'auto';
+              el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="Scrivi un messaggio..."
+            rows={1}
+            className="flex-1 resize-none rounded-2xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-[#0052FF] transition-colors"
+            style={{ maxHeight: 120, overflowY: 'auto' }}
+          />
+          <button
+            onClick={handleSend}
+            disabled={!text.trim() || sending}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-all active:scale-90 disabled:opacity-40"
+            style={{ background: BRAND }}
+          >
+            {sending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Conversation List ────────────────────────────────────────────────────────
+function ConversationList({
+  conversations,
+  users,
+  currentUserId,
+  currentUserIsManagement,
+  onSelect,
+  onNewChat,
+  onClose,
+}: {
+  conversations: ReturnType<typeof groupIntoConversations>;
+  users: User[];
+  currentUserId: string;
+  currentUserIsManagement: boolean;
+  onSelect: (contactId: string) => void;
+  onNewChat: () => void;
+  onClose?: () => void;
+}) {
+  return (
+    <motion.div
+      key="list"
+      initial={{ x: '-100%', opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: '-100%', opacity: 0 }}
+      transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+      className="absolute inset-0 flex min-h-0 flex-col bg-white dark:bg-neutral-900 rounded-[inherit]"
+    >
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-4 py-4 shrink-0 border-b border-slate-100 dark:border-neutral-800"
+        style={{ background: BRAND }}
+      >
+        <h2 className="text-base font-bold text-white tracking-tight">Messaggi</h2>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onNewChat}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors"
+            title="Nuova chat"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors"
+              title="Chiudi"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* List */}
+      <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]">
+        {conversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 px-6 py-10 text-center">
+            <div
+              className="flex h-16 w-16 items-center justify-center rounded-2xl"
+              style={{ background: 'rgba(0,82,255,0.07)' }}
+            >
+              <MessageCircle className="w-8 h-8" style={{ color: BRAND }} />
+            </div>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">Nessuna conversazione</p>
+            <p className="text-xs text-slate-400">
+              {currentUserIsManagement
+                ? <>Tocca <span className="font-bold">+</span> per scrivere a un collega</>
+                : 'Puoi scrivere solo ai tuoi responsabili'}
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-50 dark:divide-neutral-800">
+            {conversations.map((conv) => {
+              const contact = users.find((u) => u.id === conv.contactId);
+              const preview = conv.lastMessage.body;
+              const isMine = conv.lastMessage.sender_id === currentUserId;
+              return (
+                <button
+                  key={conv.contactId}
+                  onClick={() => onSelect(conv.contactId)}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors text-left"
+                >
+                  <UserAvatar user={contact} size={44} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p
+                        className="text-sm font-bold truncate text-slate-900 dark:text-white"
+                      >
+                        {contact
+                          ? `${contact.first_name} ${contact.last_name ?? ''}`.trim()
+                          : '—'}
+                      </p>
+                      <span className="text-[10px] text-slate-400 shrink-0">
+                        {formatTime(conv.lastMessage.created_at)}
+                      </span>
+                    </div>
+                    <p
+                      className={`text-xs truncate mt-0.5 ${
+                        conv.unreadCount > 0
+                          ? 'font-semibold text-slate-900 dark:text-white'
+                          : 'text-slate-400'
+                      }`}
+                    >
+                      {isMine ? 'Tu: ' : ''}
+                      {preview}
+                    </p>
+                  </div>
+                  {conv.unreadCount > 0 && (
+                    <div
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-black text-white"
+                      style={{ background: '#EF4444' }}
+                    >
+                      {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Main export ──────────────────────────────────────────────────────────────
+export function DirectMessagesPanel({ onClose }: { onClose?: () => void } = {}) {
+  const { currentUser, users } = useApp();
+  const { messages, sendMessage, markAsRead, isLoading } = useMessages(
+    currentUser?.id,
+    currentUser?.role === 'admin'
+  );
+
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [showNewChat, setShowNewChat] = useState(false);
+
+  const isMgmt = isManagementRole(currentUser?.role ?? '');
+
+  const conversations = useMemo(
+    () => (currentUser ? groupIntoConversations(messages, currentUser.id) : []),
+    [messages, currentUser]
+  );
+
+  const handleSelectContact = (contactId: string) => {
+    setSelectedContactId(contactId);
+    setShowNewChat(false);
+  };
+
+  const handleNewChatSelect = (user: User) => {
+    setShowNewChat(false);
+    setSelectedContactId(user.id);
+  };
+
+  if (!currentUser) return null;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-0 flex-1 items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: BRAND }} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <AnimatePresence mode="wait">
+        {showNewChat ? (
+          <NewChatPicker
+            key="new-chat"
+            users={users}
+            currentUserId={currentUser.id}
+            currentUserIsManagement={isMgmt}
+            onSelect={handleNewChatSelect}
+            onClose={() => setShowNewChat(false)}
+          />
+        ) : selectedContactId ? (
+          <ChatView
+            key={`chat-${selectedContactId}`}
+            contactId={selectedContactId}
+            currentUserId={currentUser.id}
+            onBack={() => setSelectedContactId(null)}
+            messages={messages}
+            sendMessage={sendMessage}
+            markAsRead={markAsRead}
+            users={users}
+          />
+        ) : (
+          <ConversationList
+            key="list"
+            conversations={conversations}
+            users={users}
+            currentUserId={currentUser.id}
+            currentUserIsManagement={isMgmt}
+            onSelect={handleSelectContact}
+            onNewChat={() => setShowNewChat(true)}
+            onClose={onClose}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

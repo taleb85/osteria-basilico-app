@@ -12,7 +12,7 @@ import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
 import { buildShortInviteLink } from '../config/appPaths';
 import type { User as UserType, Language, Department } from '../types';
-import { isPurelyManagementRole, isAdminOnly } from '../utils/permissions';
+import { isPurelyManagementRole, isAdminOnly, isManagementRole } from '../utils/permissions';
 import {
   TIMESHEET_GRID_PLANNED_ONLY_KEY,
   TIMESHEET_GRID_SHIFT_TIMES_FEATURE_KEY,
@@ -41,7 +41,7 @@ export type ProfileFormSelfData = {
 
 /** Form "Il mio profilo": Email, Telefono, Reparto, Lingua. Con `readOnly` i campi sono disabilitati (es. anteprima). */
 const inputClassLight =
-  'w-full px-3 py-2.5 rounded-xl bg-white dark:bg-neutral-950 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-neutral-100 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors';
+  'w-full px-3 py-2.5 rounded-xl bg-white dark:bg-neutral-950 border border-[#F1F5F9] dark:border-white/10 text-slate-900 dark:text-neutral-100 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors';
 const labelClassLight = 'block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1.5';
 
 function roleSelectValue(role: UserType['role']): string {
@@ -245,7 +245,7 @@ export function ProfileFormSelf({
         const scope = getRoleScopeHint(formData.role, tv);
         if (!scope) return null;
         return (
-          <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 px-3 py-2.5 dark:border-white/10 dark:bg-neutral-900/45">
+          <div className="rounded-xl border border-[#F1F5F9] bg-slate-50/70 px-3 py-2.5 dark:border-white/10 dark:bg-neutral-900/45">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 mb-1">
               {tv.profile_role_scope_label}
             </p>
@@ -323,64 +323,6 @@ export function ProfileFormSelf({
         </div>
       </div>
 
-      <div>
-        <label className={labelClass}>{t.language}</label>
-        {appearance === 'light' ? (
-          <div
-            className={`flex gap-1 rounded-xl bg-slate-100 dark:bg-neutral-800/80 border border-slate-200 dark:border-white/10 p-1 ${readOnly ? 'pointer-events-none opacity-70' : ''}`}
-          >
-            {LANGS.map((l) => (
-              <button
-                key={l}
-                type="button"
-                onClick={() => applyLanguage(l)}
-                disabled={readOnly}
-                className="relative flex-1 min-w-0 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors font-sans"
-              >
-                {formData.language === l ? (
-                  <span className="relative z-10 text-white">{l.toUpperCase()}</span>
-                ) : (
-                  <span className="text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200 transition-colors">
-                    {l.toUpperCase()}
-                  </span>
-                )}
-                {formData.language === l && (
-                  <motion.span
-                    layoutId="lang-pill-bg-light"
-                    className="absolute inset-0 bg-accent rounded-lg z-0 shadow-sm"
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className={`flex rounded-xl bg-black/30 border border-white/10 overflow-hidden ${readOnly ? 'pointer-events-none opacity-70' : ''}`}>
-            {LANGS.map((l) => (
-              <button
-                key={l}
-                type="button"
-                onClick={() => applyLanguage(l)}
-                disabled={readOnly}
-                className="relative flex-1 min-w-[3rem] py-2.5 px-4 text-xs font-bold uppercase tracking-wider transition-colors duration-200 font-sans"
-              >
-                {formData.language === l ? (
-                  <span className="relative z-10 text-black">{l.toUpperCase()}</span>
-                ) : (
-                  <span className="text-white/70 hover:text-white/90 transition-colors">{l.toUpperCase()}</span>
-                )}
-                {formData.language === l && (
-                  <motion.span
-                    layoutId="lang-pill-bg-dark"
-                    className="absolute inset-0.5 bg-white rounded-xl z-0"
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
 
       {!readOnly && (
         <button
@@ -428,7 +370,7 @@ export function AdminTimesheetGridPrivacyEditor({ user }: { user: UserType }) {
   };
 
   return (
-    <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 px-3 py-3 dark:border-white/10 dark:bg-neutral-900/45">
+    <div className="rounded-xl border border-[#F1F5F9] bg-slate-50/70 px-3 py-3 dark:border-white/10 dark:bg-neutral-900/45">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-slate-800 dark:text-neutral-100">
@@ -476,7 +418,7 @@ export type ProfileFormAdminData = {
 };
 
 const inputClass =
-  'w-full px-3 py-2 rounded-xl text-sm bg-white border border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/20 focus:outline-none transition-colors font-sans dark:bg-neutral-900 dark:border-white/10 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-500 dark:focus:ring-neutral-500/25 disabled:opacity-60 dark:disabled:opacity-50';
+  'w-full px-3 py-2 rounded-xl text-sm bg-white border border-[#F1F5F9] text-slate-800 placeholder:text-slate-400 focus:border-[#001A80] focus:ring-2 focus:ring-[#001A80]/20 focus:outline-none transition-colors font-sans dark:bg-neutral-900 dark:border-white/10 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-500 dark:focus:ring-neutral-500/25 disabled:opacity-60 dark:disabled:opacity-50';
 const labelClass =
   'block text-xs font-semibold text-slate-700 mb-1 font-sans dark:text-neutral-200';
 
@@ -548,7 +490,7 @@ export function ProfileFormAdmin({
   return (
     <>
       {readOnly && (
-        <p className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600 dark:border-white/10 dark:bg-neutral-800/80 dark:text-neutral-300 font-sans">
+        <p className="mb-4 rounded-xl border border-[#F1F5F9] bg-slate-50 px-3 py-2 text-[11px] text-slate-600 dark:border-white/10 dark:bg-neutral-800/80 dark:text-neutral-300 font-sans">
           {(t as { settings_delegated_readonly_hint?: string }).settings_delegated_readonly_hint ??
             'Solo lettura. Per modifiche contatta un amministratore.'}
         </p>
@@ -675,7 +617,7 @@ export function ProfileFormAdmin({
           const scope = getRoleScopeHint(formData.role, tv);
           if (!scope) return null;
           return (
-            <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 px-3 py-2.5 dark:border-white/10 dark:bg-neutral-900/45">
+            <div className="rounded-xl border border-[#F1F5F9] bg-slate-50/70 px-3 py-2.5 dark:border-white/10 dark:bg-neutral-900/45">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 mb-1">
                 {tv.profile_role_scope_label}
               </p>
@@ -809,7 +751,7 @@ export function ProfileFormAdmin({
           </div>
         )}
 
-        {variant === 'edit' && !readOnly && (
+        {variant === 'edit' && (!readOnly || isManagementRole(currentUser.role)) && (
           <div className="surface-glass-sm space-y-2 bg-slate-50/40 p-3 dark:bg-neutral-900/20">
             <button
               type="button"

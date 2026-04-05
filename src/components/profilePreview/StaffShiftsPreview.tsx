@@ -27,7 +27,7 @@ export default function StaffShiftsPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass p-4">
+        <div className="surface-glass p-4 shadow-sm dark:shadow-none border border-slate-100 dark:border-white/10" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-400">{t.approved_hours_summary}</p>
           <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-neutral-50">24:00</p>
           <p className="mt-1 text-xs text-slate-500 dark:text-neutral-300">{t.hours_this_month}</p>
@@ -41,8 +41,8 @@ export default function StaffShiftsPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass overflow-hidden">
-          <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5 dark:border-white/10">
+        <div className="surface-glass overflow-hidden shadow-sm dark:shadow-none border border-slate-100 dark:border-white/10" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+          <div className="flex items-center gap-2 border-b border-slate-50 px-3 py-2.5 dark:border-white/10">
             <Calendar className="h-4 w-4 text-slate-400 dark:text-neutral-400" />
             <span className="text-xs font-bold text-slate-700 dark:text-neutral-200">{t.sidebar_shifts}</span>
           </div>

@@ -117,7 +117,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
   return (
     <>
       <div
-        className={`grid grid-cols-1 gap-2 mb-3 sm:gap-2.5 ${showEstimatedCostWidget ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
+        className={`grid grid-cols-1 gap-1.5 mb-2 sm:gap-2 ${showEstimatedCostWidget ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
       >
         <motion.button
           type="button"
@@ -125,21 +125,23 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
           onClick={() => setActiveWidget(activeWidget === 'approved' ? null : 'approved')}
-          className={`surface-glass surface-ghost-interactive flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-all sm:gap-3 sm:py-2 ${
+          className={`surface-glass surface-ghost-interactive flex cursor-pointer items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all ${
             activeWidget === 'approved'
               ? 'border-accent ring-2 ring-accent/20 dark:border-accent dark:ring-accent/30'
               : 'hover:border-accent/40 dark:hover:border-accent/50'
           }`}
         >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 dark:bg-accent/20">
-            <CheckCircle2 className="h-4 w-4 text-accent dark:text-accent-light" />
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10 dark:bg-accent/20 ring-1 ring-inset ring-accent/25 dark:ring-accent/30">
+            <CheckCircle2 className="h-3.5 w-3.5 text-accent dark:text-accent-light" />
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400">{t.stats_approved_hours}</p>
-            <p className="text-lg font-bold leading-tight text-slate-900 dark:text-neutral-100 sm:text-xl">
+          <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400">{t.stats_approved_hours}</p>
+              <p className="text-[10px] leading-snug text-slate-500 dark:text-neutral-400">{t.stats_approved_shifts_count.replace('{n}', String(approvedShifts.length))}</p>
+            </div>
+            <p className="text-base font-black tabular-nums leading-none text-slate-900 dark:text-neutral-100 shrink-0">
               {approvedMins > 0 ? formatMinutesToHoursAndMinutes(approvedMins) : '—'}
             </p>
-            <p className="mt-0.5 text-[10px] leading-snug text-slate-500 dark:text-neutral-400 sm:text-[11px]">{t.stats_approved_shifts_count.replace('{n}', String(approvedShifts.length))}</p>
           </div>
           <ChevronDown
             className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform dark:text-neutral-500 ${activeWidget === 'approved' ? 'rotate-180 text-accent dark:text-accent-light' : ''}`}
@@ -151,42 +153,29 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`flex items-center gap-2.5 rounded-xl border border-slate-200 bg-transparent px-3 py-2.5 shadow-none dark:border-white/10 dark:bg-transparent sm:gap-3 sm:py-2 ${
+            className={`flex items-center gap-2 rounded-xl border border-slate-200 bg-transparent px-3 py-1.5 shadow-none dark:border-white/10 dark:bg-transparent ${
               estimatedCostStats.shiftsWithRate === 0 ? 'opacity-75' : ''
             }`}
           >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-inset ring-accent/20 dark:bg-accent/15 dark:ring-accent/25">
-              <TrendingUp className="h-4 w-4 text-accent dark:text-accent" />
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-inset ring-accent/25 dark:bg-accent/15 dark:ring-accent/30">
+              <TrendingUp className="h-3.5 w-3.5 text-accent dark:text-accent" />
             </div>
-            <div className="min-w-0">
-              <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400">{t.stats_estimated_cost}</p>
-              {estimatedCostStats.shiftsWithRate + estimatedCostStats.shiftsWithoutRate === 0 ? (
-                <>
-                  <p className="text-lg font-bold leading-tight text-slate-400 dark:text-neutral-400 sm:text-xl">—</p>
-                  <p className="mt-0.5 text-[10px] leading-snug text-slate-500 dark:text-neutral-400 sm:text-[11px]">
-                    {tv.stats_no_approved_for_cost ?? t.stats_no_approved_shifts}
-                  </p>
-                </>
-              ) : estimatedCostStats.shiftsWithRate === 0 ? (
-                <>
-                  <p className="text-lg font-bold leading-tight text-slate-400 dark:text-neutral-400 sm:text-xl">—</p>
-                  <p className="mt-0.5 text-[10px] leading-snug text-slate-500 dark:text-neutral-400 sm:text-[11px]">
-                    {tv.stats_hourly_rate_not_set ?? t.stats_base_salary_not_set}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-lg font-bold leading-tight text-slate-900 tabular-nums dark:text-neutral-100 sm:text-xl">
-                    {formatEurAmount(estimatedCostStats.totalEur, effectiveLanguage)}
-                  </p>
-                  <p className="mt-0.5 text-[10px] leading-snug text-slate-500 dark:text-neutral-400 sm:text-[11px]">
-                    {estimatedCostStats.shiftsWithoutRate > 0
-                      ? tv.stats_partial_hourly_rates?.replace('{n}', String(estimatedCostStats.shiftsWithoutRate)) ??
-                        `${estimatedCostStats.shiftsWithoutRate} turni senza tariffa`
-                      : tv.stats_cost_from_rates ?? ''}
-                  </p>
-                </>
-              )}
+            <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400">{t.stats_estimated_cost}</p>
+                <p className="text-[10px] leading-snug text-slate-500 dark:text-neutral-400">
+                  {estimatedCostStats.shiftsWithRate + estimatedCostStats.shiftsWithoutRate === 0
+                    ? (tv.stats_no_approved_for_cost ?? t.stats_no_approved_shifts)
+                    : estimatedCostStats.shiftsWithRate === 0
+                      ? (tv.stats_hourly_rate_not_set ?? t.stats_base_salary_not_set)
+                      : estimatedCostStats.shiftsWithoutRate > 0
+                        ? (tv.stats_partial_hourly_rates?.replace('{n}', String(estimatedCostStats.shiftsWithoutRate)) ?? `${estimatedCostStats.shiftsWithoutRate} turni senza tariffa`)
+                        : (tv.stats_cost_from_rates ?? '')}
+                </p>
+              </div>
+              <p className={`text-base font-black tabular-nums leading-none shrink-0 ${estimatedCostStats.shiftsWithRate === 0 ? 'text-slate-400 dark:text-neutral-400' : 'text-slate-900 dark:text-neutral-100'}`}>
+                {estimatedCostStats.shiftsWithRate > 0 ? formatEurAmount(estimatedCostStats.totalEur, effectiveLanguage) : '—'}
+              </p>
             </div>
           </motion.div>
         )}
@@ -207,7 +196,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
               setActiveWidget(activeWidget === 'pending' ? null : 'pending');
             }
           }}
-          className={`surface-glass surface-ghost-interactive flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-all sm:gap-3 sm:py-2 ${
+          className={`surface-glass surface-ghost-interactive flex cursor-pointer items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all ${
             activeWidget === 'pending' && pendingCount === 0
               ? 'border-amber-400 ring-2 ring-amber-200 dark:border-amber-500 dark:ring-amber-900/50'
               : pendingCount > 0
@@ -216,24 +205,24 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           }`}
         >
           <div
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${
               pendingCount > 0
-                ? 'bg-amber-50 ring-amber-200/80 dark:bg-amber-950/45 dark:ring-amber-800/40'
-                : 'bg-slate-50 ring-slate-200/80 dark:bg-neutral-800 dark:ring-white/10'
+                ? 'bg-amber-50 ring-amber-300/70 dark:bg-amber-950/45 dark:ring-amber-600/40'
+                : 'bg-slate-50 ring-slate-300/80 dark:bg-neutral-800 dark:ring-white/15'
             }`}
           >
             <AlertCircle
-              className={`h-4 w-4 ${pendingCount > 0 ? 'text-amber-500 dark:text-amber-300' : 'text-slate-400 dark:text-neutral-400'}`}
+              className={`h-3.5 w-3.5 ${pendingCount > 0 ? 'text-amber-500 dark:text-amber-300' : 'text-slate-400 dark:text-neutral-400'}`}
             />
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400">{t.stats_pending_shifts}</p>
-            <p
-              className={`text-lg font-bold leading-tight sm:text-xl ${pendingCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-neutral-100'}`}
-            >
+          <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400">{t.stats_pending_shifts}</p>
+              <p className="text-[10px] leading-snug text-slate-500 dark:text-neutral-400">{t.stats_confirmed_not_approved}</p>
+            </div>
+            <p className={`text-base font-black tabular-nums leading-none shrink-0 ${pendingCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-neutral-100'}`}>
               {pendingCount}
             </p>
-            <p className="mt-0.5 text-[10px] leading-snug text-slate-500 dark:text-neutral-400 sm:text-[11px]">{t.stats_confirmed_not_approved}</p>
           </div>
           <ChevronDown
             className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform dark:text-neutral-500 ${

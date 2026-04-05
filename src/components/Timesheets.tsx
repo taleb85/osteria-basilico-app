@@ -1,4 +1,6 @@
-import { useState, useMemo, useEffect, useCallback, useRef, type CSSProperties } from 'react';
+import { useState, useMemo, useEffect, useLayoutEffect, useCallback, useRef, lazy, Suspense, type CSSProperties } from 'react';
+
+const StatisticsLazy = lazy(() => import('./Statistics'));
 import {
   format,
   addDays,
@@ -14,7 +16,7 @@ import {
   ChevronRight, ChevronLeft, Check, AlertTriangle, X,
   Clock, History, FileEdit, ShieldAlert, LogOut, Lock, Unlock,
   Users, UserCheck, AlertCircle, ArrowRight, Calendar, Moon,
-  ChevronDown, FileDown, UserX, Trash2, Pencil, CircleEllipsis, Filter, Save,
+  ChevronDown, FileDown, UserX, Trash2, Pencil, CircleEllipsis, Filter, Save, RotateCcw,
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -55,6 +57,7 @@ import {
   PERIOD_STORAGE_KEY,
   dispatchPeriodConfigUpdated,
   weekIndexForDateInPeriod,
+  getPeriodDateRange,
   nextPeriodConfig,
   prevPeriodConfig,
   currentPeriodConfig,
@@ -81,7 +84,7 @@ import { PinPadModal } from './ui/PinPadModal';
 /** Pill reparto: sfondo colore reparto, testo bianco (scurisce il rgb se troppo chiaro per il contrasto). */
 function departmentChipStyle(hex: string): CSSProperties {
   const raw = hex.replace('#', '').trim();
-  const six = raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw) ? raw : '0052FF';
+  const six = raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw) ? raw : '001A80';
   let r = parseInt(six.slice(0, 2), 16);
   let g = parseInt(six.slice(2, 4), 16);
   let b = parseInt(six.slice(4, 6), 16);
@@ -461,6 +464,16 @@ function shiftEligibleForDayReview(s: ShiftRow): boolean {
   return s.status !== 'approved' && !shiftRowPayrollFrozen(s);
 }
 
+/** Turno pronto per approvazione massiva: assenza, già congelato in griglia, o timbratura con entrata e uscita (niente uscita mancante). */
+function shiftRowCompleteForToolbarApprove(row: ShiftRow): boolean {
+  if (row.status === 'absent') return true;
+  if (row.displayFromFrozenApprovedTimes) return true;
+  if (shiftRowPayrollFrozen(row)) return true;
+  if (row.hasMissingOut) return false;
+  if (!row.punched) return false;
+  return !!(row.actualStart && row.actualEnd);
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function Timesheets() {
@@ -496,12 +509,18 @@ export default function Timesheets() {
   const initialConfig = loadPeriodConfig();
   /** Evita setWeekIndex(0) se loadPeriodConfig() coincide con il periodo già in memoria (es. rientro su Presenze). */
   const periodSyncRef = useRef<{ startDate: string; numWeeks: 4 | 5 } | null>(null);
+  /** Salta una risincronizza weekIndex ← sessionStorage nell'effetto periodo (altrimenti può annullare goToToday). */
+  const skipWeekIndexSessionSyncRef = useRef(false);
   const [periodConfig, setPeriodConfig] = useState(initialConfig);
   const [periodStart, setPeriodStart] = useState<string>(initialConfig.startDate);
   const [periodNumWeeks, setPeriodNumWeeks] = useState<4 | 5>(initialConfig.numWeeks);
   const [periodSaved, setPeriodSaved] = useState(true);
   /** Offset di navigazione periodo: 0 = periodo salvato, -N = N periodi indietro, +N = N periodi avanti. */
   const [periodNavOffset, setPeriodNavOffset] = useState(0);
+
+  /** Sub-tab interno: griglia presenze o statistiche. */
+  const [tsView, setTsView] = useState<'grid' | 'stats'>('grid');
+  const showStatsSubTab = currentUser ? isFeatureEnabled(currentUser, 'view_stats') : false;
 
   const handleSavePeriodConfig = () => {
     const cfg = { startDate: periodStart, numWeeks: periodNumWeeks };
@@ -614,9 +633,13 @@ export default function Timesheets() {
       setDayOffset(diff);
     }
     // Risincronizza la settimana dalla sessionStorage (es. se Turni ha cambiato settimana nel frattempo)
-    const stored = readStoredWeekIndex(periodConfig.startDate, periodConfig.numWeeks);
-    if (stored !== weekIndex) setWeekIndex(stored);
-  }, [periodConfig, drawerData, drawerReviewQueue]);
+    if (skipWeekIndexSessionSyncRef.current) {
+      skipWeekIndexSessionSyncRef.current = false;
+    } else {
+      const stored = readStoredWeekIndex(periodConfig.startDate, periodConfig.numWeeks);
+      if (stored !== weekIndex) setWeekIndex(stored);
+    }
+  }, [periodConfig, drawerData, drawerReviewQueue, weekIndex]);
 
   // Rilegge weekIndex da sessionStorage quando la tab Presenze viene attivata
   useEffect(() => {
@@ -686,6 +709,19 @@ export default function Timesheets() {
 
   const maxWeekIndex = displayPeriodConfig.numWeeks - 1;
   const [approvingShiftId, setApprovingShiftId] = useState<string | null>(null);
+  // Undo stack — max 10 operazioni reversibili
+  const [tsUndoStack, setTsUndoStack] = useState<Array<{ label: string; fn: () => Promise<void> }>>([]);
+  const pushTsUndo = (label: string, fn: () => Promise<void>) =>
+    setTsUndoStack((prev) => [{ label, fn }, ...prev].slice(0, 10));
+
+  // Highlight turni dalla card KPI: Set di shift IDs da evidenziare
+  const [highlightedShiftIds, setHighlightedShiftIds] = useState<Set<string>>(new Set());
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const triggerShiftHighlight = (ids: string[]) => {
+    if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+    setHighlightedShiftIds(new Set(ids));
+    highlightTimerRef.current = setTimeout(() => setHighlightedShiftIds(new Set()), 3500);
+  };
   const [punchAudits, setPunchAudits] = useState<Record<string, PunchAuditEntry[]>>({});
   const [closingShift, setClosingShift] = useState<ClosingShiftState | null>(null);
   const [clockOutTime, setClockOutTime] = useState('');
@@ -693,23 +729,62 @@ export default function Timesheets() {
   const [drawerOpenSource, setDrawerOpenSource] = useState<'name' | 'date' | 'turno' | null>(null);
 
   // Ruoli gestionali: filtro libero. Staff operativo: vincolato al reparto del profilo.
+  // Capo: management ma bloccato al proprio reparto (non può cambiarlo).
   const isAdminTs = currentUser ? isManagementRole(currentUser.role) : false;
   const lockedDeptTs = (!isAdminTs && currentUser?.department) ? currentUser.department : null;
+  const capoLockedDeptTs = currentUser?.role === 'capo' && currentUser?.department ? currentUser.department : null;
 
-  const [pdfDeptFilter, setPdfDeptFilter] = useState<string>(() => currentUser?.department ?? lockedDeptTs ?? 'all');
+  const [pdfDeptFilter, setPdfDeptFilter] = useState<string>(() =>
+    capoLockedDeptTs ?? currentUser?.department ?? lockedDeptTs ?? 'all'
+  );
   const [showPdfDeptMenu, setShowPdfDeptMenu] = useState(false);
 
   useEffect(() => {
-    if (lockedDeptTs) setPdfDeptFilter(lockedDeptTs);
+    if (capoLockedDeptTs) setPdfDeptFilter(capoLockedDeptTs);
+    else if (lockedDeptTs) setPdfDeptFilter(lockedDeptTs);
     else if (!isAdminTs) setPdfDeptFilter('all');
-  }, [lockedDeptTs, isAdminTs]);
+  }, [capoLockedDeptTs, lockedDeptTs, isAdminTs]);
   const pdfDeptMenuRef = useRef<HTMLDivElement | null>(null);
+  const [showWeekApproveMenu, setShowWeekApproveMenu] = useState(false);
+  const [weekApproveMenuMobile, setWeekApproveMenuMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+  );
+  const [weekApproveDesktopPos, setWeekApproveDesktopPos] = useState<{ top: number; left: number } | null>(null);
+  const weekApproveMenuRef = useRef<HTMLDivElement | null>(null);
+  const weekApproveBtnRef = useRef<HTMLButtonElement | null>(null);
+  const weekApprovePortalRef = useRef<HTMLDivElement | null>(null);
   const [showPeriodPopover, setShowPeriodPopover] = useState(false);
   const [gridScrollNav, setGridScrollNav] = useState<HorizontalScrollNavState | null>(null);
   const [periodPopoverYear, setPeriodPopoverYear] = useState<number>(() => new Date().getFullYear());
   const [periodPopoverPos, setPeriodPopoverPos] = useState<{ top: number; left: number } | null>(null);
   const periodPopoverRef = useRef<HTMLDivElement | null>(null);
   const periodTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const timesheetBodyScrollRef = useRef<HTMLDivElement | null>(null);
+  const timesheetHeaderScrollRef = useRef<HTMLDivElement | null>(null);
+  const timesheetTheadRef = useRef<HTMLTableSectionElement | null>(null);
+  const [timesheetHeaderSticky, setTimesheetHeaderSticky] = useState(false);
+
+  // Mostra il mirror header quando il thead originale esce dalla viewport
+  useEffect(() => {
+    const el = timesheetTheadRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setTimesheetHeaderSticky(!entry.isIntersecting),
+      { threshold: 0, rootMargin: '-60px 0px 0px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Sincronizza scroll orizzontale: corpo → header mirror
+  useEffect(() => {
+    const body = timesheetBodyScrollRef.current;
+    const header = timesheetHeaderScrollRef.current;
+    if (!body || !header) return;
+    const sync = () => { header.scrollLeft = body.scrollLeft; };
+    body.addEventListener('scroll', sync, { passive: true });
+    return () => body.removeEventListener('scroll', sync);
+  });
 
   // Reparti dalla configurazione: rispetta ordine, nascosti e custom — aggiornato al cambio delle impostazioni
   const availableDepts = useMemo(() => {
@@ -728,6 +803,56 @@ export default function Timesheets() {
     window.addEventListener('click', onClick);
     return () => window.removeEventListener('click', onClick);
   }, [showPdfDeptMenu]);
+
+  useEffect(() => {
+    if (!showWeekApproveMenu) return;
+    let removeListener: (() => void) | undefined;
+    const t = window.setTimeout(() => {
+      const onClick = (e: MouseEvent) => {
+        const node = e.target as Node;
+        if (weekApproveMenuRef.current?.contains(node)) return;
+        if (weekApprovePortalRef.current?.contains(node)) return;
+        setShowWeekApproveMenu(false);
+        setWeekApproveDesktopPos(null);
+      };
+      window.addEventListener('click', onClick);
+      removeListener = () => window.removeEventListener('click', onClick);
+    }, 0);
+    return () => {
+      window.clearTimeout(t);
+      removeListener?.();
+    };
+  }, [showWeekApproveMenu]);
+
+  useLayoutEffect(() => {
+    if (!showWeekApproveMenu || weekApproveMenuMobile) {
+      if (!showWeekApproveMenu) setWeekApproveDesktopPos(null);
+      return;
+    }
+    const btn = weekApproveBtnRef.current;
+    if (!btn) return;
+    const update = () => {
+      const r = btn.getBoundingClientRect();
+      const panelW = 256;
+      const left = Math.min(Math.max(8, r.right - panelW), window.innerWidth - panelW - 8);
+      setWeekApproveDesktopPos({ top: r.bottom + 4, left });
+    };
+    update();
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+    };
+  }, [showWeekApproveMenu, weekApproveMenuMobile]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)');
+    const sync = () => setWeekApproveMenuMobile(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   useEffect(() => {
     if (!showPeriodPopover) return;
@@ -848,7 +973,7 @@ export default function Timesheets() {
   const [approveWeekSummary, setApproveWeekSummary] = useState<{
     employeeName: string;
     shiftIds: string[];
-    previewRows: Array<{ dateStr: string; planned: string }>;
+    previewRows: Array<{ dateStr: string; planned: string; employeeLabel?: string }>;
     approvedIds?: string[];
   } | null>(null);
   const [undoApprovalBusy, setUndoApprovalBusy] = useState(false);
@@ -866,7 +991,7 @@ export default function Timesheets() {
     batchData?: {
       shiftIds: string[];
       employeeName: string;
-      previewRows: Array<{ dateStr: string; planned: string }>;
+      previewRows: Array<{ dateStr: string; planned: string; employeeLabel?: string }>;
     };
     /** Orari pianificati da usare come timbratura quando il turno non è timbrato (freeze_single_shift). */
     plannedStart?: string;
@@ -925,22 +1050,45 @@ export default function Timesheets() {
   const timesheetGridMinWidthPx =
     timesheetGridNameColPx + weekDays.length * timesheetGridDayColPx + timesheetGridTotalColPx;
 
-  const todayWeekIndexInPeriod = useMemo(() => {
-    const idx = allPeriodDays.findIndex((d) => format(d, 'yyyy-MM-dd') === todayStr);
-    if (idx < 0) return null;
-    return Math.floor(idx / 7);
-  }, [allPeriodDays, todayStr]);
+  /** Già sulla settimana che contiene oggi (stesso periodo salvato in stato, senza offset navigazione periodo). */
+  const isShowingTodayWeek = useMemo(() => {
+    if (viewMode !== 'week' || periodNavOffset !== 0) return false;
+    const { startDate, endDate } = getPeriodDateRange(periodConfig);
+    if (todayStr < startDate || todayStr > endDate) return false;
+    const target = weekIndexForDateInPeriod(periodConfig, new Date());
+    return weekIndex === target;
+  }, [viewMode, periodNavOffset, todayStr, periodConfig.startDate, periodConfig.numWeeks, weekIndex]);
 
   const goToToday = useCallback(() => {
-    if (todayWeekIndexInPeriod == null) return;
+    const cfg = loadPeriodConfig();
+    const { startDate, endDate } = getPeriodDateRange(cfg);
+    if (todayStr < startDate || todayStr > endDate) {
+      const targetCfg = currentPeriodConfig();
+      const wIdx = weekIndexForDateInPeriod(targetCfg, new Date());
+      skipWeekIndexSessionSyncRef.current = true;
+      setViewMode('week');
+      setPeriodNavOffset(0);
+      applyAndSavePeriod(targetCfg);
+      try {
+        sessionStorage.setItem(timesheetWeekStorageKey(targetCfg.startDate, targetCfg.numWeeks), String(wIdx));
+      } catch {
+        /* ignore */
+      }
+      setWeekIndex(wIdx);
+      return;
+    }
+    const wIdx = weekIndexForDateInPeriod(cfg, new Date());
+    skipWeekIndexSessionSyncRef.current = true;
     setViewMode('week');
-    setWeekIndex(todayWeekIndexInPeriod);
-  }, [todayWeekIndexInPeriod]);
-
-  const isShowingTodayWeek =
-    viewMode === 'week' &&
-    todayWeekIndexInPeriod !== null &&
-    weekIndex === todayWeekIndexInPeriod;
+    setPeriodNavOffset(0);
+    applyPeriodFromStorage();
+    try {
+      sessionStorage.setItem(timesheetWeekStorageKey(cfg.startDate, cfg.numWeeks), String(wIdx));
+    } catch {
+      /* ignore */
+    }
+    setWeekIndex(wIdx);
+  }, [applyPeriodFromStorage, todayStr]);
 
 
   useEffect(() => {
@@ -1259,6 +1407,72 @@ export default function Timesheets() {
     return totals;
   }, [visibleUsers, weekDays, timesheetData]);
 
+  /** Vista settimana: toolbar Approva settimana + menu (tutti / per dipendente; abilitazione se dati completi). */
+  const weekBulkApproveToolbar = useMemo(() => {
+    if (viewMode !== 'week') return null;
+    const visibleUserIds = new Set(visibleUsers.map((u) => u.id));
+    const weekShiftsAll = shifts.filter(
+      (s) => visibleUserIds.has(s.user_id) && s.date >= weekStr && s.date < weekEnd
+    );
+    if (weekShiftsAll.length === 0) return null;
+    const weekShiftsToApprove = weekShiftsAll.filter(
+      (s) => normalizedApprovalStatus(s.approval_status) !== 'approved'
+    );
+    const weekApproved = weekShiftsAll.filter(
+      (s) => normalizedApprovalStatus(s.approval_status) === 'approved'
+    );
+    const hasDataToApprove = weekShiftsToApprove.length > 0;
+    const hasApproved = weekApproved.length > 0;
+    if (!hasDataToApprove && !hasApproved) return null;
+    const isApprovedState = !hasDataToApprove && hasApproved;
+
+    const rowComplete = (shiftId: string, userId: string, dateStr: string): boolean => {
+      const row = timesheetData[userId]?.[dateStr]?.shifts.find((sr) => sr.id === shiftId);
+      if (!row) return false;
+      return shiftRowCompleteForToolbarApprove(row);
+    };
+
+    const fullWeekComplete =
+      weekShiftsToApprove.length > 0 &&
+      weekShiftsToApprove.every((s) => rowComplete(s.id, s.user_id, s.date));
+
+    const employeesPending = visibleUsers
+      .map((u) => {
+        const pending = weekShiftsToApprove.filter((s) => s.user_id === u.id);
+        if (pending.length === 0) return null;
+        const complete = pending.every((s) => rowComplete(s.id, s.user_id, s.date));
+        const name = `${u.first_name}${u.last_name ? ` ${u.last_name}` : ''}`.trim();
+        return { user: u, name, pendingShifts: pending, complete };
+      })
+      .filter((x): x is NonNullable<typeof x> => x != null);
+
+    const approvedByUser = visibleUsers
+      .map((u) => {
+        const ap = weekApproved.filter((s) => s.user_id === u.id);
+        if (ap.length === 0) return null;
+        const name = `${u.first_name}${u.last_name ? ` ${u.last_name}` : ''}`.trim();
+        return { user: u, name, approvedShifts: ap };
+      })
+      .filter((x): x is NonNullable<typeof x> => x != null);
+
+    /** Almeno un’azione nel menu (stessa logica dei pulsanti interni): undo oppure approva con dati completi. */
+    const hasApproveMenuAction =
+      isApprovedState ||
+      fullWeekComplete ||
+      employeesPending.some((e) => e.complete);
+
+    return {
+      isApprovedState,
+      targetShifts: isApprovedState ? weekApproved : weekShiftsToApprove,
+      weekApproved,
+      weekShiftsToApprove,
+      fullWeekComplete,
+      employeesPending,
+      approvedByUser,
+      hasApproveMenuAction,
+    };
+  }, [viewMode, visibleUsers, shifts, weekStr, weekEnd, timesheetData]);
+
   /** Allinea il drawer al dato griglia dopo nuove timbrature (stesso turno aperto). */
   useEffect(() => {
     if (!drawerData) return;
@@ -1354,6 +1568,8 @@ export default function Timesheets() {
       ritardi = 0,
       senzaTimbratura = 0,
       approvati = 0;
+    const ritardiIds: string[] = [];
+    const senzaTimbratureIds: string[] = [];
 
     for (const day of weekDays) {
       const dateStr = format(day, 'yyyy-MM-dd');
@@ -1375,14 +1591,19 @@ export default function Timesheets() {
 
         const startMins = toMinutesFromMidnight((s.start_time || '').slice(0, 5));
         const punchIn = findPunchInForShiftOnDate(s, s.user_id, dateStr, punchRecords);
-        if (!punchIn) senzaTimbratura++;
-        else {
+        if (!punchIn) {
+          senzaTimbratura++;
+          senzaTimbratureIds.push(s.id);
+        } else {
           const actualStartHHMM = punchTimeHHMM(punchIn.calculated_time || punchIn.timestamp);
-          if (actualStartHHMM && toMinutesFromMidnight(actualStartHHMM) > startMins + 5) ritardi++;
+          if (actualStartHHMM && toMinutesFromMidnight(actualStartHHMM) > startMins + 5) {
+            ritardi++;
+            ritardiIds.push(s.id);
+          }
         }
       }
     }
-    return { inTurno, ritardi, senzaTimbratura, approvati };
+    return { inTurno, ritardi, ritardiIds, senzaTimbratura, senzaTimbratureIds, approvati };
   }, [weekShifts, weekDays, punchRecords, visibleUsers, todayStr, weekStr, weekEnd]);
 
   // ── Turni dinner senza OUT (solo oggi, solo se oggi è nel periodo) ─────────────────
@@ -1466,6 +1687,15 @@ export default function Timesheets() {
     setApprovingShiftId(shiftId);
     try {
       const raw = shifts.find((s) => s.id === shiftId);
+      // Push undo: ripristina stato approvazione precedente
+      if (raw) {
+        const prevStatus = raw.approval_status;
+        const prevStart = raw.start_time;
+        const prevEnd = raw.end_time;
+        pushTsUndo(`Annulla approvazione ${prevStart}–${prevEnd}`, async () => {
+          await updateShift(shiftId, { approval_status: prevStatus, start_time: prevStart, end_time: prevEnd });
+        });
+      }
       await approveShift(shiftId, {
         actorOverride,
         promoteFromDraft: raw?.approval_status === 'draft',
@@ -2060,6 +2290,12 @@ export default function Timesheets() {
     if (startNorm === shiftRow.plannedStart && endNorm === curEnd) {
       return;
     }
+    // Push undo per modifica orari
+    const origStart = shiftRow.plannedStart;
+    const origEnd = (shiftRow.plannedEnd || '').slice(0, 5);
+    pushTsUndo(`Annulla modifica ${origStart}–${origEnd}`, async () => {
+      await updateShift(shiftRow.id, { start_time: origStart, end_time: origEnd });
+    });
     setPlannedTimesSaving(true);
     try {
       await updateShift(shiftRow.id, { start_time: startNorm, end_time: endNorm });
@@ -2415,12 +2651,12 @@ export default function Timesheets() {
     // Approvato / congelato contabilità — VARIANT approved
     if (s.status === 'approved' && shiftRowPayrollFrozen(s)) {
       return {
-        border: 'border-l-[#06B6D4]',
-        bg: 'bg-[#06B6D4]/8 dark:bg-[#06B6D4]/7',
-        ring: 'ring-1 ring-[#06B6D4]/18 dark:ring-[#06B6D4]/25',
-        dot: 'bg-[#06B6D4]',
+        border: 'border-l-emerald-600',
+        bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+        ring: 'ring-1 ring-emerald-500/25 dark:ring-emerald-700/30',
+        dot: 'bg-emerald-600',
         label: t.wst_grid_shift_frozen_short,
-        labelCls: 'text-slate-900 bg-[#06B6D4]/15 dark:text-[#06B6D4] dark:bg-[#06B6D4]/12',
+        labelCls: 'text-emerald-900 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/50',
       };
     }
     // Bozza — VARIANT planned (priorità come tabellone: prima di ritardo / non timbrato)
@@ -2470,12 +2706,12 @@ export default function Timesheets() {
     // Pubblicato senza timbratura — VARIANT inprogress (smeraldo)
     if (!s.punched && publishedOnBoard) {
       return {
-        border: 'border-l-[#06B6D4] dark:border-l-[#06B6D4]/80',
-        bg: 'bg-[#06B6D4]/10 dark:bg-[#06B6D4]/12',
-        ring: 'ring-1 ring-[#06B6D4]/35 dark:ring-[#06B6D4]/20',
-        dot: 'bg-[#06B6D4] dark:bg-[#06B6D4]',
+        border: 'border-l-[#3366CC] dark:border-l-[#3366CC]/80',
+        bg: 'bg-[#3366CC]/10 dark:bg-[#3366CC]/12',
+        ring: 'ring-1 ring-[#3366CC]/35 dark:ring-[#3366CC]/20',
+        dot: 'bg-[#3366CC] dark:bg-[#3366CC]',
         label: t.ts_status_unpunched,
-        labelCls: 'text-slate-900 bg-[#06B6D4]/15 dark:text-[#06B6D4] dark:bg-[#06B6D4]/15',
+        labelCls: 'text-slate-900 bg-[#3366CC]/15 dark:text-[#3366CC] dark:bg-[#3366CC]/15',
       };
     }
     if (!s.punched) {
@@ -2491,32 +2727,32 @@ export default function Timesheets() {
     // In turno (oggi) / completato — VARIANT inprogress
     if (inTodayKpiWindow) {
       return {
-        border: 'border-l-[#06B6D4] dark:border-l-[#06B6D4]/80',
-        bg: 'bg-[#06B6D4]/10 dark:bg-[#06B6D4]/12',
-        ring: 'ring-1 ring-[#06B6D4]/35 dark:ring-[#06B6D4]/20',
-        dot: 'bg-[#06B6D4] dark:bg-[#06B6D4]',
+        border: 'border-l-[#3366CC] dark:border-l-[#3366CC]/80',
+        bg: 'bg-[#3366CC]/10 dark:bg-[#3366CC]/12',
+        ring: 'ring-1 ring-[#3366CC]/35 dark:ring-[#3366CC]/20',
+        dot: 'bg-[#3366CC] dark:bg-[#3366CC]',
         label: t.ts_status_in_shift,
-        labelCls: 'text-slate-900 bg-[#06B6D4]/15 dark:text-[#06B6D4] dark:bg-[#06B6D4]/15',
+        labelCls: 'text-slate-900 bg-[#3366CC]/15 dark:text-[#3366CC] dark:bg-[#3366CC]/15',
       };
     }
     if (s.punched && !s.actualEnd) {
       return {
-        border: 'border-l-[#06B6D4] dark:border-l-[#06B6D4]/80',
-        bg: 'bg-[#06B6D4]/10 dark:bg-[#06B6D4]/12',
-        ring: 'ring-1 ring-[#06B6D4]/35 dark:ring-[#06B6D4]/20',
-        dot: 'bg-[#06B6D4] dark:bg-[#06B6D4]',
+        border: 'border-l-[#3366CC] dark:border-l-[#3366CC]/80',
+        bg: 'bg-[#3366CC]/10 dark:bg-[#3366CC]/12',
+        ring: 'ring-1 ring-[#3366CC]/35 dark:ring-[#3366CC]/20',
+        dot: 'bg-[#3366CC] dark:bg-[#3366CC]',
         label: t.ts_status_in_shift,
-        labelCls: 'text-slate-900 bg-[#06B6D4]/15 dark:text-[#06B6D4] dark:bg-[#06B6D4]/15',
+        labelCls: 'text-slate-900 bg-[#3366CC]/15 dark:text-[#3366CC] dark:bg-[#3366CC]/15',
       };
     }
     if (s.punched && s.actualEnd) {
       return {
-        border: 'border-l-[#06B6D4] dark:border-l-[#06B6D4]/80',
-        bg: 'bg-[#06B6D4]/10 dark:bg-[#06B6D4]/12',
-        ring: 'ring-1 ring-[#06B6D4]/35 dark:ring-[#06B6D4]/20',
-        dot: 'bg-[#06B6D4] dark:bg-[#06B6D4]',
+        border: 'border-l-[#3366CC] dark:border-l-[#3366CC]/80',
+        bg: 'bg-[#3366CC]/10 dark:bg-[#3366CC]/12',
+        ring: 'ring-1 ring-[#3366CC]/35 dark:ring-[#3366CC]/20',
+        dot: 'bg-[#3366CC] dark:bg-[#3366CC]',
         label: t.ts_status_to_approve,
-        labelCls: 'text-slate-900 bg-[#06B6D4]/15 dark:text-[#06B6D4] dark:bg-[#06B6D4]/15',
+        labelCls: 'text-slate-900 bg-[#3366CC]/15 dark:text-[#3366CC] dark:bg-[#3366CC]/15',
       };
     }
     return {
@@ -2541,6 +2777,40 @@ export default function Timesheets() {
   return (
     <>
       <div className="pb-content pt-6 w-full max-w-full font-sans">
+
+        {/* ── Sub-tab: Griglia | Statistiche ──────────────────────────────────── */}
+        {showStatsSubTab && (
+          <div className="flex items-center gap-1.5 mb-5 px-0.5">
+            {(['grid', 'stats'] as const).map((v) => {
+              const label = v === 'grid' ? 'Griglia' : 'Statistiche';
+              const active = tsView === v;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setTsView(v)}
+                  className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
+                    active
+                      ? 'bg-[#3366CC] text-white shadow-sm'
+                      : 'bg-transparent border border-slate-200 dark:border-white/[0.12] text-slate-500 dark:text-white/40 hover:border-[#3366CC]/40 hover:text-[#3366CC] dark:hover:text-[#93c5fd]'
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── Statistiche (sub-tab) ───────────────────────────────────────────── */}
+        {tsView === 'stats' && showStatsSubTab && (
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><span className="text-slate-400 dark:text-white/30 text-sm">Caricamento…</span></div>}>
+            <StatisticsLazy />
+          </Suspense>
+        )}
+
+        {/* ── Griglia presenze (sub-tab default) ──────────────────────────────── */}
+        {tsView === 'grid' && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
 
           {/* ── Stats Cards: settimana visualizzata (management) ────────────────── */}
@@ -2551,10 +2821,11 @@ export default function Timesheets() {
                   label: t.ts_stat_in_shift,
                   value: weekViewStats.inTurno,
                   Icon: Users,
-                  iconColor: 'text-[#06B6D4] dark:text-[#06B6D4]',
+                  iconColor: 'text-[#3366CC] dark:text-[#6699FF]',
                   bg: 'bg-transparent dark:bg-transparent',
-                  border: 'border-[#06B6D4]/30 dark:border-[#06B6D4]/18',
-                  iconWell: 'bg-[#06B6D4]/18 dark:bg-[#06B6D4]/15',
+                  border: 'border-[#3366CC]/30 dark:border-[#3366CC]/45',
+                  iconWell: 'bg-[#3366CC]/18 dark:bg-[#3366CC]/25',
+                  highlightIds: [] as string[],
                 },
                 {
                   label: t.ts_stat_delays_week,
@@ -2562,8 +2833,9 @@ export default function Timesheets() {
                   Icon: Clock,
                   iconColor: 'text-red-500 dark:text-red-400',
                   bg: 'bg-transparent dark:bg-transparent',
-                  border: 'border-red-200 dark:border-red-900/40',
-                  iconWell: 'bg-red-100/80 dark:bg-red-950/40',
+                  border: 'border-red-200 dark:border-red-700/50',
+                  iconWell: 'bg-red-100/80 dark:bg-red-950/50',
+                  highlightIds: weekViewStats.ritardiIds,
                 },
                 {
                   label: t.ts_stat_no_punch_week,
@@ -2571,24 +2843,31 @@ export default function Timesheets() {
                   Icon: AlertCircle,
                   iconColor: 'text-amber-500 dark:text-amber-400',
                   bg: 'bg-transparent dark:bg-transparent',
-                  border: 'border-amber-400/45 dark:border-amber-500/35',
-                  iconWell: 'bg-amber-400/15 dark:bg-amber-500/20',
+                  border: 'border-amber-400/45 dark:border-amber-500/50',
+                  iconWell: 'bg-amber-400/15 dark:bg-amber-500/25',
+                  highlightIds: weekViewStats.senzaTimbratureIds,
                 },
                 {
                   label: t.ts_stat_approved_week,
                   value: weekViewStats.approvati,
                   Icon: UserCheck,
-                  iconColor: 'text-[#06B6D4] dark:text-[#06B6D4]',
+                  iconColor: 'text-[#3366CC] dark:text-[#6699FF]',
                   bg: 'bg-transparent dark:bg-transparent',
-                  border: 'border-[#06B6D4]/20 dark:border-[#06B6D4]/28',
-                  iconWell: 'bg-[#06B6D4]/12 dark:bg-[#06B6D4]/18',
+                  border: 'border-[#3366CC]/20 dark:border-[#3366CC]/45',
+                  iconWell: 'bg-[#3366CC]/12 dark:bg-[#3366CC]/25',
+                  highlightIds: [] as string[],
                 },
-              ] as const).map(({ label, value, Icon, iconColor, bg, border, iconWell }) => (
+              ]).map(({ label, value, Icon, iconColor, bg, border, iconWell, highlightIds }) => (
                 <button
                   key={label}
                   type="button"
-                  title={t.ts_stat_card_hint}
-                  onClick={handleStatCardClick}
+                  title={highlightIds.length > 0 ? 'Clicca per evidenziare i turni nella griglia' : t.ts_stat_card_hint}
+                  onClick={() => {
+                    if (highlightIds.length > 0) {
+                      triggerShiftHighlight(highlightIds);
+                    }
+                    handleStatCardClick();
+                  }}
                   className={`group w-full rounded-xl border ${border} ${bg} px-2.5 py-2 shadow-none flex items-center gap-2 text-left transition-colors hover:bg-slate-50/90 dark:hover:bg-white/[0.05] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
@@ -2644,8 +2923,8 @@ export default function Timesheets() {
                         <p className="text-sm font-bold text-slate-800 dark:text-neutral-100">{item.user?.first_name ?? '—'}</p>
                         <p className="text-[11px] text-slate-500 dark:text-neutral-300 truncate">{item.user?.department ?? ''}</p>
                       </div>
-                      <span className="flex flex-shrink-0 items-center gap-1 rounded-full border border-[#0052FF]/25 bg-[#0052FF]/10 px-2 py-0.5 text-[10px] font-bold text-[#0052FF] dark:border-[#0052FF]/22 dark:bg-[#0052FF]/15 dark:text-[#06B6D4]/80">
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#0052FF]/80" /> {t.ts_badge_in_shift}
+                      <span className="flex flex-shrink-0 items-center gap-1 rounded-full border border-[#001A80]/25 bg-[#001A80]/10 px-2 py-0.5 text-[10px] font-bold text-[#001A80] dark:border-[#001A80]/22 dark:bg-[#001A80]/15 dark:text-[#3366CC]/80">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#001A80]/80" /> {t.ts_badge_in_shift}
                       </span>
                     </div>
                     {/* Times */}
@@ -2689,12 +2968,14 @@ export default function Timesheets() {
 
           {/* ── Toolbar presenze: sopra la griglia ── */}
           {uiW('timesheet.header') && (
-          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-between gap-1.5 overflow-x-auto relative z-[1000]">
+          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-1 overflow-x-auto relative z-[1000]">
             <div className="flex min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-1.5 overflow-visible relative z-[1001]">
               <div className="ui-toolbar-row-tight min-w-0 shrink-0 md:gap-1.5">
 
+                {/* Wrapper compatto: nav + chip data sempre vicini */}
+                <div className="flex shrink-0 flex-nowrap items-center gap-1.5">
                 {/* Gruppo unificato: ◀ Prec. | Settimana | Mese | ▶ Pros. */}
-                <div className="ui-toolbar-group md:scale-90 md:origin-left">
+                <div className="ui-toolbar-group">
                   {/* ◀ Prec. — settimana in week mode, periodo in month mode */}
                   <button
                     type="button"
@@ -2703,10 +2984,10 @@ export default function Timesheets() {
                       else setPeriodNavOffset(o => o - 1);
                     }}
                     disabled={viewMode === 'week' && !timesheetMainGridWeekNav?.canPrev}
-                    className="ui-toolbar-tab !px-2 !text-[10px] shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
+                    className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
                     aria-label={viewMode === 'week' ? 'Settimana precedente' : 'Periodo precedente'}
                   >
-                    <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
+                    <ChevronLeft className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
                     <span className="hidden sm:inline">Prec.</span>
                   </button>
 
@@ -2714,7 +2995,7 @@ export default function Timesheets() {
                   <button
                     type="button"
                     onClick={() => { setViewMode('week'); goToToday(); }}
-                    className={`ui-toolbar-tab !px-2.5 !text-[10px] shrink-0 ${
+                    className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
                       viewMode === 'week'
                         ? 'bg-accent text-white font-extrabold'
                         : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
@@ -2727,7 +3008,7 @@ export default function Timesheets() {
                   <button
                     type="button"
                     onClick={() => { setViewMode('month'); setPeriodNavOffset(0); applyPeriodFromStorage(); }}
-                    className={`ui-toolbar-tab !px-2.5 !text-[10px] shrink-0 ${
+                    className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
                       viewMode === 'month' && periodNavOffset === 0
                         ? 'bg-accent text-white font-extrabold'
                         : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
@@ -2745,26 +3026,26 @@ export default function Timesheets() {
                       else setPeriodNavOffset(o => o + 1);
                     }}
                     disabled={viewMode === 'week' && !timesheetMainGridWeekNav?.canNext}
-                    className="ui-toolbar-tab !px-2 !text-[10px] shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
+                    className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
                     aria-label={viewMode === 'week' ? 'Settimana successiva' : 'Periodo successivo'}
                   >
                     <span className="hidden sm:inline">Pros.</span>
-                    <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+                    <ChevronRight className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
                   </button>
                 </div>
 
                 {/* Chip data corrente */}
                 <div
-                  className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-2 !h-8 !text-[10px]"
+                  className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-2.5 !h-9 lg:!h-10 !text-[11px] lg:!text-sm"
                   role="status"
                   aria-label={t.ts_period_chip_aria}
                   title={`${format(periodStartDate, 'dd/MM/yy', { locale })} → ${format(periodEndDate, 'dd/MM/yy', { locale })}`}
                 >
-                  <Calendar className="hidden sm:block h-3.5 w-3.5 shrink-0 text-slate-500 dark:text-neutral-400" aria-hidden />
+                  <Calendar className="hidden sm:block h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-slate-500 dark:text-neutral-400" aria-hidden />
                   <span className="min-w-0 truncate tabular-nums">
                     {viewMode === 'week'
                       ? <>
-                          <span className="text-slate-400 dark:text-neutral-500">S.{weekIndex + 1}&nbsp;</span>
+                          <span className="text-[#001A80] dark:text-[#3366CC] font-extrabold">S.{weekIndex + 1}&nbsp;</span>
                           {format(weekStart, 'dd/MM', { locale })}
                           <span className="text-slate-400 dark:text-neutral-500 hidden sm:inline"> → {format(lastDay, 'dd/MM/yy', { locale })}</span>
                         </>
@@ -2772,20 +3053,39 @@ export default function Timesheets() {
                   </span>
                 </div>
 
+                <button
+                  type="button"
+                  onClick={() => goToToday()}
+                  disabled={isShowingTodayWeek}
+                  title={
+                    isShowingTodayWeek ? t.ts_toolbar_current_week_already : t.ts_toolbar_today_hint
+                  }
+                  aria-label={
+                    isShowingTodayWeek ? t.ts_toolbar_current_week_already : t.ts_toolbar_today_hint
+                  }
+                  className={`hidden md:inline-flex ui-toolbar-chip !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs shrink-0 items-center gap-1 border-slate-200/90 bg-white/80 hover:bg-slate-50 dark:border-white/10 dark:bg-neutral-900/50 dark:hover:bg-neutral-800/80 ${
+                    isShowingTodayWeek
+                      ? 'cursor-default opacity-50'
+                      : 'cursor-pointer'
+                  } disabled:opacity-40 disabled:cursor-not-allowed`}
+                >
+                  <Calendar className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-[#001A80] dark:text-[#3366CC]" aria-hidden />
+                  <span className="font-semibold text-[#001A80] dark:text-[#3366CC]">
+                    {t.ts_toolbar_current_week_btn}
+                  </span>
+                </button>
+
                 {viewMode === 'month' && payrollStripForToolbar && (
                   <span
-                    className="hidden min-[400px]:inline-flex h-8 max-w-[min(100%,12rem)] shrink-0 items-center truncate rounded-lg border border-[#06B6D4]/30 bg-[#06B6D4]/10 px-2 text-[9px] font-semibold text-slate-900 dark:border-[#06B6D4]/50 dark:bg-[#06B6D4]/12 dark:text-[#06B6D4]"
+                    className="hidden min-[400px]:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,12rem)] shrink-0 items-center truncate rounded-lg border border-[#3366CC]/30 bg-[#3366CC]/10 px-2 lg:px-2.5 text-[9px] lg:text-[10px] font-semibold text-slate-900 dark:border-[#3366CC]/50 dark:bg-[#3366CC]/12 dark:text-[#3366CC]"
                     title={tv.ts_timesheet_month_tab_hint}
                   >
                     {payrollStripForToolbar}
                   </span>
                 )}
-              </div>
-
-              {/* Chip periodo: mostra data inizio + durata; click apre popover di modifica */}
-              <div className="hidden w-full min-w-0 flex-nowrap items-center justify-start gap-1.5 border-t border-slate-200 pt-2 dark:border-white/10 md:flex md:w-auto md:border-l md:border-t-0 md:pl-2 md:pt-0">
+                {/* Chip periodo: mostra data inizio + durata; click apre popover di modifica */}
                 <div className="relative">
-                <div className="ui-toolbar-group md:scale-90 md:origin-left">
+                <div className="ui-toolbar-group">
                   <button
                     ref={periodTriggerRef}
                     type="button"
@@ -2799,26 +3099,25 @@ export default function Timesheets() {
                       }
                       setShowPeriodPopover(next);
                     }}
-                    className={`ui-toolbar-tab !px-2 !text-[10px] shrink-0 ${
-                      showPeriodPopover ? 'bg-accent/8 text-accent dark:text-accent-light' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
+                    className={`ui-toolbar-tab !px-4 lg:!px-5 !text-[11px] lg:!text-sm shrink-0 ${
+                      showPeriodPopover ? 'bg-accent/8 text-accent dark:text-accent-light' : 'text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/80'
                     } ${!periodSaved ? 'font-extrabold' : ''}`}
                     title="Seleziona periodo"
                   >
-                    <Calendar className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-500" aria-hidden />
-                    <span className="text-[11px] font-bold tabular-nums capitalize">
+                    <span className="text-[12px] lg:text-sm font-bold tabular-nums capitalize text-slate-800 dark:text-neutral-100">
                       {format(parseISO(periodStart), 'MMM yy', { locale })}
                     </span>
-                    <span className="h-3 w-px bg-slate-300 dark:bg-white/15 shrink-0" aria-hidden />
+                    <span className="h-3 w-px bg-slate-300 dark:bg-white/20 shrink-0 mx-1" aria-hidden />
                     {(() => {
                       const rule = (() => { try { return localStorage.getItem('osteria_period_rule') ?? 'last_sunday'; } catch { return 'last_sunday'; } })();
                       const isFixedStart = rule === 'fixed_start';
                       return (
-                        <span className={`text-[11px] font-extrabold ${isFixedStart ? 'text-[#0052FF] dark:text-[#06B6D4]' : (periodNumWeeks === 4 ? 'text-accent dark:text-accent-light' : 'text-[#0052FF] dark:text-[#06B6D4]')}`}>
+                        <span className={`text-[12px] lg:text-sm font-extrabold ${isFixedStart ? 'text-[#001A80] dark:text-[#3366CC]' : (periodNumWeeks === 4 ? 'text-accent dark:text-accent-light' : 'text-[#001A80] dark:text-[#3366CC]')}`}>
                           {periodNumWeeks} sett.
                         </span>
                       );
                     })()}
-                    <ChevronDown className={`h-2.5 w-2.5 shrink-0 text-slate-400 transition-transform ${showPeriodPopover ? 'rotate-180' : ''}`} aria-hidden />
+                    <ChevronDown className={`h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-slate-500 transition-transform ${showPeriodPopover ? 'rotate-180' : ''}`} aria-hidden />
                   </button>
                   </div>
 
@@ -2840,24 +3139,24 @@ export default function Timesheets() {
                         <div
                           ref={periodPopoverRef}
                           style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999 }}
-                          className="w-64 rounded-xl border border-[#06B6D4]/25 bg-white shadow-2xl dark:border-[#06B6D4]/18 dark:bg-neutral-900 overflow-hidden"
+                          className="w-64 rounded-xl border border-[#3366CC]/25 bg-white shadow-2xl dark:border-[#3366CC]/40 dark:bg-neutral-900 overflow-hidden"
                         >
                           {/* Header anno con navigazione */}
-                          <div className="flex items-center justify-between border-b border-[#06B6D4]/15 dark:border-[#06B6D4]/12 px-3 py-2 bg-[#06B6D4]/5 dark:bg-[#06B6D4]/8">
+                          <div className="flex items-center justify-between border-b border-[#3366CC]/15 dark:border-[#3366CC]/12 px-3 py-2 bg-[#3366CC]/5 dark:bg-[#3366CC]/8">
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y - 1); }}
-                              className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#06B6D4]/12 dark:text-neutral-500 dark:hover:bg-[#06B6D4]/15"
+                              className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#3366CC]/12 dark:text-neutral-500 dark:hover:bg-[#3366CC]/15"
                             >
                               <ChevronLeft className="h-3.5 w-3.5" />
                             </button>
-                            <span className="text-[11px] font-extrabold text-[#0284C7] dark:text-[#06B6D4] tabular-nums">
+                            <span className="text-[11px] font-extrabold text-[#2255BB] dark:text-[#3366CC] tabular-nums">
                               {listYear}
                             </span>
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y + 1); }}
-                              className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#06B6D4]/12 dark:text-neutral-500 dark:hover:bg-[#06B6D4]/15"
+                              className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#3366CC]/12 dark:text-neutral-500 dark:hover:bg-[#3366CC]/15"
                             >
                               <ChevronRight className="h-3.5 w-3.5" />
                             </button>
@@ -2871,13 +3170,13 @@ export default function Timesheets() {
                                 onClick={() => { applyAndSavePeriod(cfg); setShowPeriodPopover(false); }}
                                 className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors ${
                                   isActive
-                                    ? 'bg-[#06B6D4]/10 dark:bg-[#06B6D4]/15'
-                                    : 'hover:bg-[#06B6D4]/5 dark:hover:bg-[#06B6D4]/8'
+                                    ? 'bg-[#3366CC]/10 dark:bg-[#3366CC]/15'
+                                    : 'hover:bg-[#3366CC]/5 dark:hover:bg-[#3366CC]/8'
                                 }`}
                               >
                                 <span className={`text-[12px] font-bold capitalize ${
                                   isActive
-                                    ? 'text-[#0284C7] dark:text-[#06B6D4]'
+                                    ? 'text-[#2255BB] dark:text-[#3366CC]'
                                     : isCurrentMonth
                                       ? 'text-slate-800 dark:text-neutral-100'
                                       : 'text-slate-600 dark:text-neutral-400'
@@ -2887,16 +3186,16 @@ export default function Timesheets() {
                                     <span className="ml-1 text-[10px] font-normal text-slate-400 dark:text-neutral-500">{listYear}</span>
                                   )}
                                   {isCurrentMonth && !isActive && (
-                                    <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#06B6D4] align-middle" />
+                                    <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#3366CC] align-middle" />
                                   )}
                                 </span>
                                 <span className={`shrink-0 text-[10px] tabular-nums ${
                                   isActive
-                                    ? 'text-[#0284C7] dark:text-[#06B6D4] font-bold'
+                                    ? 'text-[#2255BB] dark:text-[#3366CC] font-bold'
                                     : 'text-slate-400 dark:text-neutral-500'
                                 }`}>
                                   {format(s, 'dd/MM', { locale })}–{format(e, 'dd/MM', { locale })}
-                                  <span className={`ml-1 font-extrabold ${cfg.numWeeks === 5 ? 'text-[#0052FF] dark:text-[#06B6D4]' : ''}`}>
+                                  <span className={`ml-1 font-extrabold ${cfg.numWeeks === 5 ? 'text-[#001A80] dark:text-[#3366CC]' : ''}`}>
                                     {cfg.numWeeks}s
                                   </span>
                                 </span>
@@ -2909,37 +3208,399 @@ export default function Timesheets() {
                     document.body
                   )}
                 </div>
+                </div>{/* end wrapper nav+chip */}
               </div>
 
-              {/* Bottoni scroll griglia — affianco al period selector */}
-              {gridScrollNav && (gridScrollNav.canLeft || gridScrollNav.canRight) && (
-                <div className="flex items-center gap-0.5 shrink-0">
-                  <button
-                    type="button"
-                    disabled={!gridScrollNav.canLeft}
-                    onClick={gridScrollNav.onPrev}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-white/12 bg-white dark:bg-neutral-900 text-slate-500 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-800 dark:hover:bg-neutral-800 dark:hover:text-neutral-100 disabled:opacity-30 disabled:pointer-events-none"
-                    aria-label={viewMode === 'week' ? tv.ts_timesheet_week_nav_prev : t.table_h_scroll_prev}
-                  >
-                    <ChevronLeft className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!gridScrollNav.canRight}
-                    onClick={gridScrollNav.onNext}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-white/12 bg-white dark:bg-neutral-900 text-slate-500 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-800 dark:hover:bg-neutral-800 dark:hover:text-neutral-100 disabled:opacity-30 disabled:pointer-events-none"
-                    aria-label={viewMode === 'week' ? tv.ts_timesheet_week_nav_next : t.table_h_scroll_next}
-                  >
-                    <ChevronRight className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
-                  </button>
-                </div>
-              )}
             </div>
 
-            <div className="flex min-h-8 shrink-0 items-center justify-start gap-1 self-stretch md:ml-auto md:justify-end md:self-center">
-              <div className="flex items-center gap-1 md:scale-90 md:origin-right">
-                {/* Department Selector for PDF — visibile solo per admin */}
-                <div className={`relative ${!isAdminTs ? 'hidden' : ''}`} ref={pdfDeptMenuRef}>
+            <div className="flex min-h-9 lg:min-h-10 shrink-0 items-center justify-start gap-1 self-stretch md:ml-auto md:justify-end md:self-center">
+              <div className="flex items-center gap-1">
+                {/* Undo button presenze */}
+                {tsUndoStack.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const [top, ...rest] = tsUndoStack;
+                      setTsUndoStack(rest);
+                      await top.fn();
+                    }}
+                    className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold text-slate-700 dark:text-neutral-200 shadow-sm transition-all hover:bg-slate-50 dark:hover:bg-white/5"
+                    title={tsUndoStack[0]?.label ?? 'Annulla ultima azione'}
+                  >
+                    <RotateCcw className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
+                    <span className="hidden sm:inline max-w-[7rem] truncate">{tsUndoStack[0]?.label ?? 'Annulla'}</span>
+                    {tsUndoStack.length > 1 && (
+                      <span className="tabular-nums rounded-md bg-slate-100 dark:bg-white/10 px-1 py-px text-[9px] font-bold leading-none text-slate-500 dark:text-neutral-400">
+                        {tsUndoStack.length}
+                      </span>
+                    )}
+                  </button>
+                )}
+                {canTimesheetApprove && weekBulkApproveToolbar && (() => {
+                  const wAp = weekBulkApproveToolbar;
+                  const weekApproveDisabled = undoApprovalBusy || !wAp.hasApproveMenuAction;
+                  return (
+                  <div className="relative" ref={weekApproveMenuRef}>
+                    <button
+                      ref={weekApproveBtnRef}
+                      type="button"
+                      disabled={weekApproveDisabled}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!wAp.hasApproveMenuAction) return;
+                        if (showWeekApproveMenu) {
+                          setShowWeekApproveMenu(false);
+                          setWeekApproveDesktopPos(null);
+                          return;
+                        }
+                        if (weekApproveMenuMobile) {
+                          setShowWeekApproveMenu(true);
+                          return;
+                        }
+                        const btn = weekApproveBtnRef.current;
+                        if (btn) {
+                          const r = btn.getBoundingClientRect();
+                          const panelW = 256;
+                          const left = Math.min(Math.max(8, r.right - panelW), window.innerWidth - panelW - 8);
+                          setWeekApproveDesktopPos({ top: r.bottom + 4, left });
+                        }
+                        setShowWeekApproveMenu(true);
+                      }}
+                      className={`ui-toolbar-chip !inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs items-center gap-1.5 shrink-0 border shadow-sm ${
+                        weekApproveDisabled
+                          ? 'cursor-not-allowed opacity-60'
+                          : wAp.isApprovedState
+                            ? '!border-red-500 dark:!border-red-500'
+                            : '!border-emerald-600 dark:!border-emerald-500'
+                      } disabled:cursor-not-allowed`}
+                      title={
+                        !wAp.hasApproveMenuAction
+                          ? t.ts_toolbar_week_approve_no_action_hint
+                          : wAp.isApprovedState
+                            ? t.ts_toolbar_week_approve_title_undo
+                            : t.ts_toolbar_week_approve_title_freeze
+                      }
+                      aria-label={
+                        !wAp.hasApproveMenuAction
+                          ? t.ts_toolbar_week_approve_no_action_hint
+                          : wAp.isApprovedState
+                            ? t.ts_toolbar_week_approve_title_undo
+                            : t.ts_toolbar_week_approve_title_freeze
+                      }
+                    >
+                      {wAp.isApprovedState ? (
+                        <Lock
+                          className={`w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0 ${weekApproveDisabled ? 'text-slate-400 dark:text-neutral-500' : 'text-red-600 dark:text-red-400'}`}
+                          aria-hidden
+                        />
+                      ) : (
+                        <Unlock
+                          className={`w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0 ${weekApproveDisabled ? 'text-slate-400 dark:text-neutral-500' : 'text-emerald-600 dark:text-emerald-400'}`}
+                          aria-hidden
+                        />
+                      )}
+                      <span className="hidden min-[380px]:inline font-bold whitespace-nowrap">
+                        {wAp.isApprovedState
+                          ? t.ts_toolbar_week_restore_btn
+                          : t.ts_toolbar_week_approve_btn}
+                      </span>
+                      <ChevronDown
+                        className={`h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 transition-transform ${showWeekApproveMenu ? 'rotate-180' : ''}`}
+                        aria-hidden
+                      />
+                    </button>
+
+                    {typeof document !== 'undefined' &&
+                      createPortal(
+                        <AnimatePresence>
+                          {showWeekApproveMenu && !weekApproveMenuMobile && weekApproveDesktopPos && (
+                            <motion.div
+                              ref={weekApprovePortalRef}
+                              key="week-approve-desktop"
+                              initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                              className="fixed z-[10050] max-h-[min(70vh,420px)] w-64 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-neutral-900"
+                              style={{
+                                top: weekApproveDesktopPos.top,
+                                left: weekApproveDesktopPos.left,
+                                isolation: 'isolate',
+                              }}
+                            >
+                            {(() => {
+                              const w = weekBulkApproveToolbar;
+                              const openSummary = (
+                                targetShifts: Shift[],
+                                approvedSlice: Shift[],
+                                isApprovedState: boolean,
+                                employeeName: string
+                              ) => {
+                                const previewRows = targetShifts.map((s) => {
+                                  const u =
+                                    visibleUsers.find((vu) => vu.id === s.user_id) ??
+                                    users.find((x) => x.id === s.user_id);
+                                  const dayData = timesheetData[s.user_id]?.[s.date];
+                                  const shiftRow = dayData?.shifts.find((sr) => sr.id === s.id);
+                                  const displayStart = shiftRow?.actualStart || s.start_time || '';
+                                  const displayEnd = shiftRow?.actualEnd || s.end_time || '';
+                                  const name = u
+                                    ? `${u.first_name}${u.last_name ? ` ${u.last_name}` : ''}`.trim()
+                                    : '—';
+                                  return {
+                                    dateStr: s.date,
+                                    planned: `${(displayStart || '').slice(0, 5)}–${(displayEnd || '').slice(0, 5)}`,
+                                    employeeLabel: name,
+                                  };
+                                });
+                                setApproveWeekSummary({
+                                  employeeName,
+                                  shiftIds: targetShifts.map((s) => s.id),
+                                  previewRows,
+                                  ...(isApprovedState ? { approvedIds: approvedSlice.map((s) => s.id) } : {}),
+                                });
+                                setShowWeekApproveMenu(false);
+                                setWeekApproveDesktopPos(null);
+                              };
+
+                              if (w.isApprovedState) {
+                                return (
+                                  <>
+                                    <p className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                                      Ripristina approvazione
+                                    </p>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        openSummary(w.weekApproved, w.weekApproved, true, `Tutti (${visibleUsers.length})`)
+                                      }
+                                      className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:text-neutral-200 dark:hover:bg-white/5"
+                                    >
+                                      <Users className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
+                                      <span className="flex-1">Tutti i dipendenti visibili</span>
+                                    </button>
+                                    <div className="my-1 h-px bg-slate-100 dark:bg-white/5" />
+                                    {w.approvedByUser.map(({ user, name, approvedShifts }) => (
+                                      <button
+                                        key={user.id}
+                                        type="button"
+                                        onClick={() =>
+                                          openSummary(approvedShifts, approvedShifts, true, name)
+                                        }
+                                        className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:text-neutral-200 dark:hover:bg-white/5"
+                                      >
+                                        <UserCheck className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
+                                        <span className="flex-1 truncate">{name}</span>
+                                      </button>
+                                    ))}
+                                  </>
+                                );
+                              }
+
+                              return (
+                                <>
+                                  <p className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                                    Approva turni
+                                  </p>
+                                  <button
+                                    type="button"
+                                    disabled={!w.fullWeekComplete}
+                                    title={
+                                      w.fullWeekComplete
+                                        ? 'Approvazione settimana intera'
+                                        : 'Completa timbrature (entrata e uscita) per tutti i turni in attesa'
+                                    }
+                                    onClick={() =>
+                                      openSummary(
+                                        w.weekShiftsToApprove,
+                                        w.weekApproved,
+                                        false,
+                                        `Tutti (${visibleUsers.length})`
+                                      )
+                                    }
+                                    className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-colors ${
+                                      w.fullWeekComplete
+                                        ? 'text-slate-700 hover:bg-slate-50 dark:text-neutral-200 dark:hover:bg-white/5'
+                                        : 'cursor-not-allowed text-slate-400 opacity-60 dark:text-neutral-500'
+                                    }`}
+                                  >
+                                    <Users className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
+                                    <span className="flex-1">Settimana intera (tutti)</span>
+                                  </button>
+                                  <div className="my-1 h-px bg-slate-100 dark:bg-white/5" />
+                                  <p className="px-2 py-0.5 text-[9px] font-semibold text-slate-400 dark:text-neutral-500">
+                                    Per dipendente
+                                  </p>
+                                  {w.employeesPending.map(({ user, name, pendingShifts, complete }) => (
+                                    <button
+                                      key={user.id}
+                                      type="button"
+                                      disabled={!complete}
+                                      title={
+                                        complete
+                                          ? `Approvazione solo per ${name}`
+                                          : 'Completa timbrature (entrata e uscita) per i turni in attesa di questo dipendente'
+                                      }
+                                      onClick={() => openSummary(pendingShifts, w.weekApproved, false, name)}
+                                      className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-colors ${
+                                        complete
+                                          ? 'text-slate-700 hover:bg-slate-50 dark:text-neutral-200 dark:hover:bg-white/5'
+                                          : 'cursor-not-allowed text-slate-400 opacity-60 dark:text-neutral-500'
+                                      }`}
+                                    >
+                                      <UserCheck className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
+                                      <span className="flex-1 truncate">{name}</span>
+                                    </button>
+                                  ))}
+                                </>
+                              );
+                            })()}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>,
+                        document.body
+                      )}
+                    <div className="lg:hidden">
+                            <CenteredModalPortal
+                              open={showWeekApproveMenu && weekApproveMenuMobile}
+                              onClose={() => {
+                                setShowWeekApproveMenu(false);
+                                setWeekApproveDesktopPos(null);
+                              }}
+                              maxWidthClass="max-w-[320px]"
+                              panelClassName="p-1 max-h-[min(75dvh,480px)] overflow-y-auto"
+                            >
+                              {(() => {
+                                const w = weekBulkApproveToolbar;
+                                const openSummary = (
+                                  targetShifts: Shift[],
+                                  approvedSlice: Shift[],
+                                  isApprovedState: boolean,
+                                  employeeName: string
+                                ) => {
+                                  const previewRows = targetShifts.map((s) => {
+                                    const u =
+                                      visibleUsers.find((vu) => vu.id === s.user_id) ??
+                                      users.find((x) => x.id === s.user_id);
+                                    const dayData = timesheetData[s.user_id]?.[s.date];
+                                    const shiftRow = dayData?.shifts.find((sr) => sr.id === s.id);
+                                    const displayStart = shiftRow?.actualStart || s.start_time || '';
+                                    const displayEnd = shiftRow?.actualEnd || s.end_time || '';
+                                    const name = u
+                                      ? `${u.first_name}${u.last_name ? ` ${u.last_name}` : ''}`.trim()
+                                      : '—';
+                                    return {
+                                      dateStr: s.date,
+                                      planned: `${(displayStart || '').slice(0, 5)}–${(displayEnd || '').slice(0, 5)}`,
+                                      employeeLabel: name,
+                                    };
+                                  });
+                                  setApproveWeekSummary({
+                                    employeeName,
+                                    shiftIds: targetShifts.map((s) => s.id),
+                                    previewRows,
+                                    ...(isApprovedState ? { approvedIds: approvedSlice.map((s) => s.id) } : {}),
+                                  });
+                                  setShowWeekApproveMenu(false);
+                                  setWeekApproveDesktopPos(null);
+                                };
+
+                                return (
+                                  <>
+                                    <div className="flex items-center justify-between border-b border-slate-100 px-2 py-2 dark:border-white/10">
+                                      <span className="text-[11px] font-bold text-slate-700 dark:text-neutral-200">
+                                        {w.isApprovedState ? 'Ripristina' : 'Approvazione settimana'}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setShowWeekApproveMenu(false);
+                                          setWeekApproveDesktopPos(null);
+                                        }}
+                                        className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10"
+                                        aria-label="Chiudi"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                    <div className="p-1">
+                                      {w.isApprovedState ? (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              openSummary(w.weekApproved, w.weekApproved, true, `Tutti (${visibleUsers.length})`)
+                                            }
+                                            className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:text-neutral-200 dark:hover:bg-white/5"
+                                          >
+                                            <Users className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+                                            Tutti i dipendenti visibili
+                                          </button>
+                                          {w.approvedByUser.map(({ user, name, approvedShifts }) => (
+                                            <button
+                                              key={user.id}
+                                              type="button"
+                                              onClick={() => openSummary(approvedShifts, approvedShifts, true, name)}
+                                              className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:text-neutral-200 dark:hover:bg-white/5"
+                                            >
+                                              <UserCheck className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+                                              {name}
+                                            </button>
+                                          ))}
+                                        </>
+                                      ) : (
+                                        <>
+                                          <button
+                                            type="button"
+                                            disabled={!w.fullWeekComplete}
+                                            onClick={() =>
+                                              openSummary(
+                                                w.weekShiftsToApprove,
+                                                w.weekApproved,
+                                                false,
+                                                `Tutti (${visibleUsers.length})`
+                                              )
+                                            }
+                                            className={`flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold ${
+                                              w.fullWeekComplete
+                                                ? 'text-slate-700 hover:bg-slate-50 dark:text-neutral-200 dark:hover:bg-white/5'
+                                                : 'cursor-not-allowed text-slate-400 opacity-60'
+                                            }`}
+                                          >
+                                            <Users className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+                                            Settimana intera (tutti)
+                                          </button>
+                                          <p className="px-2 pt-2 pb-1 text-[9px] font-semibold uppercase text-slate-400">
+                                            Per dipendente
+                                          </p>
+                                          {w.employeesPending.map(({ user, name, pendingShifts, complete }) => (
+                                            <button
+                                              key={user.id}
+                                              type="button"
+                                              disabled={!complete}
+                                              onClick={() => openSummary(pendingShifts, w.weekApproved, false, name)}
+                                              className={`flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold ${
+                                                complete
+                                                  ? 'text-slate-700 hover:bg-slate-50 dark:text-neutral-200 dark:hover:bg-white/5'
+                                                  : 'cursor-not-allowed text-slate-400 opacity-60'
+                                              }`}
+                                            >
+                                              <UserCheck className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+                                              {name}
+                                            </button>
+                                          ))}
+                                        </>
+                                      )}
+                                    </div>
+                                  </>
+                                );
+                              })()}
+                            </CenteredModalPortal>
+                          </div>
+                  </div>
+                ); })()}
+                {/* Department Selector for PDF — visibile solo per admin (non per capo: reparto bloccato) */}
+                <div className={`relative ${(!isAdminTs || capoLockedDeptTs) ? 'hidden' : ''}`} ref={pdfDeptMenuRef}>
                   <button
                     type="button"
                     onClick={(e) => { 
@@ -2947,16 +3608,16 @@ export default function Timesheets() {
                       e.stopPropagation(); 
                       setShowPdfDeptMenu(prev => !prev); 
                     }}
-                    className="ui-toolbar-chip !inline-flex !h-8 !px-2 !text-[10px] items-center gap-1.5 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-neutral-800/90 cursor-pointer relative z-[110] max-w-[110px] sm:max-w-none"
+                    className="ui-toolbar-chip !inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs items-center gap-1.5 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-neutral-800/90 cursor-pointer relative z-[110] max-w-[110px] sm:max-w-none"
                     title="Seleziona reparto per PDF"
                   >
-                    <Filter className="h-3 w-3 shrink-0 text-slate-400" />
+                    <Filter className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-slate-400" />
                     <span className="font-bold text-slate-700 dark:text-neutral-200 truncate">
                       {pdfDeptFilter === 'all' 
                         ? <span>Reparti</span>
                         : availableDepts.find(d => d.value === pdfDeptFilter)?.label || pdfDeptFilter}
                     </span>
-                    <ChevronDown className={`h-3 w-3 shrink-0 text-slate-400 transition-transform ${showPdfDeptMenu ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-slate-400 transition-transform ${showPdfDeptMenu ? 'rotate-180' : ''}`} />
                   </button>
 
                     {/* Dropdown Menu */}
@@ -3088,21 +3749,21 @@ export default function Timesheets() {
                   <button
                     type="button"
                     onClick={() => void handleExportTimesheetPdf('WEEK')}
-                    className="ui-toolbar-chip hover:bg-slate-50 dark:hover:bg-neutral-800/90 inline-flex !h-8 !px-2 !text-[10px]"
+                    className="ui-toolbar-chip hover:bg-slate-50 dark:hover:bg-neutral-800/90 inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs"
                     title={t.ts_export_week_pdf || "Export Current Week PDF"}
                     aria-label={t.ts_export_week_pdf || "Export Current Week PDF"}
                   >
-                    <FileDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    <FileDown className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" aria-hidden />
                     <span>{t.ts_week_pdf || "Week PDF"}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => void handleExportTimesheetPdf('PERIOD')}
-                    className="ui-toolbar-chip hover:bg-slate-50 dark:hover:bg-neutral-800/90 inline-flex border-accent/30 text-accent !h-8 !px-2 !text-[10px]"
+                    className="ui-toolbar-chip hover:bg-slate-50 dark:hover:bg-neutral-800/90 inline-flex border-accent/30 text-accent !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs"
                     title={t.ts_export_period_pdf || "Export Full Period PDF"}
                     aria-label={t.ts_export_period_pdf || "Export Full Period PDF"}
                   >
-                    <FileDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    <FileDown className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" aria-hidden />
                     <span>{t.ts_period_pdf || "Period PDF"}</span>
                   </button>
                 </div>
@@ -3152,15 +3813,15 @@ export default function Timesheets() {
                         
                         const todayDate = isToday(day);
 
-                        const onOpenDayQueue = () => handleOpenDayReview(dateStr);
+                        const onOpenDayQueue = () => { if (!isMobile) handleOpenDayReview(dateStr); };
                         return (
                           <div
                             key={dateStr}
-                            className={`flex items-start gap-3 p-2 rounded-xl ${todayDate ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-slate-50/50 dark:bg-white/5'} cursor-pointer`}
-                            role="button"
-                            tabIndex={0}
-                            onClick={onOpenDayQueue}
-                            onKeyDown={(e) => {
+                            className={`flex items-start gap-3 p-2 rounded-xl ${todayDate ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-slate-50/50 dark:bg-white/5'} ${isMobile ? 'cursor-default' : 'cursor-pointer'}`}
+                            role={isMobile ? undefined : 'button'}
+                            tabIndex={isMobile ? undefined : 0}
+                            onClick={isMobile ? undefined : onOpenDayQueue}
+                            onKeyDown={isMobile ? undefined : (e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
                                 onOpenDayQueue();
@@ -3183,13 +3844,13 @@ export default function Timesheets() {
                                 const { border, bg, ring } = getShiftCardStyle(s, punchAuditCount, dateStr, boardShift);
                                 
                                 return (
-                                  <button
+                                  <div
                                     key={s.id}
-                                    onClick={(e) => {
+                                    onClick={isMobile ? undefined : (e) => {
                                       e.stopPropagation();
                                       openDrawer(s, user as any, dateStr, null, 'turno');
                                     }}
-                                    className={`flex w-full items-center justify-between rounded-lg border-l-4 ${border} ${bg} ${ring} p-2 text-left transition-transform active:scale-[0.98]`}
+                                    className={`flex w-full items-center justify-between rounded-lg border-l-4 ${border} ${bg} ${ring} p-2 text-left ${isMobile ? 'cursor-default' : 'cursor-pointer transition-transform active:scale-[0.98]'}`}
                                   >
                                     <div className="flex flex-col">
                                       <span className="text-xs font-bold text-slate-800 dark:text-neutral-100">
@@ -3201,8 +3862,8 @@ export default function Timesheets() {
                                         </span>
                                       )}
                                     </div>
-                                    <ChevronRight className="h-4 w-4 text-slate-300" />
-                                  </button>
+                                    {!isMobile && <ChevronRight className="h-4 w-4 text-slate-300" />}
+                                  </div>
                                 );
                               })}
                             </div>
@@ -3217,7 +3878,85 @@ export default function Timesheets() {
           </div>
 
           {/* Desktop Table View */}
-          <div id="timesheet-section-main-grid" className="hidden md:block surface-glass overflow-hidden scroll-mt-24">
+          {/* ── Mirror header sticky — compare quando il thead originale esce dalla vista ── */}
+          {timesheetHeaderSticky && (
+            <div
+              className="hidden md:block sticky z-[200] rounded-xl overflow-hidden border-[2px] border-[#3366CC] dark:border-[#3366CC] shadow-[0_0_8px_2px_rgba(51,102,204,0.6),0_0_24px_6px_rgba(51,102,204,0.35),0_0_48px_12px_rgba(51,102,204,0.15)] dark:shadow-[0_0_8px_2px_rgba(51,102,204,0.8),0_0_24px_6px_rgba(51,102,204,0.5),0_0_56px_16px_rgba(51,102,204,0.25)]"
+              style={{ top: 'var(--app-sticky-header-offset)' }}
+            >
+              <div ref={timesheetHeaderScrollRef} className="overflow-x-hidden">
+                <table
+                  className="w-full table-fixed border-collapse [&_th]:border-slate-400 dark:[&_th]:border-white/35"
+                  style={{ minWidth: timesheetGridMinWidthPx }}
+                >
+                  <colgroup>
+                    <col style={{ width: timesheetGridNameColPx }} />
+                    {weekDays.map((day) => (
+                      <col key={format(day, 'yyyy-MM-dd')} style={{ width: timesheetGridDayColPx }} />
+                    ))}
+                    <col style={{ width: timesheetGridTotalColPx }} />
+                  </colgroup>
+                  <thead>
+                    <tr className="border-b-2 border-[#3366CC]/40 dark:border-[#2255BB]/60 bg-[#e0f7fa] dark:bg-transparent">
+                      <th className="sticky left-0 z-10 box-border bg-[#e0f7fa] dark:bg-transparent py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-[#2255BB] dark:text-[#3366CC] border-r-2 border-r-[#3366CC]/40 dark:border-r-[#3366CC]/30 md:py-2.5 md:pl-3 md:pr-2 shadow-[2px_0_5px_-2px_rgba(51,102,204,0.2)]">
+                        {t.employee}
+                      </th>
+                      {weekDays.map((day, dayIdx) => {
+                        const todayDate = isToday(day);
+                        const dStr = format(day, 'yyyy-MM-dd');
+                        const inP = viewMode === 'month' ? isDayInConfiguredPeriod(day) : true;
+                        const isPayrollDay = dStr === weekViewPayrollDayStr;
+                        const payrollHighlight = isPayrollDay && (viewMode === 'week' || inP);
+                        const canReviewThisDay = dStr <= todayStr;
+                        const dayReviewableCount = visibleUsers.reduce((n, u) => {
+                          const d = timesheetData[u.id]?.[dStr];
+                          return n + (d?.shifts.filter((s) => shiftEligibleForDayReview(s)).length ?? 0);
+                        }, 0);
+                        const canReview = inP && canReviewThisDay && canTeamTimesheetOps && dayReviewableCount > 0;
+                        const weekEndCol = viewMode === 'month' && (dayIdx + 1) % 7 === 0;
+                        return (
+                          <th key={dStr}
+                            onClick={canReview ? () => handleOpenDayReview(dStr) : undefined}
+                            className={`box-border px-2 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1.5 ${
+                              weekEndCol ? 'border-r-[3px] border-r-[#3366CC]/40 dark:border-r-[#3366CC]/30' : 'border-r-2 border-r-[#3366CC]/15 dark:border-r-[#3366CC]/12'
+                            } ${
+                              payrollHighlight
+                                ? 'bg-[#b2ebf2] dark:bg-[#0a4a5a]'
+                                : todayDate
+                                  ? 'bg-[#bbdefb] dark:bg-[#0a2a4a]'
+                                  : 'bg-[#e0f7fa] dark:bg-[#0e3a4a]'
+                            } ${canReview ? 'cursor-pointer hover:bg-[#b2ebf2] dark:hover:bg-[#0a4a5a] group' : ''}`}
+                          >
+                            <div className={todayDate && inP ? 'text-[#3366CC]' : 'text-slate-400 dark:text-[#3366CC]/60'}>
+                              {format(day, 'EEE', { locale })}
+                            </div>
+                            <div className={`font-bold mt-0.5 text-sm md:text-xs ${todayDate && inP ? 'text-[#001A80] dark:text-[#3366CC]' : payrollHighlight ? 'text-slate-900 dark:text-[#3366CC]' : 'text-slate-700 dark:text-white'}`}>
+                              {format(day, 'd MMM', { locale })}
+                            </div>
+                            {payrollHighlight && (
+                              <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-[#007A5E] dark:text-[#3366CC]/80">
+                                {tv.ts_payroll_day_abbr ?? 'Paga'}
+                              </div>
+                            )}
+                            {canReview && (
+                              <div className="mt-0.5 text-[9px] font-semibold text-accent/60 group-hover:text-accent transition-colors">
+                                {t.ts_review_short}
+                              </div>
+                            )}
+                          </th>
+                        );
+                      })}
+                      <th className="box-border border-l-[3px] border-l-[#3366CC] dark:border-l-[#3366CC]/60 bg-[#e0f7fa] dark:bg-[#0e3a4a] px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-[#2255BB] dark:text-[#3366CC] md:px-2 md:py-2">
+                        {t.stats_total}
+                      </th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+            </div>
+          )}
+
+          <div id="timesheet-section-main-grid" className="hidden md:block surface-glass overflow-hidden scroll-mt-24 depth-card" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', boxShadow: 'none' } : {}}>
             <HorizontalScrollArea
               variant="overlay"
               remeasureKey={`${viewMode}-${weekStr}-${weekDays.length}`}
@@ -3225,10 +3964,10 @@ export default function Timesheets() {
               ariaLabelNext={viewMode === 'week' ? tv.ts_timesheet_week_nav_next : t.table_h_scroll_next}
               weekNav={timesheetMainGridWeekNav}
               scrollClassName="overflow-x-auto-safe"
-              onNavStateChange={setGridScrollNav}
+              scrollSyncRef={timesheetBodyScrollRef}
             >
             <table
-              className="w-full table-fixed border-collapse [&_th]:border-slate-400 dark:[&_th]:border-white/35 [&_td]:border-slate-400 dark:[&_td]:border-white/35"
+              className="w-full table-fixed border-collapse [&_th]:border-slate-300 dark:[&_th]:border-white/[0.08] [&_td]:border-slate-300 dark:[&_td]:border-white/[0.08]"
               style={{ minWidth: timesheetGridMinWidthPx }}
             >
               <colgroup>
@@ -3238,9 +3977,9 @@ export default function Timesheets() {
                 ))}
                 <col style={{ width: timesheetGridTotalColPx }} />
               </colgroup>
-              <thead>
-                <tr className="border-b-2 border-[#06B6D4]/30 dark:border-[#06B6D4]/22">
-                  <th className="sticky left-0 z-10 box-border bg-[#06B6D4]/5 dark:bg-[#06B6D4]/8 py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-[#06B6D4]/80 border-r-2 border-r-[#06B6D4]/30 dark:border-r-[#06B6D4]/22 md:py-2.5 md:pl-3 md:pr-2 shadow-[2px_0_5px_-2px_rgba(6,182,212,0.12)] dark:shadow-[2px_0_5px_-2px_rgba(6,182,212,0.18)]">
+              <thead ref={timesheetTheadRef}>
+                <tr className="border-b border-slate-300 dark:border-white/[0.08]">
+                  <th className="sticky left-0 z-10 box-border bg-white dark:bg-transparent py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-white/40 border-r border-r-slate-300 dark:border-r-white/[0.08] md:py-1.5 md:pl-3 md:pr-2" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent', boxShadow: 'none' } : { background: '#ffffff' }}>
                     {t.employee}
                   </th>
                   {weekDays.map((day, dayIdx) => {
@@ -3256,6 +3995,7 @@ export default function Timesheets() {
                     }, 0);
                     const canReview = inP && canReviewThisDay && canTeamTimesheetOps && dayReviewableCount > 0;
                     const weekEndCol = viewMode === 'month' && (dayIdx + 1) % 7 === 0;
+                    const _isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
                     return (
                       <th key={dStr}
                         onClick={canReview ? () => handleOpenDayReview(dStr) : undefined}
@@ -3266,50 +4006,53 @@ export default function Timesheets() {
                               ? t.ts_review_shifts_tooltip.replace('{n}', String(dayReviewableCount))
                               : undefined
                         }
-                        className={`box-border px-2 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1.5 ${
-                          weekEndCol ? 'border-r-[3px] border-r-[#06B6D4]/40 dark:border-r-[#06B6D4]/30' : 'border-r-2 border-r-[#06B6D4]/15 dark:border-r-[#06B6D4]/12'
+                        className={`box-border px-2 py-1.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1 ${
+                          weekEndCol ? 'border-r-2 border-r-slate-300 dark:border-r-white/[0.08]' : 'border-r border-r-slate-300 dark:border-r-white/[0.06]'
                         } ${
                           payrollHighlight
-                            ? 'bg-[#06B6D4]/10 dark:bg-[#06B6D4]/14 ring-1 ring-inset ring-[#06B6D4]/30 dark:ring-[#06B6D4]/22'
+                            ? 'bg-[#3366CC]/10 dark:bg-[#3366CC]/08'
                             : todayDate
-                              ? 'bg-[#06B6D4]/8 dark:bg-[#0052FF]/12'
-                              : 'bg-[#06B6D4]/5 dark:bg-[#06B6D4]/8'
-                        } ${viewMode === 'month' && !inP ? '!bg-slate-100/90 dark:!bg-neutral-900/90 opacity-70' : ''} ${canReview ? 'cursor-pointer hover:bg-[#06B6D4]/12 dark:hover:bg-[#06B6D4]/18 group' : ''}`}
+                              ? 'bg-[#3366CC]/6 dark:bg-[#0052FF]/05'
+                              : 'bg-white dark:bg-transparent'
+                        } ${viewMode === 'month' && !inP ? '!bg-slate-100/90 dark:!bg-transparent opacity-70' : ''} ${canReview ? 'cursor-pointer hover:bg-[#3366CC]/10 dark:hover:bg-white/[0.04] group' : ''}`}
+                        style={!_isDark ? { background: payrollHighlight ? '#f0f7ff' : todayDate ? '#f5f9ff' : '#ffffff' } : {}}
                       >
                         <div
-                          className={
-                            todayDate && inP ? 'text-[#06B6D4] dark:text-[#06B6D4]' : !inP ? 'text-slate-400 dark:text-neutral-400' : 'text-slate-400 dark:text-[#06B6D4]/60'
-                          }
+                          className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${
+                            todayDate && inP ? 'text-[#3366CC]/60 dark:text-[#93c5fd]/60' : !inP ? 'text-slate-400 dark:text-white/25' : 'text-slate-400 dark:text-white/30'
+                          }`}
                         >
                           {format(day, 'EEE', { locale })}
                         </div>
-                        <div
-                          className={`font-bold mt-0.5 text-sm md:text-xs ${
-                            todayDate && inP
-                              ? 'text-[#0052FF] dark:text-[#06B6D4]'
-                              : !inP
-                                ? 'text-slate-500 dark:text-neutral-400'
-                                : payrollHighlight
-                                  ? 'text-slate-900 dark:text-[#06B6D4]'
-                                  : 'text-slate-700 dark:text-white'
-                          }`}
-                        >
-                          {format(day, 'd MMM', { locale })}
+                        <div className="flex items-center justify-center gap-1">
+                          <div
+                            className={`font-black tabular-nums text-[13px] md:text-xs ${
+                              todayDate && inP
+                                ? 'text-[#001A80] dark:text-[#93c5fd]'
+                                : !inP
+                                  ? 'text-slate-500 dark:text-white/25'
+                                  : payrollHighlight
+                                    ? 'text-slate-900 dark:text-white/70'
+                                    : 'text-slate-700 dark:text-white/70'
+                            }`}
+                          >
+                            {format(day, 'd/MM')}
+                          </div>
+                          {payrollHighlight && (
+                            <span className="text-[8px] font-bold uppercase tracking-wide text-[#007A5E] dark:text-[#3366CC]/80">
+                              {tv.ts_payroll_day_abbr ?? 'Paga'}
+                            </span>
+                          )}
+                          {canReview && (
+                            <span className="text-[9px] font-semibold text-accent/60 group-hover:text-accent transition-colors">
+                              {t.ts_review_short}
+                            </span>
+                          )}
                         </div>
-                        {payrollHighlight && (
-                          <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-[#007A5E] dark:text-[#06B6D4]/80">
-                            {tv.ts_payroll_day_abbr ?? 'Paga'}
-                          </div>
-                        )}
-                        {canReview && (
-                          <div className="mt-0.5 text-[9px] font-semibold text-accent/60 group-hover:text-accent transition-colors">
-                            {t.ts_review_short}
-                          </div>
-                        )}
                       </th>
                     );
                   })}
-                  <th className="box-border border-l-[3px] border-l-[#06B6D4]/50 dark:border-l-[#06B6D4]/40 bg-[#06B6D4]/5 dark:bg-[#06B6D4]/8 px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-[#0284C7] dark:text-[#06B6D4]/80 md:px-2 md:py-2">
+                  <th className="box-border border-l-2 border-l-slate-300 dark:border-l-white/[0.08] bg-white dark:bg-transparent px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-white/40 md:px-2 md:py-2" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent' } : { background: '#ffffff' }}>
                     {t.stats_total}
                   </th>
                 </tr>
@@ -3317,21 +4060,23 @@ export default function Timesheets() {
 
               <tbody>
                 {visibleUsers.map((user, userIdx) => {
-                  const totals = userTotals[user.id];
-                  return (
-                    <tr
-                      key={user.id}
-                      className={`border-b border-[#06B6D4]/15 dark:border-[#06B6D4]/10 last:border-b-0 ${
-                        userIdx % 2 === 0 ? 'bg-white dark:bg-neutral-950' : 'bg-[#06B6D4]/[0.03] dark:bg-[#06B6D4]/[0.04]'
-                      }`}
-                    >
+                        const totals = userTotals[user.id];
+                        const _isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+                        return (
+                          <tr
+                            key={user.id}
+                            className={`depth-row last:border-b-0 ${
+                              userIdx % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-[#3366CC]/[0.03] dark:bg-transparent'
+                            }`}
+                            style={_isDark ? { background: 'transparent' } : { background: userIdx % 2 === 0 ? '#ffffff' : '#f9fbff' }}
+                          >
                       {/* Nome dipendente — click → revisione settimana (coda turni) */}
-                      <td className="sticky left-0 bg-inherit pl-4 pr-3 py-3 border-r-2 border-r-slate-400 dark:border-r-white/40 z-10 md:py-2 md:pl-3 md:pr-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">
+                      <td className="sticky left-0 bg-white dark:bg-transparent pl-4 pr-3 py-2 border-r border-r-slate-300 dark:border-r-white/[0.08] z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent', boxShadow: 'none' } : { background: '#ffffff' }}>
                         {canTeamTimesheetOps ? (
-                          <div className="flex flex-col gap-1">
+                          <div className="flex flex-col gap-1 justify-center">
                             <button
                               type="button"
-                              className="w-full max-w-full rounded-lg py-0.5 text-left transition-colors hover:bg-slate-200/60 dark:hover:bg-white/10"
+                              className="w-full max-w-full rounded-lg py-0.5 text-right transition-colors hover:bg-slate-200/60 dark:hover:bg-white/10"
                               aria-label={formatTrans(t.ts_employee_week_review_open_aria, { name: user.first_name })}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -3345,12 +4090,12 @@ export default function Timesheets() {
                             </button>
                           </div>
                         ) : (
-                          <>
+                          <div className="text-right">
                             <div className="font-semibold text-sm text-slate-800 dark:text-neutral-100 md:text-xs">{user.first_name}</div>
                             {user.department && (
                               <div className="text-[10px] text-slate-400 dark:text-neutral-400 mt-0.5 md:text-[9px] uppercase">{user.department}</div>
                             )}
-                          </>
+                          </div>
                         )}
                       </td>
 
@@ -3363,20 +4108,30 @@ export default function Timesheets() {
                         const isPayrollDay = dateStr === weekViewPayrollDayStr;
                         const payrollHighlight = isPayrollDay && (viewMode === 'week' || inP);
                         const weekEndCol = viewMode === 'month' && (dayIdx + 1) % 7 === 0;
-                        const tdBorder = weekEndCol ? 'border-r-[3px] border-r-slate-500 dark:border-r-white/50' : 'border-r-2';
+                        const tdBorder = weekEndCol ? 'border-r-2 border-r-slate-300 dark:border-r-white/[0.08]' : 'border-r border-r-slate-300 dark:border-r-white/[0.06]';
                         const tdMuted = viewMode === 'month' && !inP;
+                        const _isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
                         const tdBg =
                           payrollHighlight
-                            ? 'bg-[#06B6D4]/7 dark:bg-[#06B6D4]/8'
+                            ? 'bg-[#3366CC]/7 dark:bg-transparent'
                             : todayDate && inP
-                              ? 'bg-accent/5 dark:bg-accent/10'
+                              ? 'bg-accent/5 dark:bg-transparent'
                               : tdMuted
-                                ? 'bg-slate-100/90 dark:bg-neutral-900/80 opacity-70'
+                                ? 'bg-slate-100/90 dark:bg-transparent opacity-70'
                                 : '';
+                        const tdStyle: React.CSSProperties = _isDark
+                          ? payrollHighlight
+                            ? { background: 'rgba(51,102,204,0.06)' }
+                            : todayDate && inP
+                              ? { background: 'rgba(0,82,255,0.05)' }
+                              : tdMuted
+                                ? { background: 'transparent', opacity: 0.5 }
+                                : { background: 'transparent' }
+                          : { background: payrollHighlight ? '#f0f7ff' : todayDate && inP ? '#f5f9ff' : '#ffffff' };
 
                         if (!dayData || dayData.shifts.length === 0) {
                           return (
-                            <td key={dateStr} className={`px-2 py-3 text-center ${tdBorder} ${tdBg} md:px-1.5 md:py-2`}>
+                            <td key={dateStr} className={`px-2 py-2 text-center ${tdBorder} ${tdBg} md:px-1.5 md:py-1.5`} style={tdStyle}>
                               <span className={`text-sm md:text-xs ${tdMuted ? 'text-slate-300 dark:text-neutral-600' : 'text-slate-200 dark:text-neutral-600'}`}>–</span>
                             </td>
                           );
@@ -3402,6 +4157,7 @@ export default function Timesheets() {
                                 const displayActualMins = showPlannedAsActual ? s.plannedMins : s.actualMins;
                                 const displayDeltaMins = showPlannedAsActual ? 0 : s.deltaMins;
 
+                                const isHighlighted = highlightedShiftIds.has(s.id);
                                 return (
                                   <button
                                     key={s.id}
@@ -3409,21 +4165,21 @@ export default function Timesheets() {
                                     onClick={() => {
                                       openDrawer(s, user, dateStr, null, 'turno');
                                     }}
-                                    className={`flex w-full items-stretch text-left rounded-xl border-l-[3px] ${border} ${bg} ${ring} py-1.5 pl-2 pr-2 shadow-sm hover:shadow-md transition-all group md:rounded-lg md:py-1 md:pl-1.5 md:pr-1.5 md:border-l-2`}
+                                    className={`relative flex w-full items-stretch text-left rounded-lg border-l-[3px] ${border} ${bg} ${ring} py-1 pl-2 pr-2 shadow-sm hover:shadow-md transition-all group md:rounded-md md:py-0.5 md:pl-1.5 md:pr-1.5 md:border-l-2 ${isHighlighted ? 'ts-shift-highlighted' : ''}`}
                                   >
                                     {/* Spunta / lucchetto subito dopo la barra verticale, poi orari */}
                                     {(s.status === 'confirmed' || s.status === 'approved') && (
                                       <span className="mr-1.5 flex shrink-0 flex-col items-center justify-center gap-0.5 self-stretch md:mr-1">
                                         {s.status === 'confirmed' && (
                                           <Check
-                                            className="h-2.5 w-2.5 shrink-0 text-[#06B6D4] dark:text-[#06B6D4] md:h-2 md:w-2"
+                                            className="h-2.5 w-2.5 shrink-0 text-[#3366CC] dark:text-[#3366CC] md:h-2 md:w-2"
                                             strokeWidth={2.5}
                                             aria-hidden
                                           />
                                         )}
                                         {s.status === 'approved' && (
                                           <Lock
-                                            className="h-2.5 w-2.5 shrink-0 text-accent-dark dark:text-accent-light md:h-2 md:w-2"
+                                            className="h-2.5 w-2.5 shrink-0 text-emerald-600 dark:text-emerald-400 md:h-2 md:w-2"
                                             strokeWidth={2.5}
                                             aria-hidden
                                           />
@@ -3494,7 +4250,7 @@ export default function Timesheets() {
                                                 : punchMissingCell
                                                   ? 'text-amber-950 dark:text-amber-100'
                                                   : publishedCell
-                                                    ? 'text-slate-900 dark:text-[#06B6D4]'
+                                                    ? 'text-slate-900 dark:text-[#3366CC]'
                                                     : 'text-amber-950 dark:text-amber-100'
                                             }`}
                                           >
@@ -3526,27 +4282,29 @@ export default function Timesheets() {
                                         </span>
                                       </div>
                                     ) : null}
-                                    {/* Badge icone */}
-                                    <div className="flex items-center gap-1 mt-1 md:mt-0.5 md:gap-0.5">
-                                      {showFullTimesheetGrid && punchAuditCount > 0 && (
-                                        <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-orange-600 dark:text-orange-200 bg-orange-100 dark:bg-orange-950/55 rounded-xl px-1 py-0.5 md:rounded-md md:px-0.5 md:py-px">
-                                          <ShieldAlert className="w-2.5 h-2.5 md:h-2 md:w-2" />{punchAuditCount}
-                                        </span>
-                                      )}
-                                      {showFullTimesheetGrid && getShiftHistory(s.id).length > 0 && (
-                                        <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-600 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/50 rounded-xl px-1 py-0.5 md:rounded-md md:px-0.5 md:py-px">
-                                          <History className="w-2.5 h-2.5 md:h-2 md:w-2" />{getShiftHistory(s.id).length}
-                                        </span>
-                                      )}
-                                      <ArrowRight className="w-2.5 h-2.5 text-slate-300 dark:text-neutral-500 ml-auto opacity-0 group-hover:opacity-100 transition-opacity md:h-2 md:w-2" />
-                                    </div>
+                                    {/* Badge icone — assoluti in alto a destra */}
+                                    {showFullTimesheetGrid && (punchAuditCount > 0 || getShiftHistory(s.id).length > 0) && (
+                                      <div className="absolute top-0.5 right-1 flex items-center gap-0.5">
+                                        {punchAuditCount > 0 && (
+                                          <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-orange-600 dark:text-orange-200 bg-orange-100 dark:bg-orange-950/55 rounded px-0.5 py-px leading-none">
+                                            <ShieldAlert className="w-2 h-2" />{punchAuditCount}
+                                          </span>
+                                        )}
+                                        {getShiftHistory(s.id).length > 0 && (
+                                          <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-600 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/50 rounded px-0.5 py-px leading-none">
+                                            <History className="w-2 h-2" />{getShiftHistory(s.id).length}
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
+                                    <ArrowRight className="absolute bottom-0.5 right-1 w-2 h-2 text-slate-300 dark:text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </div>
                                   </button>
                                 );
                         };
 
                         return (
-                          <td key={dateStr} className={`px-1.5 py-2 ${tdBorder} align-top ${tdBg} md:px-1 md:py-1.5 h-px`}>
+                          <td key={dateStr} className={`px-1.5 py-1.5 ${tdBorder} align-top ${tdBg} md:px-1 md:py-1 h-px`} style={tdStyle}>
                             <div className="flex h-full flex-col">
                               {before16.length > 0 && (
                                 <div className="flex flex-col gap-1 md:gap-0.5">
@@ -3564,7 +4322,7 @@ export default function Timesheets() {
                       })}
 
                       {/* Totale settimana */}
-                      <td className="px-3 py-3 text-center border-l-[3px] border-l-slate-500 dark:border-l-white/50 bg-slate-50/50 dark:bg-neutral-800/60 md:px-2 md:py-2">
+                      <td className="px-3 py-2 text-center border-l-2 border-l-slate-300 dark:border-l-white/[0.08] bg-slate-50/50 dark:bg-transparent md:px-2 md:py-1.5" style={_isDark ? { background: 'transparent' } : { background: userIdx % 2 === 0 ? '#ffffff' : '#f9fbff' }}>
                         <div className="flex flex-col items-center gap-2">
                           <div className="text-xs font-semibold text-slate-500 dark:text-neutral-200 md:text-[10px]">
                             {showFullTimesheetGrid || plannedOnlyTimesheetGrid
@@ -3576,7 +4334,7 @@ export default function Timesheets() {
                               <div className="text-sm font-bold text-slate-900 dark:text-white md:text-xs">
                                 {formatMinutesToHoursAndMinutes(totals?.actualMins ?? 0)}
                               </div>
-                              <div className={`text-[10px] font-semibold ${(totals?.deltaMins ?? 0) >= 0 ? 'text-[#06B6D4] dark:text-[#06B6D4]' : 'text-red-500'} md:text-[9px]`}>
+                              <div className={`text-[10px] font-semibold ${(totals?.deltaMins ?? 0) >= 0 ? 'text-[#3366CC] dark:text-[#3366CC]' : 'text-red-500'} md:text-[9px]`}>
                                 {(totals?.deltaMins ?? 0) >= 0 ? '+' : ''}
                                 {fmtHM(totals?.deltaMins ?? 0)}
                               </div>
@@ -3590,62 +4348,6 @@ export default function Timesheets() {
                               {formatMinutesToHoursAndMinutes(totals?.frozenOfficialMins ?? 0)}
                             </div>
                           )}
-                          
-                          {/* Button Approva / Annulla Settimana */}
-                          {(() => {
-                            const weekShifts = shifts.filter(s =>
-                              s.user_id === user.id &&
-                              s.date >= weekStr &&
-                              s.date < weekEnd
-                            );
-                            const weekShiftsToApprove = weekShifts.filter(s =>
-                              normalizedApprovalStatus(s.approval_status) !== 'approved'
-                            );
-                            const weekApproved = weekShifts.filter(s =>
-                              normalizedApprovalStatus(s.approval_status) === 'approved'
-                            );
-                            const hasDataToApprove = weekShiftsToApprove.length > 0;
-                            const hasApproved = weekApproved.length > 0;
-
-                            if (hasDataToApprove || hasApproved) {
-                              const isApprovedState = !hasDataToApprove && hasApproved;
-                              const targetShifts = isApprovedState ? weekApproved : weekShiftsToApprove;
-                              return (
-                                <button
-                                  type="button"
-                                  disabled={undoApprovalBusy}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const previewRows = targetShifts.map(s => {
-                                      const dayData = timesheetData[user.id]?.[s.date];
-                                      const shiftRow = dayData?.shifts.find(sr => sr.id === s.id);
-                                      const displayStart = shiftRow?.actualStart || s.start_time || '';
-                                      const displayEnd = shiftRow?.actualEnd || s.end_time || '';
-                                      return {
-                                        dateStr: s.date,
-                                        planned: `${(displayStart||'').slice(0,5)}–${(displayEnd||'').slice(0,5)}`
-                                      };
-                                    });
-                                    setApproveWeekSummary({
-                                      employeeName: user.first_name,
-                                      shiftIds: targetShifts.map(s => s.id),
-                                      previewRows,
-                                      ...(isApprovedState ? { approvedIds: weekApproved.map(s => s.id) } : {}),
-                                    });
-                                  }}
-                                  className="mt-1 flex items-center justify-center gap-1.5 w-fit px-2 py-1.5 rounded-lg transition-colors bg-accent hover:bg-accent-hover dark:bg-accent dark:hover:bg-accent-hover"
-                                  title={isApprovedState ? 'Turni approvati — clicca per annullare' : 'Approva tutti i turni della settimana'}
-                                >
-                                  {isApprovedState
-                                    ? <Lock className="w-3.5 h-3.5 text-white" />
-                                    : <Unlock className="w-3.5 h-3.5 text-white" />
-                                  }
-                                </button>
-                              );
-                            }
-
-                            return null;
-                          })()}
                         </div>
                       </td>
                     </tr>
@@ -3687,8 +4389,8 @@ export default function Timesheets() {
               {/* Footer totali */}
               {canTeamTimesheetOps && (
                 <tfoot>
-                  <tr className="bg-[#06B6D4]/5 dark:bg-[#06B6D4]/8 border-t-2 border-[#06B6D4]/35 dark:border-[#06B6D4]/25">
-                    <td className="sticky left-0 bg-[#06B6D4]/5 dark:bg-[#06B6D4]/8 pl-4 pr-3 py-3 text-[#0284C7] dark:text-[#06B6D4]/80 font-bold text-xs uppercase border-r-2 border-r-[#06B6D4]/30 dark:border-r-[#06B6D4]/22 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[10px]">
+                  <tr className="bg-[#3366CC]/5 dark:bg-[#3366CC]/[0.06] border-t-2 border-[#3366CC]/35 dark:border-[#3366CC]/42">
+                    <td className="sticky left-0 bg-[#3366CC]/5 dark:bg-transparent pl-4 pr-3 py-3 text-[#2255BB] dark:text-[#3366CC]/80 font-bold text-xs uppercase border-r-2 border-r-[#3366CC]/30 dark:border-r-[#3366CC]/22 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[10px]" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent' } : undefined}>
                       {t.stats_total}
                     </td>
                     {weekDays.map((day, dayIdx) => {
@@ -3707,7 +4409,7 @@ export default function Timesheets() {
                       const tdMuted = viewMode === 'month' && !inP;
                       const tdBg =
                         payrollHighlight
-                          ? 'bg-[#06B6D4]/7 dark:bg-[#06B6D4]/8'
+                          ? 'bg-[#3366CC]/7 dark:bg-[#3366CC]/8'
                           : tdMuted
                             ? 'bg-slate-100/90 dark:bg-neutral-900/80 opacity-70'
                             : '';
@@ -3791,7 +4493,7 @@ export default function Timesheets() {
                       {
                         label: t.ts_kpi_planned,
                         val: formatMinutesToHoursAndMinutes(myTot?.plannedMins ?? 0),
-                        color: 'text-slate-800',
+                        color: 'text-slate-800 dark:text-neutral-100',
                       },
                       {
                         label: t.ts_kpi_punched,
@@ -3799,12 +4501,12 @@ export default function Timesheets() {
                           (myTot?.actualMins ?? 0) > 0
                             ? formatMinutesToHoursAndMinutes(myTot?.actualMins ?? 0)
                             : '–',
-                        color: 'text-slate-800',
+                        color: 'text-slate-800 dark:text-neutral-100',
                       },
                       {
                         label: t.ts_kpi_delta,
                         val: `${(myTot?.deltaMins ?? 0) >= 0 ? '+' : ''}${fmtHM(myTot?.deltaMins ?? 0)}`,
-                        color: (myTot?.deltaMins ?? 0) >= 0 ? 'text-[#06B6D4] dark:text-[#06B6D4]' : 'text-red-500',
+                        color: (myTot?.deltaMins ?? 0) >= 0 ? 'text-[#3366CC] dark:text-[#3366CC]' : 'text-red-500',
                       },
                     ]
                   : plannedOnlyTimesheetGrid && frozenM > 0
@@ -3812,19 +4514,19 @@ export default function Timesheets() {
                         {
                           label: t.ts_kpi_planned,
                           val: formatMinutesToHoursAndMinutes(myTot?.plannedMins ?? 0),
-                          color: 'text-slate-800',
+                          color: 'text-slate-800 dark:text-neutral-100',
                         },
                         {
                           label: t.ts_kpi_frozen_official,
                           val: formatMinutesToHoursAndMinutes(frozenM),
-                          color: 'text-slate-800',
+                          color: 'text-slate-800 dark:text-neutral-100',
                         },
                       ]
                     : [
                         {
                           label: t.ts_kpi_planned,
                           val: formatMinutesToHoursAndMinutes(myTot?.plannedMins ?? 0),
-                          color: 'text-slate-800',
+                          color: 'text-slate-800 dark:text-neutral-100',
                         },
                       ];
                 return (
@@ -3842,6 +4544,7 @@ export default function Timesheets() {
           )}
 
         </motion.div>
+        )} {/* end tsView === 'grid' */}
       </div>
 
       {/* ── Popup centrato: dettaglio turno (stesso schema del tabellone) ── */}
@@ -3856,7 +4559,7 @@ export default function Timesheets() {
               : 'max-w-sm md:max-w-2xl lg:max-w-4xl'
           }
           maxHeightClass="h-[92dvh] max-h-[92dvh] lg:h-[630px] lg:max-h-[630px]"
-          overlayZClass="z-[10050]"
+          overlayZClass="z-[999999]"
           ariaLabel={drawerData ? `${drawerData.employeeName} · ${drawerData.dateStr}` : t.ts_shift_detail_modal_aria}
           panelClassName="!overflow-hidden flex flex-col p-0"
           markDatePickerPortal
@@ -3920,40 +4623,50 @@ export default function Timesheets() {
             fullShift ?? null
           );
           const deltaColor =
-            s.deltaMins > 5 ? 'text-[#06B6D4] dark:text-[#06B6D4]' : s.deltaMins < -5 ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-neutral-400';
+            s.deltaMins > 5 ? 'text-[#3366CC] dark:text-[#3366CC]' : s.deltaMins < -5 ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-neutral-400';
           const isEmployeeWeekReviewSheet = drawerReviewQueue?.reviewScope === 'employee_week';
 
           const plannedPublishedCard = s.status === 'confirmed' || s.status === 'approved';
+          const plannedApprovedCard = s.status === 'approved';
+          const plannedConfirmedCard = s.status === 'confirmed';
           const plannedDraftCard = s.status === 'draft';
           const plannedAbsentCard = s.status === 'absent';
-          const plannedCardBoxClass = plannedPublishedCard
-            ? 'rounded-xl border-2 border-l-4 border-[#06B6D4]/28 dark:border-[#06B6D4]/22 border-l-[#06B6D4] bg-[#06B6D4]/10 dark:bg-[#06B6D4]/12 p-3'
-            : plannedAbsentCard
-              ? 'rounded-xl border-2 border-l-4 border-rose-200/80 dark:border-rose-800/50 border-l-error bg-rose-50 dark:bg-rose-950/35 p-3'
-              : plannedDraftCard
-                ? 'rounded-xl border-2 border-l-4 border-slate-200 dark:border-white/20 border-l-review bg-slate-50 dark:bg-neutral-950/85 p-3'
-                : 'rounded-xl border-2 border-l-4 border-slate-200 dark:border-white/15 border-l-slate-400 bg-slate-50/90 dark:bg-neutral-950/85 p-3';
-          const plannedCardLabelCls = plannedPublishedCard
-            ? 'text-[#00A87A] dark:text-[#06B6D4]'
-            : plannedAbsentCard
-              ? 'text-rose-600 dark:text-rose-400'
-              : plannedDraftCard
-                ? 'text-slate-600 dark:text-neutral-400'
-                : 'text-slate-500 dark:text-neutral-400';
-          const plannedCardMainCls = plannedPublishedCard
-            ? 'text-slate-900 dark:text-[#06B6D4]'
-            : plannedAbsentCard
-              ? 'text-rose-900 dark:text-rose-100'
-              : plannedDraftCard
-                ? 'text-slate-900 dark:text-white'
-                : 'text-slate-800 dark:text-neutral-100';
-          const plannedCardSubCls = plannedPublishedCard
-            ? 'text-[#00A87A]/90 dark:text-[#06B6D4]/90'
-            : plannedAbsentCard
-              ? 'text-rose-700 dark:text-rose-300'
-              : plannedDraftCard
-                ? 'text-slate-600 dark:text-neutral-300'
-                : 'text-slate-500 dark:text-neutral-300';
+          const plannedCardBoxClass = plannedApprovedCard
+            ? 'rounded-xl border-2 border-l-4 border-emerald-200/80 dark:border-emerald-800/40 border-l-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 p-3'
+            : plannedConfirmedCard
+              ? 'rounded-xl border-2 border-l-4 border-[#0052FF]/20 dark:border-[#0052FF]/18 border-l-[#0052FF] bg-[#0052FF]/8 dark:bg-[#0052FF]/10 p-3'
+              : plannedAbsentCard
+                ? 'rounded-xl border-2 border-l-4 border-rose-200/80 dark:border-rose-800/50 border-l-error bg-rose-50 dark:bg-rose-950/35 p-3'
+                : plannedDraftCard
+                  ? 'rounded-xl border-2 border-l-4 border-slate-200 dark:border-white/20 border-l-review bg-slate-50 dark:bg-neutral-950/85 p-3'
+                  : 'rounded-xl border-2 border-l-4 border-slate-200 dark:border-white/15 border-l-slate-400 bg-slate-50/90 dark:bg-neutral-950/85 p-3';
+          const plannedCardLabelCls = plannedApprovedCard
+            ? 'text-emerald-700 dark:text-emerald-400'
+            : plannedConfirmedCard
+              ? 'text-[#0052FF] dark:text-[#3399FF]'
+              : plannedAbsentCard
+                ? 'text-rose-600 dark:text-rose-400'
+                : plannedDraftCard
+                  ? 'text-slate-600 dark:text-neutral-400'
+                  : 'text-slate-500 dark:text-neutral-400';
+          const plannedCardMainCls = plannedApprovedCard
+            ? 'text-slate-900 dark:text-emerald-200'
+            : plannedConfirmedCard
+              ? 'text-slate-900 dark:text-[#3399FF]'
+              : plannedAbsentCard
+                ? 'text-rose-900 dark:text-rose-100'
+                : plannedDraftCard
+                  ? 'text-slate-900 dark:text-white'
+                  : 'text-slate-800 dark:text-neutral-100';
+          const plannedCardSubCls = plannedApprovedCard
+            ? 'text-emerald-700/90 dark:text-emerald-400/90'
+            : plannedConfirmedCard
+              ? 'text-[#0052FF]/80 dark:text-[#3399FF]/80'
+              : plannedAbsentCard
+                ? 'text-rose-700 dark:text-rose-300'
+                : plannedDraftCard
+                  ? 'text-slate-600 dark:text-neutral-300'
+                  : 'text-slate-500 dark:text-neutral-300';
 
           const frozenButUnlocked = isFrozen && timbratureEditUnlockedShiftId === s.id;
           const pinRequiredForPlannedTimesEdit =
@@ -3993,6 +4706,12 @@ export default function Timesheets() {
                             void (async () => {
                               setMarkAbsentSaving(true);
                               try {
+                                const prevStatus = s.approval_status;
+                                const prevStart = s.start_time;
+                                const prevEnd = s.end_time;
+                                pushTsUndo(`Ripristina turno ${prevStart}–${prevEnd}`, async () => {
+                                  await updateShift(s.id, { approval_status: prevStatus, start_time: prevStart, end_time: prevEnd });
+                                });
                                 await updateShift(s.id, { approval_status: 'absent' });
                                 showSuccess?.(t.shift_marked_absent_toast);
                                 closeTimesheetShiftDrawer();
@@ -4155,7 +4874,7 @@ export default function Timesheets() {
                           {translateDepartmentValue(drawerData.department, effectiveLanguage)}
                         </span>
                       )}
-                      {isApproved && <Lock className="h-3 w-3 shrink-0 text-[#06B6D4] dark:text-[#06B6D4]" />}
+                      {isApproved && <Lock className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400" />}
                       {isEmployeeWeekReviewSheet && drawerReviewQueue && (
                         <span className="shrink-0 text-[10px] font-semibold text-slate-600 dark:text-neutral-300">
                           {formatTrans(t.ts_employee_week_review_progress, { current: String(drawerReviewQueue.currentIdx + 1), total: String(drawerReviewQueue.items.length) })}
@@ -4175,6 +4894,12 @@ export default function Timesheets() {
                               void (async () => {
                                 setMarkAbsentSaving(true);
                                 try {
+                                  const prevStatus = s.approval_status;
+                                  const prevStart = s.start_time;
+                                  const prevEnd = s.end_time;
+                                  pushTsUndo(`Ripristina turno ${prevStart}–${prevEnd}`, async () => {
+                                    await updateShift(s.id, { approval_status: prevStatus, start_time: prevStart, end_time: prevEnd });
+                                  });
                                   await updateShift(s.id, { approval_status: 'absent' });
                                   showSuccess?.(t.shift_marked_absent_toast);
                                   closeTimesheetShiftDrawer();
@@ -4310,10 +5035,10 @@ export default function Timesheets() {
                           {(s.status === 'confirmed' || s.status === 'approved') && (
                             <span className="flex shrink-0 flex-col items-center justify-center gap-1 pr-1">
                               {s.status === 'confirmed' && (
-                                <Check className="h-4 w-4 text-[#06B6D4] dark:text-[#06B6D4]" strokeWidth={2.5} aria-hidden />
+                                <Check className="h-4 w-4 text-[#3366CC] dark:text-[#3366CC]" strokeWidth={2.5} aria-hidden />
                               )}
                               {s.status === 'approved' && (
-                                <Lock className="h-4 w-4 text-[#06B6D4] dark:text-[#06B6D4]" strokeWidth={2.5} aria-hidden />
+                                <Lock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" strokeWidth={2.5} aria-hidden />
                               )}
                             </span>
                           )}
@@ -4338,7 +5063,7 @@ export default function Timesheets() {
                           s.punched
                             ? s.isCrossDay
                               ? 'border-red-200 dark:border-red-800/50 border-l-error bg-red-50 dark:bg-red-950/35'
-                              : 'border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#06B6D4] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
+                              : 'border-[#001A80]/25 dark:border-[#001A80]/22 border-l-[#3366CC] bg-[#001A80]/8 dark:bg-[#001A80]/12'
                             : 'border-amber-400/90 dark:border-amber-500/70 border-l-review bg-amber-50 dark:bg-amber-950/45 animate-pulse'
                         }`}
                       >
@@ -4347,7 +5072,7 @@ export default function Timesheets() {
                             s.punched
                               ? s.isCrossDay
                                 ? 'text-red-600 dark:text-red-400'
-                                : 'text-[#0052FF] dark:text-[#06B6D4]'
+                                : 'text-[#001A80] dark:text-[#3366CC]'
                               : 'text-amber-800/90 dark:text-amber-200/90'
                           }`}>{t.ts_label_punched}</p>
                           {(s.punched && !s.actualEnd) || !s.punched ? (
@@ -4404,7 +5129,7 @@ export default function Timesheets() {
                                 </>
                               )}
                             </p>
-                            <div className="mt-2 space-y-0.5 border-t border-[#0052FF]/20 pt-2 dark:border-[#0052FF]/18">
+                            <div className="mt-2 space-y-0.5 border-t border-[#001A80]/20 pt-2 dark:border-[#001A80]/18">
                               <p className="text-[10px] leading-snug text-slate-600 dark:text-neutral-400">
                                 <span className="font-semibold text-slate-500 dark:text-neutral-500">{t.ts_punch_source_row_in}</span>{' '}
                                 {punchSourceLabel(s.punchInSource, t)}
@@ -4551,7 +5276,7 @@ export default function Timesheets() {
                                         {fmtAuditValue(e.oldValue)}
                                       </span>
                                       <ArrowRight className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-500" />
-                                      <span className="rounded-lg bg-[#06B6D4]/10 px-1.5 py-0.5 font-semibold text-[#007A5E] dark:bg-[#06B6D4]/12 dark:text-[#06B6D4]">
+                                      <span className="rounded-lg bg-[#3366CC]/10 px-1.5 py-0.5 font-semibold text-[#007A5E] dark:bg-[#3366CC]/12 dark:text-[#3366CC]">
                                         {fmtAuditValue(e.newValue)}
                                       </span>
                                     </div>
@@ -4590,7 +5315,7 @@ export default function Timesheets() {
                                         {fmtAuditValue(e.old_value)}
                                       </span>
                                       <ArrowRight className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-500" />
-                                      <span className="rounded-lg bg-[#06B6D4]/10 px-1.5 py-0.5 font-semibold text-[#007A5E] dark:bg-[#06B6D4]/12 dark:text-[#06B6D4]">
+                                      <span className="rounded-lg bg-[#3366CC]/10 px-1.5 py-0.5 font-semibold text-[#007A5E] dark:bg-[#3366CC]/12 dark:text-[#3366CC]">
                                         {fmtAuditValue(e.new_value)}
                                       </span>
                                     </div>
@@ -4618,24 +5343,24 @@ export default function Timesheets() {
                         const cardCls = punchCrossDay
                           ? 'border-red-200 dark:border-red-800/50 border-l-error bg-red-50/90 dark:bg-red-950/40'
                           : punchComplete
-                          ? 'border-[#0052FF]/25 dark:border-[#0052FF]/22 border-l-[#06B6D4] bg-[#0052FF]/8 dark:bg-[#0052FF]/12'
+                          ? 'border-[#001A80]/25 dark:border-[#001A80]/22 border-l-[#3366CC] bg-[#001A80]/8 dark:bg-[#001A80]/12'
                           : 'border-amber-400/90 dark:border-amber-500/70 bg-white/85 dark:bg-amber-950/50';
                         const hoverCls = timbraturePinGateTarget
                           ? punchCrossDay
                             ? 'hover:bg-red-50 dark:hover:bg-red-950/55'
                             : punchComplete
-                            ? 'hover:bg-[#0052FF]/8 dark:hover:bg-[#0052FF]/15'
+                            ? 'hover:bg-[#001A80]/8 dark:hover:bg-[#001A80]/15'
                             : 'hover:bg-amber-50/90 dark:hover:bg-amber-950/45'
                           : '';
                         const titleCls = punchCrossDay
                           ? 'text-red-900 dark:text-red-100'
                           : punchComplete
-                          ? 'text-slate-900 dark:text-[#06B6D4]'
+                          ? 'text-slate-900 dark:text-[#3366CC]'
                           : 'text-amber-950 dark:text-amber-100';
                         const hintCls = punchCrossDay
                           ? 'text-red-700/80 dark:text-red-300/80'
                           : punchComplete
-                          ? 'text-[#0052FF]/80 dark:text-[#06B6D4]/80'
+                          ? 'text-[#001A80]/80 dark:text-[#3366CC]/80'
                           : 'text-amber-900/85 dark:text-amber-200/90';
                         return (
                       <div className={`space-y-0.5 sm:space-y-1 rounded-xl border-2 border-l-4 p-1.5 sm:p-2 shadow-sm flex flex-col h-auto overflow-visible ${cardCls}`}>
@@ -4702,11 +5427,11 @@ export default function Timesheets() {
                                 : punchCrossDay
                                   ? 'bg-red-50/80 ring-red-200/70 dark:bg-red-950/30 dark:ring-red-800/50'
                                   : punchComplete
-                                  ? 'bg-[#0052FF]/7 ring-[#0052FF]/25 dark:bg-[#0052FF]/10 dark:ring-[#0052FF]/22'
+                                  ? 'bg-[#001A80]/7 ring-[#001A80]/25 dark:bg-[#001A80]/10 dark:ring-[#001A80]/22'
                                   : 'bg-white/80 ring-amber-200/80 dark:bg-neutral-900/40 dark:ring-amber-800/50'
                             } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-50/90 dark:hover:bg-amber-950/55' : ''}`}
                           >
-                            <p className={`mb-0.5 text-[9px] font-semibold uppercase tracking-wide ${!s.actualStart ? 'text-red-600 dark:text-red-400' : punchCrossDay ? 'text-red-600/80 dark:text-red-400/90' : punchComplete ? 'text-[#0052FF]/80 dark:text-[#06B6D4]/90' : 'text-amber-800/80 dark:text-amber-300/90'}`}>
+                            <p className={`mb-0.5 text-[9px] font-semibold uppercase tracking-wide ${!s.actualStart ? 'text-red-600 dark:text-red-400' : punchCrossDay ? 'text-red-600/80 dark:text-red-400/90' : punchComplete ? 'text-[#001A80]/80 dark:text-[#3366CC]/90' : 'text-amber-800/80 dark:text-amber-300/90'}`}>
                               {t.ts_drawer_manual_punch_in}
                             </p>
                             <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualStart ? 'text-slate-900 dark:text-neutral-100' : s.plannedStart ? 'text-slate-400 dark:text-neutral-500' : 'text-red-500 dark:text-red-400'}`}>
@@ -4730,11 +5455,11 @@ export default function Timesheets() {
                                 : punchCrossDay
                                   ? 'bg-red-50/80 ring-red-200/70 dark:bg-red-950/30 dark:ring-red-800/50'
                                   : punchComplete
-                                  ? 'bg-[#0052FF]/7 ring-[#0052FF]/25 dark:bg-[#0052FF]/10 dark:ring-[#0052FF]/22'
+                                  ? 'bg-[#001A80]/7 ring-[#001A80]/25 dark:bg-[#001A80]/10 dark:ring-[#001A80]/22'
                                   : 'bg-white/80 ring-amber-200/80 dark:bg-neutral-900/40 dark:ring-amber-800/50'
                             } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-50/90 dark:hover:bg-amber-950/55' : ''}`}
                           >
-                            <p className={`mb-0.5 text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide ${!s.actualEnd ? 'text-red-600 dark:text-red-400' : punchCrossDay ? 'text-red-600/80 dark:text-red-400/90' : punchComplete ? 'text-[#0052FF]/80 dark:text-[#06B6D4]/90' : 'text-amber-800/80 dark:text-amber-300/90'}`}>
+                            <p className={`mb-0.5 text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide ${!s.actualEnd ? 'text-red-600 dark:text-red-400' : punchCrossDay ? 'text-red-600/80 dark:text-red-400/90' : punchComplete ? 'text-[#001A80]/80 dark:text-[#3366CC]/90' : 'text-amber-800/80 dark:text-amber-300/90'}`}>
                               {t.ts_drawer_manual_punch_out}
                             </p>
                             <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualEnd ? 'text-slate-900 dark:text-neutral-100' : s.plannedEnd ? 'text-slate-400 dark:text-neutral-500' : 'text-red-500 dark:text-red-400'}`}>
@@ -4944,22 +5669,22 @@ export default function Timesheets() {
                   {/* ── Blocco Approvazione (sempre visibile se approvato) ── */}
                   {isApproved && (
                     <div className="border-b border-slate-100 dark:border-white/10 p-3 sm:p-5">
-                      <div className="rounded-xl border-2 border-l-4 border-[#06B6D4]/22 dark:border-[#06B6D4]/18 border-l-[#06B6D4] bg-[#06B6D4]/8 dark:bg-[#06B6D4]/8 p-3">
+                      <div className="rounded-xl border-2 border-l-4 border-emerald-500/25 dark:border-emerald-700/20 border-l-emerald-600 bg-emerald-50 dark:bg-emerald-950/25 p-3">
                         <div className="mb-3 flex items-center gap-2">
-                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-[#06B6D4]/12">
-                            <Lock className="h-4 w-4 text-[#00A87A] dark:text-[#06B6D4]" />
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40">
+                            <Lock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-slate-900 dark:text-[#06B6D4]">{t.ts_drawer_approved_frozen}</p>
-                            <p className="text-[11px] text-[#00A87A] dark:text-[#06B6D4]/90">{t.ts_drawer_no_further_edits}</p>
+                            <p className="text-sm font-bold text-slate-900 dark:text-emerald-300">{t.ts_drawer_approved_frozen}</p>
+                            <p className="text-[11px] text-emerald-700 dark:text-emerald-400/90">{t.ts_drawer_no_further_edits}</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-[#06B6D4]/18 dark:border-[#06B6D4]/15 p-3">
+                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-emerald-200 dark:border-emerald-800/40 p-3">
                             <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_drawer_approved_by}</p>
                             <p className="truncate text-sm font-bold text-slate-800 dark:text-neutral-100">{fullShift?.approved_by ?? s.approved_by ?? '—'}</p>
                           </div>
-                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-[#06B6D4]/18 dark:border-[#06B6D4]/15 p-3">
+                          <div className="rounded-xl bg-white/60 dark:bg-neutral-900/40 border border-emerald-200 dark:border-emerald-800/40 p-3">
                             <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">{t.ts_drawer_approval_date}</p>
                             <p className="text-sm font-bold text-slate-800 dark:text-neutral-100">
                               {(fullShift?.approved_at ?? s.approved_at)
@@ -5102,6 +5827,12 @@ export default function Timesheets() {
                           void (async () => {
                             setMarkAbsentSaving(true);
                             try {
+                              const prevStatus = s.approval_status;
+                              const prevStart = s.start_time;
+                              const prevEnd = s.end_time;
+                              pushTsUndo(`Ripristina turno ${prevStart}–${prevEnd}`, async () => {
+                                await updateShift(s.id, { approval_status: prevStatus, start_time: prevStart, end_time: prevEnd });
+                              });
                               await updateShift(s.id, { approval_status: 'absent' });
                               showSuccess?.(t.shift_marked_absent_toast);
                               closeTimesheetShiftDrawer();
@@ -5180,7 +5911,7 @@ export default function Timesheets() {
         open={!!approveWeekSummary}
         onClose={() => setApproveWeekSummary(null)}
         maxWidthClass="max-w-[380px]"
-        panelClassName={`rounded-[40px] overflow-hidden ${approveWeekSummary?.approvedIds ? '!bg-[#06B6D4]/10 dark:!bg-[#06B6D4]/18 !border-[#06B6D4]/28 dark:!border-[#06B6D4]/18' : '!bg-[#0052FF]/7 dark:!bg-[#0052FF]/18 !border-[#0052FF]/20 dark:!border-[#0052FF]/25'}`}
+        panelClassName={`rounded-[40px] overflow-hidden ${approveWeekSummary?.approvedIds ? '!bg-emerald-50 dark:!bg-emerald-950/25 !border-emerald-300/40 dark:!border-emerald-700/30' : '!bg-[#0052FF]/5 dark:!bg-[#0052FF]/12 !border-[#0052FF]/18 dark:!border-[#0052FF]/22'}`}
         ariaLabel="Riepilogo approvazione settimana"
       >
         {approveWeekSummary && (() => {
@@ -5189,37 +5920,46 @@ export default function Timesheets() {
           <div className="p-6">
             {/* Header */}
             <div className="flex items-center gap-3 mb-4">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${isDone ? 'bg-[#06B6D4]/22 dark:bg-[#06B6D4]/18' : 'bg-[#0052FF]/18 dark:bg-[#0052FF]/15'}`}>
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${isDone ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-[#0052FF]/12 dark:bg-[#0052FF]/15'}`}>
                 {isDone
-                  ? <Check className="h-5 w-5 text-[#00A87A] dark:text-[#06B6D4]" strokeWidth={2.5} />
-                  : <Lock className="h-5 w-5 text-[#0052FF] dark:text-[#06B6D4]" />
+                  ? <Check className="h-5 w-5 text-emerald-600 dark:text-emerald-400" strokeWidth={2.5} />
+                  : <Lock className="h-5 w-5 text-[#0052FF] dark:text-[#3399FF]" />
                 }
               </div>
               <div>
-                <h3 className={`font-bold text-base ${isDone ? 'text-slate-900 dark:text-[#06B6D4]' : 'text-slate-900 dark:text-[#06B6D4]'}`}>
+                <h3 className={`font-bold text-base ${isDone ? 'text-slate-900 dark:text-emerald-300' : 'text-slate-900 dark:text-neutral-100'}`}>
                   {isDone ? 'Approvazione Completata' : 'Approvazione Settimanale'}
                 </h3>
-                <p className={`text-sm ${isDone ? 'text-[#00A87A]/80 dark:text-[#06B6D4]/70' : 'text-[#0052FF]/80 dark:text-[#06B6D4]/70'}`}>
+                <p className={`text-sm ${isDone ? 'text-emerald-700 dark:text-emerald-400/80' : 'text-slate-500 dark:text-neutral-400'}`}>
                   {approveWeekSummary.employeeName} · {approveWeekSummary.shiftIds.length} turni
                 </p>
               </div>
             </div>
 
             {/* Lista turni */}
-            <div className={`mb-4 max-h-[260px] overflow-y-auto rounded-xl border divide-y ${isDone ? 'border-[#06B6D4]/22 dark:border-[#06B6D4]/15 divide-[#06B6D4]/15 dark:divide-[#06B6D4]/15' : 'border-[#0052FF]/20 dark:border-[#0052FF]/20 divide-[#0052FF]/15 dark:divide-[#0052FF]/15'}`}>
+            <div className={`mb-4 max-h-[260px] overflow-y-auto rounded-xl border divide-y ${isDone ? 'border-emerald-200 dark:border-emerald-800/40 divide-emerald-100 dark:divide-emerald-900/50' : 'border-[#0052FF]/18 dark:border-[#0052FF]/20 divide-[#0052FF]/10 dark:divide-[#0052FF]/15'}`}>
               {approveWeekSummary.previewRows.map((row, i) => {
                 const approved = isDone;
                 return (
-                  <div key={i} className={`flex items-center justify-between px-3 py-2.5 transition-colors ${approved ? 'bg-[#06B6D4]/9 dark:bg-[#06B6D4]/10' : 'bg-[#0052FF]/5 dark:bg-[#0052FF]/7'}`}>
-                    <span className={`text-sm font-medium capitalize ${isDone ? 'text-[#007A5E] dark:text-[#06B6D4]/80' : 'text-[#0052FF] dark:text-[#06B6D4]/80'}`}>
-                      {safeFormatDate(row.dateStr, 'EEE d MMM', { locale })}
+                  <div key={i} className={`flex items-center justify-between px-3 py-2.5 transition-colors ${approved ? 'bg-emerald-50/70 dark:bg-emerald-950/20' : 'bg-[#0052FF]/4 dark:bg-[#0052FF]/6'}`}>
+                    <span className={`text-sm font-medium capitalize ${isDone ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-neutral-300'}`}>
+                      {row.employeeLabel ? (
+                        <span className="block text-left">
+                          <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400">
+                            {row.employeeLabel}
+                          </span>
+                          {safeFormatDate(row.dateStr, 'EEE d MMM', { locale })}
+                        </span>
+                      ) : (
+                        safeFormatDate(row.dateStr, 'EEE d MMM', { locale })
+                      )}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold tabular-nums ${isDone ? 'text-slate-900 dark:text-[#06B6D4]' : 'text-slate-900 dark:text-[#06B6D4]'}`}>
+                      <span className="text-sm font-bold tabular-nums text-slate-900 dark:text-neutral-100">
                         {row.planned}
                       </span>
                       {approved && (
-                        <Check className="h-4 w-4 text-[#06B6D4] dark:text-[#06B6D4] shrink-0" strokeWidth={2.5} />
+                        <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" strokeWidth={2.5} />
                       )}
                     </div>
                   </div>
@@ -5258,7 +5998,7 @@ export default function Timesheets() {
                   type="button"
                   disabled={undoApprovalBusy}
                   onClick={() => setApproveWeekSummary(null)}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#06B6D4] hover:bg-[#00A87A] text-white text-sm font-bold shadow-sm shadow-[#06B6D4]/20 disabled:opacity-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#3366CC] hover:bg-[#00A87A] text-white text-sm font-bold shadow-sm shadow-[#3366CC]/20 disabled:opacity-50 transition-colors"
                 >
                   Chiudi
                 </button>
@@ -5268,7 +6008,7 @@ export default function Timesheets() {
                 <button
                   type="button"
                   onClick={() => setApproveWeekSummary(null)}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-[#0052FF]/22 dark:border-[#0052FF]/22 bg-white/60 dark:bg-[#0052FF]/7 text-[#0052FF] dark:text-[#06B6D4] text-sm font-semibold hover:bg-[#0052FF]/8 dark:hover:bg-[#0052FF]/12 transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-[#001A80]/22 dark:border-[#001A80]/22 bg-white/60 dark:bg-[#001A80]/7 text-[#001A80] dark:text-[#3366CC] text-sm font-semibold hover:bg-[#001A80]/8 dark:hover:bg-[#001A80]/12 transition-colors"
                 >
                   Annulla
                 </button>
@@ -5360,7 +6100,7 @@ export default function Timesheets() {
           const clockOutComplete = /^\d{2}:\d{2}$/.test((clockOutTime || '').trim());
           const showHoursPreview = clockOutComplete && !!shiftObj && !!userObj;
           const previewDelta = previewMins - closingShift.plannedMins;
-          const previewDeltaColor = previewDelta > 5 ? 'text-[#06B6D4] dark:text-[#06B6D4]' : previewDelta < -5 ? 'text-red-500' : 'text-slate-500';
+          const previewDeltaColor = previewDelta > 5 ? 'text-[#3366CC] dark:text-[#3366CC]' : previewDelta < -5 ? 'text-red-500' : 'text-slate-500';
 
           return (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -5371,7 +6111,7 @@ export default function Timesheets() {
                 className="modal-glass-panel w-full max-w-sm rounded-2xl p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <h3 className="font-bold text-slate-900 dark:text-neutral-100 text-base flex items-center gap-2">
                       <LogOut className="w-4 h-4 text-amber-500" />
                       {t.ts_modal_close_shift_title}
                     </h3>
@@ -5385,9 +6125,9 @@ export default function Timesheets() {
                   </button>
                 </div>
 
-                <div className="bg-slate-50 rounded-xl px-3 py-2.5 mb-4 flex items-center justify-between text-sm">
+                <div className="bg-slate-50 dark:bg-white/[0.06] rounded-xl px-3 py-2.5 mb-4 flex items-center justify-between text-sm">
                   <span className="text-slate-500 dark:text-neutral-300">{t.ts_modal_entry_registered}</span>
-                  <span className="font-bold text-slate-800">{closingShift.actualStart}</span>
+                  <span className="font-bold text-slate-800 dark:text-neutral-100">{closingShift.actualStart}</span>
                 </div>
 
                 <div className="mb-4">
@@ -5406,16 +6146,16 @@ export default function Timesheets() {
                 </div>
 
                 {showHoursPreview && (
-                  <div className="bg-slate-50 rounded-xl p-3 mb-4">
+                  <div className="bg-slate-50 dark:bg-white/[0.06] rounded-xl p-3 mb-4">
                     <p className="text-[10px] font-semibold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-2">{t.ts_modal_hours_preview}</p>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
                         <p className="text-[10px] text-slate-400 dark:text-neutral-400">{t.ts_kpi_planned}</p>
-                        <p className="font-bold text-slate-700 text-sm">{fmtHM(closingShift.plannedMins)}</p>
+                        <p className="font-bold text-slate-700 dark:text-neutral-100 text-sm">{fmtHM(closingShift.plannedMins)}</p>
                       </div>
                       <div>
                         <p className="text-[10px] text-slate-400 dark:text-neutral-400">{t.ts_kpi_actual}</p>
-                        <p className="font-bold text-slate-800 text-sm">{fmtHM(previewMins)}</p>
+                        <p className="font-bold text-slate-800 dark:text-neutral-100 text-sm">{fmtHM(previewMins)}</p>
                       </div>
                       <div>
                         <p className="text-[10px] text-slate-400 dark:text-neutral-400">{t.ts_kpi_delta}</p>

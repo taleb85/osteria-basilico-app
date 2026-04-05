@@ -1,5 +1,5 @@
-import { Play, Pause, LogOut, ChevronRight } from 'lucide-react';
-import MobileStatsCards from './MobileStatsCards';
+import { Play, LogOut, ChevronRight, Clock } from 'lucide-react';
+import HeaderTodayCoworkersCard from '../HeaderTodayCoworkersCard';
 
 export interface MobileHomeProps {
   greetingText: string;
@@ -21,6 +21,9 @@ export interface MobileHomeProps {
   tapStartHint: string;
   shiftTimeHint: string | null;
   statusInShift: string;
+  todayShiftLabel: string;
+  inProgressLabel: string;
+  nextShiftLabel: string;
   savingLabel: string;
   startLabel: string;
   endLabel: string;
@@ -31,6 +34,18 @@ export interface MobileHomeProps {
   onEnd: () => void;
   onNavigateToTimesheet?: () => void;
   todayWorkShifts: any[];
+}
+
+function fmtH(mins: number) {
+  if (!Number.isFinite(mins) || mins <= 0) return '0h';
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}h ${String(m).padStart(2, '0')}m` : `${h}h`;
+}
+
+function useDarkMode() {
+  if (typeof document === 'undefined') return false;
+  return document.documentElement.classList.contains('dark');
 }
 
 export default function MobileHome({
@@ -47,7 +62,9 @@ export default function MobileHome({
   noShiftsHint,
   tapStartHint,
   shiftTimeHint,
-  statusInShift,
+  todayShiftLabel,
+  inProgressLabel,
+  nextShiftLabel,
   savingLabel,
   startLabel,
   endLabel,
@@ -59,131 +76,193 @@ export default function MobileHome({
   onNavigateToTimesheet,
   todayWorkShifts,
 }: MobileHomeProps) {
+  const dark = useDarkMode();
+  const cardCls = dark
+    ? 'rounded-2xl border border-white/[0.08]'
+    : 'rounded-2xl border bg-white border-slate-100 shadow-sm';
+  const cardStyle = dark ? { background: 'transparent' } : {};
+
+  const firstShift = todayWorkShifts[0];
+  const shiftRange = firstShift
+    ? `${firstShift.start_time.slice(0, 5)} → ${firstShift.end_time?.slice(0, 5) ?? '…'}`
+    : null;
+
+  const weekPct = weekCapMinutes > 0
+    ? Math.min(100, Math.round((weeklyMinutes / weekCapMinutes) * 100))
+    : 0;
+
   return (
-    <div className="flex flex-col gap-4 px-4 py-4 pb-12">
-      {/* Header */}
-      <header className="flex justify-between items-start mb-1 pt-1">
-        <div className="flex flex-col gap-0.5">
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-neutral-100 leading-tight tracking-tight">{greetingText}</h1>
-          <div className="flex items-center gap-1.5">
-            <div className={`h-1.5 w-1.5 rounded-full ${inProgress ? 'animate-pulse bg-[#00D1FF]' : 'bg-slate-300 dark:bg-neutral-600'}`} />
-            <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
-              {inProgress ? statusInShift : 'Fuori Turno'}
+    <div className="flex flex-col gap-3 px-4 py-4 pb-12">
+
+      {/* ── Saluto compatto ─────────────────────────────────────────── */}
+      <div className="px-1">
+        <h1 className="text-xl font-extrabold tracking-tight text-slate-800 dark:text-white leading-tight">
+          {greetingText}
+        </h1>
+        <p className="text-sm font-bold capitalize text-slate-500 dark:text-white/50 mt-0.5 tracking-wide">
+          {todayLabel}
+        </p>
+      </div>
+
+      {/* ── Il tuo turno oggi ───────────────────────────────────────── */}
+      <section className={`${cardCls} px-5 py-4`} style={cardStyle}>
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/35 mb-1">
+              {todayShiftLabel}
+            </p>
+            {shiftRange ? (
+              <p className="text-2xl font-black text-slate-800 dark:text-white tabular-nums">
+                {shiftRange}
+              </p>
+            ) : (
+              <p className="text-base font-bold text-slate-400 dark:text-white/40">
+                {noShiftsHint}
+              </p>
+            )}
+            {shiftTimeHint && (
+              <p className="text-[10px] font-semibold text-slate-400 dark:text-white/30 mt-0.5">
+                {shiftTimeHint}
+              </p>
+            )}
+          </div>
+
+          {/* Badge stato */}
+          {inProgress ? (
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
+              {inProgressLabel}
+            </span>
+          ) : todayWorkShiftsCount > 0 ? (
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:bg-[#4361EE]/20 dark:text-[#93c5fd]">
+              {nextShiftLabel}
+            </span>
+          ) : null}
+        </div>
+
+        {/* Tempo trascorso se in turno */}
+        {inProgress && elapsedLabel && (
+          <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl bg-slate-50 dark:bg-transparent border border-slate-100 dark:border-white/[0.08]">
+            <Clock className="w-4 h-4 text-slate-400 dark:text-white/40 shrink-0" />
+            <span className="text-lg font-mono font-semibold text-slate-600 dark:text-white/80 tabular-nums">
+              {elapsedLabel}
             </span>
           </div>
-          <p className="text-xs font-semibold text-slate-400 dark:text-neutral-500 capitalize">{todayLabel}</p>
-        </div>
-      </header>
+        )}
 
-      {/* Card Timbratura: Design Operativo con angoli 40px */}
-      <section className="bg-white dark:bg-neutral-900 rounded-[40px] p-5 shadow-sm border border-slate-100 dark:border-white/5 mb-1">
-        <div className="text-center mb-4">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">
-            {inProgress ? 'Tempo Lavorato' : 'Standby'}
-          </p>
-          {inProgress && elapsedLabel && (
-            <p className="text-4xl font-mono font-medium text-[#94a3b8] tabular-nums leading-none tracking-tight">
-              {elapsedLabel}
-            </p>
-          )}
-          {inProgress && shiftTimeHint && (
-            <p className="mt-2 text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-              {shiftTimeHint}
-            </p>
-          )}
-        </div>
-
-        <div className="w-full">
-          {inProgress ? (
-            <div className="flex flex-col gap-2.5">
-              {/* Pulsante FINE TURNO (Rosso) */}
-              {canEnd && (
-                <button
-                  type="button"
-                  disabled={punchBusy}
-                  onClick={onEnd}
-                  className="w-full h-16 bg-red-600 hover:bg-red-700 text-white rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-red-600/20 transition-all active:scale-95"
-                >
-                  <LogOut className="w-6 h-6" />
-                  <span className="text-lg font-bold uppercase tracking-wider">
-                    {punchBusy ? savingLabel : endLabel}
+        {/* Lista turni del giorno (se non in corso) */}
+        {!inProgress && todayWorkShifts.length > 1 && (
+          <div className="flex flex-col gap-1.5 mb-3">
+            {todayWorkShifts.slice(1).map((s) => (
+              <div key={s.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 dark:bg-transparent border border-slate-100 dark:border-white/[0.08]">
+                <div className="flex items-center gap-2">
+                  <div className={`w-1.5 h-1.5 rounded-full ${s.type === 'lunch' ? 'bg-amber-400' : 'bg-violet-500'}`} />
+                  <span className="text-xs font-bold text-slate-700 dark:text-white/70">
+                    {s.start_time.slice(0, 5)} – {s.end_time?.slice(0, 5) ?? '…'}
                   </span>
-                </button>
-              )}
-            </div>
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400 dark:text-white/35">
+                  {s.type === 'lunch' ? 'Pranzo' : 'Cena'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Bottoni punch */}
+        {inProgress ? (
+          canEnd && (
+            <button
+              type="button"
+              disabled={punchBusy}
+              onClick={onEnd}
+              className="w-full h-14 bg-red-600 hover:bg-red-700 text-white rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-red-600/20 transition-all active:scale-95 disabled:opacity-60"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="text-base font-bold uppercase tracking-wider">
+                {punchBusy ? savingLabel : endLabel}
+              </span>
+            </button>
+          )
+        ) : (
+          canStart ? (
+            <button
+              type="button"
+              disabled={punchBusy}
+              onClick={onStart}
+              className="w-full h-14 bg-[#001A80] hover:bg-[#001266] dark:bg-[#4361EE]/30 dark:hover:bg-[#4361EE]/45 dark:border dark:border-[#4361EE]/50 text-white dark:text-[#93c5fd] rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-[#001A80]/15 dark:shadow-none transition-all active:scale-95 disabled:opacity-60"
+            >
+              <Play className="w-5 h-5 fill-current" />
+              <span className="text-base font-bold uppercase tracking-wider">
+                {punchBusy ? savingLabel : startLabel}
+              </span>
+            </button>
           ) : (
-            <div className="flex flex-col items-center">
-              {todayWorkShifts.length > 0 && (
-                <div className="w-full mb-4 space-y-1.5">
-                  <div className="flex flex-col gap-1.5">
-                    {todayWorkShifts.map((s) => (
-                      <div key={s.id} className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-neutral-800/50 border border-slate-100 dark:border-white/5">
-                        <div className="flex items-center gap-2.5">
-                          <div className={`w-1.5 h-1.5 rounded-full ${s.type === 'lunch' ? 'bg-amber-400' : 'bg-violet-500'}`} />
-                          <span className="text-xs font-bold text-slate-700 dark:text-neutral-200">
-                            {s.start_time.slice(0, 5)} – {s.end_time?.slice(0, 5) ?? '…'}
-                          </span>
-                        </div>
-                        <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400 dark:text-neutral-500">
-                          {s.type === 'lunch' ? 'Pranzo' : 'Cena'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <p className="mb-3 text-[9px] font-bold text-slate-400 max-w-[180px] uppercase tracking-wider text-center">
-                {todayWorkShiftsCount > 0 ? tapStartHint : noShiftsHint}
+            todayWorkShiftsCount > 0 && (
+              <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">
+                {tapStartHint}
               </p>
-              {/* Pulsante INIZIA TURNO */}
-              {canStart ? (
-                <button
-                  type="button"
-                  disabled={punchBusy}
-                  onClick={onStart}
-                  className="w-full h-16 bg-[#0052FF] hover:bg-[#0039CC] text-white rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-[#0052FF]/20 transition-all active:scale-95"
-                >
-                  <Play className="w-6 h-6 fill-white" />
-                  <span className="text-lg font-bold uppercase tracking-wider">
-                    {punchBusy ? savingLabel : startLabel}
-                  </span>
-                </button>
-              ) : (
-                <div className="w-full h-16 bg-slate-100 dark:bg-neutral-800 text-slate-400 rounded-2xl flex items-center justify-center gap-3 border border-dashed border-slate-200 dark:border-white/5 opacity-60">
-                  <Play className="w-6 h-6" />
-                  <span className="text-lg font-bold uppercase tracking-wider">
-                    {startLabel}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+            )
+          )
+        )}
       </section>
 
-      {/* Sezione I MIEI NUMERI */}
+      {/* ── I miei numeri ───────────────────────────────────────────── */}
       <section>
-        <div className="mb-3 px-1 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+        <div className="flex items-center justify-between px-1 mb-2">
+          <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">
             {statsLabels.title}
           </h2>
           {onNavigateToTimesheet && (
-            <button 
+            <button
               onClick={onNavigateToTimesheet}
-              className="text-xs font-bold text-[#0052FF] flex items-center gap-0.5 hover:opacity-80 transition-opacity"
+              className="text-[10px] font-bold text-blue-600 dark:text-[#93c5fd] flex items-center gap-0.5 hover:opacity-80 transition-opacity"
             >
-              Vedi Dettaglio <ChevronRight className="w-3 h-3" />
+              Dettaglio <ChevronRight className="w-3 h-3" />
             </button>
           )}
         </div>
-        <MobileStatsCards
-          weekWorkedMins={weeklyMinutes}
-          weekCapMins={weekCapMinutes}
-          monthWorkedMins={monthlyMinutes}
-          monthDaysWorked={monthDaysWorked}
-          labels={statsLabels}
-        />
+
+        <div className="grid grid-cols-2 gap-3">
+          {/* Ore settimana */}
+          <div className={`${cardCls} px-4 py-3`} style={cardStyle}>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/35 mb-1">
+              {statsLabels.week}
+            </p>
+            <p className="text-xl font-black text-slate-800 dark:text-white tabular-nums leading-none mb-2">
+              {fmtH(weeklyMinutes)}
+            </p>
+            <div className="w-full bg-slate-100 dark:bg-white/[0.08] rounded-full h-1.5">
+              <div
+                className="h-full rounded-full bg-[var(--brand)] transition-[width] duration-700 ease-out"
+                style={{ width: `${weekPct}%` }}
+              />
+            </div>
+            <p className="text-[8px] text-slate-400 dark:text-white/25 mt-1 tabular-nums">
+              / {fmtH(weekCapMinutes)}
+            </p>
+          </div>
+
+          {/* Ore mese */}
+          <div className={`${cardCls} px-4 py-3`} style={cardStyle}>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/35 mb-1">
+              {statsLabels.month}
+            </p>
+            <p className="text-xl font-black text-slate-800 dark:text-white tabular-nums leading-none mb-1">
+              {fmtH(monthlyMinutes)}
+            </p>
+            <p className="text-[10px] text-slate-400 dark:text-white/35 tabular-nums">
+              {monthDaysWorked} {statsLabels.daysWorked}
+            </p>
+          </div>
+        </div>
       </section>
+
+      {/* ── Colleghi in turno oggi ───────────────────────────────────── */}
+      <div className="rounded-2xl border border-slate-100 dark:border-white/[0.08] overflow-hidden bg-white/80 dark:bg-white/[0.04] supports-[backdrop-filter]:backdrop-blur-xl">
+        <HeaderTodayCoworkersCard />
+      </div>
+
     </div>
   );
 }

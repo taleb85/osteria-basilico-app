@@ -19,6 +19,8 @@ import type { GeofenceConfig } from '../utils/geofencePunch';
 import type { PresenceVerificationConfig } from '../utils/presenceVerificationConfigStorage';
 
 export interface AppContextType {
+  /** True mentre `loadInitialData` non ha ancora terminato (sessione/dati da localStorage/DB). */
+  isLoading: boolean;
   showError: (message: string) => void;
   showSuccess: (message: string) => void;
   forceGlobalRefresh: () => Promise<void>;
@@ -43,6 +45,8 @@ export interface AppContextType {
   /** Svuota cache turni locale, ricarica DB + Storage cloud, aggiorna ack revisione — senza lock PIN. */
   hardReloadFromDatabase: () => Promise<void>;
   isGlobalRefreshing: boolean;
+  /** Messaggio descrittivo dello stadio corrente di sincronizzazione globale. */
+  syncStage: string;
   /** True mentre `silentRefreshData` è in corso (lettura DB + eventuale Storage; senza overlay PIN). */
   dataSyncInProgress: boolean;
   postRefreshLocked: boolean;

@@ -4,6 +4,13 @@ import { StrictMode } from 'react';
 if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual';
 }
+
+// Applica no-motion subito se salvato — prima del primo render
+try {
+  if (localStorage.getItem('flow-animations') === 'off') {
+    document.documentElement.classList.add('no-motion');
+  }
+} catch { /* storage non disponibile */ }
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';

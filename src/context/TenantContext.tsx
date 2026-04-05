@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { setDatabaseTenant } from '../lib/database';
 import type { Tenant, TenantSettings } from '../types';
+import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -10,7 +11,7 @@ import type { Tenant, TenantSettings } from '../types';
 /** Slug di fallback — usato solo se VITE_TENANT_SLUG è impostato o se c'è sottodominio/path.
  *  In modalità Option B (single-URL) rimane null finché LoginPage chiama loadTenantBySlug. */
 const DEFAULT_SLUG: string | null = null;
-const DEFAULT_ACCENT = '#0052FF';
+const DEFAULT_ACCENT = '#001A80';
 
 /** Opzioni font per l'intestazione dell'app. */
 export const HEADER_FONTS = [
@@ -57,7 +58,52 @@ function hexToHsl(hex: string): [number, number, number] {
 }
 
 /** Override FLOW: forza il brand blu indipendentemente dal colore del tenant. */
-const FLOW_BRAND_COLOR = '#0052FF';
+const FLOW_BRAND_COLOR = '#001A80';
+
+/**
+ * Variante brand per dark mode: blu più chiaro per garantire contrasto su sfondo scuro.
+ * Usata da text-accent, border-accent, bg-accent/* (tinte).
+ * I pulsanti bg-accent solidi rimangono #0052FF grazie all'override !important nel CSS.
+ */
+const FLOW_BRAND_DARK = '#6699FF';
+const FLOW_BRAND_DARK_RGB = '102 153 255';
+const FLOW_BRAND_DARK_HOVER = '#7AABFF';
+
+/** Riferimento al MutationObserver per il tema — istanziato una sola volta. */
+let _themeObserver: MutationObserver | null = null;
+
+/**
+ * Applica le variabili brand corrette in base al tema corrente (light/dark).
+ * Chiamato sia direttamente sia dall'observer sul cambio di classe .dark.
+ */
+function syncBrandToTheme(): void {
+  const root = document.documentElement;
+  const isDark = root.classList.contains('dark');
+
+  if (isDark) {
+    root.style.setProperty('--brand',        FLOW_BRAND_DARK);
+    root.style.setProperty('--brand-rgb',    FLOW_BRAND_DARK_RGB);
+    root.style.setProperty('--accent',       FLOW_BRAND_DARK);
+    root.style.setProperty('--color-accent', FLOW_BRAND_DARK);
+    root.style.setProperty('--flow-primary', FLOW_BRAND_DARK);
+    root.style.setProperty('--brand-hover',  FLOW_BRAND_DARK_HOVER);
+    root.style.setProperty('--accent-hover', FLOW_BRAND_DARK_HOVER);
+    root.style.setProperty('--brand-muted',  'rgb(102 153 255 / 0.12)');
+  } else {
+    const { r, g, b } = hexToRgb(FLOW_BRAND_COLOR);
+    const [hue, sat] = hexToHsl(FLOW_BRAND_COLOR);
+    const hsl = (l: number, sMod = 1) =>
+      `hsl(${hue} ${Math.min(Math.round(sat * sMod), 100)}% ${l}%)`;
+    root.style.setProperty('--brand',        FLOW_BRAND_COLOR);
+    root.style.setProperty('--brand-rgb',    `${r} ${g} ${b}`);
+    root.style.setProperty('--accent',       FLOW_BRAND_COLOR);
+    root.style.setProperty('--color-accent', FLOW_BRAND_COLOR);
+    root.style.setProperty('--flow-primary', FLOW_BRAND_COLOR);
+    root.style.setProperty('--brand-hover',  hsl(30));
+    root.style.setProperty('--accent-hover', hsl(30));
+    root.style.setProperty('--brand-muted',  `rgb(${r} ${g} ${b} / 0.12)`);
+  }
+}
 
 /** Applica le CSS variables del brand al documento — genera tutte le varianti shade + nav + shadow. */
 export function applyTenantBrand(_accent: string): void {
@@ -110,6 +156,22 @@ export function applyTenantBrand(_accent: string): void {
   // Calendar (react-day-picker)
   root.style.setProperty('--rdp-accent-color', accent);
   root.style.setProperty('--rdp-accent-background-color', `rgb(${r} ${g} ${b} / 0.14)`);
+
+  // Sovrascrive subito le variabili text/border in base al tema corrente
+  syncBrandToTheme();
+
+  // Attiva l'observer sul cambio tema (una volta sola per tutta la vita della pagina)
+  if (!_themeObserver) {
+    _themeObserver = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.attributeName === 'class') { syncBrandToTheme(); break; }
+      }
+    });
+    _themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+  }
 }
 
 function darken(hex: string, amount: number): string {
@@ -318,7 +380,7 @@ function _applyPWAManifest(
     scope: `${origin}/`,
     display: 'standalone',
     background_color: '#ffffff',
-    theme_color: '#0052FF',
+    theme_color: '#001A80',
     orientation: 'any',
     icons: [
       { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
@@ -496,6 +558,24 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     if (!newSlug || newSlug === slug) return; // già caricato o uguale
     setSlug(newSlug);
   }, [slug]);
+
+  /** Option B: aprendo `/app` con sessione salvata, lo slug non c’è nell’URL — lo leggiamo da `app_session`. */
+  const sessionSlugHydrateAttemptedRef = useRef(false);
+  useEffect(() => {
+    if (slug !== null) return;
+    if (sessionSlugHydrateAttemptedRef.current) return;
+    sessionSlugHydrateAttemptedRef.current = true;
+    try {
+      const raw = localStorage.getItem(APP_SESSION_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { tenantSlug?: string };
+      const ts = typeof parsed.tenantSlug === 'string' ? parsed.tenantSlug.trim() : '';
+      if (!ts) return;
+      void loadTenantBySlug(ts);
+    } catch {
+      /* ignore */
+    }
+  }, [slug, loadTenantBySlug]);
 
   const updateTenantConfig = async (
     patch: Partial<Pick<Tenant, 'name' | 'accent_color' | 'logo_url'>>

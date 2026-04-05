@@ -26,7 +26,7 @@ export default function FlowLogo({
       {/* Icona PNG ufficiale FLOW */}
       {showIcon && (
         <img
-          src="/flow-app-icon.png"
+          src="/flow-app-icon-new.png"
           alt="FLOW"
           width={size}
           height={size}
@@ -47,12 +47,7 @@ export default function FlowLogo({
               lineHeight: 1,
               ...(isWhite
                 ? { color: '#FFFFFF' }
-                : {
-                    background: 'linear-gradient(110deg, #06B6D4 0%, #0052FF 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }),
+                  : { color: '#0052FF' }),
             }}
           >
             FLOW
@@ -68,12 +63,7 @@ export default function FlowLogo({
                 marginTop: size * 0.07,
                 ...(isWhite
                   ? { color: 'rgba(255,255,255,0.55)' }
-                  : {
-                      background: 'linear-gradient(110deg, #06B6D4 0%, #0052FF 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                    }),
+                  : { color: '#64748b' }),
               }}
             >
               {subtitle}

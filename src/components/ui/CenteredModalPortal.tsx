@@ -42,7 +42,7 @@ export function CenteredModalPortal({
   panelWidthClass = 'w-full',
   panelClassName = '',
   markDatePickerPortal = false,
-  overlayZClass = 'z-[10050]',
+  overlayZClass = 'z-[999999]',
   disableBackdropClose = true,
 }: CenteredModalPortalProps) {
   useBodyScrollLock(open);
@@ -63,7 +63,7 @@ export function CenteredModalPortal({
         >
           <button
             type="button"
-            className={`absolute inset-0 bg-black/75 backdrop-blur-md dark:bg-black/85 ${disableBackdropClose ? 'cursor-default' : ''}`}
+            className={`absolute inset-0 bg-black/40 backdrop-blur-md dark:bg-black/55 ${disableBackdropClose ? 'cursor-default' : ''}`}
             aria-label={backdropAriaLabel}
             onClick={disableBackdropClose ? undefined : onClose}
           />

@@ -16,11 +16,54 @@ export interface Message {
   read_at?: string;
 }
 
+export interface Conversation {
+  contactId: string;
+  messages: Message[];
+  lastMessage: Message;
+  unreadCount: number;
+}
+
+/**
+ * Raggruppa i messaggi privati in conversazioni per coppia utente.
+ * Ogni conversazione rappresenta il thread con un singolo contatto.
+ */
+export function groupIntoConversations(messages: Message[], myId: string): Conversation[] {
+  const map = new Map<string, Message[]>();
+
+  for (const msg of messages) {
+    if (msg.message_type !== 'private') continue;
+    const otherId = msg.sender_id === myId ? msg.recipient_id : msg.sender_id;
+    if (!otherId) continue;
+    if (!map.has(otherId)) map.set(otherId, []);
+    map.get(otherId)!.push(msg);
+  }
+
+  const conversations: Conversation[] = [];
+  for (const [contactId, msgs] of map.entries()) {
+    const sorted = [...msgs].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+    const unread = sorted.filter((m) => !m.is_read && m.sender_id !== myId).length;
+    conversations.push({
+      contactId,
+      messages: sorted,
+      lastMessage: sorted[sorted.length - 1],
+      unreadCount: unread,
+    });
+  }
+
+  return conversations.sort(
+    (a, b) =>
+      new Date(b.lastMessage.created_at).getTime() -
+      new Date(a.lastMessage.created_at).getTime()
+  );
+}
+
 /**
  * Hook per gestire i messaggi dell'utente.
  * Fornisce lista messaggi, filtri, e funzioni per marcare come letti.
  */
-export function useMessages(userId?: string) {
+export function useMessages(userId?: string, isAdmin = false) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,12 +84,16 @@ export function useMessages(userId?: string) {
           return;
         }
 
-        // Query nativa Supabase dalla tabella 'staff_messages'
-        // Recupera messaggi broadcast, messaggi privati per noi, o inviati da noi
-        const { data, error: supabaseError } = await supabase
+        // Admin vede tutti i messaggi; altri vedono solo i propri
+        let query = supabase
           .from('staff_messages')
-          .select('*')
-          .or(`recipient_id.is.null,recipient_id.eq.${uid},sender_id.eq.${uid}`)
+          .select('*');
+
+        if (!isAdmin) {
+          query = query.or(`recipient_id.is.null,recipient_id.eq.${uid},sender_id.eq.${uid}`);
+        }
+
+        const { data, error: supabaseError } = await query
           .order('created_at', { ascending: false });
 
         // Gestione errori Supabase
@@ -69,7 +116,8 @@ export function useMessages(userId?: string) {
           throw new Error('Invalid messages array in response');
         }
 
-        const unread = data.filter((m) => !m.is_read).length;
+        // Non contare come "da leggere" i messaggi inviati dall'utente stesso
+        const unread = data.filter((m) => !m.is_read && m.sender_id !== uid).length;
         setMessages(data as Message[]);
         setUnreadCount(unread);
       } catch (err) {
@@ -79,7 +127,7 @@ export function useMessages(userId?: string) {
         setIsLoading(false);
       }
     },
-    []
+    [isAdmin]
   );
 
   // Carica messaggi iniziali
@@ -89,7 +137,7 @@ export function useMessages(userId?: string) {
       return;
     }
     loadMessages(userId);
-  }, [userId, loadMessages]);
+  }, [userId, isAdmin, loadMessages]);
 
   // Sottoscrizione real-time ai messaggi
   useEffect(() => {
@@ -109,9 +157,32 @@ export function useMessages(userId?: string) {
             console.log('[useMessages] Change detected:', payload);
             const msg = (payload.new || payload.old) as Message;
             
-            // Ricarica se il messaggio ci riguarda (siamo mittenti o destinatari o è broadcast)
-            if (!msg.recipient_id || msg.recipient_id === userId || msg.sender_id === userId) {
+            // Admin ricarica sempre; altri solo se il messaggio li riguarda
+            if (isAdmin || !msg.recipient_id || msg.recipient_id === userId || msg.sender_id === userId) {
               loadMessages(userId);
+
+              // Mostra notifica browser su nuovo messaggio che non abbiamo inviato noi
+              if (
+                payload.eventType === 'INSERT' &&
+                msg.sender_id !== userId &&
+                'Notification' in window &&
+                Notification.permission === 'granted'
+              ) {
+                try {
+                  const notif = new Notification(msg.subject || 'Nuovo messaggio', {
+                    body: msg.body?.slice(0, 120) || '',
+                    icon: '/icon-192.png',
+                    badge: '/icon-192.png',
+                    tag: `msg-${msg.id}`,
+                  });
+                  notif.onclick = () => {
+                    window.focus();
+                    notif.close();
+                  };
+                } catch {
+                  // Notification API non disponibile (es. iframe, Firefox strict)
+                }
+              }
             }
           }
         )
@@ -128,7 +199,7 @@ export function useMessages(userId?: string) {
       console.error('[useMessages] Real-time error:', err);
       return undefined;
     }
-  }, [userId, loadMessages]);
+  }, [userId, isAdmin, loadMessages]);
 
   /**
    * Marca un messaggio come letto.
@@ -263,9 +334,9 @@ export function useMessages(userId?: string) {
   const privateMessages = messages.filter((m) => m.message_type === 'private');
 
   /**
-   * Filtra messaggi non letti.
+   * Filtra messaggi non letti (esclude quelli inviati dall'utente corrente).
    */
-  const unreadMessages = messages.filter((m) => !m.is_read);
+  const unreadMessages = messages.filter((m) => !m.is_read && m.sender_id !== userId);
 
   return {
     messages,

@@ -1,6 +1,13 @@
 import { useState, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback, useRef } from 'react';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { getDateLocale } from './utils/translations';
 import SwUpdateOverlay from './components/SwUpdateOverlay';
+import AdminSyncOverlay from './components/AdminSyncOverlay';
 const SuperAdminPanel = lazy(() => import('./components/SuperAdminPanel'));
+const AnimPreview = lazy(() => import('./components/AnimPreview'));
+const LoadingPreview = lazy(() => import('./components/LoadingPreview'));
+const ScreensPreview = lazy(() => import('./components/ScreensPreview'));
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
@@ -20,7 +27,11 @@ import LoginPage from './components/LoginPage';
 import InviteRedirect from './components/InviteRedirect';
 import StaffPersonalDashboard from './components/StaffPersonalDashboard';
 import ProfileNavTabPanel from './components/ProfileNavTabPanel';
-import { Wrench } from 'lucide-react';
+import { Wrench, RotateCw, Cloud, CloudOff, Lock, Unlock, ShieldCheck, ShieldOff, X, Loader2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { PinPadModal } from './components/ui/PinPadModal';
+import { findFreezeVerifierByPin, findFreezeVerifierById } from './utils/permissions';
+import { lockBodyScroll, unlockBodyScroll } from './utils/bodyScrollLock';
 import { persistStoredUiLanguage } from './utils/uiLanguagePreference';
 import { PATH_TIMBRATURA, PATH_PROFILO } from './config/appPaths';
 import { APP_SESSION_STORAGE_KEY } from './constants/appSession';
@@ -42,6 +53,8 @@ const HolidayRequests = lazy(() => import('./components/HolidayRequests'));
 const Statistics = lazy(() => import('./components/Statistics'));
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
 const Timesheets = lazy(() => import('./components/Timesheets'));
+const ManagementMobileShifts = lazy(() => import('./components/mobile/ManagementMobileShifts'));
+const ManagementMobileTimesheet = lazy(() => import('./components/mobile/ManagementMobileTimesheet'));
 
 // ─── Maintenance Page ─────────────────────────────────────────────────────────
 function MaintenancePage() {
@@ -139,11 +152,20 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     currentUser,
     effectiveLanguage,
     isGlobalRefreshing,
+    syncStage,
     postRefreshLocked,
     postUnlockReloadPending,
     silentRefreshData,
     featureFlags,
     roleTemplatesRevision,
+    hardReloadFromDatabase,
+    dataSyncInProgress,
+    users,
+    shifts,
+    punchRecords,
+    globalPinSessionId,
+    setGlobalPinSessionId,
+    isSessionElevated,
   } = useApp();
 
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
@@ -158,8 +180,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const [onboardingDone, setOnboardingDone] = useState(false);
   const showOnboarding = needsOnboarding && !onboardingDone;
 
-  // Nasconde la sticky header quando un overlay/modal è aperto (evita il bug iOS Safari
-  // dove il backdrop-filter della header appare sopra i modal con z-index superiore).
   const [overlayOpen, setOverlayOpen] = useState(false);
   useEffect(() => {
     const check = () => setOverlayOpen(document.body.dataset.overlay === '1');
@@ -169,33 +189,24 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     return () => obs.disconnect();
   }, []);
 
-
   const location = useLocation();
-  const isAdminPath = location.pathname.startsWith('/admin');
 
-  /** `roleTemplatesRevision` deve essere nelle dipendenze: `getEnabledFeatures` legge il template da cache modulo; dopo PIN/sync il memo altrimenti resta sulla lista schede vecchia. */
   const visibleNavTabs = useMemo((): AppNavTab[] => {
     void roleTemplatesRevision;
     if (!currentUser) return ['home'];
     return getUnifiedNavTabs(currentUser, isManagement, featureFlags);
   }, [currentUser, isManagement, featureFlags, roleTemplatesRevision]);
 
-  /** Bottom bar: staff con ordine ferie → turni (Ore in barra se abilitata). */
   const bottomNavTabs = useMemo((): AppNavTab[] => {
     void roleTemplatesRevision;
     if (!currentUser) return ['home'];
     return getBottomNavTabsForMainApp(currentUser, isManagement, featureFlags);
   }, [currentUser, isManagement, featureFlags, roleTemplatesRevision]);
 
-  const tr = getTranslations(effectiveLanguage);
   const noNavTabs = Boolean(currentUser && visibleNavTabs.length === 0);
-  /** Spazio sotto il contenuto: la MobileBottomNav staff è `fixed`; `pb-24` su `<main>` evita che l’ultimo blocco resti sotto la barra. */
-  const staffMobileBottomNavActive =
-    !!currentUser && !noNavTabs && isMobileViewport;
+  const staffMobileBottomNavActive = !!currentUser && !noNavTabs && isMobileViewport;
 
   const appStickyHeaderRef = useRef<HTMLElement | null>(null);
-
-  /** Altezza reale header sticky → `--app-sticky-header-offset` per barre interne (es. date turni). */
   useLayoutEffect(() => {
     const el = appStickyHeaderRef.current;
     if (!el) return;
@@ -215,6 +226,20 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   }, []);
 
   const [activeTab, setActiveTab] = useState<AppNavTab>('home');
+
+  // Forza background trasparente per la griglia presenze in dark mode
+  useEffect(() => {
+    const grid = document.getElementById('timesheet-section-main-grid');
+    if (grid) {
+      if (document.documentElement.classList.contains('dark')) {
+        grid.style.setProperty('background', 'transparent', 'important');
+      } else {
+        grid.style.removeProperty('background');
+      }
+    }
+  }, [activeTab]);
+  const prevTabRef = useRef<AppNavTab>('home');
+  const tabNavDirection = useRef<1 | -1>(1); // 1 = destra→sinistra, -1 = sinistra→destra
   const mainViewRestoredUserIdRef = useRef<string | null>(null);
   const pendingScrollRestoreRef = useRef<{ y: number; tab: AppNavTab } | null>(null);
   const profileLeaveGuardRef = useRef<ProfileLeaveGuard | null>(null);
@@ -225,6 +250,12 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         navigate('/admin');
         return;
       }
+      // Calcola direzione per l'animazione shared-axis
+      const allTabs: AppNavTab[] = ['home', 'turni', 'timesheet', 'reports', 'ferie', 'profile', 'settings'];
+      const fromIdx = allTabs.indexOf(prevTabRef.current);
+      const toIdx = allTabs.indexOf(id);
+      tabNavDirection.current = toIdx >= fromIdx ? 1 : -1;
+      prevTabRef.current = id;
       setActiveTab(id);
     },
     [currentUser, isManagement, navigate]
@@ -233,6 +264,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const handleTabChange = useCallback(
     (id: AppNavTab) => {
       void (async () => {
+        const tr = getTranslations(effectiveLanguage);
         const tv = tr as Record<string, string>;
         if (activeTab === 'profile' && id !== 'profile') {
           const g = profileLeaveGuardRef.current;
@@ -251,7 +283,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         applyTabChange(id);
       })();
     },
-    [activeTab, tr, applyTabChange]
+    [activeTab, effectiveLanguage, applyTabChange]
   );
 
   useEffect(() => {
@@ -267,14 +299,10 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     if (!currentUser?.id || visibleNavTabs.length === 0) return;
     if (mainViewRestoredUserIdRef.current === currentUser.id) return;
     mainViewRestoredUserIdRef.current = currentUser.id;
-    const s = readMainViewState(currentUser.id);
-    if (s?.activeTab && visibleNavTabs.includes(s.activeTab as AppNavTab)) {
-      const tab = s.activeTab as AppNavTab;
-      setActiveTab(tab);
-      pendingScrollRestoreRef.current = { y: s.scrollY, tab };
-    } else {
-      pendingScrollRestoreRef.current = null;
-    }
+    // Alla login apre sempre la scheda panoramica (home)
+    setActiveTab('home');
+    pendingScrollRestoreRef.current = null;
+    void readMainViewState; // mantenuto per uso futuro
   }, [currentUser?.id, visibleNavTabs]);
 
   useEffect(() => {
@@ -353,6 +381,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       const anchor = ce.detail?.anchor;
       if (!tab || !visibleNavTabs.includes(tab)) return;
       void (async () => {
+        const tr = getTranslations(effectiveLanguage);
         const tv = tr as Record<string, string>;
         if (activeTab === 'profile' && tab !== 'profile') {
           const g = profileLeaveGuardRef.current;
@@ -380,7 +409,44 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     };
     window.addEventListener('osteria-navigate', onNavigate as EventListener);
     return () => window.removeEventListener('osteria-navigate', onNavigate as EventListener);
-  }, [visibleNavTabs, activeTab, tr]);
+  }, [visibleNavTabs, activeTab, effectiveLanguage]);
+
+  const now = useMemo(() => new Date(), []);
+  const isSynced = !!featureFlags && Object.keys(featureFlags).length > 0;
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const handleHardRefresh = useCallback(async () => {
+    if (isRefreshing || dataSyncInProgress) return;
+    setIsRefreshing(true);
+    try {
+      await hardReloadFromDatabase();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, dataSyncInProgress, hardReloadFromDatabase]);
+
+  const [showPinMenu, setShowPinMenu] = useState(false);
+  const [globalPinValue, setGlobalPinValue] = useState('');
+  const [globalPinError, setGlobalPinError] = useState('');
+  const closePinMenu = useCallback(() => {
+    setShowPinMenu(false);
+    setGlobalPinValue('');
+    setGlobalPinError('');
+    unlockBodyScroll();
+  }, []);
+  const handleGlobalPinSubmit = useCallback(async (pin: string) => {
+    const verifier = findFreezeVerifierByPin(users, pin);
+    if (!verifier) {
+      setGlobalPinError('PIN non riconosciuto');
+      return;
+    }
+    setGlobalPinSessionId(Date.now().toString());
+    closePinMenu();
+  }, [users, setGlobalPinSessionId, closePinMenu]);
+  useEffect(() => {
+    if (showPinMenu) lockBodyScroll();
+    else unlockBodyScroll();
+    return () => unlockBodyScroll();
+  }, [showPinMenu]);
 
   const renderManagementContent = () => {
     switch (activeTab) {
@@ -401,13 +467,38 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           />
         );
       case 'turni':
-        return <WeeklyShiftsTable />;
+        return isMobileViewport ? (
+          <Suspense fallback={null}>
+            <ManagementMobileShifts
+              shifts={shifts}
+              users={users}
+              currentUserId={currentUser?.id ?? ''}
+              language={effectiveLanguage}
+            />
+          </Suspense>
+        ) : (
+          <WeeklyShiftsTable />
+        );
       case 'ferie':
         return <HolidayRequests />;
       case 'reports':
-        return <Statistics />;
+        // 'reports' is no longer a standalone tab — redirect to timesheet which hosts Statistiche as sub-tab
+        void handleTabChange('timesheet');
+        return null;
       case 'timesheet':
-        return <Timesheets />;
+        return isMobileViewport ? (
+          <Suspense fallback={null}>
+            <ManagementMobileTimesheet
+              shifts={shifts}
+              punchRecords={punchRecords}
+              users={users}
+              currentUserId={currentUser?.id ?? ''}
+              language={effectiveLanguage}
+            />
+          </Suspense>
+        ) : (
+          <Timesheets />
+        );
       case 'settings':
         return <SettingsPage />;
       case 'profile':
@@ -417,17 +508,40 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     }
   };
 
+  // Overlay sync admin: mostrato quando un admin ha pushato nuove impostazioni via push notification
+  const [adminSyncPending, setAdminSyncPending] = useState(false);
+  useEffect(() => {
+    if (!navigator.serviceWorker) return;
+    const handleSwMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'FORCE_DATA_RELOAD' && currentUser?.role !== 'admin') {
+        setAdminSyncPending(true);
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', handleSwMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', handleSwMessage);
+  }, [currentUser?.role]);
+
   /** `overflow-visible` così popover / menu non vengono tagliati dal bordo arrotondato della card. */
-  const appHeaderMainCardClass = 'w-full rounded-2xl border-0 bg-gradient-to-b from-white/75 to-white/55 dark:from-neutral-800/70 dark:to-neutral-900/60 shadow-[0_2px_0_0_rgba(255,255,255,0.85)_inset,0_-1px_0_0_rgba(0,0,0,0.05)_inset,0_10px_28px_-4px_rgba(0,82,255,0.12),0_4px_12px_-2px_rgba(15,23,42,0.10)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.07)_inset,0_-1px_0_0_rgba(0,0,0,0.45)_inset,0_12px_32px_-4px_rgba(0,0,0,0.55),0_4px_12px_-2px_rgba(0,0,0,0.35)] overflow-visible supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-[2]';
-  const appHeaderCardClass = 'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/80 dark:bg-neutral-900/80 shadow-[0_4px_16px_-4px_rgba(0,82,255,0.10),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-hidden supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
+  const appHeaderMainCardClass = 'w-full rounded-2xl overflow-visible supports-[backdrop-filter]:backdrop-blur-[30px] supports-[backdrop-filter]:backdrop-saturate-[2.4] supports-[backdrop-filter]:brightness-[1.06] shadow-[0_10px_28px_-4px_rgba(0,26,128,0.12),0_4px_12px_-2px_rgba(15,23,42,0.10)] dark:shadow-[0_12px_32px_-4px_rgba(0,0,0,0.55),0_4px_12px_-2px_rgba(0,0,0,0.35)]'
+    + ' bg-white/58 dark:bg-white/[0.06]';
+  const appHeaderCardClass = 'w-full rounded-2xl border border-slate-100 dark:border-white/[0.08] bg-white/80 dark:bg-white/[0.04] shadow-[0_4px_16px_-4px_rgba(0,26,128,0.10),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-none overflow-hidden supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-[1.8]';
 
   return (
     <ProfileLeaveGuardRefContext.Provider value={profileLeaveGuardRef}>
+    {/* Overlay aggiornamento dati admin: mostrato su tutti i dispositivi non-admin */}
+    <AnimatePresence>
+      {adminSyncPending && (
+        <AdminSyncOverlay
+          onReload={() => hardReloadFromDatabase()}
+          onDone={() => setAdminSyncPending(false)}
+        />
+      )}
+    </AnimatePresence>
     {/* Onboarding obbligatorio: blocca l'interfaccia finché email/telefono non sono configurati */}
     {showOnboarding && (
       <OnboardingSetupModal onComplete={() => setOnboardingDone(true)} />
     )}
-    <div className="min-h-screen min-h-[100dvh] w-full bg-gray-50 dark:bg-[#0a0a0a] text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
+    <div className={`min-h-screen min-h-[100dvh] w-full text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col ${activeTab === 'home' ? 'page-home-bg' : 'page-depth-bg'}`}>
       <BodyPullToRefresh
         onRefresh={() => silentRefreshData({ pullRemoteConfig: true })}
         disabled={!!(isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending)}
@@ -446,21 +560,13 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''
         }`}
       >
-        <div className={appHeaderMainCardClass}>
-          <MobileProfileHeader
-            onLogout={onLogout}
-            activeTab={activeTab}
-            showOnDesktop
-            compact={staffMobileCompactHeader}
-            parentProvidesCardShell
-            hideToolbarAvatar={false}
-          />
-        </div>
-        {currentUser && activeTab === 'home' && (
-          <div className={`${appHeaderCardClass} mt-1.5`}>
-            <HeaderTodayCoworkersCard />
-          </div>
-        )}
+        <MobileProfileHeader
+          onLogout={onLogout}
+          activeTab={activeTab}
+          showOnDesktop
+          compact={staffMobileCompactHeader}
+          hideToolbarAvatar={false}
+        />
       </header>
 
       <main
@@ -469,34 +575,145 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       >
         <div className="w-full flex-1 app-main-top-pad app-horizontal-pad">
           {activeTab !== 'profile' && (
-            <p
-              className="text-sm sm:text-base font-extrabold tracking-widest leading-tight truncate uppercase mb-3"
-              style={{ background: 'linear-gradient(110deg, #06B6D4 0%, #0052FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
-            >
-              {getAppNavTabTitle(tr, activeTab)}
-            </p>
+            <div className="flex flex-col gap-3 mb-5">
+            <div className="flex items-center justify-between gap-3">
+              <p
+                className="text-sm sm:text-base font-extrabold tracking-widest leading-tight truncate uppercase pl-4 tab-title-gradient"
+              >
+                {getAppNavTabTitle(getTranslations(effectiveLanguage), activeTab)}
+              </p>
+              <div className="shrink-0 flex items-center gap-1">
+                {/* Data — solo desktop */}
+                <span className="hidden sm:inline text-sm sm:text-base font-semibold whitespace-nowrap capitalize tabular-nums tab-title-gradient">
+                  {format(now, 'EEEE d MMMM · HH:mm', { locale: getDateLocale(effectiveLanguage) ?? it })}
+                </span>
+                <span className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-white/10 shrink-0" />
+                {/* Sync */}
+                <button
+                  type="button"
+                  onClick={handleHardRefresh}
+                  disabled={isRefreshing || dataSyncInProgress}
+                  title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Sincronizza dati'}
+                  className={`flex h-9 w-9 sm:h-10 sm:w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
+                    isRefreshing || dataSyncInProgress
+                      ? 'text-amber-500 liquid-glass-amber'
+                      : isSynced
+                        ? 'text-emerald-500 liquid-glass-green'
+                        : 'text-slate-300 dark:text-neutral-600'
+                  }`}
+                >
+                  {isRefreshing || dataSyncInProgress ? (
+                    <RotateCw className="h-4 w-4 sm:h-[22px] sm:w-[22px] animate-spin" strokeWidth={2.5} />
+                  ) : isSynced ? (
+                    <span className="relative inline-flex">
+                      <Cloud className="h-4 w-4 sm:h-[22px] sm:w-[22px]" strokeWidth={2.5} />
+                      <span className="absolute -bottom-0.5 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-emerald-500 text-white" style={{ fontSize: 8 }}>✓</span>
+                    </span>
+                  ) : (
+                    <CloudOff className="h-4 w-4 sm:h-[22px] sm:w-[22px]" strokeWidth={2.5} />
+                  )}
+                </button>
+                {/* PIN lock — solo management desktop */}
+                {featureFlags['unlock_with_pin'] !== false && currentUser && isManagement && (
+                  <>
+                  <span className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-white/10 shrink-0" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPinMenu(true)}
+                    title={globalPinSessionId ? 'Sessione PIN attiva' : 'Sblocca sessione PIN'}
+                    aria-label={globalPinSessionId ? 'Gestisci sessione PIN' : 'Sblocca sessione PIN'}
+                    className={`hidden sm:flex h-9 w-14 sm:h-10 sm:w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
+                      globalPinSessionId
+                        ? 'text-emerald-500 liquid-glass-green'
+                        : 'text-red-500 liquid-glass-red'
+                    }`}
+                  >
+                    {globalPinSessionId
+                      ? <Unlock className="h-[18px] w-[18px] sm:h-5 sm:w-5" strokeWidth={2.5} />
+                      : <Lock className="h-[18px] w-[18px] sm:h-5 sm:w-5" strokeWidth={2.5} />}
+                  </button>
+                  </>
+                )}
+              </div>
+            </div>
+            </div>
+          )}
+          {/* PIN portals */}
+          {createPortal(
+            <AnimatePresence>
+              {showPinMenu && !globalPinSessionId && currentUser && (
+                <PinPadModal
+                  key="global-pin-lock"
+                  title="Sblocco sessione"
+                  subtitle="Inserisci il PIN per sbloccare tutte le operazioni protette"
+                  pinLabel="PIN"
+                  pin={globalPinValue}
+                  onPinChange={setGlobalPinValue}
+                  error={globalPinError}
+                  onConfirm={() => handleGlobalPinSubmit(globalPinValue)}
+                  onCancel={closePinMenu}
+                  confirmLabel="Sblocca"
+                  userId={currentUser.id}
+                  userDisplayName={[currentUser.first_name, currentUser.last_name].filter(Boolean).join(' ')}
+                  userEmail={currentUser.email ?? ''}
+                  onBiometricSuccess={() => {
+                    const verifier = findFreezeVerifierById(users, currentUser.id);
+                    if (!verifier) { setGlobalPinError('Ruolo insufficiente per lo sblocco'); return; }
+                    setGlobalPinSessionId(Date.now().toString());
+                    closePinMenu();
+                  }}
+                />
+              )}
+            </AnimatePresence>,
+            document.body
+          )}
+          {createPortal(
+            <AnimatePresence>
+              {showPinMenu && !!globalPinSessionId && (
+                <motion.div
+                  key="global-pin-unlock"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                  className="fixed inset-0 z-[10080] bg-black/40 backdrop-blur-md dark:bg-black/55 flex flex-col items-center justify-center"
+                >
+                  <button type="button" onClick={closePinMenu} className="absolute top-5 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors" aria-label="Chiudi">
+                    <X size={20} strokeWidth={2.5} />
+                  </button>
+                  <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }} transition={{ type: 'spring', stiffness: 380, damping: 30, mass: 0.9 }} className="flex flex-col items-center w-full max-w-[320px] px-6">
+                    <div className="flex flex-col items-center text-center mb-10">
+                      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent/20 border-2 border-accent/40 mb-5">
+                        <ShieldCheck className="w-9 h-9 text-accent" strokeWidth={2} />
+                      </div>
+                      <h2 className="text-white font-bold uppercase tracking-widest text-base mb-2">Sessione sbloccata</h2>
+                      <p className="text-white/60 text-sm font-medium leading-tight px-4">Tutte le operazioni protette da PIN sono accessibili in questa sessione.</p>
+                    </div>
+                    <button type="button" onClick={() => { setGlobalPinSessionId(null); closePinMenu(); }} className="w-full h-14 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold flex items-center justify-center gap-2.5 transition-all active:scale-95 mb-3">
+                      <ShieldOff className="w-5 h-5" strokeWidth={2} />
+                      Blocca sessione
+                    </button>
+                    <button type="button" onClick={closePinMenu} className="w-full h-14 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white/70 font-bold transition-all active:scale-95">Annulla</button>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body
           )}
           {noNavTabs ? (
             <div className="rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-10 pb-content text-center text-sm text-amber-950 max-w-lg mx-auto">
-              {(tr as Record<string, string>).app_all_nav_tabs_disabled}
+              {(getTranslations(effectiveLanguage) as Record<string, string>).app_all_nav_tabs_disabled}
             </div>
           ) : isManagement ? (
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" custom={tabNavDirection.current}>
               <motion.div
                 key={activeTab}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                custom={tabNavDirection.current}
+                initial={(dir: number) => ({ opacity: 0, x: dir * 36 })}
+                animate={{ opacity: 1, x: 0 }}
+                exit={(dir: number) => ({ opacity: 0, x: dir * -24 })}
+                transition={{ duration: 0.55, ease: [0.32, 0, 0.12, 1] }}
                 className="w-full"
               >
-                <Suspense
-                  fallback={
-                    <div className="flex items-center justify-center min-h-[200px]">
-                      <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-                    </div>
-                  }
-                >
+                <Suspense fallback={null}>
                   {renderManagementContent()}
                 </Suspense>
               </motion.div>
@@ -512,14 +729,101 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         </div>
       </main>
 
-      {isGlobalRefreshing && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-accent font-sans text-center px-4">
-          <div className="w-14 h-14 border-4 border-white border-t-transparent rounded-xl animate-spin mb-4" />
-          <p className="text-white text-lg font-medium max-w-xs">
-            {getTranslations(effectiveLanguage).sync_total_in_progress}
-          </p>
-        </div>
-      )}
+      {isGlobalRefreshing && (() => {
+        const progress = !syncStage ? 0.02
+          : syncStage.includes('Pulizia') ? 0.20
+          : syncStage.includes('lenta') ? 0.58
+          : syncStage.includes('Connessione') || syncStage.includes('Caricamento') ? 0.55
+          : syncStage.includes('Applicazione') || syncStage.includes('Aggiornamento') ? 0.85
+          : 0.02;
+        const isIndeterminate = false;
+        const ringDuration = syncStage.includes('Pulizia') ? 0.6
+          : syncStage.includes('lenta') ? 3.0
+          : syncStage.includes('Connessione') || syncStage.includes('Caricamento') ? 6.0
+          : syncStage.includes('Applicazione') || syncStage.includes('Aggiornamento') ? 0.8
+          : 2.0;
+        const [c0, c1, c2] = ['#F72585', '#7B2FBE', '#4361EE'];
+        const SIZE = 110; const SHRINK = 4; const PAD = 5; const SW = 2.5;
+        const d = PAD + SW / 2 + SHRINK; const inner = SIZE - d * 2; const R = Math.round(inner * 0.19); const cx = SIZE / 2; const cy = SIZE / 2;
+        const rot = {};
+        const syncT = { duration: ringDuration, ease: 'easeOut' as const };
+        return (
+          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000000 72%)' }}>
+            <div className="flex flex-col items-center gap-6">
+              <div className="relative" style={{ width: 112, height: 112 }}>
+
+                {/* ── GLOW — mix-blend screen → vivido sul nero ── */}
+                <svg aria-hidden className="pointer-events-none absolute"
+                  style={{ inset: -(PAD + SW), width: SIZE + (PAD + SW) * 2, height: SIZE + (PAD + SW) * 2, overflow: 'visible', mixBlendMode: 'screen' }}
+                  viewBox={`0 0 ${SIZE} ${SIZE}`}>
+                  <defs>
+                    <linearGradient id="ring-sync-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%"   stopColor={c0} />
+                      <stop offset="50%"  stopColor={c1} />
+                      <stop offset="100%" stopColor={c2} />
+                    </linearGradient>
+                  </defs>
+                  <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+                    fill="none" stroke="url(#ring-sync-glow)" strokeWidth={SW * 36}
+                    strokeLinecap="round" pathLength={1} strokeDasharray="1"
+                    animate={{ strokeDashoffset: 1 - progress }} transition={syncT}
+                    style={{ filter: 'blur(80px)', opacity: 1 }}
+                  />
+                  <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+                    fill="none" stroke="url(#ring-sync-glow)" strokeWidth={SW * 16}
+                    strokeLinecap="round" pathLength={1} strokeDasharray="1"
+                    animate={{ strokeDashoffset: 1 - progress }} transition={syncT}
+                    style={{ filter: 'blur(35px)', opacity: 1 }}
+                  />
+                  <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+                    fill="none" stroke="url(#ring-sync-glow)" strokeWidth={SW * 6}
+                    strokeLinecap="round" pathLength={1} strokeDasharray="1"
+                    animate={{ strokeDashoffset: 1 - progress }} transition={syncT}
+                    style={{ filter: 'blur(10px)', opacity: 1 }}
+                  />
+                </svg>
+
+                {/* ── RING NITIDO ── */}
+                <svg aria-hidden className="pointer-events-none absolute"
+                  style={{ inset: -(PAD + SW), width: SIZE + (PAD + SW) * 2, height: SIZE + (PAD + SW) * 2, overflow: 'visible' }}
+                  viewBox={`0 0 ${SIZE} ${SIZE}`}>
+                  <defs>
+                    <linearGradient id="ring-sync-app" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%"   stopColor={c0} />
+                      <stop offset="50%"  stopColor={c1} />
+                      <stop offset="100%" stopColor={c2} />
+                    </linearGradient>
+                  </defs>
+                  <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={SW} pathLength={1} />
+                  <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+                    fill="none" stroke="url(#ring-sync-app)" strokeWidth={SW}
+                    strokeLinecap="round" pathLength={1} strokeDasharray="1"
+                    animate={{ strokeDashoffset: 1 - progress }} transition={syncT}
+                    style={rot}
+                  />
+                </svg>
+
+                {/* ── ICONA ── */}
+                <img src="/flow-app-icon.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
+              </div>
+
+              {/* Testo — dopo nel DOM → sopra al glow */}
+              <div className="flex flex-col items-center gap-1 select-none">
+                <span className="text-white font-extrabold tracking-[0.28em] text-xl leading-none uppercase">FLOW</span>
+                <span className="text-white/60 font-semibold tracking-[0.18em] text-[11px] uppercase">Work in Motion</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 min-h-[40px]">
+                <p className="text-white/70 text-xs font-semibold uppercase tracking-widest">
+                  {getTranslations(effectiveLanguage).sync_total_in_progress}
+                </p>
+                {syncStage ? (
+                  <p className="text-white/90 text-sm font-medium">{syncStage}</p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <AnimatePresence mode="wait">
         {postRefreshLocked && <RefreshLockOverlay key="refresh-lock" />}
@@ -546,7 +850,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 function ProtectedApp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, featureFlags, showError, effectiveLanguage, setIsSessionElevated } = useApp();
+  const { currentUser, isLoading: appIsLoading, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, featureFlags, showError, effectiveLanguage, setIsSessionElevated } = useApp();
 
   useEffect(() => {
     const state = location.state as { accessDenied?: boolean } | null;
@@ -597,6 +901,17 @@ function ProtectedApp() {
     navigate,
   ]);
 
+  // Aspetta che AppContext abbia finito il caricamento iniziale (sessione da localStorage).
+  // Senza questo check, currentUser è null per ~100-300ms e il redirect scatta prima
+  // che la sessione salvata venga ripristinata.
+  if (appIsLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-neutral-950">
+        <Loader2 className="w-8 h-8 animate-spin text-[--brand]" />
+      </div>
+    );
+  }
+
   if (!currentUser) {
     return <Navigate to={PATH_PROFILO} replace state={{ from: location }} />;
   }
@@ -608,9 +923,61 @@ function ProtectedApp() {
   return <MainApp onLogout={handleLogout} />;
 }
 
+// ─── Banner "Aggiungi a Home" per Safari iOS (non-standalone) ─────────────────
+function IosSafariInstallBanner() {
+  const [visible, setVisible] = useState(() => {
+    // Mostra solo su Safari iOS fuori dalla modalità standalone
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+    const isIos = /iphone|ipad|ipod/i.test(ua);
+    const isSafari = /safari/i.test(ua) && !/chrome|fxios|crios/i.test(ua);
+    const isStandalone =
+      ('standalone' in window.navigator && (window.navigator as any).standalone === true) ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    const dismissed = sessionStorage.getItem('ios_install_banner_dismissed') === '1';
+    return isIos && isSafari && !isStandalone && !dismissed;
+  });
+
+  if (!visible) return null;
+
+  return (
+    <div
+      className="fixed top-0 left-0 right-0 z-[99990] flex items-center justify-between gap-3 px-4 py-2.5 font-sans"
+      style={{
+        background: 'rgba(0,26,128,0.96)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(255,255,255,0.10)',
+      }}
+    >
+      <p className="text-[12px] text-white/90 leading-snug flex-1">
+        Tocca{' '}
+        <span className="inline-flex items-center gap-0.5 font-semibold text-[#6699FF]">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M10 2v11M6 6l4-4 4 4"/><rect x="3" y="13" width="14" height="6" rx="2"/></svg>
+          Condividi
+        </span>
+        {' '}poi{' '}
+        <span className="font-semibold text-white">«Aggiungi a Home»</span>
+        {' '}per l'esperienza completa.
+      </p>
+      <button
+        type="button"
+        onClick={() => {
+          sessionStorage.setItem('ios_install_banner_dismissed', '1');
+          setVisible(false);
+        }}
+        aria-label="Chiudi"
+        className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg>
+      </button>
+    </div>
+  );
+}
+
 // ─── Root App ─────────────────────────────────────────────────────────────────
 function AppContent() {
   return (
+    <>
+      <IosSafariInstallBanner />
     <Routes>
       <Route path="/" element={<Navigate to={PATH_TIMBRATURA} replace />} />
       <Route path={PATH_TIMBRATURA} element={<KioskRoute />} />
@@ -622,8 +989,18 @@ function AppContent() {
       <Route path="/app/*" element={<ProtectedApp />} />
       <Route path="/admin" element={<AdminGate><AdminLayout /></AdminGate>} />
       <Route path="/admin/*" element={<AdminGate><AdminLayout /></AdminGate>} />
+      <Route path="/anim-preview" element={<Suspense fallback={null}><AnimPreview /></Suspense>} />
+      <Route path="/loading-preview" element={<Suspense fallback={null}><LoadingPreview /></Suspense>} />
+      <Route path="/screens-preview" element={
+        <AppProvider>
+          <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-[#111] text-white/30 font-sans uppercase tracking-widest text-xs">Caricamento anteprime...</div>}>
+            <ScreensPreview />
+          </Suspense>
+        </AppProvider>
+      } />
       <Route path="*" element={<Navigate to={PATH_TIMBRATURA} replace />} />
     </Routes>
+    </>
   );
 }
 

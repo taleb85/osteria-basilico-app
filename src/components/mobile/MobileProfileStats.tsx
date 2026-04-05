@@ -2,7 +2,7 @@ import { FileText, Wallet } from 'lucide-react';
 import { lightHaptic } from '../../utils/hapticFeedback';
 
 const cardShadow =
-  'shadow-[0_8px_30px_-12px_rgba(0,82,255,0.12),0_2px_8px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_10px_32px_-12px_rgba(0,0,0,0.5)]';
+  'shadow-[0_8px_30px_-12px_rgba(0,26,128,0.12),0_2px_8px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_10px_32px_-12px_rgba(0,0,0,0.5)]';
 
 export interface MobileProfileStatsProps {
   monthHoursLabel: string;
@@ -37,7 +37,10 @@ export default function MobileProfileStats({
   return (
     <div className="space-y-4">
       <div
-        className={`rounded-3xl border border-slate-100/80 bg-white/95 px-5 py-6 dark:border-white/10 dark:bg-neutral-900/85 ${cardShadow}`}
+        className={`rounded-3xl border px-5 py-6 ${cardShadow}`}
+        style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+          ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', boxShadow: 'none' }
+          : { background: 'rgba(255,255,255,0.95)', borderColor: 'rgba(241,245,249,0.80)' }}
       >
         <p className="text-center text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-neutral-400">
           {monthHoursLabel}
@@ -54,7 +57,10 @@ export default function MobileProfileStats({
         <button
           type="button"
           onClick={docs}
-          className={`flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-3xl border border-slate-100/80 bg-white/95 px-3 py-4 text-center transition active:scale-[0.98] dark:border-white/10 dark:bg-neutral-900/85 ${cardShadow}`}
+          className={`flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-3xl border px-3 py-4 text-center transition active:scale-[0.98] ${cardShadow}`}
+          style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+            ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', boxShadow: 'none' }
+            : { background: 'rgba(255,255,255,0.95)', borderColor: 'rgba(241,245,249,0.80)' }}
         >
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent dark:bg-accent/20 dark:text-accent-light">
             <FileText className="h-5 w-5" strokeWidth={2} />
@@ -66,7 +72,10 @@ export default function MobileProfileStats({
         <button
           type="button"
           onClick={payslip}
-          className={`flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-3xl border border-slate-100/80 bg-white/95 px-3 py-4 text-center transition active:scale-[0.98] dark:border-white/10 dark:bg-neutral-900/85 ${cardShadow}`}
+          className={`flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-3xl border px-3 py-4 text-center transition active:scale-[0.98] ${cardShadow}`}
+          style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+            ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', boxShadow: 'none' }
+            : { background: 'rgba(255,255,255,0.95)', borderColor: 'rgba(241,245,249,0.80)' }}
         >
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent dark:bg-accent/20 dark:text-accent-light">
             <Wallet className="h-5 w-5" strokeWidth={2} />

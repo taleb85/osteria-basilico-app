@@ -64,7 +64,8 @@ export default function SwUpdateOverlay() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-gradient-to-br from-[#f8fafc] via-white to-[rgba(0,82,255,0.08)] px-6 text-center font-sans backdrop-blur-md dark:from-[#0a0a0a] dark:via-[#171717] dark:to-[rgba(0,82,255,0.08)]"
+      className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-gradient-to-br from-[#f8fafc] via-white to-[rgba(0,26,128,0.08)] px-6 text-center font-sans"
+      style={document.documentElement.classList.contains('dark') ? { background: 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000 72%)' } : undefined}
       role="status"
       aria-live="polite"
       aria-busy="true"
@@ -78,11 +79,11 @@ export default function SwUpdateOverlay() {
           style={{ transform: 'rotate(-90deg)' }}
         >
           <rect x="4" y="4" width="112" height="112" rx="26" ry="26"
-            fill="none" stroke="rgba(0,82,255,0.08)" strokeWidth="3"
+            fill="none" stroke="rgba(0,26,128,0.08)" strokeWidth="3"
           />
           <motion.rect
             x="4" y="4" width="112" height="112" rx="26" ry="26"
-            fill="none" stroke="#0052FF" strokeWidth="3"
+            fill="none" stroke="#001A80" strokeWidth="3"
             strokeLinecap="round"
             pathLength={1}
             initial={{ pathLength: 0 }}

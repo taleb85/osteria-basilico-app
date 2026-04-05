@@ -117,7 +117,7 @@ export default function PWAInstallRequired() {
   const { effectiveLanguage } = useApp();
   void useTenant(); // mantiene import attivo senza usare dati tenant
   const tenantName = 'FLOW'; // sempre FLOW — ignora nome DB tenant
-  const BG_COLOR = '#0052FF'; // colore FLOW blue — usato per numeri, dots e sfondo icone
+  const BG_COLOR = '#001A80'; // colore FLOW blue — usato per numeri, dots e sfondo icone
   const PAGE_BG = '#ffffff';  // sfondo pagina bianco
   const ios = isIOS();
   const android = isAndroid();
@@ -180,7 +180,7 @@ export default function PWAInstallRequired() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
           className="text-2xl font-extrabold leading-tight mb-1"
-          style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.04em', background: 'linear-gradient(110deg, #06B6D4, #0052FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+          style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.04em', background: 'linear-gradient(110deg, #3366CC, #001A80)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
         >
           FLOW
         </motion.h1>

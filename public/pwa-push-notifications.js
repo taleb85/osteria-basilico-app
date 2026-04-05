@@ -30,6 +30,19 @@
       };
     }
 
+    // Se è una notifica di aggiornamento forzato: non mostrare nel centro notifiche,
+    // ma postare direttamente a tutte le finestre aperte per triggerare l'overlay.
+    if (notificationData.type === 'force_reload') {
+      event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+          clientList.forEach(function (client) {
+            client.postMessage({ type: 'FORCE_DATA_RELOAD' });
+          });
+        })
+      );
+      return;
+    }
+
     // Valori di default se non presenti nel payload
     const title = notificationData.title || 'Osteria Basilico';
     const options = {
@@ -50,9 +63,9 @@
       // Suono di notifica (URL nel manifesto)
     };
 
-    // Se supportato: mostra badge sull'icona dell'app
+    // Badge sull'icona dell'app (il numero viene aggiornato dall'app quando aperta)
     if (navigator.setAppBadge) {
-      navigator.setAppBadge(1);
+      navigator.setAppBadge().catch(() => {});
     }
 
     event.waitUntil(
@@ -61,36 +74,38 @@
   });
 
   /**
-   * Evento `notificationclick`: gestisce i click sulla notifica dal centro notifiche.
-   * Apre l'URL associato alla notifica e focalizza la finestra se già aperta.
+   * Evento `notificationclick`: apre l'app e mostra il pannello notifiche.
+   * - Se l'app è già aperta: manda un messaggio per aprire il modal
+   * - Se l'app è chiusa: apre con parametro ?open=notifications
    */
   self.addEventListener('notificationclick', function (event) {
     event.notification.close();
 
-    const urlToOpen = event.notification.data?.url || '/';
-    const baseUrl = self.location.origin;
+    var baseUrl = self.location.origin;
+    var openUrl = baseUrl + '/?open=notifications';
 
     event.waitUntil(
       self.clients
         .matchAll({ type: 'window', includeUncontrolled: true })
         .then(function (clientList) {
-          // Cerca una finestra già aperta con la stessa URL
-          for (let i = 0; i < clientList.length; i++) {
-            const client = clientList[i];
-            if (client.url === baseUrl + urlToOpen && 'focus' in client) {
+          // Se c'è già una finestra aperta: portala in primo piano e apri il modal
+          for (var i = 0; i < clientList.length; i++) {
+            var client = clientList[i];
+            if ('focus' in client) {
+              client.postMessage({ type: 'OPEN_NOTIFICATIONS' });
               return client.focus();
             }
           }
-          // Se nessuna finestra aperta, aprine una nuova
+          // Nessuna finestra aperta: apri l'app con il parametro
           if (self.clients.openWindow) {
-            return self.clients.openWindow(baseUrl + urlToOpen);
+            return self.clients.openWindow(openUrl);
           }
         })
     );
 
-    // Pulisci il badge dall'icona
+    // Pulisci il badge
     if (navigator.clearAppBadge) {
-      navigator.clearAppBadge();
+      navigator.clearAppBadge().catch(function () {});
     }
   });
 

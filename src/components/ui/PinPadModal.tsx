@@ -130,162 +130,132 @@ export function PinPadModal({
 
   const filledCount = pin.length;
 
+  const BG = 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000 72%)';
+  const border = '1px solid rgba(255,255,255,0.30)';
+  const btnBase = { background: 'transparent', border } as React.CSSProperties;
+
+  /* ── Contenuto condiviso mobile/desktop ─────────────────────────── */
+  const content = (
+    <>
+      {/* Header */}
+      <div className="flex flex-col items-center text-center pt-12 sm:pt-6 pb-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl mb-4" style={btnBase}>
+          <Lock className="w-6 h-6 text-white" strokeWidth={2.5} />
+        </div>
+        <h2 className="text-white font-bold uppercase tracking-widest text-base mb-1">{title}</h2>
+        <p className="text-white/40 text-sm font-medium leading-tight px-4">{subtitle}</p>
+      </div>
+
+      {/* PIN display */}
+      <div className="flex flex-col items-center gap-2 px-8 mt-4">
+        <div className="flex items-center gap-1.5 text-white/50 mb-1">
+          <ShieldCheck className="w-4 h-4" strokeWidth={2.5} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">{pinLabel}</span>
+        </div>
+        <div className="w-full h-14 rounded-2xl flex items-center justify-center relative"
+          style={{ background: 'transparent', border: '1.5px solid rgba(255,255,255,0.30)' }}>
+          <div className="flex items-center gap-6">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="relative flex items-center justify-center">
+                {filledCount === i && (
+                  <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }}
+                    className="absolute -left-3 h-8 w-[2px] rounded-full bg-white/60" />
+                )}
+                <motion.div
+                  animate={filledCount > i ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                  transition={{ duration: 0.18 }}
+                  className="w-4 h-4 rounded-full transition-colors duration-200"
+                  style={filledCount > i
+                    ? { background: 'rgba(255,255,255,0.90)', boxShadow: '0 0 8px 2px rgba(255,255,255,0.50)' }
+                    : { background: 'rgba(255,255,255,0.25)' }}
+                />
+                {filledCount === 4 && i === 3 && (
+                  <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }}
+                    className="absolute -right-3 h-8 w-[2px] rounded-full bg-white/60" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        {error && <p className="text-red-400 text-xs font-bold text-center animate-shake">{error}</p>}
+      </div>
+
+      {/* Numpad */}
+      <div className="flex-1 flex flex-col justify-center px-8 mt-4 sm:flex-none">
+        <div className="grid grid-cols-3 gap-3">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+            <button key={n} type="button" onClick={() => handleKey(n)}
+              className="h-14 rounded-2xl font-bold text-2xl text-white active:scale-95 transition-all"
+              style={btnBase}>{n}</button>
+          ))}
+          {leftActionButton ? (
+            <div className="h-14 rounded-2xl flex items-center justify-center" style={btnBase}>{leftActionButton}</div>
+          ) : webAuthnOk ? (
+            credRegistered ? (
+              <button type="button" onClick={handleBiometric} disabled={bioLoading || isLoading}
+                className="h-14 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-white/70 active:scale-95 transition-all disabled:opacity-50"
+                style={btnBase} title="Usa impronta digitale">
+                {bioLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Fingerprint className="w-6 h-6" />}
+              </button>
+            ) : (
+              <button type="button" onClick={handleBioRegister} disabled={bioRegLoading || isLoading}
+                className="h-14 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-white/40 hover:text-white/70 active:scale-95 transition-all"
+                style={btnBase} title="Collega impronta digitale">
+                {bioRegLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Smartphone style={{ width: '1.25rem', height: '1.25rem' }} />}
+                <span className="text-[7px] font-black uppercase tracking-tighter leading-none">Collega</span>
+              </button>
+            )
+          ) : (
+            <div className="h-14 rounded-2xl flex items-center justify-center opacity-30" style={btnBase}>
+              <Fingerprint className="w-6 h-6 text-white/40" />
+            </div>
+          )}
+          <button type="button" onClick={() => handleKey(0)}
+            className="h-14 rounded-2xl font-bold text-2xl text-white active:scale-95 transition-all"
+            style={btnBase}>0</button>
+          <button type="button" onClick={() => handleKey('del')}
+            className="h-14 rounded-2xl flex items-center justify-center text-white/50 hover:text-white active:scale-95 transition-all"
+            style={btnBase}>
+            <Delete className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex gap-3 px-8 pb-10 sm:pb-6 mt-4">
+        <button type="button" onClick={onCancel}
+          className="flex-1 h-14 rounded-2xl font-bold text-sm text-white/60 hover:text-white active:scale-95 transition-all"
+          style={btnBase}>{cancelLabel}</button>
+        <button type="button" disabled={pin.length !== 4 || isLoading} onClick={onConfirm}
+          className="flex-1 h-14 rounded-2xl text-white font-bold text-sm disabled:opacity-35 active:scale-95 transition-all flex items-center justify-center gap-2"
+          style={btnBase}>
+          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : confirmLabel}
+        </button>
+      </div>
+    </>
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.22 }}
-      className={`fixed inset-0 z-[10070] flex flex-col items-center justify-center overflow-hidden backdrop-blur-[2px] ${backdropClass ?? 'bg-black/8'}`}
+      className="fixed inset-0 z-[10070] flex flex-col items-center justify-center overflow-hidden"
+      style={{ background: BG }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
-
+      {/* Card centrata — mobile e desktop */}
       <motion.div
         initial={{ opacity: 0, y: 28 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 360, damping: 30, mass: 0.9 }}
-        className="relative flex flex-col items-center justify-center px-4 py-6 w-full max-w-[300px] mx-4 rounded-2xl"
-        style={{ background: 'radial-gradient(ellipse at 50% 10%, #0e5f75 0%, #003380 38%, #001055 75%, #000820 100%)' }}
+        className="flex flex-col w-full max-w-[340px] mx-4 rounded-3xl overflow-hidden"
+        style={{ border: '1px solid rgba(255,255,255,0.20)', boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}
+        onClick={e => e.stopPropagation()}
       >
-        {/* Inner glass overlay */}
-        <div className="absolute inset-0 rounded-2xl pointer-events-none"
-          style={{ border: '1px solid rgba(6,182,212,0.30)', boxShadow: '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(6,182,212,0.10)' }} />
-
-        {/* Header */}
-        <div className="relative flex flex-col items-center text-center mb-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl mb-3 shadow-lg"
-            style={{ background: 'linear-gradient(110deg, #06B6D4 0%, #0052FF 100%)', border: '1px solid rgba(6,182,212,0.45)', boxShadow: '0 4px 16px rgba(0,82,255,0.35)' }}>
-            <Lock className="w-4 h-4 text-white" strokeWidth={2.5} />
-          </div>
-          <h2 className="text-white font-bold uppercase tracking-widest text-sm mb-1">{title}</h2>
-          <p className="text-[#06B6D4]/70 text-xs font-medium leading-tight px-2">{subtitle}</p>
-        </div>
-
-        {/* PIN label + display */}
-        <div className="relative flex flex-col items-center gap-1.5 mb-5 w-full">
-          <div className="flex items-center gap-1.5 text-[#06B6D4]/90">
-            <ShieldCheck className="w-4 h-4" strokeWidth={2.5} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">{pinLabel}</span>
-          </div>
-
-          <div className="w-full h-12 rounded-xl flex items-center justify-center relative overflow-hidden"
-            style={{ background: 'rgba(6,182,212,0.10)', border: '2px solid rgba(6,182,212,0.30)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-            <div className="flex items-center gap-5">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="relative flex items-center justify-center">
-                  {filledCount === i && (
-                    <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                      className="absolute -left-2.5 h-8 w-[2px] rounded-full"
-                      style={{ background: '#06B6D4' }} />
-                  )}
-                  <motion.div
-                    animate={filledCount > i ? { scale: [1, 1.3, 1] } : { scale: 1 }}
-                    transition={{ duration: 0.18 }}
-                    className="w-3.5 h-3.5 rounded-full transition-colors duration-200"
-                    style={filledCount > i
-                      ? { background: 'linear-gradient(110deg, #06B6D4, #0052FF)', boxShadow: '0 0 10px 3px rgba(6,182,212,0.55)' }
-                      : { background: 'rgba(255,255,255,0.18)' }}
-                  />
-                  {filledCount === 4 && i === 3 && (
-                    <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                      className="absolute -right-2.5 h-8 w-[2px] rounded-full"
-                      style={{ background: '#06B6D4' }} />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {error && <p className="text-red-400 text-xs font-bold text-center animate-shake">{error}</p>}
-        </div>
-
-        {/* Number Pad */}
-        <div className="relative grid grid-cols-3 gap-2 w-full mb-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-            <button key={n} type="button" onClick={() => handleKey(n)}
-              className="h-12 rounded-xl font-bold text-xl text-white active:scale-95 transition-all"
-              style={{ background: 'linear-gradient(160deg, rgba(6,100,140,0.50) 0%, rgba(0,40,120,0.65) 100%)', border: '1px solid rgba(6,182,212,0.22)', boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07)' }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(6,182,212,0.55)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(6,182,212,0.22)')}
-            >
-              {n}
-            </button>
-          ))}
-
-          {/* Bottom row — sinistra: leftActionButton > biometrica interna > placeholder */}
-          {leftActionButton ? (
-            <div className="h-12 rounded-xl flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(6,182,212,0.15)' }}>
-              {leftActionButton}
-            </div>
-          ) : webAuthnOk ? (
-            credRegistered ? (
-              /* Impronta registrata → autenticazione */
-              <button
-                type="button"
-                onClick={handleBiometric}
-                disabled={bioLoading || isLoading}
-                className="h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 text-[#06B6D4] active:scale-95 transition-all disabled:opacity-50"
-                style={{ background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.30)' }}
-                title="Usa impronta digitale"
-              >
-                {bioLoading
-                  ? <Loader2 className="w-5 h-5 animate-spin" />
-                  : <Fingerprint className="w-5 h-5" />}
-              </button>
-            ) : (
-              /* Credenziale non ancora registrata → registra */
-              <button
-                type="button"
-                onClick={handleBioRegister}
-                disabled={bioRegLoading || isLoading}
-                className="h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 text-[#06B6D4]/60 hover:text-[#06B6D4] active:scale-95 transition-all"
-                style={{ background: 'rgba(6,182,212,0.05)', border: '1px solid rgba(6,182,212,0.15)' }}
-                title="Collega impronta digitale"
-              >
-                {bioRegLoading
-                  ? <Loader2 className="w-4 h-4 animate-spin" />
-                  : <Smartphone style={{ width: '1.125rem', height: '1.125rem' }} />}
-                <span className="text-[7px] font-black uppercase tracking-tighter leading-none">Collega</span>
-              </button>
-            )
-          ) : (
-            /* WebAuthn non disponibile → placeholder */
-            <div className="h-12 rounded-xl flex items-center justify-center opacity-20"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(6,182,212,0.10)' }}>
-              <Fingerprint className="w-5 h-5 text-white/30" />
-            </div>
-          )}
-
-          <button type="button" onClick={() => handleKey(0)}
-            className="h-12 rounded-xl font-bold text-xl text-white active:scale-95 transition-all"
-            style={{ background: 'linear-gradient(160deg, rgba(6,100,140,0.50) 0%, rgba(0,40,120,0.65) 100%)', border: '1px solid rgba(6,182,212,0.22)', boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07)' }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(6,182,212,0.55)')}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(6,182,212,0.22)')}>
-            0
-          </button>
-
-          <button type="button" onClick={() => handleKey('del')}
-            className="h-12 rounded-xl flex items-center justify-center text-white/40 hover:text-[#06B6D4]/80 active:scale-95 transition-all"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(6,182,212,0.12)' }}>
-            <Delete className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="relative flex gap-2 w-full">
-          <button type="button" onClick={onCancel}
-            className="flex-1 h-11 rounded-xl font-bold text-sm text-white/60 hover:text-white active:scale-95 transition-all"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(6,182,212,0.15)' }}>
-            {cancelLabel}
-          </button>
-          <button type="button" disabled={pin.length !== 4 || isLoading} onClick={onConfirm}
-            className="flex-1 h-11 rounded-xl text-white font-bold text-sm disabled:opacity-35 disabled:grayscale active:scale-95 transition-all flex items-center justify-center gap-2"
-            style={{ background: 'linear-gradient(110deg, #06B6D4 0%, #0052FF 100%)', border: '1px solid rgba(6,182,212,0.45)', boxShadow: '0 4px 20px rgba(0,82,255,0.40)' }}>
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : confirmLabel}
-          </button>
-        </div>
+        {content}
       </motion.div>
     </motion.div>
   );

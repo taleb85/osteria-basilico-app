@@ -48,7 +48,8 @@ export function SettingsAccordionSection({
       <button
         type="button"
         onClick={toggle}
-        className="-ml-1 mb-3 flex w-full items-center justify-between gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-slate-100/80 dark:hover:bg-white/[0.06]"
+        className="-ml-1 mb-3 flex w-full items-center justify-between gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-all hover:bg-white/80 dark:hover:bg-white/[0.06]"
+        style={{ boxShadow: open ? 'inset 0 1px 0 rgba(255,255,255,0.80), inset 0 -1px 4px rgba(0,0,0,0.03)' : 'none' }}
         aria-expanded={open}
       >
         <div className="min-w-0 flex-1">

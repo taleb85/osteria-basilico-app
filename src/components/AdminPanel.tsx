@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { User } from '../types';
 import { canUserEdit, isAdminOnly, canViewSuspended } from '../utils/permissions';
-import { exportToJSON, exportToCSV } from '../utils/exportData';
+import { exportToJSON } from '../utils/exportData';
 import { importDataToSupabase, clearAllData } from '../utils/importData';
 import { translateRole } from '../utils/roles';
 import { getTranslations } from '../utils/translations';
@@ -31,10 +31,6 @@ export default function AdminPanel() {
 
   const handleExportJSON = () => {
     exportToJSON({ users, shifts, punchRecords, holidays });
-  };
-
-  const handleExportCSV = () => {
-    exportToCSV({ users, shifts, punchRecords, holidays });
   };
 
   const handleImportClick = () => {
@@ -127,10 +123,6 @@ export default function AdminPanel() {
               </button>
             </>
           )}
-          <button onClick={handleExportCSV} className="bg-black/15 backdrop-blur-xl rounded-[24px] p-5 border-2 border-white/30 hover:bg-black/25 transition-all">
-            <Download className="w-6 h-6 text-white mx-auto mb-2" />
-            <span className="text-white text-[10px] font-medium uppercase tracking-widest block">{t.report_csv}</span>
-          </button>
         </div>
 
         <div className="bg-black/15 backdrop-blur-md rounded-[32px] border-2 border-white/30 overflow-hidden shadow-2xl">
@@ -208,7 +200,7 @@ export default function AdminPanel() {
       )}
       {editingUser && <EditStaffModal isOpen={true} user={users.find((u) => u.id === editingUser.id) ?? editingUser} onClose={() => setEditingUser(null)} />}
       {showImportConfirm && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md dark:bg-black/55 z-[100] flex items-center justify-center p-4">
           <div className="modal-glass-panel w-full max-w-md overflow-hidden rounded-[40px]">
             <div className="bg-red-600 p-8 text-center text-white">
               <h2 className="text-2xl font-medium uppercase tracking-tighter">{t.attention}</h2>

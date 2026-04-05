@@ -28,7 +28,7 @@ export default function TurniMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm flex flex-wrap items-center justify-between gap-2 p-2">
+        <div className="surface-glass-sm flex flex-wrap items-center justify-between gap-2 p-2 shadow-sm dark:shadow-none" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="rounded-xl border border-accent/30 px-2 py-1 text-xs font-semibold text-accent">{t.today}</span>
             <div className="flex rounded-xl border border-slate-200 p-0.5 dark:border-white/10">
@@ -56,14 +56,14 @@ export default function TurniMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="flex items-center justify-between gap-1 overflow-x-auto-safe rounded-xl border border-slate-200 bg-slate-50 px-2 py-2">
+        <div className="flex items-center justify-between gap-1 overflow-x-auto-safe rounded-xl border border-slate-100 bg-white px-2 py-2 shadow-sm dark:border-white/10 dark:bg-neutral-900 dark:shadow-none" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
           {days.map((d, i) => (
             <div
               key={d}
-              className={`flex min-w-[2.5rem] flex-col items-center rounded-lg px-1 py-1 text-center ${i === 2 ? 'bg-accent/15 ring-1 ring-accent/40' : ''}`}
+              className={`flex min-w-[2.5rem] flex-col items-center rounded-lg px-1 py-1 text-center ${i === 2 ? 'bg-accent/10 border border-accent/20' : ''}`}
             >
-              <span className="text-[9px] font-bold text-slate-400 dark:text-neutral-400">{d}</span>
-              <span className="text-xs font-bold text-slate-800 dark:text-neutral-100">{10 + i}</span>
+              <span className={`text-[9px] font-bold ${i === 2 ? 'text-accent' : 'text-slate-400 dark:text-neutral-400'}`}>{d}</span>
+              <span className={`text-xs font-bold ${i === 2 ? 'text-accent' : 'text-slate-800 dark:text-neutral-100'}`}>{10 + i}</span>
             </div>
           ))}
         </div>
@@ -76,28 +76,28 @@ export default function TurniMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm overflow-hidden">
-          <div className="grid grid-cols-[minmax(4rem,1fr)_repeat(7,minmax(0,1fr))] gap-px bg-slate-200 text-[10px] dark:bg-white/10">
-            <div className="flex items-center gap-1 bg-slate-50 px-2 py-2 font-bold text-slate-500 dark:bg-neutral-800 dark:text-neutral-300">
+        <div className="surface-glass-sm overflow-hidden shadow-sm dark:shadow-none" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+          <div className="grid grid-cols-[minmax(4rem,1fr)_repeat(7,minmax(0,1fr))] gap-px bg-slate-100 text-[10px] dark:bg-white/10">
+            <div className="flex items-center gap-1 bg-white px-2 py-2 font-bold text-slate-400 dark:bg-neutral-800 dark:text-neutral-300">
               <Users className="h-3 w-3" /> Team
             </div>
             {days.map((d) => (
-              <div key={d} className="bg-slate-50 py-2 text-center font-bold text-slate-500 dark:bg-neutral-800 dark:text-neutral-300">
+              <div key={d} className="bg-white py-2 text-center font-bold text-slate-400 dark:bg-neutral-800 dark:text-neutral-300">
                 {d.slice(0, 1)}
               </div>
             ))}
-            {['Jean', 'John', 'Marie'].map((nm) => (
+            {['Jean', 'John', 'Marie'].map((nm, idx) => (
               <div key={nm} className="contents">
-                <div className="bg-slate-50 px-2 py-3 font-semibold text-slate-700 dark:bg-neutral-900 dark:text-neutral-200">{nm}</div>
+                <div className={`bg-white px-2 py-3 font-semibold text-slate-700 dark:bg-neutral-900 dark:text-neutral-200 ${idx % 2 === 1 ? 'bg-slate-50/50' : ''}`}>{nm}</div>
                 {days.map((d, di) => (
-                  <div key={`${nm}-${d}`} className="min-h-[52px] bg-slate-50 p-0.5 dark:bg-neutral-900">
+                  <div key={`${nm}-${d}`} className={`min-h-[52px] bg-white p-0.5 dark:bg-neutral-900 ${idx % 2 === 1 ? 'bg-slate-50/50' : ''}`}>
                     {di === 2 && nm === 'Jean' && (
-                      <div className="rounded-lg bg-accent/10 px-1 py-1 text-center text-[9px] font-bold text-accent ring-1 ring-accent/25">
+                      <div className="rounded-lg bg-accent/10 px-1 py-1 text-center text-[9px] font-bold text-accent border border-accent/20">
                         10–16
                       </div>
                     )}
                     {di === 4 && nm === 'John' && (
-                      <div className="rounded-lg bg-accent/10 px-1 py-1 text-center text-[9px] font-bold text-accent ring-1 ring-accent/25">
+                      <div className="rounded-lg bg-accent/10 px-1 py-1 text-center text-[9px] font-bold text-accent border border-accent/20">
                         18–23
                       </div>
                     )}
@@ -106,7 +106,7 @@ export default function TurniMgmtPreview({
               </div>
             ))}
           </div>
-          <p className="flex items-center justify-center gap-1 border-t border-slate-100 py-2 text-[10px] text-slate-400 dark:border-white/10 dark:text-neutral-400">
+          <p className="flex items-center justify-center gap-1 border-t border-slate-50 py-2 text-[10px] text-slate-400 dark:border-white/10 dark:text-neutral-400">
             <Calendar className="h-3 w-3" />
             {tv.profile_visibility_turni_grid_hint ?? 'Griglia dimostrativa — in app sono i turni reali del periodo.'}
           </p>
