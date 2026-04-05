@@ -71,24 +71,24 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
     >
       {/* Icona animata */}
       <div className="relative mb-8">
-        <svg
-          className="absolute inset-0 w-full h-full"
-          viewBox="0 0 120 120"
-          style={{ transform: 'rotate(-90deg)' }}
-        >
-          <rect x="4" y="4" width="112" height="112" rx="26" ry="26"
-            fill="none" stroke="rgba(51,102,204,0.12)" strokeWidth="3"
-          />
-          <motion.rect
-            x="4" y="4" width="112" height="112" rx="26" ry="26"
-            fill="none" stroke="#3366CC" strokeWidth="3"
-            strokeLinecap="round"
-            pathLength={1}
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 3.2, ease: 'easeInOut' }}
-          />
-        </svg>
+      <svg
+        className="absolute inset-0 w-full h-full"
+        viewBox="0 0 120 120"
+      >
+        <circle cx="60" cy="60" r="54"
+          fill="none" stroke="rgba(51,102,204,0.12)" strokeWidth="3"
+        />
+        <motion.circle
+          cx="60" cy="60" r="54"
+          fill="none" stroke="#3366CC" strokeWidth="3"
+          strokeLinecap="round"
+          pathLength={1}
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          style={{ rotate: -90, originX: '60px', originY: '60px' }}
+          transition={{ duration: 3.2, ease: 'easeInOut' }}
+        />
+      </svg>
         <div className="flex aspect-square w-[min(44vw,7.5rem)] max-w-[120px] items-center justify-center rounded-[1.75rem] bg-[#3366CC]/10 dark:bg-[#3366CC]/15">
           <motion.div
             animate={{ rotate: [0, 360] }}

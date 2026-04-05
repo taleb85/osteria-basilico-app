@@ -76,18 +76,18 @@ export default function SwUpdateOverlay() {
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 120 120"
-          style={{ transform: 'rotate(-90deg)' }}
         >
-          <rect x="4" y="4" width="112" height="112" rx="26" ry="26"
+          <circle cx="60" cy="60" r="54"
             fill="none" stroke="rgba(0,26,128,0.08)" strokeWidth="3"
           />
-          <motion.rect
-            x="4" y="4" width="112" height="112" rx="26" ry="26"
+          <motion.circle
+            cx="60" cy="60" r="54"
             fill="none" stroke="#001A80" strokeWidth="3"
             strokeLinecap="round"
             pathLength={1}
-            initial={{ pathLength: 0 }}
+            initial={{ pathLength: 0, rotate: -90, originX: '60px', originY: '60px' }}
             animate={{ pathLength: 1 }}
+            style={{ rotate: -90, originX: '60px', originY: '60px' }}
             transition={{ duration: 2.8, ease: 'easeInOut' }}
           />
         </svg>

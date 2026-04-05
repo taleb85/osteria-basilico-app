@@ -39,10 +39,11 @@ const BG_DARK = 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, t
 const ICON_C = ['#F72585', '#7B2FBE', '#4361EE'] as const;
 
 function NeonIcon({ progress = 1 }: { progress?: number }) {
-  const SIZE = 110; const SHRINK = 4; const PAD = 5; const SW = 2.5;
-  const d = PAD + SW / 2 + SHRINK; const inner = SIZE - d * 2; const R = Math.round(inner * 0.19);
+  const SIZE = 110; const PAD = 5; const SW = 2.5;
+  const cx = SIZE / 2; const cy = SIZE / 2; const r = SIZE / 2 - PAD - SW / 2;
   const [c0, c1, c2] = ICON_C;
   const dashoffset = 1 - progress;
+  const rot = `rotate(-90 ${cx} ${cy})`;
 
   return (
     <div className="relative" style={{ width: 112, height: 112 }}>
@@ -54,9 +55,9 @@ function NeonIcon({ progress = 1 }: { progress?: number }) {
             <stop offset="0%" stopColor={c0} /><stop offset="50%" stopColor={c1} /><stop offset="100%" stopColor={c2} />
           </linearGradient>
         </defs>
-        <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R} fill="none" stroke="url(#prev-g)" strokeWidth={SW * 36} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} style={{ filter: 'blur(80px)', opacity: 1 }} />
-        <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R} fill="none" stroke="url(#prev-g)" strokeWidth={SW * 16} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} style={{ filter: 'blur(35px)', opacity: 1 }} />
-        <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R} fill="none" stroke="url(#prev-g)" strokeWidth={SW * 6} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} style={{ filter: 'blur(10px)', opacity: 1 }} />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#prev-g)" strokeWidth={SW * 36} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} strokeLinecap="round" transform={rot} style={{ filter: 'blur(80px)', opacity: 1 }} />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#prev-g)" strokeWidth={SW * 16} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} strokeLinecap="round" transform={rot} style={{ filter: 'blur(35px)', opacity: 1 }} />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#prev-g)" strokeWidth={SW * 6}  strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} strokeLinecap="round" transform={rot} style={{ filter: 'blur(10px)', opacity: 1 }} />
       </svg>
       <svg aria-hidden className="pointer-events-none absolute"
         style={{ inset: -(PAD + SW), width: SIZE + (PAD + SW) * 2, height: SIZE + (PAD + SW) * 2, overflow: 'visible' }}
@@ -66,8 +67,8 @@ function NeonIcon({ progress = 1 }: { progress?: number }) {
             <stop offset="0%" stopColor={c0} /><stop offset="50%" stopColor={c1} /><stop offset="100%" stopColor={c2} />
           </linearGradient>
         </defs>
-        <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={SW} pathLength={1} />
-        <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R} fill="none" stroke="url(#prev-s)" strokeWidth={SW} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={SW} />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#prev-s)" strokeWidth={SW} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} strokeLinecap="round" transform={rot} />
       </svg>
       <img src="/flow-app-icon.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
     </div>
@@ -76,10 +77,11 @@ function NeonIcon({ progress = 1 }: { progress?: number }) {
 
 /* ── Light ring (solo contorno, niente neon) ──────────────────────── */
 function LightRing({ progress = 1 }: { progress?: number }) {
-  const SIZE = 110; const SHRINK = 4; const PAD = 5; const SW = 2.5;
-  const d = PAD + SW / 2 + SHRINK; const inner = SIZE - d * 2; const R = Math.round(inner * 0.19);
+  const SIZE = 110; const PAD = 5; const SW = 2.5;
+  const cx = SIZE / 2; const cy = SIZE / 2; const r = SIZE / 2 - PAD - SW / 2;
   const [c0, c1, c2] = ICON_C;
   const dashoffset = 1 - progress;
+  const rot = `rotate(-90 ${cx} ${cy})`;
 
   return (
     <div className="relative" style={{ width: 112, height: 112 }}>
@@ -91,8 +93,8 @@ function LightRing({ progress = 1 }: { progress?: number }) {
             <stop offset="0%" stopColor={c0} /><stop offset="50%" stopColor={c1} /><stop offset="100%" stopColor={c2} />
           </linearGradient>
         </defs>
-        <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth={SW} pathLength={1} />
-        <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R} fill="none" stroke="url(#prev-sl)" strokeWidth={SW} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth={SW} />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#prev-sl)" strokeWidth={SW} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} strokeLinecap="round" transform={rot} />
       </svg>
       <img src="/flow-app-icon.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
     </div>

@@ -47,25 +47,22 @@ function RingIcon({
   const progress = stageToProgress(stage);
   const duration = isLoop ? 2.0 : stageToDuration(stage);
   const [c0, c1, c2] = stageToColors(stage);
-  const SHRINK = Math.round(size * 0.03);
   const PAD = 4; const SW = 2.5;
   const VIEW = size;
-  const d = PAD + SW / 2 + SHRINK;
-  const inner = VIEW - d * 2;
-  const R = Math.round(inner * 0.19);
   const cx = VIEW / 2; const cy = VIEW / 2;
+  const r = VIEW / 2 - PAD - SW / 2;
+  const rot = `rotate(-90 ${cx} ${cy})`;
 
   const sharedTransition = isLoop
     ? { duration, ease: 'easeInOut', repeat: Infinity, repeatType: 'loop' as const, repeatDelay: 0.3 }
     : { duration, ease: 'easeOut' };
   const sharedAnim = { strokeDashoffset: isLoop ? 0 : 1 - progress };
   const sharedInit = isLoop ? { strokeDashoffset: 1 } : undefined;
-  const rot = {};
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
 
-      {/* ── GLOW — primo nel DOM → dipinge sotto tutto, mix-blend screen → vivido sul nero ── */}
+      {/* ── GLOW ── */}
       <svg aria-hidden className="pointer-events-none absolute"
         style={{ inset: -(PAD + SW), width: VIEW + (PAD + SW) * 2, height: VIEW + (PAD + SW) * 2, overflow: 'visible', mixBlendMode: 'screen' }}
         viewBox={`0 0 ${VIEW} ${VIEW}`}
@@ -77,30 +74,27 @@ function RingIcon({
             <stop offset="100%" stopColor={c2} />
           </linearGradient>
         </defs>
-        {/* glow ampio */}
-        <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+        <motion.circle cx={cx} cy={cy} r={r}
           fill="none" stroke={`url(#${gradientId}-g)`} strokeWidth={SW * 36}
           strokeLinecap="round" pathLength={1} strokeDasharray="1"
           initial={sharedInit} animate={sharedAnim} transition={sharedTransition}
-          style={{ filter: 'blur(80px)', opacity: 1 }}
+          transform={rot} style={{ filter: 'blur(80px)', opacity: 1 }}
         />
-        {/* glow medio */}
-        <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+        <motion.circle cx={cx} cy={cy} r={r}
           fill="none" stroke={`url(#${gradientId}-g)`} strokeWidth={SW * 16}
           strokeLinecap="round" pathLength={1} strokeDasharray="1"
           initial={sharedInit} animate={sharedAnim} transition={sharedTransition}
-          style={{ filter: 'blur(35px)', opacity: 1 }}
+          transform={rot} style={{ filter: 'blur(35px)', opacity: 1 }}
         />
-        {/* glow stretto */}
-        <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+        <motion.circle cx={cx} cy={cy} r={r}
           fill="none" stroke={`url(#${gradientId}-g)`} strokeWidth={SW * 6}
           strokeLinecap="round" pathLength={1} strokeDasharray="1"
           initial={sharedInit} animate={sharedAnim} transition={sharedTransition}
-          style={{ filter: 'blur(10px)', opacity: 1 }}
+          transform={rot} style={{ filter: 'blur(10px)', opacity: 1 }}
         />
       </svg>
 
-      {/* ── RING NITIDO ── */}
+      {/* ── RING NITIDO ── circle parte alle 12 in punto, gap invisibile ── */}
       <svg aria-hidden className="pointer-events-none absolute"
         style={{ inset: -(PAD + SW), width: VIEW + (PAD + SW) * 2, height: VIEW + (PAD + SW) * 2, overflow: 'visible' }}
         viewBox={`0 0 ${VIEW} ${VIEW}`}
@@ -112,12 +106,13 @@ function RingIcon({
             <stop offset="100%" stopColor={c2} />
           </linearGradient>
         </defs>
-        <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
-          fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={SW} pathLength={1} />
-        <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
+        <circle cx={cx} cy={cy} r={r}
+          fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={SW} />
+        <motion.circle cx={cx} cy={cy} r={r}
           fill="none" stroke={`url(#${gradientId})`} strokeWidth={SW}
           strokeLinecap="round" pathLength={1} strokeDasharray="1"
           initial={sharedInit} animate={sharedAnim} transition={sharedTransition}
+          transform={rot}
         />
       </svg>
 
