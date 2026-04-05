@@ -2,7 +2,7 @@
   "name": "FLOW",
   "short_name": "FLOW",
   "description": "FLOW — Work in Motion",
-  "start_url": "/profilo",
+  "start_url": "/",
   "scope": "/",
   "lang": "it",
   "display": "standalone",
