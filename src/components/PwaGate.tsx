@@ -32,17 +32,10 @@ function allowBrowserWithoutPwa(): boolean {
 }
 
 export default function PwaGate({ children }: PwaGateProps) {
-  const { currentUser } = useApp();
-  const standalone = isPWAStandalone();
-
-  if (standalone || allowBrowserWithoutPwa()) {
-    return <>{children}</>;
-  }
-
-  // Kiosk / login: ancora nel browser
-  if (!currentUser) {
-    return <>{children}</>;
-  }
-
-  return <PWAInstallRequired />;
+  // Gate disattivato: l'app si carica normalmente anche da browser non-standalone.
+  // Safari iOS gestisce il prompt "Aggiungi a Home" nativamente tramite i meta tag.
+  void useApp;
+  void isPWAStandalone;
+  void allowBrowserWithoutPwa;
+  return <>{children}</>;
 }
