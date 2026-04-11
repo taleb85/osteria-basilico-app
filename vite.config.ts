@@ -45,21 +45,7 @@ export default defineConfig({
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           { src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
         ],
-        // Scorciatoie launcher: URL separati timbratura vs profili
-        shortcuts: [
-          {
-            name: 'Timbratura',
-            short_name: 'Timbratura',
-            url: '/timbratura',
-            description: 'FLOW — Terminale timbrature',
-          },
-          {
-            name: 'Accedi',
-            short_name: 'Accedi',
-            url: '/profilo',
-            description: 'FLOW — Accesso staff',
-          },
-        ],
+        shortcuts: [],
       },
       workbox: {
         skipWaiting: true,

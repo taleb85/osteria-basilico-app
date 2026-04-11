@@ -67,7 +67,7 @@ export default function AnimPreview() {
             className="flex flex-col items-center gap-3 rounded-2xl bg-white/10 p-5 border border-white/20"
           >
             <motion.img
-              src="/flow-f-mark.png"
+              src="/icon-flow-final.png"
               alt="F"
               draggable={false}
               animate={anim.animate as Parameters<typeof motion.img>[0]['animate']}

@@ -44,29 +44,25 @@
     }
 
     // Valori di default se non presenti nel payload
-    const title = notificationData.title || 'Osteria Basilico';
+    const title = notificationData.title || 'FLOW';
+    // Usa la foto del mittente come icona se disponibile, altrimenti icona app
+    const iconUrl = notificationData.icon || '/icon-192.png';
     const options = {
-      body: notificationData.body || 'Nuova notifica',
-      icon: '/icon-192.png',
+      body: notificationData.body || 'Nuovo messaggio',
+      icon: iconUrl,
       badge: '/icon-192.png',
       tag: TAG_PUSH,
       requireInteraction: notificationData.requireInteraction || false,
+      // Immagine espansa (visibile su Android in modalità espansa)
+      ...(notificationData.image ? { image: notificationData.image } : {}),
       // Dati aggiuntivi (visibili quando l'utente clicca sulla notifica)
       data: {
         url: notificationData.url || '/',
         type: notificationData.type || 'notification',
       },
-      // Badge per il conteggio notifiche (se supportato)
-      badge: '/icon-192.png',
       // Vibrazioni (ms)
       vibrate: [200, 100, 200],
-      // Suono di notifica (URL nel manifesto)
     };
-
-    // Badge sull'icona dell'app (il numero viene aggiornato dall'app quando aperta)
-    if (navigator.setAppBadge) {
-      navigator.setAppBadge().catch(() => {});
-    }
 
     event.waitUntil(
       self.registration.showNotification(title, options)
@@ -82,21 +78,27 @@
     event.notification.close();
 
     var baseUrl = self.location.origin;
-    var openUrl = baseUrl + '/?open=notifications';
+    var data = event.notification.data || {};
+    var pathFromData =
+      data.url && typeof data.url === 'string' ? data.url : '/?open=notifications';
+    var openUrl =
+      pathFromData.indexOf('http') === 0 ? pathFromData : baseUrl + pathFromData;
+    var openMsgType = 'OPEN_NOTIFICATIONS';
+    if (data.type === 'punch_exit_reminder') openMsgType = 'OPEN_PUNCH_EXIT';
+    else if (data.type === 'schedule_week_available' || data.type === 'shift_change')
+      openMsgType = 'OPEN_TURNI';
 
     event.waitUntil(
       self.clients
         .matchAll({ type: 'window', includeUncontrolled: true })
         .then(function (clientList) {
-          // Se c'è già una finestra aperta: portala in primo piano e apri il modal
           for (var i = 0; i < clientList.length; i++) {
             var client = clientList[i];
             if ('focus' in client) {
-              client.postMessage({ type: 'OPEN_NOTIFICATIONS' });
+              client.postMessage({ type: openMsgType });
               return client.focus();
             }
           }
-          // Nessuna finestra aperta: apri l'app con il parametro
           if (self.clients.openWindow) {
             return self.clients.openWindow(openUrl);
           }

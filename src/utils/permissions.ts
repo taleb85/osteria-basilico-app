@@ -4,8 +4,8 @@ import { getTemplateDefaultTeamScheduleVisible, getRolePermissionGroup } from '.
 /** Ruoli puramente gestionali: non compaiono nelle liste operative (turni, presenze, PDF). Solo Admin. */
 export const PURELY_MANAGEMENT_ROLES = ['admin'] as const;
 
-/** Ruoli con accesso gestionale: admin, manager, assistant_manager, capo (stessa app gestionale; template permessi `capo` separato). */
-export const MANAGEMENT_ROLES = ['admin', 'manager', 'assistant_manager', 'capo'] as const;
+/** Ruoli con accesso gestionale: admin, manager, assistant_manager. */
+export const MANAGEMENT_ROLES = ['admin', 'manager', 'assistant_manager'] as const;
 
 /** Restituisce true se il ruolo ha accesso gestionale (dashboard completa, modifica turni, ecc.). */
 export function isManagementRole(role: string): boolean {
@@ -52,7 +52,7 @@ export function canViewSuspended(user: User | null): boolean {
 
 /**
  * Tabellone turni / griglia Presenze di squadra: operazioni sul team.
- * Ruoli gestionali (admin, manager, assistant_manager, capo) sempre; staff operativo solo con `can_create_shifts`.
+ * Ruoli gestionali (admin, manager, assistant_manager) sempre; staff operativo solo con `can_create_shifts`.
  */
 export function canOperateTeamSchedule(user: User | null): boolean {
   if (!user) return false;
@@ -62,11 +62,9 @@ export function canOperateTeamSchedule(user: User | null): boolean {
 
 /**
  * Creazione, modifica orari/spostamento, eliminazione e copia turni sul planning.
- * Il **capo** non modifica mai il planning (solo lettura tabellone; congela/approva resta su `approveShift` / permessi dedicati).
  */
 export function canEditTeamShifts(user: User | null): boolean {
   if (!user) return false;
-  if (user.role === 'capo') return false;
   if (user.role === 'admin') return true;
   if (user.role === 'manager' || user.role === 'assistant_manager') return true;
   return user.can_create_shifts === true;
@@ -78,11 +76,11 @@ export function canApproveShiftActions(user: User | null): boolean {
   return user.role === 'admin' || user.can_approve_shifts === true;
 }
 
-const FREEZE_PIN_ROLES = new Set(['admin', 'manager', 'assistant_manager', 'capo']);
+const FREEZE_PIN_ROLES = new Set(['admin', 'manager', 'assistant_manager']);
 
 /**
  * PIN inserito per congelare il turno: deve corrispondere a un utente attivo con permesso di approvazione
- * e ruolo manager / assistant manager / admin / capo.
+ * e ruolo manager / assistant manager / admin.
  */
 export function findFreezeVerifierByPin(users: User[], pin: string): User | null {
   const p = (pin || '').trim();
@@ -113,8 +111,7 @@ export function canPublishScheduleDrafts(user: User | null): boolean {
 
 /**
  * Ore totali / viste payroll di gruppo (scheda Ore, riepiloghi).
- * Regola di base: Solo i profili gestionali (admin, manager, assistant_manager, capo) 
- * vedono gli orari altrui. Gli altri vedono solo i propri orari.
+ * Regola di base: Solo i profili gestionali vedono gli orari altrui. Gli altri vedono solo i propri.
  */
 export function canViewAllTeamHours(user: User | null): boolean {
   if (!user) return false;

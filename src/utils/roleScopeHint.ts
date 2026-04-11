@@ -1,5 +1,5 @@
 /** Ruoli con focus operativo sul campo (turni, staff). */
-const OPERATIONAL_SCOPE_ROLES = new Set(['manager', 'assistant_manager', 'capo']);
+const OPERATIONAL_SCOPE_ROLES = new Set(['manager', 'assistant_manager']);
 
 /**
  * Testo che chiarisce il ruolo: admin = gestione struttura; manager/assistente/capo = operatività sul campo.

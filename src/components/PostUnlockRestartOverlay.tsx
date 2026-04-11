@@ -80,52 +80,35 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[110] flex flex-col items-center justify-center bg-gradient-to-br from-[#f8fafc] via-white to-[rgba(0,26,128,0.10)] px-6 text-center font-sans"
-      style={document.documentElement.classList.contains('dark') ? { background: 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000 72%)' } : undefined}
+      className="fixed inset-0 z-[110] flex flex-col items-center justify-center px-6 text-center font-sans"
+      style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18' }}
       role="status"
       aria-live="polite"
       aria-busy="true"
       aria-label={tv.post_unlock_restart_title ?? 'Aggiornamento'}
     >
-      {/* Logo con bordo di progresso animato */}
-      <div className="relative mb-5 flex aspect-square w-[min(44vw,7.5rem)] max-w-[132px]" aria-hidden>
-        {/* SVG bordo progress — traccia il contorno del contenitore */}
-        <svg
-          className="absolute inset-0 h-full w-full"
-          viewBox="0 0 120 120"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Traccia di sfondo */}
-          <rect x="2" y="2" width="116" height="116" rx="26" className="stroke-accent/20 dark:stroke-accent/25" strokeWidth="3" />
-          {/* Traccia animata */}
-          <motion.rect
-            x="2" y="2" width="116" height="116" rx="26"
-            className="stroke-accent dark:stroke-[#d0dece]"
-            strokeWidth="3"
-            strokeLinecap="round"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: RELOAD_DELAY_MS / 1000, ease: 'easeInOut' }}
-          />
-        </svg>
+      {/* Icona */}
+      <motion.img
+        src="/icon-flow-final.png"
+        alt="FLOW"
+        draggable={false}
+        animate={{
+          filter: [
+            'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
+            'drop-shadow(0 0 56px rgba(0,82,255,1.00)) drop-shadow(0 0 24px rgba(0,180,255,0.80))',
+            'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
+          ],
+        }}
+        transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
+        style={{ width: 120, height: 120, objectFit: 'contain', marginBottom: 24 }}
+      />
 
-        {/* Contenitore logo */}
-        <div className="flex h-full w-full items-center justify-center rounded-[1.75rem] bg-accent/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] dark:bg-accent/15 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-          <img
-            src="/flow-app-icon.png"
-            width={512}
-            height={512}
-            alt=""
-            decoding="async"
-            className="h-auto w-[52%] max-h-[58%] object-contain opacity-95"
-          />
-        </div>
+      <div className="flex flex-col items-center gap-1 mb-5 min-h-[40px]">
+        <p className="text-white/60 text-xs font-semibold uppercase tracking-widest">Riavvio in corso</p>
+        <h2 className="text-sm font-bold tracking-tight text-white/90">
+          {tv.post_unlock_restart_title ?? 'Aggiornamento completato'}
+        </h2>
       </div>
-
-      <h2 className="mb-5 text-lg font-bold tracking-tight text-accent sm:text-xl dark:text-[#d0dece]">
-        {tv.post_unlock_restart_title ?? 'Aggiornamento in corso'}
-      </h2>
 
       {/* Passaggi */}
       <ul className="mb-6 flex w-full max-w-[220px] flex-col gap-2.5 text-left" aria-hidden>
@@ -145,10 +128,10 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
                 <span
                   className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors duration-300 ${
                     isDone
-                      ? 'bg-accent text-white dark:bg-[#d0dece] dark:text-[#0a0a0a]'
+                      ? 'bg-accent text-white'
                       : isLast
-                      ? 'bg-accent/15 text-accent dark:bg-accent/25 dark:text-[#d0dece]'
-                      : 'bg-slate-200 dark:bg-neutral-700'
+                      ? 'bg-accent/15 text-accent'
+                      : 'bg-white/10 text-white/40'
                   }`}
                 >
                   {isDone ? (
@@ -161,9 +144,7 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
                 {/* Testo */}
                 <span
                   className={`text-xs font-medium transition-colors duration-300 ${
-                    isDone
-                      ? 'text-slate-700 dark:text-neutral-200'
-                      : 'text-slate-400 dark:text-neutral-400'
+                    isDone ? 'text-neutral-200' : 'text-neutral-400'
                   }`}
                 >
                   {step.label}

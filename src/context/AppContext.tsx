@@ -1,7 +1,8 @@
 import { useState, useRef, ReactNode, useEffect, useCallback, useMemo } from 'react';
-import { persistStoredUiLanguage, readStoredUiLanguage } from '../utils/uiLanguagePreference';
+import { persistStoredUiLanguage, readStoredUiLanguage, clearStoredUiLanguage, getDeviceUiLanguage } from '../utils/uiLanguagePreference';
 import {
   applyDocumentTheme,
+  applyUnauthenticatedDocumentTheme,
   readStoredThemePreference,
   persistThemePreference,
 } from '../utils/theme';
@@ -89,6 +90,7 @@ import PwaGate from '../components/PwaGate';
 import i18n from '../utils/i18n';
 import { userRowToSessionUser, defaultPermissionFieldsForNewUser } from '../utils/staffPermissionDefaults';
 import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
+import { PATH_PROFILO } from '../config/appPaths';
 import { sendForceReloadPush } from '../utils/sendForceReloadPush';
 import {
   bumpClientSyncRevisionOnSupabase,
@@ -119,7 +121,8 @@ import {
   savePresenceVerificationToSupabase,
   type PresenceVerificationConfig,
 } from '../utils/presenceVerificationConfigStorage';
-import { resolveEffectiveVerificationToken, normalizePresenceProof } from '../utils/presenceVerificationPayload';
+import { resolveEffectiveVerificationToken } from '../utils/presenceVerificationPayload';
+import { verifyPresenceProofScanned } from '../utils/presenceProofVerification';
 import {
   fetchGlobalSettingsBundleFromSupabase,
   pullGlobalSettingsBundleOnAppBoot,
@@ -240,16 +243,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return 'it';
   });
 
-  // Effetto per sincronizzare il tema di sistema quando non c'è un utente loggato
+  // Listener prefers-color-scheme: attivo solo quando non c'è preferenza esplicita in localStorage.
+  // Dipende solo da currentUser?.id per non riattivarsi su ogni cambio di proprietà (es. lingua).
   useEffect(() => {
-    if (currentUser) return;
-    
+    // Il tema è sempre in localStorage (locale per dispositivo). Controlla subito.
     const stored = readStoredThemePreference();
-    if (stored) {
+    if (stored === 'light' || stored === 'dark') {
+      // Preferenza esplicita salvata: applicala e non aggiungere listener di sistema
       applyDocumentTheme(stored);
       return;
     }
 
+    // Nessuna preferenza localStorage → segui prefers-color-scheme in tempo reale (tema "Sistema")
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
       applyDocumentTheme(e.matches ? 'dark' : 'light');
@@ -258,7 +263,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     handleChange(mediaQuery);
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [currentUser]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [holidays, setHolidays] = useState<HolidayRequest[]>([]);
   const [punchRecords, setPunchRecords] = useState<PunchRecord[]>([]);
@@ -436,7 +442,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     const fromDisk = typeof window !== 'undefined' ? readStoredUiLanguage() : null;
     if (fromDisk) return fromDisk;
-    return appLanguage || 'it';
+    return appLanguage || getDeviceUiLanguage();
   }, [currentUser?.language, appLanguage]);
 
   useEffect(() => {
@@ -575,25 +581,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [tenantId, tenantIsLoading, loadTenantBySlug]);
 
   useEffect(() => {
-    if (!currentUser) {
-      applyDocumentTheme(readStoredThemePreference() ?? null);
-      return;
-    }
-    const th = currentUser.theme ?? null; // null = segui sistema operativo
+    // Il tema è sempre locale per dispositivo (localStorage), mai dal DB
+    const th = readStoredThemePreference(); // null = segui sistema operativo
     applyDocumentTheme(th);
-    if (th) persistThemePreference(th);
-
-    // Se l'utente non ha un tema esplicito, aggiorna il documento al cambio del tema OS
-    if (!th) {
-      const mq = window.matchMedia('(prefers-color-scheme: dark)');
-      const onMqChange = (e: MediaQueryListEvent | MediaQueryList) => {
-        applyDocumentTheme(e.matches ? 'dark' : 'light');
-      };
-      onMqChange(mq);
-      mq.addEventListener('change', onMqChange);
-      return () => mq.removeEventListener('change', onMqChange);
-    }
-  }, [currentUser]);
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (!currentUser) setManagementDataTouchedSinceLastSync(false);
@@ -707,11 +698,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
             } catch {
               /* ignore */
             }
-            const lang = (safeUser.language && ['it', 'en', 'es', 'fr'].includes(safeUser.language)
-              ? safeUser.language
-              : 'it') as Language;
-            persistStoredUiLanguage(lang);
-            setAppLanguage(lang);
+            // Se l'utente ha una lingua esplicita nel DB, la usa; altrimenti → AUTO (non tocca localStorage)
+            if (safeUser.language && ['it', 'en', 'es', 'fr'].includes(safeUser.language)) {
+              const lang = safeUser.language as Language;
+              persistStoredUiLanguage(lang);
+              setAppLanguage(lang);
+            } else {
+              // Nessuna preferenza → AUTO: pulisce localStorage e usa la lingua del dispositivo
+              clearStoredUiLanguage();
+              setAppLanguage(getDeviceUiLanguage());
+            }
           } else if (userId || savedEmail) {
             localStorage.removeItem(APP_SESSION_STORAGE_KEY);
           }
@@ -908,12 +904,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateShift = useCallback(async (id: string, updates: Partial<Shift>) => {
     const existing = shifts.find((s) => s.id === id);
     if (!existing) return;
-
-    const op = currentUserRef.current;
-    if (op?.role === 'capo') {
-      showError(getTranslations(effectiveLanguage).app_access_denied);
-      return;
-    }
 
     const finalUserId = updates.user_id ?? existing.user_id;
     const finalDate = updates.date ?? existing.date;
@@ -1389,6 +1379,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [holidays, users, effectiveLanguage, markManagementDataTouched]);
 
+  const deleteHolidayRequest = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      await database.holidays.delete(id);
+      setHolidays(prev => prev.filter(h => h.id !== id));
+      markManagementDataTouched();
+      return true;
+    } catch (err) {
+      console.warn('[deleteHolidayRequest]', err);
+      return false;
+    }
+  }, [markManagementDataTouched]);
+
   const addPunchRecord = useCallback(
     async (
       userId: string,
@@ -1412,10 +1414,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const managerPunchingForSomeoneElse =
         !!(actor && actor.id !== userId && canOperateTeamSchedule(actor));
 
-      const rawTimestamp = options?.timestamp ? new Date(options.timestamp).toISOString() : new Date().toISOString();
-
       const resolvedSource: PunchRecordSource =
         options?.source ?? (managerPunchingForSomeoneElse ? 'manager' : 'kiosk');
+
+      const manualTimestampIso =
+        resolvedSource === 'manual' && options?.timestamp
+          ? new Date(options.timestamp).toISOString()
+          : null;
+
+      // Toggle intelligente: niente due IN o due OUT di seguito (solo flussi chiosco/app, non manuale)
+      let effectiveType: 'in' | 'out' = type;
+      if (resolvedSource !== 'manual') {
+        const forUser = punchRecordsRef.current
+          .filter((p) => p.user_id === userId)
+          .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+        const last = forUser[0];
+        const lastKind = last?.type;
+        if (lastKind === 'in' && type === 'in') {
+          effectiveType = 'out';
+        } else if (lastKind === 'out' && type === 'out') {
+          return { error: t.punch_timbratura_doppia };
+        } else if (!last && type === 'out') {
+          return { error: t.punch_uscita_senza_entrata };
+        }
+      }
 
       // Non richiedere geofence per punch manuali o per manager che punzionano per altri
       const shouldVerifyGeofence = resolvedSource !== 'manual' && !managerPunchingForSomeoneElse;
@@ -1452,9 +1474,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const pv = presenceVerificationRef.current;
       const effectivePresenceToken = resolveEffectiveVerificationToken(pv);
-      // Non richiedere verifica QR per inserimenti manuali (source: 'manual') o per manager
-      const shouldVerifyPresence = pv.requireVerification === true && !managerPunchingForSomeoneElse && resolvedSource !== 'manual';
-      
+      const shouldVerifyPresence =
+        pv.requireVerification === true && !managerPunchingForSomeoneElse && resolvedSource !== 'manual';
+
       if (shouldVerifyPresence) {
         if (!effectivePresenceToken) {
           return { error: t.punch_presence_not_configured };
@@ -1463,39 +1485,64 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!proof) {
           return { error: t.punch_presence_proof_required };
         }
-        if (normalizePresenceProof(proof) !== normalizePresenceProof(effectivePresenceToken)) {
-          return { error: t.punch_presence_proof_mismatch };
+        const tenantSlug = tenantRef.current?.slug ?? '';
+        const v = await verifyPresenceProofScanned(proof, effectivePresenceToken, tenantSlug);
+        if (!v.ok) {
+          const errMsg =
+            v.reason === 'expired'
+              ? t.punch_presence_qr_expired
+              : t.punch_presence_proof_mismatch;
+          return { error: errMsg };
         }
+        console.info('[presence-proof] verifica superata', {
+          method: v.method,
+          tenantSlug: tenantSlug || '(default)',
+        });
       }
 
       const record: Record<string, unknown> = {
         user_id: userId,
-        type,
-        timestamp: rawTimestamp,
+        type: effectiveType,
         source: resolvedSource,
       };
+      if (resolvedSource === 'manual' && manualTimestampIso) {
+        record.timestamp = manualTimestampIso;
+      }
 
       if (shiftId && typeof shiftId === 'string') {
         record.shift_id = shiftId;
-
-        // Punch-IN: `calculated_time` è ciò che Presenze / KPI usano come entrata effettiva.
-        // Kiosk / manager al terminale: regola anticipo → orario pianificato; ritardo → reale.
-        // Inserimento manuale da griglia (source manual): rispetta sempre l'orario digitato dal gestore.
-        if (type === 'in') {
+        if (effectiveType === 'in' && resolvedSource === 'manual' && manualTimestampIso) {
           const relatedShift = shifts.find((s) => s.id === shiftId);
           if (relatedShift) {
-            record.calculated_time =
-              resolvedSource === 'manual'
-                ? rawTimestamp
-                : computeEffectivePunchIn(relatedShift, rawTimestamp);
+            record.calculated_time = manualTimestampIso;
           }
         }
       }
 
       const res = await database.punchRecords.insert(record as Omit<PunchRecord, 'id'>);
       if (res) {
-        setPunchRecords((prev) => [res, ...prev]);
+        let row: PunchRecord = res as PunchRecord;
+        if (
+          effectiveType === 'in' &&
+          shiftId &&
+          resolvedSource !== 'manual' &&
+          typeof row.timestamp === 'string'
+        ) {
+          const relatedShift = shifts.find((s) => s.id === shiftId);
+          if (relatedShift) {
+            const ct = computeEffectivePunchIn(relatedShift, row.timestamp);
+            if (ct && ct !== row.calculated_time) {
+              const upd = await database.punchRecords.update(row.id, { calculated_time: ct });
+              if (upd) row = { ...row, ...upd };
+            }
+          }
+        }
+        setPunchRecords((prev) => [row, ...prev]);
         markManagementDataTouched();
+        return {
+          record: row,
+          toggledToExit: effectiveType === 'out' && type === 'in',
+        };
       }
     } finally {
       punchInFlightRef.current = false;
@@ -1646,7 +1693,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const deleteUser = useCallback(
     async (id: string) => {
-      if (!currentUser || currentUser.role !== 'admin') {
+      const ALLOWED_DELETE_ROLES: UserRole[] = ['admin', 'manager', 'assistant_manager'];
+      if (!currentUser || !ALLOWED_DELETE_ROLES.includes(currentUser.role)) {
         const tr = getTranslations(effectiveLanguage);
         showError(tr.profile_visibility_forbidden ?? 'Azione non consentita.');
         return false;
@@ -1659,15 +1707,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ) {
         const tr = getTranslations(effectiveLanguage);
         showError(tr.settings_last_active_admin_block);
-        return;
+        return false;
       }
-      await database.users.delete(id);
+      try {
+        if (supabase) {
+          const { error: rpcErr } = await supabase.rpc('delete_user_cascade', {
+            target_user_id: id,
+          });
+          if (rpcErr) throw rpcErr;
+        } else {
+          await database.users.delete(id);
+        }
+      } catch (err) {
+        const tr = getTranslations(effectiveLanguage);
+        showError(tr.settings_delete_user_error ?? 'Impossibile eliminare il profilo.');
+        console.error('[deleteUser]', err);
+        return false;
+      }
       setUsers((prev) => prev.filter((u) => u.id !== id));
       markManagementDataTouched();
       const rev = await bumpClientSyncRevisionOnSupabase();
       if (rev != null) writeAckClientSyncRevision(rev);
+      return true;
     },
-    [users, effectiveLanguage, showError, markManagementDataTouched]
+    [currentUser, users, effectiveLanguage, showError, markManagementDataTouched]
   );
 
   const createUser = useCallback(
@@ -1687,6 +1750,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!supabase) {
         showError(tr.create_employee_error_no_supabase);
         return null;
+      }
+      // Email opzionale: se non fornita, genera un placeholder unico
+      if (!payload.email?.trim()) {
+        const slug = payload.first_name.trim().toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '') || 'staff';
+        payload = { ...payload, email: `${slug}.${payload.pin}@noreply.flow` };
       }
       const pinConflict = findActiveUserWithSamePin(users, payload.pin);
       if (pinConflict) {
@@ -1822,19 +1890,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     markManagementDataTouched();
   }, [markManagementDataTouched]);
 
-  const updateUserPreferences = useCallback((pref: { language?: Language; theme?: 'light' | 'dark' }) => {
+  const updateUserPreferences = useCallback((pref: { language?: Language; theme?: 'light' | 'dark' | null }) => {
     if (!currentUser) return;
-    const updates: Partial<User> = {};
-    if (pref.language) updates.language = pref.language;
-    if (pref.theme) updates.theme = pref.theme;
-    if (Object.keys(updates).length > 0) {
-      if (pref.theme) {
-        applyDocumentTheme(pref.theme);
-        persistThemePreference(pref.theme);
-      }
-      updateUser(currentUser.id, updates);
-      setCurrentUser({ ...currentUser, ...updates });
+    const dbPayload: Record<string, unknown> = {};
+    if (pref.language) dbPayload.language = pref.language;
+    const hasTheme = 'theme' in pref;
+    if (hasTheme) {
+      // Il tema è locale per dispositivo: solo localStorage, mai nel DB
+      applyDocumentTheme(pref.theme ?? null);
+      persistThemePreference(pref.theme ?? null);
     }
+    if (Object.keys(dbPayload).length > 0) {
+      updateUser(currentUser.id, dbPayload as Partial<User>);
+    }
+    setCurrentUser({
+      ...currentUser,
+      ...(pref.language ? { language: pref.language } : {}),
+      ...(hasTheme ? { theme: (pref.theme ?? undefined) as 'light' | 'dark' | undefined } : {}),
+    });
   }, [currentUser, updateUser]);
 
   const setLanguage = useCallback((lang: Language) => {
@@ -1845,6 +1918,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setCurrentUser({ ...currentUser, language: lang });
     }
     i18n.changeLanguage(lang);
+  }, [currentUser, updateUser]);
+
+  const clearLanguage = useCallback(() => {
+    clearStoredUiLanguage();
+    const deviceLang = getDeviceUiLanguage();
+    setAppLanguage(deviceLang);
+    if (currentUser) {
+      updateUser(currentUser.id, { language: null as unknown as Language });
+      setCurrentUser({ ...currentUser, language: undefined as unknown as Language });
+    }
+    i18n.changeLanguage(deviceLang);
   }, [currentUser, updateUser]);
 
   /** Ritardo prima di mostrare il banner: sync veloci non lampeggiano (focus, tab, polling ravvicinati). */
@@ -2544,80 +2628,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setForceLogoutRequested(false);
   }, []);
 
-  if (isLoading) {
-    const SIZE = 110; const SHRINK = 4; const PAD = 5; const SW = 2.5;
-    const d = PAD + SW / 2 + SHRINK; const inner = SIZE - d * 2; const R = Math.round(inner * 0.19); const cx = SIZE / 2; const cy = SIZE / 2;
-    const loopT = { duration: 2.4, ease: 'easeInOut' as const, repeat: Infinity, repeatType: 'loop' as const, repeatDelay: 0.4 };
-    const rot = {};
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000000 72%)' }}>
-        <div className="flex flex-col items-center gap-6">
-          <div className="relative" style={{ width: 112, height: 112 }}>
-
-            {/* ── GLOW — mix-blend screen → vivido sul nero ── */}
-            <svg aria-hidden className="pointer-events-none absolute"
-              style={{ inset: -(PAD + SW), width: SIZE + (PAD + SW) * 2, height: SIZE + (PAD + SW) * 2, overflow: 'visible', mixBlendMode: 'screen' }}
-              viewBox={`0 0 ${SIZE} ${SIZE}`}>
-              <defs>
-                <linearGradient id="ring-boot-glow" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%"   stopColor="#F72585" />
-                  <stop offset="50%"  stopColor="#7B2FBE" />
-                  <stop offset="100%" stopColor="#4361EE" />
-                </linearGradient>
-              </defs>
-              <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
-                fill="none" stroke="url(#ring-boot-glow)" strokeWidth={SW * 36}
-                strokeLinecap="round" pathLength={1} strokeDasharray="1"
-                initial={{ strokeDashoffset: 1 }} animate={{ strokeDashoffset: 0 }} transition={loopT}
-                style={{ filter: 'blur(80px)', opacity: 1 }}
-              />
-              <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
-                fill="none" stroke="url(#ring-boot-glow)" strokeWidth={SW * 16}
-                strokeLinecap="round" pathLength={1} strokeDasharray="1"
-                initial={{ strokeDashoffset: 1 }} animate={{ strokeDashoffset: 0 }} transition={loopT}
-                style={{ filter: 'blur(35px)', opacity: 1 }}
-              />
-              <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
-                fill="none" stroke="url(#ring-boot-glow)" strokeWidth={SW * 6}
-                strokeLinecap="round" pathLength={1} strokeDasharray="1"
-                initial={{ strokeDashoffset: 1 }} animate={{ strokeDashoffset: 0 }} transition={loopT}
-                style={{ filter: 'blur(10px)', opacity: 1 }}
-              />
-            </svg>
-
-            {/* ── RING NITIDO ── */}
-            <svg aria-hidden className="pointer-events-none absolute"
-              style={{ inset: -(PAD + SW), width: SIZE + (PAD + SW) * 2, height: SIZE + (PAD + SW) * 2, overflow: 'visible' }}
-              viewBox={`0 0 ${SIZE} ${SIZE}`}>
-              <defs>
-                <linearGradient id="ring-boot" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%"   stopColor="#F72585" />
-                  <stop offset="50%"  stopColor="#7B2FBE" />
-                  <stop offset="100%" stopColor="#4361EE" />
-                </linearGradient>
-              </defs>
-              <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={SW} pathLength={1} />
-              <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
-                fill="none" stroke="url(#ring-boot)" strokeWidth={SW}
-                strokeLinecap="round" pathLength={1} strokeDasharray="1"
-                initial={{ strokeDashoffset: 1 }} animate={{ strokeDashoffset: 0 }} transition={loopT}
-                style={rot}
-              />
-            </svg>
-
-            {/* ── ICONA in primo piano ── */}
-            <img src="/flow-app-icon.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
-          </div>
-
-          {/* Testo — dopo nel DOM → sopra al glow automaticamente */}
-          <div className="flex flex-col items-center gap-1 select-none">
-            <span className="text-white font-extrabold tracking-[0.28em] text-xl leading-none uppercase">FLOW</span>
-            <span className="text-white/55 font-semibold tracking-[0.18em] text-[11px] uppercase">Work in Motion</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const logout = useCallback(() => {
+    const u = currentUserRef.current;
+    applyUnauthenticatedDocumentTheme();
+    try {
+      localStorage.removeItem(APP_SESSION_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+    if (u?.language && ['it', 'en', 'es', 'fr'].includes(u.language)) {
+      persistStoredUiLanguage(u.language);
+    }
+    setIsSessionElevated(false);
+    setCurrentUser(null);
+    window.location.assign(PATH_PROFILO);
+  }, []);
 
   return (
     <AppContext.Provider
@@ -2625,9 +2650,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isLoading,
         currentUser, setCurrentUser, users, shifts, holidays, punchRecords, availability, toggleAvailability,
         addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift,
-        publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
-        updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing, syncStage, dataSyncInProgress,
-        postRefreshLocked, postUnlockReloadPending, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest, globalPinSessionId, setGlobalPinSessionId,
+        publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, deleteHolidayRequest, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
+        updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, clearLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing, syncStage, dataSyncInProgress,
+        postRefreshLocked, postUnlockReloadPending, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest, logout, globalPinSessionId, setGlobalPinSessionId,
         featureFlags, setFeatureFlag, geofenceEffectiveConfig, saveGeofenceConfig,
         presenceVerificationConfig, savePresenceVerificationConfig,
         workRules, setWorkRules, breakRules, setBreakRules,
@@ -2639,7 +2664,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isSessionElevated, setIsSessionElevated,
       } satisfies AppContextType}
     >
-      <PwaGate>{children}</PwaGate>
+      {/* Children montano solo quando il caricamento è completato */}
+      {!isLoading && <PwaGate>{children}</PwaGate>}
+
+
       <AnimatePresence mode="sync">
         {toastMessage && (
           <Toast

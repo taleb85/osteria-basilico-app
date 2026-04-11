@@ -4,7 +4,6 @@ const ALLOWED_ROLES: UserRole[] = [
   'admin',
   'manager',
   'assistant_manager',
-  'capo',
   'waiter',
   'server',
   'bartender',
@@ -17,6 +16,7 @@ const ALLOWED_ROLES: UserRole[] = [
 export function normalizeUserRoleFromRow(role: unknown): UserRole {
   const r = typeof role === 'string' ? role : 'waiter';
   if (r === 'proprietario') return 'manager';
+  if (r === 'capo') return 'manager';
   if (ALLOWED_ROLES.includes(r as UserRole)) return r as UserRole;
   return 'waiter';
 }

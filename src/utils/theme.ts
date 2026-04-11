@@ -19,9 +19,13 @@ export function applyDocumentTheme(theme: Theme | null | undefined): void {
   }
 }
 
-export function persistThemePreference(theme: Theme): void {
+export function persistThemePreference(theme: Theme | null): void {
   try {
-    localStorage.setItem(STORAGE_KEY, theme);
+    if (theme === null) {
+      localStorage.removeItem(STORAGE_KEY);
+    } else {
+      localStorage.setItem(STORAGE_KEY, theme);
+    }
   } catch {
     /* ignore */
   }

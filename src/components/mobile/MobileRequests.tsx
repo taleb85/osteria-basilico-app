@@ -6,34 +6,35 @@ import { safeFormatDate } from '../../utils/safeDateFormat';
 interface MobileRequestsProps {
   requests: HolidayRequest[];
   onRequestNew: () => void;
+  t?: Record<string, string>;
 }
 
-const STATUS_CONFIG = {
-  approved: {
-    label: 'Approvata',
-    icon: CheckCircle2,
-    color: 'text-brand-500',
-    bg: 'bg-brand-50 dark:bg-brand-500/10',
-    border: 'border-brand-100 dark:border-brand-500/20',
-  },
-  pending: {
-    label: 'In attesa',
-    icon: AlertCircle,
-    color: 'text-amber-500',
-    bg: 'bg-amber-50 dark:bg-amber-500/10',
-    border: 'border-amber-100 dark:border-amber-500/20',
-  },
-  rejected: {
-    label: 'Rifiutata',
-    icon: XCircle,
-    color: 'text-red-500',
-    bg: 'bg-red-50 dark:bg-red-500/10',
-    border: 'border-red-100 dark:border-red-500/20',
-  },
-} as const;
-
-export default function MobileRequests({ requests, onRequestNew }: MobileRequestsProps) {
+export default function MobileRequests({ requests, onRequestNew, t = {} }: MobileRequestsProps) {
   const locale = it;
+
+  const STATUS_CONFIG = {
+    approved: {
+      label: t.holiday_status_approved ?? 'Approvata',
+      icon: CheckCircle2,
+      color: 'text-brand-500',
+      bg: 'bg-brand-50 dark:bg-brand-500/10',
+      border: 'border-brand-100 dark:border-brand-500/20',
+    },
+    pending: {
+      label: t.holiday_status_pending ?? 'In attesa',
+      icon: AlertCircle,
+      color: 'text-amber-500',
+      bg: 'bg-amber-50 dark:bg-amber-500/10',
+      border: 'border-amber-100 dark:border-amber-500/20',
+    },
+    rejected: {
+      label: t.holiday_status_rejected ?? 'Rifiutata',
+      icon: XCircle,
+      color: 'text-red-500',
+      bg: 'bg-red-50 dark:bg-red-500/10',
+      border: 'border-red-100 dark:border-red-500/20',
+    },
+  } as const;
 
   if (requests.length === 0) {
     return (
@@ -41,13 +42,13 @@ export default function MobileRequests({ requests, onRequestNew }: MobileRequest
         <div className="w-16 h-16 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-4">
           <Palmtree className="w-8 h-8 text-slate-400" />
         </div>
-        <p className="text-slate-500 dark:text-neutral-400 font-medium uppercase tracking-wider text-xs">Nessuna richiesta effettuata</p>
+        <p className="text-slate-500 dark:text-neutral-400 font-medium uppercase tracking-wider text-xs">{t.no_requests_made ?? 'Nessuna richiesta effettuata'}</p>
         <button
           onClick={onRequestNew}
           className="mt-6 flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--brand)] text-white font-bold uppercase tracking-wider shadow-lg active:scale-95 transition-all"
         >
           <Plus className="w-5 h-5" />
-          Nuova Richiesta
+          {t.new_request ?? 'Nuova Richiesta'}
         </button>
       </div>
     );
@@ -71,7 +72,7 @@ export default function MobileRequests({ requests, onRequestNew }: MobileRequest
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
-                    Richiesta del {safeFormatDate(req.created_at, 'd MMM yyyy', { locale })}
+                    {safeFormatDate(req.created_at, 'd MMM yyyy', { locale })}
                   </p>
                   <div className="flex items-center gap-2">
                     <p className="text-xl font-bold text-slate-900 dark:text-neutral-100">

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
+import { FlowNeonIcon } from './ui/FlowNeonIcon';
 import { supabase } from '../lib/supabase';
 import { buildUserInviteSlug, buildProfiloAccessLink, PATH_PROFILO } from '../config/appPaths';
 
@@ -152,11 +153,11 @@ export default function InviteRedirect() {
             transition={{ delay: 0.15, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             className="mb-5"
           >
-            <img
-              src="/flow-app-icon.svg"
-              alt="Flow"
-              className="w-20 h-20 rounded-[22px] shadow-xl shadow-black/40"
-              draggable={false}
+            <FlowNeonIcon
+              size={84}
+              progress={0.85}
+              transition={{ duration: 1.4, ease: 'easeOut' }}
+              idPrefix="invite"
             />
           </motion.div>
 

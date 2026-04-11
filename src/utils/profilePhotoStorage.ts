@@ -1,5 +1,8 @@
+import { supabase, supabaseAdmin } from '../lib/supabase';
+
 const LS_PREFIX = 'ob_profile_avatar_';
 const FOCUS_PREFIX = 'ob_profile_avatar_focus_';
+const STORAGE_BUCKET = 'avatars';
 
 /** Punto di inquadramento per `object-position` (percentuali 0–100). */
 export type AvatarFocus = { x: number; y: number };
@@ -55,6 +58,71 @@ export function writeProfileAvatarToStorage(userId: string, dataUrl: string | nu
     else localStorage.removeItem(k);
   } catch {
     /* ignore quota / private mode */
+  }
+}
+
+/**
+ * Converte una data URL JPEG in Blob.
+ */
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, base64] = dataUrl.split(',');
+  const mime = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg';
+  const binary = atob(base64);
+  const arr = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+/**
+ * Carica la foto profilo su Supabase Storage (bucket `avatars`).
+ * Restituisce l'URL pubblico permanente, o null in caso di errore.
+ *
+ * Il file viene salvato come `avatars/{userId}/avatar.jpg` con upsert
+ * (sovrascrive sempre lo stesso percorso per evitare accumulo di file).
+ */
+export async function uploadAvatarToStorage(
+  userId: string,
+  dataUrl: string
+): Promise<string | null> {
+  // Usa supabaseAdmin (service role) per bypassare RLS su storage.objects
+  const client = supabaseAdmin ?? supabase;
+  if (!client) return null;
+  try {
+    const blob = dataUrlToBlob(dataUrl);
+    const path = `${userId}/avatar.jpg`;
+
+    const { error } = await client.storage
+      .from(STORAGE_BUCKET)
+      .upload(path, blob, {
+        contentType: 'image/jpeg',
+        upsert: true,        // sovrascrive se esiste già
+        cacheControl: '3600',
+      });
+
+    if (error) {
+      console.error('[avatar] Storage upload error:', error.message);
+      return null;
+    }
+
+    const { data } = client.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    // Aggiunge un cache-buster per forzare l'aggiornamento dell'immagine sui client
+    return `${data.publicUrl}?t=${Date.now()}`;
+  } catch (err) {
+    console.error('[avatar] Unexpected upload error:', err);
+    return null;
+  }
+}
+
+/**
+ * Elimina la foto profilo da Supabase Storage.
+ */
+export async function deleteAvatarFromStorage(userId: string): Promise<void> {
+  const client = supabaseAdmin ?? supabase;
+  if (!client) return;
+  try {
+    await client.storage.from(STORAGE_BUCKET).remove([`${userId}/avatar.jpg`]);
+  } catch (err) {
+    console.error('[avatar] Storage delete error:', err);
   }
 }
 

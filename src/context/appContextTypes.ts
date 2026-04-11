@@ -68,6 +68,8 @@ export interface AppContextType {
   requestConfirmAndPublishWeek: (weekStart: Date) => void;
   forceLogoutRequested: boolean;
   clearForceLogoutRequest: () => void;
+  /** Logout locale: tema guest, rimuove sessione, redirect a login profilo. */
+  logout: () => void;
   /** Sessione PIN globale — quando impostata, tutti i PIN gate dell'app sono bypassati. */
   globalPinSessionId: string | null;
   setGlobalPinSessionId: (id: string | null) => void;
@@ -106,6 +108,7 @@ export interface AppContextType {
   publishDayShifts: (dateStr: string) => Promise<void>;
   addHolidayRequest: (request: Omit<HolidayRequest, 'id' | 'created_at' | 'status'>) => Promise<{ ok: boolean; emailSent?: boolean; error?: string }>;
   updateHolidayStatus: (id: string, status: HolidayStatus) => Promise<{ ok: boolean; emailSent?: boolean; error?: string }>;
+  deleteHolidayRequest: (id: string) => Promise<boolean>;
   addPunchRecord: (
     userId: string,
     type: 'in' | 'out',
@@ -116,7 +119,11 @@ export interface AppContextType {
       /** Se omesso: `manager` se un responsabile timbra per un altro utente, altrimenti `kiosk`. */
       source?: PunchRecordSource;
     }
-  ) => Promise<{ error?: string } | void>;
+  ) => Promise<
+    | { error: string }
+    | { record: PunchRecord; toggledToExit?: boolean }
+    | void
+  >;
   updatePunchRecord: (id: string, updates: { timestamp?: string; calculated_time?: string; clock_out_time?: string | null }) => Promise<void>;
   deletePunchRecordsForShift: (shiftId: string) => Promise<void>;
   updateUser: (id: string, updates: Partial<User>) => Promise<boolean>;
@@ -134,13 +141,14 @@ export interface AppContextType {
     employment_start_date?: string | null;
     employment_end_date?: string | null;
   }) => Promise<User | null>;
-  deleteUser: (id: string) => void;
+  deleteUser: (id: string) => Promise<boolean>;
   reorderUsers: (userId: string, direction: 'up' | 'down') => void;
   /** Applica l'ordine degli utenti solo nello stato (senza DB). Usato da Edit view Salva. */
   setUsersSortOrder: (orderedIds: string[]) => void;
   updateUserPreferences: (preferences: { language?: Language; theme?: 'light' | 'dark' }) => void;
   effectiveLanguage: Language;
   setLanguage: (lang: Language) => void;
+  clearLanguage: () => void;
   featureFlags: FeatureFlags;
   setFeatureFlag: (name: string, enabled: boolean) => Promise<void>;
   /** Centro geofence effettivo (Storage/local + fallback .env); null se non configurato. */

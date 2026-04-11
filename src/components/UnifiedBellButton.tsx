@@ -21,19 +21,25 @@ export function UnifiedBellButton({
   const { triggerHapticFeedback } = useMultisensorialFeedback();
   const { currentUser } = useApp();
   const isAdmin = currentUser?.role === 'admin';
-  const { messages, unreadCount, markAsRead, loadMessages, isLoading, error, sendMessage, deleteMessage } = useMessages(userId, isAdmin);
+  const { messages, unreadCount, markAsRead, markAllAsRead, loadMessages, isLoading, error, sendMessage, deleteMessage } = useMessages(userId, isAdmin);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Aggiorna il badge sull'icona dell'app in base alle notifiche non lette
   useEffect(() => {
-    if (!('setAppBadge' in navigator)) return;
-    if (unreadCount > 0) {
-      navigator.setAppBadge(unreadCount).catch(() => {});
-    } else {
-      navigator.clearAppBadge().catch(() => {});
-    }
+    const updateBadge = () => {
+      if (!('setAppBadge' in navigator)) return;
+      if (unreadCount > 0) {
+        navigator.setAppBadge(unreadCount).catch(() => {});
+      } else {
+        navigator.clearAppBadge?.().catch(() => {});
+      }
+    };
+    updateBadge();
+    // Ricalcola badge quando l'app torna in primo piano
+    document.addEventListener('visibilitychange', updateBadge);
+    return () => document.removeEventListener('visibilitychange', updateBadge);
   }, [unreadCount]);
 
   // Apri il modal notifiche quando l'utente clicca su una push notification
@@ -42,6 +48,7 @@ export function UnifiedBellButton({
     const handleSWMessage = (event: MessageEvent) => {
       if (event.data?.type === 'OPEN_NOTIFICATIONS') {
         setIsModalOpen(true);
+        markAllAsRead();
       }
     };
 
@@ -52,6 +59,7 @@ export function UnifiedBellButton({
     // Caso 2: app era chiusa → aperta con ?open=notifications nell'URL
     if (typeof window !== 'undefined' && window.location.search.includes('open=notifications')) {
       setIsModalOpen(true);
+      markAllAsRead();
       // Rimuovi il parametro dall'URL senza ricaricare la pagina
       const url = new URL(window.location.href);
       url.searchParams.delete('open');
@@ -63,6 +71,7 @@ export function UnifiedBellButton({
         navigator.serviceWorker.removeEventListener('message', handleSWMessage);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRefresh = () => {
@@ -88,6 +97,8 @@ export function UnifiedBellButton({
             }
             setIsModalOpen(true);
             triggerHapticFeedback('click');
+            // Azzera badge: marca tutti i messaggi non letti come letti
+            markAllAsRead();
           }
         }}
         disabled={isDisabled}

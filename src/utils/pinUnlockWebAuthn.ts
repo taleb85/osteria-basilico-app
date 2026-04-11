@@ -58,6 +58,20 @@ export function supportsPinUnlockWebAuthn(): boolean {
   );
 }
 
+/**
+ * Controlla (in modo asincrono) se il dispositivo ha un autenticatore biometrico integrato
+ * (Face ID, Touch ID, Windows Hello). Su desktop senza biometria restituisce false.
+ * Usare questo prima di mostrare il pulsante Face ID / Touch ID.
+ */
+export async function hasPlatformBiometricAuthenticator(): Promise<boolean> {
+  if (!supportsPinUnlockWebAuthn()) return false;
+  try {
+    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  } catch {
+    return false;
+  }
+}
+
 /** True se esiste una credenziale salvata per questo utente su questo host (rpId). */
 export function hasPinUnlockCredential(userId: string): boolean {
   if (typeof window === 'undefined') return false;

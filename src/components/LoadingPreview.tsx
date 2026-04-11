@@ -54,8 +54,8 @@ function RingIcon({
   const rot = `rotate(-90 ${cx} ${cy})`;
 
   const sharedTransition = isLoop
-    ? { duration, ease: 'easeInOut', repeat: Infinity, repeatType: 'loop' as const, repeatDelay: 0.3 }
-    : { duration, ease: 'easeOut' };
+    ? { duration, ease: 'easeInOut' as const, repeat: Infinity, repeatType: 'loop' as const, repeatDelay: 0.3 }
+    : { duration, ease: 'easeOut' as const };
   const sharedAnim = { strokeDashoffset: isLoop ? 0 : 1 - progress };
   const sharedInit = isLoop ? { strokeDashoffset: 1 } : undefined;
 
@@ -117,7 +117,7 @@ function RingIcon({
       </svg>
 
       {/* ── ICONA in primo piano ── */}
-      <img src="/flow-app-icon.png" alt="FLOW" className={`${iconClass} object-cover relative z-10`} draggable={false} />
+      <img src="/icon-flow-final.png" alt="FLOW" className={`${iconClass} object-cover relative z-10`} draggable={false} />
     </div>
   );
 }
@@ -130,7 +130,7 @@ function BootScreen() {
         1 · Caricamento iniziale
       </p>
       <div className="flex flex-col items-center justify-center gap-6 rounded-2xl flex-1" style={{ background: BG, minHeight: 420 }}>
-        <RingIcon stage="" gradientId="ring-boot-prev" size={144} iconClass="w-36 h-36 rounded-3xl" duration={2.0} />
+        <RingIcon stage="" gradientId="ring-boot-prev" size={144} iconClass="w-36 h-36 rounded-3xl" />
         <div className="flex flex-col items-center gap-1 select-none mt-4">
           <span className="text-white font-extrabold tracking-[0.28em] text-xl leading-none uppercase">FLOW</span>
           <span className="text-white/55 font-semibold tracking-[0.18em] text-[11px] uppercase">Work in Motion</span>

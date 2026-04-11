@@ -173,9 +173,9 @@ export const database = {
   users: {
     async getAll() {
       if (!supabase) return [];
-      const { data, error } = await withTenant(
-        supabase!.from('users').select('*')
-      ).order('sort_order', { ascending: true });
+      const base = supabase.from('users').select('*');
+      const scoped = withTenant(base);
+      const { data, error } = await scoped.order('sort_order', { ascending: true });
       if (error) throw error;
       return data || [];
     },
@@ -385,18 +385,18 @@ export const database = {
   shifts: {
     async getAll() {
       if (!supabase) return [];
-      const { data, error } = await withTenant(
-        supabase!.from('shifts').select('*')
-      ).order('date', { ascending: true });
+      const base = supabase.from('shifts').select('*');
+      const scoped = withTenant(base);
+      const { data, error } = await scoped.order('date', { ascending: true });
       if (error) throw error;
       return data || [];
     },
 
     async getByUserId(userId: string) {
       if (!supabase) return [];
-      const { data, error } = await withTenant(
-        supabase!.from('shifts').select('*').eq('user_id', userId)
-      ).order('date', { ascending: true });
+      const base = supabase.from('shifts').select('*').eq('user_id', userId);
+      const scoped = withTenant(base);
+      const { data, error } = await scoped.order('date', { ascending: true });
       if (error) throw error;
       return data || [];
     },
@@ -552,9 +552,9 @@ export const database = {
 
     async deleteByDateRange(startDate: string, endDate: string) {
       if (!supabase) return;
-      const { data, error } = await withTenant(
-        supabase!.from('shifts').select('id')
-      ).gte('date', startDate).lte('date', endDate);
+      const base = supabase.from('shifts').select('id');
+      const scoped = withTenant(base);
+      const { data, error } = await scoped.gte('date', startDate).lte('date', endDate);
       if (error) throw error;
       const ids = (data || []).map((s: { id: string }) => s.id);
       if (ids.length > 0) {
@@ -568,9 +568,9 @@ export const database = {
     /** Eliminazione diretta con filtro date (con cascade punch_records) */
     async deleteByDateRangeDirect(startDate: string, endDate: string) {
       if (!supabase) return;
-      const { data } = await withTenant(
-        supabase!.from('shifts').select('id')
-      ).gte('date', startDate).lte('date', endDate);
+      const base = supabase.from('shifts').select('id');
+      const scoped = withTenant(base);
+      const { data } = await scoped.gte('date', startDate).lte('date', endDate);
       const ids = (data || []).map((s: { id: string }) => s.id);
       if (ids.length > 0) {
         await supabase!.from('punch_records').delete().in('shift_id', ids);
@@ -582,9 +582,9 @@ export const database = {
     /** Restituisce gli id dei turni nel range date (per pulizia a cascata) */
     async getIdsByDateRange(startDate: string, endDate: string): Promise<string[]> {
       if (!supabase) return [];
-      const { data, error } = await withTenant(
-        supabase!.from('shifts').select('id')
-      ).gte('date', startDate).lte('date', endDate);
+      const base = supabase.from('shifts').select('id');
+      const scoped = withTenant(base);
+      const { data, error } = await scoped.gte('date', startDate).lte('date', endDate);
       if (error) throw error;
       return (data || []).map((s: { id: string }) => s.id);
     },
@@ -593,18 +593,18 @@ export const database = {
   punchRecords: {
     async getAll() {
       if (!supabase) return [];
-      const { data, error } = await withTenant(
-        supabase!.from('punch_records').select('*')
-      ).order('timestamp', { ascending: false });
+      const base = supabase.from('punch_records').select('*');
+      const scoped = withTenant(base);
+      const { data, error } = await scoped.order('timestamp', { ascending: false });
       if (error) throw error;
       return data || [];
     },
 
     async getByUserId(userId: string) {
       if (!supabase) return [];
-      const { data, error } = await withTenant(
-        supabase!.from('punch_records').select('*').eq('user_id', userId)
-      ).order('timestamp', { ascending: false });
+      const base = supabase.from('punch_records').select('*').eq('user_id', userId);
+      const scoped = withTenant(base);
+      const { data, error } = await scoped.order('timestamp', { ascending: false });
       if (error) throw error;
       return data || [];
     },
@@ -612,6 +612,10 @@ export const database = {
     async insert(record: Omit<PunchRecord, 'id'>) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let payload: Record<string, any> = withTenantPayload({ ...record });
+      // Mai inviare `timestamp` dal client se non è inserimento manuale: il trigger DB usa clock_timestamp().
+      if (payload.source !== 'manual') {
+        delete payload.timestamp;
+      }
       let lastError: { message?: string; details?: string } | null = null;
       for (let attempt = 0; attempt < 5; attempt++) {
         const { data, error } = await supabase!
@@ -817,18 +821,18 @@ export const database = {
   holidays: {
     async getAll() {
       if (!supabase) return [];
-      const { data, error } = await withTenant(
-        supabase!.from('holiday_requests').select('*')
-      ).order('created_at', { ascending: false });
+      const base = supabase.from('holiday_requests').select('*');
+      const scoped = withTenant(base);
+      const { data, error } = await scoped.order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
 
     async getByUserId(userId: string) {
       if (!supabase) return [];
-      const { data, error } = await withTenant(
-        supabase!.from('holiday_requests').select('*').eq('user_id', userId)
-      ).order('created_at', { ascending: false });
+      const base = supabase.from('holiday_requests').select('*').eq('user_id', userId);
+      const scoped = withTenant(base);
+      const { data, error } = await scoped.order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
@@ -871,18 +875,22 @@ export const database = {
   availability: {
     async getAll() {
       if (!supabase) return [];
-      const { data, error } = await withTenant(
-        supabase!.from('holiday_requests').select('*').eq('type', 'indisponibilita')
-      ).order('start_date', { ascending: true });
+      const base = supabase.from('holiday_requests').select('*').eq('type', 'indisponibilita');
+      const scoped = withTenant(base);
+      const { data, error } = await scoped.order('start_date', { ascending: true });
       if (error) throw error;
       return (data || []) as HolidayRequest[];
     },
 
     async getByUserId(userId: string) {
       if (!supabase) return [];
-      const { data, error } = await withTenant(
-        supabase!.from('holiday_requests').select('*').eq('user_id', userId).eq('type', 'indisponibilita')
-      ).order('start_date', { ascending: true });
+      const base = supabase
+        .from('holiday_requests')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('type', 'indisponibilita');
+      const scoped = withTenant(base);
+      const { data, error } = await scoped.order('start_date', { ascending: true });
       if (error) throw error;
       return (data || []) as HolidayRequest[];
     },
@@ -1109,6 +1117,24 @@ export const database = {
         .order('name', { ascending: true });
       if (error) throw error;
       return (data || []).map((r: { name: string }) => r.name);
+    },
+
+    /** `tenantId` riservato per allineamento API; `shift_templates` non è filtrato per tenant. */
+    async listAllWithMeta(_tenantId?: string): Promise<Array<{ name: string; count: number; days: number[]; created_at?: string }>> {
+      void _tenantId;
+      if (!supabase) return [];
+      // shift_templates non ha colonna tenant_id: nessun filtro per tenant
+      const { data, error } = await supabase!
+        .from('shift_templates')
+        .select('name,data,created_at')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      type Row = { name: string; data: Array<{ day_of_week: number }>; created_at?: string };
+      return (data || []).map((r: Row) => {
+        const entries = Array.isArray(r.data) ? r.data : [];
+        const days = [...new Set(entries.map(e => e.day_of_week))].sort();
+        return { name: r.name, count: entries.length, days, created_at: r.created_at };
+      });
     },
 
     async delete(name: string) {

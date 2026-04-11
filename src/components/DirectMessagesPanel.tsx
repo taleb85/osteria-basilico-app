@@ -3,48 +3,53 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Send, Plus, X, Loader2, MessageCircle } from 'lucide-react';
 import { useMessages, groupIntoConversations } from '../hooks/useMessages';
 import { useApp } from '../context/AppContext';
-import { isManagementRole } from '../utils/permissions';
-import type { User } from '../types';
+import { isManagementRole, isPurelyManagementRole } from '../utils/permissions';
+import { translateRole } from '../utils/roles';
+import type { User, Language } from '../types';
+import { readProfileAvatarFromStorage } from '../utils/profilePhotoStorage';
+import { getTranslations, getIntlLocale } from '../utils/translations';
 
 const BRAND = '#0052FF';
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+function formatTime(iso: string, locale?: string) {
+  return new Date(iso).toLocaleTimeString(locale ?? 'it-IT', { hour: '2-digit', minute: '2-digit' });
 }
 
-function formatDateLabel(iso: string) {
+function formatDateLabel(iso: string, todayLabel: string, yesterdayLabel: string, locale?: string) {
   const d = new Date(iso);
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-  if (d.toDateString() === today.toDateString()) return 'Oggi';
-  if (d.toDateString() === yesterday.toDateString()) return 'Ieri';
-  return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+  if (d.toDateString() === today.toDateString()) return todayLabel;
+  if (d.toDateString() === yesterday.toDateString()) return yesterdayLabel;
+  return d.toLocaleDateString(locale ?? 'it-IT', { day: '2-digit', month: 'short' });
 }
 
 function UserAvatar({ user, size = 40 }: { user?: User; size?: number }) {
   const initial = (user?.first_name?.charAt(0) ?? '?').toUpperCase();
   const colors = ['#0052FF', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2'];
-  const colorIndex = user
-    ? user.first_name?.charCodeAt(0) ?? 0
-    : 0;
+  const colorIndex = user ? (user.first_name?.charCodeAt(0) ?? 0) : 0;
   const bg = colors[colorIndex % colors.length];
+  const radius = Math.round(size * 0.28);
 
-  if (user?.avatar_url) {
+  // Foto: localStorage ha priorità, poi avatar_url dal db
+  const localPhoto = user?.id ? readProfileAvatarFromStorage(user.id) : null;
+  const photoSrc = localPhoto ?? user?.avatar_url ?? null;
+
+  if (photoSrc) {
     return (
       <img
-        src={user.avatar_url}
+        src={photoSrc}
         alt=""
-        className="rounded-full object-cover flex-shrink-0"
-        style={{ width: size, height: size }}
+        style={{ width: size, height: size, borderRadius: radius, objectFit: 'cover', flexShrink: 0 }}
         draggable={false}
       />
     );
   }
   return (
     <div
-      className="rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold select-none"
-      style={{ width: size, height: size, background: bg, fontSize: size * 0.38 }}
+      className="flex items-center justify-center flex-shrink-0 text-white font-bold select-none"
+      style={{ width: size, height: size, borderRadius: radius, background: bg, fontSize: size * 0.38 }}
     >
       {initial}
     </div>
@@ -58,12 +63,16 @@ function NewChatPicker({
   currentUserIsManagement,
   onSelect,
   onClose,
+  effectiveLanguage,
+  t = {},
 }: {
   users: User[];
   currentUserId: string;
   currentUserIsManagement: boolean;
   onSelect: (user: User) => void;
   onClose: () => void;
+  effectiveLanguage: Language;
+  t?: Record<string, string>;
 }) {
   const [search, setSearch] = useState('');
   const filtered = users
@@ -71,6 +80,7 @@ function NewChatPicker({
       (u) =>
         u.id !== currentUserId &&
         u.status === 'active' &&
+        !isPurelyManagementRole(u.role) &&
         // Dipendenti non-gestionali possono scrivere solo a manager/admin
         (currentUserIsManagement || isManagementRole(u.role)) &&
         `${u.first_name} ${u.last_name ?? ''}`.toLowerCase().includes(search.toLowerCase())
@@ -91,20 +101,20 @@ function NewChatPicker({
         >
           <X className="w-4 h-4" />
         </button>
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white flex-1">Nuova conversazione</h3>
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white flex-1">{t.messages_new_conversation ?? 'Nuova conversazione'}</h3>
       </div>
       <div className="px-4 pt-3 pb-2">
         <input
           autoFocus
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Cerca dipendente..."
+          placeholder={t.messages_search_employee ?? 'Cerca dipendente...'}
           className="w-full rounded-xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#0052FF] transition-colors"
         />
       </div>
       <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-2 pb-4 [-webkit-overflow-scrolling:touch]">
         {filtered.length === 0 ? (
-          <p className="text-center text-xs text-slate-400 py-8">Nessun dipendente trovato</p>
+          <p className="text-center text-xs text-slate-400 py-8">{t.quick_switch_no_employee_found ?? 'Nessun dipendente trovato'}</p>
         ) : (
           filtered.map((u) => (
             <button
@@ -117,7 +127,7 @@ function NewChatPicker({
                 <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
                   {u.first_name} {u.last_name ?? ''}
                 </p>
-                <p className="text-[10px] text-slate-400 uppercase tracking-wide">{u.role}</p>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wide">{translateRole(u.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</p>
               </div>
             </button>
           ))
@@ -167,6 +177,8 @@ function ChatView({
   sendMessage,
   markAsRead,
   users,
+  t = {},
+  intlLocale,
 }: {
   contactId: string;
   currentUserId: string;
@@ -175,6 +187,8 @@ function ChatView({
   sendMessage: ReturnType<typeof useMessages>['sendMessage'];
   markAsRead: ReturnType<typeof useMessages>['markAsRead'];
   users: User[];
+  t?: Record<string, string>;
+  intlLocale?: string;
 }) {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -216,7 +230,7 @@ function ChatView({
     const result: { label: string; msgs: typeof threadMessages }[] = [];
     let lastLabel = '';
     for (const msg of threadMessages) {
-      const label = formatDateLabel(msg.created_at);
+      const label = formatDateLabel(msg.created_at, t.messages_today ?? 'Oggi', t.messages_yesterday ?? 'Ieri', intlLocale);
       if (label !== lastLabel) {
         result.push({ label, msgs: [] });
         lastLabel = label;
@@ -297,7 +311,7 @@ function ChatView({
                 <ChatBubble
                   key={m.id}
                   body={m.body}
-                  time={formatTime(m.created_at)}
+                  time={formatTime(m.created_at, intlLocale)}
                   isMine={m.sender_id === currentUserId}
                 />
               ))}
@@ -320,7 +334,7 @@ function ChatView({
               el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Scrivi un messaggio..."
+            placeholder={t.messages_write_placeholder ?? 'Scrivi un messaggio...'}
             rows={1}
             className="flex-1 resize-none rounded-2xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-[#0052FF] transition-colors"
             style={{ maxHeight: 120, overflowY: 'auto' }}
@@ -352,6 +366,8 @@ function ConversationList({
   onSelect,
   onNewChat,
   onClose,
+  intlLocale,
+  t = {},
 }: {
   conversations: ReturnType<typeof groupIntoConversations>;
   users: User[];
@@ -360,6 +376,8 @@ function ConversationList({
   onSelect: (contactId: string) => void;
   onNewChat: () => void;
   onClose?: () => void;
+  intlLocale?: string;
+  t?: Record<string, string>;
 }) {
   return (
     <motion.div
@@ -375,12 +393,12 @@ function ConversationList({
         className="flex items-center justify-between px-4 py-4 shrink-0 border-b border-slate-100 dark:border-neutral-800"
         style={{ background: BRAND }}
       >
-        <h2 className="text-base font-bold text-white tracking-tight">Messaggi</h2>
+        <h2 className="text-base font-bold text-white tracking-tight">{t.messages_title}</h2>
         <div className="flex items-center gap-1">
           <button
             onClick={onNewChat}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors"
-            title="Nuova chat"
+            title={t.messages_new_chat}
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -436,7 +454,7 @@ function ConversationList({
                           : '—'}
                       </p>
                       <span className="text-[10px] text-slate-400 shrink-0">
-                        {formatTime(conv.lastMessage.created_at)}
+                        {formatTime(conv.lastMessage.created_at, intlLocale)}
                       </span>
                     </div>
                     <p
@@ -470,7 +488,9 @@ function ConversationList({
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 export function DirectMessagesPanel({ onClose }: { onClose?: () => void } = {}) {
-  const { currentUser, users } = useApp();
+  const { currentUser, users, effectiveLanguage } = useApp();
+  const t = getTranslations(effectiveLanguage as 'it' | 'en' | 'es' | 'fr');
+  const intlLocale = getIntlLocale(effectiveLanguage);
   const { messages, sendMessage, markAsRead, isLoading } = useMessages(
     currentUser?.id,
     currentUser?.role === 'admin'
@@ -517,6 +537,8 @@ export function DirectMessagesPanel({ onClose }: { onClose?: () => void } = {}) 
             currentUserIsManagement={isMgmt}
             onSelect={handleNewChatSelect}
             onClose={() => setShowNewChat(false)}
+            effectiveLanguage={effectiveLanguage}
+            t={t as Record<string, string>}
           />
         ) : selectedContactId ? (
           <ChatView
@@ -528,6 +550,8 @@ export function DirectMessagesPanel({ onClose }: { onClose?: () => void } = {}) 
             sendMessage={sendMessage}
             markAsRead={markAsRead}
             users={users}
+            t={t as Record<string, string>}
+            intlLocale={intlLocale}
           />
         ) : (
           <ConversationList
@@ -539,6 +563,8 @@ export function DirectMessagesPanel({ onClose }: { onClose?: () => void } = {}) 
             onSelect={handleSelectContact}
             onNewChat={() => setShowNewChat(true)}
             onClose={onClose}
+            intlLocale={intlLocale}
+            t={t as Record<string, string>}
           />
         )}
       </AnimatePresence>

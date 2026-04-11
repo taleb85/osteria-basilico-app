@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Send, Loader2, AlertCircle, Users, User } from 'lucide-react';
 import { User as UserType } from '../types';
+import { useApp } from '../context/AppContext';
+import { getTranslations } from '../utils/translations';
 
 interface MessageWriterProps {
   currentUser: UserType;
@@ -23,6 +25,8 @@ export function MessageWriter({
   onCancel,
   compact = false,
 }: MessageWriterProps) {
+  const { effectiveLanguage } = useApp();
+  const t = getTranslations(effectiveLanguage as 'it' | 'en' | 'es' | 'fr');
   const [messageType, setMessageType] = useState<'broadcast' | 'private'>('broadcast');
   const [selectedRecipientId, setSelectedRecipientId] = useState<string>('');
   const [subject, setSubject] = useState('');
@@ -34,15 +38,15 @@ export function MessageWriter({
   const handleSend = async () => {
     // Validazione
     if (!subject.trim()) {
-      setError('Inserisci un oggetto');
+      setError(t.messages_enter_subject ?? 'Inserisci un oggetto');
       return;
     }
     if (!body.trim()) {
-      setError('Inserisci il messaggio');
+      setError(t.messages_enter_body ?? 'Inserisci il messaggio');
       return;
     }
     if (messageType === 'private' && !selectedRecipientId) {
-      setError('Seleziona un destinatario');
+      setError(t.messages_select_recipient ?? 'Seleziona un destinatario');
       return;
     }
 
@@ -81,14 +85,14 @@ export function MessageWriter({
         <div className="flex items-center gap-2">
           <Send className="h-4 w-4 text-amber-700 dark:text-amber-300" />
           <h3 className="text-xs font-bold text-amber-900 dark:text-amber-100">
-            Scrivi Messaggio
+            {t.messages_write_title ?? 'Scrivi Messaggio'}
           </h3>
         </div>
 
         {/* Tipo messaggio */}
         <div className="space-y-1.5">
           <label className="text-[11px] font-semibold text-amber-900 dark:text-amber-200">
-            Destinatario:
+            {t.messages_recipient_label ?? 'Destinatario:'}
           </label>
           <div className="flex gap-2">
             <button
@@ -104,7 +108,7 @@ export function MessageWriter({
               }`}
             >
               <Users className="h-3 w-3" />
-              Tutti
+              {t.messages_recipient_all ?? 'Tutti'}
             </button>
             <button
               type="button"
@@ -116,7 +120,7 @@ export function MessageWriter({
               }`}
             >
               <User className="h-3 w-3" />
-              Privato
+              {t.messages_recipient_private ?? 'Privato'}
             </button>
           </div>
         </div>
@@ -125,14 +129,14 @@ export function MessageWriter({
         {messageType === 'private' && (
           <div>
             <label className="text-[11px] font-semibold text-amber-900 dark:text-amber-200">
-              A chi:
+              {t.messages_recipient_to ?? 'A chi:'}
             </label>
             <select
               value={selectedRecipientId}
               onChange={(e) => setSelectedRecipientId(e.target.value)}
               className="mt-1 w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-xs dark:border-amber-700 dark:bg-neutral-900 dark:text-neutral-100"
             >
-              <option value="">Seleziona utente...</option>
+              <option value="">{t.messages_recipient_select ?? 'Seleziona utente...'}</option>
               {allUsers
                 .filter((u) => u.id !== currentUser.id)
                 .map((user) => (
@@ -148,7 +152,7 @@ export function MessageWriter({
         <div>
           <input
             type="text"
-            placeholder="Oggetto..."
+            placeholder={t.messages_subject_placeholder ?? 'Oggetto...'}
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             maxLength={100}
@@ -159,7 +163,7 @@ export function MessageWriter({
         {/* Corpo messaggio */}
         <div>
           <textarea
-            placeholder="Messaggio..."
+            placeholder={t.messages_body_placeholder ?? 'Messaggio...'}
             value={body}
             onChange={(e) => setBody(e.target.value)}
             maxLength={500}
@@ -182,7 +186,7 @@ export function MessageWriter({
         {/* Successo */}
         {success && (
           <div className="rounded bg-brand-100 p-2 text-xs font-semibold text-brand-700 dark:bg-[#001A80]/12 dark:text-brand-300">
-            ✓ Messaggio inviato!
+            {t.messages_sent_ok_short ?? '✓ Messaggio inviato!'}
           </div>
         )}
 
@@ -207,7 +211,7 @@ export function MessageWriter({
               onClick={onCancel}
               className="rounded-lg border border-amber-300 px-2 py-1.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-neutral-800"
             >
-              Annulla
+              {t.cancel ?? 'Annulla'}
             </button>
           )}
         </div>
@@ -220,13 +224,13 @@ export function MessageWriter({
     <div className="space-y-4 rounded-lg border-2 border-accent/50 bg-accent/5 p-4 dark:border-accent/60 dark:bg-accent/10">
       <h3 className="flex items-center gap-2 text-sm font-bold text-accent dark:text-accent-light">
         <Send className="h-5 w-5" />
-        Scrivi Messaggio
+        {t.messages_write_title ?? 'Scrivi Messaggio'}
       </h3>
 
       {/* Tipo messaggio - Full */}
       <div className="space-y-2">
         <label className="text-sm font-semibold text-accent dark:text-accent-light">
-          Destinatario:
+          {t.messages_recipient_label ?? 'Destinatario:'}
         </label>
         <div className="flex gap-3">
           <label className="flex items-center gap-2">
@@ -241,7 +245,7 @@ export function MessageWriter({
               }}
               className="h-4 w-4"
             />
-            <span className="text-sm text-accent dark:text-accent-light">📢 Invia a tutti</span>
+            <span className="text-sm text-accent dark:text-accent-light">📢 {t.messages_recipient_all ?? 'Tutti'}</span>
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -252,7 +256,7 @@ export function MessageWriter({
               onChange={(e) => setMessageType(e.target.value as 'broadcast' | 'private')}
               className="h-4 w-4"
             />
-            <span className="text-sm text-accent dark:text-accent-light">✉️ Privato</span>
+            <span className="text-sm text-accent dark:text-accent-light">✉️ {t.messages_recipient_private ?? 'Privato'}</span>
           </label>
         </div>
       </div>
@@ -261,14 +265,14 @@ export function MessageWriter({
       {messageType === 'private' && (
         <div>
           <label className="block text-sm font-semibold text-accent dark:text-accent-light">
-            A chi:
+            {t.messages_recipient_to ?? 'A chi:'}
           </label>
           <select
             value={selectedRecipientId}
             onChange={(e) => setSelectedRecipientId(e.target.value)}
             className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm dark:border-accent/50 dark:bg-neutral-900 dark:text-neutral-100"
           >
-            <option value="">Seleziona utente...</option>
+            <option value="">{t.messages_recipient_select ?? 'Seleziona utente...'}</option>
             {allUsers
               .filter((u) => u.id !== currentUser.id)
               .map((user) => (
@@ -283,7 +287,7 @@ export function MessageWriter({
       {/* Oggetto - Full */}
       <div>
         <label className="block text-sm font-semibold text-accent dark:text-accent-light">
-          Oggetto:
+          {t.messages_subject_label ?? 'Oggetto:'}
         </label>
         <input
           type="text"
@@ -298,7 +302,7 @@ export function MessageWriter({
       {/* Corpo - Full */}
       <div>
         <label className="block text-sm font-semibold text-accent dark:text-accent-light">
-          Messaggio:
+          {t.messages_body_label ?? 'Messaggio:'}
         </label>
         <textarea
           placeholder="Scrivi il tuo messaggio..."
@@ -309,7 +313,7 @@ export function MessageWriter({
           className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40 resize-none dark:border-accent/50 dark:bg-neutral-900 dark:text-neutral-100"
         />
         <p className="mt-1 text-xs text-slate-400 dark:text-neutral-500">
-          {body.length}/500 caratteri
+          {body.length}/500 {t.messages_chars_count ?? 'caratteri'}
         </p>
       </div>
 
@@ -322,7 +326,7 @@ export function MessageWriter({
 
       {success && (
         <div className="rounded-lg bg-brand-100 p-3 text-sm font-semibold text-brand-700 dark:bg-[#001A80]/12 dark:text-brand-300">
-          ✓ Messaggio inviato con successo!
+          {t.messages_sent_ok ?? '✓ Messaggio inviato con successo!'}
         </div>
       )}
 
@@ -338,7 +342,7 @@ export function MessageWriter({
           ) : (
             <Send className="h-4 w-4" />
           )}
-          Invia Messaggio
+          {t.messages_send_btn ?? 'Invia Messaggio'}
         </button>
         {onCancel && (
           <button
@@ -346,7 +350,7 @@ export function MessageWriter({
             onClick={onCancel}
             className="rounded-lg border border-accent/30 px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/10 dark:border-accent/50 dark:text-accent-light dark:hover:bg-accent/20"
           >
-            Annulla
+            {t.cancel ?? 'Annulla'}
           </button>
         )}
       </div>

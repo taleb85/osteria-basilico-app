@@ -1,11 +1,12 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Camera, ShieldCheck, ChevronRight } from 'lucide-react';
+import { LogOut, Camera, ShieldCheck, ChevronRight, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useProfileLeaveGuardRef } from '../context/ProfileLeaveGuardContext';
 import { getTranslations } from '../utils/translations';
-import { persistThemePreference } from '../utils/theme';
+import { getDeviceUiLanguage, readStoredUiLanguage } from '../utils/uiLanguagePreference';
+import { readStoredThemePreference, persistThemePreference } from '../utils/theme';
 import { NotificationPermissionButton } from './NotificationPermissionButton';
 
 function ThemeContrastIcon({ mode, className }: { mode: 'light' | 'dark'; className?: string }) {
@@ -31,7 +32,7 @@ function ThemeContrastIcon({ mode, className }: { mode: 'light' | 'dark'; classN
     </span>
   );
 }
-import { isManagementRole } from '../utils/permissions';
+import { isManagementRole, isAdminOnly } from '../utils/permissions';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { PinPadModal } from './ui/PinPadModal';
 import { hasPinUnlockCredential, authenticatePinUnlockCredential } from '../utils/pinUnlockWebAuthn';
@@ -44,6 +45,8 @@ import {
   readAvatarFocus,
   writeAvatarFocus,
   avatarFocusToObjectPosition,
+  uploadAvatarToStorage,
+  deleteAvatarFromStorage,
   type AvatarFocus,
 } from '../utils/profilePhotoStorage';
 import { splitPhoneForForm, joinPhone, DEFAULT_PHONE_PREFIX } from '../utils/phonePrefix';
@@ -67,7 +70,7 @@ export default function ProfileNavTabPanel({
   onLogout: () => void;
   onGoToSettings?: () => void;
 }) {
-  const { currentUser, effectiveLanguage, setLanguage, updateUser, updateUserPreferences, showError } = useApp();
+  const { currentUser, effectiveLanguage, setLanguage, clearLanguage, updateUser, updateUserPreferences, showError, isSessionElevated } = useApp();
   const profileLeaveGuardRef = useProfileLeaveGuardRef();
   const navigate = useNavigate();
   const t = getTranslations(effectiveLanguage);
@@ -145,6 +148,18 @@ export default function ProfileNavTabPanel({
     savedSnapshotRef.current = serializeProfileForm(fd);
   }, [currentUser?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- solo cambio utente (id), non ogni sync di currentUser
 
+  // Tieni formData.language in sync con effectiveLanguage: evita che il salvataggio del profilo
+  // sovrascriva nel DB la lingua scelta dall'accordion "Tema & Lingua"
+  useEffect(() => {
+    if (!effectiveLanguage) return;
+    setFormData((prev) => {
+      if (prev.language === effectiveLanguage) return prev;
+      const next = { ...prev, language: effectiveLanguage as import('../types').Language };
+      savedSnapshotRef.current = serializeProfileForm(next);
+      return next;
+    });
+  }, [effectiveLanguage]);
+
   useEffect(() => {
     if (!currentUser?.id) return;
     const f = readAvatarFocus(currentUser.id);
@@ -204,12 +219,19 @@ export default function ProfileNavTabPanel({
       if (!currentUser?.id) return;
       setPhotoBusy(true);
       try {
+        // 1. Salva in localStorage per accesso immediato
         writeProfileAvatarToStorage(currentUser.id, dataUrl);
         const center: AvatarFocus = { x: 50, y: 50 };
         writeAvatarFocus(currentUser.id, center);
         focusRef.current = center;
         setAvatarFocus(center);
-        const ok = await updateUser(currentUser.id, { avatar_url: dataUrl });
+
+        // 2. Carica su Supabase Storage → ottieni URL pubblico permanente
+        const publicUrl = await uploadAvatarToStorage(currentUser.id, dataUrl);
+
+        // 3. Salva nel database: URL pubblico se upload riuscito, altrimenti data URL
+        const avatarValue = publicUrl ?? dataUrl;
+        const ok = await updateUser(currentUser.id, { avatar_url: avatarValue });
         if (!ok) throw new Error('avatar save failed');
       } finally {
         setPhotoBusy(false);
@@ -235,13 +257,10 @@ export default function ProfileNavTabPanel({
 
   const handleRemovePhoto = useCallback(async () => {
     if (!currentUser?.id) return;
-    if (!window.confirm(tv.profile_tab_remove_photo_confirm ?? 'Vuoi rimuovere la foto profilo?')) return;
-    
     setPhotoBusy(true);
     try {
-      // Rimuovi da localStorage
       writeProfileAvatarToStorage(currentUser.id, null);
-      // Rimuovi dal database
+      await deleteAvatarFromStorage(currentUser.id);
       const ok = await updateUser(currentUser.id, { avatar_url: null });
       if (!ok) throw new Error('avatar removal failed');
     } catch {
@@ -284,7 +303,7 @@ export default function ProfileNavTabPanel({
     [formData]
   );
 
-  const isProfileReadOnly = isFeatureEnabled(currentUser, 'profile_readonly');
+  const isProfileReadOnly = currentUser ? isFeatureEnabled(currentUser, 'profile_readonly') : false;
 
   useEffect(() => {
     const ref = profileLeaveGuardRef;
@@ -301,6 +320,26 @@ export default function ProfileNavTabPanel({
   const [expanded, setExpanded] = useState<'settings' | 'notif' | 'theme' | null>(null);
   const toggleSection = (s: typeof expanded) => setExpanded(prev => prev === s ? null : s);
 
+  // ── Tema & Lingua — hooks PRIMA dell'early return (Rules of Hooks) ─────
+  // Segue prefers-color-scheme in tempo reale
+  const systemDark = useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      mq.addEventListener('change', cb);
+      return () => mq.removeEventListener('change', cb);
+    },
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches,
+    () => false,
+  );
+
+  const [savedTheme, setSavedTheme] = useState<'light' | 'dark' | null>(() => readStoredThemePreference());
+  const [pendingTheme, setPendingTheme] = useState<'light' | 'dark' | null>(() => readStoredThemePreference());
+  const [savedLang, setSavedLang] = useState<import('../types').Language | null>(() => readStoredUiLanguage());
+  const [pendingLang, setPendingLang] = useState<import('../types').Language | null>(() => readStoredUiLanguage());
+  const [themeLangSaving, setThemeLangSaving] = useState(false);
+  const [themeLangSaved, setThemeLangSaved] = useState(false);
+  // ─────────────────────────────────────────────────────────────────────────
+
   if (!currentUser) return null;
 
   const fullName = [currentUser.first_name, currentUser.last_name].filter(Boolean).join(' ').trim()
@@ -308,6 +347,7 @@ export default function ProfileNavTabPanel({
   const displayName = fullName;
   const profileInitial = (displayName.charAt(0) || '?').toUpperCase();
   const isMgmt = isManagementRole(currentUser.role);
+  const hasAdminAccess = isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role;
 
   const changePhoto = tv.profile_tab_change_photo ?? 'Cambia foto';
   const logoutConfirm = tv.profile_logout_confirm ?? "Uscire dall'account?";
@@ -330,12 +370,31 @@ export default function ProfileNavTabPanel({
     if (window.confirm(logoutConfirm)) onLogout();
   };
 
-  const systemDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const uiTheme = (currentUser.theme ?? (systemDark ? 'dark' : 'light')) as 'light' | 'dark';
-  const toggleUiTheme = () => {
-    const nextTheme = uiTheme === 'light' ? 'dark' : 'light';
-    updateUserPreferences({ theme: nextTheme });
-    persistThemePreference(nextTheme);
+  const uiTheme: 'light' | 'dark' = savedTheme === 'light' || savedTheme === 'dark'
+    ? savedTheme
+    : systemDark ? 'dark' : 'light';
+
+  const hasThemeLangChanges = pendingTheme !== savedTheme || pendingLang !== savedLang;
+
+  const saveThemeLang = async () => {
+    setThemeLangSaving(true);
+    // Applica tema
+    const themeToSave: 'light' | 'dark' =
+      pendingTheme === 'light' || pendingTheme === 'dark' ? pendingTheme : uiTheme;
+    updateUserPreferences({ theme: themeToSave });
+    setSavedTheme(themeToSave);
+    // Applica lingua
+    if (pendingLang !== savedLang) {
+      if (pendingLang === null) {
+        clearLanguage();
+      } else {
+        setLanguage(pendingLang);
+      }
+      setSavedLang(pendingLang);
+    }
+    setThemeLangSaving(false);
+    setThemeLangSaved(true);
+    setTimeout(() => setThemeLangSaved(false), 2000);
   };
 
   const dark = uiTheme === 'dark';
@@ -346,7 +405,17 @@ export default function ProfileNavTabPanel({
   const rowLabelCls = dark ? 'text-[13px] font-semibold text-white/80' : 'text-[13px] font-semibold text-slate-700';
 
   const deptLabel = currentUser.department ?? '';
-  const roleDisplay = currentUser.role ?? '';
+  const roleMap: Record<string, string> = {
+    waiter: tv.waiter_role ?? 'waiter',
+    cook: tv.cook_role ?? 'cook',
+    chef: tv.cook_role ?? 'chef',
+    bartender: tv.bartender_role ?? 'bartender',
+    dishwasher: tv.dishwasher_role ?? 'dishwasher',
+    assistant_manager: tv.assistant_manager_role ?? 'assistant_manager',
+    manager: tv.manager_role ?? 'manager',
+    admin: tv.admin_role ?? 'admin',
+  };
+  const roleDisplay = roleMap[currentUser.role ?? ''] ?? (currentUser.role ?? '');
 
   return (
     <div className="w-full max-w-lg mx-auto pb-content font-sans">
@@ -392,6 +461,7 @@ export default function ProfileNavTabPanel({
               ) : profileInitial}
             </div>
 
+            {/* Fotocamera — centrata in basso */}
             <button
               type="button"
               onClick={(ev) => {
@@ -403,13 +473,28 @@ export default function ProfileNavTabPanel({
               aria-expanded={preferNativePhotoPicker ? undefined : photoSourceSheetOpen}
               aria-haspopup={preferNativePhotoPicker ? undefined : 'menu'}
               aria-controls={preferNativePhotoPicker ? undefined : 'profile-photo-source-menu'}
-              className="absolute bottom-0.5 right-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-white shadow-sm outline-none transition-colors hover:opacity-90 active:scale-[0.96] disabled:opacity-50 touch-manipulation"
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white shadow-md outline-none transition-colors hover:opacity-90 active:scale-[0.96] disabled:opacity-50 touch-manipulation"
               style={{ background: '#0052FF' }}
               title={changePhoto}
               aria-label={changePhoto}
             >
               <Camera className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
             </button>
+
+            {/* Cestino — angolo in alto a destra, visibile solo se c'è una foto */}
+            {resolvedAvatar && (
+              <button
+                type="button"
+                onClick={(ev) => { ev.stopPropagation(); void handleRemovePhoto(); }}
+                disabled={photoBusy}
+                className="absolute -top-2 -right-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white shadow-md outline-none transition-colors hover:opacity-90 active:scale-[0.96] disabled:opacity-50 touch-manipulation"
+                style={{ background: 'rgba(220,38,38,0.90)' }}
+                title={tv.profile_tab_remove_photo_confirm ?? 'Rimuovi foto'}
+                aria-label={tv.profile_tab_remove_photo_confirm ?? 'Rimuovi foto'}
+              >
+                <Trash2 className="h-3 w-3" strokeWidth={2.5} aria-hidden />
+              </button>
+            )}
 
             {!preferNativePhotoPicker && (
               <ProfilePhotoSourceSheet
@@ -437,13 +522,13 @@ export default function ProfileNavTabPanel({
 
           {/* Status badges */}
           <div className="flex gap-2">
-            {[roleDisplay, 'Attivo'].filter(Boolean).map((label, i) => (
+            {[roleDisplay, t.status_active].filter(Boolean).map((label, i) => (
               <span
                 key={i}
                 className="text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
                 style={dark
-                  ? { background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.55)' }
-                  : { background: '#f1f5f9', color: '#64748b' }}
+                  ? { background: 'transparent', border: '1px solid rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.40)' }
+                  : { background: 'transparent', border: '1px solid #CBD5E1', color: '#94a3b8' }}
               >
                 {label}
               </span>
@@ -451,31 +536,13 @@ export default function ProfileNavTabPanel({
           </div>
         </div>
 
-        {/* ── Management area shortcut ──────────────────────────────────── */}
-        {isMgmt && (
-          <div className="px-4 pt-4">
-            <button
-              type="button"
-              onClick={() => { setMgmtPin(''); setMgmtPinError(''); setShowMgmtPinPad(true); }}
-              className="w-full flex items-center justify-between gap-3 rounded-xl px-4 py-3.5 text-white active:scale-[0.98] transition-all"
-              style={{ background: '#0052FF', border: '1px solid rgba(255,255,255,0.15)' }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
-                  <ShieldCheck className="w-4 h-4 text-white" strokeWidth={2} />
-                </div>
-                <span className="text-[13px] font-bold">{tv.area_gestionale_title ?? 'Area Gestionale'}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-white/40 shrink-0" />
-            </button>
-          </div>
-        )}
+        {/* Management area shortcut rimosso — già presente nella bottom nav */}
 
         {/* ── Menu accordion ────────────────────────────────────────────── */}
         <div className="flex flex-col gap-2 px-4 pt-4 pb-8">
 
           {/* Impostazioni profilo */}
-          <div className="rounded-xl overflow-hidden" style={dark ? { border: '1px solid rgba(255,255,255,0.08)' } : { border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div className="rounded-xl overflow-hidden" style={dark ? { border: '1px solid rgba(255,255,255,0.18)' } : { border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
             <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98]" onClick={() => toggleSection('settings')}>
               <span className={rowLabelCls}>{tv.profile_tab_group_settings ?? 'Impostazioni profilo'}</span>
               <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'settings' ? 'rotate-90' : ''}`} />
@@ -502,9 +569,9 @@ export default function ProfileNavTabPanel({
           </div>
 
           {/* Notifiche */}
-          <div className="rounded-xl overflow-hidden" style={dark ? { border: '1px solid rgba(255,255,255,0.08)' } : { border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div className="rounded-xl overflow-hidden" style={dark ? { border: '1px solid rgba(255,255,255,0.18)' } : { border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
             <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98]" onClick={() => toggleSection('notif')}>
-              <span className={rowLabelCls}>{tv.profile_notifications_label ?? 'Notifiche'}</span>
+              <span className={rowLabelCls}>{tv.profile_notifications ?? 'Notifiche'}</span>
               <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'notif' ? 'rotate-90' : ''}`} />
             </button>
             <AnimatePresence initial={false}>
@@ -519,7 +586,7 @@ export default function ProfileNavTabPanel({
           </div>
 
           {/* Tema & Lingua */}
-          <div className="rounded-xl overflow-hidden" style={dark ? { border: '1px solid rgba(255,255,255,0.08)' } : { border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div className="rounded-xl overflow-hidden" style={dark ? { border: '1px solid rgba(255,255,255,0.18)' } : { border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
             <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98]" onClick={() => toggleSection('theme')}>
               <span className={rowLabelCls}>{tv.profile_theme_language ?? 'Tema & Lingua'}</span>
               <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'theme' ? 'rotate-90' : ''}`} />
@@ -528,18 +595,33 @@ export default function ProfileNavTabPanel({
               {expanded === 'theme' && (
                 <motion.div key="theme-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
                   <div style={dark ? { borderTop: '1px solid rgba(255,255,255,0.06)' } : { borderTop: '1px solid #F1F5F9' }} className="px-4 py-3 space-y-3">
-                    {/* Toggle tema */}
-                    <button
-                      type="button"
-                      onClick={toggleUiTheme}
-                      className="w-full flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all active:scale-[0.98]"
-                      style={dark
-                        ? { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#e5e5e5' }
-                        : { background: '#f8fafc', border: '1px solid #F1F5F9', color: '#1e293b' }}
-                    >
-                      <span>{uiTheme === 'light' ? (t.light ?? 'Chiaro') : (t.dark ?? 'Scuro')}</span>
-                      <ThemeContrastIcon mode={uiTheme} className="h-6 w-6" />
-                    </button>
+                    {/* Selettore tema: Sistema / Chiaro / Scuro */}
+                    <div className="flex gap-1.5">
+                      {([
+                        { value: null,    label: tv.theme_system ?? 'Sistema', icon: '⚙︎' },
+                        { value: 'light', label: t.light ?? 'Chiaro', icon: null },
+                        { value: 'dark',  label: t.dark  ?? 'Scuro',  icon: null },
+                      ] as { value: 'light' | 'dark' | null; label: string; icon: string | null }[]).map(({ value, label, icon }) => {
+                        const isActive = value === null ? pendingTheme === null : pendingTheme === value;
+                        return (
+                          <button
+                            key={String(value)}
+                            type="button"
+                            onClick={() => setPendingTheme(value)}
+                            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all active:scale-[0.97]"
+                            style={isActive
+                              ? { background: '#0052FF', color: '#fff', border: '1px solid #0033BB' }
+                              : dark
+                                ? { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }
+                                : { background: '#f8fafc', border: '1px solid #e2e8f0', color: '#64748b' }}
+                          >
+                            {icon && <span className="text-sm leading-none">{icon}</span>}
+                            {!icon && <ThemeContrastIcon mode={value as 'light' | 'dark'} className="h-4 w-4" />}
+                            <span>{label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
 
                     {/* Selettore lingua */}
                     <div>
@@ -552,22 +634,34 @@ export default function ProfileNavTabPanel({
                           ? { background: 'rgba(0,0,0,0.30)', border: '1px solid rgba(255,255,255,0.08)' }
                           : { background: '#f1f5f9', border: '1px solid #F1F5F9' }}
                       >
+                        {(() => {
+                          const deviceLang = getDeviceUiLanguage();
+                          const isAuto = pendingLang === null;
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => setPendingLang(null)}
+                              className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
+                              style={isAuto
+                                ? { background: '#0052FF', color: '#ffffff', outline: 'none' }
+                                : { color: dark ? 'rgba(255,255,255,0.45)' : '#64748b', outline: 'none' }}
+                              title={`Auto → ${deviceLang.toUpperCase()}`}
+                            >
+                              Auto
+                            </button>
+                          );
+                        })()}
                         {(['it', 'en', 'es', 'fr'] as const).map((l) => {
-                          const isActive = effectiveLanguage === l;
+                          const isActive = pendingLang === l;
                           return (
                             <button
                               key={l}
                               type="button"
-                              onClick={async () => {
-                                setLanguage(l);
-                                if (currentUser) {
-                                  try { await updateUser(currentUser.id, { language: l }); } catch {}
-                                }
-                              }}
+                              onClick={() => setPendingLang(l)}
                               className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
                               style={isActive
-                                ? { background: '#3366CC', color: '#ffffff' }
-                                : { color: dark ? 'rgba(255,255,255,0.45)' : '#64748b' }}
+                                ? { background: '#0052FF', color: '#ffffff', outline: 'none' }
+                                : { color: dark ? 'rgba(255,255,255,0.45)' : '#64748b', outline: 'none' }}
                             >
                               {l.toUpperCase()}
                             </button>
@@ -575,6 +669,23 @@ export default function ProfileNavTabPanel({
                         })}
                       </div>
                     </div>
+
+                    {/* Bottone Salva tema & lingua */}
+                    <button
+                      type="button"
+                      disabled={themeLangSaving || (!hasThemeLangChanges && !themeLangSaved)}
+                      onClick={() => void saveThemeLang()}
+                      className="w-full py-2.5 rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-40"
+                      style={themeLangSaved
+                        ? { background: '#10b981', color: '#fff' }
+                        : hasThemeLangChanges
+                          ? { background: '#0052FF', color: '#fff' }
+                          : dark
+                            ? { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.08)' }
+                            : { background: '#f1f5f9', color: '#94a3b8', border: '1px solid #e2e8f0' }}
+                    >
+                      {themeLangSaved ? '✓ Salvato' : themeLangSaving ? 'Salvataggio…' : 'Salva'}
+                    </button>
                   </div>
                 </motion.div>
               )}

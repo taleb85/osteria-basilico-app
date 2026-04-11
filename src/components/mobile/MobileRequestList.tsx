@@ -5,34 +5,35 @@ import { safeFormatDate } from '../../utils/safeDateFormat';
 
 interface MobileRequestListProps {
   requests: HolidayRequest[];
+  t?: Record<string, string>;
 }
 
-const STATUS_CONFIG = {
-  approved: {
-    label: 'Approvata',
-    icon: CheckCircle2,
-    color: 'text-brand-500',
-    bg: 'bg-brand-50 dark:bg-brand-500/10',
-    border: 'border-brand-100 dark:border-brand-500/20',
-  },
-  pending: {
-    label: 'In attesa',
-    icon: AlertCircle,
-    color: 'text-amber-500',
-    bg: 'bg-amber-50 dark:bg-amber-500/10',
-    border: 'border-amber-100 dark:border-amber-500/20',
-  },
-  rejected: {
-    label: 'Rifiutata',
-    icon: XCircle,
-    color: 'text-red-500',
-    bg: 'bg-red-50 dark:bg-red-500/10',
-    border: 'border-red-100 dark:border-red-500/20',
-  },
-} as const;
-
-export default function MobileRequestList({ requests }: MobileRequestListProps) {
+export default function MobileRequestList({ requests, t = {} }: MobileRequestListProps) {
   const locale = it;
+
+  const STATUS_CONFIG = {
+    approved: {
+      label: t.holiday_status_approved ?? 'Approvata',
+      icon: CheckCircle2,
+      color: 'text-brand-500',
+      bg: 'bg-brand-50 dark:bg-brand-500/10',
+      border: 'border-brand-100 dark:border-brand-500/20',
+    },
+    pending: {
+      label: t.holiday_status_pending ?? 'In attesa',
+      icon: AlertCircle,
+      color: 'text-amber-500',
+      bg: 'bg-amber-50 dark:bg-amber-500/10',
+      border: 'border-amber-100 dark:border-amber-500/20',
+    },
+    rejected: {
+      label: t.holiday_status_rejected ?? 'Rifiutata',
+      icon: XCircle,
+      color: 'text-red-500',
+      bg: 'bg-red-50 dark:bg-red-500/10',
+      border: 'border-red-100 dark:border-red-500/20',
+    },
+  } as const;
 
   if (requests.length === 0) {
     return (
@@ -40,13 +41,13 @@ export default function MobileRequestList({ requests }: MobileRequestListProps) 
         <div className="w-16 h-16 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-4">
           <Palmtree className="w-8 h-8 text-slate-400" />
         </div>
-        <p className="text-slate-500 dark:text-neutral-400 font-medium">Nessuna richiesta effettuata</p>
+        <p className="text-slate-500 dark:text-neutral-400 font-medium">{t.no_requests_made ?? 'Nessuna richiesta effettuata'}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3 px-4 pb-24">
+    <div className="flex flex-col gap-3 px-4 pb-content">
       {requests.map((req) => {
         const config = STATUS_CONFIG[req.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
         const Icon = config.icon;

@@ -93,6 +93,7 @@ function buildDiskPayload() {
   const op = defaultOperationalTemplateBase();
   return {
     management: serializeGroup(DEFAULT_MANAGER_FEATURES, true, op),
+    assistant_manager: serializeGroup(DEFAULT_MANAGER_FEATURES, true, op),
     capo: serializeGroup(DEFAULT_MANAGER_FEATURES, true, op),
     staff: serializeGroup(DEFAULT_STAFF_FEATURES, true, op),
   };

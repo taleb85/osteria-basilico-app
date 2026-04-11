@@ -31,6 +31,8 @@ type PropsBase = {
   language: Language;
   /** Solo `mode: toggles'`: chiavi sempre attive, switch disabilitato (es. `home_tab`). */
   lockAlwaysOnFeatures?: readonly EnabledFeatureKey[];
+  /** Disabilita tutti gli switch (es. profilo admin). */
+  disabled?: boolean;
 };
 
 type Props =
@@ -55,6 +57,7 @@ export default function RoleFeatureSectionsBlock(props: Props) {
   const renderFeatureRow = (key: EnabledFeatureKey) => {
     const sectionId = featureKeyTemplateSection(key);
     const lockedOn = props.mode === 'toggles' && props.lockAlwaysOnFeatures?.includes(key);
+    const rowDisabled = props.disabled === true;
     const enabled = lockedOn ? true : props.features[key] === true;
     const label = rowLabel(sectionId, key);
 
@@ -63,14 +66,15 @@ export default function RoleFeatureSectionsBlock(props: Props) {
         type="button"
         role="switch"
         aria-checked={enabled}
-        disabled={lockedOn}
-        aria-disabled={lockedOn}
+        disabled={lockedOn || rowDisabled}
+        aria-disabled={lockedOn || rowDisabled}
         onClick={() => {
-          if (lockedOn) return;
+          if (lockedOn || rowDisabled) return;
+          if (props.mode !== 'toggles') return;
           props.onToggle(key);
         }}
         className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 ${
-          lockedOn ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
+          lockedOn || rowDisabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
         } ${enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
       >
         <span

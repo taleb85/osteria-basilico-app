@@ -26,7 +26,7 @@ export default function FlowLogo({
       {/* Icona PNG ufficiale FLOW */}
       {showIcon && (
         <img
-          src="/flow-app-icon-new.png"
+          src="/icon-flow-final.png"
           alt="FLOW"
           width={size}
           height={size}

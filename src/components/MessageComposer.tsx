@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import { Send, X, Loader2, Users, User } from 'lucide-react';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
+import { useApp } from '../context/AppContext';
+import { getTranslations } from '../utils/translations';
 
 interface MessageComposerProps {
   userId: string;
@@ -24,6 +26,8 @@ export function MessageComposer({
 }: MessageComposerProps) {
   const { sendMessage } = useMessages(userId);
   const { triggerHapticFeedback } = useMultisensorialFeedback();
+  const { effectiveLanguage } = useApp();
+  const t = getTranslations(effectiveLanguage as 'it' | 'en' | 'es' | 'fr');
 
   const [messageType, setMessageType] = useState<'broadcast' | 'private'>('broadcast');
   const [selectedRecipientId, setSelectedRecipientId] = useState('');
@@ -160,7 +164,7 @@ export function MessageComposer({
       {/* Corpo Messaggio */}
       <textarea
         ref={bodyInputRef}
-        placeholder="SCRIVI IL MESSAGGIO..."
+        placeholder={t.messages_compose_placeholder ?? 'SCRIVI IL MESSAGGIO...'}
         value={body}
         onChange={(e) => setBody(e.target.value)}
         rows={5}
@@ -179,7 +183,7 @@ export function MessageComposer({
         ) : (
           <Send className="h-6 w-6" />
         )}
-        {isSending ? 'Invio...' : 'Invia Messaggio'}
+        {isSending ? (t.messages_sending ?? 'Invio...') : (t.messages_send_btn ?? 'Invia Messaggio')}
       </button>
     </div>
   );

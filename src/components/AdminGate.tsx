@@ -7,15 +7,17 @@ interface AdminGateProps {
   children: React.ReactNode;
 }
 
-/** Protegge il pannello Admin: ruolo `admin`, `manager` o `assistant_manager`. */
+/** Protegge il pannello Admin: ruolo `admin`, `manager`, `assistant_manager` o sessione elevata via PIN secondario. */
 export default function AdminGate({ children }: AdminGateProps) {
-  const { currentUser, showError } = useApp();
+  const { currentUser, showError, isSessionElevated } = useApp();
   const location = useLocation();
 
   const isAllowed = useMemo(() => {
     if (!currentUser) return false;
+    if (isSessionElevated) return true;
+    if (currentUser.elevated_role) return true;
     return currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'assistant_manager';
-  }, [currentUser]);
+  }, [currentUser, isSessionElevated]);
 
   useEffect(() => {
     if (currentUser && !isAllowed) {

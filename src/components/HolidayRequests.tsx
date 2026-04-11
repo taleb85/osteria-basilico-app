@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Check, X, Palmtree } from 'lucide-react';
+import { Calendar, Check, X, Palmtree, Trash2 } from 'lucide-react';
 import { getTranslations } from '../utils/translations';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
@@ -14,7 +14,7 @@ import { safeFormatDate } from '../utils/safeDateFormat';
 // STATUS_CONFIG is built inside the component to use translations
 
 export default function HolidayRequests() {
-  const { currentUser, holidays, users, addHolidayRequest, updateHolidayStatus, showSuccess, silentRefreshData, effectiveLanguage, featureFlags } = useApp();
+  const { currentUser, holidays, users, addHolidayRequest, updateHolidayStatus, deleteHolidayRequest, showSuccess, silentRefreshData, effectiveLanguage, featureFlags } = useApp();
 
   /**
    * Aggiorna turni/ferie/timbrature da DB aprendo la scheda.
@@ -72,6 +72,7 @@ export default function HolidayRequests() {
   const realHolidays   = holidays.filter((h) => h.type !== 'indisponibilita');
   const pendingAll     = realHolidays.filter((h) => h.status === 'pending');
   const approvedFuture = realHolidays.filter((h) => h.status === 'approved' && new Date(h.end_date) >= new Date());
+  const rejectedAll    = realHolidays.filter((h) => h.status === 'rejected');
 
   // ── Calendar helpers ──────────────────────────────────────────────────────
   const now        = new Date();
@@ -423,9 +424,22 @@ export default function HolidayRequests() {
                               {h.type ?? 'Ferie'}
                             </p>
                           </div>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold uppercase ${cfg.badge}`}>
-                            {cfg.label}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold uppercase ${cfg.badge}`}>
+                              {cfg.label}
+                            </span>
+                            {h.status === 'rejected' && (
+                              <button
+                                type="button"
+                                onClick={() => void deleteHolidayRequest(h.id)}
+                                disabled={updatingId === h.id}
+                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-200 dark:border-red-800/40 bg-red-50 dark:bg-red-950/30 text-red-500 dark:text-red-400 transition-colors hover:bg-red-100 dark:hover:bg-red-950/50 disabled:opacity-50"
+                                title="Elimina richiesta"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -522,6 +536,41 @@ export default function HolidayRequests() {
                         <span className="px-2 py-0.5 rounded-full bg-[#3366CC]/15 dark:bg-[#3366CC]/20 text-[#2255BB] dark:text-[#3366CC] text-xs font-semibold uppercase border border-[#3366CC]/30 dark:border-[#3366CC]/40">
                           {t.status_approved}
                         </span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
+          {/* Rejected (admin) */}
+          {isAdmin && uiW('ferie.list') && rejectedAll.length > 0 && (
+            <div className="surface-glass overflow-hidden">
+              <div className="px-5 py-4 border-b border-[#3366CC]/15 dark:border-[#3366CC]/12 flex items-center justify-between">
+                <h3 className="text-slate-900 dark:text-neutral-100 font-semibold text-xl">{t.rejected}</h3>
+                <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-200 text-xs font-bold border border-red-200/80 dark:border-red-800/50">{rejectedAll.length}</span>
+              </div>
+              <div className="divide-y divide-[#3366CC]/10 dark:divide-[#3366CC]/8">
+                {rejectedAll
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .map((h) => {
+                    const u = users.find((u) => u.id === h.user_id);
+                    return (
+                      <div key={h.id} className="flex items-center justify-between px-5 py-3.5">
+                        <div className="min-w-0">
+                          <p className="text-slate-900 dark:text-neutral-100 text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
+                          <p className="text-slate-600 dark:text-neutral-300 text-xs">
+                            {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => void deleteHolidayRequest(h.id)}
+                          className="ml-3 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-red-200 dark:border-red-800/40 bg-red-50 dark:bg-red-950/30 text-red-500 dark:text-red-400 transition-colors hover:bg-red-100 dark:hover:bg-red-950/50"
+                          title="Elimina richiesta"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
+                        </button>
                       </div>
                     );
                   })}

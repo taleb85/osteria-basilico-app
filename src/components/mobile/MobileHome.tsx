@@ -34,6 +34,7 @@ export interface MobileHomeProps {
   onEnd: () => void;
   onNavigateToTimesheet?: () => void;
   todayWorkShifts: any[];
+  detailLabel?: string;
 }
 
 function fmtH(mins: number) {
@@ -75,6 +76,7 @@ export default function MobileHome({
   onEnd,
   onNavigateToTimesheet,
   todayWorkShifts,
+  detailLabel = 'Detail',
 }: MobileHomeProps) {
   const dark = useDarkMode();
   const cardCls = dark
@@ -96,16 +98,32 @@ export default function MobileHome({
 
       {/* ── Saluto compatto ─────────────────────────────────────────── */}
       <div className="px-1">
-        <h1 className="text-xl font-extrabold tracking-tight text-slate-800 dark:text-white leading-tight">
+        <h1
+          className="text-xl font-extrabold tracking-tight leading-tight"
+          style={{
+            background: 'linear-gradient(120deg, #66AAFF 0%, #3366CC 40%, #001A80 100%)',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
           {greetingText}
         </h1>
-        <p className="text-sm font-bold capitalize text-slate-500 dark:text-white/50 mt-0.5 tracking-wide">
+        <p
+          className="text-sm font-bold capitalize mt-0.5 tracking-wide"
+          style={{
+            background: 'linear-gradient(120deg, #66AAFF 0%, #3366CC 40%, #001A80 100%)',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
           {todayLabel}
         </p>
       </div>
 
       {/* ── Il tuo turno oggi ───────────────────────────────────────── */}
-      <section className={`${cardCls} px-5 py-4`} style={cardStyle}>
+      <section className={`${cardCls} px-5 py-4 mt-5`} style={cardStyle}>
         <div className="flex items-start justify-between mb-3">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/35 mb-1">
@@ -210,7 +228,7 @@ export default function MobileHome({
       {/* ── I miei numeri ───────────────────────────────────────────── */}
       <section>
         <div className="flex items-center justify-between px-1 mb-2">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">
+          <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 dark:text-white/80">
             {statsLabels.title}
           </h2>
           {onNavigateToTimesheet && (
@@ -218,7 +236,7 @@ export default function MobileHome({
               onClick={onNavigateToTimesheet}
               className="text-[10px] font-bold text-blue-600 dark:text-[#93c5fd] flex items-center gap-0.5 hover:opacity-80 transition-opacity"
             >
-              Dettaglio <ChevronRight className="w-3 h-3" />
+              {detailLabel} <ChevronRight className="w-3 h-3" />
             </button>
           )}
         </div>

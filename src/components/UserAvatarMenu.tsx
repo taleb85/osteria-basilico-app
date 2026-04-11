@@ -57,7 +57,7 @@ export default function UserAvatarMenu({
 
   const roleKeyMap: Record<string, string> = {
     admin: 'Admin', proprietario: 'Manager', manager: 'Manager', assistant_manager: 'Ass. Manager',
-    waiter: 'Sala', server: 'Sala', capo: 'Capo', cook: 'Cucina', chef: 'Cucina',
+    waiter: 'Sala', server: 'Sala', cook: 'Cucina', chef: 'Cucina',
     bartender: 'Bar', dishwasher: 'Pulizie',
   };
   const displayName = (currentUser?.first_name?.trim() || currentUser?.email?.split('@')[0] || 'Utente').trim() || 'Utente';

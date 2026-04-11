@@ -9,6 +9,13 @@ export const LANG_STORAGE_KEY = 'appLanguage';
  */
 export const LAST_PROFILE_LANG_KEY = 'osteria_last_profile_language';
 
+export function clearStoredUiLanguage(): void {
+  try {
+    localStorage.removeItem(LANG_STORAGE_KEY);
+    localStorage.removeItem(LAST_PROFILE_LANG_KEY);
+  } catch { /* ignore */ }
+}
+
 export function persistStoredUiLanguage(lang: Language): void {
   try {
     localStorage.setItem(LANG_STORAGE_KEY, lang);

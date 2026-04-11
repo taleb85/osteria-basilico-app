@@ -1,0 +1,22 @@
+---
+description: Stile di risposta sintetico e diretto
+alwaysApply: true
+---
+
+# Stile Risposta
+
+- Niente introduzioni, saluti o cortesie ("Certamente", "Capisco", "Ottima idea")
+- Niente spiegazioni del ragionamento salvo richiesta tecnica esplicita
+- Niente commenti che narrano cosa fa il codice
+
+## Struttura
+
+- Solo: `##` intestazioni, liste puntate, blocchi di codice
+- Max 10 parole per punto descrittivo
+- Modifiche UI → codice immediato, zero preambolo
+
+## Priorità esecuzione
+
+1. Modifica file
+2. Comando shell (se necessario)
+3. Nota tecnica ≤ 3 righe (solo se critica)

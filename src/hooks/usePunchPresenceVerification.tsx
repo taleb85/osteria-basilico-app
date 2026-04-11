@@ -44,8 +44,13 @@ export function usePunchPresenceVerification(language: Language) {
   );
 
   const handleVerified = useCallback((text: string) => {
+    const trimmed = text.trim();
+    console.info('[presence-proof] QR letto dalla fotocamera; validazione firma/token in addPunchRecord', {
+      length: trimmed.length,
+      prefix: trimmed.slice(0, 24),
+    });
     setModalOpen(false);
-    resolverRef.current?.(text.trim());
+    resolverRef.current?.(trimmed);
     resolverRef.current = null;
     rejecterRef.current = null;
   }, []);

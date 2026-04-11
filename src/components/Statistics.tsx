@@ -382,7 +382,7 @@ export default function Statistics() {
                   {/* ── MOBILE: stile semplificato (PERIODO pill + ← date →) ── */}
                   <div className="flex sm:hidden shrink-0 flex-nowrap items-center gap-2">
                     <span className="h-9 inline-flex items-center px-3 rounded-2xl bg-accent text-white text-[10px] font-extrabold uppercase tracking-wider shrink-0 shadow-sm">
-                      {statsTab === 'current_week' ? 'Settimana' : 'Periodo'}
+                      {statsTab === 'current_week' ? (t.ts_period_week ?? 'Settimana') : (t.tab_period ?? 'Periodo')}
                     </span>
                     <div className="flex items-center bg-white dark:bg-transparent border border-slate-100 dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm dark:shadow-none" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent', boxShadow: 'none' } : {}}>
                       <button
@@ -421,7 +421,7 @@ export default function Statistics() {
                       aria-label={statsTab === 'current_week' ? 'Settimana precedente' : 'Periodo precedente'}
                     >
                       <ChevronLeft className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
-                      <span>Prec.</span>
+                      <span>{t.nav_prev_abbr ?? 'Prec.'}</span>
                     </button>
                     <button
                       type="button"
@@ -432,7 +432,7 @@ export default function Statistics() {
                           : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
                       }`}
                     >
-                      Settimana
+                      {t.view_week}
                     </button>
                     <button
                       type="button"
@@ -443,7 +443,7 @@ export default function Statistics() {
                           : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
                       }`}
                     >
-                      Mese
+                      {t.view_month}
                     </button>
                     <button
                       type="button"
@@ -451,7 +451,7 @@ export default function Statistics() {
                       className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
                       aria-label={statsTab === 'current_week' ? 'Settimana successiva' : 'Periodo successivo'}
                     >
-                      <span>Pros.</span>
+                      <span>{t.nav_next_abbr ?? 'Pros.'}</span>
                       <ChevronRight className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
                     </button>
                   </div>
@@ -841,7 +841,7 @@ export default function Statistics() {
                                     {w.label}
                                   </th>
                                   {weekDays.map((day) => (
-                                    <th key={format(day, 'yyyy-MM-dd')} className="py-2 pr-3 text-right">
+                                    <th key={format(day, 'yyyy-MM-dd')} className="py-2 px-1 text-center">
                                       <span className="block text-[9px] font-bold uppercase tracking-wider text-accent/50 dark:text-accent-light/40">
                                         {format(day, 'EEE', { locale: statsLoc })}
                                       </span>
@@ -863,7 +863,7 @@ export default function Statistics() {
                                     const dayKey = format(day, 'yyyy-MM-dd');
                                     const mins = minutesByUserByDay[currentUser.id]?.[dayKey] ?? 0;
                                     return (
-                                      <td key={dayKey} className="py-2.5 pr-3 text-right tabular-nums">
+                                      <td key={dayKey} className="py-2.5 px-1 text-center tabular-nums">
                                         {mins > 0 ? (
                                           <span className="text-[13px] font-bold text-accent-dark dark:text-accent-light">
                                             {formatMinutesToHoursAndMinutes(mins)}
@@ -1039,7 +1039,7 @@ export default function Statistics() {
                               {tv.department_filter_label ?? 'Nome'}
                             </th>
                             {weekDays.map((day) => (
-                              <th key={format(day, 'yyyy-MM-dd')} className="py-2 pr-3 text-right border-r border-[#001A80]/10 dark:border-[#001A80]/15 last:border-r-0">
+                              <th key={format(day, 'yyyy-MM-dd')} className="py-2 px-1 text-center border-r border-[#001A80]/10 dark:border-[#001A80]/15 last:border-r-0">
                                 <span className="block text-[9px] font-bold uppercase tracking-wider text-[#001A80] dark:text-[#00D1FF]">
                                   {format(day, 'EEE', { locale: statsLoc })}
                                 </span>
@@ -1073,7 +1073,7 @@ export default function Statistics() {
                                   const dayKey = format(day, 'yyyy-MM-dd');
                                   const mins = minutesByUserByDay[u.id]?.[dayKey] ?? 0;
                                   return (
-                                    <td key={dayKey} className="py-2.5 pr-3 text-right tabular-nums border-r border-[#001A80]/8 dark:border-[#001A80]/12 last:border-r-0">
+                                    <td key={dayKey} className="py-2.5 px-1 text-center tabular-nums border-r border-[#001A80]/8 dark:border-[#001A80]/12 last:border-r-0">
                                       {mins > 0 ? (
                                         <span className="text-[13px] font-bold text-[#001A80] dark:text-[#00D1FF]/80">
                                           {formatMinutesToHoursAndMinutes(mins)}
@@ -1106,7 +1106,7 @@ export default function Statistics() {
                                   0
                                 );
                                 return (
-                                  <td key={dayKey} className="py-2.5 pr-3 text-right tabular-nums border-r border-[#001A80]/10 dark:border-[#001A80]/15 last:border-r-0">
+                                  <td key={dayKey} className="py-2.5 px-1 text-center tabular-nums border-r border-[#001A80]/10 dark:border-[#001A80]/15 last:border-r-0">
                                     {dayTotal > 0 ? (
                                       <span className="text-[13px] font-bold text-[#001A80] dark:text-[#00D1FF]">
                                         {formatMinutesToHoursAndMinutes(dayTotal)}

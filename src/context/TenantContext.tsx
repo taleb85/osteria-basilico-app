@@ -350,7 +350,7 @@ function generatePngFavicon(logoSrc: string, size: number): Promise<string> {
 export function updatePWAManifest(_tenant: Tenant): void {
   const origin = window.location.origin;
   // Usa sempre l'icona FLOW — ignorando logo/colori del tenant
-  const logoSrc = `${origin}/flow-app-icon.png`;
+  const logoSrc = `${origin}/icon-flow-final.png`;
 
   // Genera PNG reali via Canvas per i due formati richiesti dal manifest
   Promise.all([
@@ -389,7 +389,7 @@ function _applyPWAManifest(
       { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
     shortcuts: [
-      { name: 'Timbratura', short_name: 'Timbratura', url: `${origin}/timbratura` },
+      { name: 'Accedi', short_name: 'Login', url: `${origin}/profilo` },
       { name: 'Profilo',    short_name: 'Profilo',    url: `${origin}/profilo` },
     ],
   };
@@ -608,7 +608,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   };
 
   // Logo URL: sempre FLOW — lo slug/tenant non influisce sul branding visivo
-  const tenantLogoUrl = '/flow-app-icon.png';
+  const tenantLogoUrl = '/icon-flow-final.png';
 
   return (
     <TenantContext.Provider

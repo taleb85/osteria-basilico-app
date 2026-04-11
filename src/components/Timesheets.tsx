@@ -16,7 +16,7 @@ import {
   ChevronRight, ChevronLeft, Check, AlertTriangle, X,
   Clock, History, FileEdit, ShieldAlert, LogOut, Lock, Unlock,
   Users, UserCheck, AlertCircle, ArrowRight, Calendar, Moon,
-  ChevronDown, FileDown, UserX, Trash2, Pencil, CircleEllipsis, Filter, Save, RotateCcw,
+  ChevronDown, ChevronUp, FileDown, UserX, Trash2, Pencil, CircleEllipsis, Filter, Save, RotateCcw,
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -296,7 +296,8 @@ const FIELD_LABEL_MAP: Record<string, string> = {
   PUNCH_OUT_TIME: 'Ora uscita', NOTE: 'Note', DEPARTMENT: 'Reparto',
   ROLE: 'Ruolo', BREAK_MINUTES: 'Pausa (min)',
 };
-function humanizeFieldName(field: string): string {
+function humanizeFieldName(field: string | undefined): string {
+  if (field == null || field === '') return '—';
   const up = field.toUpperCase();
   return FIELD_LABEL_MAP[up] ?? field.replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase());
 }
@@ -494,6 +495,7 @@ export default function Timesheets() {
     breakRules,
     globalPinSessionId,
     departmentsRevision,
+    isSessionElevated,
   } = useApp();
   const t = getTranslations(effectiveLanguage);
   const locale = getDateLocale(effectiveLanguage) ?? it;
@@ -714,14 +716,9 @@ export default function Timesheets() {
   const pushTsUndo = (label: string, fn: () => Promise<void>) =>
     setTsUndoStack((prev) => [{ label, fn }, ...prev].slice(0, 10));
 
-  // Highlight turni dalla card KPI: Set di shift IDs da evidenziare
-  const [highlightedShiftIds, setHighlightedShiftIds] = useState<Set<string>>(new Set());
-  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const triggerShiftHighlight = (ids: string[]) => {
-    if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
-    setHighlightedShiftIds(new Set(ids));
-    highlightTimerRef.current = setTimeout(() => setHighlightedShiftIds(new Set()), 3500);
-  };
+  // Highlight turni dalla card KPI: filtro persistente a toggle
+  const [statFilter, setStatFilter] = useState<{ label: string; ids: Set<string> } | null>(null);
+  const highlightedShiftIds: Set<string> = statFilter?.ids ?? new Set();
   const [punchAudits, setPunchAudits] = useState<Record<string, PunchAuditEntry[]>>({});
   const [closingShift, setClosingShift] = useState<ClosingShiftState | null>(null);
   const [clockOutTime, setClockOutTime] = useState('');
@@ -730,20 +727,21 @@ export default function Timesheets() {
 
   // Ruoli gestionali: filtro libero. Staff operativo: vincolato al reparto del profilo.
   // Capo: management ma bloccato al proprio reparto (non può cambiarlo).
-  const isAdminTs = currentUser ? isManagementRole(currentUser.role) : false;
+  // isSessionElevated e elevated_role: accesso gestionale completo anche per ruoli non-management.
+  const isAdminTs = currentUser
+    ? (isManagementRole(currentUser.role) || isSessionElevated || !!currentUser.elevated_role)
+    : false;
   const lockedDeptTs = (!isAdminTs && currentUser?.department) ? currentUser.department : null;
-  const capoLockedDeptTs = currentUser?.role === 'capo' && currentUser?.department ? currentUser.department : null;
 
   const [pdfDeptFilter, setPdfDeptFilter] = useState<string>(() =>
-    capoLockedDeptTs ?? currentUser?.department ?? lockedDeptTs ?? 'all'
+    currentUser?.department ?? lockedDeptTs ?? 'all'
   );
   const [showPdfDeptMenu, setShowPdfDeptMenu] = useState(false);
 
   useEffect(() => {
-    if (capoLockedDeptTs) setPdfDeptFilter(capoLockedDeptTs);
-    else if (lockedDeptTs) setPdfDeptFilter(lockedDeptTs);
+    if (lockedDeptTs) setPdfDeptFilter(lockedDeptTs);
     else if (!isAdminTs) setPdfDeptFilter('all');
-  }, [capoLockedDeptTs, lockedDeptTs, isAdminTs]);
+  }, [lockedDeptTs, isAdminTs]);
   const pdfDeptMenuRef = useRef<HTMLDivElement | null>(null);
   const [showWeekApproveMenu, setShowWeekApproveMenu] = useState(false);
   const [weekApproveMenuMobile, setWeekApproveMenuMobile] = useState(
@@ -1017,6 +1015,17 @@ export default function Timesheets() {
   const weekStart = weekDays[0] ?? periodStartDate;
   const lastDay = weekDays[weekDays.length - 1] ?? periodEndDate;
   const weekStr = format(weekStart, 'yyyy-MM-dd');
+
+  // Reset filtro KPI quando cambia la settimana visualizzata
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setStatFilter(null); }, [weekStr]);
+
+  const triggerShiftHighlight = (ids: string[], label: string) => {
+    setStatFilter(prev => {
+      if (prev && prev.label === label) return null;
+      return ids.length > 0 ? { label, ids: new Set(ids) } : null;
+    });
+  };
   const weekEnd = format(addDays(lastDay, 1), 'yyyy-MM-dd');
   const todayStr = format(now, 'yyyy-MM-dd');
 
@@ -1807,15 +1816,6 @@ export default function Timesheets() {
         setPinGatePin('');
         return;
       }
-      if (currentUser?.role === 'capo') {
-        const shift = shifts.find((s) => s.id === pinGateModal.shiftId);
-        const user = users.find((u) => u.id === shift?.user_id);
-        if (user?.department !== currentUser.department) {
-          setPinGateError(t.wst_freeze_pin_invalid);
-          setPinGatePin('');
-          return;
-        }
-      }
       setPinGateUnlocking(true);
       try {
         if (pinGateModal.mode === 'batch_week_approve') {
@@ -1868,8 +1868,9 @@ export default function Timesheets() {
             const pending = sessionStorage.getItem('pendingDrawerOpen');
             if (pending) {
               sessionStorage.removeItem('pendingDrawerOpen');
-              const { shift, user, dateStr, openSource } = JSON.parse(pending);
-              openDrawer(shift, user, dateStr, null, openSource || 'date', true);
+              const { shift, user, dateStr, openSource, reviewQueue: pendingQueue } = JSON.parse(pending);
+              // Se c'è una queue, passa openSource=null così il footer della review queue prende il controllo
+              openDrawer(shift, user, dateStr, pendingQueue ?? null, pendingQueue ? null : (openSource || 'date'), true);
             }
           } catch {
             // ignorare errori parsing
@@ -2000,6 +2001,7 @@ export default function Timesheets() {
         user,
         dateStr,
         openSource: openSource ?? 'date',
+        reviewQueue: reviewQueue ?? null,
       }));
       return;
     }
@@ -2355,7 +2357,7 @@ export default function Timesheets() {
       { id: u.id, first_name: first.employeeName, department: first.department },
       first.dateStr,
       queue,
-      'date'
+      null  // openSource null → review queue footer + frecce ↑↓ tramite reviewScope='day'
     );
   };
 
@@ -2636,132 +2638,137 @@ export default function Timesheets() {
       !!boardShift && shiftPastPlannedEndWithoutClockIn(boardShift, punchRecords);
     const publishedOnBoard = s.status === 'confirmed' || s.status === 'approved';
 
-    // Assenza (non lavorato) — VARIANT absent tabellone
+    // sfondo comune bianco — il colore di stato è solo il bordo sinistro
+    const white = 'bg-white dark:bg-white/[0.06]';
+    const ring0 = 'ring-1 ring-slate-200/80 dark:ring-white/10';
+
+    // Assenza — bordo rosso, leggera tinta per distinguerla
     if (s.status === 'absent') {
       const frozen = !!s.approved_at;
       return {
-        border: 'border-l-rose-400 dark:border-l-rose-500',
-        bg: 'bg-rose-50 dark:bg-rose-950/35',
-        ring: 'ring-1 ring-rose-400/50 dark:ring-rose-900/40',
+        border: 'border-l-rose-500 dark:border-l-rose-400',
+        bg: 'bg-rose-50 dark:bg-rose-500/10',
+        ring: 'ring-1 ring-rose-200/80 dark:ring-rose-400/20',
         dot: 'bg-rose-500',
         label: frozen ? t.wst_grid_shift_frozen_short : t.status_absent,
-        labelCls: 'text-rose-900 bg-rose-100 dark:text-rose-100 dark:bg-rose-950/50',
+        labelCls: 'text-rose-700 bg-rose-100 dark:text-rose-200 dark:bg-rose-900/50',
       };
     }
-    // Approvato / congelato contabilità — VARIANT approved
+    // Approvato / congelato contabilità
     if (s.status === 'approved' && shiftRowPayrollFrozen(s)) {
       return {
-        border: 'border-l-emerald-600',
-        bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-        ring: 'ring-1 ring-emerald-500/25 dark:ring-emerald-700/30',
-        dot: 'bg-emerald-600',
+        border: 'border-l-emerald-500',
+        bg: 'bg-emerald-50 dark:bg-emerald-500/15',
+        ring: 'ring-1 ring-emerald-200/80 dark:ring-emerald-500/25',
+        dot: 'bg-emerald-500',
         label: t.wst_grid_shift_frozen_short,
-        labelCls: 'text-emerald-900 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/50',
+        labelCls: 'text-emerald-700 bg-emerald-100 dark:text-emerald-200 dark:bg-emerald-900/50',
       };
     }
-    // Bozza — VARIANT planned (priorità come tabellone: prima di ritardo / non timbrato)
+    // Bozza
     if (s.status === 'draft') {
       return {
-        border: 'border-l-slate-400 dark:border-l-white/75',
-        bg: 'bg-slate-50 dark:bg-neutral-950/85',
-        ring: 'ring-1 ring-slate-300/50 dark:ring-neutral-600/50',
-        dot: 'bg-slate-400 dark:bg-neutral-500',
+        border: 'border-l-slate-400 dark:border-l-white/40',
+        bg: white,
+        ring: ring0,
+        dot: 'bg-slate-400 dark:bg-neutral-400',
         label: t.ts_status_draft,
-        labelCls: 'text-slate-800 bg-slate-100 dark:text-neutral-100 dark:bg-neutral-800/70',
+        labelCls: 'text-slate-500 bg-slate-100 dark:text-neutral-300 dark:bg-neutral-700/60',
       };
     }
-    // Ritardo / OUT mancante — pill tabellone bg-red-500 dark:bg-red-400
+    // Ritardo / OUT mancante — tinta rossa leggera
     if (s.hasMissingOut || s.isLate) {
       return {
         border: 'border-l-red-500 dark:border-l-red-400',
-        bg: 'bg-red-50 dark:bg-red-950/35',
-        ring: 'ring-1 ring-red-400/45 dark:ring-red-900/40',
+        bg: 'bg-red-50 dark:bg-red-500/10',
+        ring: 'ring-1 ring-red-200/80 dark:ring-red-400/20',
         dot: 'bg-red-500 dark:bg-red-400',
         label: s.hasMissingOut ? t.ts_status_missing_out : t.ts_status_late,
-        labelCls: 'text-red-800 bg-red-100 dark:text-red-100 dark:bg-red-950/50',
+        labelCls: 'text-red-700 bg-red-100 dark:text-red-200 dark:bg-red-900/50',
       };
     }
-    // Arancione — modifiche manuali (distinto dal non timbrato solo per chi ha già timbrato)
+    // Modifiche manuali
     if (punchAuditCount > 0) {
       return {
         border: 'border-l-orange-500',
-        bg: 'bg-orange-50 dark:bg-orange-950/40',
-        ring: 'ring-1 ring-orange-200 dark:ring-orange-900/45',
+        bg: white,
+        ring: ring0,
         dot: 'bg-orange-500',
         label: t.ts_status_modified,
-        labelCls: 'text-orange-700 bg-orange-100 dark:text-orange-200 dark:bg-orange-950/50',
+        labelCls: 'text-orange-700 bg-orange-100 dark:text-orange-200 dark:bg-orange-900/50',
       };
     }
-    // Non timbrato dopo fine turno — VARIANT punchMissing
+    // Non timbrato dopo fine turno — tinta ambra leggera
     if (!s.punched && punchMissingOnBoard) {
       return {
-        border: 'border-l-amber-400 dark:border-l-amber-500',
-        bg: 'bg-amber-50 dark:bg-amber-950/45',
-        ring: 'ring-1 ring-amber-400/55 dark:ring-amber-500/40',
-        dot: 'bg-amber-400 dark:bg-amber-500',
+        border: 'border-l-amber-500 dark:border-l-amber-400',
+        bg: 'bg-amber-50 dark:bg-amber-500/10',
+        ring: 'ring-1 ring-amber-200/80 dark:ring-amber-400/20',
+        dot: 'bg-amber-500 dark:bg-amber-400',
         label: t.ts_status_unpunched,
-        labelCls: 'text-amber-950 bg-amber-100 dark:text-amber-100 dark:bg-amber-950/55',
+        labelCls: 'text-amber-700 bg-amber-100 dark:text-amber-200 dark:bg-amber-900/50',
       };
     }
-    // Pubblicato senza timbratura — VARIANT inprogress (smeraldo)
+    // Pubblicato senza timbratura (confermato/approvato ma non ancora timbrato)
     if (!s.punched && publishedOnBoard) {
       return {
-        border: 'border-l-[#3366CC] dark:border-l-[#3366CC]/80',
-        bg: 'bg-[#3366CC]/10 dark:bg-[#3366CC]/12',
-        ring: 'ring-1 ring-[#3366CC]/35 dark:ring-[#3366CC]/20',
-        dot: 'bg-[#3366CC] dark:bg-[#3366CC]',
+        border: 'border-l-blue-400 dark:border-l-blue-400',
+        bg: white,
+        ring: ring0,
+        dot: 'bg-blue-400 dark:bg-blue-400',
         label: t.ts_status_unpunched,
-        labelCls: 'text-slate-900 bg-[#3366CC]/15 dark:text-[#3366CC] dark:bg-[#3366CC]/15',
+        labelCls: 'text-blue-600 bg-blue-100 dark:text-blue-200 dark:bg-blue-900/40',
       };
     }
     if (!s.punched) {
       return {
-        border: 'border-l-amber-400 dark:border-l-amber-500',
-        bg: 'bg-amber-50 dark:bg-amber-950/45',
-        ring: 'ring-1 ring-amber-400/55 dark:ring-amber-500/40',
-        dot: 'bg-amber-400 dark:bg-amber-500',
+        border: 'border-l-amber-400 dark:border-l-amber-400',
+        bg: 'bg-amber-50 dark:bg-amber-500/10',
+        ring: 'ring-1 ring-amber-200/80 dark:ring-amber-400/20',
+        dot: 'bg-amber-500 dark:bg-amber-400',
         label: t.ts_status_unpunched,
-        labelCls: 'text-amber-950 bg-amber-100 dark:text-amber-100 dark:bg-amber-950/55',
+        labelCls: 'text-amber-700 bg-amber-100 dark:text-amber-200 dark:bg-amber-900/50',
       };
     }
-    // In turno (oggi) / completato — VARIANT inprogress
+    // In turno ora
     if (inTodayKpiWindow) {
       return {
-        border: 'border-l-[#3366CC] dark:border-l-[#3366CC]/80',
-        bg: 'bg-[#3366CC]/10 dark:bg-[#3366CC]/12',
-        ring: 'ring-1 ring-[#3366CC]/35 dark:ring-[#3366CC]/20',
-        dot: 'bg-[#3366CC] dark:bg-[#3366CC]',
+        border: 'border-l-blue-500 dark:border-l-blue-400',
+        bg: 'bg-blue-50 dark:bg-blue-500/10',
+        ring: 'ring-1 ring-blue-200/80 dark:ring-blue-400/20',
+        dot: 'bg-blue-500 dark:bg-blue-400',
         label: t.ts_status_in_shift,
-        labelCls: 'text-slate-900 bg-[#3366CC]/15 dark:text-[#3366CC] dark:bg-[#3366CC]/15',
+        labelCls: 'text-blue-600 bg-blue-100 dark:text-blue-200 dark:bg-blue-900/40',
       };
     }
     if (s.punched && !s.actualEnd) {
       return {
-        border: 'border-l-[#3366CC] dark:border-l-[#3366CC]/80',
-        bg: 'bg-[#3366CC]/10 dark:bg-[#3366CC]/12',
-        ring: 'ring-1 ring-[#3366CC]/35 dark:ring-[#3366CC]/20',
-        dot: 'bg-[#3366CC] dark:bg-[#3366CC]',
+        border: 'border-l-blue-400 dark:border-l-blue-400',
+        bg: white,
+        ring: ring0,
+        dot: 'bg-blue-400 dark:bg-blue-400',
         label: t.ts_status_in_shift,
-        labelCls: 'text-slate-900 bg-[#3366CC]/15 dark:text-[#3366CC] dark:bg-[#3366CC]/15',
+        labelCls: 'text-blue-600 bg-blue-100 dark:text-blue-200 dark:bg-blue-900/40',
       };
     }
+    // Timbrato e completato — verde
     if (s.punched && s.actualEnd) {
       return {
-        border: 'border-l-[#3366CC] dark:border-l-[#3366CC]/80',
-        bg: 'bg-[#3366CC]/10 dark:bg-[#3366CC]/12',
-        ring: 'ring-1 ring-[#3366CC]/35 dark:ring-[#3366CC]/20',
-        dot: 'bg-[#3366CC] dark:bg-[#3366CC]',
+        border: 'border-l-emerald-500 dark:border-l-emerald-400',
+        bg: 'bg-emerald-50 dark:bg-emerald-500/15',
+        ring: 'ring-1 ring-emerald-200/80 dark:ring-emerald-500/25',
+        dot: 'bg-emerald-500',
         label: t.ts_status_to_approve,
-        labelCls: 'text-slate-900 bg-[#3366CC]/15 dark:text-[#3366CC] dark:bg-[#3366CC]/15',
+        labelCls: 'text-emerald-700 bg-emerald-100 dark:text-emerald-200 dark:bg-emerald-900/40',
       };
     }
     return {
-      border: 'border-l-amber-400 dark:border-l-amber-500',
-      bg: 'bg-amber-50 dark:bg-amber-950/45',
-      ring: 'ring-1 ring-amber-400/40 dark:ring-amber-500/35',
-      dot: 'bg-amber-400 dark:bg-amber-500',
+      border: 'border-l-slate-300 dark:border-l-white/30',
+      bg: white,
+      ring: ring0,
+      dot: 'bg-slate-400 dark:bg-neutral-400',
       label: t.ts_status_unpunched,
-      labelCls: 'text-amber-950 bg-amber-100 dark:text-amber-100 dark:bg-amber-950/55',
+      labelCls: 'text-slate-500 bg-slate-100 dark:text-neutral-300 dark:bg-neutral-700/60',
     };
   };
 
@@ -2782,7 +2789,7 @@ export default function Timesheets() {
         {showStatsSubTab && (
           <div className="flex items-center gap-1.5 mb-5 px-0.5">
             {(['grid', 'stats'] as const).map((v) => {
-              const label = v === 'grid' ? 'Griglia' : 'Statistiche';
+              const label = v === 'grid' ? (t.tab_grid ?? 'Griglia') : (t.tab_statistics ?? 'Statistiche');
               const active = tsView === v;
               return (
                 <button
@@ -2822,9 +2829,10 @@ export default function Timesheets() {
                   value: weekViewStats.inTurno,
                   Icon: Users,
                   iconColor: 'text-[#3366CC] dark:text-[#6699FF]',
-                  bg: 'bg-transparent dark:bg-transparent',
-                  border: 'border-[#3366CC]/30 dark:border-[#3366CC]/45',
-                  iconWell: 'bg-[#3366CC]/18 dark:bg-[#3366CC]/25',
+                  bg: 'bg-white dark:bg-transparent',
+                  border: 'border-[#3366CC]/25 dark:border-[#3366CC]/40',
+                  iconWell: 'bg-[#3366CC]/12 dark:bg-[#3366CC]/22',
+                  hoverBg: 'hover:bg-[#3366CC]/[0.06] dark:hover:bg-[#3366CC]/[0.12]',
                   highlightIds: [] as string[],
                 },
                 {
@@ -2832,9 +2840,10 @@ export default function Timesheets() {
                   value: weekViewStats.ritardi,
                   Icon: Clock,
                   iconColor: 'text-red-500 dark:text-red-400',
-                  bg: 'bg-transparent dark:bg-transparent',
-                  border: 'border-red-200 dark:border-red-700/50',
-                  iconWell: 'bg-red-100/80 dark:bg-red-950/50',
+                  bg: 'bg-white dark:bg-transparent',
+                  border: 'border-red-400/25 dark:border-red-500/40',
+                  iconWell: 'bg-red-500/12 dark:bg-red-500/22',
+                  hoverBg: 'hover:bg-red-50 dark:hover:bg-red-500/[0.10]',
                   highlightIds: weekViewStats.ritardiIds,
                 },
                 {
@@ -2842,9 +2851,10 @@ export default function Timesheets() {
                   value: weekViewStats.senzaTimbratura,
                   Icon: AlertCircle,
                   iconColor: 'text-amber-500 dark:text-amber-400',
-                  bg: 'bg-transparent dark:bg-transparent',
-                  border: 'border-amber-400/45 dark:border-amber-500/50',
-                  iconWell: 'bg-amber-400/15 dark:bg-amber-500/25',
+                  bg: 'bg-white dark:bg-transparent',
+                  border: 'border-amber-400/25 dark:border-amber-400/40',
+                  iconWell: 'bg-amber-400/12 dark:bg-amber-400/22',
+                  hoverBg: 'hover:bg-amber-50 dark:hover:bg-amber-400/[0.10]',
                   highlightIds: weekViewStats.senzaTimbratureIds,
                 },
                 {
@@ -2852,23 +2862,32 @@ export default function Timesheets() {
                   value: weekViewStats.approvati,
                   Icon: UserCheck,
                   iconColor: 'text-[#3366CC] dark:text-[#6699FF]',
-                  bg: 'bg-transparent dark:bg-transparent',
-                  border: 'border-[#3366CC]/20 dark:border-[#3366CC]/45',
-                  iconWell: 'bg-[#3366CC]/12 dark:bg-[#3366CC]/25',
+                  bg: 'bg-white dark:bg-transparent',
+                  border: 'border-[#3366CC]/25 dark:border-[#3366CC]/40',
+                  iconWell: 'bg-[#3366CC]/12 dark:bg-[#3366CC]/22',
+                  hoverBg: 'hover:bg-[#3366CC]/[0.06] dark:hover:bg-[#3366CC]/[0.12]',
                   highlightIds: [] as string[],
                 },
-              ]).map(({ label, value, Icon, iconColor, bg, border, iconWell, highlightIds }) => (
+              ]).map(({ label, value, Icon, iconColor, bg, border, iconWell, hoverBg, highlightIds }) => {
+                const isActive = statFilter?.label === label;
+                return (
                 <button
                   key={label}
                   type="button"
-                  title={highlightIds.length > 0 ? 'Clicca per evidenziare i turni nella griglia' : t.ts_stat_card_hint}
+                  title={highlightIds.length > 0
+                    ? (isActive ? 'Clicca per rimuovere il filtro' : 'Clicca per filtrare nella griglia')
+                    : t.ts_stat_card_hint}
                   onClick={() => {
                     if (highlightIds.length > 0) {
-                      triggerShiftHighlight(highlightIds);
+                      triggerShiftHighlight(highlightIds, label);
                     }
                     handleStatCardClick();
                   }}
-                  className={`group w-full rounded-xl border ${border} ${bg} px-2.5 py-2 shadow-none flex items-center gap-2 text-left transition-colors hover:bg-slate-50/90 dark:hover:bg-white/[0.05] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900`}
+                  className={`group w-full rounded-xl border px-2.5 py-2 shadow-none flex items-center gap-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900 ${
+                    isActive
+                      ? `${border} bg-slate-100/80 dark:bg-white/[0.08] ring-1 ring-inset ring-accent/30`
+                      : `${border} ${bg} ${hoverBg}`
+                  }`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
                     <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
@@ -2877,9 +2896,13 @@ export default function Timesheets() {
                     <p className="text-xl font-bold text-slate-900 dark:text-neutral-100 leading-none tabular-nums">{value}</p>
                     <p className="text-[10px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-tight pr-1">{label}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 dark:text-neutral-500 shrink-0 opacity-70 group-hover:text-accent group-hover:opacity-100 transition-colors" aria-hidden />
+                  {isActive
+                    ? <span className="text-[10px] font-bold text-accent shrink-0">× Filtro</span>
+                    : <ChevronRight className="w-4 h-4 text-slate-300 dark:text-neutral-500 shrink-0 opacity-70 group-hover:text-accent group-hover:opacity-100 transition-colors" aria-hidden />
+                  }
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -2988,7 +3011,7 @@ export default function Timesheets() {
                     aria-label={viewMode === 'week' ? 'Settimana precedente' : 'Periodo precedente'}
                   >
                     <ChevronLeft className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
-                    <span className="hidden sm:inline">Prec.</span>
+                    <span className="hidden sm:inline">{t.nav_prev_abbr ?? 'Prec.'}</span>
                   </button>
 
                   {/* Settimana: vista settimanale + reset a oggi */}
@@ -3029,7 +3052,7 @@ export default function Timesheets() {
                     className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
                     aria-label={viewMode === 'week' ? 'Settimana successiva' : 'Periodo successivo'}
                   >
-                    <span className="hidden sm:inline">Pros.</span>
+                    <span className="hidden sm:inline">{t.nav_next_abbr ?? 'Pros.'}</span>
                     <ChevronRight className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
                   </button>
                 </div>
@@ -3599,8 +3622,8 @@ export default function Timesheets() {
                           </div>
                   </div>
                 ); })()}
-                {/* Department Selector for PDF — visibile solo per admin (non per capo: reparto bloccato) */}
-                <div className={`relative ${(!isAdminTs || capoLockedDeptTs) ? 'hidden' : ''}`} ref={pdfDeptMenuRef}>
+                {/* Department Selector for PDF — visibile solo per admin */}
+                <div className={`relative ${!isAdminTs ? 'hidden' : ''}`} ref={pdfDeptMenuRef}>
                   <button
                     type="button"
                     onClick={(e) => { 
@@ -3814,14 +3837,15 @@ export default function Timesheets() {
                         const todayDate = isToday(day);
 
                         const onOpenDayQueue = () => { if (!isMobile) handleOpenDayReview(dateStr); };
+                        const dayClickBlocked = isMobile || plannedOnlyTimesheetGrid;
                         return (
                           <div
                             key={dateStr}
-                            className={`flex items-start gap-3 p-2 rounded-xl ${todayDate ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-slate-50/50 dark:bg-white/5'} ${isMobile ? 'cursor-default' : 'cursor-pointer'}`}
-                            role={isMobile ? undefined : 'button'}
-                            tabIndex={isMobile ? undefined : 0}
-                            onClick={isMobile ? undefined : onOpenDayQueue}
-                            onKeyDown={isMobile ? undefined : (e) => {
+                            className={`flex items-start gap-3 p-2 rounded-xl ${todayDate ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-slate-50/50 dark:bg-white/5'} ${dayClickBlocked ? 'cursor-default' : 'cursor-pointer'}`}
+                            role={dayClickBlocked ? undefined : 'button'}
+                            tabIndex={dayClickBlocked ? undefined : 0}
+                            onClick={dayClickBlocked ? undefined : onOpenDayQueue}
+                            onKeyDown={dayClickBlocked ? undefined : (e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
                                 onOpenDayQueue();
@@ -3843,14 +3867,15 @@ export default function Timesheets() {
                                 const boardShift = shifts.find((sh) => sh.id === s.id) ?? null;
                                 const { border, bg, ring } = getShiftCardStyle(s, punchAuditCount, dateStr, boardShift);
                                 
+                                const shiftClickBlocked = isMobile || plannedOnlyTimesheetGrid;
                                 return (
                                   <div
                                     key={s.id}
-                                    onClick={isMobile ? undefined : (e) => {
+                                    onClick={shiftClickBlocked ? undefined : (e) => {
                                       e.stopPropagation();
                                       openDrawer(s, user as any, dateStr, null, 'turno');
                                     }}
-                                    className={`flex w-full items-center justify-between rounded-lg border-l-4 ${border} ${bg} ${ring} p-2 text-left ${isMobile ? 'cursor-default' : 'cursor-pointer transition-transform active:scale-[0.98]'}`}
+                                    className={`flex w-full items-center justify-between rounded-lg border-l-4 ${border} ${bg} ${ring} p-2 text-left ${shiftClickBlocked ? 'cursor-default' : 'cursor-pointer transition-transform active:scale-[0.98]'}`}
                                   >
                                     <div className="flex flex-col">
                                       <span className="text-xs font-bold text-slate-800 dark:text-neutral-100">
@@ -3956,7 +3981,7 @@ export default function Timesheets() {
             </div>
           )}
 
-          <div id="timesheet-section-main-grid" className="hidden md:block surface-glass overflow-hidden scroll-mt-24 depth-card" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', boxShadow: 'none' } : {}}>
+          <div id="timesheet-section-main-grid" className="hidden md:block surface-glass overflow-hidden scroll-mt-24 depth-card" style={{ background: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'rgba(255,255,255,0.04)' : '#ffffff' }}>
             <HorizontalScrollArea
               variant="overlay"
               remeasureKey={`${viewMode}-${weekStr}-${weekDays.length}`}
@@ -3979,7 +4004,7 @@ export default function Timesheets() {
               </colgroup>
               <thead ref={timesheetTheadRef}>
                 <tr className="border-b border-slate-300 dark:border-white/[0.08]">
-                  <th className="sticky left-0 z-10 box-border bg-white dark:bg-transparent py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-white/40 border-r border-r-slate-300 dark:border-r-white/[0.08] md:py-1.5 md:pl-3 md:pr-2" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent', boxShadow: 'none' } : { background: '#ffffff' }}>
+                  <th className="sticky left-0 z-10 box-border bg-white dark:bg-transparent py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-white/40 border-r border-r-slate-300 dark:border-r-white/[0.08] md:py-1.5 md:pl-3 md:pr-2" style={{ background: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'transparent' : '#ffffff', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'none' }}>
                     {t.employee}
                   </th>
                   {weekDays.map((day, dayIdx) => {
@@ -4065,13 +4090,11 @@ export default function Timesheets() {
                         return (
                           <tr
                             key={user.id}
-                            className={`depth-row last:border-b-0 ${
-                              userIdx % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-[#3366CC]/[0.03] dark:bg-transparent'
-                            }`}
-                            style={_isDark ? { background: 'transparent' } : { background: userIdx % 2 === 0 ? '#ffffff' : '#f9fbff' }}
+                            className={`depth-row last:border-b-0`}
+                            style={{ background: _isDark ? (userIdx % 2 === 0 ? 'transparent' : 'rgba(51,102,204,0.04)') : (userIdx % 2 === 0 ? '#ffffff' : '#f9fbff') }}
                           >
                       {/* Nome dipendente — click → revisione settimana (coda turni) */}
-                      <td className="sticky left-0 bg-white dark:bg-transparent pl-4 pr-3 py-2 border-r border-r-slate-300 dark:border-r-white/[0.08] z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent', boxShadow: 'none' } : { background: '#ffffff' }}>
+                      <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-slate-300 dark:border-r-white/[0.08] z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: _isDark ? 'transparent' : (userIdx % 2 === 0 ? '#ffffff' : '#f9fbff'), boxShadow: 'none' }}>
                         {canTeamTimesheetOps ? (
                           <div className="flex flex-col gap-1 justify-center">
                             <button
@@ -4119,15 +4142,13 @@ export default function Timesheets() {
                               : tdMuted
                                 ? 'bg-slate-100/90 dark:bg-transparent opacity-70'
                                 : '';
-                        const tdStyle: React.CSSProperties = _isDark
-                          ? payrollHighlight
-                            ? { background: 'rgba(51,102,204,0.06)' }
-                            : todayDate && inP
-                              ? { background: 'rgba(0,82,255,0.05)' }
-                              : tdMuted
-                                ? { background: 'transparent', opacity: 0.5 }
-                                : { background: 'transparent' }
-                          : { background: payrollHighlight ? '#f0f7ff' : todayDate && inP ? '#f5f9ff' : '#ffffff' };
+                        const tdStyle: React.CSSProperties = payrollHighlight
+                          ? { background: _isDark ? 'rgba(51,102,204,0.06)' : 'rgba(51,102,204,0.06)' }
+                          : todayDate && inP
+                            ? { background: _isDark ? 'rgba(0,82,255,0.05)' : 'rgba(0,82,255,0.04)' }
+                            : tdMuted
+                              ? { background: 'transparent', opacity: _isDark ? 0.5 : 0.7 }
+                              : { background: _isDark ? 'transparent' : (userIdx % 2 === 0 ? '#ffffff' : '#f9fbff') };
 
                         if (!dayData || dayData.shifts.length === 0) {
                           return (
@@ -4158,14 +4179,15 @@ export default function Timesheets() {
                                 const displayDeltaMins = showPlannedAsActual ? 0 : s.deltaMins;
 
                                 const isHighlighted = highlightedShiftIds.has(s.id);
+                                const isDimmed = statFilter !== null && !isHighlighted;
                                 return (
                                   <button
                                     key={s.id}
                                     type="button"
-                                    onClick={() => {
+                                    onClick={plannedOnlyTimesheetGrid ? undefined : () => {
                                       openDrawer(s, user, dateStr, null, 'turno');
                                     }}
-                                    className={`relative flex w-full items-stretch text-left rounded-lg border-l-[3px] ${border} ${bg} ${ring} py-1 pl-2 pr-2 shadow-sm hover:shadow-md transition-all group md:rounded-md md:py-0.5 md:pl-1.5 md:pr-1.5 md:border-l-2 ${isHighlighted ? 'ts-shift-highlighted' : ''}`}
+                                    className={`relative flex w-full items-stretch text-left rounded-lg border-l-[3px] ${border} ${bg} ${ring} py-1 pl-2 pr-2 shadow-sm transition-all group md:rounded-md md:py-0.5 md:pl-1.5 md:pr-1.5 md:border-l-2 ${plannedOnlyTimesheetGrid ? 'cursor-default' : 'hover:shadow-md'} ${isHighlighted ? 'ts-shift-highlighted' : ''} ${isDimmed ? 'opacity-20 pointer-events-none' : ''}`}
                                   >
                                     {/* Spunta / lucchetto subito dopo la barra verticale, poi orari */}
                                     {(s.status === 'confirmed' || s.status === 'approved') && (
@@ -4202,13 +4224,13 @@ export default function Timesheets() {
                                       </span>
                                       <span className={`h-2 w-2 flex-shrink-0 rounded-full ${dot} md:h-1.5 md:w-1.5`} />
                                     </div>
-                                    {/* Effettivo: completo in full; in solo-pianificato solo ore ufficiali congelate (no timbrature/delta). */}
+                                    {/* Effettivo: mostra solo orari timbratura reali; se non timbrato → "–". */}
                                     {showFullTimesheetGrid ? (
-                                      (s.punched || showPlannedAsActual) ? (
-                                        displayActualEnd ? (
+                                      s.punched ? (
+                                        s.actualEnd ? (
                                           <div className="flex items-center justify-between gap-1">
                                             <span className="text-[11px] font-bold text-slate-800 dark:text-white tabular-nums md:text-[10px]">
-                                              {`${displayActualStart}–${displayActualEnd}`}
+                                              {`${s.actualStart}–${s.actualEnd}`}
                                             </span>
                                             <span
                                               className={`max-w-[min(100%,5.5rem)] shrink-0 text-right text-[10px] font-semibold leading-tight tabular-nums md:max-w-[4.75rem] md:text-[9px] ${
@@ -4228,7 +4250,7 @@ export default function Timesheets() {
                                         ) : (
                                           <div className="flex items-start justify-between gap-1 md:gap-0.5">
                                             <div className="min-w-0 flex flex-1 flex-wrap items-center gap-x-0.5 text-[10px] font-semibold text-red-700 dark:text-red-200 md:text-[9px]">
-                                              <span>{displayActualStart}</span>
+                                              <span>{s.actualStart}</span>
                                               <span className="text-red-500 dark:text-red-400">{t.ts_missing_exit}</span>
                                             </div>
                                             {s.breakMinutes > 0 && (
@@ -4242,31 +4264,7 @@ export default function Timesheets() {
                                           </div>
                                         )
                                       ) : (
-                                        <>
-                                          <div
-                                            className={`text-[10px] font-semibold italic md:text-[9px] ${
-                                              s.status === 'draft'
-                                                ? 'text-slate-700 dark:text-neutral-200'
-                                                : punchMissingCell
-                                                  ? 'text-amber-950 dark:text-amber-100'
-                                                  : publishedCell
-                                                    ? 'text-slate-900 dark:text-[#3366CC]'
-                                                    : 'text-amber-950 dark:text-amber-100'
-                                            }`}
-                                          >
-                                            {s.status === 'draft' ? t.ts_status_draft : t.ts_status_unpunched}
-                                          </div>
-                                          {s.breakMinutes > 0 && (
-                                            <div className="flex justify-end">
-                                              <span
-                                                className="max-w-[min(100%,5.5rem)] text-right text-[10px] font-semibold leading-tight tabular-nums text-slate-500 dark:text-neutral-400 md:max-w-[4.75rem] md:text-[9px]"
-                                                title={`${t.ts_kpi_planned}: ${fmtHM(s.plannedMins)}`}
-                                              >
-                                                {`−${fmtBreakDeductionShort(s.breakMinutes)}`}
-                                              </span>
-                                            </div>
-                                          )}
-                                        </>
+                                        <span className="text-[10px] font-semibold text-slate-300 dark:text-neutral-600 md:text-[9px]">–</span>
                                       )
                                     ) : plannedOnlyTimesheetGrid &&
                                       publishedCell &&
@@ -4706,9 +4704,9 @@ export default function Timesheets() {
                             void (async () => {
                               setMarkAbsentSaving(true);
                               try {
-                                const prevStatus = s.approval_status;
-                                const prevStart = s.start_time;
-                                const prevEnd = s.end_time;
+                                const prevStatus = fullShift?.approval_status ?? s.status;
+                                const prevStart = fullShift?.start_time ?? (s.plannedStart || '');
+                                const prevEnd = fullShift?.end_time ?? (s.plannedEnd || '');
                                 pushTsUndo(`Ripristina turno ${prevStart}–${prevEnd}`, async () => {
                                   await updateShift(s.id, { approval_status: prevStatus, start_time: prevStart, end_time: prevEnd });
                                 });
@@ -4736,11 +4734,11 @@ export default function Timesheets() {
                               }
                             })();
                           }}
-                          className="flex shrink-0 items-center gap-1 rounded-lg border border-error/60 bg-white px-2 py-1 text-[10px] font-semibold text-error shadow-sm transition-all hover:bg-error-light hover:scale-105 active:scale-95 disabled:opacity-50 dark:bg-error-light/10 dark:hover:bg-error-light/20"
+                          className="flex shrink-0 items-center gap-1 rounded-lg border border-red-700 bg-red-600 px-2 py-1 text-[10px] font-semibold text-white shadow-sm transition-all hover:bg-red-700 hover:scale-105 active:scale-95 disabled:opacity-50"
                           title={t.shift_mark_absent}
                         >
                           {markAbsentSaving ? (
-                            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-rose-400/50 border-t-rose-800 dark:border-t-rose-100" />
+                            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                           ) : (
                             <UserX className="w-3.5 h-3.5" />
                           )}
@@ -4794,52 +4792,76 @@ export default function Timesheets() {
                           <>
                             {(() => {
                               if (!drawerData) return null;
-                              const navItems: Array<{ shift: ShiftRow; dateStr: string }> = [];
-                              for (const day of weekDays) {
-                                const dStr = format(day, 'yyyy-MM-dd');
-                                const dayData = timesheetData[drawerData.userId]?.[dStr];
-                                if (!dayData) continue;
-                                for (const shift of dayData.shifts) {
-                                  if (!shiftEligibleForDayReview(shift)) continue;
-                                  navItems.push({ shift, dateStr: dStr });
-                                }
+
+                              // ── Aperto da intestazione DATA (queue reviewScope='day') ──
+                              // Frecce SU/GIÙ — navigano tra dipendenti nella stessa data
+                              if (drawerReviewQueue?.reviewScope === 'day') {
+                                const q = drawerReviewQueue;
+                                const canPrev = q.currentIdx > 0;
+                                const canNext = q.currentIdx < q.items.length - 1;
+                                return (
+                                  <>
+                                    <button
+                                      type="button"
+                                      disabled={!canPrev}
+                                      onClick={() => handleDrawerReviewNavigate(-1)}
+                                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
+                                      aria-label={t.prev || 'Su'}
+                                    >
+                                      <ChevronUp className="h-4 w-4 text-slate-700 dark:text-neutral-200" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={!canNext}
+                                      onClick={() => handleDrawerReviewNavigate(1)}
+                                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
+                                      aria-label={t.next || 'Giù'}
+                                    >
+                                      <ChevronDown className="h-4 w-4 text-slate-700 dark:text-neutral-200" />
+                                    </button>
+                                  </>
+                                );
                               }
-                              const idx = navItems.findIndex((it) => it.shift.id === drawerData.shift.id);
-                              const canPrev = idx > 0;
-                              const canNext = idx >= 0 && idx < navItems.length - 1;
-                              if (navItems.length <= 1) return null;
-                              return (
-                                <>
-                                  <button
-                                    type="button"
-                                    disabled={!canPrev}
-                                    onClick={() => {
-                                      if (!canPrev) return;
-                                      const prev = navItems[idx - 1];
-                                      if (!prev) return;
-                                      openDrawer(prev.shift, { id: drawerData.userId, first_name: drawerData.employeeName, department: drawerData.department } as any, prev.dateStr, null, drawerOpenSource, true);
-                                    }}
-                                    className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
-                                    aria-label={t.prev || 'Previous'}
-                                  >
-                                    <ChevronLeft className="h-4 w-4 text-slate-700 dark:text-neutral-200" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    disabled={!canNext}
-                                    onClick={() => {
-                                      if (!canNext) return;
-                                      const next = navItems[idx + 1];
-                                      if (!next) return;
-                                      openDrawer(next.shift, { id: drawerData.userId, first_name: drawerData.employeeName, department: drawerData.department } as any, next.dateStr, null, drawerOpenSource, true);
-                                    }}
-                                    className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
-                                    aria-label={t.next || 'Next'}
-                                  >
-                                    <ChevronRight className="h-4 w-4 text-slate-700 dark:text-neutral-200" />
-                                  </button>
-                                </>
-                              );
+
+                              // ── Aperto da NOME dipendente ──
+                              // Frecce SINISTRA/DESTRA — navigano tra date della settimana
+                              if (drawerOpenSource === 'name') {
+                                const currentDateIdx = weekDays.findIndex((d) => format(d, 'yyyy-MM-dd') === drawerData.dateStr);
+                                const hasPrevDate = weekDays.slice(0, currentDateIdx).some((d) => {
+                                  const dd = timesheetData[drawerData.userId]?.[format(d, 'yyyy-MM-dd')];
+                                  return dd && dd.shifts.length > 0;
+                                });
+                                const hasNextDate = weekDays.slice(currentDateIdx + 1).some((d) => {
+                                  const dd = timesheetData[drawerData.userId]?.[format(d, 'yyyy-MM-dd')];
+                                  return dd && dd.shifts.length > 0;
+                                });
+                                if (!hasPrevDate && !hasNextDate) return null;
+                                return (
+                                  <>
+                                    <button
+                                      type="button"
+                                      disabled={!hasPrevDate}
+                                      onClick={() => handleDrawerContextualNavigate(-1)}
+                                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
+                                      aria-label={t.prev || 'Precedente'}
+                                    >
+                                      <ChevronLeft className="h-4 w-4 text-slate-700 dark:text-neutral-200" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={!hasNextDate}
+                                      onClick={() => handleDrawerContextualNavigate(1)}
+                                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30 dark:hover:bg-accent/20"
+                                      aria-label={t.next || 'Successivo'}
+                                    >
+                                      <ChevronRight className="h-4 w-4 text-slate-700 dark:text-neutral-200" />
+                                    </button>
+                                  </>
+                                );
+                              }
+
+                              // ── Aperto da cella TURNO o altro ── nessuna freccia
+                              return null;
                             })()}
                           </>
                         )}
@@ -4894,9 +4916,9 @@ export default function Timesheets() {
                               void (async () => {
                                 setMarkAbsentSaving(true);
                                 try {
-                                  const prevStatus = s.approval_status;
-                                  const prevStart = s.start_time;
-                                  const prevEnd = s.end_time;
+                                  const prevStatus = fullShift?.approval_status ?? s.status;
+                                  const prevStart = fullShift?.start_time ?? (s.plannedStart || '');
+                                  const prevEnd = fullShift?.end_time ?? (s.plannedEnd || '');
                                   pushTsUndo(`Ripristina turno ${prevStart}–${prevEnd}`, async () => {
                                     await updateShift(s.id, { approval_status: prevStatus, start_time: prevStart, end_time: prevEnd });
                                   });
@@ -4911,10 +4933,10 @@ export default function Timesheets() {
                                 }
                               })();
                             }}
-                            className="flex shrink-0 items-center gap-1 rounded-lg border border-error/60 bg-white px-2 py-1 text-[10px] font-semibold text-error shadow-sm transition-all hover:bg-error-light hover:scale-105 active:scale-95 disabled:opacity-50 dark:bg-error-light/10 dark:hover:bg-error-light/20"
+                            className="flex shrink-0 items-center gap-1 rounded-lg border border-red-700 bg-red-600 px-2 py-1 text-[10px] font-semibold text-white shadow-sm transition-all hover:bg-red-700 hover:scale-105 active:scale-95 disabled:opacity-50"
                             title={t.shift_mark_absent}
                           >
-                            {markAbsentSaving ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-rose-400/50 border-t-rose-800" /> : <UserX className="w-3.5 h-3.5" />}
+                            {markAbsentSaving ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <UserX className="w-3.5 h-3.5" />}
                             <span>{t.shift_mark_absent}</span>
                           </button>
                         )}
@@ -5590,10 +5612,62 @@ export default function Timesheets() {
                       })()}
                     </div>
 
-                    {/* Pulsante "REGISTRA E PROSSIMO" — fuori dal riquadro timbrature */}
+                    {/* Footer azione — "REGISTRA E PROSSIMO" / "CHIUDI" / "PROSSIMO" a seconda della sorgente */}
                     {!isApproved && canTeamTimesheetOps && !isAbsentDraw && drawerData && (
                       <div className="mt-auto pt-3 pb-3 px-3 sm:px-5 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-neutral-900 sticky bottom-0 z-10">
                         {(!drawerReviewQueue || drawerOpenSource) && (() => {
+                          const needsSave = showTimbratureEditForm && drawerManualPunchFormExpanded;
+
+                          // Click diretto su cella turno + già timbrato → "CHIUDI"
+                          if (s.punched && !needsSave && drawerOpenSource === 'turno') {
+                            return (
+                              <button
+                                type="button"
+                                onClick={closeTimesheetShiftDrawer}
+                                className="w-full rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 border border-slate-200 dark:border-white/10"
+                              >
+                                CHIUDI
+                              </button>
+                            );
+                          }
+
+                          // Click su nome dipendente → navigazione orizzontale (date settimana)
+                          // Click su intestazione data → navigazione verticale (dipendenti)
+                          if (s.punched && !needsSave && (drawerOpenSource === 'name' || drawerOpenSource === 'date')) {
+                            // Calcola se esiste un "prossimo" per mostrare PROSSIMO vs CHIUDI
+                            let hasNext = false;
+                            if (drawerOpenSource === 'name') {
+                              const currentDateIdx = weekDays.findIndex((d) => format(d, 'yyyy-MM-dd') === drawerData.dateStr);
+                              hasNext = weekDays.slice(currentDateIdx + 1).some((d) => {
+                                const dStr = format(d, 'yyyy-MM-dd');
+                                const dd = timesheetData[drawerData.userId]?.[dStr];
+                                return dd && dd.shifts.length > 0;
+                              });
+                            } else {
+                              const userList = visibleUsers.map((u) => u.id);
+                              const currentUserIdx = userList.indexOf(drawerData.userId);
+                              hasNext = userList.slice(currentUserIdx + 1).some((uid) => {
+                                const dd = timesheetData[uid]?.[drawerData.dateStr];
+                                return dd && dd.shifts.length > 0;
+                              });
+                            }
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (hasNext) {
+                                    handleDrawerReviewNavigate(1);
+                                  } else {
+                                    closeTimesheetShiftDrawer();
+                                  }
+                                }}
+                                className="w-full rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 bg-accent text-white hover:bg-accent-hover"
+                              >
+                                {hasNext ? 'PROSSIMO' : 'CHIUDI'}
+                              </button>
+                            );
+                          }
+
                           const navItems: Array<{ shift: ShiftRow; dateStr: string }> = [];
                           for (const day of weekDays) {
                             const dStr = format(day, 'yyyy-MM-dd');
@@ -5605,12 +5679,9 @@ export default function Timesheets() {
                             }
                           }
                           const idx = navItems.findIndex((it) => it.shift.id === s.id);
-                          const canPrev = idx > 0;
                           const canNext = idx >= 0 && idx < navItems.length - 1;
                           const isInReviewQueue = !!(drawerReviewQueue && !drawerReviewQueue.completed);
 
-                          // Dati completi: se il form è aperto servono entrambi i campi con 4 cifre,
-                          // altrimenti bastano i valori già salvati sul turno o gli orari pianificati.
                           const hasValidIn = showTimbratureEditForm
                             ? (manualPunchIn ?? '').replace(/\D/g, '').length >= 4
                             : !!(s.actualStart || s.plannedStart);
@@ -5618,11 +5689,7 @@ export default function Timesheets() {
                             ? (manualPunchOut ?? '').replace(/\D/g, '').length >= 4
                             : !!(s.actualEnd || s.plannedEnd);
                           const punchDataComplete = hasValidIn && hasValidOut;
-
-                          // Il form deve salvare solo se è espanso e modificabile
-                          const needsSave = showTimbratureEditForm && drawerManualPunchFormExpanded;
                           const isDisabled = reviewQueueSaving || manualPunchSaving || isInReviewQueue || drawerJustOpened || !punchDataComplete;
-
                           const isLast = !canNext;
                           return (
                             <button
@@ -5827,9 +5894,9 @@ export default function Timesheets() {
                           void (async () => {
                             setMarkAbsentSaving(true);
                             try {
-                              const prevStatus = s.approval_status;
-                              const prevStart = s.start_time;
-                              const prevEnd = s.end_time;
+                              const prevStatus = fullShift?.approval_status ?? s.status;
+                              const prevStart = fullShift?.start_time ?? (s.plannedStart || '');
+                              const prevEnd = fullShift?.end_time ?? (s.plannedEnd || '');
                               pushTsUndo(`Ripristina turno ${prevStart}–${prevEnd}`, async () => {
                                 await updateShift(s.id, { approval_status: prevStatus, start_time: prevStart, end_time: prevEnd });
                               });
@@ -5857,10 +5924,10 @@ export default function Timesheets() {
                             }
                           })();
                         }}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800 transition-colors hover:bg-rose-100 disabled:opacity-50 dark:border-rose-800/60 dark:bg-rose-950/40 dark:text-rose-100 dark:hover:bg-rose-950/55"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-700 bg-red-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
                       >
                         {markAbsentSaving ? (
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-rose-400/50 border-t-rose-800 dark:border-t-rose-100" />
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                         ) : (
                           <UserX className="h-4 w-4" />
                         )}

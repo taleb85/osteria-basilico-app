@@ -7,12 +7,12 @@
  */
 import { useMemo, useCallback, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone, Calendar } from 'lucide-react';
+import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone, Calendar, Smartphone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
 import { buildShortInviteLink } from '../config/appPaths';
 import type { User as UserType, Language, Department } from '../types';
-import { isPurelyManagementRole, isAdminOnly, isManagementRole } from '../utils/permissions';
+import { isPurelyManagementRole, isAdminOnly, isManagementRole, canUserEdit } from '../utils/permissions';
 import {
   TIMESHEET_GRID_PLANNED_ONLY_KEY,
   TIMESHEET_GRID_SHIFT_TIMES_FEATURE_KEY,
@@ -59,7 +59,6 @@ function translatedRoleLabel(role: UserType['role'], t: ReturnType<typeof getTra
     chef: t.cook_role,
     bartender: t.bartender_role,
     dishwasher: t.dishwasher_role,
-    capo: t.capo_role,
     assistant_manager: t.assistant_manager_role,
     manager: t.manager_role,
     admin: t.admin_role,
@@ -190,7 +189,6 @@ export function ProfileFormSelf({
               <option value="cook">{t.cook_role}</option>
               <option value="bartender">{t.bartender_role}</option>
               <option value="dishwasher">{t.dishwasher_role}</option>
-              <option value="capo">{t.capo_role}</option>
               <option value="assistant_manager">{t.assistant_manager_role}</option>
               {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
                 <option value="manager">{t.manager_role}</option>
@@ -452,10 +450,16 @@ export function ProfileFormAdmin({
   /** Creazione dipendente da delegato: solo ruoli operativi sala/cucina/bar. */
   operationalRolesOnly?: boolean;
 }) {
-  const { effectiveLanguage, showSuccess, showError, departmentsRevision, users } = useApp();
+  const { effectiveLanguage, showSuccess, showError, departmentsRevision, users, isSessionElevated } = useApp();
   void departmentsRevision;
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
+  // Translations in the employee's own language (for share messages sent to them)
+  const rawLang = (user as { language?: string }).language ?? effectiveLanguage;
+  const employeeLang = (['it', 'en', 'es', 'fr'] as const).includes(rawLang as 'it' | 'en' | 'es' | 'fr')
+    ? (rawLang as import('../types').Language)
+    : effectiveLanguage;
+  const te = getTranslations(employeeLang) as Record<string, string>;
   const layoutRole = variant === 'create' ? formData.role : user.role;
   const isSuspended =
     variant === 'edit' && (user.status === 'suspended' || user.status === 'inactive');
@@ -576,9 +580,8 @@ export function ProfileFormAdmin({
                   <option value="cook">{t.cook_role}</option>
                   <option value="bartender">{t.bartender_role}</option>
                   <option value="dishwasher">{t.dishwasher_role}</option>
-                  <option value="capo">{t.capo_role}</option>
                   <option value="assistant_manager">{t.assistant_manager_role}</option>
-                  {(currentUser.role === 'admin' || currentUser.role === 'manager') && (
+                  {(currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'assistant_manager' || isSessionElevated || !!currentUser.elevated_role) && (
                     <option value="manager">{t.manager_role}</option>
                   )}
                   {isAdminOnly(currentUser) && <option value="admin">{t.admin_role}</option>}
@@ -745,7 +748,7 @@ export function ProfileFormAdmin({
           )}
         </div>
 
-        {variant === 'edit' && !isPurelyManagementRole(layoutRole) && !readOnly && (
+        {variant === 'edit' && !isPurelyManagementRole(layoutRole) && !readOnly && canUserEdit(currentUser) && (
           <div className="surface-glass-sm bg-slate-50/45 p-4 dark:bg-neutral-900/25">
             <StaffOperationalPermissionsEditor user={user} currentUser={currentUser} />
           </div>
@@ -760,6 +763,50 @@ export function ProfileFormAdmin({
             >
               <Copy className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" aria-hidden />
               {tv.admin_employee_access_link_btn ?? 'Copia link accesso'}
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                const configUrl = `${window.location.origin}/Installa_FLOW.mobileconfig`;
+                const nome = `${formData.first_name} ${formData.last_name ?? ''}`.trim();
+                const firstName = formData.first_name || nome;
+                const pin = formData.pin.replace(/\D/g, '');
+                const repl = (key: string, vars: Record<string, string>) =>
+                  (te[key] ?? key).replace(/\{(\w+)\}/g, (_m, k) => vars[k] ?? '');
+                const text = [
+                  repl('share_install_greeting', { name: firstName }),
+                  repl('share_install_intro', {}),
+                  '',
+                  repl('share_install_name', { name: nome }),
+                  ...(pin.length === 4 ? [repl('share_install_pin', { pin })] : []),
+                  repl('share_install_steps_header', {}),
+                  te['share_install_step1'] ?? '',
+                  te['share_install_step2'] ?? '',
+                  te['share_install_step3'] ?? '',
+                ].join('\n');
+
+                if (navigator.share) {
+                  try {
+                    // Pass the URL separately so iOS/Android renders it as a rich link preview
+                    await navigator.share({
+                      title: te['share_install_title'] ?? 'FLOW Access',
+                      text,
+                      url: configUrl,
+                    });
+                  } catch {
+                    // user cancelled
+                  }
+                } else {
+                  // Clipboard fallback: include URL inline
+                  await navigator.clipboard
+                    .writeText(`${text}\n\n🔗 ${configUrl}`)
+                    .catch(() => undefined);
+                }
+              }}
+              className="flex w-full items-center justify-center gap-2 surface-glass-sm py-2.5 text-sm font-semibold text-slate-800 surface-ghost-interactive dark:text-neutral-100 font-sans"
+            >
+              <Smartphone className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" aria-hidden />
+              {te['share_install_btn'] ?? tv['share_install_btn'] ?? 'Condividi accesso + installazione iPhone'}
             </button>
             <p className="flex gap-1.5 text-[11px] leading-snug text-slate-600 dark:text-neutral-300 font-sans">
               <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-neutral-400" aria-hidden />

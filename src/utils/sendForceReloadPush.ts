@@ -6,6 +6,7 @@
 import { supabase } from '../lib/supabase';
 
 export async function sendForceReloadPush(senderId?: string): Promise<void> {
+  if (!supabase) return;
   try {
     await supabase.functions.invoke('send-push-notification', {
       body: {

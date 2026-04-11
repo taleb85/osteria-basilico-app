@@ -171,7 +171,7 @@ export default function CreateStaffModal({
             </button>
           </div>
 
-          <div className="px-5 py-4 overflow-y-auto max-h-[70vh]">
+          <div className="px-5 py-4 overflow-y-auto overflow-x-hidden max-h-[70vh]">
             <ProfileFormAdmin
               user={phantom}
               currentUser={currentUser}

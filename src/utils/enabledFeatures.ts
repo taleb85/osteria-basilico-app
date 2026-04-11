@@ -47,13 +47,13 @@ export const TEMPLATE_TEAM_SCHEDULE_KEY = 'team_schedule_visible' as const;
 
 export const FEATURE_LABELS: Record<EnabledFeatureKey, string> = {
   team_view: 'Visualizza Tabellone Team',
-  edit_shifts: 'Modifica Operativa Turni',
-  approve_shifts: 'Approvazione Finale (Verde)',
-  export_pdf: 'Esportazione PDF tabellone turni',
+  edit_shifts: 'Modifica Turni',
+  approve_shifts: 'Congelamento Turni (approvazione finale)',
+  export_pdf: 'Download PDF — tabellone turni',
   view_stats: 'Visualizzazione Ore',
-  view_estimated_cost: 'Costo stimato del lavoro (scheda Ore)',
+  view_estimated_cost: 'Costo stimato del lavoro',
   desktop_access: 'Accesso Browser Desktop (deprecato — il gate PWA è unificato)',
-  profile_readonly: 'Profilo in sola lettura (blocca modifiche anagrafica)',
+  profile_readonly: 'Navigazione su PC come telefono (schede in sola lettura)',
   home_tab: 'Visualizza scheda Dashboard',
   ferie_tab: 'Visualizza scheda Ferie',
   admin_tab: 'Visualizza scheda Admin (Impostazioni)',
@@ -63,12 +63,12 @@ export const FEATURE_LABELS: Record<EnabledFeatureKey, string> = {
 /** Etichette orientate alle tab (stessi permessi; testo più chiaro nella sezione “Schede”). */
 export const FEATURE_LABELS_TAB_FIRST: Record<EnabledFeatureKey, string> = {
   ...FEATURE_LABELS,
-  home_tab: 'Scheda Dashboard — riepilogo',
-  team_view: 'Scheda Turni — tabellone team',
-  timesheet_tab: 'Scheda Presenze — foglio ore',
+  home_tab: 'Panoramica',
+  team_view: 'Turni — tabellone team',
+  timesheet_tab: 'Presenze — foglio ore',
   export_pdf: 'Download PDF — tabellone turni',
-  view_stats: 'Scheda Ore',
-  ferie_tab: 'Scheda Ferie',
+  view_stats: 'Ore',
+  ferie_tab: 'Ferie',
   admin_tab: 'Scheda Admin — impostazioni e profili',
 };
 
@@ -89,26 +89,26 @@ export const ROLE_TEMPLATE_FEATURE_SECTIONS: readonly RoleTemplateSection[] = [
   {
     id: 'tabs_nav',
     rows: [
-      { kind: 'feature', key: 'home_tab' },
-      { kind: 'feature', key: 'team_view' },
-      { kind: 'feature', key: 'ferie_tab' },
-      { kind: 'feature', key: 'timesheet_tab' },
-      { kind: 'feature', key: 'export_pdf' },
-      { kind: 'feature', key: 'view_stats' },
+      { kind: 'feature', key: 'home_tab' },      // Panoramica
+      { kind: 'feature', key: 'team_view' },      // Turni
+      { kind: 'feature', key: 'timesheet_tab' },  // Presenze
+      { kind: 'feature', key: 'ferie_tab' },      // Ferie
     ],
   },
   {
     id: 'shift_ops',
     rows: [
-      { kind: 'feature', key: 'edit_shifts' },
-      { kind: 'feature', key: 'approve_shifts' },
+      { kind: 'feature', key: 'edit_shifts' },    // Modifica Turni
+      { kind: 'feature', key: 'approve_shifts' }, // Congelamento Turni
+      { kind: 'feature', key: 'export_pdf' },     // Download PDF
     ],
   },
   {
     id: 'other',
     rows: [
-      { kind: 'feature', key: 'view_estimated_cost' },
-      { kind: 'feature', key: 'profile_readonly' },
+      { kind: 'feature', key: 'view_stats' },           // Ore (dentro Presenze)
+      { kind: 'feature', key: 'view_estimated_cost' }, // Costo stimato
+      { kind: 'feature', key: 'profile_readonly' },    // Profilo sola lettura su browser
     ],
   },
 ] as const;
@@ -156,14 +156,12 @@ export function featureKeyTemplateSection(key: EnabledFeatureKey): RoleTemplateS
   if (
     key === 'home_tab' ||
     key === 'team_view' ||
-    key === 'ferie_tab' ||
     key === 'timesheet_tab' ||
-    key === 'export_pdf' ||
-    key === 'view_stats'
+    key === 'ferie_tab'
   ) {
     return 'tabs_nav';
   }
-  if (key === 'edit_shifts' || key === 'approve_shifts') return 'shift_ops';
+  if (key === 'edit_shifts' || key === 'approve_shifts' || key === 'export_pdf') return 'shift_ops';
   return 'other';
 }
 
@@ -199,17 +197,12 @@ const DEFAULT_MANAGER_FEATURES: EnabledFeatures = {
   admin_tab: false,
 };
 
-/** Default Capo: accesso turni e presenze in sola lettura, PDF abilitato, nessuna modifica. */
-const DEFAULT_CAPO_FEATURES: EnabledFeatures = {
+/** Default codice: Assistant Manager (template gruppo `assistant_manager`). */
+const DEFAULT_ASSISTANT_MANAGER_FEATURES: EnabledFeatures = {
   ...DEFAULT_MANAGER_FEATURES,
-  edit_shifts: false,
-  approve_shifts: false,
-  export_pdf: true,
-  view_stats: true,
-  admin_tab: false,
 };
 
-/** Default staff: stessi limiti management; tabellone team spento di default (template può riaccenderlo). */
+/** Default staff: tabellone team spento di default. */
 const DEFAULT_STAFF_FEATURES: EnabledFeatures = {
   ...DEFAULT_MANAGER_FEATURES,
   team_view: false,
@@ -217,16 +210,16 @@ const DEFAULT_STAFF_FEATURES: EnabledFeatures = {
 
 export function getDefaultEnabledFeatures(role: string): EnabledFeatures {
   if (role === 'admin') return { ...DEFAULT_ADMIN_FEATURES };
-  if (role === 'capo') return { ...DEFAULT_CAPO_FEATURES };
-  if (role === 'manager' || role === 'assistant_manager') return { ...DEFAULT_MANAGER_FEATURES };
+  if (role === 'assistant_manager') return { ...DEFAULT_ASSISTANT_MANAGER_FEATURES };
+  if (role === 'manager') return { ...DEFAULT_MANAGER_FEATURES };
   return { ...DEFAULT_STAFF_FEATURES };
 }
 
 /** Gruppo per file template: admin non ha file (sempre pieno). */
 export function getRolePermissionGroup(role: string): 'admin' | RoleTemplateGroup {
   if (role === 'admin') return 'admin';
-  if (role === 'manager' || role === 'assistant_manager') return 'management';
-  if (role === 'capo') return 'capo';
+  if (role === 'manager') return 'management';
+  if (role === 'assistant_manager') return 'assistant_manager';
   return 'staff';
 }
 
@@ -243,7 +236,7 @@ function applyDiskTemplateToBase(base: EnabledFeatures, group: RoleTemplateGroup
 /** Default “codice” per un gruppo template (editor Admin / reset). */
 export function getCodeDefaultsForTemplateGroup(group: RoleTemplateGroup): EnabledFeatures {
   if (group === 'management') return { ...getDefaultEnabledFeatures('manager') } as EnabledFeatures;
-  if (group === 'capo') return { ...getDefaultEnabledFeatures('capo') } as EnabledFeatures;
+  if (group === 'assistant_manager') return { ...getDefaultEnabledFeatures('assistant_manager') } as EnabledFeatures;
   return { ...getDefaultEnabledFeatures('waiter') } as EnabledFeatures;
 }
 
@@ -431,7 +424,7 @@ export function getAdminModuleEnabled(user: { role: string; enabled_features?: u
     return base;
   }
   const defaultForRole =
-    user.role === 'manager' || user.role === 'assistant_manager' || user.role === 'capo'
+    user.role === 'manager' || user.role === 'assistant_manager'
       ? { ...DEFAULT_ADMIN_MODULES }
       : {};
   const global = getAdminModulesGlobalCache();

@@ -26,6 +26,7 @@ import {
 } from '../utils/shiftResolvedClockTimes';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
 import { getTranslations, getDateLocale, getIntlLocale, formatTrans } from '../utils/translations';
+import { translateRole } from '../utils/roles';
 import { getShiftViolations, DEFAULT_WORK_RULES } from '../utils/workRules';
 import { getBreakMinutesForShift, getNetShiftMinutes } from '../utils/breakRules';
 import {
@@ -230,7 +231,6 @@ function scheduleDrawerRoleLabel(role: string | undefined): string {
     assistant_manager: 'Ass. Manager',
     waiter: 'Sala',
     server: 'Sala',
-    capo: 'Capo',
     cook: 'Cucina',
     chef: 'Cucina',
     bartender: 'Bar',
@@ -573,21 +573,22 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [savingOrder, setSavingOrder] = useState(false);
   void setSavingOrder; // reserved for future drag-reorder save
   const isWideShiftViewport = useMinViewportMd();
-  const { users, shifts, holidays, availability, toggleAvailability, updateShift, updateUser, currentUser, punchRecords, addShift, deleteShifts, showError, showSuccess, silentRefreshData, requestConfirmAndSaveOrder, requestConfirmAndPublishWeek, postRefreshLocked, effectiveLanguage, workRules, breakRules, featureFlags, departmentsRevision } = useApp();
+  const { users, shifts, holidays, availability, toggleAvailability, updateShift, updateUser, currentUser, punchRecords, addShift, deleteShifts, showError, showSuccess, silentRefreshData, requestConfirmAndSaveOrder, requestConfirmAndPublishWeek, postRefreshLocked, effectiveLanguage, workRules, breakRules, featureFlags, departmentsRevision, isSessionElevated } = useApp();
   void departmentsRevision;
   // Ruoli gestionali: filtro libero. Staff operativo: vincolato al reparto del profilo.
   // Capo: management ma bloccato al proprio reparto (non può cambiarlo).
-  const isAdminWst = currentUser ? isManagementRole(currentUser.role) : false;
+  // isSessionElevated e elevated_role: accesso gestionale completo anche per ruoli non-management.
+  const isAdminWst = currentUser
+    ? (isManagementRole(currentUser.role) || isSessionElevated || !!currentUser.elevated_role)
+    : false;
   const lockedDeptWst = (!isAdminWst && currentUser?.department) ? currentUser.department : null;
-  const capoLockedDeptWst = currentUser?.role === 'capo' && currentUser?.department ? currentUser.department : null;
   // Riallinea il filtro reparto quando cambia il profilo (deve stare dopo useApp/currentUser)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (lockedDeptWst) setLocalFilterDepartment(lockedDeptWst);
-    else if (capoLockedDeptWst) setLocalFilterDepartment(capoLockedDeptWst);
     else if (isAdminWst && currentUser?.department) setLocalFilterDepartment(currentUser.department);
     else if (!isAdminWst) setLocalFilterDepartment('');
-  }, [lockedDeptWst, capoLockedDeptWst, isAdminWst, currentUser?.department]);
+  }, [lockedDeptWst, isAdminWst, currentUser?.department]);
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
   const breakComputeOpts = useMemo(
@@ -988,7 +989,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     });
   }, [shifts, updateShift, trackSave, showSuccess, showError, t]);
 
-  const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
+  const isManagement = currentUser
+    ? (isManagementRole(currentUser.role) || isSessionElevated || !!currentUser.elevated_role)
+    : false;
   const canShiftOps =
     !!currentUser &&
     canEditTeamShifts(currentUser) &&
@@ -1463,34 +1466,34 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   const VARIANT_CLASSES: Record<ShiftColorVariant, { bg: string; text: string; selRing: string; border?: string; borderBottom?: string }> = {
     planned: {
-      bg: 'bg-slate-50 hover:bg-slate-100 dark:bg-transparent dark:hover:bg-white/[0.04]',
-      text: 'text-slate-900 dark:text-white',
-      selRing: 'ring-slate-300/50',
-      border: 'border-2 border-dashed border-slate-400 dark:border-white/75 rounded-xl shadow-sm',
+      bg: 'bg-transparent hover:bg-slate-100/70 dark:hover:bg-white/[0.06]',
+      text: 'text-slate-700 dark:text-white',
+      selRing: 'ring-slate-500/50',
+      border: 'border-2 border-dashed border-slate-500 dark:border-white/40 rounded-xl shadow-sm',
     },
     inprogress: {
-      bg: 'bg-[#0052FF]/8 hover:bg-[#0052FF]/12 dark:bg-[#0052FF]/10 dark:hover:bg-[#0052FF]/15',
-      text: 'text-slate-900 dark:text-white',
-      selRing: 'ring-[#0052FF]/55',
-      border: 'border-2 border-[#0052FF]/60 dark:border-[#0052FF]/45 rounded-xl shadow-sm',
+      bg: 'bg-blue-300 hover:bg-blue-400 dark:bg-blue-500/50 dark:hover:bg-blue-500/62',
+      text: 'text-blue-900 dark:text-white',
+      selRing: 'ring-blue-500/55',
+      border: 'border-2 border-blue-500 dark:border-blue-400/70 rounded-xl shadow-sm',
     },
     approved: {
-      bg: 'bg-emerald-600 hover:bg-emerald-700',
-      text: 'text-white',
-      selRing: 'ring-white/80',
-      border: 'border-2 border-emerald-700/60 rounded-xl',
+      bg: 'bg-emerald-300 hover:bg-emerald-400 dark:bg-emerald-500/55 dark:hover:bg-emerald-500/68',
+      text: 'text-emerald-900 dark:text-white',
+      selRing: 'ring-emerald-500/60',
+      border: 'border-2 border-emerald-500 dark:border-emerald-400/70 rounded-xl shadow-sm',
     },
     punchMissing: {
-      bg: 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/45 dark:hover:bg-amber-950/60',
-      text: 'text-amber-950 dark:text-amber-100',
-      selRing: 'ring-amber-400/60',
-      border: 'border-2 border-amber-400/90 dark:border-amber-500/70 rounded-xl shadow-sm',
+      bg: 'bg-amber-300 hover:bg-amber-400 dark:bg-amber-500/55 dark:hover:bg-amber-500/68',
+      text: 'text-amber-900 dark:text-white',
+      selRing: 'ring-amber-500/60',
+      border: 'border-2 border-amber-500 dark:border-amber-400/70 rounded-xl shadow-sm',
     },
     absent: {
-      bg: 'bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/35 dark:hover:bg-rose-950/50',
+      bg: 'bg-rose-300 hover:bg-rose-400 dark:bg-rose-500/50 dark:hover:bg-rose-500/62',
       text: 'text-rose-900 dark:text-rose-100',
-      selRing: 'ring-rose-400/50',
-      border: 'border-2 border-dashed border-rose-400/85 dark:border-rose-500/65 rounded-xl shadow-sm',
+      selRing: 'ring-rose-500/50',
+      border: 'border-2 border-dashed border-rose-500 dark:border-rose-400/65 rounded-xl shadow-sm',
     },
   };
 
@@ -1502,11 +1505,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     let base = `relative group flex flex-col items-start justify-start ${v.bg} ${v.text} transition-all `;
     if (v.border) base += `${v.border} `;
     if (v.borderBottom) base += `${v.borderBottom} `;
-    // Ring selezione: accent forte su tutti i varianti (bianco sull'approved già verde)
     const selectedStyle = isSelected
-      ? colorVariant === 'approved'
-        ? 'ring-[3px] ring-white/90 shadow-[0_0_0_5px_rgba(0,26,128,0.35)] dark:shadow-[0_0_0_5px_rgba(0,26,128,0.5)] scale-[1.02] '
-        : 'ring-[3px] ring-accent shadow-[0_0_0_5px_rgba(0,26,128,0.2)] dark:shadow-[0_0_0_5px_rgba(0,26,128,0.4)] scale-[1.02] '
+      ? 'ring-[3px] ring-accent shadow-[0_0_0_5px_rgba(0,26,128,0.2)] dark:shadow-[0_0_0_5px_rgba(0,26,128,0.4)] scale-[1.02] '
       : '';
     /** Box-shadow invece di `ring-*`: su desktop la stessa cella ha `hover:ring-2` (canEditInApp) che in Tailwind mascherava anelli rosso/ambra. */
     let violationGlow = '';
@@ -1850,16 +1850,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       showError(t.max_two_shifts_same_day);
       return;
     }
-    const newShift = {
+    const newShift: Omit<import('../types').Shift, 'id'> = {
       user_id: targetUserId,
       date: targetDate,
       start_time: shift.start_time,
       end_time: shift.end_time,
-      role: shift.role,
+      type: shift.type,
       department: shift.department,
       notes: shift.notes ?? '',
-      public_notes: '',
-      approval_status: 'draft' as const,
+      approval_status: 'draft',
     };
     await trackSave(async () => {
       try {
@@ -2017,7 +2016,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               aria-label={viewMode === 'week' ? 'Settimana precedente' : 'Periodo precedente'}
             >
               <ChevronLeft className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
-              <span className="hidden sm:inline">Prec.</span>
+              <span className="hidden sm:inline">{t.nav_prev_abbr ?? 'Prec.'}</span>
             </button>
 
             {/* Settimana: vista settimanale + reset a corrente */}
@@ -2049,7 +2048,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800/80 disabled:opacity-30"
               aria-label={viewMode === 'week' ? 'Settimana successiva' : 'Periodo successivo'}
             >
-              <span className="hidden sm:inline">Pros.</span>
+              <span className="hidden sm:inline">{t.nav_next_abbr ?? 'Pros.'}</span>
               <ChevronRight className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
             </button>
           </div>
@@ -2220,7 +2219,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
         {/* ── Destra: pubblica settimana (se bozze) + menu hamburger ── */}
         <div className="flex min-h-9 lg:min-h-10 shrink-0 items-center gap-1.5 ml-auto">
-          <div className={`relative ${(!isAdminWst || capoLockedDeptWst) ? 'hidden' : ''}`} ref={wstDeptDrawerRef}>
+          <div className={`relative ${!isAdminWst ? 'hidden' : ''}`} ref={wstDeptDrawerRef}>
             <div className="ui-toolbar-group md:scale-90 md:origin-left lg:scale-100">
             <button
               type="button"
@@ -3534,8 +3533,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           <div
             className="overflow-hidden rounded-2xl"
             style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-              ? { border: '1px solid rgba(255,255,255,0.08)' }
-              : { border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+              ? { border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)' }
+              : { border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', background: '#ffffff' }}
           >
             {(() => {
               const isDarkGrid = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
@@ -3622,7 +3621,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 ? (dragCopyMode ? (isDarkGrid ? 'rgba(0,82,255,0.12)' : 'rgba(0,82,255,0.07)') : (isDarkGrid ? 'rgba(251,191,36,0.12)' : 'rgba(251,191,36,0.08)'))
                                 : isTodayCell
                                   ? (isDarkGrid ? 'rgba(0,82,255,0.05)' : 'rgba(0,82,255,0.03)')
-                                  : undefined,
+                                  : isDarkGrid ? undefined : (userIdx % 2 === 0 ? '#ffffff' : '#f9fbff'),
                             }}
                             onContextMenu={(e) => canEditInApp ? handleShiftContextMenu(e, user.id, dayStr, null) : e.preventDefault()}
                             onDragOver={(e) => {
@@ -3688,14 +3687,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     ? `${toShortTime(flatDispS)}–${toShortTime(flatDispE)}`
                                     : `${toShortTime(flatActual.startTime || shift.start_time || '')}–${toShortTime(flatActual.endTime || shift.end_time || '')}`;
                                 const flatBorderCls = isAbs
-                                  ? 'border-2 border-dashed border-rose-400/85 dark:border-rose-500/65'
+                                  ? 'border-2 border-dashed border-rose-500 dark:border-rose-400/65'
                                   : flatVariant === 'approved'
-                                    ? 'border-2 border-emerald-700/60'
+                                    ? 'border-2 border-emerald-500 dark:border-emerald-400/70'
                                     : flatVariant === 'punchMissing'
-                                      ? 'border-2 border-amber-400/90 dark:border-amber-500/70'
+                                      ? 'border-2 border-amber-500 dark:border-amber-400/70'
                                       : flatVariant === 'inprogress'
-                                        ? 'border-2 border-[#0052FF]/60 dark:border-[#0052FF]/45'
-                                        : 'border-2 border-dashed border-slate-400 dark:border-white/55';
+                                        ? 'border-2 border-blue-500 dark:border-blue-400/65'
+                                        : 'border-2 border-dashed border-slate-500 dark:border-white/40';
                                 const delayMins = !isAbs ? getPunchDelayMinutes(shift, punchRecords) : null;
                                 const isLate = delayMins !== null && delayMins > 5;
                                 const isSelected = selectedShiftIds.includes(shift.id);
@@ -3716,15 +3715,21 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     className={`w-full rounded-md flex items-center justify-between gap-1 px-1.5 text-[12px] font-bold select-none transition-all cursor-grab active:cursor-grabbing ${fv.bg} ${fv.text} ${flatBorderCls} ${isSelected ? 'ring-2 ring-[#0052FF] dark:ring-[#93c5fd] ring-offset-1 dark:ring-offset-[#0e1117]' : ''}`}
                                     style={{ height: '28px' }}
                                   >
-                                    {isSelected && (
+                                    {isSelected ? (
                                       <Check className="shrink-0 w-3 h-3 opacity-90" strokeWidth={3} />
+                                    ) : (flatVariant === 'approved' || isShiftPayrollFrozen(shift)) ? (
+                                      <Lock className="shrink-0 w-2.5 h-2.5 opacity-60" strokeWidth={2.5} />
+                                    ) : (
+                                      <span className="shrink-0 w-2.5" />
                                     )}
                                     <span className="flex-1 text-center">{flatLabel}</span>
-                                    {isLate && (
+                                    {isLate ? (
                                       <span
                                         className="shrink-0 w-1 self-stretch rounded-full bg-orange-400 dark:bg-orange-400"
                                         title={`Ritardo: +${delayMins}min`}
                                       />
+                                    ) : (
+                                      <span className="shrink-0 w-2.5" />
                                     )}
                                   </div>
                                 );
@@ -4414,12 +4419,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               onScroll={(e) => syncScrollLeft(e.currentTarget)}
               className="w-full overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity -mx-0.5 px-0.5"
             >
-              <table className={`table-fixed border-collapse ${allWeekDays.length === 1 ? 'w-[33.33%]' : allWeekDays.length === 14 ? 'w-[466.67%]' : 'w-[233.33%]'} sm:w-full`}>
+              <table className="w-full border-collapse table-fixed">
                 <colgroup>
-                  {allWeekDays.map((_, i) => <col key={i} className="w-[14.28%]" />)}
+                  <col style={{ width: '160px' }} />
+                  {allWeekDays.map((_, i) => <col key={i} />)}
                 </colgroup>
                 <tbody>
                   <tr className="bg-white dark:bg-neutral-900 border-t border-accent/20">
+                    {/* cella intestazione riga totali */}
+                    <td className="border border-slate-100 dark:border-white/10 bg-white dark:bg-neutral-900 px-2 py-1">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-accent/70">TOTALE</span>
+                    </td>
                     {allWeekDays.map((day) => {
                       const dateStr = format(day, 'yyyy-MM-dd');
                       const mins = dailyMinutesByDate[dateStr] ?? 0;
@@ -4749,12 +4759,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   const isConfirmed = normalizedApprovalStatus(shift.approval_status) === 'confirmed';
                   const isAbsent = isShiftAbsentRecord(shift);
                   const approvalNorm = normalizedApprovalStatus(shift.approval_status);
-                  const cannotRevertPublishedToDraft =
-                    approvalNorm === 'confirmed' || approvalNorm === 'approved';
                   /** PIN inserito con successo per questo turno → sblocca editing */
                   const pinUnlocked = panelPinUnlocked === shift.id;
                   /** Turno editabile: bozza sempre; altri stati solo con PIN */
                   const isEditable = isDraft || pinUnlocked;
+                  // Con PIN sbloccato l'admin/manager può tornare a Bozza anche da Pubblicato
+                  const cannotRevertPublishedToDraft =
+                    (approvalNorm === 'confirmed' || approvalNorm === 'approved') && !pinUnlocked;
 
                   const updateEdits = (field: 'start' | 'end', val: string) => {
                     const next = { ...edits, [field]: val };
@@ -4835,17 +4846,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             <span className="select-none text-[14px] font-bold leading-none text-slate-700 dark:text-neutral-200">
                               {(u?.first_name ?? '?')[0]}
                             </span>
-                            {drawerRoleShort ? (
-                              <span className="w-full truncate text-center text-[8px] font-semibold uppercase leading-tight text-slate-500 dark:text-neutral-300">
-                                {drawerRoleShort}
-                              </span>
-                            ) : null}
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-bold leading-none text-slate-800 dark:text-white">
                               {u?.first_name} {u?.last_name}
                             </p>
-                            <p className="mt-0.5 text-[11px] capitalize text-slate-500 dark:text-neutral-400">{u?.role}</p>
+                            <p className="mt-0.5 text-[11px] text-slate-500 dark:text-neutral-400">{translateRole(u?.role ?? '', effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</p>
                           </div>
                           <div className="ml-auto flex shrink-0 items-center gap-1">
                           {isFrozen && (
@@ -5728,6 +5734,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 >
                   <Trash2 className="h-3.5 w-3.5 shrink-0" />
                   Elimina turno
+                  {isShiftPublished(contextMenu.shift) && panelPinUnlocked !== contextMenu.shift.id && (
+                    <Lock className="ml-auto h-3 w-3 shrink-0 text-amber-400" />
+                  )}
                 </button>
               </>
             )}

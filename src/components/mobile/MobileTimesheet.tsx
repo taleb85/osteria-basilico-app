@@ -84,7 +84,7 @@ export default function MobileTimesheet({
   });
 
   return (
-    <div className="flex flex-col gap-3 px-4 pb-24 pt-2">
+    <div className="flex flex-col gap-3 px-4 pb-content pt-2">
       {weeks.map((week, wIdx) => {
         // Totale ore settimana
         let totalMins = 0;

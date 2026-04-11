@@ -7,6 +7,7 @@ import {
   hasPinUnlockCredential,
   authenticatePinUnlockCredential,
   registerPinUnlockCredential,
+  hasPlatformBiometricAuthenticator,
 } from '../../utils/pinUnlockWebAuthn';
 
 interface PinPadModalProps {
@@ -56,7 +57,13 @@ export function PinPadModal({
   useBodyScrollLock(true);
 
   // ── Biometrica interna (solo se leftActionButton non è fornito) ─────────────
-  const webAuthnOk = !leftActionButton && !!userId && supportsPinUnlockWebAuthn();
+  const [hasBiometric, setHasBiometric] = useState(false);
+  useEffect(() => {
+    if (!leftActionButton && !!userId && supportsPinUnlockWebAuthn()) {
+      hasPlatformBiometricAuthenticator().then(setHasBiometric);
+    }
+  }, [leftActionButton, userId]);
+  const webAuthnOk = !leftActionButton && !!userId && hasBiometric;
   const credRegistered = webAuthnOk && hasPinUnlockCredential(userId!);
   const [bioLoading, setBioLoading] = useState(false);
   const [bioRegLoading, setBioRegLoading] = useState(false);
@@ -241,7 +248,7 @@ export function PinPadModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.22 }}
-      className="fixed inset-0 z-[10070] flex flex-col items-center justify-center overflow-hidden"
+      className="fixed inset-0 z-[1000000] flex flex-col items-center justify-center overflow-hidden"
       style={{ background: BG }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >

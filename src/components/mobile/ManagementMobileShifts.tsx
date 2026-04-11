@@ -1,11 +1,25 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+
+function useDarkMode() {
+  const [dark, setDark] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  );
+  useEffect(() => {
+    const obs = new MutationObserver(() => {
+      setDark(document.documentElement.classList.contains('dark'));
+    });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
+  return dark;
+}
 import {
   format, startOfWeek, endOfWeek, isSameWeek,
   eachDayOfInterval, isToday, parseISO,
   addWeeks, startOfDay, endOfDay, isWithinInterval, getISOWeek,
 } from 'date-fns';
 import { it, es, enUS } from 'date-fns/locale';
-import { Calendar, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, Calendar, Users } from 'lucide-react';
 import type { Shift, User } from '../../types';
 import { translateDepartmentValue } from '../../utils/departmentLabels';
 import { getTranslations } from '../../utils/translations';
@@ -14,6 +28,8 @@ import {
   prevPeriodConfig, nextPeriodConfig, type PeriodConfig,
 } from '../../utils/periodConfig';
 
+type NavMode = 'week' | 'period';
+
 interface Props {
   shifts: Shift[];
   users: User[];
@@ -21,21 +37,10 @@ interface Props {
   language: string;
 }
 
-type NavMode = 'week' | 'period';
-
 function getLocale(lang: string) {
   if (lang === 'es') return es;
   if (lang === 'en') return enUS;
   return it;
-}
-
-function getDayLetters(locale: typeof it): string[] {
-  const base = new Date(2024, 0, 1);
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(base);
-    d.setDate(base.getDate() + i);
-    return format(d, 'EEEEE', { locale }).toUpperCase();
-  });
 }
 
 function shiftMins(s: Shift): number {
@@ -48,20 +53,6 @@ function shiftMins(s: Shift): number {
 function minsLabel(m: number): string {
   if (m <= 0) return '—';
   return m % 60 > 0 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${Math.floor(m / 60)}h`;
-}
-
-function groupByWeeks(list: Shift[]) {
-  const sorted = [...list].sort((a, b) => a.date.localeCompare(b.date));
-  const map: { start: Date; end: Date; shifts: Shift[] }[] = [];
-  sorted.forEach(s => {
-    const d = parseISO(s.date);
-    const start = startOfWeek(d, { weekStartsOn: 1 });
-    const end = endOfWeek(d, { weekStartsOn: 1 });
-    let week = map.find(w => isSameWeek(w.start, start, { weekStartsOn: 1 }));
-    if (!week) { week = { start, end, shifts: [] }; map.push(week); }
-    week.shifts.push(s);
-  });
-  return map;
 }
 
 function StatusBadge({ shift, t }: { shift: Shift; t: Record<string, string> }) {
@@ -84,26 +75,62 @@ function StatusBadge({ shift, t }: { shift: Shift; t: Record<string, string> }) 
   );
 }
 
-/* ── Sezione: turni personali ──────────────────────────────────────────── */
+/* ── Raggruppamento per settimana ──────────────────────────────────────── */
+function groupByWeeks(list: Shift[]) {
+  const sorted = [...list].sort((a, b) => a.date.localeCompare(b.date));
+  const map: { start: Date; end: Date; shifts: Shift[] }[] = [];
+  sorted.forEach(s => {
+    const d = parseISO(s.date);
+    const start = startOfWeek(d, { weekStartsOn: 1 });
+    const end = endOfWeek(d, { weekStartsOn: 1 });
+    let week = map.find(w => isSameWeek(w.start, start, { weekStartsOn: 1 }));
+    if (!week) { week = { start, end, shifts: [] }; map.push(week); }
+    week.shifts.push(s);
+  });
+  return map;
+}
+
+/* ── I miei turni: griglia settimanale + lista (multi-settimana) ──────── */
+function getDayLetters(locale: typeof it): string[] {
+  const base = new Date(2024, 0, 1);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(base);
+    d.setDate(base.getDate() + i);
+    return format(d, 'EEEEE', { locale }).toUpperCase();
+  });
+}
+
 function MyShiftsSection({
-  myShifts, locale, dayLetters, language, t,
+  myShifts, locale, language, t,
 }: {
   myShifts: Shift[];
   locale: typeof it;
-  dayLetters: string[];
   language: string;
   t: Record<string, string>;
 }) {
+  const isDark = useDarkMode();
+  const cardBg = isDark ? { background: 'transparent' } : { background: '#ffffff' };
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
-  const [listOpen, setListOpen] = useState(true);
+  const [closedWeeks, setClosedWeeks] = useState<Set<number>>(new Set());
+  const dayLetters = getDayLetters(locale);
   const weeks = useMemo(() => groupByWeeks(myShifts), [myShifts]);
+
+  function toggleWeek(wIdx: number) {
+    setClosedWeeks(prev => {
+      const next = new Set(prev);
+      if (next.has(wIdx)) next.delete(wIdx);
+      else next.add(wIdx);
+      return next;
+    });
+    setSelectedDayKey(null);
+  }
 
   if (myShifts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-        <Calendar className="w-6 h-6 text-slate-300 dark:text-white/20 mb-2" />
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <Calendar className="w-5 h-5 text-slate-300 dark:text-white/20 mb-2" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/25">
-          Nessun turno
+          {t.no_shifts ?? 'Nessun turno'}
         </p>
       </div>
     );
@@ -119,7 +146,6 @@ function MyShiftsSection({
           if (!byDay[k]) byDay[k] = [];
           byDay[k].push(s);
         });
-        // ordina ogni giorno per orario di inizio (pranzo → cena)
         Object.keys(byDay).forEach(k => {
           byDay[k].sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''));
         });
@@ -128,19 +154,16 @@ function MyShiftsSection({
         const restDays = weekDays.filter(d =>
           !(byDay[format(d, 'yyyy-MM-dd')] ?? []).some(s => s.approval_status !== 'absent')
         ).length;
-
         const isDayInThisWeek = selectedDayKey !== null && weekDays.some(d => format(d, 'yyyy-MM-dd') === selectedDayKey);
+        const isOpen = !closedWeeks.has(wIdx);
 
         return (
           <div key={wIdx}>
             <div
               className="rounded-2xl border border-slate-100 dark:border-white/[0.08] overflow-hidden shadow-sm dark:shadow-none"
-              style={
-                typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-                  ? { background: 'transparent' }
-                  : { background: '#ffffff' }
-              }
+              style={cardBg}
             >
+              {/* Griglia 7 giorni */}
               <div className="grid grid-cols-7 gap-1 px-2 pt-3 pb-2">
                 {weekDays.map((day, i) => {
                   const key = format(day, 'yyyy-MM-dd');
@@ -161,18 +184,18 @@ function MyShiftsSection({
                       key={i}
                       className="flex flex-col items-center gap-1 cursor-pointer"
                       onClick={() => {
-                        if (selectedDayKey === key) {
-                          setListOpen(o => !o);
-                        } else {
-                          setSelectedDayKey(key);
-                          setListOpen(true);
-                        }
+                        setSelectedDayKey(prev => prev === key ? null : key);
+                        setClosedWeeks(prev => {
+                          const next = new Set(prev);
+                          next.delete(wIdx);
+                          return next;
+                        });
                       }}
                     >
                       <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-slate-400 dark:text-white/25'}`}>
                         {dayLetters[i]}
                       </span>
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-bold ${
                         isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-slate-500 dark:text-white/55'
                       }`}>
                         {format(day, 'd')}
@@ -192,98 +215,77 @@ function MyShiftsSection({
                 })}
               </div>
 
-              {/* Footer stats + freccia espandi settimana */}
+              {/* Stats + pulsante settimana */}
               <div className="border-t border-slate-50 dark:border-white/[0.06] mx-3 pt-2.5 pb-3 flex items-center justify-around">
                 {[
                   { label: t.shift_plural ?? 'Turni', value: confirmed.length.toString() },
-                  { label: 'Ore tot', value: minsLabel(totalMins) },
-                  { label: 'Riposi', value: restDays.toString() },
+                  { label: t.stat_hours_total_abbr ?? 'Ore tot', value: minsLabel(totalMins) },
+                  { label: t.stat_rest_days ?? 'Riposi', value: restDays.toString() },
                 ].map(({ label, value }, i) => (
                   <div key={i} className="flex flex-col items-center gap-0.5">
-                    <span className="text-sm font-black text-slate-800 dark:text-white/90 tabular-nums">{value}</span>
+                    <span className="text-sm font-bold text-slate-800 dark:text-white/90 tabular-nums">{value}</span>
                     <span className="text-[8px] text-slate-400 dark:text-white/30 uppercase font-bold tracking-wider">{label}</span>
                   </div>
                 ))}
-                {/* Freccia: visibile solo quando un giorno di questa settimana è selezionato */}
                 <button
                   type="button"
-                  onClick={() => {
-                    if (listOpen && isDayInThisWeek) {
-                      // se lista aperta con filtro giorno → reset filtro e tieni aperta
-                      setSelectedDayKey(null);
-                    } else {
-                      setListOpen(o => !o);
-                    }
-                  }}
-                  aria-label={listOpen ? 'Chiudi lista turni' : 'Apri lista turni'}
-                  className={`flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest ${
-                    isDayInThisWeek
-                      ? 'border-[#3366CC]/40 text-[#3366CC] dark:text-[#93c5fd]'
-                      : 'border-slate-200 dark:border-white/[0.08] text-slate-400 dark:text-white/30'
-                  }`}
+                  onClick={() => toggleWeek(wIdx)}
+                  className="flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest border-[#3366CC]/40 text-[#3366CC] dark:text-[#93c5fd]"
                 >
-                  <span>Settimana</span>
-                  <svg
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    className={`w-3 h-3 transition-transform duration-200 ${listOpen && !isDayInThisWeek ? 'rotate-180' : 'rotate-0'}`}
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  <span>{t.ts_period_week ?? 'Settimana'}</span>
+                  <svg viewBox="0 0 16 16" fill="none" className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="3,6 8,11 13,6" />
                   </svg>
                 </button>
               </div>
             </div>
 
-            {listOpen && (
-            <div className="flex flex-col gap-1.5 mt-2.5">
-              {weekDays.map(day => {
-                const key = format(day, 'yyyy-MM-dd');
-                const dayShifts = byDay[key] ?? [];
-                if (!dayShifts.length) return null;
-                if (selectedDayKey && selectedDayKey !== key) return null;
-                return (
-                  <div key={key}>
-                    <p className="text-[10px] font-black uppercase tracking-widest mt-2 mb-1.5 text-[#3366CC] dark:text-[#93c5fd] flex items-center gap-2">
-                      {format(day, 'EEEE d MMMM', { locale })}
-                      {isToday(day) && <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
-                    </p>
-                    {dayShifts.map(shift => {
-                      const isAbsent = shift.approval_status === 'absent';
-                      return (
-                        <div key={shift.id}
-                          className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm dark:shadow-none ${
-                            isAbsent
-                              ? 'border-red-100 dark:border-red-500/[0.08]'
-                              : 'border-slate-100 dark:border-white/[0.08]'
-                          }`}
-                          style={
-                            typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-                              ? { background: isAbsent ? 'rgba(239,68,68,0.04)' : 'transparent' }
-                              : { background: isAbsent ? 'rgba(239,68,68,0.04)' : '#ffffff' }
-                          }
-                        >
-                          <div className="flex flex-col gap-0.5">
-                            <p className={`font-black tabular-nums text-base leading-none ${isAbsent ? 'text-slate-300 line-through dark:text-white/25' : 'text-slate-800 dark:text-white/90'}`}>
-                              {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
-                            </p>
-                            {shift.department && (
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30 mt-0.5">
-                                {translateDepartmentValue(shift.department, language as any)}
+            {/* Lista turni */}
+            {isOpen && (
+              <div className="flex flex-col gap-1.5 mt-2.5">
+                {weekDays.map(day => {
+                  const key = format(day, 'yyyy-MM-dd');
+                  const dayShifts = byDay[key] ?? [];
+                  if (!dayShifts.length) return null;
+                  if (selectedDayKey && selectedDayKey !== key) return null;
+                  const isToday_ = isToday(day);
+                  return (
+                    <div key={key}>
+                      <p className="text-[10px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-[#3366CC] dark:text-[#93c5fd]">
+                        {format(day, 'EEEE d MMMM', { locale })}
+                        {isToday_ && <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
+                      </p>
+                      {dayShifts.map(shift => {
+                        const isAbsent = shift.approval_status === 'absent';
+                        return (
+                          <div key={shift.id}
+                            className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm dark:shadow-none ${
+                              isAbsent
+                                ? 'border-red-100 dark:border-red-500/[0.08] bg-red-50 dark:bg-red-500/[0.04]'
+                                : 'border-slate-100 dark:border-white/[0.08]'
+                            }`}
+                            style={isAbsent ? undefined : cardBg}
+                          >
+                            <div className="flex flex-col gap-0.5">
+                              <p className={`font-bold tabular-nums text-base leading-none ${
+                                isAbsent ? 'text-slate-300 line-through dark:text-white/25' : 'text-slate-800 dark:text-white/90'
+                              }`}>
+                                {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                               </p>
-                            )}
+                              {shift.department && (
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30 mt-0.5">
+                                  {translateDepartmentValue(shift.department, language as never)}
+                                </p>
+                              )}
+                            </div>
+                            <StatusBadge shift={shift} t={t} />
                           </div>
-                          <StatusBadge shift={shift} t={t} />
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         );
@@ -292,27 +294,55 @@ function MyShiftsSection({
   );
 }
 
-/* ── Sezione: lista team ───────────────────────────────────────────────── */
+/* ── Team: cassetto espandibile per giorno ─────────────────────────────── */
 function TeamShiftsSection({
-  teamShifts, users, locale, language, t,
+  teamShifts, users, weekDays, locale, language, t,
 }: {
   teamShifts: Shift[];
   users: User[];
+  weekDays: Date[];
   locale: typeof it;
   language: string;
   t: Record<string, string>;
 }) {
-  const weeks = useMemo(() => groupByWeeks(teamShifts), [teamShifts]);
+  const isDark = useDarkMode();
+  const cardBg = isDark ? { background: 'transparent' } : { background: '#ffffff' };
+  const [openDays, setOpenDays] = useState<Record<string, boolean>>({});
+
   const userMap = useMemo(() => {
     const m: Record<string, User> = {};
     users.forEach(u => { m[u.id] = u; });
     return m;
   }, [users]);
 
-  if (teamShifts.length === 0) {
+  const byDay = useMemo(() => {
+    const map: Record<string, Shift[]> = {};
+    teamShifts.forEach(s => {
+      const k = format(parseISO(s.date), 'yyyy-MM-dd');
+      if (!map[k]) map[k] = [];
+      map[k].push(s);
+    });
+    Object.keys(map).forEach(k => {
+      map[k].sort((a, b) => {
+        const ta = (a.start_time ?? '').slice(0, 5);
+        const tb = (b.start_time ?? '').slice(0, 5);
+        if (ta !== tb) return ta.localeCompare(tb);
+        return (userMap[a.user_id]?.sort_order ?? 9999) - (userMap[b.user_id]?.sort_order ?? 9999);
+      });
+    });
+    return map;
+  }, [teamShifts, userMap]);
+
+  const toggle = useCallback((key: string) => {
+    setOpenDays(prev => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  const daysWithShifts = weekDays.filter(d => (byDay[format(d, 'yyyy-MM-dd')] ?? []).length > 0);
+
+  if (daysWithShifts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-        <Users className="w-6 h-6 text-slate-300 dark:text-white/20 mb-2" />
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <Users className="w-5 h-5 text-slate-300 dark:text-white/20 mb-2" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/25">
           Nessun turno team
         </p>
@@ -321,76 +351,76 @@ function TeamShiftsSection({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {weeks.map((week, wIdx) => {
-        const weekDays = eachDayOfInterval({ start: week.start, end: week.end });
-        const byDay: Record<string, Shift[]> = {};
-        week.shifts.forEach(s => {
-          const k = format(parseISO(s.date), 'yyyy-MM-dd');
-          if (!byDay[k]) byDay[k] = [];
-          byDay[k].push(s);
-        });
-        Object.keys(byDay).forEach(k => {
-          byDay[k].sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''));
-        });
-
-        const daysWithShifts = weekDays.filter(d => (byDay[format(d, 'yyyy-MM-dd')] ?? []).length > 0);
-        if (daysWithShifts.length === 0) return null;
+    <div className="flex flex-col gap-1.5">
+      {daysWithShifts.map(day => {
+        const key = format(day, 'yyyy-MM-dd');
+        const dayShifts = byDay[key] ?? [];
+        const isOpen = !!openDays[key];
+        const isToday_ = isToday(day);
+        const confirmed = dayShifts.filter(s => s.approval_status !== 'absent');
 
         return (
-          <div key={wIdx}>
-            <p className="text-[9px] font-black uppercase tracking-widest mb-2 text-slate-400 dark:text-white/30">
-              {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM yyyy', { locale })}
-            </p>
-            <div className="flex flex-col gap-1.5">
-              {weekDays.map(day => {
-                const key = format(day, 'yyyy-MM-dd');
-                const dayShifts = byDay[key] ?? [];
-                if (!dayShifts.length) return null;
-                return (
-                  <div key={key}>
-                    <p className="text-[10px] font-black uppercase tracking-widest mt-2 mb-1.5 text-[#3366CC] dark:text-[#93c5fd] flex items-center gap-2">
-                      {format(day, 'EEEE d MMMM', { locale })}
-                      {isToday(day) && <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
-                    </p>
-                    {dayShifts.map(shift => {
-                      const isAbsent = shift.approval_status === 'absent';
-                      const u = userMap[shift.user_id];
-                      const fullName = u ? `${u.first_name} ${u.last_name}` : '–';
-                      return (
-                        <div key={shift.id}
-                          className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm dark:shadow-none ${
-                            isAbsent
-                              ? 'border-red-100 dark:border-red-500/[0.08]'
-                              : 'border-slate-100 dark:border-white/[0.08]'
-                          }`}
-                          style={
-                            typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-                              ? { background: isAbsent ? 'rgba(239,68,68,0.04)' : 'transparent' }
-                              : { background: isAbsent ? 'rgba(239,68,68,0.04)' : '#ffffff' }
-                          }
-                        >
-                          <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                            <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-white/50 truncate">
-                              {fullName}
-                            </p>
-                            <p className={`font-black tabular-nums text-sm leading-none ${isAbsent ? 'text-slate-300 line-through dark:text-white/25' : 'text-slate-800 dark:text-white/90'}`}>
-                              {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
-                            </p>
-                            {shift.department && (
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">
-                                {translateDepartmentValue(shift.department, language as any)}
-                              </p>
-                            )}
-                          </div>
-                          <StatusBadge shift={shift} t={t} />
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
+          <div key={key} className="rounded-xl border border-slate-100 dark:border-white/[0.08] overflow-hidden shadow-sm dark:shadow-none" style={cardBg}>
+            {/* Header cassetto */}
+            <button
+              type="button"
+              onClick={() => toggle(key)}
+              className="w-full flex items-center justify-between px-3 py-2.5 active:bg-slate-50 dark:active:bg-white/[0.03] transition-colors"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className={`text-[10px] font-black uppercase tracking-widest truncate ${
+                  isToday_ ? 'text-[#3366CC] dark:text-[#93c5fd]' : 'text-slate-700 dark:text-white/70'
+                }`}>
+                  {format(day, 'EEE d MMM', { locale })}
+                </span>
+                {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-[#3366CC] shrink-0 shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[9px] font-black tabular-nums text-slate-400 dark:text-white/30">
+                  {confirmed.length} {t.shift_plural ?? 'turni'}
+                </span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-slate-400 dark:text-white/30 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                  strokeWidth={2.5}
+                />
+              </div>
+            </button>
+
+            {/* Corpo cassetto */}
+            {isOpen && (
+              <div className="border-t border-slate-50 dark:border-white/[0.05] px-3 pb-2 pt-1.5 flex flex-col gap-1">
+                {dayShifts.map(shift => {
+                  const isAbsent = shift.approval_status === 'absent';
+                  const u = userMap[shift.user_id];
+                  const fullName = u ? `${u.first_name}${u.last_name ? ' ' + u.last_name : ''}` : '–';
+                  return (
+                    <div key={shift.id} className={`flex items-center justify-between rounded-lg px-2.5 py-2 border ${
+                      isAbsent
+                        ? 'border-red-100 dark:border-red-500/[0.08] bg-red-50 dark:bg-red-500/[0.04]'
+                        : 'border-slate-100 dark:border-white/[0.06]'
+                    }`}
+                    style={isAbsent ? undefined : cardBg}>
+                      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                        <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-white/50 truncate">
+                          {fullName}
+                        </p>
+                        <p className={`font-black tabular-nums text-sm leading-none ${
+                          isAbsent ? 'text-slate-300 line-through dark:text-white/25' : 'text-slate-800 dark:text-white/90'
+                        }`}>
+                          {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
+                        </p>
+                        {shift.department && (
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/25">
+                            {translateDepartmentValue(shift.department, language as never)}
+                          </p>
+                        )}
+                      </div>
+                      <StatusBadge shift={shift} t={t} />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
@@ -402,9 +432,7 @@ function TeamShiftsSection({
 export default function ManagementMobileShifts({ shifts, users, currentUserId, language }: Props) {
   const locale = getLocale(language);
   const t = getTranslations(language as 'it' | 'en' | 'es') as Record<string, string>;
-  const dayLetters = getDayLetters(locale);
 
-  // ── Navigazione periodo ────────────────────────────────────────────────
   const [navMode, setNavMode] = useState<NavMode>('period');
   const [navOffset, setNavOffset] = useState(0);
 
@@ -427,7 +455,11 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
     ? `S.${getISOWeek(range.start)} · ${format(range.start, 'd MMM', { locale })} – ${format(range.end, 'd MMM', { locale })}`
     : `${format(range.start, 'd MMM', { locale })} – ${format(range.end, 'd MMM yy', { locale })}`;
 
-  // ── Filtra i turni per periodo ─────────────────────────────────────────
+  const weekDays = useMemo(() =>
+    eachDayOfInterval({ start: range.start, end: range.end }),
+    [range]
+  );
+
   const filteredShifts = useMemo(
     () => shifts.filter(s => isWithinInterval(parseISO(s.date), { start: range.start, end: range.end })),
     [shifts, range]
@@ -437,19 +469,22 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
   const teamShifts = useMemo(() => filteredShifts.filter(s => s.user_id !== currentUserId), [filteredShifts, currentUserId]);
 
   return (
-    <div className="flex flex-col pb-24 pt-1">
+    <div className="flex flex-col pb-content pt-1">
 
-      {/* ── Barra navigazione periodo ─────────────────────────────────── */}
+      {/* ── Barra navigazione periodo ─────────────────────────────────────── */}
       <div className="flex items-center gap-2 mb-5 px-4">
-        {/* Label periodo fisso */}
-        <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#3366CC]/40 text-[#3366CC] dark:text-[#93c5fd] text-[9px] font-black uppercase tracking-widest shrink-0">
-          Periodo
+        {/* Toggle settimana / periodo */}
+        <span
+          className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#3366CC]/40 text-[#3366CC] dark:text-[#93c5fd] text-[9px] font-black uppercase tracking-widest shrink-0 cursor-pointer select-none"
+          onClick={() => { setNavMode(m => m === 'week' ? 'period' : 'week'); setNavOffset(0); }}
+        >
+          {navMode === 'week' ? (t.ts_period_week ?? 'Sett.') : (t.tab_period ?? 'Periodo')}
         </span>
 
         {/* Frecce + label */}
         <div
-          className="flex items-center border border-slate-100 dark:border-white/[0.08] rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md"
-          style={{ background: 'transparent', boxShadow: 'none' }}
+          className="flex items-center border border-slate-300 dark:border-white/20 rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md"
+          style={{ background: 'transparent', boxShadow: '0 0 0 1px rgba(0,0,0,0.06)' }}
         >
           <button
             type="button"
@@ -474,17 +509,17 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
         </div>
       </div>
 
-      {/* ── Contenuto ─────────────────────────────────────────────────── */}
+      {/* ── Contenuto ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-8 px-4">
 
         {/* I miei turni */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/35">
-              I miei turni
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white/80">
+              {t.my_shifts_label ?? 'I miei turni'}
             </span>
             {myShifts.length > 0 && (
-              <span className="text-[9px] font-black tabular-nums text-slate-300 dark:text-white/20">
+              <span className="text-[9px] font-black tabular-nums text-[#3366CC] dark:text-[#93c5fd]">
                 ({myShifts.length})
               </span>
             )}
@@ -492,7 +527,6 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
           <MyShiftsSection
             myShifts={myShifts}
             locale={locale}
-            dayLetters={dayLetters}
             language={language}
             t={t}
           />
@@ -501,11 +535,11 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
         {/* Team */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/35">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white/80">
               Team
             </span>
             {teamShifts.length > 0 && (
-              <span className="text-[9px] font-black tabular-nums text-slate-300 dark:text-white/20">
+              <span className="text-[9px] font-black tabular-nums text-[#3366CC] dark:text-[#93c5fd]">
                 ({teamShifts.length})
               </span>
             )}
@@ -513,6 +547,7 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
           <TeamShiftsSection
             teamShifts={teamShifts}
             users={users}
+            weekDays={weekDays}
             locale={locale}
             language={language}
             t={t}

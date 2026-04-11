@@ -11,6 +11,81 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fix iOS: disabilita highlight nativo, abilita cursor */
+button,
+[role="button"] {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Classe aggiunta via JS al touchstart — feedback visivo garantito su iOS */
+.tap-active {
+  transform: scale(0.94) !important;
+  transition: transform 0.07s ease !important;
+}
+
+/* Fallback CSS :active per desktop/mouse */
+button:active,
+[role="button"]:active {
+  transform: scale(0.95);
+  transition: transform 0.08s ease;
+}
+
+/* Header fisso — wrapper trasparente, il glass è sulla card interna */
+.flow-glass-header {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* Variabile safe-area-top — usata da header e contenitore */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  /* Palette semantica app — seguono il tema attivo (classe .dark su html) */
+  --app-bg:   #f4f7fa;
+  --card-bg:  #ffffff;
+  --text-main: #1a1a1a;
+}
+html.dark {
+  --app-bg:   #0a0a0a;
+  --card-bg:  #111827;
+  --text-main: #f1f5f9;
+}
+
+/* Header brand — rimane blu in entrambi i temi, testo sempre bianco */
+.flow-brand-header,
+.flow-brand-header * {
+  color: #ffffff !important;
+}
+
+/* Reset globale — scroll naturale, sfondo neutro per evitare flash su iOS */
+html,
+body,
+#root {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background-color: var(--app-bg);
+  color: var(--text-main);
+}
+html.dark,
+html.dark body,
+html.dark #root {
+  background-color: var(--app-bg);
+}
+
+/* Container principale — spazio in fondo per non finire sotto la BottomNav */
+.main-container {
+  padding-top: 0 !important;
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+}
+
 @layer base {
   :root {
     --gray-dark: #001A80;
@@ -93,6 +168,18 @@
    * Per scheda: `html[data-viewport-class='phone'] .tua-root` oppure `useLayoutPreset().viewportClass`.
    */
 
+  html {
+    background: #f8fafc;
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+    transition: background-color 0.3s ease;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    overscroll-behavior: none; /* iOS: blocca bounce elastico sulla pagina */
+    /* zoom già disabilitato da viewport (user-scalable=no); evitare manipulation qui per non rompere pull-to-refresh */
+  }
+
+  /* Dark mode DOPO light mode per vincere la cascade */
   html.dark {
     background: #0a0a0a !important;
   }
@@ -115,17 +202,6 @@
     box-shadow: none !important;
   }
 
-  html {
-    background: #f8fafc !important;
-    min-height: 100%;
-    min-height: -webkit-fill-available;
-    transition: background-color 0.3s ease;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
-    overscroll-behavior: none; /* iOS: blocca bounce elastico sulla pagina */
-    /* zoom già disabilitato da viewport (user-scalable=no); evitare manipulation qui per non rompere pull-to-refresh */
-  }
-
   * {
     scrollbar-width: none; /* Firefox — nasconde tutte le scrollbar */
     -ms-overflow-style: none; /* IE/Edge */
@@ -141,7 +217,7 @@
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #f8fafc !important;
+    background-color: #f8fafc;
     color: #1a1a1a;
     width: 100%;
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -149,6 +225,7 @@
     min-height: -webkit-fill-available;
     padding-left: env(safe-area-inset-left, 0);
     padding-right: env(safe-area-inset-right, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
     -webkit-overflow-scrolling: touch; /* iOS scroll fluido */
@@ -473,7 +550,7 @@
    */
   .bottom-nav-glass {
     border: none;
-    background: #0052FF;
+    background: linear-gradient(135deg, #001080 0%, #0033BB 45%, #0055EE 80%, #00AAEE 100%);
     box-shadow:
       0 4px 16px -4px rgba(0, 82, 255, 0.40),
       0 2px 8px -2px rgba(0, 0, 0, 0.15);
@@ -520,7 +597,7 @@
   }
   html.dark .bottom-nav-glass {
     border: none;
-    background: #0040CC;
+    background: linear-gradient(135deg, #001080 0%, #0033BB 45%, #0055EE 80%, #00AAEE 100%);
     box-shadow:
       0 4px 16px -4px rgba(0, 82, 255, 0.50),
       0 2px 8px -2px rgba(0, 0, 0, 0.35);
@@ -670,29 +747,30 @@
 
   .ui-toolbar-page-band-presences .ui-toolbar-group {
     @apply flex h-9 lg:h-10 items-stretch gap-0 overflow-hidden rounded-xl shadow-sm;
-    @apply divide-x divide-[#F1F5F9] dark:divide-white/10;
-    background: #ffffff;
-    border: 1.5px solid #F1F5F9;
+    @apply divide-x divide-white/20 dark:divide-white/10;
+    background: rgba(255, 255, 255, 0.20);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.28);
     box-shadow: 0 1px 4px -1px rgba(0, 82, 255, 0.08);
   }
   html.dark .ui-toolbar-page-band-presences .ui-toolbar-group {
-    background: transparent;
+    background: rgba(10, 20, 80, 0.32);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.10);
-    box-shadow:
-      inset 0 1.5px 0 rgba(255, 255, 255, 0.06),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-      0 3px 10px -2px rgba(0, 0, 0, 0.40);
+    box-shadow: none;
   }
 
   /**
    * I tab globali sono h-20px: senza override lo sfondo attivo non riempie il gruppo h-9.
    */
   .ui-toolbar-page-band-presences .ui-toolbar-tab {
-    @apply flex h-full min-h-0 w-auto min-w-0 flex-none items-center justify-center self-stretch rounded-none px-3 text-center text-sm font-semibold leading-none transition-colors;
+    @apply flex h-full min-h-0 w-auto min-w-0 flex-none items-center justify-center self-stretch rounded-lg mx-0.5 px-3 text-center text-sm font-semibold leading-none transition-colors;
   }
 
   .ui-toolbar-page-band-presences .ui-toolbar-icon-btn {
-    @apply box-border flex h-full min-h-0 w-9 min-w-9 max-w-none shrink-0 items-center justify-center self-stretch rounded-none transition-colors;
+    @apply box-border flex h-full min-h-0 w-9 min-w-9 max-w-none shrink-0 items-center justify-center self-stretch rounded-lg mx-0.5 transition-colors;
   }
 
   .ui-toolbar-page-band-presences .ui-toolbar-segment-static {
@@ -701,12 +779,16 @@
 
   .ui-toolbar-page-band-presences .ui-toolbar-chip {
     @apply inline-flex h-9 lg:h-10 items-center justify-center gap-1.5 rounded-xl px-3 lg:px-3.5 text-sm font-medium leading-none text-slate-700 transition-colors dark:text-neutral-200;
-    background: #ffffff;
-    border: 1.5px solid #F1F5F9;
+    background: rgba(255, 255, 255, 0.20);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.28);
     box-shadow: 0 1px 4px -1px rgba(0, 82, 255, 0.08);
   }
   html.dark .ui-toolbar-page-band-presences .ui-toolbar-chip {
-    background: transparent;
+    background: rgba(10, 20, 80, 0.32);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.10);
     box-shadow: none;
   }
@@ -731,32 +813,63 @@
 
   /** Sfondo pagina con vignettatura radiale (profondità spaziale) */
   .page-depth-bg {
-    background: #ffffff;
+    background: #e8f0ff;
   }
   html.dark .page-depth-bg {
-    background:
-      radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%),
-      radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000 72%);
-    background-attachment: fixed;
+    background: #060f2e;
   }
 
   /** Sfondo scheda Panoramica — gradiente radiale stile login */
   .page-home-bg {
-    background: radial-gradient(ellipse at 70% 10%, #dbeafe 0%, #eff6ff 28%, #ffffff 62%, #f0f7ff 100%);
+    background: #e8f0ff;
   }
   html.dark .page-home-bg {
-    background:
-      radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%),
-      radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000 72%);
-    background-attachment: fixed;
+    background: #060f2e;
   }
 
-  /** Card header FLOW — identico brand in dark con tinta leggermente ridotta */
-  .flow-header-card {
-    background: #0052FF;
-  }
+  /** Card header FLOW */
+  .flow-header-card,
   html.dark .flow-header-card {
-    background: #0040CC;
+    background: linear-gradient(135deg, #001080 0%, #0033BB 45%, #0055EE 80%, #00AAEE 100%);
+    box-shadow:
+      0 4px 16px -4px rgba(0, 82, 255, 0.40),
+      0 2px 8px -2px rgba(0, 0, 0, 0.15);
+  }
+
+  /** Card vetro — sfondo bianco solido in light mode, vetro in dark */
+  .surface-glass,
+  .surface-ghost-interactive,
+  .depth-card {
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: rgba(226, 232, 240, 1) !important;
+    box-shadow: 0 2px 8px rgba(0, 50, 200, 0.06) !important;
+  }
+  html.dark .surface-glass,
+  html.dark .surface-ghost-interactive,
+  html.dark .depth-card {
+    background: rgba(10, 20, 80, 0.28) !important;
+    backdrop-filter: blur(16px) saturate(1.5) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(1.5) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: none !important;
+  }
+
+  /** Tabella timesheet — celle sticky: trasparenti solo in dark mode */
+  html.dark .page-depth-bg table th,
+  html.dark .page-home-bg table th,
+  html.dark .page-depth-bg table td,
+  html.dark .page-home-bg table td {
+    background: transparent !important;
+  }
+
+  /** Banner "turni aperti" amber — vetro trasparente (solo banner specifici) */
+  .page-depth-bg .bg-amber-50\/95,
+  .page-home-bg .bg-amber-50\/95 {
+    background: rgba(251, 191, 36, 0.10) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   /** Testo gradiente per titoli scheda e data header */
@@ -847,15 +960,18 @@
    * Niente `min-h-full` sul wrapper scheda o si crea vuoto enorme.
    */
   .pb-content {
-    padding-bottom: calc(
-      var(--app-bottom-nav-offset, 64px) + 0.75rem
+    /* max() garantisce sempre almeno offset+safe-area, anche col valore di fallback */
+    padding-bottom: max(
+      calc(var(--app-bottom-nav-offset, 64px) + 0.75rem),
+      calc(64px + env(safe-area-inset-bottom, 0px) + 0.75rem)
     );
   }
 
   @media (min-width: 640px) {
     .pb-content {
-      padding-bottom: calc(
-        var(--app-bottom-nav-offset, 68px) + 0.75rem
+      padding-bottom: max(
+        calc(var(--app-bottom-nav-offset, 68px) + 0.75rem),
+        calc(68px + env(safe-area-inset-bottom, 0px) + 0.75rem)
       );
     }
   }
@@ -1185,21 +1301,42 @@ html.dark .text-slate-700 {
 
 /** Highlight turni dalla card KPI (ritardi / senza timbratura) */
 @keyframes ts-shift-pop {
-  0%   { box-shadow: 0 0 0 0px rgba(251,146,60,0.0);  outline-color: transparent; }
-  15%  { box-shadow: 0 0 0 4px rgba(251,146,60,0.55); outline-color: rgba(251,146,60,0.7); }
-  50%  { box-shadow: 0 0 0 3px rgba(251,146,60,0.35); }
-  85%  { box-shadow: 0 0 0 4px rgba(251,146,60,0.55); }
-  100% { box-shadow: 0 0 0 0px rgba(251,146,60,0.0);  outline-color: transparent; }
+  0%   { box-shadow: 0 0 0 0px rgba(0,82,255,0.0);   outline-color: transparent; }
+  15%  { box-shadow: 0 0 0 4px rgba(0,82,255,0.45);  outline-color: rgba(0,82,255,0.75); }
+  50%  { box-shadow: 0 0 0 3px rgba(0,82,255,0.28); }
+  85%  { box-shadow: 0 0 0 4px rgba(0,82,255,0.45);  outline-color: rgba(0,82,255,0.75); }
+  100% { box-shadow: 0 0 0 0px rgba(0,82,255,0.0);   outline-color: rgba(0,82,255,0.55); }
 }
 .ts-shift-highlighted {
-  animation: ts-shift-pop 1.1s ease-in-out 3;
-  outline: 2px solid rgba(251,146,60,0.6);
+  animation: ts-shift-pop 0.9s ease-out 1;
+  outline: 2px solid rgba(0,82,255,0.55);
   outline-offset: 1px;
   z-index: 2;
   position: relative;
 }
 html.dark .ts-shift-highlighted {
-  outline-color: rgba(251,146,60,0.75);
+  outline-color: rgba(99,153,255,0.70);
+}
+
+/** Card turni/presenze mobile — fuori da @layer per priorità massima */
+html.dark .mobile-shift-card {
+  background: transparent !important;
+}
+
+/** Vetro globale — fuori da @layer per priorità massima su Tailwind utilities */
+.surface-glass,
+.surface-ghost-interactive,
+.depth-card {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html.dark .surface-glass,
+html.dark .surface-ghost-interactive,
+html.dark .depth-card {
+  background: rgba(10, 20, 80, 0.28) !important;
+  backdrop-filter: blur(16px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.5) !important;
 }
 
 /** Modalità no-motion: azzera tutte le transizioni e animazioni CSS */

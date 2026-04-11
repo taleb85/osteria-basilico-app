@@ -60,7 +60,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4 px-4 pb-24 pt-1">
+    <div className="flex flex-col gap-4 px-4 pb-content pt-1">
       {weeks.map((week, wIdx) => {
         const weekDays = eachDayOfInterval({ start: week.start, end: week.end });
 
@@ -132,8 +132,8 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
               <div className="border-t border-slate-50 dark:border-white/[0.06] mx-3 mt-0 pt-2.5 pb-3 flex justify-around">
                 {[
                   { label: t.shift_plural ?? 'Turni', value: confirmedShifts.length.toString() },
-                  { label: 'Ore tot', value: hoursLabel },
-                  { label: 'Riposi', value: restDays.toString() },
+                  { label: t.stat_hours_total_abbr ?? 'Ore tot', value: hoursLabel },
+                  { label: t.stat_rest_days ?? 'Riposi', value: restDays.toString() },
                 ].map(({ label, value }, i) => (
                   <div key={i} className="flex flex-col items-center gap-0.5">
                     <span className="text-sm font-black text-slate-800 dark:text-white/90 tabular-nums">{value}</span>

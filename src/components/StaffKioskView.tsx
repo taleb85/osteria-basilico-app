@@ -3,9 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, CheckCircle, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { User, Shift } from '../types';
-import { format, isValid } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import { calculateRoundedPunchTime } from '../utils/timeCalculations';
-import { database } from '../lib/database';
 import { getTranslations } from '../utils/translations';
 
 interface StaffKioskViewProps {
@@ -14,7 +13,7 @@ interface StaffKioskViewProps {
 }
 
 export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
-  const { shifts, punchRecords, effectiveLanguage } = useApp();
+  const { shifts, punchRecords, effectiveLanguage, addPunchRecord, showError } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [showSuccess, setShowSuccess] = useState(false);
   const [punchedTime, setPunchedTime] = useState('');
@@ -43,24 +42,19 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
   };
 
   const handlePunchIn = async (shift: Shift) => {
-    const actualTime = new Date();
-    const roundedTime = calculateRoundedPunchTime(actualTime, shift.start_time);
-
-    await database.punchRecords.insert({
-      user_id: user.id,
-      type: 'in',
-      timestamp: actualTime.toISOString(),
-      shift_id: shift.id,
-      source: 'kiosk',
-    });
-
-    const actualTimeStr = format(actualTime, 'HH:mm');
+    const out = await addPunchRecord(user.id, 'in', { shift_id: shift.id, source: 'kiosk' });
+    if (out && typeof out === 'object' && 'error' in out && out.error) {
+      showError?.(out.error);
+      return;
+    }
+    const row = out && typeof out === 'object' && 'record' in out ? out.record : null;
+    const ts = row?.timestamp ? parseISO(row.timestamp) : new Date();
+    const roundedTime = calculateRoundedPunchTime(ts, shift.start_time);
+    const actualTimeStr = format(ts, 'HH:mm');
     const roundedTimeStr = format(roundedTime, 'HH:mm');
-
     setPunchedTime(actualTimeStr);
     setCalculatedTime(roundedTimeStr);
     setShowSuccess(true);
-
     setTimeout(() => {
       onClose();
     }, 2000);

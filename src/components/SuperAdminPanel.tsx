@@ -71,7 +71,7 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
 
   return (
     <div
-      className="min-h-screen min-h-dvh flex flex-col items-center justify-center px-6 select-none"
+      className="fixed inset-0 flex flex-col items-center justify-center px-6 select-none overflow-hidden"
       style={{
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'env(safe-area-inset-bottom)',
@@ -83,16 +83,14 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
 
       {/* Logo / icona */}
       <div className="mb-8 flex flex-col items-center gap-3 relative">
-        <div style={{ borderRadius: 22, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,26,128,0.35)' }}>
-          <img
-            src="/flow-app-icon.png"
-            alt="FLOW"
-            width={76}
-            height={76}
-            style={{ display: 'block' }}
-            draggable={false}
-          />
-        </div>
+        <img
+          src="/icon-flow-final.png"
+          alt="FLOW"
+          width={84}
+          height={84}
+          style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 24px rgba(0,82,255,0.65)) drop-shadow(0 0 8px rgba(0,180,255,0.40))' }}
+          draggable={false}
+        />
         <div className="text-center">
           <h1 className="text-lg font-bold text-white tracking-tight">Super Admin</h1>
           <p className="text-sm mt-0.5" style={{ color: 'rgba(51,102,204,0.65)' }}>Inserisci il PIN per accedere</p>
@@ -201,7 +199,6 @@ const ROLE_LABELS: Record<UserRole, string> = {
   admin:             'Amministratore',
   manager:           'Manager',
   assistant_manager: 'Assistente Manager',
-  capo:              'Capo',
   waiter:            'Cameriere',
   server:            'Server',
   bartender:         'Bartender',
@@ -211,7 +208,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 const ROLE_OPTIONS: UserRole[] = [
-  'admin', 'manager', 'assistant_manager', 'capo',
+  'admin', 'manager', 'assistant_manager',
   'waiter', 'server', 'bartender', 'cook', 'chef', 'dishwasher',
 ];
 
@@ -1420,11 +1417,11 @@ function SuperAdminPanelInner() {
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2.5 min-w-0">
             <img
-              src="/flow-app-icon.png"
+              src="/icon-flow-final.png"
               alt="FLOW"
               width={36}
               height={36}
-              style={{ borderRadius: 10, flexShrink: 0, overflow: 'hidden' }}
+              style={{ objectFit: 'contain', flexShrink: 0, filter: 'drop-shadow(0 0 8px rgba(0,82,255,0.50))' }}
               draggable={false}
             />
             <div className="min-w-0">
@@ -1722,13 +1719,16 @@ interface ParsedRow {
   type: 'lunch' | 'dinner';
 }
 
-/** Es. `04-01-26` nel nome file → domenica 4 gennaio 2026 (DD-MM-YY). */
+/** Es. `04-01-26` o `16-02-2026` nel nome file → { y, m, d } (DD-MM-YY o DD-MM-YYYY). */
 function parseSundayDateFromFileName(fileName: string): { y: number; m: number; d: number } | null {
-  const m = fileName.match(/(\d{2})-(\d{2})-(\d{2})/);
+  // Prova prima formato a 4 cifre (DD-MM-YYYY), poi a 2 cifre (DD-MM-YY)
+  const m4 = fileName.match(/(\d{2})-(\d{2})-(\d{4})/);
+  const m2 = !m4 ? fileName.match(/(\d{2})-(\d{2})-(\d{2})(?!\d)/) : null;
+  const m = m4 ?? m2;
   if (!m) return null;
   const dd = parseInt(m[1], 10);
   const mm = parseInt(m[2], 10);
-  const yy = 2000 + parseInt(m[3], 10);
+  const yy = m4 ? parseInt(m[3], 10) : 2000 + parseInt(m[3], 10);
   if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
   return { y: yy, m: mm, d: dd };
 }
@@ -1757,40 +1757,52 @@ function parseWeekGridSemicolon(
 
   const headerLine = lines[0];
   const headerCells = headerLine.split(';').map((c) => c.trim());
+
+  // Rileva il passo per giorno: se l'header ha ORE/BREAK/N.B./TOT dopo ogni coppia
+  // di colonne start/end → stride 6, altrimenti formato semplice → stride 2.
+  const STRIDE = headerCells.some((c) => /^(ORE|BREAK|N\.B\.|TOT\.?)$/i.test(c)) ? 6 : 2;
+
   const dayLabels: string[] = [];
-  for (let i = 1; i < headerCells.length; i += 2) {
-    if (headerCells[i]) dayLabels.push(headerCells[i]);
+  for (let i = 1; i < headerCells.length; i += STRIDE) {
+    const cell = headerCells[i];
+    if (cell && !/^(ORE|BREAK|N\.B\.|TOT\.?)$/i.test(cell)) dayLabels.push(cell);
   }
   if (dayLabels.length < 7) {
     return { rows: [], error: 'Intestazione settimanale incompleta: servono 7 giorni (Lun–Dom) nella prima riga.' };
   }
 
   const fnDate = parseSundayDateFromFileName(fileName);
-  let sunday: Date;
+  let monday: Date;
   if (fnDate) {
-    sunday = new Date(fnDate.y, fnDate.m - 1, fnDate.d);
-    if (Number.isNaN(sunday.getTime())) return { rows: [], error: 'Data nel nome file non valida (usa DD-MM-YY, es. 04-01-26).' };
+    const anyDay = new Date(fnDate.y, fnDate.m - 1, fnDate.d);
+    if (Number.isNaN(anyDay.getTime())) return { rows: [], error: 'Data nel nome file non valida (usa DD-MM-YY o DD-MM-YYYY, es. 04-01-26 o 16-02-2026).' };
+    // Calcola il lunedì della settimana (dow 0=Dom → -6, 1=Lun → 0, …)
+    const dow = anyDay.getDay();
+    const daysFromMon = dow === 0 ? 6 : dow - 1;
+    monday = new Date(anyDay);
+    monday.setDate(anyDay.getDate() - daysFromMon);
   } else {
+    // Fallback: ricava anno dal primo label di giorno contenente il numero
     const sunCell = dayLabels[6] ?? '';
     const dm = sunCell.match(/(\d{1,2})\s*$/);
     const dNum = dm ? parseInt(dm[1], 10) : NaN;
-    if (!Number.isFinite(dNum)) {
-      return { rows: [], error: 'Aggiungi la domenica nel nome file (es. 04-01-26-finale.csv) oppure una cella SUNDAY GG.' };
+    const monCell = dayLabels[0] ?? '';
+    const dm0 = monCell.match(/(\d{1,2})\s*$/);
+    const dNum0 = dm0 ? parseInt(dm0[1], 10) : NaN;
+    if (!Number.isFinite(dNum) && !Number.isFinite(dNum0)) {
+      return { rows: [], error: 'Aggiungi la data nel nome file (es. 16-02-2026.csv) oppure una cella MONDAY/SUNDAY GG.' };
     }
     const y = new Date().getFullYear();
-    sunday = new Date(y, 0, dNum);
-    if (Number.isNaN(sunday.getTime())) return { rows: [], error: 'Impossibile ricavare la domenica.' };
+    if (Number.isFinite(dNum0)) {
+      monday = new Date(y, new Date().getMonth(), dNum0);
+    } else {
+      const sun = new Date(y, new Date().getMonth(), dNum);
+      const daysFromMon = sun.getDay() === 0 ? 6 : sun.getDay() - 1;
+      monday = new Date(sun);
+      monday.setDate(sun.getDate() - daysFromMon);
+    }
+    if (Number.isNaN(monday.getTime())) return { rows: [], error: 'Impossibile ricavare la settimana.' };
   }
-
-  if (sunday.getDay() !== 0) {
-    return {
-      rows: [],
-      error: `La data nel nome file (${toYmd(sunday)}) non è una domenica. Verifica DD-MM-YY (es. 04-01-26 = 4 gen 2026).`,
-    };
-  }
-
-  const monday = new Date(sunday);
-  monday.setDate(sunday.getDate() - 6);
   const dates: string[] = [];
   for (let d = 0; d < 7; d++) {
     const dt = new Date(monday);
@@ -1807,7 +1819,7 @@ function parseWeekGridSemicolon(
 
   for (let li = 1; li < lines.length; li++) {
     const cols = lines[li].split(';').map((c) => c.trim());
-    while (cols.length < 15) cols.push('');
+    while (cols.length < 1 + STRIDE * 7) cols.push('');
 
     if (looksLikeName(cols[0])) {
       currentEmployee = cols[0].toUpperCase().trim();
@@ -1815,8 +1827,8 @@ function parseWeekGridSemicolon(
     if (!currentEmployee) continue;
 
     for (let d = 0; d < 7; d++) {
-      const rawStart = cols[1 + 2 * d];
-      const rawEnd = cols[2 + 2 * d];
+      const rawStart = cols[1 + STRIDE * d];
+      const rawEnd = cols[2 + STRIDE * d];
       if (!rawStart || !rawEnd) continue;
       if (!isTime(rawStart) || !isTime(rawEnd)) continue;
       const startTime = parseTimeFn(rawStart);
@@ -1841,6 +1853,14 @@ function parseWeekGridSemicolon(
   return { rows: parsed, error: null };
 }
 
+interface ImportBatch {
+  adminNote: string;
+  fileName: string;
+  count: number;
+  minDate: string;
+  maxDate: string;
+}
+
 function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () => void }) {
   const [selectedTenantId, setSelectedTenantId] = useState(tenants[0]?.id ?? '');
   const [tenantUsers, setTenantUsers] = useState<{ id: string; first_name: string; last_name?: string }[]>([]);
@@ -1856,10 +1876,76 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
   const [parseError, setParseError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [importHistory, setImportHistory] = useState<ImportBatch[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [deletingBatch, setDeletingBatch] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+
+  const loadHistory = async (tenantId: string) => {
+    if (!supabase || !tenantId) return;
+    setHistoryLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('shifts')
+        .select('admin_note,date')
+        .eq('tenant_id', tenantId)
+        .eq('approved_by', 'import_storico')
+        .not('admin_note', 'is', null)
+        .order('date', { ascending: false });
+      // Se la colonna admin_note non esiste ancora (400), mostriamo lista vuota silenziosamente
+      if (error) { setImportHistory([]); return; }
+      if (!data) return;
+      const map = new Map<string, { count: number; minDate: string; maxDate: string }>();
+      for (const row of data as { admin_note: string; date: string }[]) {
+        const key = row.admin_note;
+        const existing = map.get(key);
+        if (!existing) {
+          map.set(key, { count: 1, minDate: row.date, maxDate: row.date });
+        } else {
+          existing.count++;
+          if (row.date < existing.minDate) existing.minDate = row.date;
+          if (row.date > existing.maxDate) existing.maxDate = row.date;
+        }
+      }
+      const batches: ImportBatch[] = [];
+      map.forEach((v, k) => {
+        const label = k.startsWith('import:') ? k.slice(7) : k;
+        batches.push({ adminNote: k, fileName: label, count: v.count, minDate: v.minDate, maxDate: v.maxDate });
+      });
+      batches.sort((a, b) => b.maxDate.localeCompare(a.maxDate));
+      setImportHistory(batches);
+    } catch {
+      setImportHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const deleteImportBatch = async (adminNote: string) => {
+    if (!supabase || !selectedTenantId) return;
+    setDeletingBatch(adminNote);
+    try {
+      const { error } = await supabase
+        .from('shifts')
+        .delete()
+        .eq('tenant_id', selectedTenantId)
+        .eq('approved_by', 'import_storico')
+        .eq('admin_note', adminNote);
+      if (error) throw error;
+      setImportHistory((prev) => prev.filter((b) => b.adminNote !== adminNote));
+      setConfirmDelete(null);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Errore eliminazione');
+    } finally {
+      setDeletingBatch(null);
+    }
+  };
+
   useEffect(() => {
     if (!supabase || !selectedTenantId) return;
     supabase.from('users').select('id,first_name,last_name').eq('tenant_id', selectedTenantId).eq('status', 'active')
       .then(({ data }) => setTenantUsers((data ?? []) as { id: string; first_name: string; last_name?: string }[]));
+    void loadHistory(selectedTenantId);
   }, [selectedTenantId]);
 
   const matchUser = (name: string) => {
@@ -1988,7 +2074,8 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
       }
 
       const approvedAt = new Date().toISOString();
-      const payload = toInsert.map((r) => ({
+      const importNote = `import:${fileName}`;
+      const basePayload = toInsert.map((r) => ({
         tenant_id: selectedTenantId,
         user_id: r.userId!,
         date: r.date,
@@ -2000,14 +2087,32 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
         approved_start_time: r.startTime,
         approved_end_time: r.endTime,
         approved_by: 'import_storico',
+        admin_note: importNote,
       }));
-      for (let i = 0; i < payload.length; i += 200) {
-        const { error } = await supabase.from('shifts').insert(payload.slice(i, i + 200));
-        if (error) throw error;
+      let adminNoteSupported = true;
+      for (let i = 0; i < basePayload.length; i += 200) {
+        const chunk = basePayload.slice(i, i + 200);
+        const payload = adminNoteSupported
+          ? chunk
+          : chunk.map(({ admin_note: _an, ...rest }) => rest);
+        const { error } = await supabase.from('shifts').insert(payload);
+        if (error) {
+          // Se la colonna admin_note non esiste ancora, riprova senza
+          if (adminNoteSupported && (error.code === '42703' || error.message?.includes('admin_note'))) {
+            adminNoteSupported = false;
+            const { error: e2 } = await supabase
+              .from('shifts')
+              .insert(chunk.map(({ admin_note: _an, ...rest }) => rest));
+            if (e2) throw e2;
+          } else {
+            throw error;
+          }
+        }
       }
       setImportResult({ ok: toInsert.length, skipped: skippedNames, duplicateInFile, alreadyInDb });
       setRows([]);
       setFileName('');
+      void loadHistory(selectedTenantId);
     } catch (e) {
       setParseError(e instanceof Error ? e.message : 'Errore import');
     } finally {
@@ -2057,7 +2162,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Formato A — griglia settimanale (Ore dipendenti)</p>
         <p className="text-[10px] text-slate-500 leading-snug">
           Separatore <strong>;</strong>, prima riga con <code className="text-[10px]">DATA:</code> e giorni <code className="text-[10px]">MONDAY 29;;TUESDAY 30;;</code> … Poi una riga per dipendente (nome in maiuscolo) e righe successive senza nome per altri turni nella stessa settimana.
-          Includi nel <strong>nome file</strong> la domenica della settimana in <strong>DD-MM-YY</strong> (es. <code className="text-[10px]">04-01-26</code> = 4 gennaio 2026, deve essere una domenica).
+          Includi nel <strong>nome file</strong> qualsiasi data della settimana in <strong>DD-MM-YY</strong> o <strong>DD-MM-YYYY</strong> (es. <code className="text-[10px]">04-01-26</code> o <code className="text-[10px]">16-02-2026</code>).
         </p>
         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-1">Formato B — una riga per turno</p>
         <code className="text-[11px] text-slate-500 leading-relaxed whitespace-pre block">{`Nome,Data,Inizio,Fine\nGUSTAVO,29/01/2026,10:00,16:00`}</code>
@@ -2151,6 +2256,75 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
               ? `Importa ${matched.length} turni nel database`
               : 'Importa nel database'}
         </button>
+      </div>
+
+      {/* ── Storico importazioni ── */}
+      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Storico importazioni</p>
+          <button
+            onClick={() => void loadHistory(selectedTenantId)}
+            disabled={historyLoading}
+            className="text-[10px] text-slate-400 hover:text-slate-700 transition font-semibold"
+          >
+            {historyLoading ? 'Caricamento…' : '↺ Aggiorna'}
+          </button>
+        </div>
+
+        {!historyLoading && importHistory.length === 0 && (
+          <p className="text-[11px] text-slate-400 px-4 py-3">Nessun file importato con tracciamento.</p>
+        )}
+        {historyLoading && (
+          <p className="text-[11px] text-slate-400 px-4 py-3">Caricamento…</p>
+        )}
+
+        {importHistory.length > 0 && (
+          <div className="divide-y divide-slate-100">
+            {importHistory.map((batch) => (
+              <div key={batch.adminNote} className="flex items-center gap-3 px-4 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] font-semibold text-slate-700 truncate" title={batch.fileName}>
+                    {batch.fileName}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {batch.minDate === batch.maxDate
+                      ? batch.minDate
+                      : `${batch.minDate} → ${batch.maxDate}`}
+                    {' · '}
+                    <span className="font-semibold text-slate-500">{batch.count} turni</span>
+                  </p>
+                </div>
+
+                {confirmDelete === batch.adminNote ? (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[10px] text-red-600 font-semibold">Eliminare {batch.count} turni?</span>
+                    <button
+                      onClick={() => void deleteImportBatch(batch.adminNote)}
+                      disabled={deletingBatch === batch.adminNote}
+                      className="rounded-lg bg-red-500 hover:bg-red-600 px-2 py-1 text-[10px] font-bold text-white transition disabled:opacity-50"
+                    >
+                      {deletingBatch === batch.adminNote ? '…' : 'Sì, elimina'}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(null)}
+                      className="rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-semibold text-slate-600 hover:bg-slate-50 transition"
+                    >
+                      Annulla
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDelete(batch.adminNote)}
+                    className="shrink-0 flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-[10px] font-semibold text-red-500 hover:bg-red-50 hover:border-red-300 transition"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Elimina
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

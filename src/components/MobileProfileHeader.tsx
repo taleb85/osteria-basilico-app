@@ -10,7 +10,6 @@ import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 import { persistThemePreference } from '../utils/theme';
-
 function ThemeContrastIcon({ mode, className }: { mode: 'light' | 'dark'; className?: string }) {
   const activeLight = mode === 'light';
   const svgTransition = 'absolute inset-0 h-full w-full transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.34,1.2,0.64,1)]';
@@ -121,20 +120,40 @@ export default function MobileProfileHeader({
   const shellClass = `w-full ${showOnDesktop ? '' : 'md:hidden'}`;
 
   const body = (
-    <div className="relative mt-1.5" ref={wrapperRef}>
+    <div className="relative" style={{ paddingTop: 'env(safe-area-inset-top, 0px)', marginTop: 6 }} ref={wrapperRef}>
     <div
-      className="flow-header-card rounded-2xl overflow-hidden px-3 py-2 flex items-center justify-between gap-3"
+      className="flow-brand-header rounded-2xl overflow-hidden px-3 py-2 flex items-center justify-between gap-3"
+      style={{
+        background: 'linear-gradient(135deg, #001080 0%, #0033BB 45%, #0055EE 80%, #00AAEE 100%)',
+        boxShadow: '0 4px 16px -4px rgba(0, 82, 255, 0.40), 0 2px 8px -2px rgba(0, 0, 0, 0.15)',
+      }}
     >
       {/* Sinistra: icona F + testo */}
       <div
         className="flex items-center gap-2.5 min-w-0"
       >
-        <img
-          src="/flow-f-mark.png"
-          alt="F"
-          draggable={false}
-          style={{ width: 42, height: 46, flexShrink: 0 }}
-        />
+        <div
+          role="button"
+          tabIndex={0}
+          style={{ width: 42, height: 42, flexShrink: 0, borderRadius: 8, overflow: 'hidden', cursor: 'pointer' }}
+          onClick={() => {
+            if ('caches' in window) {
+              caches.keys().then(names => Promise.all(names.map(n => caches.delete(n)))).finally(() => {
+                globalThis.location.reload();
+              });
+            } else {
+              globalThis.location.reload();
+            }
+          }}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.currentTarget.click(); }}
+        >
+          <img
+            src="/icon-flow-final.png"
+            alt="FLOW"
+            draggable={false}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
+        </div>
         <div className="flex flex-col leading-none select-none">
           <span
             style={{ color: '#ffffff', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 20, fontWeight: 200, letterSpacing: '0.08em', lineHeight: 1 }}
@@ -155,18 +174,8 @@ export default function MobileProfileHeader({
         )}
       </div>
 
-      {/* Destra: tema + campanella + logout */}
+      {/* Destra: tema + campanella + refresh (desktop) + logout */}
       <div className="flex shrink-0 items-center gap-1.5">
-        {/* Toggle tema */}
-        <button
-          type="button"
-          onClick={toggleUiTheme}
-          title={uiTheme === 'light' ? 'Passa a scuro' : 'Passa a chiaro'}
-          aria-label={uiTheme === 'light' ? 'Passa a scuro' : 'Passa a chiaro'}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200 hover:bg-white/10 active:scale-95 touch-manipulation"
-        >
-          <ThemeContrastIcon mode={uiTheme} className="h-[22px] w-[22px]" />
-        </button>
         <UnifiedBellButton
           userId={currentUser?.id}
           effectiveLanguage={effectiveLanguage}
@@ -175,7 +184,7 @@ export default function MobileProfileHeader({
         {onLogout && !hideHeaderLogout && (
           <button
             type="button"
-            onClick={onLogout}
+            onClick={() => { triggerHapticFeedback('click'); onLogout?.(); }}
             title={t.header_logout}
             aria-label={t.header_logout}
             className="flex h-9 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200 hover:bg-red-500/20 active:scale-95 touch-manipulation text-red-400 hover:text-red-300"

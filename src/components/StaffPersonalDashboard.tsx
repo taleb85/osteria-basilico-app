@@ -7,6 +7,7 @@ import { User as UserType, Shift, HolidayRequest, PunchRecord } from '../types';
 import { format, isToday, isFuture, startOfWeek, endOfWeek, addWeeks, addDays, startOfMonth, endOfMonth, parseISO, isWithinInterval, startOfDay, endOfDay, getISOWeek } from 'date-fns';
 import { it as itLocale } from 'date-fns/locale';
 import { loadPeriodConfig, getPeriodDateRange, prevPeriodConfig, nextPeriodConfig, type PeriodConfig } from '../utils/periodConfig';
+import { getTimesheetGridPrivacyMode } from '../utils/timesheetGridPrivacy';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
 import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
@@ -24,6 +25,7 @@ import MobileTimesheet from './mobile/MobileTimesheet';
 import ManagementMobileShifts from './mobile/ManagementMobileShifts';
 import ManagementMobileTimesheet from './mobile/ManagementMobileTimesheet';
 import MobileRequests from './mobile/MobileRequests';
+import MobileStatsCards from './mobile/MobileStatsCards';
 import { useIsMobileViewport } from '../hooks/useIsMobileViewport';
 const Timesheets = lazy(() => import('./Timesheets'));
 const HolidayRequests = lazy(() => import('./HolidayRequests'));
@@ -44,11 +46,12 @@ import RequestHolidayModal from './RequestHolidayModal';
 import LanguageToggleGrid from './LanguageToggleGrid';
 import NotificationCenter from './NotificationCenter';
 import ProfileNavTabPanel from './ProfileNavTabPanel';
+import { StaffPushNotificationPromptBanner } from './StaffPushNotificationPromptBanner';
 
 // ─── Desktop grid view for staff shifts ───────────────────────────────────────
-function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; language?: string }) {
+function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; language?: import('../types').Language }) {
   const locale = getDateLocale(language) ?? itLocale;
-  const t = getTranslations(language as 'it' | 'en' | 'es');
+  const t = getTranslations(language);
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
   const STATUS_CFG = {
@@ -225,10 +228,10 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
 function StaffDesktopTimesheet({
   shifts, punchRecords, user, breakRules, breakComputeOpts, language = 'it',
 }: {
-  shifts: any[]; punchRecords: any[]; user: any; breakRules: any; breakComputeOpts: any; language?: string;
+  shifts: any[]; punchRecords: any[]; user: any; breakRules: any;   breakComputeOpts: any; language?: import('../types').Language;
 }) {
   const locale = getDateLocale(language) ?? itLocale;
-  const t = getTranslations(language as 'it' | 'en' | 'es');
+  const t = getTranslations(language);
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
   const STATUS_CONFIG = {
@@ -667,21 +670,24 @@ export default function StaffPersonalDashboard({
     const todayStr = format(now, 'yyyy-MM-dd');
 
     return (
-      <MobileStaffDashboard
-        user={displayUser}
-        language={effectiveLanguage}
-        todayStr={todayStr}
-        now={now}
-        myShifts={shifts}
-        punchRecords={punchRecords}
-        weeklyMinutes={staffHomeWeeklyMonthly.weeklyMinutes}
-        monthlyMinutes={staffHomeWeeklyMonthly.monthlyMinutes}
-        monthDaysWorked={staffHomeWeeklyMonthly.monthDaysWorked}
-        weekCapMinutes={40 * 60}
-        onTabChange={onTabChange}
-        greetingText={t.home_greeting.replace('{name}', displayUser.first_name ?? '')}
-        activeTab={activeTab}
-      />
+      <div className="space-y-0">
+        <StaffPushNotificationPromptBanner userId={displayUser.id} effectiveLanguage={effectiveLanguage} />
+        <MobileStaffDashboard
+          user={displayUser}
+          language={effectiveLanguage}
+          todayStr={todayStr}
+          now={now}
+          myShifts={shifts}
+          punchRecords={punchRecords}
+          weeklyMinutes={staffHomeWeeklyMonthly.weeklyMinutes}
+          monthlyMinutes={staffHomeWeeklyMonthly.monthlyMinutes}
+          monthDaysWorked={staffHomeWeeklyMonthly.monthDaysWorked}
+          weekCapMinutes={40 * 60}
+          onTabChange={onTabChange}
+          greetingText={t.home_greeting.replace('{name}', displayUser.first_name ?? '')}
+          activeTab={activeTab}
+        />
+      </div>
     );
   };
 
@@ -740,11 +746,45 @@ export default function StaffPersonalDashboard({
 
   const mobileLocale = dateLocale ?? itLocale;
 
+  // ── Statistiche per MobileStatsCards ──────────────────────────────────────
+  const mobileStatsData = useMemo(() => {
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const weekEnd   = endOfWeek(now,   { weekStartsOn: 1 });
+    const monthStart = startOfMonth(now);
+    const monthEnd   = endOfMonth(now);
+
+    const workedStatuses = new Set(['approved', 'confirmed']);
+    const calcMins = (s: Shift) => {
+      const { start, end } = getResolvedStartEndForHours(s, punchRecords);
+      return getNetShiftMinutes(s, start, end, displayUser, breakRules, breakComputeOpts);
+    };
+
+    let weekWorkedMins = 0;
+    let monthWorkedMins = 0;
+    const monthWorkedDays = new Set<string>();
+
+    for (const s of visibleShifts) {
+      if (!workedStatuses.has(s.approval_status ?? '')) continue;
+      const d = parseISO(s.date);
+      const mins = calcMins(s);
+      if (isWithinInterval(d, { start: weekStart,  end: weekEnd  })) weekWorkedMins  += mins;
+      if (isWithinInterval(d, { start: monthStart, end: monthEnd })) {
+        monthWorkedMins += mins;
+        monthWorkedDays.add(s.date);
+      }
+    }
+
+    const weekCapMins = ((displayUser as any).hours_per_week ?? 40) * 60;
+
+    return { weekWorkedMins, weekCapMins, monthWorkedMins, monthDaysWorked: monthWorkedDays.size };
+  }, [visibleShifts, punchRecords, displayUser, breakRules, breakComputeOpts]);
+
   const MobileNavBar = () => (
     <div className="flex items-center gap-2 mb-4 px-4">
       {/* Etichetta "Periodo" a sinistra */}
       <span className="h-9 inline-flex items-center px-3 rounded-2xl bg-accent text-white text-[10px] font-extrabold uppercase tracking-wider shrink-0 shadow-sm">
-        Periodo
+        {t.tab_period}
       </span>
 
       {/* Frecce + chip data a destra */}
@@ -875,6 +915,7 @@ export default function StaffPersonalDashboard({
         <MobileRequests 
           requests={holidays.filter(h => h.user_id === user.id)} 
           onRequestNew={() => setIsHolidayModalOpen(true)}
+          t={t}
         />
       ) : (
         <Suspense fallback={tabSpinner}>
@@ -970,7 +1011,7 @@ export default function StaffPersonalDashboard({
                     {showStatsSubTabStaff && (
                       <div className="flex items-center gap-1.5 mb-4 px-4">
                         {(['presence', 'stats'] as const).map((v) => {
-                          const label = v === 'presence' ? 'Presenze' : 'Statistiche';
+                          const label = v === 'presence' ? (t.tab_attendance ?? 'Presenze') : (t.tab_statistics ?? 'Statistiche');
                           const active = tsStaffView === v;
                           return (
                             <button
@@ -1002,6 +1043,22 @@ export default function StaffPersonalDashboard({
                     {/* ── Presenze ── */}
                     {tsStaffView === 'presence' && (
                       <>
+                        {isMobile && (
+                          <div className="px-4 mb-4">
+                            <MobileStatsCards
+                              weekWorkedMins={mobileStatsData.weekWorkedMins}
+                              weekCapMins={mobileStatsData.weekCapMins}
+                              monthWorkedMins={mobileStatsData.monthWorkedMins}
+                              monthDaysWorked={mobileStatsData.monthDaysWorked}
+                              labels={{
+                                title: t.tab_statistics ?? 'Statistiche',
+                                week: t.ts_period_week ?? 'Settimana',
+                                month: t.ts_period_month ?? 'Mese',
+                                daysWorked: (t as any).mobile_dash_days_worked ?? 'Giorni lavorati',
+                              }}
+                            />
+                          </div>
+                        )}
                         {isMobile ? (
                           <ManagementMobileTimesheet
                             shifts={mobileTimesheetFiltered}
@@ -1009,6 +1066,7 @@ export default function StaffPersonalDashboard({
                             users={users}
                             currentUserId={displayUser.id}
                             language={effectiveLanguage}
+                            plannedOnly={getTimesheetGridPrivacyMode(displayUser) === 'planned_only'}
                           />
                         ) : (
                           <>
@@ -1034,7 +1092,7 @@ export default function StaffPersonalDashboard({
                 )}
                 {activeTab === 'settings' && (
                   <Suspense fallback={tabSpinner}>
-                    {currentUser?.elevated_role
+                    {displayUser?.elevated_role
                       ? <SettingsPage />
                       : renderProfile()
                     }

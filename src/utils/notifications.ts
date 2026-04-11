@@ -264,7 +264,9 @@ export function countUnreadNotifications(
 ): number {
   if (!currentUser) return 0;
   const fresh = generateNotifications(currentUser, shifts, holidays, users, t, language);
-  const merged = syncNotificationFeed(currentUser.id, fresh);
+  // Aggiorna il feed storico ma conta solo le notifiche ANCORA rilevanti (fresh),
+  // non quelle storiche persistite che potrebbero essere già risolte.
+  syncNotificationFeed(currentUser.id, fresh);
   const seen = getSeenIds(currentUser.id);
-  return merged.filter((n) => !seen.has(n.id)).length;
+  return fresh.filter((n) => !seen.has(n.id)).length;
 }

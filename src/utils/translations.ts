@@ -107,6 +107,11 @@ const baseIt = {
   punch_presence_proof_required: 'Completa la verifica con il QR per timbrare.',
   punch_presence_proof_mismatch: 'QR errato: non corrisponde al codice del locale.',
   punch_presence_cancelled: 'Verifica annullata. Timbratura non registrata.',
+  punch_presence_qr_expired: 'QR scaduto: genera un nuovo codice da Impostazioni.',
+  punch_timbratura_doppia: 'Timbratura doppia: non puoi registrare due uscite consecutive. Esegui prima un’entrata.',
+  punch_uscita_senza_entrata: 'Uscita senza entrata: non risulta un ingresso da chiudere.',
+  punch_consecutive_same_kind: 'Ultima timbratura già in uscita. Registra prima un’entrata.',
+  punch_out_without_entry: 'Nessuna entrata registrata: non è possibile timbrare l’uscita.',
   settings_presence_accordion_title: 'Verifica presenza (QR code)',
   settings_presence_accordion_subtitle:
     'Codice QR per le timbrature in sede (salvato su cloud come il geofence).',
@@ -350,6 +355,12 @@ const baseIt = {
   load_error: 'Errore nel caricamento.',
   week_hours: 'Ore settimana',
   shifts_week: 'Turni settimana',
+  staff_push_banner_title: 'Notifiche sui turni',
+  staff_push_banner_body_default:
+    'Attiva le notifiche push per ricevere aggiornamenti sui turni e sul calendario.',
+  staff_push_banner_body_denied:
+    'Le notifiche sono bloccate. Abilita le notifiche per questo sito nelle impostazioni del browser.',
+  staff_push_banner_cta: 'Attiva notifiche',
   hours_this_month: 'Ore questo mese',
   upcoming_shifts: 'Prossimi turni',
   scheduled_today: 'In programma oggi',
@@ -422,6 +433,16 @@ const baseIt = {
   admin_employee_access_link_pin_incomplete: 'Aggiungi 4 cifre nel campo PIN per includerle nel link.',
   admin_employee_access_link_copied: 'Link copiato negli appunti.',
   admin_employee_access_link_inactive: 'Account non attivo: il login funziona solo con stato «Attivo».',
+  share_install_greeting: 'Ciao {name}! 👋',
+  share_install_intro: 'Ecco come accedere all’app FLOW:',
+  share_install_name: 'Nome: {name}',
+  share_install_pin: 'PIN: {pin}',
+  share_install_steps_header: '📱 Installa l’app sul tuo iPhone in 3 passi:',
+  share_install_step1: '1. Apri il link qui sotto da Safari',
+  share_install_step2: '2. Scarica il file e vai su Impostazioni → “Profilo scaricato” → Installa',
+  share_install_step3: '3. Accedi con le credenziali sopra',
+  share_install_title: 'Accesso FLOW',
+  share_install_btn: 'Condividi accesso + installazione iPhone',
   login_invite_banner: 'Link invito: nome e PIN possono essere già compilati; controlla e premi Accedi.',
   login_invite_user_unknown: 'Profilo non trovato in elenco. Controlla il link o aggiorna la pagina.',
   copy_failed: 'Impossibile copiare negli appunti. Copia manualmente.',
@@ -806,6 +827,7 @@ const baseIt = {
 
   // Timesheets page
   ts_period_week: 'Settimana',
+  tab_period: 'Periodo',
   ts_period_custom: 'Periodo',
   ts_label_from: 'Da',
   ts_label_to: 'A',
@@ -1395,6 +1417,14 @@ const baseIt = {
   impostazioni_group_tools: 'Pannello e visibilità',
   impostazioni_toggle_details: 'Dettagli',
   impostazioni_detail_label: 'Cosa fa questo interruttore',
+  admin_notify_team_title: 'Notifica team',
+  admin_notify_team_desc:
+    'Invia una push a tutti i dipendenti con almeno un turno confermato nella prossima settimana (lun–dom, fuso Europe/Rome).',
+  admin_notify_team_button: 'Invia notifica push',
+  admin_notify_team_success:
+    'Notifica inviata a {count} dipendenti ({sent} consegne push). Settimana {week_start} → {week_end}.',
+  admin_notify_team_none: 'Nessun dipendente con turni nella prossima settimana.',
+  admin_notify_team_error: 'Invio notifica team non riuscito.',
   feature_visibility_management_detail:
     'È lo stesso flag che trovi nel Master Control Panel dentro Profili.\nCompare tra i moduli scheda Impostazioni nei riepiloghi per i profili gestionali (allineato ai template Permessi ruoli).\nNon sostituisce la scelta delle schede in dashboard (Turni, Presenze, …): quelle restano nei template ruoli.',
   feature_department_creation_detail:
@@ -1596,6 +1626,11 @@ const baseEn: Record<string, string> = {
   punch_presence_proof_required: 'Complete QR verification to punch.',
   punch_presence_proof_mismatch: 'Wrong QR code: it does not match this venue’s token.',
   punch_presence_cancelled: 'Verification cancelled. Punch not saved.',
+  punch_presence_qr_expired: 'QR expired: generate a new code in Settings.',
+  punch_timbratura_doppia: 'Duplicate punch: you cannot record two consecutive clock-outs. Clock in first.',
+  punch_uscita_senza_entrata: 'Exit without entry: no open clock-in to close.',
+  punch_consecutive_same_kind: 'Last punch was already clock-out. Clock in first.',
+  punch_out_without_entry: 'No clock-in recorded: cannot clock out.',
   settings_presence_accordion_title: 'Presence verification (QR code)',
   settings_presence_accordion_subtitle: 'QR code for on-site punches (same cloud config as geofence).',
   settings_presence_section_title: 'On-site presence verification (QR code)',
@@ -1803,6 +1838,12 @@ const baseEn: Record<string, string> = {
   timesheet_my_week: 'Your week',
   week_hours: 'Week hours',
   shifts_week: 'Week shifts',
+  staff_push_banner_title: 'Shift notifications',
+  staff_push_banner_body_default:
+    'Turn on push notifications to get updates about your shifts and schedule.',
+  staff_push_banner_body_denied:
+    'Notifications are blocked. Allow notifications for this site in your browser settings.',
+  staff_push_banner_cta: 'Turn on notifications',
   hours_this_month: 'Hours this month',
   upcoming_shifts: 'Upcoming shifts',
   scheduled_today: 'Scheduled today',
@@ -1881,6 +1922,16 @@ const baseEn: Record<string, string> = {
   admin_employee_access_link_pin_incomplete: 'Enter 4 PIN digits to include them in the link.',
   admin_employee_access_link_copied: 'Link copied to clipboard.',
   admin_employee_access_link_inactive: 'Account not active: login only works when status is Active.',
+  share_install_greeting: 'Hi {name}! 👋',
+  share_install_intro: 'Here’s how to access the FLOW app:',
+  share_install_name: 'Name: {name}',
+  share_install_pin: 'PIN: {pin}',
+  share_install_steps_header: '📱 Install the app on your iPhone in 3 steps:',
+  share_install_step1: '1. Open the link below from Safari',
+  share_install_step2: '2. Download the file and go to Settings → “Profile Downloaded” → Install',
+  share_install_step3: '3. Sign in with the credentials above',
+  share_install_title: 'FLOW Access',
+  share_install_btn: 'Share access + iPhone installation',
   login_invite_banner: 'Invite link: name and PIN may be filled in; check and tap Sign in.',
   login_invite_user_unknown: 'Profile not found. Check the link or refresh the page.',
   copy_failed: 'Could not copy to clipboard. Copy manually.',
@@ -2232,6 +2283,7 @@ const baseEn: Record<string, string> = {
 
   // Timesheets EN
   ts_period_week: 'Week',
+  tab_period: 'Period',
   ts_period_custom: 'Period',
   ts_label_from: 'From',
   ts_label_to: 'To',
@@ -2815,6 +2867,14 @@ const baseEn: Record<string, string> = {
   impostazioni_group_tools: 'Panel and visibility',
   impostazioni_toggle_details: 'Details',
   impostazioni_detail_label: 'What this toggle does',
+  admin_notify_team_title: 'Notify team',
+  admin_notify_team_desc:
+    'Send a push to every employee with at least one non-draft shift in the next calendar week (Mon–Sun, Europe/Rome).',
+  admin_notify_team_button: 'Send push notification',
+  admin_notify_team_success:
+    'Notification sent to {count} employees ({sent} push deliveries). Week {week_start} → {week_end}.',
+  admin_notify_team_none: 'No employees with shifts in the next week.',
+  admin_notify_team_error: 'Team notification could not be sent.',
   feature_visibility_management_detail:
     'Same flag as in the Master Control Panel under Profiles.\nAppears among Settings-tab modules in summaries for management users (aligned with role permission templates).\nIt does not replace dashboard tab choices (Shifts, Timesheets, …): those stay in the role templates.',
   feature_department_creation_detail:
@@ -3027,6 +3087,11 @@ const baseEs: Record<string, string> = {
   punch_presence_proof_required: 'Completa la verificación con el QR para fichar.',
   punch_presence_proof_mismatch: 'QR incorrecto: no coincide con el código del local.',
   punch_presence_cancelled: 'Verificación cancelada. Fichaje no guardado.',
+  punch_presence_qr_expired: 'QR caducado: genera un nuevo código en Ajustes.',
+  punch_timbratura_doppia: 'Doble fichaje: no puedes registrar dos salidas seguidas. Ficha entrada primero.',
+  punch_uscita_senza_entrata: 'Salida sin entrada: no hay un fichaje de entrada abierto.',
+  punch_consecutive_same_kind: 'El último fichaje ya fue de salida. Ficha entrada primero.',
+  punch_out_without_entry: 'Sin entrada registrada: no se puede fichar la salida.',
   settings_presence_accordion_title: 'Verificación de presencia (código QR)',
   settings_presence_accordion_subtitle:
     'Código QR para fichar en el local (misma configuración en la nube que el geofence).',
@@ -3239,6 +3304,12 @@ const baseEs: Record<string, string> = {
   timesheet_my_week: 'Tu semana',
   week_hours: 'Horas semana',
   shifts_week: 'Turnos semana',
+  staff_push_banner_title: 'Avisos de turnos',
+  staff_push_banner_body_default:
+    'Activa las notificaciones push para recibir actualizaciones sobre tus turnos y el calendario.',
+  staff_push_banner_body_denied:
+    'Las notificaciones están bloqueadas. Actívalas para este sitio en la configuración del navegador.',
+  staff_push_banner_cta: 'Activar notificaciones',
   hours_this_month: 'Horas este mes',
   upcoming_shifts: 'Próximos turnos',
   scheduled_today: 'Programado hoy',
@@ -3315,6 +3386,16 @@ const baseEs: Record<string, string> = {
   admin_employee_access_link_pin_incomplete: 'Introduce 4 dígitos de PIN para incluirlos en el enlace.',
   admin_employee_access_link_copied: 'Enlace copiado al portapapeles.',
   admin_employee_access_link_inactive: 'Cuenta no activa: el login solo funciona con estado «Activo».',
+  share_install_greeting: '¡Hola {name}! 👋',
+  share_install_intro: 'Así es como acceder a la app FLOW:',
+  share_install_name: 'Nombre: {name}',
+  share_install_pin: 'PIN: {pin}',
+  share_install_steps_header: '📱 Instala la app en tu iPhone en 3 pasos:',
+  share_install_step1: '1. Abre el enlace de abajo desde Safari',
+  share_install_step2: '2. Descarga el archivo y ve a Ajustes → “Perfil descargado” → Instalar',
+  share_install_step3: '3. Inicia sesión con las credenciales anteriores',
+  share_install_title: 'Acceso FLOW',
+  share_install_btn: 'Compartir acceso + instalación iPhone',
   login_invite_banner: 'Enlace de invitación: el nombre y el PIN pueden estar rellenos; revisa y pulsa Entrar.',
   login_invite_user_unknown: 'Perfil no encontrado. Revisa el enlace o actualiza la página.',
   copy_failed: 'No se pudo copiar. Copia manualmente.',
@@ -3663,6 +3744,7 @@ const baseEs: Record<string, string> = {
 
   // Timesheets ES
   ts_period_week: 'Semana',
+  tab_period: 'Período',
   ts_period_custom: 'Período',
   ts_label_from: 'Desde',
   ts_label_to: 'Hasta',
@@ -4244,6 +4326,14 @@ const baseEs: Record<string, string> = {
   impostazioni_group_tools: 'Panel y visibilidad',
   impostazioni_toggle_details: 'Detalles',
   impostazioni_detail_label: 'Qué hace este interruptor',
+  admin_notify_team_title: 'Notificar al equipo',
+  admin_notify_team_desc:
+    'Envía una push a todos los empleados con al menos un turno no borrador en la próxima semana (lun–dom, Europa/Roma).',
+  admin_notify_team_button: 'Enviar notificación push',
+  admin_notify_team_success:
+    'Notificación enviada a {count} empleados ({sent} entregas push). Semana {week_start} → {week_end}.',
+  admin_notify_team_none: 'Ningún empleado con turnos la próxima semana.',
+  admin_notify_team_error: 'No se pudo enviar la notificación al equipo.',
   feature_visibility_management_detail:
     'Es el mismo flag que en el Panel de control maestro dentro de Perfiles.\nAparece entre los módulos de la pestaña Ajustes en los resúmenes de usuarios de gestión (alineado con las plantillas de permisos).\nNo sustituye la elección de pestañas del panel (Turnos, Presencias, …): eso sigue en las plantillas de roles.',
   feature_department_creation_detail:
@@ -4755,6 +4845,7 @@ const baseFr: Record<string, string> = {
   ts_toast_no_shifts_to_freeze: 'Aucun shift approuvé à figer.',
   ts_toast_n_shifts_frozen: '{n} shifts figés.',
   ts_period_weeks_abbr: '{n} sem.',
+  tab_period: 'Période',
   ts_view_table: 'Vue tableau',
   ts_view_cards: 'Vue cartes',
   table_h_scroll_prev: 'Faire défiler le tableau vers la gauche',
@@ -5126,6 +5217,14 @@ const baseFr: Record<string, string> = {
   impostazioni_group_tools: 'Panneau et visibilité',
   impostazioni_toggle_details: 'Détails',
   impostazioni_detail_label: 'Rôle de cet interrupteur',
+  admin_notify_team_title: 'Notifier l’équipe',
+  admin_notify_team_desc:
+    'Envoie une push à tous les employés ayant au moins un shift non brouillon sur la semaine suivante (lun–dim, Europe/Rome).',
+  admin_notify_team_button: 'Envoyer la notification push',
+  admin_notify_team_success:
+    'Notification envoyée à {count} employés ({sent} livraisons push). Semaine {week_start} → {week_end}.',
+  admin_notify_team_none: 'Aucun employé avec des shifts la semaine prochaine.',
+  admin_notify_team_error: 'Échec de l’envoi de la notification équipe.',
   feature_visibility_management_detail:
     'Même indicateur que dans le panneau Master Control sous Profils.\nFigure parmi les modules de l’onglet Paramètres dans les résumés des profils de gestion (aligné sur les modèles de permissions).\nNe remplace pas le choix des onglets du tableau de bord (Shifts, Présences, …) : ceux-ci restent dans les modèles de rôles.',
   feature_department_creation_detail:
@@ -5306,6 +5405,11 @@ const baseFr: Record<string, string> = {
   punch_presence_proof_required: 'Effectuez la vérification par QR pour pointer.',
   punch_presence_proof_mismatch: 'QR incorrect : ne correspond pas au jeton du lieu.',
   punch_presence_cancelled: 'Vérification annulée. Pointage non enregistré.',
+  punch_presence_qr_expired: 'QR expiré : générez un nouveau code dans Paramètres.',
+  punch_timbratura_doppia: 'Double pointage : deux sorties consécutives impossibles. Pointez une entrée d’abord.',
+  punch_uscita_senza_entrata: 'Sortie sans entrée : aucune entrée ouverte à clôturer.',
+  punch_consecutive_same_kind: 'Le dernier pointage était déjà une sortie. Pointez une entrée d’abord.',
+  punch_out_without_entry: 'Aucune entrée enregistrée : impossible de pointer la sortie.',
   settings_presence_accordion_title: 'Vérification de présence (code QR)',
   settings_presence_accordion_subtitle:
     'Code QR pour pointer sur place (même config cloud que le géorepérage).',
@@ -5354,9 +5458,25 @@ const baseFr: Record<string, string> = {
   admin_employee_access_link_pin_incomplete: 'Saisissez 4 chiffres de PIN pour les inclure dans le lien.',
   admin_employee_access_link_copied: 'Lien copié dans le presse-papiers.',
   admin_employee_access_link_inactive: 'Compte inactif : la connexion n’est possible qu’avec le statut « Actif ».',
+  share_install_greeting: 'Bonjour {name} ! 👋',
+  share_install_intro: 'Voici comment accéder à l’app FLOW :',
+  share_install_name: 'Nom : {name}',
+  share_install_pin: 'PIN : {pin}',
+  share_install_steps_header: '📱 Installe l’app sur ton iPhone en 3 étapes :',
+  share_install_step1: '1. Ouvre le lien ci-dessous depuis Safari',
+  share_install_step2: '2. Télécharge le fichier et va dans Réglages → « Profil téléchargé » → Installer',
+  share_install_step3: '3. Connecte-toi avec les identifiants ci-dessus',
+  share_install_title: 'Accès FLOW',
+  share_install_btn: 'Partager accès + installation iPhone',
   login_invite_banner: 'Lien d’invitation : le nom et le PIN peuvent être préremplis ; vérifiez et appuyez sur Connexion.',
   login_invite_user_unknown: 'Profil introuvable. Vérifiez le lien ou actualisez la page.',
   copy_failed: 'Copie impossible. Copiez manuellement.',
+  staff_push_banner_title: 'Notifications des shifts',
+  staff_push_banner_body_default:
+    'Active les notifications push pour les mises à jour sur tes shifts et le planning.',
+  staff_push_banner_body_denied:
+    'Les notifications sont bloquées. Autorise-les pour ce site dans les paramètres du navigateur.',
+  staff_push_banner_cta: 'Activer les notifications',
 };
 
 export const translations: Record<Language, Record<string, string>> = {

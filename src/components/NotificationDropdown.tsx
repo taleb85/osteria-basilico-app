@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, Mail, MessageCircle, X, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { it, enUS, es, fr, type Locale } from 'date-fns/locale';
 import { Message } from '../hooks/useMessages';
+import { getTranslations } from '../utils/translations';
+
+const LOCALE_MAP: Record<string, Locale> = { it, en: enUS, es, fr };
 
 interface NotificationDropdownProps {
   messages: Message[];
@@ -10,6 +13,7 @@ interface NotificationDropdownProps {
   onMessageClick: (message: Message) => void;
   isOpen: boolean;
   onClose: () => void;
+  effectiveLanguage?: string;
 }
 
 /**
@@ -22,7 +26,10 @@ export function NotificationDropdown({
   onMessageClick,
   isOpen,
   onClose,
+  effectiveLanguage,
 }: NotificationDropdownProps) {
+  const t = getTranslations(effectiveLanguage as 'it' | 'en' | 'es' | 'fr');
+  const dateLocale = LOCALE_MAP[effectiveLanguage ?? 'it'] ?? it;
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [recentMessages, setRecentMessages] = useState<Message[]>([]);
 
@@ -65,7 +72,7 @@ export function NotificationDropdown({
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4 text-accent dark:text-accent-light" />
           <h3 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
-            Ultime Notifiche
+            {t.messages_latest}
           </h3>
           {unreadCount > 0 && (
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow-sm">
@@ -90,10 +97,10 @@ export function NotificationDropdown({
           <div className="flex flex-col items-center justify-center gap-2 py-8 text-center px-4">
             <MessageCircle className="h-8 w-8 text-slate-300 dark:text-neutral-700" />
             <p className="text-xs font-medium text-slate-600 dark:text-neutral-400">
-              Nessun nuovo messaggio
+              {t.messages_no_new}
             </p>
             <p className="text-[11px] text-slate-500 dark:text-neutral-500">
-              Tutti i messaggi sono stati letti
+              {t.messages_all_read}
             </p>
           </div>
         ) : (
@@ -101,7 +108,7 @@ export function NotificationDropdown({
             const isBroadcast = msg.message_type === 'broadcast';
             const timeAgo = formatDistanceToNow(parseISO(msg.created_at), {
               addSuffix: true,
-              locale: it,
+              locale: dateLocale,
             });
             const preview = msg.body.substring(0, 40) + (msg.body.length > 40 ? '...' : '');
             const isUnread = !msg.is_read;

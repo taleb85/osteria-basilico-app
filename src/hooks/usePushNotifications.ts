@@ -13,7 +13,13 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 }
 
-export function usePushNotifications(userId?: string) {
+export type UsePushNotificationsOptions = {
+  /** Se false, non richiede il permesso automaticamente dopo il login (es. banner con CTA manuale). Default: true. */
+  enableAutoSubscribe?: boolean;
+};
+
+export function usePushNotifications(userId?: string, options?: UsePushNotificationsOptions) {
+  const enableAutoSubscribe = options?.enableAutoSubscribe ?? true;
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +46,35 @@ export function usePushNotifications(userId?: string) {
         .catch(() => setIsSubscribed(false));
     }
   }, [isPushNotificationSupported]);
+
+  // Iscrizione automatica: si attiva quando l'utente è loggato (userId disponibile)
+  // e il permesso non è ancora stato esplicitamente negato.
+  // Un piccolo delay lascia tempo al Service Worker di registrarsi.
+  useEffect(() => {
+    if (!enableAutoSubscribe) return;
+    if (!isPushNotificationSupported) return;
+    if (!userId) return;
+    if (Notification.permission === 'denied') return;
+
+    const timer = setTimeout(async () => {
+      // Se già iscritto, non fare nulla
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const existingSub = await reg.pushManager.getSubscription();
+        if (existingSub) {
+          setIsSubscribed(true);
+          setNotificationPermission('granted');
+          return;
+        }
+      } catch { /* ignora */ }
+
+      // Altrimenti richiedi permesso e iscriviti
+      await requestNotificationPermission();
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, enableAutoSubscribe]);
 
   /** Salva subscription nel backend */
   const saveSubscription = useCallback(async (sub: PushSubscription): Promise<boolean> => {
@@ -114,7 +149,7 @@ export function usePushNotifications(userId?: string) {
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
       });
 
       // 3. Salva nel DB

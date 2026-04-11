@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { format, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, AlertCircle, TrendingUp, ChevronDown } from 'lucide-react';
+import { CheckCircle2, AlertCircle, TrendingUp } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { Language } from '../types';
 import { getTranslations } from '../utils/translations';
@@ -119,19 +119,13 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
       <div
         className={`grid grid-cols-1 gap-1.5 mb-2 sm:gap-2 ${showEstimatedCostWidget ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
       >
-        <motion.button
-          type="button"
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          onClick={() => setActiveWidget(activeWidget === 'approved' ? null : 'approved')}
-          className={`surface-glass surface-ghost-interactive flex cursor-pointer items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all ${
-            activeWidget === 'approved'
-              ? 'border-accent ring-2 ring-accent/20 dark:border-accent dark:ring-accent/30'
-              : 'hover:border-accent/40 dark:hover:border-accent/50'
-          }`}
+          className="surface-glass flex items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all select-none"
         >
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10 dark:bg-accent/20 ring-1 ring-inset ring-accent/25 dark:ring-accent/30">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/20 dark:bg-accent/30 ring-1 ring-inset ring-accent/40 dark:ring-accent/40">
             <CheckCircle2 className="h-3.5 w-3.5 text-accent dark:text-accent-light" />
           </div>
           <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
@@ -143,10 +137,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
               {approvedMins > 0 ? formatMinutesToHoursAndMinutes(approvedMins) : '—'}
             </p>
           </div>
-          <ChevronDown
-            className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform dark:text-neutral-500 ${activeWidget === 'approved' ? 'rotate-180 text-accent dark:text-accent-light' : ''}`}
-          />
-        </motion.button>
+        </motion.div>
 
         {showEstimatedCostWidget && (
           <motion.div
@@ -180,28 +171,14 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           </motion.div>
         )}
 
-        <motion.button
-          type="button"
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          onClick={() => {
-            if (pendingCount > 0) {
-              window.dispatchEvent(
-                new CustomEvent('osteria-navigate', {
-                  detail: { tab: 'timesheet', anchor: 'timesheet-section-main-grid' },
-                })
-              );
-            } else {
-              setActiveWidget(activeWidget === 'pending' ? null : 'pending');
-            }
-          }}
-          className={`surface-glass surface-ghost-interactive flex cursor-pointer items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all ${
-            activeWidget === 'pending' && pendingCount === 0
-              ? 'border-amber-400 ring-2 ring-amber-200 dark:border-amber-500 dark:ring-amber-900/50'
-              : pendingCount > 0
-                ? 'border-amber-200 dark:border-amber-800/50 hover:border-amber-400 dark:hover:border-amber-600'
-                : 'hover:border-slate-300 dark:hover:border-white/20'
+          className={`surface-glass flex items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all select-none ${
+            pendingCount > 0
+              ? 'border-amber-200 dark:border-amber-800/50'
+              : ''
           }`}
         >
           <div
@@ -224,72 +201,11 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
               {pendingCount}
             </p>
           </div>
-          <ChevronDown
-            className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform dark:text-neutral-500 ${
-              activeWidget === 'pending' && pendingCount === 0 ? 'rotate-180 text-amber-500 dark:text-amber-400' : ''
-            }`}
-          />
-        </motion.button>
+        </motion.div>
       </div>
 
       {showDetailPanels && (
         <AnimatePresence>
-          {activeWidget === 'approved' && (
-            <motion.div
-              key="approved-panel-ts"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden mb-4"
-            >
-              <div className="bg-accent/5 dark:bg-accent/15 border border-accent/20 dark:border-accent/35 rounded-2xl overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-accent/10 dark:border-accent/25">
-                  <CheckCircle2 className="w-4 h-4 text-accent dark:text-accent-light" />
-                  <span className="text-sm font-semibold text-accent-dark dark:text-accent-light">{t.stats_approved_shifts_in_period}</span>
-                  <span className="ml-auto text-xs text-accent-dark dark:text-accent-light bg-accent/10 dark:bg-accent/25 px-2 py-0.5 rounded-full font-bold">
-                    {approvedShifts.length}
-                  </span>
-                </div>
-                {approvedShifts.length === 0 ? (
-                  <p className="px-4 py-6 text-sm text-slate-400 dark:text-neutral-400 text-center">{t.stats_no_approved_shifts}</p>
-                ) : (
-                  <div className="divide-y divide-accent/10 dark:divide-accent/20 max-h-[320px] overflow-y-auto">
-                    {approvedShifts.map((s) => {
-                      const u = users.find((x) => x.id === s.user_id);
-                      const { start: rs, end: re } = getResolvedStartEndForHours(s, punchRecords);
-                      const mins = getNetShiftMinutes(s, rs, re, u ?? undefined, breakRules, breakComputeOpts);
-                      const ps = (s.start_time || '').slice(0, 5);
-                      const pe = (s.end_time || '').slice(0, 5);
-                      return (
-                        <div key={s.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-accent/5 dark:hover:bg-accent/10 transition-colors">
-                          <div className="w-7 h-7 rounded-full bg-accent/15 dark:bg-accent/25 flex items-center justify-center flex-shrink-0">
-                            <span className="text-[11px] font-bold text-accent dark:text-accent-light">{(u?.first_name?.[0] ?? '?').toUpperCase()}</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-slate-800 dark:text-neutral-100 truncate">
-                              {u?.first_name ?? '—'} {u?.last_name ?? ''}
-                            </p>
-                            <p className="text-[11px] text-slate-400 dark:text-neutral-400">
-                              {format(new Date(s.date), 'EEE d MMM', { locale: it })} · {rs} – {re}
-                              {s.approved_at && (rs !== ps || re !== pe) ? (
-                                <span className="text-slate-400 dark:text-neutral-400">
-                                  {' '}
-                                  ({t.stats_planned_abbr} {ps}–{pe})
-                                </span>
-                              ) : null}
-                            </p>
-                          </div>
-                          <span className="text-xs font-bold text-accent dark:text-accent-light tabular-nums">{formatMinutesToHoursAndMinutes(mins)}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-
           {activeWidget === 'pending' && (
             <motion.div
               key="pending-panel-ts"

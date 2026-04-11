@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud, RefreshCw, ChevronLeft, ChevronRight, Calendar, Mail, Lock, KeyRound, Copy } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud, RefreshCw, ChevronLeft, ChevronRight, Calendar, Mail, Lock, KeyRound, Copy, CalendarDays, BookTemplate, Link2, Smartphone } from 'lucide-react';
+import { database } from '../lib/database';
 import { PinPadModal } from './ui/PinPadModal';
 import { format, parseISO, addDays } from 'date-fns';
 import {
@@ -19,6 +20,7 @@ import {
 import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
 import DatePickerField from './DatePickerField';
 import { useApp } from '../context/AppContext';
+import { useTenant } from '../context/TenantContext';
 import type { User, UserRole } from '../types';
 import { translateRole } from '../utils/roles';
 import { getAdminModuleLabel, getTranslations, formatTrans, getFeatureStrings } from '../utils/translations';
@@ -67,6 +69,7 @@ import type { WorkRules } from '../utils/workRules';
 import { getCurrentPositionCoords } from '../utils/geo';
 import { resolveEffectiveVerificationToken, generateRandomVerificationToken } from '../utils/presenceVerificationPayload';
 import { generatePresenceQrDataUrl, openPresenceQrPrintWindow } from '../utils/qrPresence';
+import { buildSignedPresenceQrPayload } from '../utils/presenceProofVerification';
 
 const SETTINGS_TEAM_EXPANDED_KEY = 'osteria_settings_team_expanded';
 
@@ -155,7 +158,7 @@ function DepartmentColorPicker({
   );
 }
 
-export default function SettingsPage() {
+export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } = {}) {
   const {
     users,
     shifts,
@@ -185,11 +188,45 @@ export default function SettingsPage() {
     dataSyncInProgress,
     departmentsRevision,
     notifyDepartmentsChanged,
+    isSessionElevated,
   } = useApp();
+  const { tenant } = useTenant();
   const t = getTranslations(effectiveLanguage);
 
   const [pullSyncBusy, setPullSyncBusy] = useState(false);
   const [pushSyncBusy, setPushSyncBusy] = useState(false);
+
+  type ShiftTemplateMeta = { name: string; count: number; days: number[]; created_at?: string };
+  const [shiftTemplates, setShiftTemplates] = useState<ShiftTemplateMeta[]>([]);
+  const [shiftTemplatesLoading, setShiftTemplatesLoading] = useState(false);
+  const [shiftTemplateDeleting, setShiftTemplateDeleting] = useState<string | null>(null);
+
+  const loadShiftTemplates = useCallback(async () => {
+    setShiftTemplatesLoading(true);
+    try {
+      const tenantId = (currentUser as { tenant_id?: string } | null)?.tenant_id ?? undefined;
+      const list = await database.shiftTemplates.listAllWithMeta(tenantId);
+      setShiftTemplates(list);
+    } catch {
+      // ignora errori silenziosamente
+    } finally {
+      setShiftTemplatesLoading(false);
+    }
+  }, [currentUser]);
+
+  const handleDeleteShiftTemplate = useCallback(async (name: string) => {
+    if (!window.confirm(`Eliminare il template "${name}"? Questa azione non è reversibile.`)) return;
+    setShiftTemplateDeleting(name);
+    try {
+      await database.shiftTemplates.delete(name);
+      setShiftTemplates(prev => prev.filter(t => t.name !== name));
+      showSuccess?.(`Template "${name}" eliminato`);
+    } catch {
+      showError?.('Errore durante l\'eliminazione del template');
+    } finally {
+      setShiftTemplateDeleting(null);
+    }
+  }, [showSuccess, showError]);
 
   const handlePullSync = async () => {
     if (pullSyncBusy || dataSyncInProgress) return;
@@ -217,7 +254,9 @@ export default function SettingsPage() {
   const [showCreateStaff, setShowCreateStaff] = useState(false);
   const [expandedPermsUserId, setExpandedPermsUserId] = useState<string | null>(null);
   const [expandedVisibilityUserId, setExpandedVisibilityUserId] = useState<string | null>(null);
+  const [shareMenuUserId, setShareMenuUserId] = useState<string | null>(null);
   const [showSuspended, setShowSuspended] = useState(false);
+  const [deleteConfirmUserId, setDeleteConfirmUserId] = useState<string | null>(null);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importStatus, setImportStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -333,6 +372,11 @@ export default function SettingsPage() {
     setBreakRules(breakRules.filter((r) => r.id !== id));
   }, [breakRules, setBreakRules, t.settings_delete_break_rule_confirm]);
 
+  useEffect(() => {
+    if (!currentUser || !isManagementRole((currentUser as { role?: string }).role as UserRole)) return;
+    loadShiftTemplates();
+  }, [currentUser, loadShiftTemplates]);
+
   const toggleTeamSectionExpanded = useCallback(() => {
     setTeamSectionExpanded((prev) => {
       const next = !prev;
@@ -347,9 +391,10 @@ export default function SettingsPage() {
 
   if (!currentUser) return null;
 
-  const canEdit = canUserEdit(currentUser);
-  const adminOnly = isAdminOnly(currentUser);
-  const canSeeSuspended = canViewSuspended(currentUser);
+  // Tratta l'utente come admin se è in sessione elevata o ha elevated_role
+  const adminOnly = isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role;
+  const canEdit = canUserEdit(currentUser) || adminOnly;
+  const canSeeSuspended = canViewSuspended(currentUser) || adminOnly;
   const isManager = isManagementRole(currentUser.role);
 
   const handleToggleStatus = (user: User) => {
@@ -544,19 +589,38 @@ export default function SettingsPage() {
                           </button>
                         ) : (
                           <div className="flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                if (window.confirm(t.settings_delete_user_confirm)) {
-                                  await deleteUser(user.id);
-                                  showSuccess?.(t.settings_delete_user_success);
-                                }
-                              }}
-                              className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
-                              title={t.settings_delete_user_title}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            {deleteConfirmUserId === user.id ? (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setDeleteConfirmUserId(null)}
+                                  className="rounded-lg border border-slate-200 dark:border-white/10 px-2 py-1 text-[10px] font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+                                >
+                                  {t.cancel ?? 'Annulla'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    setDeleteConfirmUserId(null);
+                                    await deleteUser(user.id);
+                                    showSuccess?.(t.settings_delete_user_success);
+                                  }}
+                                  className="rounded-lg bg-red-600 px-2 py-1 text-[10px] font-bold text-white hover:bg-red-700"
+                                >
+                                  {t.settings_delete_user_title ?? 'Elimina'}
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setDeleteConfirmUserId(user.id)}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
+                                title={t.settings_delete_user_title}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               onClick={() => handleDelegateReactivate(user)}
@@ -619,7 +683,8 @@ export default function SettingsPage() {
           )}
         </AnimatePresence>
 
-        {/* Gestione Team */}
+        {/* ── SEZIONE: Gestione Profili ── */}
+        <div style={view === 'regole' ? { display: 'none' } : undefined}>
         <section className="mb-6">
           <div className="mb-3 flex items-center justify-between gap-2">
             <button
@@ -701,80 +766,149 @@ export default function SettingsPage() {
                       </button>
 
                       <div className="flex items-center gap-1.5 flex-shrink-0">
-                        {/* Permessi toggle */}
-                        {canEdit && (
-                          <div className="flex rounded-lg p-0.5 border border-slate-100 dark:border-white/[0.08]" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'rgba(255,255,255,0.04)' } : { background: '#f1f5f9' }}>
+                        {/* Bottone condivisione unico con dropdown — nascosto */}
+                        {false && canEdit && !isPurelyManagementRole(user.role) && (
+                          <div className="relative">
                             <button
                               type="button"
-                              onClick={() => {
-                                setExpandedPermsUserId(isPermsOpen ? null : user.id);
-                                setExpandedVisibilityUserId(null);
+                              title="Condividi accesso"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShareMenuUserId(shareMenuUserId === user.id ? null : user.id);
                               }}
-                              className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${isPermsOpen ? 'bg-white dark:bg-white/[0.08] text-accent shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
+                              className={`p-1.5 rounded-md border transition-all ${shareMenuUserId === user.id ? 'text-accent border-accent/30 bg-accent/5' : 'text-slate-400 dark:text-white/30 border-slate-200 dark:border-white/10 hover:text-accent hover:border-accent/30 hover:bg-accent/5'}`}
                             >
-                              {t.settings_user_perms_button}
+                              <Link2 className="w-3.5 h-3.5" />
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setExpandedVisibilityUserId(user.id);
-                                setExpandedPermsUserId(null);
-                              }}
-                              className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${expandedVisibilityUserId === user.id ? 'bg-white dark:bg-white/[0.08] text-accent shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
-                            >
-                              Cosa vede
-                            </button>
+
+                            <AnimatePresence>
+                              {shareMenuUserId === user.id && (
+                                <>
+                                  {/* backdrop invisibile per chiudere */}
+                                  <div
+                                    className="fixed inset-0 z-[60]"
+                                    onClick={(e) => { e.stopPropagation(); setShareMenuUserId(null); }}
+                                  />
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.92, y: -4 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.92, y: -4 }}
+                                    transition={{ duration: 0.13 }}
+                                    className="absolute right-0 top-full mt-1.5 z-[61] w-52 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-lg overflow-hidden"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {/* Copia link accesso */}
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        const link = buildShortInviteLink(user, users);
+                                        try {
+                                          await navigator.clipboard.writeText(link);
+                                          showSuccess?.(t.admin_employee_access_link_copied ?? 'Link copiato');
+                                        } catch {
+                                          showError?.(t.copy_failed ?? 'Copia non riuscita');
+                                        }
+                                        setShareMenuUserId(null);
+                                      }}
+                                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[12px] font-medium text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors"
+                                    >
+                                      <Link2 className="w-3.5 h-3.5 shrink-0 text-slate-400 dark:text-neutral-400" />
+                                      Copia link accesso
+                                    </button>
+                                    <div className="h-px bg-slate-100 dark:bg-white/[0.06]" />
+                                    {/* Condividi installazione iPhone */}
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        const accessLink = buildShortInviteLink(user, users);
+                                        const configUrl = `${window.location.origin}/Installa_FLOW.mobileconfig`;
+                                        const nome = `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim();
+                                        const pin = (user.pin ?? '').replace(/\D/g, '');
+                                        const pinLine = pin.length === 4 ? `PIN: ${pin}` : '';
+                                        const text = [
+                                          `Ciao ${user.first_name || nome}! 👋`,
+                                          `Ecco come accedere all'app FLOW:`,
+                                          '',
+                                          `Nome: ${nome}`,
+                                          ...(pinLine ? [pinLine] : []),
+                                          `📱 Installa l'app sul tuo iPhone in 3 passi:`,
+                                          `1. Apri il link qui sotto da Safari`,
+                                          `2. Scarica il file e vai su Impostazioni → "Profilo scaricato" → Installa`,
+                                          `3. Accedi con le credenziali sopra`,
+                                          '',
+                                          `🔗 ${configUrl}`,
+                                        ].join('\n');
+                                        if (navigator.share) {
+                                          try { await navigator.share({ title: 'Accesso FLOW', text }); } catch { /* annullato */ }
+                                        } else {
+                                          await navigator.clipboard.writeText(text).catch(() => undefined);
+                                          showSuccess?.('Testo copiato negli appunti');
+                                        }
+                                        setShareMenuUserId(null);
+                                      }}
+                                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[12px] font-medium text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors"
+                                    >
+                                      <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-400 dark:text-neutral-400" />
+                                      Condividi installazione iPhone
+                                    </button>
+                                  </motion.div>
+                                </>
+                              )}
+                            </AnimatePresence>
                           </div>
                         )}
 
-                        {/* Griglia: override per-utente (template in Permessi ruoli sopra) */}
-                        {canEdit && !isPurelyManagementRole(user.role) && user.status === 'active' && (
+                        {/* Cosa vede */}
+                        {canEdit && (
                           <button
                             type="button"
-                            role="switch"
-                            aria-checked={isUserVisibleOnTeamSchedule(user)}
-                            title={
-                              isUserVisibleOnTeamSchedule(user)
-                                ? t.settings_grid_visible_title
-                                : t.settings_grid_hidden_title
-                            }
                             onClick={() => {
-                              const willBeHidden = isUserVisibleOnTeamSchedule(user);
-                              updateUser(user.id, { hide_from_team_schedule: willBeHidden });
-                              showSuccess?.(
-                                willBeHidden
-                                  ? t.settings_toast_hidden_from_grid
-                                  : t.settings_toast_visible_on_grid
-                              );
+                              setExpandedVisibilityUserId(expandedVisibilityUserId === user.id ? null : user.id);
+                              setExpandedPermsUserId(null);
                             }}
-                            className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-semibold transition-colors ${
-                              isUserVisibleOnTeamSchedule(user)
-                                ? 'border-accent/30 dark:border-accent/50 bg-accent/10 dark:bg-accent/25 text-accent dark:text-[#6699FF]'
-                                : 'border-slate-200 bg-slate-50 text-slate-400 dark:border-white/10 dark:bg-neutral-800/80 dark:text-neutral-400'
-                            }`}
+                            className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all border ${expandedVisibilityUserId === user.id ? 'bg-white dark:bg-white/[0.08] text-accent border-slate-200 dark:border-white/[0.12] shadow-sm' : 'text-slate-500 dark:text-white/40 border-transparent hover:text-slate-700 dark:hover:text-white/60'}`}
                           >
-                            <Users className="w-3 h-3 shrink-0 opacity-70" />
-                            <span className="hidden min-[380px]:inline">{t.settings_grid_short}</span>
+                            {t.what_sees}
                           </button>
                         )}
+
 
                         {/* Active toggle */}
                         {canEdit && (
                           <div className="flex items-center gap-1.5">
                             {user.status !== 'active' && (
-                              <button
-                                type="button"
-                                onClick={async () => {
-                                  if (window.confirm(t.settings_delete_user_confirm)) {
-                                    await deleteUser(user.id);
-                                    showSuccess?.(t.settings_delete_user_success);
-                                  }
-                                }}
-                                className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
-                                title={t.settings_delete_user_title}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
+                              deleteConfirmUserId === user.id ? (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeleteConfirmUserId(null)}
+                                    className="rounded-lg border border-slate-200 dark:border-white/10 px-2 py-1 text-[10px] font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+                                  >
+                                    {t.cancel ?? 'Annulla'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      setDeleteConfirmUserId(null);
+                                      await deleteUser(user.id);
+                                      showSuccess?.(t.settings_delete_user_success);
+                                    }}
+                                    className="rounded-lg bg-red-600 px-2 py-1 text-[10px] font-bold text-white hover:bg-red-700"
+                                  >
+                                    {t.settings_delete_user_title ?? 'Elimina'}
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setDeleteConfirmUserId(user.id)}
+                                  className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
+                                  title={t.settings_delete_user_title}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              )
                             )}
                             <button
                               type="button"
@@ -933,8 +1067,25 @@ export default function SettingsPage() {
           </AnimatePresence>
         </section>
 
+        {/* Permessi per Ruolo — matrice (solo admin/elevati) */}
+        {adminOnly && (
+          <SettingsAccordionSection
+            storageKey="osteria_settings_acc_role_permissions"
+            title={t.settings_role_permissions_title ?? 'Permessi per Ruolo'}
+            subtitle={t.settings_role_permissions_subtitle ?? 'Configura le funzionalità accessibili per Manager, Capo e Staff'}
+            defaultOpen={false}
+          >
+            <RoleFeatureTemplatesPanel variant="embedded" />
+          </SettingsAccordionSection>
+        )}
+
+        </div>{/* fine sezione Gestione Profili */}
+
+        {/* ── SEZIONE: Gestione Regole ── */}
+        <div style={view === 'profili' ? { display: 'none' } : undefined}>
+
         {/* Reparti (se abilitata in Impostazioni e profilo ha permesso) */}
-        {isAdminModuleEnabled(currentUser, 'department_creation') && (featureFlags.department_creation ?? true) && (
+        {(isAdminModuleEnabled(currentUser, 'department_creation') || adminOnly) && (featureFlags.department_creation ?? true) && (
           <SettingsAccordionSection
             storageKey="osteria_settings_acc_departments"
             title={t.settings_departments_section_title}
@@ -1230,7 +1381,7 @@ export default function SettingsPage() {
         )}
 
         {/* ── REGOLE VIOLAZIONI (se abilitata in Impostazioni e profilo ha permesso) ───────── */}
-        {isAdminModuleEnabled(currentUser, 'violation_rules') && (featureFlags.violation_rules ?? true) && (
+        {(isAdminModuleEnabled(currentUser, 'violation_rules') || adminOnly) && (featureFlags.violation_rules ?? true) && (
           <SettingsAccordionSection
             storageKey="osteria_settings_acc_violation_rules"
             title={t.settings_violation_rules_title}
@@ -1363,7 +1514,7 @@ export default function SettingsPage() {
         )}
 
         {/* ── Pause Automatiche (se abilitata in Impostazioni e profilo ha permesso) ───────── */}
-        {isAdminModuleEnabled(currentUser, 'auto_breaks') && (featureFlags.auto_breaks ?? true) && (
+        {(isAdminModuleEnabled(currentUser, 'auto_breaks') || adminOnly) && (featureFlags.auto_breaks ?? true) && (
           <SettingsAccordionSection
             storageKey="osteria_settings_acc_auto_breaks"
             title={t.settings_auto_breaks_section}
@@ -1452,11 +1603,95 @@ export default function SettingsPage() {
           </SettingsAccordionSection>
         )}
 
+        {/* ── Template Settimana ───────────────────────────────────────────── */}
+        {isManager && (
+          <SettingsAccordionSection
+            storageKey="osteria_settings_acc_shift_templates"
+            title={t.settings_week_template_title ?? 'Template Settimana'}
+            subtitle={
+              shiftTemplatesLoading
+                ? (t.loading ?? 'Caricamento…')
+                : shiftTemplates.length > 0
+                ? `${shiftTemplates.length} template`
+                : (t.template_no_templates ?? 'Nessun template salvato')
+            }
+          >
+            <div className="space-y-3">
+              <p className="text-[12px] text-slate-500 dark:text-neutral-400 leading-relaxed">
+                {t.settings_week_template_manage_hint ?? 'Gestisci i template di settimana salvati dal tabellone turni. Ogni template memorizza i turni assegnati per giorno e dipendente e può essere riapplicato in qualsiasi settimana.'}
+              </p>
+
+              {/* Refresh button */}
+              <button
+                type="button"
+                onClick={loadShiftTemplates}
+                disabled={shiftTemplatesLoading}
+                className="flex items-center gap-1.5 text-[12px] text-blue-600 dark:text-blue-400 font-medium disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${shiftTemplatesLoading ? 'animate-spin' : ''}`} />
+                {shiftTemplatesLoading ? 'Aggiornamento…' : 'Aggiorna lista'}
+              </button>
+
+              {/* Empty state */}
+              {!shiftTemplatesLoading && shiftTemplates.length === 0 && (
+                <div className="flex flex-col items-center gap-2 py-8 text-center">
+                  <CalendarDays className="h-8 w-8 text-slate-300 dark:text-neutral-600" />
+                  <p className="text-[13px] text-slate-400 dark:text-neutral-500">{t.settings_no_templates_saved ?? 'Nessun template salvato.'}</p>
+                  <p className="text-[11px] text-slate-400 dark:text-neutral-600">Salva una settimana dal tabellone turni usando il menu Template.</p>
+                </div>
+              )}
+
+              {/* Template cards */}
+              {shiftTemplates.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {shiftTemplates.map((tmpl) => {
+                    const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+                    const isDeletingThis = shiftTemplateDeleting === tmpl.name;
+                    return (
+                      <div
+                        key={tmpl.name}
+                        className="surface-glass-sm rounded-lg p-3 flex items-start gap-3"
+                      >
+                        <div className="flex-shrink-0 w-8 h-8 rounded-md bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                          <BookTemplate className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-semibold text-slate-800 dark:text-neutral-100 truncate">{tmpl.name}</p>
+                          <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                            {tmpl.count} turno{tmpl.count !== 1 ? 'i' : ''} · {tmpl.days.map(d => DAY_LABELS[d] ?? d).join(', ')}
+                          </p>
+                          {tmpl.created_at && (
+                            <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                              {new Date(tmpl.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteShiftTemplate(tmpl.name)}
+                          disabled={isDeletingThis}
+                          className="flex-shrink-0 p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors disabled:opacity-40"
+                          title={`Elimina template "${tmpl.name}"`}
+                        >
+                          {isDeletingThis
+                            ? <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                            : <Trash2 className="h-3.5 w-3.5" />
+                          }
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </SettingsAccordionSection>
+        )}
+
         {/* ── Periodi Presenze ─────────────────────────────────────────────── */}
         {isManager && (
           <SettingsAccordionSection
             storageKey="osteria_settings_acc_period_rule"
-            title="Periodi Presenze"
+            title={t.settings_attendance_periods_title ?? 'Periodi Presenze'}
             subtitle={(() => {
               const s = getPeriodStartDate(periodCfg);
               const e = getPeriodEndDate(periodCfg);
@@ -1710,7 +1945,10 @@ export default function SettingsPage() {
                         showError?.(t.settings_presence_qr_need_token);
                         return;
                       }
-                      const dataUrl = await generatePresenceQrDataUrl(token);
+                      const slug = (tenant?.slug ?? 'default').trim() || 'default';
+                      const signed = await buildSignedPresenceQrPayload(token, slug);
+                      const qrPayload = signed ?? token;
+                      const dataUrl = await generatePresenceQrDataUrl(qrPayload);
                       openPresenceQrPrintWindow(dataUrl, t.settings_presence_qr_print_subtitle);
                     } catch (e) {
                       showError?.(e instanceof Error ? e.message : t.settings_presence_save_error);
@@ -2098,6 +2336,7 @@ export default function SettingsPage() {
               <PinPadModal
                 title="Sblocca strumenti dati"
                 subtitle="Inserisci il tuo PIN amministratore"
+                pinLabel="PIN"
                 pin={dataToolsPin}
                 onPinChange={(p) => { setDataToolsPin(p); setDataToolsPinError(''); }}
                 onConfirm={() => {
@@ -2183,6 +2422,7 @@ export default function SettingsPage() {
           </div>
         )}
 
+        </div>{/* fine sezione Gestione Regole */}
       </motion.div>
 
       {showCreateStaff && (
@@ -2362,7 +2602,7 @@ export default function SettingsPage() {
 
 // ── BreakRuleModal ─────────────────────────────────────────────────────────────
 
-const BREAK_MODAL_ROLE_VALUES: UserRole[] = ['waiter', 'server', 'capo', 'bartender', 'cook', 'chef', 'dishwasher'];
+const BREAK_MODAL_ROLE_VALUES: UserRole[] = ['waiter', 'server', 'bartender', 'cook', 'chef', 'dishwasher'];
 
 function makeId() {
   return Math.random().toString(36).slice(2, 11);

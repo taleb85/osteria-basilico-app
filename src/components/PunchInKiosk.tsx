@@ -10,6 +10,7 @@ import {
   Check,
   Delete,
   ShieldCheck,
+  Smartphone,
   X,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -25,6 +26,7 @@ import { usePunchPresenceVerification } from '../hooks/usePunchPresenceVerificat
 
 import { PinPadModal } from './ui/PinPadModal';
 import FlowLogo from './FlowLogo';
+import { FlowNeonIcon } from './ui/FlowNeonIcon';
 
 /** Terminale /timbratura: UI sempre in inglese (dispositivo condiviso in sala). */
 const KIOSK_UI_LANGUAGE: Language = 'en';
@@ -101,11 +103,16 @@ function filterShiftsToClosestUnpunched(
   });
 }
 
-/** Logo FLOW — centrato, grande, per la testata del kiosk */
+/** Logo FLOW con ring neon — centrato, grande, per la testata del kiosk */
 function StraightLogo() {
   return (
     <div className="flex flex-col items-center justify-center mt-4 sm:mt-6 gap-3">
-      <FlowLogo size={140} showText={false} />
+      <FlowNeonIcon
+        size={112}
+        progress={1}
+        transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity, repeatType: 'loop', repeatDelay: 0.5 }}
+        idPrefix="kiosk-header"
+      />
     </div>
   );
 }
@@ -136,6 +143,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(KIOSK_UI_LANGUAGE);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
   /** 'in' = timbratura entrata, 'out' = timbratura uscita */
   const [punchMode, setPunchMode] = useState<'in' | 'out'>('in');
   const [pin, setPin] = useState('');
@@ -273,17 +281,19 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
 
   useEffect(() => {
     applyUnauthenticatedDocumentTheme();
+    // Il kiosk è un terminale condiviso: forza sempre la modalità dark.
+    document.documentElement.classList.add('dark');
   }, []);
 
   /** Auto-selezione: se c'è un turno ovvio e l'utente non ha cliccato "Cambia turno", salta alla schermata PIN */
   useEffect(() => {
-    if (selectedUser && obviousShift && !userWantsShiftList) {
+    if (selectedUser && obviousShift && !userWantsShiftList && !showWelcome) {
       setSelectedShift(obviousShift);
       // Determina la modalità in base allo stato del turno
       const isAwaitingOut = isPunched(obviousShift) && !isPunchedOut(obviousShift);
       setPunchMode(isAwaitingOut ? 'out' : 'in');
     }
-  }, [selectedUser, obviousShift, userWantsShiftList, isPunched, isPunchedOut]);
+  }, [selectedUser, obviousShift, userWantsShiftList, showWelcome, isPunched, isPunchedOut]);
 
   const suggestedShift = useMemo(() => {
     if (unpunchedShifts.length === 0) return null;
@@ -498,6 +508,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   const closeOverlay = () => {
     setSelectedUser(null);
     setSelectedShift(null);
+    setShowWelcome(false);
     setUserWantsShiftList(false);
     setPunchMode('in');
     setPin('');
@@ -505,7 +516,10 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-white text-slate-900 dark:bg-[#0a0a0a] dark:text-neutral-100 flex flex-col p-6 sm:p-8 relative">
+    <div
+      className="min-h-screen overflow-hidden text-neutral-100 flex flex-col p-6 sm:p-8 relative"
+      style={{ background: 'radial-gradient(circle at 50% 25%, rgba(180,210,255,0.18) 0%, transparent 22%), radial-gradient(ellipse at 50% 50%, #1a3785 0%, #0e1e60 18%, #050e2e 38%, #010618 62%, #000 100%)' }}
+    >
       <GiantBrandHeader now={now} locale={dateLocale}>
         <button
           type="button"
@@ -592,7 +606,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                   variants={cardVariants}
                   initial="hidden"
                   animate="visible"
-                  onClick={() => setSelectedUser(user)}
+                  onClick={() => { setSelectedUser(user); setShowWelcome(true); }}
                   whileTap={{ scale: 0.98 }}
                   className={`surface-glass surface-ghost-interactive flex w-full flex-col border-l-4 px-5 py-3.5 font-sans text-left transition-colors ${borderColor}`}
                 >
@@ -652,9 +666,86 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
         )}
       </motion.div>
 
+      {/* Schermata welcome full-screen per il dipendente selezionato */}
+      <AnimatePresence>
+        {selectedUser && showWelcome && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6 text-center"
+            style={{ background: 'radial-gradient(circle at 50% 25%, rgba(180,210,255,0.20) 0%, transparent 22%), radial-gradient(ellipse at 50% 50%, #1a3785 0%, #0e1e60 18%, #050e2e 38%, #010618 62%, #000 100%)' }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="mb-8"
+            >
+              <FlowNeonIcon
+                size={84}
+                progress={0.9}
+                transition={{ duration: 1.2, ease: 'easeOut' }}
+                idPrefix="kiosk-welcome"
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.18, type: 'spring', stiffness: 280, damping: 22 }}
+              className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl text-4xl font-bold text-white shadow-xl shadow-black/40"
+              style={{ background: 'linear-gradient(135deg, #0052FF 0%, #1a3785 100%)' }}
+            >
+              {selectedUser.first_name[0].toUpperCase()}
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.28 }}
+              className="mb-1.5 text-2xl font-bold text-white tracking-tight"
+            >
+              {now.getHours() < 12 ? 'Buongiorno!' : now.getHours() < 18 ? 'Buon pomeriggio!' : 'Buonasera!'}
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.34 }}
+              className="mb-10 text-base text-neutral-400"
+            >
+              Tocca per timbrare
+            </motion.p>
+
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.42 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setShowWelcome(false)}
+              className="mb-4 w-full max-w-xs rounded-xl bg-accent px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-accent/30 flex items-center justify-center gap-2"
+            >
+              Entra
+              <span aria-hidden>→</span>
+            </motion.button>
+
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              onClick={closeOverlay}
+              className="text-sm text-neutral-500 hover:text-neutral-300 transition-colors"
+            >
+              Esci
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Overlay: Selezione turno o PIN */}
       <AnimatePresence>
-        {selectedUser && (
+        {selectedUser && !showWelcome && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -670,14 +761,14 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
               onClick={(e) => e.stopPropagation()}
               className="modal-glass-panel w-full max-w-md overflow-hidden !p-0 rounded-2xl"
             >
-              <div className="flex items-center justify-between p-4 border-b border-slate-50">
-                <h2 className="text-lg font-semibold text-slate-900 uppercase font-sans tracking-wider">
+              <div className="flex items-center justify-between p-4 border-b border-neutral-700/60">
+                <h2 className="text-lg font-semibold text-neutral-100 uppercase font-sans tracking-wider">
                   {selectedUser.first_name.toUpperCase()}
                 </h2>
                 <button
                   onClick={closeOverlay}
                   disabled={isLoading}
-                  className="p-2 rounded-xl text-slate-500 dark:text-neutral-300 hover:bg-slate-100 transition-colors"
+                  className="p-2 rounded-xl text-neutral-400 hover:bg-white/10 transition-colors"
                   aria-label={t.cancel}
                 >
                   <X className="w-5 h-5" />
@@ -796,11 +887,11 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
               >
                 <CheckCircle2 className="w-16 h-16 text-accent mx-auto mb-4" strokeWidth={2} />
               </motion.div>
-              <p className="text-2xl font-semibold text-slate-900 font-sans">
+              <p className="text-2xl font-semibold text-neutral-100 font-sans">
                 {successPunchData?.type === 'out' ? t.punch_exit_registered_comma : t.good_work} {successUserName}!
               </p>
               {successPunchData && (
-                <div className="mt-4 text-sm text-slate-600 font-sans space-y-1">
+                <div className="mt-4 text-sm text-neutral-300 font-sans space-y-1">
                   <p>{t.registered_at} {successPunchData.realTime}</p>
                   {successPunchData.type === 'in' && (
                     <p>{t.hours_calc_from}: {successPunchData.roundedTime}</p>

@@ -1,5 +1,7 @@
 import { Bell, BellOff, Loader2, AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import { usePushNotifications } from '../hooks/usePushNotifications';
+import type { Language } from '../types';
+import { getTranslations } from '../utils/translations';
 
 interface NotificationPermissionButtonProps {
   effectiveLanguage?: string;
@@ -8,9 +10,11 @@ interface NotificationPermissionButtonProps {
 }
 
 export function NotificationPermissionButton({
+  effectiveLanguage,
   compact = false,
   userId,
 }: NotificationPermissionButtonProps) {
+  const t = getTranslations((effectiveLanguage ?? 'it') as Language);
   const {
     notificationPermission,
     isSubscribed,
@@ -27,7 +31,7 @@ export function NotificationPermissionButton({
     return (
       <div className="flex items-start gap-2 px-3 py-2.5 text-xs font-medium text-slate-500 dark:text-neutral-400 bg-slate-50 dark:bg-neutral-800/50 rounded-lg border border-slate-100 dark:border-neutral-700">
         <Info className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
-        <span>Notifiche push non supportate su questo browser. Usa Chrome, Edge o Firefox.</span>
+        <span>{t.notif_push_not_supported}</span>
       </div>
     );
   }
@@ -38,9 +42,9 @@ export function NotificationPermissionButton({
       <div className="flex items-start gap-2 px-3 py-2.5 text-xs font-semibold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
         <div className="flex flex-col gap-0.5">
-          <span>Notifiche bloccate nel browser</span>
+          <span>{t.notif_push_blocked}</span>
           <span className="font-normal text-red-600 dark:text-red-400">
-            Vai su: Impostazioni browser → Sito → Notifiche → Consenti
+            {t.notif_push_blocked_hint}
           </span>
         </div>
       </div>
@@ -61,7 +65,7 @@ export function NotificationPermissionButton({
         type="button"
         onClick={handleToggle}
         disabled={isLoading}
-        title={isSubscribed ? 'Notifiche attive — clicca per disattivare' : 'Attiva notifiche push'}
+        title={isSubscribed ? t.notif_push_active_title : t.notif_push_activate_title}
         className={`inline-flex items-center justify-center h-10 w-10 rounded-lg transition-colors disabled:opacity-50 ${
           isSubscribed
             ? 'bg-brand-100 dark:bg-[#001A80]/12 text-brand-700 dark:text-brand-300'
@@ -98,17 +102,40 @@ export function NotificationPermissionButton({
         ) : (
           <BellOff className="h-4 w-4" />
         )}
-        <span>{isSubscribed ? 'Notifiche Attive' : 'Attiva Notifiche'}</span>
+        <span>{isSubscribed ? (t.notif_push_deactivate ?? 'Disattiva Notifiche') : (t.notif_push_activate ?? 'Attiva Notifiche')}</span>
         {isSubscribed && savedOk && (
           <CheckCircle2 className="h-3.5 w-3.5 text-green-500 ml-auto" />
         )}
       </button>
 
+      {/* Stato corrente */}
+      <div className="flex items-center gap-3 px-1">
+        {/* Permesso browser (qui non è mai "denied": già gestito sopra) */}
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`h-2 w-2 rounded-full flex-shrink-0 ${
+              notificationPermission === 'granted' ? 'bg-green-500' : 'bg-amber-400'
+            }`}
+          />
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/30">
+            {notificationPermission === 'granted' ? 'Permesso concesso' : 'Permesso non richiesto'}
+          </span>
+        </div>
+        <span className="text-slate-200 dark:text-white/10 text-xs">·</span>
+        {/* Iscrizione push */}
+        <div className="flex items-center gap-1.5">
+          <span className={`h-2 w-2 rounded-full flex-shrink-0 ${isSubscribed ? 'bg-green-500' : 'bg-slate-300 dark:bg-white/20'}`} />
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/30">
+            {isSubscribed ? 'Iscritto' : 'Non iscritto'}
+          </span>
+        </div>
+      </div>
+
       {/* Conferma salvataggio */}
       {isSubscribed && savedOk && (
         <div className="flex items-center gap-1.5 text-[11px] font-medium text-green-600 dark:text-green-400">
           <CheckCircle2 className="h-3 w-3" />
-          <span>Subscription salvata — riceverai notifiche su questo dispositivo</span>
+          <span>{t.notif_push_saved}</span>
         </div>
       )}
 
@@ -123,7 +150,7 @@ export function NotificationPermissionButton({
       {/* Suggerimento iniziale */}
       {notificationPermission === 'default' && !isSubscribed && (
         <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-relaxed">
-          Attiva su ogni dispositivo per ricevere messaggi anche a schermo spento.
+          {t.notif_push_hint}
         </p>
       )}
     </div>

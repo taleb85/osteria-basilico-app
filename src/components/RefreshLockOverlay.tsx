@@ -3,7 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Smartphone, Fingerprint, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
-import { supportsPinUnlockWebAuthn } from '../utils/pinUnlockWebAuthn';
+import { supportsPinUnlockWebAuthn, hasPlatformBiometricAuthenticator } from '../utils/pinUnlockWebAuthn';
 import { PinPadModal } from './ui/PinPadModal';
 
 export default function RefreshLockOverlay() {
@@ -26,7 +26,12 @@ export default function RefreshLockOverlay() {
   const [linkDeviceLoading, setLinkDeviceLoading] = useState(false);
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
-  const webAuthnSupported = supportsPinUnlockWebAuthn();
+  const [webAuthnSupported, setWebAuthnSupported] = useState(false);
+  useEffect(() => {
+    if (supportsPinUnlockWebAuthn()) {
+      hasPlatformBiometricAuthenticator().then(setWebAuthnSupported);
+    }
+  }, []);
 
   const handleDeviceUnlock = async () => {
     if (deviceUnlockLoading || loading || linkDeviceLoading) return;

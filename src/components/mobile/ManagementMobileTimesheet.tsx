@@ -1,11 +1,25 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+
+function useDarkMode() {
+  const [dark, setDark] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  );
+  useEffect(() => {
+    const obs = new MutationObserver(() => {
+      setDark(document.documentElement.classList.contains('dark'));
+    });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
+  return dark;
+}
 import {
   format, startOfWeek, endOfWeek, isSameWeek,
   eachDayOfInterval, isToday, parseISO,
   addWeeks, startOfDay, endOfDay, isWithinInterval, getISOWeek,
 } from 'date-fns';
 import { it, es, enUS } from 'date-fns/locale';
-import { Clock, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, ChevronDown, Users } from 'lucide-react';
 import type { Shift, PunchRecord, User } from '../../types';
 import { translateDepartmentValue } from '../../utils/departmentLabels';
 import { getTranslations } from '../../utils/translations';
@@ -20,6 +34,7 @@ interface Props {
   users: User[];
   currentUserId: string;
   language: string;
+  plannedOnly?: boolean;
 }
 
 type NavMode = 'week' | 'period';
@@ -99,30 +114,29 @@ const dayStatusCfg: Record<DayStatus, { block: string; dot?: string }> = {
   empty:    { block: 'border border-slate-50 bg-slate-50/30 dark:border-white/[0.04] dark:bg-white/[0.02]' },
 };
 
-function StatusBadge({ status, t }: { status: DayStatus; t: Record<string, string> }) {
-  if (status === 'empty') return null;
-  const cfgs: Record<string, string> = {
-    worked:   'text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-500/20 dark:bg-emerald-500/[0.08]',
-    late:     'text-amber-600 border-amber-200 bg-amber-50 dark:text-amber-400 dark:border-amber-500/20 dark:bg-amber-500/[0.08]',
-    absent:   'text-red-500 border-red-200 bg-red-50 dark:text-red-400 dark:border-red-500/20 dark:bg-red-500/[0.08]',
-    no_punch: 'text-[#3366CC] border-[#3366CC]/20 bg-[#3366CC]/[0.06] dark:text-[#93c5fd] dark:border-[#3366CC]/20',
-  };
-  const labels: Record<string, string> = {
-    worked:   t.shifts_confirmed ?? 'Presente',
-    late:     'Ritardo',
-    absent:   t.status_absent ?? 'Assente',
-    no_punch: t.no_punch ?? 'No timbratura',
-  };
+function ShiftStatusBadge({ shift, t }: { shift: Shift; t: Record<string, string> }) {
+  const isAbsent = shift.approval_status === 'absent';
+  const isDraft  = shift.approval_status === 'draft';
+  const cls = isAbsent
+    ? 'text-red-500 border-red-200 bg-red-50 dark:text-red-400 dark:border-red-500/20 dark:bg-red-500/[0.08]'
+    : isDraft
+      ? 'text-slate-400 border-slate-200 bg-slate-50 dark:text-white/35 dark:border-white/10 dark:bg-white/[0.04]'
+      : 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-500/20 dark:bg-emerald-500/[0.08]';
+  const label = isAbsent
+    ? (t.status_absent ?? 'Assente')
+    : isDraft
+      ? (t.status_draft ?? 'Bozza')
+      : (t.shifts_confirmed ?? 'Confermato');
   return (
-    <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${cfgs[status] ?? ''}`}>
-      {labels[status]}
+    <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${cls}`}>
+      {label}
     </span>
   );
 }
 
 /* ── Sezione personale ─────────────────────────────────────────────────── */
 function MyTimesheetSection({
-  myShifts, myPunches, locale, dayLetters, language, t,
+  myShifts, myPunches, locale, dayLetters, language, t, plannedOnly,
 }: {
   myShifts: Shift[];
   myPunches: PunchRecord[];
@@ -130,10 +144,22 @@ function MyTimesheetSection({
   dayLetters: string[];
   language: string;
   t: Record<string, string>;
+  plannedOnly?: boolean;
 }) {
+  const isDark = useDarkMode();
+  const cardBg = isDark ? { background: 'transparent' } : { background: '#ffffff' };
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
-  const [listOpen, setListOpen] = useState(true);
+  const [closedWeeks, setClosedWeeks] = useState<Set<number>>(new Set());
   const weeks = useMemo(() => groupByWeeks(myShifts), [myShifts]);
+
+  function toggleWeek(wIdx: number) {
+    setClosedWeeks(prev => {
+      const next = new Set(prev);
+      if (next.has(wIdx)) next.delete(wIdx); else next.add(wIdx);
+      return next;
+    });
+    setSelectedDayKey(null);
+  }
 
   const punchByDay = useMemo(() => {
     const m: Record<string, PunchRecord[]> = {};
@@ -149,7 +175,7 @@ function MyTimesheetSection({
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
         <Clock className="w-6 h-6 text-slate-300 dark:text-white/20 mb-2" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/25">Nessuna presenza</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/25">{t.no_attendance_records}</p>
       </div>
     );
   }
@@ -168,159 +194,149 @@ function MyTimesheetSection({
           byDay[k].sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''));
         });
 
-        const totalMins = week.shifts.reduce((acc, s) => acc + shiftMins(s), 0);
-        const worked = weekDays.filter(d => {
-          const k = format(d, 'yyyy-MM-dd');
-          return getDayStatus(byDay[k] ?? [], punchByDay[k] ?? []) === 'worked'
-              || getDayStatus(byDay[k] ?? [], punchByDay[k] ?? []) === 'late';
-        }).length;
+        const confirmed = week.shifts.filter(s => s.approval_status !== 'absent');
+        const totalMins = confirmed.reduce((acc, s) => acc + shiftMins(s), 0);
+        const restDays = weekDays.filter(d =>
+          !(byDay[format(d, 'yyyy-MM-dd')] ?? []).some(s => s.approval_status !== 'absent')
+        ).length;
+        const isOpen = !closedWeeks.has(wIdx);
         const isDayInThisWeek = selectedDayKey !== null && weekDays.some(d => format(d, 'yyyy-MM-dd') === selectedDayKey);
 
         return (
           <div key={wIdx}>
-            {/* Separatore settimana */}
-            {wIdx > 0 && (
-              <div className="flex items-center gap-2 mb-3 mt-2">
-                <div className="flex-1 h-px bg-slate-100 dark:bg-white/[0.06]" />
-              </div>
-            )}
-            {/* Label settimana */}
-            <p className="text-[9px] font-black uppercase tracking-widest mb-2 text-slate-400 dark:text-white/30">
-              S.{getISOWeek(week.start)} · {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM', { locale })}
-            </p>
             <div
               className="rounded-2xl border border-slate-100 dark:border-white/[0.08] overflow-hidden shadow-sm dark:shadow-none"
-              style={
-                typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-                  ? { background: 'transparent' }
-                  : { background: '#ffffff' }
-              }
+              style={cardBg}
             >
-              {/* Griglia giorni */}
+              {/* Griglia giorni — stile identico alla scheda turni */}
               <div className="grid grid-cols-7 gap-1 px-2 pt-3 pb-2">
                 {weekDays.map((day, i) => {
                   const key = format(day, 'yyyy-MM-dd');
                   const dayShifts = byDay[key] ?? [];
-                  const dayPunches = punchByDay[key] ?? [];
-                  const status = getDayStatus(dayShifts, dayPunches);
-                  const cfg = dayStatusCfg[status];
+                  const hasShift = dayShifts.length > 0;
+                  const isAbsent = hasShift && dayShifts.some(s => s.approval_status === 'absent');
+                  const shiftCount = hasShift && !isAbsent ? dayShifts.filter(s => s.approval_status !== 'absent').length : 0;
                   const isToday_ = isToday(day);
                   const isSelected = selectedDayKey === key;
+                  const blockCls = hasShift && !isAbsent
+                    ? 'bg-[#3366CC]/[0.18] border border-[#3366CC]/[0.30]'
+                    : isAbsent
+                      ? 'bg-red-500/[0.08] border border-red-500/[0.18]'
+                      : 'border border-slate-50 bg-slate-50/30 dark:border-white/[0.04] dark:bg-white/[0.02]';
                   return (
                     <div
                       key={i}
-                      className="flex flex-col items-center gap-1 cursor-pointer"
-                      onClick={() => {
-                        if (selectedDayKey === key) {
-                          setListOpen(o => !o);
-                        } else {
-                          setSelectedDayKey(key);
-                          setListOpen(true);
-                        }
+                      className={`flex flex-col items-center gap-1 ${plannedOnly ? 'cursor-default' : 'cursor-pointer'}`}
+                      onClick={plannedOnly ? undefined : () => {
+                        setSelectedDayKey(prev => prev === key ? null : key);
+                        setClosedWeeks(prev => {
+                          const next = new Set(prev);
+                          next.delete(wIdx);
+                          return next;
+                        });
                       }}
                     >
                       <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-slate-400 dark:text-white/25'}`}>
                         {dayLetters[i]}
                       </span>
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-bold ${
                         isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-slate-500 dark:text-white/55'
                       }`}>
                         {format(day, 'd')}
                       </div>
-                      <div className={`w-full rounded-lg flex flex-col items-center justify-center py-1.5 px-0.5 min-h-[38px] transition-all ${cfg.block} ${
-                        isSelected ? 'ring-2 ring-[#3366CC]/60 ring-offset-1' : ''
+                      <div className={`w-full rounded-lg flex flex-col items-center justify-center py-1.5 px-0.5 min-h-[38px] transition-all ${blockCls} ${
+                        isSelected && !plannedOnly ? 'ring-2 ring-[#3366CC]/60 ring-offset-1' : ''
                       }`}>
-                        {cfg.dot && status !== 'empty' && (
-                          <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                        {shiftCount > 0 && (
+                          <span className="text-[13px] font-black text-[#3366CC] dark:text-[#93c5fd] leading-none drop-shadow-sm">
+                            {shiftCount}
+                          </span>
                         )}
+                        {isAbsent && <span className="text-[10px] font-bold text-red-500 dark:text-red-400 opacity-80">—</span>}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Footer stats + toggle */}
+              {/* Footer stats — identico alla scheda turni */}
               <div className="border-t border-slate-50 dark:border-white/[0.06] mx-3 pt-2.5 pb-3 flex items-center justify-around">
                 {[
-                  { label: 'Presenti', value: worked.toString() },
-                  { label: 'Ore tot', value: minsLabel(totalMins) },
+                  { label: t.shift_plural ?? 'Turni', value: confirmed.length.toString() },
+                  { label: t.stat_hours_total_abbr ?? 'Ore tot', value: minsLabel(totalMins) },
+                  { label: t.rest_days_label ?? 'Riposi', value: restDays.toString() },
                 ].map(({ label, value }, i) => (
                   <div key={i} className="flex flex-col items-center gap-0.5">
-                    <span className="text-sm font-black text-slate-800 dark:text-white/90 tabular-nums">{value}</span>
+                    <span className="text-sm font-bold text-slate-800 dark:text-white/90 tabular-nums">{value}</span>
                     <span className="text-[8px] text-slate-400 dark:text-white/30 uppercase font-bold tracking-wider">{label}</span>
                   </div>
                 ))}
+                {!plannedOnly && (
                 <button
                   type="button"
                   onClick={() => {
-                    if (listOpen && isDayInThisWeek) { setSelectedDayKey(null); }
-                    else { setListOpen(o => !o); }
+                    if (isDayInThisWeek) { setSelectedDayKey(null); }
+                    else { toggleWeek(wIdx); }
                   }}
-                  aria-label={listOpen ? 'Chiudi lista presenze' : 'Apri lista presenze'}
-                  className={`flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest ${
-                    isDayInThisWeek
-                      ? 'border-[#3366CC]/40 text-[#3366CC] dark:text-[#93c5fd]'
-                      : 'border-slate-200 dark:border-white/[0.08] text-slate-400 dark:text-white/30'
-                  }`}
+                  aria-label={isOpen ? 'Chiudi lista' : 'Apri lista'}
+                  className="flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest border-[#3366CC]/40 text-[#3366CC] dark:text-[#93c5fd]"
                 >
-                  <span>Settimana</span>
-                  <svg viewBox="0 0 16 16" fill="none" className={`w-3 h-3 transition-transform duration-200 ${listOpen && !isDayInThisWeek ? 'rotate-180' : 'rotate-0'}`} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <span>{t.ts_period_week ?? 'Settimana'}</span>
+                  <svg viewBox="0 0 16 16" fill="none" className={`w-3 h-3 transition-transform duration-200 ${isOpen && !isDayInThisWeek ? 'rotate-180' : 'rotate-0'}`} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="3,6 8,11 13,6" />
                   </svg>
                 </button>
+                )}
               </div>
             </div>
 
             {/* Lista dettaglio */}
-            {listOpen && (
+            {(isOpen || plannedOnly) && (
               <div className="flex flex-col gap-1.5 mt-2.5">
                 {weekDays.map(day => {
                   const key = format(day, 'yyyy-MM-dd');
                   const dayShifts = byDay[key] ?? [];
                   if (!dayShifts.length) return null;
-                  if (selectedDayKey && selectedDayKey !== key) return null;
-                  const dayPunches = punchByDay[key] ?? [];
-                  const status = getDayStatus(dayShifts, dayPunches);
-                  const pIn  = dayPunches.find(p => p.type === 'in');
-                  const pOut = dayPunches.find(p => p.type === 'out');
+                  if (!plannedOnly && selectedDayKey && selectedDayKey !== key) return null;
+                  const dayPunches = plannedOnly ? [] : (punchByDay[key] ?? []);
+                  const pIn  = plannedOnly ? null : dayPunches.find(p => p.type === 'in');
+                  const pOut = plannedOnly ? null : dayPunches.find(p => p.type === 'out');
+                  const isToday_ = isToday(day);
                   return (
                     <div key={key}>
-                      <p className="text-[10px] font-black uppercase tracking-widest mt-2 mb-1.5 text-[#3366CC] dark:text-[#93c5fd] flex items-center gap-2">
+                      <p className="text-[10px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-[#3366CC] dark:text-[#93c5fd]">
                         {format(day, 'EEEE d MMMM', { locale })}
-                        {isToday(day) && <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
+                        {isToday_ && <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
                       </p>
                       {dayShifts.map(shift => {
                         const isAbsent = shift.approval_status === 'absent';
                         return (
                           <div key={shift.id}
                             className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm dark:shadow-none ${
-                              isAbsent ? 'border-red-100 dark:border-red-500/[0.08]' : 'border-slate-100 dark:border-white/[0.08]'
+                              isAbsent
+                                ? 'border-red-100 dark:border-red-500/[0.08] bg-red-50 dark:bg-red-500/[0.04]'
+                                : 'border-slate-100 dark:border-white/[0.08]'
                             }`}
-                            style={
-                              typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-                                ? { background: isAbsent ? 'rgba(239,68,68,0.04)' : 'transparent' }
-                                : { background: isAbsent ? 'rgba(239,68,68,0.04)' : '#ffffff' }
-                            }
+                            style={isAbsent ? undefined : cardBg}
                           >
-                            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                              {/* Turno pianificato */}
-                              <p className={`font-black tabular-nums text-sm leading-none ${isAbsent ? 'text-slate-300 line-through dark:text-white/25' : 'text-slate-800 dark:text-white/90'}`}>
+                            <div className="flex flex-col gap-0.5">
+                              <p className={`font-bold tabular-nums text-base leading-none ${isAbsent ? 'text-slate-300 line-through dark:text-white/25' : 'text-slate-800 dark:text-white/90'}`}>
                                 {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                               </p>
-                              {/* Timbratura */}
-                              {!isAbsent && (pIn || pOut) && (
+                              {/* Timbratura — nascosta in modalità plannedOnly */}
+                              {!plannedOnly && !isAbsent && (pIn || pOut) && (
                                 <p className="text-[9px] tabular-nums text-slate-400 dark:text-white/30 mt-0.5 flex items-center gap-1">
                                   <Clock className="w-2.5 h-2.5 shrink-0" />
                                   {pIn ? punchLabel(pIn) : '–'} → {pOut ? punchLabel(pOut) : '–'}
                                 </p>
                               )}
                               {shift.department && (
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30 mt-0.5">
                                   {translateDepartmentValue(shift.department, language as any)}
                                 </p>
                               )}
                             </div>
-                            <StatusBadge status={status} t={t} />
+                            <ShiftStatusBadge shift={shift} t={t} />
                           </div>
                         );
                       })}
@@ -336,9 +352,9 @@ function MyTimesheetSection({
   );
 }
 
-/* ── Sezione team ──────────────────────────────────────────────────────── */
+/* ── Sezione team — accordion identico alla scheda turni ───────────────── */
 function TeamTimesheetSection({
-  teamShifts, allPunches, users, locale, language, t,
+  teamShifts, allPunches, users, locale, language, t, plannedOnly,
 }: {
   teamShifts: Shift[];
   allPunches: PunchRecord[];
@@ -346,10 +362,11 @@ function TeamTimesheetSection({
   locale: typeof it;
   language: string;
   t: Record<string, string>;
+  plannedOnly?: boolean;
 }) {
-  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
-  const [listOpen, setListOpen] = useState(true);
-  const weeks = useMemo(() => groupByWeeks(teamShifts), [teamShifts]);
+  const isDark = useDarkMode();
+  const cardBg = isDark ? { background: 'transparent' } : { background: '#ffffff' };
+  const [openDays, setOpenDays] = useState<Record<string, boolean>>({});
 
   const userMap = useMemo(() => {
     const m: Record<string, User> = {};
@@ -367,182 +384,120 @@ function TeamTimesheetSection({
     return m;
   }, [allPunches]);
 
-  if (teamShifts.length === 0) {
+  // Raggruppa tutti i turni team per giorno, ordinati per data
+  const byDay = useMemo(() => {
+    const map: Record<string, Shift[]> = {};
+    teamShifts.forEach(s => {
+      const k = format(parseISO(s.date), 'yyyy-MM-dd');
+      if (!map[k]) map[k] = [];
+      map[k].push(s);
+    });
+    Object.keys(map).forEach(k => {
+      map[k].sort((a, b) => {
+        const ta = (a.start_time ?? '').slice(0, 5);
+        const tb = (b.start_time ?? '').slice(0, 5);
+        if (ta !== tb) return ta.localeCompare(tb);
+        return (userMap[a.user_id]?.sort_order ?? 9999) - (userMap[b.user_id]?.sort_order ?? 9999);
+      });
+    });
+    return map;
+  }, [teamShifts, userMap]);
+
+  const sortedDays = useMemo(() =>
+    Object.keys(byDay).sort((a, b) => a.localeCompare(b)).map(k => parseISO(k)),
+    [byDay]
+  );
+
+  const toggle = useCallback((key: string) => {
+    setOpenDays(prev => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  if (sortedDays.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
         <Users className="w-6 h-6 text-slate-300 dark:text-white/20 mb-2" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/25">Nessuna presenza team</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/25">{t.no_team_attendance}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {weeks.map((week, wIdx) => {
-        const weekDays = eachDayOfInterval({ start: week.start, end: week.end });
-        const byDay: Record<string, Shift[]> = {};
-        week.shifts.forEach(s => {
-          const k = format(parseISO(s.date), 'yyyy-MM-dd');
-          if (!byDay[k]) byDay[k] = [];
-          byDay[k].push(s);
-        });
-        Object.keys(byDay).forEach(k => {
-          byDay[k].sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''));
-        });
-
-        const isDayInThisWeek = selectedDayKey !== null && weekDays.some(d => format(d, 'yyyy-MM-dd') === selectedDayKey);
-
-        // Conta lavoratori per giorno (per la griglia)
-        const workersByDay: Record<string, number> = {};
-        weekDays.forEach(d => {
-          const k = format(d, 'yyyy-MM-dd');
-          const ds = byDay[k] ?? [];
-          workersByDay[k] = ds.filter(s => s.approval_status !== 'absent').length;
-        });
+    <div className="flex flex-col gap-1.5">
+      {sortedDays.map(day => {
+        const key = format(day, 'yyyy-MM-dd');
+        const dayShifts = byDay[key] ?? [];
+        const isOpen = !!openDays[key];
+        const isToday_ = isToday(day);
+        const confirmed = dayShifts.filter(s => s.approval_status !== 'absent');
 
         return (
-          <div key={wIdx}>
-            <p className="text-[9px] font-black uppercase tracking-widest mb-2 text-slate-400 dark:text-white/30">
-              {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM yyyy', { locale })}
-            </p>
-
-            <div
-              className="rounded-2xl border border-slate-100 dark:border-white/[0.08] overflow-hidden shadow-sm dark:shadow-none mb-2"
-              style={
-                typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-                  ? { background: 'transparent' }
-                  : { background: '#ffffff' }
-              }
+          <div key={key} className="rounded-xl border border-slate-100 dark:border-white/[0.08] overflow-hidden shadow-sm dark:shadow-none" style={cardBg}>
+            {/* Header cassetto */}
+            <button
+              type="button"
+              onClick={() => toggle(key)}
+              className="w-full flex items-center justify-between px-3 py-2.5 active:bg-slate-50 dark:active:bg-white/[0.03] transition-colors"
             >
-              {/* Griglia giorni team */}
-              <div className="grid grid-cols-7 gap-1 px-2 pt-3 pb-2">
-                {weekDays.map((day, i) => {
-                  const key = format(day, 'yyyy-MM-dd');
-                  const count = workersByDay[key] ?? 0;
-                  const isToday_ = isToday(day);
-                  const isSelected = selectedDayKey === key;
-                  const blockCls = count > 0
-                    ? 'bg-[#3366CC]/[0.18] border border-[#3366CC]/[0.30]'
-                    : 'border border-slate-50 bg-slate-50/30 dark:border-white/[0.04] dark:bg-white/[0.02]';
+              <div className="flex items-center gap-2 min-w-0">
+                <span className={`text-[10px] font-black uppercase tracking-widest truncate ${
+                  isToday_ ? 'text-[#3366CC] dark:text-[#93c5fd]' : 'text-slate-700 dark:text-white/70'
+                }`}>
+                  {format(day, 'EEE d MMM', { locale })}
+                </span>
+                {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-[#3366CC] shrink-0 shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[9px] font-black tabular-nums text-slate-400 dark:text-white/30">
+                  {confirmed.length} {t.shift_plural ?? 'turni'}
+                </span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-slate-400 dark:text-white/30 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                  strokeWidth={2.5}
+                />
+              </div>
+            </button>
+
+            {/* Corpo cassetto */}
+            {isOpen && (
+              <div className="border-t border-slate-50 dark:border-white/[0.05] px-3 pb-2 pt-1.5 flex flex-col gap-1">
+                {dayShifts.map(shift => {
+                  const isAbsent = shift.approval_status === 'absent';
+                  const u = userMap[shift.user_id];
+                  const fullName = u ? `${u.first_name}${u.last_name ? ' ' + u.last_name : ''}` : '–';
+                  const dayPunches = plannedOnly ? [] : (punchByUserDay[`${shift.user_id}_${key}`] ?? []);
+                  const pIn  = plannedOnly ? null : dayPunches.find(p => p.type === 'in');
+                  const pOut = plannedOnly ? null : dayPunches.find(p => p.type === 'out');
                   return (
-                    <div
-                      key={i}
-                      className="flex flex-col items-center gap-1 cursor-pointer"
-                      onClick={() => {
-                        if (selectedDayKey === key) {
-                          setListOpen(o => !o);
-                        } else {
-                          setSelectedDayKey(key);
-                          setListOpen(true);
-                        }
-                      }}
+                    <div key={shift.id}
+                      className={`flex items-center justify-between rounded-lg px-2.5 py-2 border ${
+                        isAbsent
+                          ? 'border-red-100 dark:border-red-500/[0.08] bg-red-50/50 dark:bg-red-500/[0.03]'
+                          : 'border-slate-100 dark:border-white/[0.06]'
+                      }`}
+                      style={isAbsent ? undefined : cardBg}
                     >
-                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-slate-400 dark:text-white/25'}`}>
-                        {['L','M','M','G','V','S','D'][i]}
-                      </span>
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold ${
-                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-slate-500 dark:text-white/55'
-                      }`}>
-                        {format(day, 'd')}
-                      </div>
-                      <div className={`w-full rounded-lg flex flex-col items-center justify-center py-1.5 px-0.5 min-h-[38px] transition-all ${blockCls} ${
-                        isSelected ? 'ring-2 ring-[#3366CC]/60 ring-offset-1' : ''
-                      }`}>
-                        {count > 0 && (
-                          <span className="text-[11px] font-black text-[#3366CC] dark:text-[#93c5fd] leading-none">
-                            {count}
-                          </span>
+                      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                        <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-white/50 truncate">
+                          {fullName}
+                        </p>
+                        <p className={`font-black tabular-nums text-sm leading-none ${
+                          isAbsent ? 'text-slate-300 line-through dark:text-white/25' : 'text-slate-800 dark:text-white/90'
+                        }`}>
+                          {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
+                        </p>
+                        {!plannedOnly && !isAbsent && (pIn || pOut) && (
+                          <p className="text-[9px] tabular-nums text-slate-400 dark:text-white/30 mt-0.5 flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5 shrink-0" />
+                            {pIn ? punchLabel(pIn) : '–'} → {pOut ? punchLabel(pOut) : '–'}
+                          </p>
+                        )}
+                        {shift.department && (
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30 mt-0.5">
+                            {translateDepartmentValue(shift.department, language as any)}
+                          </p>
                         )}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Footer */}
-              <div className="border-t border-slate-50 dark:border-white/[0.06] mx-3 pt-2.5 pb-3 flex items-center justify-around">
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-sm font-black text-slate-800 dark:text-white/90 tabular-nums">
-                    {week.shifts.filter(s => s.approval_status !== 'absent').length}
-                  </span>
-                  <span className="text-[8px] text-slate-400 dark:text-white/30 uppercase font-bold tracking-wider">Turni</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (listOpen && isDayInThisWeek) { setSelectedDayKey(null); }
-                    else { setListOpen(o => !o); }
-                  }}
-                  className={`flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest ${
-                    isDayInThisWeek
-                      ? 'border-[#3366CC]/40 text-[#3366CC] dark:text-[#93c5fd]'
-                      : 'border-slate-200 dark:border-white/[0.08] text-slate-400 dark:text-white/30'
-                  }`}
-                >
-                  <span>Settimana</span>
-                  <svg viewBox="0 0 16 16" fill="none" className={`w-3 h-3 transition-transform duration-200 ${listOpen && !isDayInThisWeek ? 'rotate-180' : 'rotate-0'}`} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3,6 8,11 13,6" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Lista dettaglio team */}
-            {listOpen && (
-              <div className="flex flex-col gap-1.5">
-                {weekDays.map(day => {
-                  const key = format(day, 'yyyy-MM-dd');
-                  const dayShifts = byDay[key] ?? [];
-                  if (!dayShifts.length) return null;
-                  if (selectedDayKey && selectedDayKey !== key) return null;
-                  return (
-                    <div key={key}>
-                      <p className="text-[10px] font-black uppercase tracking-widest mt-2 mb-1.5 text-[#3366CC] dark:text-[#93c5fd] flex items-center gap-2">
-                        {format(day, 'EEEE d MMMM', { locale })}
-                        {isToday(day) && <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
-                      </p>
-                      {dayShifts.map(shift => {
-                        const isAbsent = shift.approval_status === 'absent';
-                        const u = userMap[shift.user_id];
-                        const fullName = u ? `${u.first_name} ${u.last_name}` : '–';
-                        const dayPunches = punchByUserDay[`${shift.user_id}_${key}`] ?? [];
-                        const status = getDayStatus([shift], dayPunches);
-                        const pIn  = dayPunches.find(p => p.type === 'in');
-                        const pOut = dayPunches.find(p => p.type === 'out');
-                        return (
-                          <div key={shift.id}
-                            className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm dark:shadow-none ${
-                              isAbsent ? 'border-red-100 dark:border-red-500/[0.08]' : 'border-slate-100 dark:border-white/[0.08]'
-                            }`}
-                            style={
-                              typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-                                ? { background: isAbsent ? 'rgba(239,68,68,0.04)' : 'transparent' }
-                                : { background: isAbsent ? 'rgba(239,68,68,0.04)' : '#ffffff' }
-                            }
-                          >
-                            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                              <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-white/50 truncate">
-                                {fullName}
-                              </p>
-                              <p className={`font-black tabular-nums text-sm leading-none ${isAbsent ? 'text-slate-300 line-through dark:text-white/25' : 'text-slate-800 dark:text-white/90'}`}>
-                                {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
-                              </p>
-                              {!isAbsent && (pIn || pOut) && (
-                                <p className="text-[9px] tabular-nums text-slate-400 dark:text-white/30 mt-0.5 flex items-center gap-1">
-                                  <Clock className="w-2.5 h-2.5 shrink-0" />
-                                  {pIn ? punchLabel(pIn) : '–'} → {pOut ? punchLabel(pOut) : '–'}
-                                </p>
-                              )}
-                              {shift.department && (
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">
-                                  {translateDepartmentValue(shift.department, language as any)}
-                                </p>
-                              )}
-                            </div>
-                            <StatusBadge status={status} t={t} />
-                          </div>
-                        );
-                      })}
+                      <ShiftStatusBadge shift={shift} t={t} />
                     </div>
                   );
                 })}
@@ -556,7 +511,7 @@ function TeamTimesheetSection({
 }
 
 /* ── Componente principale ─────────────────────────────────────────────── */
-export default function ManagementMobileTimesheet({ shifts, punchRecords, users, currentUserId, language }: Props) {
+export default function ManagementMobileTimesheet({ shifts, punchRecords, users, currentUserId, language, plannedOnly }: Props) {
   const locale = getLocale(language);
   const t = getTranslations(language as 'it' | 'en' | 'es') as Record<string, string>;
   const dayLetters = getDayLetters(locale);
@@ -602,14 +557,14 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
   const teamPunches = useMemo(() => filteredPunches.filter(p => p.user_id !== currentUserId), [filteredPunches, currentUserId]);
 
   return (
-    <div className="flex flex-col pb-24 pt-1">
+    <div className="flex flex-col pb-content pt-1">
 
       {/* Barra navigazione periodo */}
       <div className="flex items-center gap-2 mb-5 px-4">
         <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#3366CC]/40 text-[#3366CC] dark:text-[#93c5fd] text-[9px] font-black uppercase tracking-widest shrink-0">
-          Periodo
+          {t.tab_period ?? 'Periodo'}
         </span>
-        <div className="flex items-center border border-slate-100 dark:border-white/[0.08] rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md" style={{ background: 'transparent', boxShadow: 'none' }}>
+        <div className="flex items-center border border-slate-300 dark:border-white/20 rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md" style={{ background: 'transparent', boxShadow: '0 0 0 1px rgba(0,0,0,0.06)' }}>
           <button type="button" onClick={() => setNavOffset(o => o - 1)}
             className="flex items-center justify-center h-9 w-9 text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors shrink-0 border-r border-slate-100 dark:border-white/[0.08]">
             <ChevronLeft className="h-4 w-4" />
@@ -630,19 +585,19 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
         {/* I miei turni */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/35">Le mie presenze</span>
-            {myShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-slate-300 dark:text-white/20">({myShifts.length})</span>}
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white/80">{t.my_attendance_label ?? 'Le mie presenze'}</span>
+            {myShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#3366CC] dark:text-[#93c5fd]">({myShifts.length})</span>}
           </div>
-          <MyTimesheetSection myShifts={myShifts} myPunches={myPunches} locale={locale} dayLetters={dayLetters} language={language} t={t} />
+          <MyTimesheetSection myShifts={myShifts} myPunches={myPunches} locale={locale} dayLetters={dayLetters} language={language} t={t} plannedOnly={plannedOnly} />
         </section>
 
         {/* Team */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/35">Team</span>
-            {teamShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-slate-300 dark:text-white/20">({teamShifts.length})</span>}
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white/80">Team</span>
+            {teamShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#3366CC] dark:text-[#93c5fd]">({teamShifts.length})</span>}
           </div>
-          <TeamTimesheetSection teamShifts={teamShifts} allPunches={teamPunches} users={users} locale={locale} language={language} t={t} />
+          <TeamTimesheetSection teamShifts={teamShifts} allPunches={teamPunches} users={users} locale={locale} language={language} t={t} plannedOnly={plannedOnly} />
         </section>
 
       </div>

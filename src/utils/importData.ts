@@ -41,7 +41,14 @@ export async function importDataToSupabase(data: ImportData): Promise<void> {
       for (const record of data.punchRecords) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars -- id excluded for insert
         const { id, ...recordData } = record;
-        await database.punchRecords.insert(recordData);
+        const po = { ...recordData } as Omit<PunchRecord, 'id'>;
+        const hasTs = Boolean(po.timestamp && String(po.timestamp).trim());
+        const srcOk =
+          po.source === 'manual' || po.source === 'kiosk' || po.source === 'manager';
+        await database.punchRecords.insert({
+          ...po,
+          source: srcOk ? po.source! : hasTs ? 'manual' : 'kiosk',
+        });
       }
     }
   } catch (error) {

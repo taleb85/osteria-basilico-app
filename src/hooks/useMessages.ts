@@ -193,7 +193,7 @@ export function useMessages(userId?: string, isAdmin = false) {
       setSubscription(channel);
 
       return () => {
-        supabase.removeChannel(channel);
+        if (supabase) supabase.removeChannel(channel);
       };
     } catch (err) {
       console.error('[useMessages] Real-time error:', err);
@@ -202,41 +202,34 @@ export function useMessages(userId?: string, isAdmin = false) {
   }, [userId, isAdmin, loadMessages]);
 
   /**
-   * Marca un messaggio come letto.
+   * Marca un singolo messaggio come letto.
    */
   const markAsRead = useCallback(
     async (messageId: string) => {
       if (!userId) return false;
 
       try {
-        // Validazione di sicurezza
         if (!supabase) {
           console.warn('[useMessages] Supabase client not initialized');
           return false;
         }
 
-        // Update messaggio in Supabase
         const { error: supabaseError } = await supabase
           .from('staff_messages')
           .update({ is_read: true, read_at: new Date().toISOString() })
           .eq('id', messageId);
 
-        // Gestione errori Supabase
         if (supabaseError) {
-          // Gestione RLS errors (403)
           if (supabaseError.code === 'PGRST116' || supabaseError.code === '42501') {
             console.warn('[useMessages] Permission denied (RLS) marking as read');
             return false;
           }
-
           throw supabaseError;
         }
 
-        // Aggiorna lo stato locale
         setMessages((prev) =>
           prev.map((m) => (m.id === messageId ? { ...m, is_read: true } : m))
         );
-
         setUnreadCount((prev) => Math.max(0, prev - 1));
         return true;
       } catch (err) {
@@ -246,6 +239,48 @@ export function useMessages(userId?: string, isAdmin = false) {
     },
     [userId]
   );
+
+  /**
+   * Marca tutti i messaggi non letti (ricevuti) come letti in una sola query.
+   * Viene chiamata quando l'utente apre il modal notifiche.
+   */
+  const markAllAsRead = useCallback(async () => {
+    if (!userId || !supabase) return false;
+
+    // IDs di tutti i messaggi non letti ricevuti dall'utente corrente
+    const unreadIds = messages
+      .filter((m) => !m.is_read && m.sender_id !== userId)
+      .map((m) => m.id);
+
+    if (unreadIds.length === 0) return true;
+
+    try {
+      const { error: supabaseError } = await supabase
+        .from('staff_messages')
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .in('id', unreadIds);
+
+      if (supabaseError) {
+        if (supabaseError.code === 'PGRST116' || supabaseError.code === '42501') {
+          console.warn('[useMessages] Permission denied (RLS) marking all as read');
+          return false;
+        }
+        throw supabaseError;
+      }
+
+      // Aggiorna lo stato locale senza ricaricare tutto
+      setMessages((prev) =>
+        prev.map((m) =>
+          unreadIds.includes(m.id) ? { ...m, is_read: true } : m
+        )
+      );
+      setUnreadCount(0);
+      return true;
+    } catch (err) {
+      console.error('[useMessages] Error marking all as read:', err);
+      return false;
+    }
+  }, [userId, messages]);
 
   /**
    * Invia un nuovo messaggio.
@@ -347,6 +382,7 @@ export function useMessages(userId?: string, isAdmin = false) {
     error,
     unreadCount,
     markAsRead,
+    markAllAsRead,
     sendMessage,
     deleteMessage,
     loadMessages,

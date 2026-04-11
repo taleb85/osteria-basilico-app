@@ -19,6 +19,8 @@ import { CenteredModalPortal } from './ui/CenteredModalPortal';
 export default function NotificationCenter({ denseTrigger = false }: { denseTrigger?: boolean } = {}) {
   const { currentUser, shifts, holidays, users, effectiveLanguage } = useApp();
   const [isOpen, setIsOpen] = useState(false);
+  // Tick incrementato dopo markAllSeen per forzare re-lettura seenIds da localStorage
+  const [seenTick, setSeenTick] = useState(0);
   const t = getTranslations(effectiveLanguage);
 
   // Generazione e sincronizzazione feed
@@ -28,13 +30,21 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
     return syncNotificationFeed(currentUser.id, fresh);
   }, [currentUser, shifts, holidays, users, t, effectiveLanguage]);
 
-  const seenIds = useMemo(() => (currentUser ? getSeenIds(currentUser.id) : new Set<string>()), [currentUser, feed]);
+  // seenTick incluso nelle dipendenze per aggiornare subito dopo markAllSeen
+  const seenIds = useMemo(
+    () => (currentUser ? getSeenIds(currentUser.id) : new Set<string>()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currentUser, feed, seenTick]
+  );
   const unreadCount = feed.filter((n) => !seenIds.has(n.id)).length;
 
   const handleOpen = useCallback(() => {
     setIsOpen(true);
     if (currentUser && unreadCount > 0) {
       markAllSeen(currentUser.id, feed.map((n) => n.id));
+      setSeenTick((x) => x + 1);
+      // Notifica AppContext di ricalcolare il badge sull'icona PWA
+      window.dispatchEvent(new CustomEvent('notifications-seen'));
     }
   }, [currentUser, unreadCount, feed]);
 

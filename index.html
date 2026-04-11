@@ -12,12 +12,14 @@
     <script>
       (function(){
         var t=localStorage.getItem('userTheme')||localStorage.getItem('theme');
+        var isDark;
         if(t==='dark'||t==='light'){
-          document.documentElement.classList.toggle('dark',t==='dark');
+          isDark = t==='dark';
         } else {
-          var sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          document.documentElement.classList.toggle('dark', sysDark);
+          isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         }
+        document.documentElement.classList.toggle('dark', isDark);
+        if (document.body) document.body.style.background = isDark ? '#0a0a0a' : '#f8fafc';
         if(location.search.includes('nocache=1')){
           Promise.all([
             navigator.serviceWorker?.getRegistrations?.().then(function(r){ return Promise.all(r.map(function(s){return s.unregister();})); })||Promise.resolve(),
@@ -40,25 +42,26 @@
       })();
     </script>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=0" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=%VITE_TENANT_SLUG%-v3" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=%VITE_TENANT_SLUG%-v3" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=%VITE_TENANT_SLUG%-v3" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=%VITE_TENANT_SLUG%-v3" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=%VITE_TENANT_SLUG%-v4" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=%VITE_TENANT_SLUG%-v4" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=%VITE_TENANT_SLUG%-v4" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=%VITE_TENANT_SLUG%-v4" />
 
     <!-- Apple Touch Icon (Safari / iOS — precomposed ha priorità massima) -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=%VITE_TENANT_SLUG%-v3" />
-    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon.png?v=%VITE_TENANT_SLUG%-v3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=%VITE_TENANT_SLUG%-v4" />
+    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon.png?v=%VITE_TENANT_SLUG%-v4" />
 
     <!-- PWA Manifest (iniettato da vite-plugin-pwa) -->
 
-    <!-- Theme FLOW: blu elettrico uniforme su light/dark -->
+    <!-- Theme FLOW -->
     <meta name="theme-color" content="#0052FF" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0052FF" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#0033BB" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- black-translucent → status bar trasparente, app a tutto schermo -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="FLOW" />
 

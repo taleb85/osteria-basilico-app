@@ -15,7 +15,8 @@ import {
   User as UserIconLucide,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import type { User, EnabledFeatures } from '../types';
+import type { User } from '../types';
+import type { EnabledFeatures } from '../utils/enabledFeatures';
 import { getTranslations } from '../utils/translations';
 import { translateRole } from '../utils/roles';
 import { isAdminOnly, isManagementRole } from '../utils/permissions';
@@ -127,11 +128,11 @@ type Props = {
 };
 
 export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }: Props = {}) {
-  const { users, currentUser, updateUser, deleteUser, featureFlags, showSuccess, effectiveLanguage } = useApp();
+  const { users, currentUser, updateUser, deleteUser, featureFlags, showSuccess, effectiveLanguage, isSessionElevated } = useApp();
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
 
-  const canUseHub = currentUser && isAdminOnly(currentUser);
+  const canUseHub = currentUser && (isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role);
 
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'staff' | 'management'>('all');
@@ -184,8 +185,8 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
 
   useEffect(() => {
     if (selected) {
-      const features = { ...selected.enabled_features };
-      const modules = [...(selected.enabled_modules || [])];
+      const features = { ...selected.enabled_features } as EnabledFeatures;
+      const modules = [...(selected.enabled_modules || [])] as import('../utils/enabledModules').EnabledModule[];
       const ui = { ...selected.ui_section_overrides };
       setOriginalState({ features, modules, ui });
       setLocalFeatures(features);
@@ -322,8 +323,8 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
 
     setIsStaffDeleting(true);
     try {
-      const success = await deleteUser?.(selected.id);
-      if (success) {
+      const result = await deleteUser(selected.id);
+      if (result !== false) {
         showSuccess?.((tv.profile_visibility_delete_success ?? 'Profilo di {name} eliminato.').replace('{name}', fullName));
         setSelectedId(null);
       }
@@ -609,7 +610,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                       : (tv.profile_visibility_reset_all ?? 'Ripristina al template ruolo')}
                   </button>
 
-                  {isAdminOnly(currentUser) && !hasUnsavedChanges && (
+                  {(isAdminOnly(currentUser) || isSessionElevated || !!currentUser?.elevated_role) && !hasUnsavedChanges && (
                     <button
                       type="button"
                       onClick={handleDeleteUser}

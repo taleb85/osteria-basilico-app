@@ -70,7 +70,7 @@ function NeonIcon({ progress = 1 }: { progress?: number }) {
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={SW} />
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#prev-s)" strokeWidth={SW} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} strokeLinecap="round" transform={rot} />
       </svg>
-      <img src="/flow-app-icon.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
+      <img src="/icon-flow-final.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
     </div>
   );
 }
@@ -96,7 +96,7 @@ function LightRing({ progress = 1 }: { progress?: number }) {
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth={SW} />
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#prev-sl)" strokeWidth={SW} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} strokeLinecap="round" transform={rot} />
       </svg>
-      <img src="/flow-app-icon.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
+      <img src="/icon-flow-final.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
     </div>
   );
 }
@@ -796,7 +796,7 @@ function DesktopShell({ dark, active, children }: { dark: boolean; active: strin
         style={{ width: SIDEBAR_W }}>
         {/* Logo */}
         <div className={`flex items-center gap-3 px-5 py-5 border-b ${dark ? 'border-white/8' : 'border-slate-100'}`}>
-          <img src="/flow-app-icon.png" alt="FLOW" className="w-8 h-8 rounded-xl object-cover" draggable={false} />
+          <img src="/icon-flow-final.png" alt="FLOW" className="w-8 h-8 rounded-xl object-cover" draggable={false} />
           <div>
             <p className={`text-xs font-black tracking-[0.18em] uppercase leading-none ${dark ? 'text-white' : 'text-slate-800'}`}>FLOW</p>
             <p className={`text-[9px] tracking-wider ${dark ? 'text-white/40' : 'text-slate-400'}`}>Work in Motion</p>
@@ -1120,7 +1120,8 @@ function DProfiloMock({ dark }: { dark: boolean }) {
 /* ── Dati schermate ──────────────────────────────────────────────── */
 type ScreenId = 'boot' | 'sync1' | 'sync2' | 'sync3' | 'login' | 'pwa-ios' | 'pwa-android' | 'pwa-desktop' | 'sw1' | 'sw2' | 'sw3' | 'pu1' | 'pu2' | 'pu3' | 'refresh-lock' | 'kiosk' | 'invite'
   | 'tab-panoramica' | 'tab-turni' | 'tab-presenze' | 'tab-ferie' | 'tab-profilo'
-  | 'dtab-panoramica' | 'dtab-turni' | 'dtab-presenze' | 'dtab-ferie' | 'dtab-profilo';
+  | 'dtab-panoramica' | 'dtab-turni' | 'dtab-presenze' | 'dtab-ferie' | 'dtab-profilo'
+  | 'full-app-preview' | 'mockup-cards' | 'home-mgmt' | 'turni-mgmt' | 'ts-mgmt' | 'staff-home' | 'staff-shifts' | 'staff-ferie' | 'staff-ts' | 'stats-preview' | 'settings-preview';
 
 const SYSTEM_TABS: { id: ScreenId; label: string; defaultDark: boolean }[] = [
   { id: 'boot',         label: '① Avvio',         defaultDark: true  },

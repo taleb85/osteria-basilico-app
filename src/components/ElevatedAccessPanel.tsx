@@ -7,11 +7,8 @@ import { useState, useMemo } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { translateRole } from '../utils/roles';
-import { getTranslations } from '../utils/translations';
-
 export default function ElevatedAccessPanel() {
   const { users, updateUser, effectiveLanguage } = useApp();
-  const t = getTranslations(effectiveLanguage);
 
   const eligibleUsers = useMemo(
     () => users.filter((u) => u.status === 'active' && u.role !== 'admin'),
@@ -67,7 +64,7 @@ export default function ElevatedAccessPanel() {
                   {u.first_name} {u.last_name ?? ''}
                 </p>
                 <p className="text-[10px] text-slate-400 dark:text-white/30 uppercase tracking-wide">
-                  {translateRole(u.role, t)}
+                  {translateRole(u.role, effectiveLanguage)}
                 </p>
               </div>
             </div>

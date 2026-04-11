@@ -1,9 +1,10 @@
 import { useLayoutEffect, useRef, useState, useCallback, useEffect, useMemo } from 'react';
-import { Home, Calendar, ClipboardList, Clock, ShieldCheck, Palmtree, User, Search, X, Delete, Fingerprint } from 'lucide-react';
+import { Home, Calendar, ClipboardList, Clock, ShieldCheck, Palmtree, User, Search, X, Delete, Fingerprint, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
 import type { AppNavTab } from '../utils/enabledModules';
+import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 import {
   readProfileAvatarFromStorage,
   readAvatarFocus,
@@ -28,7 +29,8 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClassName }: BottomNavProps) {
   const navRef = useRef<HTMLElement>(null);
-  const { effectiveLanguage, currentUser, users, setCurrentUser, setIsSessionElevated } = useApp();
+  const { effectiveLanguage, currentUser, users, setCurrentUser, setIsSessionElevated, isSessionElevated } = useApp();
+  const { triggerHapticFeedback } = useMultisensorialFeedback();
   /** Contenuto che scorre sotto la nav fissa → vetro trasparente; altrimenti tinta piena FLOW blue. */
   const [navOverContent, setNavOverContent] = useState(false);
 
@@ -214,7 +216,11 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     // 'reports' removed — Statistiche now lives as sub-tab inside 'timesheet'
     { id: 'ferie', icon: Palmtree, label: t.sidebar_holidays },
     { id: 'profile', icon: User, label: tv.bottom_nav_profile_short ?? t.sidebar_profile },
-    { id: 'settings', icon: ShieldCheck, label: t.sidebar_admin },
+    {
+      id: 'settings' as AppNavTab,
+      icon: (isAdminOnly(currentUser) || isSessionElevated || !!currentUser?.elevated_role) ? ShieldCheck : Settings,
+      label: t.sidebar_admin,
+    },
   ];
 
   const tabs = defs.filter((d) => visible.has(d.id));
@@ -237,27 +243,6 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
         {/* Barra flottante vetro sul brand — `.bottom-nav-glass` in index.css */}
         <div className="bottom-nav-glass w-full rounded-2xl px-1 py-2 sm:px-2.5 sm:py-2.5">
           <div className="flex items-center justify-around gap-1 sm:gap-1.5">
-            {hasElevatedAdminTab && (
-              <button
-                type="button"
-                onClick={() => onTabChange('settings')}
-                title="Admin"
-                aria-label="Scheda Admin"
-                className={`keep-white-glass flex h-[46px] w-[46px] sm:h-[52px] sm:w-[52px] shrink-0 rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.97] items-center justify-center ${
-                  activeTab === 'settings'
-                    ? 'bg-white/22 text-white'
-                    : 'bg-white/8 text-white/45 hover:bg-white/18 hover:text-white'
-                }`}
-              >
-                <ShieldCheck
-                  className={`h-[22px] w-[22px] sm:h-6 sm:w-6 flex-shrink-0 transition-[color,filter] duration-200 ${
-                    activeTab === 'settings' ? 'nav-icon-3d-active text-white' : 'nav-icon-3d text-white/45'
-                  }`}
-                  strokeWidth={activeTab === 'settings' ? 1.75 : 1.2}
-                  aria-hidden
-                />
-              </button>
-            )}
             {tabs.map(({ id, icon: Icon, label }) => {
               const isActive = activeTab === id;
               const displayLabel =
@@ -280,7 +265,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                 <button
                   key={id}
                   type="button"
-                  onClick={() => onTabChange(id)}
+                  onClick={() => { triggerHapticFeedback('click'); onTabChange(id); }}
                   onMouseDown={() => handleLongPressStart(id)}
                   onMouseUp={handleLongPressEnd}
                   onMouseLeave={handleLongPressEnd}
@@ -299,7 +284,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   onTouchMove={handleLongPressEnd}
                   title={buttonTitle}
                   aria-label={ariaLabel}
-                  className={`keep-white-glass flex h-[46px] w-[46px] sm:h-[52px] sm:w-[52px] shrink-0 rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] items-center justify-center ${
+                  className={`keep-white-glass flex ${id === 'profile' ? 'h-[46px] sm:h-[52px] px-2 sm:px-2.5 min-w-[46px] sm:min-w-[52px] lg:px-3 gap-2' : 'h-[46px] w-[46px] sm:h-[52px] sm:w-[52px]'} shrink-0 rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] items-center justify-center ${
                     over
                       ? isActive
                         ? 'bg-white dark:bg-neutral-900 shadow-[0_0_6px_1px_rgba(0,26,128,0.22),0_0_14px_3px_rgba(51,102,204,0.12)] text-accent dark:text-white focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
@@ -347,9 +332,37 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                       aria-hidden
                     />
                   )}
+                  {id === 'profile' && (
+                    <span className={`hidden lg:block text-xs font-semibold truncate max-w-[80px] transition-[color,opacity] duration-200 ${
+                      isActive ? 'text-white opacity-100' : 'text-white/45'
+                    }`}>
+                      {profileDisplayName}
+                    </span>
+                  )}
                 </button>
               );
             })}
+            {hasElevatedAdminTab && (
+              <button
+                type="button"
+                onClick={() => { triggerHapticFeedback('click'); onTabChange('settings'); }}
+                title="Admin"
+                aria-label="Scheda Admin"
+                className={`keep-white-glass flex h-[46px] w-[46px] sm:h-[52px] sm:w-[52px] shrink-0 rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.97] items-center justify-center ${
+                  activeTab === 'settings'
+                    ? 'bg-white/22 text-white'
+                    : 'bg-white/8 text-white/45 hover:bg-white/18 hover:text-white'
+                }`}
+              >
+                <ShieldCheck
+                  className={`h-[22px] w-[22px] sm:h-6 sm:w-6 flex-shrink-0 transition-[color,filter] duration-200 ${
+                    activeTab === 'settings' ? 'nav-icon-3d-active text-white' : 'nav-icon-3d text-white/45'
+                  }`}
+                  strokeWidth={activeTab === 'settings' ? 1.75 : 1.2}
+                  aria-hidden
+                />
+              </button>
+            )}
           </div>
         </div>
         <span className="sr-only" title={t.version}>
@@ -424,9 +437,6 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold truncate">
                       {u.first_name} {u.last_name}
-                    </p>
-                    <p className="text-[11px] opacity-60 truncate">
-                      {u.email}
                     </p>
                   </div>
                   {currentUser?.id === u.id && (

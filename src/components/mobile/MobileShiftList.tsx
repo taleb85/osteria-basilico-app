@@ -24,7 +24,7 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
   }
 
   return (
-    <div className="flex flex-col gap-3 px-4 pb-24">
+    <div className="flex flex-col gap-3 px-4 pb-content">
       {shifts.map((shift) => {
         const isAbsent = shift.approval_status === 'absent';
         const isDraft = shift.approval_status === 'draft';

@@ -53,7 +53,7 @@ const DEFAULT_ADMIN: EnabledModule[] = [...ENABLED_MODULES];
 const DEFAULT_STAFF: EnabledModule[] = ['my_shifts'];
 
 export function getDefaultEnabledModules(role: string): EnabledModule[] {
-  if (role === 'admin' || role === 'manager' || role === 'assistant_manager' || role === 'capo') {
+  if (role === 'admin' || role === 'manager' || role === 'assistant_manager') {
     return DEFAULT_ADMIN;
   }
   return DEFAULT_STAFF;
@@ -138,7 +138,7 @@ export function getAppNavTabTitle(t: Record<string, string>, tab: AppNavTab): st
     case 'timesheet':
       return t.timesheet_title;
     case 'settings':
-      return t.sidebar_admin;
+      return (t as Record<string, string>).bottom_nav_settings_title ?? 'Impostazioni';
     case 'profile':
       return (t as Record<string, string>).bottom_nav_profile ?? t.sidebar_profile;
   }

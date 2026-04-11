@@ -374,6 +374,7 @@ export default function MobileStaffDashboard({
             onEnd={() => void handleEnd()}
             onNavigateToTimesheet={() => onTabChange?.('timesheet')}
             todayWorkShifts={todayWorkShifts}
+            detailLabel={t.detail_link}
           />
         );
       case 'turni':

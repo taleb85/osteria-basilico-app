@@ -13,12 +13,15 @@ import {
   ChevronDown,
   Users,
   MapPin,
+  Bell,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getFeatureStrings, formatTrans } from '../utils/translations';
 import { isAdminOnly } from '../utils/permissions';
+import { translateRole } from '../utils/roles';
 import { FEATURE_DEFINITIONS } from '../utils/featureFlags';
 import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage';
+import { supabase } from '../lib/supabase';
 
 const IMPOSTAZIONI_GROUPS: readonly {
   readonly titleKey: 'impostazioni_group_org' | 'impostazioni_group_rules' | 'impostazioni_group_tools';
@@ -51,10 +54,12 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     showSuccess,
     showError,
     logout,
+    isSessionElevated,
   } = useApp();
   const t = getTranslations(effectiveLanguage);
   const [howOpen, setHowOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState<Record<string, boolean>>({});
+  const [teamNotifyLoading, setTeamNotifyLoading] = useState(false);
 
   useEffect(() => {
     // Chiudi tutti i dettagli all'avvio per la modalità compatta
@@ -65,17 +70,60 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     setDetailOpen((prev) => ({ ...prev, [slug]: !prev[slug] }));
   }, []);
 
+  const handleNotifyTeam = useCallback(async () => {
+    const tr = getTranslations(effectiveLanguage);
+    if (!supabase || !currentUser?.id) {
+      showError?.(tr.admin_notify_team_error);
+      return;
+    }
+    setTeamNotifyLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('notify-team-next-week-shifts', {
+        body: { operator_user_id: currentUser.id },
+      });
+      if (error) {
+        showError?.(error.message || tr.admin_notify_team_error);
+        return;
+      }
+      if (data && typeof data === 'object' && 'error' in data && data.error) {
+        showError?.(String(data.error));
+        return;
+      }
+      const rec = typeof (data as { recipients?: number }).recipients === 'number' ? (data as { recipients: number }).recipients : 0;
+      const sent = typeof (data as { sent?: number }).sent === 'number' ? (data as { sent: number }).sent : 0;
+      const ws = String((data as { week_start?: string }).week_start ?? '');
+      const we = String((data as { week_end?: string }).week_end ?? '');
+      if (rec === 0) {
+        showSuccess?.(tr.admin_notify_team_none);
+      } else {
+        showSuccess?.(
+          formatTrans(tr.admin_notify_team_success, {
+            count: rec,
+            sent,
+            week_start: ws,
+            week_end: we,
+          })
+        );
+      }
+    } catch {
+      showError?.(getTranslations(effectiveLanguage).admin_notify_team_error);
+    } finally {
+      setTeamNotifyLoading(false);
+    }
+  }, [currentUser?.id, effectiveLanguage, showError, showSuccess]);
+
 
 
   if (!currentUser) return null;
-  if (!isAdminOnly(currentUser)) {
+  const hasFullAccess = isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role;
+  if (!hasFullAccess) {
     return (
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
         <div className="surface-glass-sm p-4 rounded-xl mb-6">
           <h2 className="text-lg font-bold mb-1">{t.settings_current_user || 'Utente attuale'}</h2>
           <div className="flex items-center gap-3">
             <span className="font-semibold text-accent">{currentUser.first_name} {currentUser.last_name}</span>
-            <span className="text-xs bg-slate-200 dark:bg-neutral-700 rounded px-2 py-0.5 ml-2">{currentUser.role}</span>
+            <span className="text-xs bg-slate-200 dark:bg-neutral-700 rounded px-2 py-0.5 ml-2">{translateRole(currentUser.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</span>
           </div>
           <button
             className="mt-3 px-3 py-1.5 rounded bg-red-100 text-red-700 font-semibold hover:bg-red-200"
@@ -191,7 +239,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             <h2 className="text-lg font-bold mb-1">{t.settings_current_user || 'Utente attuale'}</h2>
             <div className="flex items-center gap-3">
               <span className="font-semibold text-accent">{currentUser.first_name} {currentUser.last_name}</span>
-              <span className="text-xs bg-slate-200 dark:bg-neutral-700 rounded px-2 py-0.5 ml-2">{currentUser.role}</span>
+              <span className="text-xs bg-slate-200 dark:bg-neutral-700 rounded px-2 py-0.5 ml-2">{translateRole(currentUser.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</span>
             </div>
           </div>
           <button
@@ -219,6 +267,25 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             </button>
           </div>
         )}
+
+        <div className="surface-glass-sm p-4 rounded-xl mb-6">
+          <h2 className="text-md font-bold mb-1 flex items-center gap-2">
+            <Bell className="w-4 h-4 text-accent" />
+            {t.admin_notify_team_title}
+          </h2>
+          <p className="text-[11px] sm:text-xs text-slate-600 dark:text-neutral-400 mb-3 leading-relaxed">
+            {t.admin_notify_team_desc}
+          </p>
+          <button
+            type="button"
+            disabled={teamNotifyLoading}
+            onClick={() => void handleNotifyTeam()}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-accent/25 bg-accent/[0.07] px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/12 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+          >
+            <Bell className="w-3.5 h-3.5 opacity-80" />
+            {teamNotifyLoading ? '…' : t.admin_notify_team_button}
+          </button>
+        </div>
 
         {/* Sezione funzionalità e regole */}
         <div className="space-y-6">

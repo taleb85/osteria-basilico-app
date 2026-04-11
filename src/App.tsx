@@ -1,4 +1,6 @@
 import { useState, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback, useRef } from 'react';
+import { unlockAudioContext } from './utils/hapticFeedbackCore';
+
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { getDateLocale } from './utils/translations';
@@ -24,6 +26,8 @@ import BodyPullToRefresh from './components/BodyPullToRefresh';
 import HomePage from './components/HomePage';
 import PunchInKiosk from './components/PunchInKiosk';
 import LoginPage from './components/LoginPage';
+import PWAInstallRequired from './components/PWAInstallRequired';
+import { isPWAStandalone } from './utils/pwaStandalone';
 import InviteRedirect from './components/InviteRedirect';
 import StaffPersonalDashboard from './components/StaffPersonalDashboard';
 import ProfileNavTabPanel from './components/ProfileNavTabPanel';
@@ -33,7 +37,7 @@ import { PinPadModal } from './components/ui/PinPadModal';
 import { findFreezeVerifierByPin, findFreezeVerifierById } from './utils/permissions';
 import { lockBodyScroll, unlockBodyScroll } from './utils/bodyScrollLock';
 import { persistStoredUiLanguage } from './utils/uiLanguagePreference';
-import { PATH_TIMBRATURA, PATH_PROFILO } from './config/appPaths';
+import { PATH_PROFILO } from './config/appPaths';
 import { APP_SESSION_STORAGE_KEY } from './constants/appSession';
 import { getUnifiedNavTabs, getBottomNavTabsForMainApp, getAppNavTabTitle, type AppNavTab } from './utils/enabledModules';
 import {
@@ -44,9 +48,11 @@ import {
 } from './utils/mainAppViewRestore';
 import { useIsMobileViewport } from './hooks/useIsMobileViewport';
 import { isAdminOnly, isManagementRole } from './utils/permissions';
+import { getTimesheetGridPrivacyMode } from './utils/timesheetGridPrivacy';
 import AdminGate from './components/AdminGate';
 import AdminLayout from './components/AdminLayout';
 import OnboardingSetupModal from './components/OnboardingSetupModal';
+import PermissionRequestModal, { shouldShowPermissionModal } from './components/PermissionRequestModal';
 
 const WeeklyShiftsTable = lazy(() => import('./components/WeeklyShiftsTable'));
 const HolidayRequests = lazy(() => import('./components/HolidayRequests'));
@@ -85,6 +91,45 @@ function KioskRoute() {
     document.documentElement.lang = 'en';
     return () => {
       document.documentElement.lang = prevLang;
+    };
+  }, []);
+
+  // Feedback visivo via JS (event delegation) — più affidabile di CSS :active su iOS
+  // Sblocca anche AudioContext al primo tocco
+  useEffect(() => {
+    let audioUnlocked = false;
+
+    const onTouchStart = (e: TouchEvent) => {
+      // Sblocca audio al primo tocco
+      if (!audioUnlocked) {
+        unlockAudioContext();
+        audioUnlocked = true;
+      }
+      // Trova il bottone più vicino e aggiunge classe tap-active
+      const target = e.target as HTMLElement | null;
+      const btn = target?.closest('button, [role="button"]') as HTMLElement | null;
+      if (btn) {
+        btn.classList.add('tap-active');
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const target = e.target as HTMLElement | null;
+      const btn = target?.closest('button, [role="button"]') as HTMLElement | null;
+      if (btn) {
+        // Piccolo delay per rendere l'animazione visibile
+        setTimeout(() => btn.classList.remove('tap-active'), 100);
+      }
+    };
+
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchend', onTouchEnd, { passive: true });
+    document.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+    return () => {
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchend', onTouchEnd);
+      document.removeEventListener('touchcancel', onTouchEnd);
     };
   }, []);
 
@@ -134,7 +179,7 @@ function LoginRoute() {
   }, [currentUser, navigate, postAuthPath]);
 
   const handleLogin = () => navigate(postAuthPath, { replace: true });
-  const handleBack = () => navigate(PATH_TIMBRATURA, { replace: true });
+  const handleBack = () => navigate(PATH_PROFILO, { replace: true });
 
   return (
     <>
@@ -179,6 +224,13 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   );
   const [onboardingDone, setOnboardingDone] = useState(false);
   const showOnboarding = needsOnboarding && !onboardingDone;
+
+  // ── Modal permessi (notifiche + posizione) al primo accesso ─────────────────
+  const [showPermissions, setShowPermissions] = useState(false);
+  useEffect(() => {
+    if (!currentUser || showOnboarding) return;
+    shouldShowPermissionModal().then(show => { if (show) setShowPermissions(true); });
+  }, [currentUser, showOnboarding]);
 
   const [overlayOpen, setOverlayOpen] = useState(false);
   useEffect(() => {
@@ -246,7 +298,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
   const applyTabChange = useCallback(
     (id: AppNavTab) => {
-      if (isManagement && id === 'settings' && currentUser && isAdminOnly(currentUser)) {
+      if (id === 'settings' && currentUser && (isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role)) {
         navigate('/admin');
         return;
       }
@@ -299,11 +351,63 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     if (!currentUser?.id || visibleNavTabs.length === 0) return;
     if (mainViewRestoredUserIdRef.current === currentUser.id) return;
     mainViewRestoredUserIdRef.current = currentUser.id;
-    // Alla login apre sempre la scheda panoramica (home)
-    setActiveTab('home');
+    const u = new URL(window.location.href);
+    const open = u.pathname.startsWith('/app') ? u.searchParams.get('open') : null;
+    if (open === 'punch_exit' && visibleNavTabs.includes('timesheet')) {
+      u.searchParams.delete('open');
+      window.history.replaceState({}, '', u.pathname + (u.search || '') + u.hash);
+      prevTabRef.current = 'timesheet';
+      setActiveTab('timesheet');
+    } else if (open === 'turni' && visibleNavTabs.includes('turni')) {
+      u.searchParams.delete('open');
+      window.history.replaceState({}, '', u.pathname + (u.search || '') + u.hash);
+      prevTabRef.current = 'turni';
+      setActiveTab('turni');
+    } else {
+      setActiveTab('home');
+    }
     pendingScrollRestoreRef.current = null;
     void readMainViewState; // mantenuto per uso futuro
   }, [currentUser?.id, visibleNavTabs]);
+
+  useEffect(() => {
+    const onSw = (event: MessageEvent) => {
+      const t = event.data?.type;
+      if (t === 'OPEN_PUNCH_EXIT') {
+        if (!visibleNavTabs.includes('timesheet')) return;
+        void handleTabChange('timesheet');
+        return;
+      }
+      if (t === 'OPEN_TURNI') {
+        if (!visibleNavTabs.includes('turni')) return;
+        void handleTabChange('turni');
+      }
+    };
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', onSw);
+    }
+    return () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', onSw);
+      }
+    };
+  }, [visibleNavTabs, handleTabChange]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    const u = new URL(window.location.href);
+    if (!u.pathname.startsWith('/app')) return;
+    const o = u.searchParams.get('open');
+    if (o === 'punch_exit' && visibleNavTabs.includes('timesheet')) {
+      u.searchParams.delete('open');
+      window.history.replaceState({}, '', u.pathname + (u.search || '') + u.hash);
+      void handleTabChange('timesheet');
+    } else if (o === 'turni' && visibleNavTabs.includes('turni')) {
+      u.searchParams.delete('open');
+      window.history.replaceState({}, '', u.pathname + (u.search || '') + u.hash);
+      void handleTabChange('turni');
+    }
+  }, [location.search, currentUser?.id, visibleNavTabs, handleTabChange]);
 
   useEffect(() => {
     const bundle = pendingScrollRestoreRef.current;
@@ -494,6 +598,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
               users={users}
               currentUserId={currentUser?.id ?? ''}
               language={effectiveLanguage}
+              plannedOnly={getTimesheetGridPrivacyMode(currentUser) === 'planned_only'}
             />
           </Suspense>
         ) : (
@@ -541,24 +646,28 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     {showOnboarding && (
       <OnboardingSetupModal onComplete={() => setOnboardingDone(true)} />
     )}
+    <AnimatePresence>
+      {showPermissions && !showOnboarding && (
+        <PermissionRequestModal key="perm-modal" onDone={() => setShowPermissions(false)} />
+      )}
+    </AnimatePresence>
     <div className={`min-h-screen min-h-[100dvh] w-full text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col ${activeTab === 'home' ? 'page-home-bg' : 'page-depth-bg'}`}>
       <BodyPullToRefresh
         onRefresh={() => silentRefreshData({ pullRemoteConfig: true })}
         disabled={!!(isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending)}
       />
 
-      {/*
-        Sticky: solo safe-area + padding come il main (`app-horizontal-pad`). Un’unica card definisce i bordi visibili.
-      */}
+      {/* ── Header fisso — sempre visibile, fuori dal flusso scroll ── */}
       <header
         ref={appStickyHeaderRef}
-        className={`sticky top-0 z-[10040] shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2 transition-[visibility,opacity] duration-150 ${
+        className={`fixed top-0 left-0 right-0 z-[10040] shrink-0 app-horizontal-pad pb-2 transition-[visibility,opacity] duration-150 ${
           activeTab === 'profile' ? 'hidden' : ''
         } ${
           overlayOpen ? 'invisible opacity-0 pointer-events-none' : ''
         } ${
           isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''
         }`}
+        style={{ background: 'transparent' }}
       >
         <MobileProfileHeader
           onLogout={onLogout}
@@ -571,7 +680,9 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
       <main
         className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
-        style={activeTab === 'profile' ? { paddingTop: 'max(6px, env(safe-area-inset-top, 0px))' } : undefined}
+        style={activeTab === 'profile'
+          ? { paddingTop: 'max(6px, env(safe-area-inset-top, 0px))' }
+          : { paddingTop: 'var(--app-sticky-header-offset, 80px)' }}
       >
         <div className="w-full flex-1 app-main-top-pad app-horizontal-pad">
           {activeTab !== 'profile' && (
@@ -588,13 +699,13 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                   {format(now, 'EEEE d MMMM · HH:mm', { locale: getDateLocale(effectiveLanguage) ?? it })}
                 </span>
                 <span className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-white/10 shrink-0" />
-                {/* Sync */}
+                {/* Sync — solo desktop */}
                 <button
                   type="button"
                   onClick={handleHardRefresh}
                   disabled={isRefreshing || dataSyncInProgress}
                   title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Sincronizza dati'}
-                  className={`flex h-9 w-9 sm:h-10 sm:w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
+                  className={`hidden sm:flex h-7 w-7 sm:h-8 sm:w-10 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
                     isRefreshing || dataSyncInProgress
                       ? 'text-amber-500 liquid-glass-amber'
                       : isSynced
@@ -603,14 +714,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                   }`}
                 >
                   {isRefreshing || dataSyncInProgress ? (
-                    <RotateCw className="h-4 w-4 sm:h-[22px] sm:w-[22px] animate-spin" strokeWidth={2.5} />
+                    <RotateCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" strokeWidth={2.5} />
                   ) : isSynced ? (
                     <span className="relative inline-flex">
-                      <Cloud className="h-4 w-4 sm:h-[22px] sm:w-[22px]" strokeWidth={2.5} />
-                      <span className="absolute -bottom-0.5 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-emerald-500 text-white" style={{ fontSize: 8 }}>✓</span>
+                      <Cloud className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} />
+                      <span className="absolute -bottom-0.5 -right-1 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-emerald-500 text-white" style={{ fontSize: 7 }}>✓</span>
                     </span>
                   ) : (
-                    <CloudOff className="h-4 w-4 sm:h-[22px] sm:w-[22px]" strokeWidth={2.5} />
+                    <CloudOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} />
                   )}
                 </button>
                 {/* PIN lock — solo management desktop */}
@@ -622,15 +733,15 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                     onClick={() => setShowPinMenu(true)}
                     title={globalPinSessionId ? 'Sessione PIN attiva' : 'Sblocca sessione PIN'}
                     aria-label={globalPinSessionId ? 'Gestisci sessione PIN' : 'Sblocca sessione PIN'}
-                    className={`hidden sm:flex h-9 w-14 sm:h-10 sm:w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
+                    className={`hidden sm:flex h-7 w-7 sm:h-8 sm:w-10 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
                       globalPinSessionId
                         ? 'text-emerald-500 liquid-glass-green'
                         : 'text-red-500 liquid-glass-red'
                     }`}
                   >
                     {globalPinSessionId
-                      ? <Unlock className="h-[18px] w-[18px] sm:h-5 sm:w-5" strokeWidth={2.5} />
-                      : <Lock className="h-[18px] w-[18px] sm:h-5 sm:w-5" strokeWidth={2.5} />}
+                      ? <Unlock className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} />
+                      : <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} />}
                   </button>
                   </>
                 )}
@@ -707,9 +818,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
               <motion.div
                 key={activeTab}
                 custom={tabNavDirection.current}
-                initial={(dir: number) => ({ opacity: 0, x: dir * 36 })}
-                animate={{ opacity: 1, x: 0 }}
-                exit={(dir: number) => ({ opacity: 0, x: dir * -24 })}
+                variants={{
+                  initial: (dir: number) => ({ opacity: 0, x: dir * 36 }),
+                  animate: { opacity: 1, x: 0 },
+                  exit: (dir: number) => ({ opacity: 0, x: dir * -24 }),
+                }}
+                initial="initial"
+                animate="animate"
+                exit="exit"
                 transition={{ duration: 0.55, ease: [0.32, 0, 0.12, 1] }}
                 className="w-full"
               >
@@ -730,88 +846,23 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       </main>
 
       {isGlobalRefreshing && (() => {
-        const progress = !syncStage ? 0.02
-          : syncStage.includes('Pulizia') ? 0.20
-          : syncStage.includes('lenta') ? 0.58
-          : syncStage.includes('Connessione') || syncStage.includes('Caricamento') ? 0.55
-          : syncStage.includes('Applicazione') || syncStage.includes('Aggiornamento') ? 0.85
-          : 0.02;
-        const isIndeterminate = false;
-        const ringDuration = syncStage.includes('Pulizia') ? 0.6
-          : syncStage.includes('lenta') ? 3.0
-          : syncStage.includes('Connessione') || syncStage.includes('Caricamento') ? 6.0
-          : syncStage.includes('Applicazione') || syncStage.includes('Aggiornamento') ? 0.8
-          : 2.0;
-        const [c0, c1, c2] = ['#F72585', '#7B2FBE', '#4361EE'];
-        const SIZE = 110; const SHRINK = 4; const PAD = 5; const SW = 2.5;
-        const d = PAD + SW / 2 + SHRINK; const inner = SIZE - d * 2; const R = Math.round(inner * 0.19); const cx = SIZE / 2; const cy = SIZE / 2;
-        const rot = {};
-        const syncT = { duration: ringDuration, ease: 'easeOut' as const };
         return (
-          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000000 72%)' }}>
+          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18' }}>
             <div className="flex flex-col items-center gap-6">
-              <div className="relative" style={{ width: 112, height: 112 }}>
-
-                {/* ── GLOW — mix-blend screen → vivido sul nero ── */}
-                <svg aria-hidden className="pointer-events-none absolute"
-                  style={{ inset: -(PAD + SW), width: SIZE + (PAD + SW) * 2, height: SIZE + (PAD + SW) * 2, overflow: 'visible', mixBlendMode: 'screen' }}
-                  viewBox={`0 0 ${SIZE} ${SIZE}`}>
-                  <defs>
-                    <linearGradient id="ring-sync-glow" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%"   stopColor={c0} />
-                      <stop offset="50%"  stopColor={c1} />
-                      <stop offset="100%" stopColor={c2} />
-                    </linearGradient>
-                  </defs>
-                  <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
-                    fill="none" stroke="url(#ring-sync-glow)" strokeWidth={SW * 36}
-                    strokeLinecap="round" pathLength={1} strokeDasharray="1"
-                    animate={{ strokeDashoffset: 1 - progress }} transition={syncT}
-                    style={{ filter: 'blur(80px)', opacity: 1 }}
-                  />
-                  <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
-                    fill="none" stroke="url(#ring-sync-glow)" strokeWidth={SW * 16}
-                    strokeLinecap="round" pathLength={1} strokeDasharray="1"
-                    animate={{ strokeDashoffset: 1 - progress }} transition={syncT}
-                    style={{ filter: 'blur(35px)', opacity: 1 }}
-                  />
-                  <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
-                    fill="none" stroke="url(#ring-sync-glow)" strokeWidth={SW * 6}
-                    strokeLinecap="round" pathLength={1} strokeDasharray="1"
-                    animate={{ strokeDashoffset: 1 - progress }} transition={syncT}
-                    style={{ filter: 'blur(10px)', opacity: 1 }}
-                  />
-                </svg>
-
-                {/* ── RING NITIDO ── */}
-                <svg aria-hidden className="pointer-events-none absolute"
-                  style={{ inset: -(PAD + SW), width: SIZE + (PAD + SW) * 2, height: SIZE + (PAD + SW) * 2, overflow: 'visible' }}
-                  viewBox={`0 0 ${SIZE} ${SIZE}`}>
-                  <defs>
-                    <linearGradient id="ring-sync-app" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%"   stopColor={c0} />
-                      <stop offset="50%"  stopColor={c1} />
-                      <stop offset="100%" stopColor={c2} />
-                    </linearGradient>
-                  </defs>
-                  <rect x={d} y={d} width={inner} height={inner} rx={R} ry={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={SW} pathLength={1} />
-                  <motion.rect x={d} y={d} width={inner} height={inner} rx={R} ry={R}
-                    fill="none" stroke="url(#ring-sync-app)" strokeWidth={SW}
-                    strokeLinecap="round" pathLength={1} strokeDasharray="1"
-                    animate={{ strokeDashoffset: 1 - progress }} transition={syncT}
-                    style={rot}
-                  />
-                </svg>
-
-                {/* ── ICONA ── */}
-                <img src="/flow-app-icon.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
-              </div>
-
-              {/* Testo — dopo nel DOM → sopra al glow */}
-              <div className="flex flex-col items-center gap-1 select-none">
-                <span className="text-white font-extrabold tracking-[0.28em] text-xl leading-none uppercase">FLOW</span>
-                <span className="text-white/60 font-semibold tracking-[0.18em] text-[11px] uppercase">Work in Motion</span>
-              </div>
+              <motion.img
+                src="/icon-flow-final.png"
+                alt="FLOW"
+                draggable={false}
+                animate={{
+                  filter: [
+                    'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
+                    'drop-shadow(0 0 56px rgba(0,82,255,1.00)) drop-shadow(0 0 24px rgba(0,180,255,0.80))',
+                    'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
+                  ],
+                }}
+                transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
+                style={{ width: 120, height: 120, objectFit: 'contain' }}
+              />
               <div className="flex flex-col items-center gap-1 min-h-[40px]">
                 <p className="text-white/70 text-xs font-semibold uppercase tracking-widest">
                   {getTranslations(effectiveLanguage).sync_total_in_progress}
@@ -872,7 +923,7 @@ function ProtectedApp() {
     }
     setIsSessionElevated(false);
     setCurrentUser(null);
-    navigate(PATH_TIMBRATURA, { replace: true });
+    navigate(PATH_PROFILO, { replace: true });
   };
 
   useEffect(() => {
@@ -890,7 +941,7 @@ function ProtectedApp() {
       setIsSessionElevated(false);
       setCurrentUser(null);
       clearForceLogoutRequest();
-      navigate(PATH_TIMBRATURA, { replace: true });
+      navigate(PATH_PROFILO, { replace: true });
     }
   }, [
     forceLogoutRequested,
@@ -906,9 +957,35 @@ function ProtectedApp() {
   // che la sessione salvata venga ripristinata.
   if (appIsLoading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-neutral-950">
-        <Loader2 className="w-8 h-8 animate-spin text-[--brand]" />
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35 }}
+        className="fixed inset-0 flex items-center justify-center font-sans"
+        style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18' }}
+      >
+        <motion.img
+          src="/icon-flow-final.png"
+          alt="FLOW"
+          draggable={false}
+          initial={{ scale: 0.82, opacity: 0 }}
+          animate={{
+            scale: 1,
+            opacity: 1,
+            filter: [
+              'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
+              'drop-shadow(0 0 56px rgba(0,82,255,1.00)) drop-shadow(0 0 24px rgba(0,180,255,0.80))',
+              'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
+            ],
+          }}
+          transition={{
+            scale:   { duration: 0.6, ease: [0.34, 1.2, 0.64, 1] },
+            opacity: { duration: 0.5, ease: 'easeOut' },
+            filter:  { duration: 2.4, ease: 'easeInOut', repeat: Infinity, delay: 0.5 },
+          }}
+          style={{ width: 140, height: 140, objectFit: 'contain' }}
+        />
+      </motion.div>
     );
   }
 
@@ -973,16 +1050,25 @@ function IosSafariInstallBanner() {
   );
 }
 
+// ─── PWA Gate — blocca accesso browser su mobile ──────────────────────────────
+function PwaGate({ children }: { children: React.ReactNode }) {
+  // In development (localhost) bypass the gate to allow Cursor / local preview
+  if (!import.meta.env.DEV && !isPWAStandalone()) {
+    return <PWAInstallRequired />;
+  }
+  return <>{children}</>;
+}
+
 // ─── Root App ─────────────────────────────────────────────────────────────────
 function AppContent() {
   return (
-    <>
-      <IosSafariInstallBanner />
+    <PwaGate>
     <Routes>
-      <Route path="/" element={<Navigate to={PATH_TIMBRATURA} replace />} />
-      <Route path={PATH_TIMBRATURA} element={<KioskRoute />} />
+      <Route path="/" element={<Navigate to={PATH_PROFILO} replace />} />
+
       <Route path="/i/:slug" element={<InviteRedirect />} />
-      <Route path="/kiosk" element={<Navigate to={PATH_TIMBRATURA} replace />} />
+      <Route path="/kiosk" element={<Navigate to={PATH_PROFILO} replace />} />
+      <Route path="/timbratura" element={<Navigate to={PATH_PROFILO} replace />} />
       <Route path={PATH_PROFILO} element={<LoginRoute />} />
       <Route path="/login" element={<Navigate to={PATH_PROFILO} replace />} />
       <Route path="/app" element={<ProtectedApp />} />
@@ -998,9 +1084,9 @@ function AppContent() {
           </Suspense>
         </AppProvider>
       } />
-      <Route path="*" element={<Navigate to={PATH_TIMBRATURA} replace />} />
+      <Route path="*" element={<Navigate to={PATH_PROFILO} replace />} />
     </Routes>
-    </>
+    </PwaGate>
   );
 }
 

@@ -1,56 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
+import { audioHapticByType, unlockAudioContext } from '../utils/hapticFeedbackCore';
 
 export type HapticType = 'success' | 'warning' | 'error' | 'click' | 'heavy' | 'medium' | 'light';
 
-/** True se siamo su iOS Safari (non supporta navigator.vibrate) */
-const isIOS = typeof navigator !== 'undefined' &&
-  /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-  !(window as any).MSStream;
-
-/**
- * Haptic per iOS via Web Audio API:
- * - oscilla a frequenza sub-bass (1–5 Hz) per pochi ms
- * - attiva il Taptic Engine indirettamente
- * - la durata/intensità cambia il tipo di feedback percepito
- */
-function iosHaptic(type: HapticType) {
-  try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioCtx) return;
-
-    const ctx = new AudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    // Frequenza sub-bass — attiva il Taptic Engine senza emettere suono udibile
-    const config: Record<HapticType, { freq: number; dur: number; amp: number }> = {
-      light:   { freq: 1,  dur: 0.008, amp: 0.3 },
-      click:   { freq: 2,  dur: 0.010, amp: 0.5 },
-      medium:  { freq: 2,  dur: 0.015, amp: 0.7 },
-      success: { freq: 3,  dur: 0.020, amp: 0.8 },
-      warning: { freq: 4,  dur: 0.025, amp: 0.9 },
-      heavy:   { freq: 5,  dur: 0.030, amp: 1.0 },
-      error:   { freq: 5,  dur: 0.040, amp: 1.0 },
-    };
-
-    const { freq, dur, amp } = config[type] ?? config.success;
-    const now = ctx.currentTime;
-
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(amp, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-
-    osc.start(now);
-    osc.stop(now + dur);
-    osc.onended = () => ctx.close();
-  } catch {
-    // AudioContext non disponibile — silenzio
-  }
-}
+// Durate in ms — minimo 20ms per essere percepibili dalla maggior parte dei motori Android
+const VIB_CONFIG: Record<HapticType, number[]> = {
+  light:   [20],
+  click:   [25],
+  medium:  [40],
+  success: [25, 60, 25],
+  warning: [40, 40, 40],
+  heavy:   [70],
+  error:   [50, 40, 50],
+};
 
 /**
  * Hook per gestire feedback multisensoriale:
@@ -96,28 +58,20 @@ export function useMultisensorialFeedback() {
   const triggerHapticFeedback = useCallback((type: HapticType = 'success') => {
     if (hapticIntensity === 0) return;
 
-    if (isIOS) {
-      iosHaptic(type);
-      return;
+    // Android: navigator.vibrate nativo
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        const factor = hapticIntensity / 100;
+        const base = VIB_CONFIG[type] ?? [20];
+        const scaled = base.map((v, i) => i % 2 === 0 ? Math.max(1, Math.round(v * factor)) : v);
+        navigator.vibrate(scaled);
+        return;
+      } catch { /* fallthrough a Web Audio */ }
     }
 
-    if (!('vibrate' in navigator)) return;
-
-    try {
-      const factor = hapticIntensity / 100;
-      const patterns: Record<HapticType, number[]> = {
-        success: [Math.round(20 * factor), 40, Math.round(20 * factor)],
-        warning: [Math.round(40 * factor), 30, Math.round(40 * factor)],
-        error:   [Math.round(60 * factor), 40, Math.round(60 * factor)],
-        click:   [Math.round(25 * factor)],
-        heavy:   [Math.round(70 * factor)],
-        medium:  [Math.round(40 * factor)],
-        light:   [Math.round(15 * factor)],
-      };
-      navigator.vibrate(patterns[type] ?? patterns.success);
-    } catch (err) {
-      console.warn('[Haptic] Vibration not available:', err);
-    }
+    // iOS PWA: Web Audio click — assicura che AudioContext sia running prima di suonare
+    unlockAudioContext();
+    audioHapticByType(type);
   }, [hapticIntensity]);
 
   /**

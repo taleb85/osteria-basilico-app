@@ -37,11 +37,19 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
       ? String(user.hourly_rate_eur).replace('.', ',')
       : '';
 
+  // Normalizza valori legacy: 'waiter' → 'server', 'chef' → 'cook'
+  // Il DB seed usava 'waiter'; il form salva 'server'. Allineiamo al valore canonico del dropdown.
+  const normalizeRole = (r: string): string => {
+    if (r === 'waiter') return 'server';
+    if (r === 'chef') return 'cook';
+    return r;
+  };
+
   const [formData, setFormData] = useState<ProfileFormAdminData>({
     first_name: user.first_name.toUpperCase(),
     last_name: (user.last_name ?? '').toUpperCase(),
     email: user.email,
-    role: user.role,
+    role: normalizeRole(user.role) as ProfileFormAdminData['role'],
     pin: user.pin || '',
     status: user.status,
     department: user.department,
@@ -62,7 +70,7 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
         first_name: user.first_name.toUpperCase(),
         last_name: (user.last_name ?? '').toUpperCase(),
         email: user.email,
-        role: user.role,
+        role: normalizeRole(user.role) as ProfileFormAdminData['role'],
         pin: user.pin || '',
         status: user.status,
         department: user.department,
@@ -160,7 +168,7 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
             </button>
           </div>
 
-          <div className="px-5 py-4 overflow-y-auto max-h-[70vh]">
+          <div className="px-5 py-4 overflow-y-auto overflow-x-hidden max-h-[70vh]">
             <ProfileFormAdmin
               user={user}
               currentUser={currentUser}
