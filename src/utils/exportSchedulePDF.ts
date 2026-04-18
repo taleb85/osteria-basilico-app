@@ -69,7 +69,7 @@ export async function exportSchedulePDF(
     /** Lingua UI utente (etichette PDF). */
     language?: Language;
   } = {}
-): void {
+): Promise<void> {
   const {
     restaurantName = 'FLOW',
     filterLabel = '',

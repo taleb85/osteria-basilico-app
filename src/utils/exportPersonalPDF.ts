@@ -31,7 +31,7 @@ export async function exportPersonalPDF(
   breakRules: BreakRule[] = [],
   breakComputeOpts?: BreakMinutesComputeOptions,
   punchRecords: PunchRecordLike[] = []
-): void {
+): Promise<void> {
   if (isPurelyManagementRole(user.role)) return;
 
   const { jsPDF } = await import('jspdf');
