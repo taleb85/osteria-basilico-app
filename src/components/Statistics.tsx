@@ -285,10 +285,10 @@ export default function Statistics() {
   }, [users, currentUser, shifts]);
 
   const statsLocForPdf = getDateLocale(effectiveLanguage) ?? it;
-  const handleExportStatsPdf = useCallback(() => {
+  const handleExportStatsPdf = useCallback(async () => {
     if (!currentUser || !isFeatureEnabled(currentUser, 'export_pdf')) return;
     try {
-      const result = exportAttendancePdfFromGrid({
+      const result = await exportAttendancePdfFromGrid({
         weekDays: statsWeekDaysForPdf,
         visibleUsers: displayUsers,
         shifts,

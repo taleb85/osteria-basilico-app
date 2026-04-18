@@ -1,4 +1,3 @@
-import jsPDF from 'jspdf';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { User, Shift } from '../types';
@@ -23,7 +22,7 @@ function fmtHM(mins: number): string {
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
-export function exportPersonalPDF(
+export async function exportPersonalPDF(
   user: User,
   monthDate: Date,
   allShifts: Shift[],
@@ -35,6 +34,7 @@ export function exportPersonalPDF(
 ): void {
   if (isPurelyManagementRole(user.role)) return;
 
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const PAGE_W = 210;
   const MARGIN = 12;

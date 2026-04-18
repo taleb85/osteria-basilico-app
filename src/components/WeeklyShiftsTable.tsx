@@ -2742,8 +2742,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     {currentUser && isFeatureEnabled(currentUser, 'export_pdf') && (
                       <button
                         type="button"
-                        onClick={() => {
-                          exportSchedulePDF(weekStart, allWeekDays, activeUsers, shifts, {
+                        onClick={() => void (async () => {
+                          await exportSchedulePDF(weekStart, allWeekDays, activeUsers, shifts, {
                             filterLabel: localFilterDepartment || undefined,
                             breakRules,
                             breakComputeOpts,
@@ -2751,7 +2751,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             language: effectiveLanguage,
                           });
                           closeWstToolbarDrawer();
-                        }}
+                        })()}
                         className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
                       >
                         <Download className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />

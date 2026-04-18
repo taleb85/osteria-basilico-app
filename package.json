@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --config scripts/vite.config.mjs",
-    "prebuild": "node scripts/generate-tenant-favicon.mjs",
+    "prebuild": "if [ \"$SKIP_ICON_GEN\" = \"1\" ]; then echo 'Skipping icon gen (SKIP_ICON_GEN=1)'; else node scripts/generate-tenant-favicon.mjs; fi",
     "build": "vite build --config scripts/vite.config.mjs",
     "lint": "eslint .",
     "preview": "vite preview --config scripts/vite.config.mjs",

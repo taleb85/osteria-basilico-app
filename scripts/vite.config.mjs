@@ -24,7 +24,7 @@ export default defineConfig({
       /** In dev niente SW: evita cache / navigate che sembrano “/app non funziona” su 127.0.0.1:5173. */
       devOptions: { enabled: false },
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'flow-app-icon.png', 'flow-app-icon-new.png', 'pwa-splash.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'flow-app-icon.png', 'pwa-splash.svg'],
       manifest: {
         name: 'FLOW',
         short_name: 'FLOW',
@@ -32,9 +32,9 @@ export default defineConfig({
         start_url: '/profilo',
         lang: 'it',
         display: 'standalone',
-        background_color: '#FFFFFF',
+        background_color: '#001899',
         theme_color: '#0052FF',
-        orientation: 'any',
+        orientation: 'portrait',
         scope: '/',
         icons: [
           { src: '/flow-app-icon.png', sizes: '1024x1024', type: 'image/png', purpose: 'any' },
@@ -113,6 +113,7 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom'],
           'vendor-framer': ['framer-motion'],
           'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-pdf': ['jspdf'],
         },
       },
     },

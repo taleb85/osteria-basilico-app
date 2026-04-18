@@ -1,4 +1,3 @@
-import { jsPDF } from 'jspdf';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addDays } from 'date-fns';
 import type { Locale } from 'date-fns';
 import { isPurelyManagementRole } from './permissions';
@@ -55,7 +54,9 @@ export type ExportTimesheetPdfParams = {
   fmtHM: (mins: number) => string;
 };
 
-export function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams): void {
+export async function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams): Promise<void> {
+  const { jsPDF } = await import('jspdf');
+
   const {
     weekDays,
     visibleUsers,

@@ -275,9 +275,9 @@ export type ExportAttendancePdfFromGridOptions = {
 };
 
 /** @returns `'ok'` | `'no_days'` | `'no_users'` */
-export function exportAttendancePdfFromGrid(
+export async function exportAttendancePdfFromGrid(
   options: ExportAttendancePdfFromGridOptions
-): 'ok' | 'no_days' | 'no_users' {
+): Promise<'ok' | 'no_days' | 'no_users'> {
   const {
     weekDays,
     visibleUsers,
@@ -337,7 +337,7 @@ export function exportAttendancePdfFromGrid(
     approved_at: s.approved_at ?? null,
   }));
 
-  exportTimesheetPdfToFile({
+  await exportTimesheetPdfToFile({
     weekDays,
     weekStart,
     locale,

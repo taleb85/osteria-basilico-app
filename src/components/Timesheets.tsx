@@ -1525,12 +1525,12 @@ export default function Timesheets() {
     if (drawerData?.shift?.id) setDrawerShiftEditsExpanded(true);
   }, [drawerData?.shift?.id]);
 
-  const handleExportTimesheetPdf = useCallback((mode: 'WEEK' | 'PERIOD' = 'WEEK') => {
+  const handleExportTimesheetPdf = useCallback(async (mode: 'WEEK' | 'PERIOD' = 'WEEK') => {
     if (!currentUser || !isFeatureEnabled(currentUser, 'export_pdf')) return;
     try {
       const daysToExport = mode === 'WEEK' ? weekDays : allPeriodDays;
       
-      const result = exportAttendancePdfFromGrid({
+      const result = await exportAttendancePdfFromGrid({
         weekDays: daysToExport,
         visibleUsers,
         shifts,

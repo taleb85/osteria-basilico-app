@@ -1,0 +1,31 @@
+---
+description: Esegui git commit dopo ogni modifica al codice
+alwaysApply: true
+---
+
+# Auto-commit dopo ogni modifica
+
+Dopo **ogni** modifica a file del progetto (edit, fix, refactor, cleanup):
+
+1. `git add -A`
+2. `git commit -m "..."` con messaggio sintetico in italiano che descrive cosa è stato fatto
+3. Non eseguire `push` salvo richiesta esplicita
+
+## Formato messaggio
+
+```
+tipo: descrizione breve in italiano
+
+# Esempi
+fix: import dinamico jsPDF per ridurre bundle iniziale
+feat: aggiunto og:image a index.html
+chore: rimosso manifest.json legacy
+refactor: prebuild con guard SKIP_ICON_GEN
+```
+
+## Regole
+
+- Un commit per ogni task completato (non per ogni singolo file)
+- Mai `--no-verify`
+- Se il commit fallisce per hook, correggi e riprova con un **nuovo** commit (mai `--amend` su commit già pushati)
+- Il deploy rimane separato: segui `deploy.mdc`

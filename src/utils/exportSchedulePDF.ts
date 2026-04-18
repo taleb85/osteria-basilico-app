@@ -1,4 +1,3 @@
-import jsPDF from 'jspdf';
 import { format, addDays } from 'date-fns';
 import type { Locale } from 'date-fns';
 import { User, Shift, type Language } from '../types';
@@ -55,7 +54,7 @@ function totalHours(
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
-export function exportSchedulePDF(
+export async function exportSchedulePDF(
   weekStart: Date,
   weekDays: Date[],
   activeUsers: User[],
@@ -80,6 +79,8 @@ export function exportSchedulePDF(
     punchRecords = [],
     language: langOpt,
   } = options;
+  const { jsPDF } = await import('jspdf');
+
   const language = langOpt ?? 'it';
   const t = getTranslations(language);
   const locale = getDateLocale(language) as Locale;

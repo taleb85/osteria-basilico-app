@@ -1,14 +1,26 @@
 /**
  * Script di build: genera tutti i PNG PWA e favicon dall'icona ufficiale FLOW.
- * Sorgente: flow-app-icon-new.png (1024px, bordi arrotondati inclusi).
+ * Sorgente: icon-flow-final.png (1024px, bordi arrotondati inclusi).
  * Il flatten rimuove trasparenza per compatibilità iOS/Android.
+ *
+ * Imposta SKIP_ICON_GEN=1 per saltare la generazione (es. su Vercel
+ * dove sharp potrebbe non compilare il binding nativo correttamente).
+ *
+ * NOTA: sharp viene importato dinamicamente DOPO il check SKIP_ICON_GEN.
+ * Gli import statici in ES module sono hoistati prima di qualsiasi codice,
+ * quindi non sarebbero mai saltati anche con process.exit(0) prima di essi.
  */
 
-import { join } from 'path';
-import { dirname } from 'path';
+if (process.env.SKIP_ICON_GEN === '1') {
+  console.log('[favicon] skipped (SKIP_ICON_GEN=1)');
+  process.exit(0);
+}
+
+import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { writeFileSync } from 'fs';
-import sharp from 'sharp';
+
+const { default: sharp } = await import('sharp');
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
