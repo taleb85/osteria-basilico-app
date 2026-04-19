@@ -11,9 +11,8 @@ const AnimPreview = lazy(() => import('../components/AnimPreview'));
 const LoadingPreview = lazy(() => import('../components/LoadingPreview'));
 const ScreensPreview = lazy(() => import('../components/ScreensPreview'));
 
-// Import componenti routing da App.tsx originale
-// (dovranno essere estratti in file separati in future per completare refactor)
-import { LoginRoute, ProtectedApp } from './AppRoutes';
+// Import componenti routing da App.tsx
+import { LoginRoute, ProtectedApp } from '../App';
 import { AppProviders } from '../components/AppProviders';
 
 /**

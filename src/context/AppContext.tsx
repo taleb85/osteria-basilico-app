@@ -84,7 +84,7 @@ import {
   getActiveBreakRules,
 } from '../utils/breakRules';
 import { loadTimesheetPeriodFromSupabase, applyRemoteTimesheetPeriod } from '../utils/timesheetPeriodSupabase';
-import PwaGate from '../components/PwaGate';
+import { PwaGate } from '../components/PwaGate';
 import i18n from '../utils/i18n';
 import { userRowToSessionUser, defaultPermissionFieldsForNewUser } from '../utils/staffPermissionDefaults';
 import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';

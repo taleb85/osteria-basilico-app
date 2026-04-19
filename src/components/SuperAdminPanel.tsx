@@ -13,7 +13,9 @@ import {
   MapPin, Clock, Languages, Layers, ExternalLink, Users,
   UserPlus, Trash2, ChevronRight, Eye, EyeOff, ShieldCheck, Delete, LogOut,
 } from 'lucide-react';
-import { supabaseAdmin as supabase } from '../lib/supabase';
+// SECURITY: supabaseAdmin rimosso — questo componente è disabilitato
+// import { supabaseAdmin as supabase } from '../lib/supabase';
+const supabase = null as any; // stub per evitare errori TypeScript
 import type { Tenant, TenantSettings, UserRole, UserStatus } from '../types';
 import { HEADER_FONTS } from '../context/TenantContext';
 import { seedTenantFromTemplate } from '../utils/seedTenantFromTemplate';
@@ -1944,7 +1946,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
   useEffect(() => {
     if (!supabase || !selectedTenantId) return;
     supabase.from('users').select('id,first_name,last_name').eq('tenant_id', selectedTenantId).eq('status', 'active')
-      .then(({ data }) => setTenantUsers((data ?? []) as { id: string; first_name: string; last_name?: string }[]));
+      .then(({ data }: { data: any }) => setTenantUsers((data ?? []) as { id: string; first_name: string; last_name?: string }[]));
     void loadHistory(selectedTenantId);
   }, [selectedTenantId]);
 

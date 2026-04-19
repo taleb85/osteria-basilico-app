@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom/vitest';
-
 // Mock env vars per test
 Object.defineProperty(import.meta, 'env', {
   value: {

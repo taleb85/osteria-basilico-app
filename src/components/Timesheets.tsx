@@ -537,11 +537,15 @@ export default function Timesheets() {
 
     autoApproveRunRef.current = true;
 
-    void runAutoApprove(shifts, punchRecords, (id, updates) => updateShift(id, updates)).then(
+    runAutoApprove(shifts, punchRecords, async (id, updates) => {
+      updateShift(id, updates);
+    }).then(
       ({ approved }) => {
         if (approved > 0) setAutoApprovedCount(approved);
       },
-    );
+    ).catch(() => {
+      // Silent fail per auto-approve
+    });
   }, [shifts, punchRecords, updateShift, canTimesheetApprove]);
   // ─────────────────────────────────────────────────────────────────────────────
 
