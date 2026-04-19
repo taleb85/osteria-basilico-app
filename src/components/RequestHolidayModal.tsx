@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { getTranslations } from '../utils/translations';
 import { useIsMobileViewport } from '../hooks/useIsMobileViewport';
-import { lightHaptic } from '../utils/hapticFeedback';
+import { lightHaptic } from '../utils/hapticFeedbackCore';
 
 interface RequestHolidayModalProps {
   isOpen: boolean;

@@ -128,8 +128,10 @@ export function audioHapticByType(type: AudioHapticType): void {
 }
 
 export const lightHaptic = () => {
-  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-    try { navigator.vibrate(10); return; } catch { /* fallthrough */ }
-  }
-  audioClick(440, 220, 20, 0.15);
+  try {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate(10); return; } catch { /* fallthrough */ }
+    }
+    audioClick(440, 220, 20, 0.15);
+  } catch { /* not supported */ }
 };

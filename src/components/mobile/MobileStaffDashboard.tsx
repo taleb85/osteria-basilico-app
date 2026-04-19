@@ -1,4 +1,4 @@
-import { lightHaptic } from '../../utils/hapticFeedback';
+import { lightHaptic } from '../../utils/hapticFeedbackCore';
 import ProfileNavTabPanel from '../ProfileNavTabPanel';
 import type { AppNavTab } from '../../utils/enabledModules';
 import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
