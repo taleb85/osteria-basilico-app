@@ -17,6 +17,12 @@ const pkg = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf-8'))
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    /**
+     * Cache-bust string incorporata nel bundle JS: cambia il content-hash di ogni chunk,
+     * garantendo che i browser scarichino i nuovi asset (es. CSS senza dark mode).
+     * Formato: `v<versione>-light` — da aggiornare ad ogni rilascio con breaking CSS change.
+     */
+    __CACHE_BUST__: JSON.stringify(`v${pkg.version}-light`),
   },
   plugins: [
     react(),

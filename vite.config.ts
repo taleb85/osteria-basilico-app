@@ -17,6 +17,7 @@ const pkg = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf-8'));
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    __CACHE_BUST__: JSON.stringify(`v${pkg.version}-light`),
   },
   plugins: [
     react(),

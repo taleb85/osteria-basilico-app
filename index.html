@@ -14,6 +14,30 @@
         /* Tema fisso: solo Light. Rimuove classe dark e pulisce preferenze precedenti. */
         document.documentElement.classList.remove('dark');
         try { localStorage.removeItem('userTheme'); localStorage.removeItem('theme'); } catch(e){}
+
+        /* Cache-bust automatico: se la versione salvata è diversa da quella corrente,
+           cancella tutte le cache (CSS/JS/SW) e ricarica per servire i nuovi asset. */
+        var CURRENT_VERSION = '1.1.0-light';
+        try {
+          var savedVersion = localStorage.getItem('app_cache_version');
+          if (savedVersion !== CURRENT_VERSION) {
+            localStorage.setItem('app_cache_version', CURRENT_VERSION);
+            /* Cancella cache SW + HTTP cache API */
+            Promise.all([
+              navigator.serviceWorker?.getRegistrations?.().then(function(r){
+                return Promise.all(r.map(function(s){ return s.unregister(); }));
+              }) || Promise.resolve(),
+              caches.keys().then(function(keys){
+                return Promise.all(keys.map(function(k){ return caches.delete(k); }));
+              })
+            ]).then(function(){
+              /* Hard-reload: forza il browser a ri-scaricare index.html e tutti i chunk */
+              location.reload(true);
+            });
+            return;
+          }
+        } catch(e){}
+
         if(location.search.includes('nocache=1')){
           Promise.all([
             navigator.serviceWorker?.getRegistrations?.().then(function(r){ return Promise.all(r.map(function(s){return s.unregister();})); })||Promise.resolve(),
@@ -49,6 +73,9 @@
     <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon.png?v=%VITE_TENANT_SLUG%-v4" />
 
     <!-- PWA Manifest (iniettato da vite-plugin-pwa) -->
+
+    <!-- Versione app — leggibile in DevTools > Elements; usata per cache-bust automatico -->
+    <meta name="app-version" content="1.1.0-light" />
 
     <!-- Theme FLOW — Light only -->
     <meta name="color-scheme" content="only light" />
