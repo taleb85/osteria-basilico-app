@@ -595,7 +595,7 @@ export default function HomePage({
           {/* Turni di oggi – staff view */}
           {uiW('home_compact.today_shifts') && todayShiftsMine.length > 0 && (
             <div className="flex flex-col gap-2">
-              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.home_today}</h2>
+              <h2 className="text-xs font-bold text-slate-200 uppercase tracking-wider">{t.home_today}</h2>
               {todayShiftsMine.map((s) => {
                 const isDinner = timeToMins((s.start_time || '').slice(0, 5)) >= 16 * 60;
                 const { punchIn } = getPunchForShift(s.id, s.user_id, todayStr, !isDinner);

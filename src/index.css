@@ -1073,7 +1073,18 @@ html.no-motion *::after {
   letter-spacing: -0.02em;
 }
 
-/* Testi su sfondo scuro (fuori dalle card glass) */
+/* ── CONTRASTO AUTOMATICO SU SFONDO BLU ─────────────────────────────── */
+
+/* Utility per forzare contrasto alto su sfondo scuro - usare manualmente */
+.force-text-light {
+  color: rgb(226 232 240) !important; /* slate-200 */
+}
+
+.force-text-white {
+  color: rgb(255 255 255) !important;
+}
+
+/* Helper classes per contrasto manuale */
 .text-on-dark-bg {
   color: var(--text-on-dark-bg);
 }
