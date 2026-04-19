@@ -966,19 +966,19 @@ html.no-motion *::after {
   letter-spacing: -0.01em;
 }
 
-/* ── ORARI MAXI-LEGGIBILITÀ (ULTRA-CLEAN) ──────────────────────────────── */
+/* ── ORARI MAXI-LEGGIBILITÀ (GIGANTISMO) ──────────────────────────────── */
 
-/* Orari turni: 20-22px nero puro su bianco puro */
+/* Orari turni: 24px nero puro su bianco puro (GIGANTISMO) */
 .shift-time-ultra {
-  font-size: 1.375rem; /* 22px */
-  line-height: 1.3;
+  font-size: 1.5rem; /* 24px - aumentato da 22px */
+  line-height: 1.2;
   font-weight: 500;
   color: #000000;
 }
 
 @media (max-width: 640px) {
   .shift-time-ultra {
-    font-size: 1.75rem; /* 28px mobile */
+    font-size: 1.875rem; /* 30px mobile - aumentato da 28px */
   }
 }
 
@@ -1023,32 +1023,37 @@ html.no-motion *::after {
 
 /* ── LINEE SOTTILISSIME SEPARATOR ──────────────────────────────────────── */
 
-/* Separatore riga dipendente: 0.5px grigio chiaro */
+/* Separatore riga dipendente: 0.5px grigio chiarissimo */
 .shift-separator-ultra {
-  border-bottom: 0.5px solid #e5e7eb;
+  border-bottom: 0.5px solid #f1f5f9; /* slate-100 più chiaro */
 }
 
-/* Card ultra-clean: sfondo bianco puro, NO bordi, NO shadows */
+/* Card ultra-clean: sfondo bianco puro, bordo minimo grigio chiarissimo */
 .shift-card-ultra {
   background: #ffffff;
-  border: none;
+  border: 0.5px solid #f1f5f9; /* slate-100 */
   box-shadow: none;
   border-radius: 1rem;
 }
 
-/* ── SPAZIATURA ARIOSA (+40%) ───────────────────────────────────────────── */
+/* ── SPAZIATURA ARIOSA (+40% BASE) ───────────────────────────────────────────── */
 
-/* Padding generoso per dare aria */
+/* Padding generoso per dare aria alle card */
 .shift-spacing-ultra {
-  padding-top: 1.5rem;    /* 24px */
-  padding-bottom: 1.5rem; /* 24px */
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-top: 1.75rem;    /* 28px - aumentato da 24px */
+  padding-bottom: 1.75rem; /* 28px - aumentato da 24px */
+  padding-left: 1.25rem;   /* 20px - aumentato da 16px */
+  padding-right: 1.25rem;  /* 20px - aumentato da 16px */
 }
 
-/* Gap ampio tra turni */
+/* Gap ampio tra turni singoli all'interno della card */
 .shift-gap-ultra {
-  gap: 1.5rem; /* 24px */
+  gap: 2.1rem; /* 33.6px - aumentato da 24px (+40%) */
+}
+
+/* Spacing tra card settimane (margin-bottom +40%) */
+.shift-week-spacing-ultra {
+  margin-bottom: 2.8rem; /* 44.8px - aumentato da 32px (+40%) */
 }
 
 /* Safe area mobile ultra */

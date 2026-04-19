@@ -89,7 +89,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
   }
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
+    <div className="flex flex-col gap-11 pb-8">
       {weeks.map((week, wIdx) => {
         const weekDays = eachDayOfInterval({ start: week.start, end: week.end });
         const byDay = new Map<string, any[]>();
@@ -113,10 +113,10 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
 
         return (
           <div key={wIdx}
-            className="shift-card-ultra overflow-hidden"
+            className="shift-card-ultra shift-week-spacing-ultra overflow-hidden"
           >
             {/* Week header */}
-            <div className="flex items-center justify-between px-6 py-5 shift-separator-ultra">
+            <div className="flex items-center justify-between px-6 py-6 shift-separator-ultra">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-black" />
                 <div>
@@ -158,8 +158,8 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                       </p>
                     </div>
 
-                    {/* Shifts - NO BOXES, solo testo pulito con whitespace */}
-                    <div className="flex flex-col shift-gap-ultra px-4 py-4 flex-1">
+                    {/* Shifts - NO BOXES, solo testo pulito con whitespace aumentato */}
+                    <div className="flex flex-col shift-gap-ultra px-5 py-5 flex-1">
                       {dayShifts.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center">
                           <span className="w-1 h-1 rounded-full bg-slate-200" />
@@ -258,7 +258,7 @@ function StaffDesktopTimesheet({
   });
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
+    <div className="flex flex-col gap-11 pb-8">
       {weeks.map((week, wIdx) => {
         // Total hours
         let totalMins = 0;
@@ -287,10 +287,10 @@ function StaffDesktopTimesheet({
 
         return (
           <div key={wIdx}
-            className="shift-card-ultra overflow-hidden"
+            className="shift-card-ultra shift-week-spacing-ultra overflow-hidden"
           >
             {/* Week header */}
-            <div className="flex items-center justify-between px-6 py-5 shift-separator-ultra">
+            <div className="flex items-center justify-between px-6 py-6 shift-separator-ultra">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-black" />
                 <div>
@@ -332,8 +332,8 @@ function StaffDesktopTimesheet({
                       </p>
                     </div>
 
-                    {/* Shifts - ULTRA-CLEAN */}
-                    <div className="flex flex-col shift-gap-ultra px-4 py-4 flex-1">
+                    {/* Shifts - ULTRA-CLEAN: padding aumentato */}
+                    <div className="flex flex-col shift-gap-ultra px-5 py-5 flex-1">
                       {dayShifts.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center">
                           <span className="w-1 h-1 rounded-full bg-slate-200" />

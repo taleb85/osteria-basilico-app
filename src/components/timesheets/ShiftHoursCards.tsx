@@ -97,16 +97,16 @@ export function ShiftHoursCards({
   tv,
 }: ShiftHoursCardsProps) {
   return (
-    <div className="border-b border-slate-100 px-4 py-6 sm:px-6 sm:py-7 shrink-0">
-      <div className="mb-5 grid grid-cols-2 gap-5 items-stretch">
-        {/* Card Pianificato (ULTRA-CLEAN) */}
-        <div className="shift-card-ultra overflow-hidden min-h-[120px] px-4 py-4">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-500">{t.ts_label_planned}</p>
+    <div className="border-b border-slate-100 px-5 py-7 sm:px-6 sm:py-8 shrink-0">
+      <div className="mb-6 grid grid-cols-2 gap-6 items-stretch">
+        {/* Card Pianificato (BIANCO PURO) */}
+        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden min-h-[130px] px-5 py-5">
+          <p className="mb-2.5 text-xs font-medium uppercase tracking-wider text-slate-500">{t.ts_label_planned}</p>
           <div className="flex items-start gap-2">
             {(s.status === 'confirmed' || s.status === 'approved') && (
               <span className="flex shrink-0 flex-col items-center justify-center gap-1 pr-1">
                 {s.status === 'approved' && (
-                  <span className="text-lg">✓</span>
+                  <span className="text-lg text-black">✓</span>
                 )}
               </span>
             )}
@@ -114,7 +114,7 @@ export function ShiftHoursCards({
               <p className="shift-time-ultra shift-time-clean text-black">
                 {s.plannedStart}–{s.plannedEnd}
               </p>
-              <p className="mt-1.5 text-sm font-medium text-slate-600">
+              <p className="mt-2 text-sm font-medium text-slate-600">
                 {fmtHM(s.plannedMins)}
                 {s.breakMinutes > 0 ? (
                   <span className="opacity-60">
@@ -127,20 +127,20 @@ export function ShiftHoursCards({
           </div>
         </div>
         
-        {/* Card Timbrato (ULTRA-CLEAN) */}
+        {/* Card Timbrato (BIANCO PURO) */}
         <div
-          className={`px-4 py-4 overflow-hidden min-h-[120px] ${
+          className={`px-5 py-5 overflow-hidden min-h-[130px] rounded-2xl border ${
             s.punched
               ? s.isCrossDay
-                ? 'bg-slate-100'
-                : 'shift-card-ultra'
-              : 'bg-slate-50 animate-pulse'
+                ? 'bg-slate-50 border-slate-200'
+                : 'bg-white border-slate-100'
+              : 'bg-slate-50 border-slate-200 animate-pulse'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2.5">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-600">{t.ts_label_punched}</p>
             {(s.punched && !s.actualEnd) || !s.punched ? (
-              <span className="flex h-2 w-2 rounded-full bg-black animate-pulse" title={t.data_missing} />
+              <span className="flex h-2 w-2 rounded-full bg-slate-400 animate-pulse" title={t.data_missing} />
             ) : null}
           </div>
           {s.punched ? (
@@ -150,7 +150,7 @@ export function ShiftHoursCards({
                 {s.actualEnd ? `–${s.actualEnd}` : ''}
               </p>
               {s.isCrossDay && s.actualEndFull && (
-                <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-black">
+                <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-black">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
                   {formatTrans(t.ts_crossday_out_label, {
                     time: format(new Date(s.actualEndFull), 'dd/MM HH:mm'),
@@ -158,14 +158,14 @@ export function ShiftHoursCards({
                 </p>
               )}
               {s.nightRolloverOk && s.actualEndFull && (
-                <p className="mt-1.5 text-xs font-medium text-slate-600">
+                <p className="mt-2 text-xs font-medium text-slate-600">
                   {formatTrans(t.ts_punch_out_next_calendar_day_hint, {
                     time: format(new Date(s.actualEndFull), 'dd/MM HH:mm'),
                   })}
                 </p>
               )}
               <p
-                className="mt-1.5 text-sm font-medium text-slate-700"
+                className="mt-2 text-sm font-medium text-slate-700"
               >
                 {s.isCrossDay ? (
                   <>
@@ -193,7 +193,7 @@ export function ShiftHoursCards({
                   </>
                 )}
               </p>
-              <div className="mt-2 space-y-0.5 border-t border-[#001A80]/20 pt-2">
+              <div className="mt-2 space-y-0.5 border-t border-slate-200 pt-2">
                 <p className="text-[10px] leading-snug text-slate-600">
                   <span className="font-semibold text-slate-500">{t.ts_punch_source_row_in}</span>{' '}
                   {punchSourceLabel(s.punchInSource, t)}
@@ -226,12 +226,12 @@ export function ShiftHoursCards({
         !isFrozen &&
         !isAbsent && (
         <label
-          className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 shadow-sm transition-colors mt-4 ${
+          className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 shadow-sm transition-colors mt-5 ${
             deductBreakSaving ? 'pointer-events-none opacity-50' : ''
           } ${
             fullShift.deduct_break !== false
-              ? 'border-accent/60 bg-accent/5 hover:bg-accent/10'
-              : 'border-slate-300 bg-slate-50/90 hover:bg-slate-50'
+              ? 'border-slate-300 bg-slate-50 hover:bg-slate-100'
+              : 'border-slate-200 bg-white hover:bg-slate-50'
           }`}
         >
           <div className="relative shrink-0 mt-0.5">
@@ -242,7 +242,7 @@ export function ShiftHoursCards({
               disabled={deductBreakSaving}
               onChange={() => onDeductBreakChange(s.id, !(fullShift.deduct_break !== false))}
             />
-            <div className={`h-5 w-9 rounded-full transition-colors duration-200 ${fullShift.deduct_break !== false ? 'bg-accent' : 'bg-slate-200'}`} />
+            <div className={`h-5 w-9 rounded-full transition-colors duration-200 ${fullShift.deduct_break !== false ? 'bg-black' : 'bg-slate-300'}`} />
             <div
               className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
                 fullShift.deduct_break !== false ? 'translate-x-4' : 'translate-x-0'
@@ -250,7 +250,7 @@ export function ShiftHoursCards({
             />
           </div>
           <div className="min-w-0 flex-1">
-            <p className={`text-xs font-semibold ${fullShift.deduct_break !== false ? 'text-accent' : 'text-slate-800'}`}>{t.deduct_break_label}</p>
+            <p className={`text-xs font-semibold ${fullShift.deduct_break !== false ? 'text-black' : 'text-slate-700'}`}>{t.deduct_break_label}</p>
             <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
               {fullShift.deduct_break !== false
                 ? tv.wst_drawer_break_deducted_readout
