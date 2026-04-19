@@ -79,6 +79,8 @@ import { translateDepartmentValue } from '../utils/departmentLabels';
 import { getTimesheetGridPrivacyMode } from '../utils/timesheetGridPrivacy';
 import { PinPadModal } from './ui/PinPadModal';
 import { runAutoApprove } from '../utils/autoApprovePunches';
+import { useDrawerUnlock } from '../hooks/useDrawerUnlock';
+import { useDrawerPermissions } from '../hooks/useDrawerPermissions';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -901,11 +903,16 @@ export default function Timesheets() {
   const [pinGatePin, setPinGatePin] = useState('');
   const [pinGateError, setPinGateError] = useState('');
   const [pinGateUnlocking, setPinGateUnlocking] = useState(false);
-  const [timbratureEditUnlockedShiftId, setTimbratureEditUnlockedShiftId] = useState<string | null>(null);
-  const [timbratureEditUnlockedSessionId, setTimbratureEditUnlockedSessionId] = useState<string | null>(null);
-  const [shiftEditsUnlockedShiftId, setShiftEditsUnlockedShiftId] = useState<string | null>(null);
-  /** Sessione PIN globale per il drawer: una volta sbloccato, tutte le modifiche nel drawer non richiedono il PIN di nuovo */
-  const [drawerPinUnlockedSessionId, setDrawerPinUnlockedSessionId] = useState<string | null>(null);
+  
+  // Hook unificato per gestire unlock PIN (sostituisce 5 stati separati)
+  const {
+    isUnlocked: isDrawerUnlocked,
+    unlock: unlockDrawer,
+    unlockDrawerSession,
+    resetAll: resetDrawerUnlocks,
+    drawerSessionId,
+  } = useDrawerUnlock();
+  
   const pinGateKeyboardInputRef = useRef<HTMLInputElement | null>(null);
   /** Evita doppio submit (React Strict Mode) e permette di reinserire lo stesso PIN dopo errore. */
   const pinGateAutoSubmittedFor = useRef('');
@@ -944,7 +951,6 @@ export default function Timesheets() {
   const [markAbsentSaving, setMarkAbsentSaving] = useState(false);
   const [drawerShiftEditsExpanded, setDrawerShiftEditsExpanded] = useState(false);
   const [deductBreakSaving, setDeductBreakSaving] = useState(false);
-  const [plannedTimesEditUnlockedShiftId, setPlannedTimesEditUnlockedShiftId] = useState<string | null>(null);
   const [drawerPlannedTimeStart, setDrawerPlannedTimeStart] = useState('');
   const [drawerPlannedTimeEnd, setDrawerPlannedTimeEnd] = useState('');
   const [plannedTimesSaving, setPlannedTimesSaving] = useState(false);
@@ -956,16 +962,12 @@ export default function Timesheets() {
     setPinGateModal(null);
     setPinGatePin('');
     setPinGateError('');
-    setTimbratureEditUnlockedShiftId(null);
-    setTimbratureEditUnlockedSessionId(null);
-    setShiftEditsUnlockedShiftId(null);
-    setPlannedTimesEditUnlockedShiftId(null);
-    setDrawerPinUnlockedSessionId(null);
+    resetDrawerUnlocks();
     setDrawerShiftEditsExpanded(false);
     setDrawerManualPunchFormExpanded(true);
     setDrawerJustOpened(false);
     setShowCloseConfirm(false);
-  }, []);
+  }, [resetDrawerUnlocks]);
 
   const [approvalConfirm, setApprovalConfirm] = useState<{
     shiftId: string;
@@ -1878,14 +1880,14 @@ export default function Timesheets() {
         
         // Sessione PIN globale: una volta sbloccato il drawer, tutte le modifiche non richiedono il PIN
         const sessionId = Date.now().toString();
-        setDrawerPinUnlockedSessionId(sessionId);
+        unlockDrawerSession(sessionId);
         
         if (pinGateModal.mode === 'unlock_frozen') {
           await applyPayrollUnlock(pinGateModal.shiftId, verifier);
           showSuccess?.(t.ts_toast_shift_unlocked);
         }
         if (pinGateModal.mode === 'unlock_shift_edits') {
-          setShiftEditsUnlockedShiftId(pinGateModal.shiftId);
+          unlockDrawer(pinGateModal.shiftId, 'history');
           setDrawerShiftEditsExpanded(true);
           
           // Apri il drawer in sospeso con keepPinSession=true (sessione già sbloccata)
@@ -1907,11 +1909,10 @@ export default function Timesheets() {
             setDrawerPlannedTimeStart((full.start_time || '').slice(0, 5));
             setDrawerPlannedTimeEnd((full.end_time || '').slice(0, 5));
           }
-          setPlannedTimesEditUnlockedShiftId(pinGateModal.shiftId);
+          unlockDrawer(pinGateModal.shiftId, 'planned');
         }
         if (pinGateModal.mode === 'enable_timbrature' || pinGateModal.mode === 'unlock_frozen') {
-          setTimbratureEditUnlockedShiftId(pinGateModal.shiftId);
-          setTimbratureEditUnlockedSessionId(sessionId);
+          unlockDrawer(pinGateModal.shiftId, 'timbrature');
           setDrawerManualPunchFormExpanded(true);
         }
         setPinGateModal(null);
@@ -1937,6 +1938,8 @@ export default function Timesheets() {
       showSuccess,
       showError,
       t,
+      unlockDrawer,
+      unlockDrawerSession,
     ]
   );
 
@@ -2009,13 +2012,13 @@ export default function Timesheets() {
     keepPinSession = false
   ) => {
     // Mantieni la sessione PIN se: flag esplicito, stessa review employee_week, o PIN già sbloccato in questa sessione
-    const sameReviewSession = keepPinSession || (reviewQueue?.reviewScope === 'employee_week' && drawerReviewQueue?.reviewScope === 'employee_week') || !!drawerPinUnlockedSessionId || !!globalPinSessionId;
+    const sameReviewSession = keepPinSession || (reviewQueue?.reviewScope === 'employee_week' && drawerReviewQueue?.reviewScope === 'employee_week') || !!drawerSessionId || !!globalPinSessionId;
 
     // PIN come primo passo: se richiesto e sessione non già sbloccata, chiedi PIN prima di aprire
     const needsPinFirst = canTeamTimesheetOps &&
       featureFlags['unlock_with_pin'] !== false &&
       !keepPinSession &&
-      !drawerPinUnlockedSessionId &&
+      !drawerSessionId &&
       !globalPinSessionId;
     if (needsPinFirst) {
       setPinGateModal({ shiftId: shift.id, mode: 'unlock_shift_edits' });
@@ -2056,20 +2059,8 @@ export default function Timesheets() {
     setPinGateModal(null);
     setPinGatePin('');
     setPinGateError('');
-    // Se sei nella stessa sessione di review week, mantieni il PIN sbloccato
-    if (!sameReviewSession) {
-      setDrawerPinUnlockedSessionId(null);
-    }
-    setTimbratureEditUnlockedShiftId((cur) => {
-      if (reviewQueue?.reviewScope === 'employee_week') return shift.id;
-      return drawerData?.shift.id === shift.id ? cur : null;
-    });
-    setShiftEditsUnlockedShiftId((cur) =>
-      drawerData?.shift.id === shift.id ? cur : null
-    );
-    setPlannedTimesEditUnlockedShiftId((cur) =>
-      drawerData?.shift.id === shift.id ? cur : null
-    );
+    // Con il nuovo sistema unlock unificato, non serve azzerare gli unlock individuali:
+    // il drawerSessionId rimane attivo durante la navigazione nella review session
     setDrawerPlannedTimeStart(shift.plannedStart);
     setDrawerPlannedTimeEnd((shift.plannedEnd || '').slice(0, 5));
     setPlannedTimesSaving(false);
@@ -2104,10 +2095,7 @@ export default function Timesheets() {
     if (payFrozen) return false;
     if (
       featureFlags['unlock_with_pin'] !== false &&
-      timbratureEditUnlockedShiftId !== shiftRow.id &&
-      !timbratureEditUnlockedSessionId &&
-      !drawerPinUnlockedSessionId &&
-      !globalPinSessionId
+      !isDrawerUnlocked(shiftRow.id, 'timbrature', globalPinSessionId)
     ) {
       return false;
     }
@@ -2219,10 +2207,7 @@ export default function Timesheets() {
     if (!shiftRow.punchInId) return false;
     if (
       featureFlags['unlock_with_pin'] !== false &&
-      timbratureEditUnlockedShiftId !== shiftRow.id &&
-      !timbratureEditUnlockedSessionId &&
-      !drawerPinUnlockedSessionId &&
-      !globalPinSessionId
+      !isDrawerUnlocked(shiftRow.id, 'timbrature', globalPinSessionId)
     ) return false;
     const inHm = (manualPunchIn || '').trim().slice(0, 5);
     if (!/^\d{1,2}:\d{2}$/.test(inHm)) { showError?.(t.enter_valid_time_example); return false; }
@@ -2243,10 +2228,7 @@ export default function Timesheets() {
     if (!shiftRow.punchInId) return false;
     if (
       featureFlags['unlock_with_pin'] !== false &&
-      timbratureEditUnlockedShiftId !== shiftRow.id &&
-      !timbratureEditUnlockedSessionId &&
-      !drawerPinUnlockedSessionId &&
-      !globalPinSessionId
+      !isDrawerUnlocked(shiftRow.id, 'timbrature', globalPinSessionId)
     ) return false;
     const outHm = (manualPunchOut || '').trim().slice(0, 5);
     if (!/^\d{1,2}:\d{2}$/.test(outHm)) { showError?.(t.enter_valid_time_example); return false; }
@@ -4637,40 +4619,41 @@ export default function Timesheets() {
         {drawerData && (() => {
           const s = drawerData.shift;
           const fullShift = shifts.find((sh) => sh.id === s.id);
-          const isFrozen = fullShift ? isShiftPayrollFrozen(fullShift) : shiftRowPayrollFrozen(s);
-          const isApproved = isFrozen;
-          const canClose = canTeamTimesheetOps && s.punched && !s.actualEnd && !!s.punchInId && !isFrozen;
-          const isAbsentDraw = s.status === 'absent';
-          const canMarkAbsentTimesheet =
-            canTimesheetApprove && !isFrozen && !isAbsentDraw && drawerData.dateStr <= todayStr;
-          const pinRequiredForTimbrature =
-            canTeamTimesheetOps &&
-            featureFlags['unlock_with_pin'] !== false &&
-            drawerData.dateStr <= todayStr;
-          const timbratureEditorEligible =
-            canTeamTimesheetOps &&
-            (!isFrozen || timbratureEditUnlockedShiftId === s.id) &&
-            !isAbsentDraw &&
-            drawerData.dateStr <= todayStr;
-          const canTimbratureInsert = timbratureEditorEligible && !s.punched;
-          const canTimbratureEditExisting = timbratureEditorEligible && s.punched && !!s.punchInId;
-          const showTimbratureEditForm =
-            (canTimbratureInsert || canTimbratureEditExisting) &&
-            (!pinRequiredForTimbrature || timbratureEditUnlockedShiftId === s.id || !!timbratureEditUnlockedSessionId || !!drawerPinUnlockedSessionId || !!globalPinSessionId);
-          /** Click sulla scheda timbrature → PIN (se attivo), poi form inserimento o modifica e salva. */
-          const timbraturePinGateTarget =
-            pinRequiredForTimbrature &&
-            !isAbsentDraw &&
-            timbratureEditUnlockedShiftId !== s.id &&
-            !timbratureEditUnlockedSessionId &&
-            // Per turni congelati: sempre richiedere PIN unlock_frozen anche se la sessione è già aperta
-            (isFrozen
-              ? true
-              : !drawerPinUnlockedSessionId && !globalPinSessionId && timbratureEditorEligible);
-          const pinRequiredForShiftEdits =
-            canTeamTimesheetOps && featureFlags['unlock_with_pin'] !== false;
-          const shiftEditsRevealUnlocked =
-            !pinRequiredForShiftEdits || shiftEditsUnlockedShiftId === s.id || !!drawerPinUnlockedSessionId || !!globalPinSessionId;
+          
+          // Hook unificato per calcolo permessi drawer
+          const permissions = useDrawerPermissions({
+            shiftRow: s as ShiftRow,
+            fullShift: fullShift ?? null,
+            dateStr: drawerData.dateStr,
+            todayStr,
+            canTimesheetApprove,
+            canTeamTimesheetOps,
+            unlockWithPinEnabled: featureFlags['unlock_with_pin'] !== false,
+            timbratureUnlockedShiftId: isDrawerUnlocked(s.id, 'timbrature', globalPinSessionId) ? s.id : null,
+            plannedTimesUnlockedShiftId: isDrawerUnlocked(s.id, 'planned', globalPinSessionId) ? s.id : null,
+            historyUnlockedShiftId: isDrawerUnlocked(s.id, 'history', globalPinSessionId) ? s.id : null,
+            drawerSessionId,
+            globalSessionId: globalPinSessionId,
+          });
+          
+          // Alias per compatibilità con codice esistente
+          const isFrozen = permissions.isFrozen;
+          const isApproved = permissions.isApproved;
+          const isAbsentDraw = permissions.isAbsent;
+          const canClose = permissions.canClose;
+          const canMarkAbsentTimesheet = permissions.canMarkAbsent;
+          const pinRequiredForTimbrature = permissions.pinRequiredForTimbrature;
+          const timbratureEditorEligible = permissions.timbratureEditorEligible;
+          const canTimbratureInsert = permissions.canTimbratureInsert;
+          const canTimbratureEditExisting = permissions.canTimbratureEdit;
+          const showTimbratureEditForm = permissions.showTimbratureForm;
+          const timbraturePinGateTarget = permissions.timbraturePinGateActive;
+          const pinRequiredForShiftEdits = permissions.pinRequiredForHistory;
+          const shiftEditsRevealUnlocked = permissions.historyUnlocked;
+          const pinRequiredForPlannedTimesEdit = permissions.pinRequiredForPlannedTimes;
+          const showPublishedPlannedTimesEditor = permissions.showPlannedTimesEditor;
+          const showPublishedPlannedTimesPinButton = permissions.showPlannedTimesPinButton;
+          
           const punchAuditEntries = drawerData.punchAuditEntries;
           const shiftEdits = drawerData.shiftEdits;
           const drawerHistoryTotalCount = shiftEdits.length + punchAuditEntries.length;
@@ -4736,22 +4719,6 @@ export default function Timesheets() {
                 : plannedDraftCard
                   ? 'text-slate-600'
                   : 'text-slate-500';
-
-          const frozenButUnlocked = isFrozen && timbratureEditUnlockedShiftId === s.id;
-          const pinRequiredForPlannedTimesEdit =
-            featureFlags['unlock_with_pin'] !== false &&
-            (s.status === 'confirmed' || frozenButUnlocked) &&
-            canTeamTimesheetOps &&
-            (!isFrozen || frozenButUnlocked) &&
-            !isAbsentDraw;
-          const showPublishedPlannedTimesEditor =
-            (s.status === 'confirmed' || frozenButUnlocked) &&
-            canTeamTimesheetOps &&
-            (!isFrozen || frozenButUnlocked) &&
-            !isAbsentDraw &&
-            (!pinRequiredForPlannedTimesEdit || plannedTimesEditUnlockedShiftId === s.id || !!drawerPinUnlockedSessionId || !!globalPinSessionId);
-          const showPublishedPlannedTimesPinButton =
-            pinRequiredForPlannedTimesEdit && plannedTimesEditUnlockedShiftId !== s.id && !drawerPinUnlockedSessionId && !globalPinSessionId;
 
           return (
               <div className="flex flex-1 flex-col overflow-hidden sm:overflow-y-auto lg:h-full sm:max-h-[calc(100vh-60px)] md:max-h-[calc(100vh-60px)]">
@@ -5252,7 +5219,7 @@ export default function Timesheets() {
                     {!isEmployeeWeekReviewSheet &&
                       fullShift &&
                       canTeamTimesheetOps &&
-                      (!isFrozen || timbratureEditUnlockedShiftId === s.id) &&
+                      (!isFrozen || isDrawerUnlocked(s.id, 'timbrature', globalPinSessionId)) &&
                       !isAbsentDraw && (
                       <label
                         className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 shadow-sm transition-colors mt-4 ${
