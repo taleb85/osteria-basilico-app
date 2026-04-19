@@ -77,11 +77,6 @@ body,
   }
 }
 
-/* Container principale — spazio in fondo per non finire sotto la BottomNav */
-.main-container {
-  padding-top: 0 !important;
-  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
-}
 
 @layer base {
   :root {
@@ -136,7 +131,6 @@ body,
     --color-text: #1a1a1a;
     --color-text-secondary: #475569;
     --surface: #f8fafc;
-    --surface-card: #ffffff;
     --surface-card: #ffffff;
     /** Offset sotto l’header sticky app (MainApp lo aggiorna in px via ResizeObserver). */
     --app-sticky-header-offset: calc(max(6px, env(safe-area-inset-top, 0px)) + 5rem);
@@ -694,7 +688,6 @@ body,
   }
   /** Card header FLOW */
   .flow-header-card,
-  /** Card vetro — sfondo bianco solido in light mode, vetro in dark */
   .surface-glass,
   .surface-ghost-interactive,
   .depth-card {
@@ -704,7 +697,6 @@ body,
     border-color: rgba(226, 232, 240, 1) !important;
     box-shadow: 0 2px 8px rgba(0, 50, 200, 0.06) !important;
   }
-  /** Tabella timesheet — celle sticky: trasparenti solo in dark mode */
   /** Banner "turni aperti" amber — vetro trasparente (solo banner specifici) */
   .page-depth-bg .bg-amber-50\/95,
   .page-home-bg .bg-amber-50\/95 {
@@ -961,11 +953,7 @@ body,
   outline-offset: 2px;
 }
 
-/* ── Dark: niente sfondo bianco su utility Tailwind bg-white* (card, tabelle, pulsanti) ──
- * Eccezioni:
- *   `toggle-knob` — pallini switch / puntino PIN su accent
- *   `keep-white-glass` — vetro su brand (bottom nav, tile colorate)
- *   `preserve-on-dark` — es. tile “Tema chiaro” selezionato (bg bianco voluto) */
+/* Disabilita callout e selezione testo sugli elementi vetro della brand nav */
 .keep-white-glass {
   -webkit-touch-callout: none !important;
   -webkit-user-select: none !important;
