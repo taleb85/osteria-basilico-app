@@ -686,6 +686,7 @@ export default function StaffPersonalDashboard({
           onTabChange={onTabChange}
           greetingText={t.home_greeting.replace('{name}', displayUser.first_name ?? '')}
           activeTab={activeTab}
+          onRefresh={loadUserData}
         />
       </div>
     );

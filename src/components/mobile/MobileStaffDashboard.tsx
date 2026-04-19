@@ -12,7 +12,7 @@ import { TimeInputField } from '../ui/TimeInputField';
 import { safeFormatDate } from '../../utils/safeDateFormat';
 import MobileHome from './MobileHome';
 import { calculateUserStats } from '../../utils/stats';
-import { lightHaptic } from '../../utils/hapticFeedbackCore';
+import { lightHaptic, heavyHaptic } from '../../utils/hapticFeedbackCore';
 import { useSmartPunchAction } from '../../hooks/useSmartPunchAction';
 
 const Timesheets = lazy(() => import('../Timesheets'));
@@ -39,6 +39,7 @@ export interface MobileStaffDashboardProps {
   monthlyMinutes?: number;
   monthDaysWorked?: number;
   weekCapMinutes?: number;
+  onRefresh?: () => Promise<void> | void;
 }
 
 export default function MobileStaffDashboard({
@@ -56,6 +57,7 @@ export default function MobileStaffDashboard({
   monthlyMinutes: monthlyMinutesProp,
   monthDaysWorked: monthDaysWorkedProp,
   weekCapMinutes: weekCapMinutesProp,
+  onRefresh,
 }: MobileStaffDashboardProps) {
   const t = getTranslations(language);
   const tv = t as Record<string, string>;
@@ -206,9 +208,10 @@ export default function MobileStaffDashboard({
             canStart={canStart}
             canEnd={canEnd}
             punchBusy={punchBusy}
-            onStart={() => void smartExecute()}
+            onStart={() => { heavyHaptic(); void smartExecute(); }}
             onEnd={() => void smartExecute()}
             onNavigateToTimesheet={() => onTabChange?.('timesheet')}
+            onRefresh={onRefresh}
             todayWorkShifts={todayWorkShifts}
             detailLabel={t.detail_link}
           />

@@ -136,6 +136,16 @@ export const lightHaptic = () => {
   } catch { /* not supported */ }
 };
 
+/** Vibrazione decisa (100ms): feedback tattile immediato per azioni importanti. */
+export function heavyHaptic(): void {
+  try {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate(100); } catch { /* ignore */ }
+    }
+    audioHapticByType('heavy');
+  } catch { /* not supported */ }
+}
+
 /** Vibrate + ascending double-beep: usato per clock-in riuscito. */
 export function punchInSound(): void {
   try {

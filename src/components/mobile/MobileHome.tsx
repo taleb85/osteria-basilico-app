@@ -1,7 +1,9 @@
-import { Play, LogOut, ChevronRight, Clock } from 'lucide-react';
+import { Play, LogOut, ChevronRight, Clock, RotateCcw } from 'lucide-react';
 import HeaderTodayCoworkersCard from '../HeaderTodayCoworkersCard';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 
 export interface MobileHomeProps {
+  onRefresh?: () => Promise<void> | void;
   greetingText: string;
   todayLabel: string;
   statsLabels: {
@@ -75,10 +77,14 @@ export default function MobileHome({
   onStart,
   onEnd,
   onNavigateToTimesheet,
+  onRefresh,
   todayWorkShifts,
   detailLabel = 'Detail',
 }: MobileHomeProps) {
   const dark = useDarkMode();
+
+  const { pullDistance, isRefreshing, isTriggered, indicatorOpacity, indicatorRotation } =
+    usePullToRefresh({ onRefresh: onRefresh ?? (() => {}), disabled: !onRefresh });
   const cardCls = dark
     ? 'rounded-2xl border border-white/[0.08]'
     : 'rounded-2xl border bg-white border-slate-100 shadow-sm';
@@ -94,14 +100,34 @@ export default function MobileHome({
     : 0;
 
   return (
-    <div className="flex flex-col gap-3 px-4 py-4 pb-12">
+    <div
+      className="flex flex-col gap-3 px-4 py-4 pb-12 relative"
+      style={{ transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : undefined, transition: pullDistance === 0 ? 'transform 0.25s ease-out' : undefined }}
+    >
+      {/* Pull-to-refresh indicator */}
+      {onRefresh && pullDistance > 0 && (
+        <div
+          className="absolute -top-10 left-0 right-0 flex justify-center pointer-events-none"
+          style={{ opacity: indicatorOpacity }}
+        >
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${isTriggered ? 'bg-accent text-white' : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-300'}`}>
+            <RotateCcw
+              className={`h-3.5 w-3.5 shrink-0 ${isRefreshing ? 'animate-spin' : ''}`}
+              style={{ transform: isRefreshing ? undefined : `rotate(${indicatorRotation}deg)` }}
+            />
+            {isTriggered ? 'Rilascia per aggiornare' : 'Trascina per aggiornare'}
+          </div>
+        </div>
+      )}
 
       {/* ── Saluto compatto ─────────────────────────────────────────── */}
       <div className="px-1">
         <h1
           className="text-xl font-extrabold tracking-tight leading-tight"
           style={{
-            background: 'linear-gradient(120deg, #66AAFF 0%, #3366CC 40%, #001A80 100%)',
+            background: dark
+              ? 'linear-gradient(120deg, #93c5fd 0%, #60a5fa 40%, #3b82f6 100%)'
+              : 'linear-gradient(120deg, #66AAFF 0%, #3366CC 40%, #001A80 100%)',
             WebkitBackgroundClip: 'text',
             backgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -112,7 +138,9 @@ export default function MobileHome({
         <p
           className="text-sm font-bold capitalize mt-0.5 tracking-wide"
           style={{
-            background: 'linear-gradient(120deg, #66AAFF 0%, #3366CC 40%, #001A80 100%)',
+            background: dark
+              ? 'linear-gradient(120deg, #93c5fd 0%, #60a5fa 40%, #3b82f6 100%)'
+              : 'linear-gradient(120deg, #66AAFF 0%, #3366CC 40%, #001A80 100%)',
             WebkitBackgroundClip: 'text',
             backgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
