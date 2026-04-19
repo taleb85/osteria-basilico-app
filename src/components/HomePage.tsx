@@ -499,7 +499,7 @@ export default function HomePage({
           {/* Saluto */}
           {uiW('home_compact.greeting') && (
           <div>
-            <h1 className="text-slate-900 font-bold text-2xl">{t.home_greeting.replace('{name}', currentUser.first_name)}</h1>
+            <h1 className="text-white font-bold text-2xl">{t.home_greeting.replace('{name}', currentUser.first_name)}</h1>
           </div>
           )}
 
@@ -840,13 +840,19 @@ export default function HomePage({
                 iconWell: 'bg-accent/15',
               },
             ].map(({ label, value, Icon, iconColor, bg, border, iconWell }) => (
-              <div key={label} className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 ${border} ${bg}`}>
+              <div key={label} className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 ${border}`}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                }}
+              >
                 <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${border} ${iconWell}`}>
                   <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-slate-900 leading-none">{value}</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">{label}</p>
+                  <p className="text-2xl font-bold text-white leading-none">{value}</p>
+                  <p className="text-[11px] text-slate-200 mt-0.5 leading-tight">{label}</p>
                 </div>
               </div>
             ))}
@@ -858,7 +864,7 @@ export default function HomePage({
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
               <div className="flex items-center gap-2 mb-3">
                 <Moon className="w-4 h-4 text-amber-600" />
-                <h2 className="text-sm font-bold text-slate-800">{t.home_dinner_close_required}</h2>
+                <h2 className="text-sm font-bold text-white">{t.home_dinner_close_required}</h2>
                 <span className="ml-auto rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
                   {dinnerNeedsClose.length}
                 </span>
@@ -913,7 +919,7 @@ export default function HomePage({
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
               <div className="flex items-center gap-2 mb-3">
                 <AlertCircle className="w-4 h-4 text-red-500" />
-                <h2 className="text-sm font-bold text-slate-800">{t.home_requires_attention}</h2>
+                <h2 className="text-sm font-bold text-white">{t.home_requires_attention}</h2>
                 <span className="ml-auto text-[11px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full border border-red-200">{criticalShifts.length}</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -941,8 +947,8 @@ export default function HomePage({
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <div className="flex items-center gap-2 mb-3">
                 <Calendar className="w-4 h-4 text-slate-500" />
-                <h2 className="text-sm font-bold text-slate-800">{t.home_todays_shifts}</h2>
-                <span className="text-[11px] text-slate-500 ml-1">({todayShiftsEnriched.length})</span>
+                <h2 className="text-sm font-bold text-white">{t.home_todays_shifts}</h2>
+                <span className="text-[11px] text-slate-200 ml-1">({todayShiftsEnriched.length})</span>
                 <button type="button" onClick={() => onNavigateToShifts?.()} className="ml-auto text-xs font-semibold text-accent flex items-center gap-0.5 hover:underline">
                   {t.home_see_all_shifts} <ArrowRight className="w-3 h-3" />
                 </button>

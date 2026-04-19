@@ -119,11 +119,11 @@ body,
     --brand-header-font: 'Inter', system-ui, sans-serif;
     /* Retrocompatibilita con codice esistente */
     --flow-primary: var(--brand);
-    --accent: var(--brand);
-    --accent-hover: var(--brand-hover);
-    --accent-dark: var(--brand-dark);
-    --accent-light: var(--brand-light);
-    --color-accent: var(--brand);
+    --accent: var(--deep-blue);
+    --accent-hover: var(--deep-blue-hover);
+    --accent-dark: var(--deep-blue);
+    --accent-light: var(--cyan-action);
+    --color-accent: var(--deep-blue);
     /* Ombra soft unificata */
     --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
     --shadow-card-accent: 0 4px 16px -4px rgb(var(--brand-rgb) / 0.14), 0 2px 8px -4px rgb(15 23 42 / 0.08);
@@ -135,6 +135,11 @@ body,
     --text-on-glass: #000000; /* nero puro per testi su card glass */
     --text-on-glass-secondary: #334155; /* slate-700 per testi secondari su glass */
     --text-shift-time: #000000; /* nero puro per orari turni - massima leggibilità */
+    /* Palette Coordinata B&W Glass */
+    --deep-blue: #0B3573; /* Deep blue da top/bottom nav per azioni primarie */
+    --deep-blue-hover: #0d4085;
+    --cyan-action: #7AB9E5; /* Ciano per conferme/azioni positive */
+    --slate-neutral: #475569; /* Grigio ardesia per stati neutri */
     --bg: #f8fafc;
     --color-bg: #f8fafc;
     --color-text: #1a1a1a;
@@ -354,9 +359,10 @@ body,
    * Modali / dialog centrati su backdrop scuro — vetro (blur + fill semi-opaco).
    * Aggiungere `rounded-2xl` (o altro raggio) sullo stesso elemento.
    * overscroll-behavior-y: contain → evita scroll chaining verso la pagina sottostante.
+   * Opacità 95% per isolamento netto dallo sfondo blu
    */
   .modal-glass-panel {
-    @apply border border-slate-200 bg-white/[0.95] text-slate-900 shadow-2xl backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150;
+    @apply border border-slate-200/80 bg-white/[0.95] text-slate-900 shadow-2xl backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150;
     /* Impedisce il rimbalzo verso la pagina quando si scorre al limite della modale */
     overscroll-behavior-y: contain;
   }
@@ -1077,15 +1083,6 @@ html.no-motion *::after {
 
 /* ── CONTRASTO AUTOMATICO SU SFONDO BLU ─────────────────────────────── */
 
-/* Forza contrasto alto per testi scuri NON dentro card glass o bg-white */
-body .text-slate-500:not(.surface-glass *, .modal-glass-panel *, .shift-card-ultra *, [class*="bg-white"] *, [class*="bg-slate"] *),
-body .text-slate-600:not(.surface-glass *, .modal-glass-panel *, .shift-card-ultra *, [class*="bg-white"] *, [class*="bg-slate"] *),
-body .text-slate-700:not(.surface-glass *, .modal-glass-panel *, .shift-card-ultra *, [class*="bg-white"] *, [class*="bg-slate"] *),
-body .text-slate-800:not(.surface-glass *, .modal-glass-panel *, .shift-card-ultra *, [class*="bg-white"] *, [class*="bg-slate"] *),
-body .text-slate-900:not(.surface-glass *, .modal-glass-panel *, .shift-card-ultra *, [class*="bg-white"] *, [class*="bg-slate"] *) {
-  color: rgb(226 232 240) !important; /* slate-200 per alto contrasto */
-}
-
 /* Utility per forzare contrasto alto su sfondo scuro - usare manualmente */
 .force-text-light {
   color: rgb(226 232 240) !important; /* slate-200 */
@@ -1097,16 +1094,50 @@ body .text-slate-900:not(.surface-glass *, .modal-glass-panel *, .shift-card-ult
 
 /* Helper classes per contrasto manuale */
 .text-on-dark-bg {
-  color: var(--text-on-dark-bg);
+  color: var(--text-on-dark-bg) !important;
 }
 
 /* Testi su card glass */
 .text-on-glass {
-  color: var(--text-on-glass);
+  color: var(--text-on-glass) !important;
 }
 
 .text-on-glass-secondary {
-  color: var(--text-on-glass-secondary);
+  color: var(--text-on-glass-secondary) !important;
+}
+
+/* ── GEOMETRIA E LAYOUT UNIFICATO ─────────────────────────────────────── */
+
+/* Dashboard cards: altezza uniforme in griglia */
+.dashboard-card-uniform {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 120px;
+}
+
+/* Card turni: padding unificato */
+.shift-card-padding {
+  padding: 1.25rem; /* p-5 */
+}
+
+/* Righe tabella turni: altezza minima e centratura verticale */
+.table-row-uniform {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+/* Orari: no wrap per evitare spezzature */
+.time-no-wrap {
+  white-space: nowrap;
+}
+
+/* Modal form: sfondo opaco 95% per isolamento netto */
+.modal-form-isolated {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 /* ── SPAZIATURA ARIOSA (+40% BASE) ───────────────────────────────────────────── */

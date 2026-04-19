@@ -79,9 +79,9 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-slate-200">
-          <Calendar className="w-7 h-7 text-slate-300" />
+          <Calendar className="w-7 h-7 text-white/40" />
         </div>
-        <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
+        <p className="text-white/70 font-bold uppercase tracking-widest text-[10px]">
           {t.no_shifts_scheduled}
         </p>
       </div>
@@ -120,10 +120,10 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-black" />
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 leading-none mb-1">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-white/60 leading-none mb-1">
                     {t.week_label ?? 'Sett.'}
                   </p>
-                  <p className="text-base font-semibold text-black">
+                  <p className="text-base font-semibold text-white">
                     {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM', { locale })}
                   </p>
                 </div>
@@ -150,10 +150,10 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                   >
                     {/* Day header */}
                     <div className={`px-3 py-3 ${today ? 'bg-white/15' : ''}`}>
-                      <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-black' : 'text-slate-500'}`}>
+                      <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-black' : 'text-white/70'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
-                      <p className={`text-base font-semibold ${today ? 'text-black' : 'text-slate-700'}`}>
+                      <p className={`text-base font-semibold ${today ? 'text-black' : 'text-white/90'}`}>
                         {format(day, 'd')}
                       </p>
                     </div>
@@ -237,9 +237,9 @@ function StaffDesktopTimesheet({
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-slate-200">
-          <Clock className="w-7 h-7 text-slate-300" />
+          <Clock className="w-7 h-7 text-white/40" />
         </div>
-        <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
+        <p className="text-white/70 font-bold uppercase tracking-widest text-[10px]">
           {t.no_shifts_scheduled ?? 'Nessuno storico disponibile'}
         </p>
       </div>
@@ -294,10 +294,10 @@ function StaffDesktopTimesheet({
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-black" />
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 leading-none mb-1">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-white/60 leading-none mb-1">
                     {t.week_label ?? 'Sett.'}
                   </p>
-                  <p className="text-base font-semibold text-black">
+                  <p className="text-base font-semibold text-white">
                     {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM', { locale })}
                   </p>
                 </div>
@@ -324,10 +324,10 @@ function StaffDesktopTimesheet({
                   >
                     {/* Day header */}
                     <div className={`px-3 py-3 ${today ? 'bg-white/15' : ''}`}>
-                      <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-black' : 'text-slate-500'}`}>
+                      <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-black' : 'text-white/70'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
-                      <p className={`text-base font-semibold ${today ? 'text-black' : 'text-slate-700'}`}>
+                      <p className={`text-base font-semibold ${today ? 'text-black' : 'text-white/90'}`}>
                         {format(day, 'd')}
                       </p>
                     </div>
@@ -949,7 +949,7 @@ export default function StaffPersonalDashboard({
             <ChevronLeft className="w-5 h-5" aria-hidden />
             {(t as { back?: string }).back ?? 'Indietro'}
           </button>
-          <span className="text-xs font-bold text-slate-600 uppercase tracking-widest truncate">{t.sidebar_holidays}</span>
+          <span className="text-xs font-bold text-white/80 uppercase tracking-widest truncate">{t.sidebar_holidays}</span>
         </div>
       )}
 

@@ -596,14 +596,21 @@ export default function Statistics() {
         )}
 
         {showManagementStatsChrome && payrollForCalendarMonth && uiW('stats.table') && (
-          <div className="mb-4 rounded-2xl border border-accent/25 bg-accent/5 px-4 py-3.5 text-sm">
+          <div className="mb-4 rounded-2xl px-4 py-3.5 text-sm"
+            style={{
+              background: 'rgba(255, 255, 255, 0.90)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+            }}
+          >
             <p className="font-bold text-slate-900">
               {tv.stats_payroll_title ?? 'Pagamento stipendi'}
             </p>
             <p className="mt-1 max-w-2xl text-xs leading-snug text-slate-600">
               {tv.stats_payroll_hint}
             </p>
-            <p className="mt-2 font-semibold text-accent-dark">
+            <p className="mt-2 font-semibold text-cyan-700">
               {formatTrans(tv.stats_payroll_date_line ?? 'Data prevista: {date}', {
                 date: format(payrollForCalendarMonth.payDate, 'EEEE d MMMM yyyy', { locale: statsLoc }),
               })}
@@ -622,7 +629,7 @@ export default function Statistics() {
                 <p className="text-xs font-bold uppercase tracking-widest text-accent">
                   {t.stats_your_hours_in_range}
                 </p>
-                <p className="text-2xl font-bold tabular-nums text-accent-dark">
+                <p className="text-2xl font-bold tabular-nums text-black">
                   {staffRangeTotalMins > 0 ? formatMinutesToHoursAndMinutes(staffRangeTotalMins) : '–'}
                 </p>
               </div>
@@ -648,7 +655,7 @@ export default function Statistics() {
                         <span className="text-[10px] font-bold uppercase tracking-wide text-accent/60">
                           {format(clampedStart, 'dd/MM')} → {format(clampedEnd, 'dd/MM')}
                         </span>
-                        <span className={`text-sm font-extrabold tabular-nums ${weekMins > 0 ? 'text-accent-dark' : 'text-accent/25'}`}>
+                        <span className={`text-sm font-extrabold tabular-nums ${weekMins > 0 ? 'text-black' : 'text-accent/25'}`}>
                           {weekMins > 0 ? formatMinutesToHoursAndMinutes(weekMins) : '—'}
                         </span>
                       </div>
@@ -666,7 +673,7 @@ export default function Statistics() {
                                 {format(day, 'dd')}
                               </span>
                               {mins > 0 ? (
-                                <span className="text-[12px] font-bold text-accent-dark tabular-nums leading-none">
+                                <span className="text-[12px] font-bold text-black tabular-nums leading-none">
                                   {formatMinutesToHoursAndMinutes(mins)}
                                 </span>
                               ) : (
@@ -688,7 +695,7 @@ export default function Statistics() {
                 <p className="text-xs font-bold uppercase tracking-widest text-accent">
                   {t.stats_your_hours_in_range}
                 </p>
-                <p className="text-2xl font-bold tabular-nums text-accent-dark">
+                <p className="text-2xl font-bold tabular-nums text-black">
                   {staffRangeTotalMins > 0 ? formatMinutesToHoursAndMinutes(staffRangeTotalMins) : '–'}
                 </p>
               </div>
@@ -740,7 +747,7 @@ export default function Statistics() {
                                   return (
                                     <td key={dayKey} className="px-2 py-2.5 text-center tabular-nums border border-slate-200">
                                       {mins > 0 ? (
-                                        <span className="text-[13px] font-bold text-accent-dark">
+                                        <span className="text-[13px] font-bold text-black">
                                           {formatMinutesToHoursAndMinutes(mins)}
                                         </span>
                                       ) : (
@@ -750,7 +757,7 @@ export default function Statistics() {
                                   );
                                 })}
                                 <td className="py-2.5 pl-2 pr-5 text-right tabular-nums border border-slate-200 bg-slate-50">
-                                  <span className={`text-[13px] font-extrabold ${weekMins > 0 ? 'text-accent-dark' : 'text-slate-300'}`}>
+                                  <span className={`text-[13px] font-extrabold ${weekMins > 0 ? 'text-black' : 'text-slate-300'}`}>
                                     {weekMins > 0 ? formatMinutesToHoursAndMinutes(weekMins) : '—'}
                                   </span>
                                 </td>
@@ -777,7 +784,7 @@ export default function Statistics() {
                   <p className="text-xs font-bold uppercase tracking-widest text-accent">
                     {tv.stats_mgmt_personal_hours_period ?? t.stats_your_hours_in_range}
                   </p>
-                  <p className="text-2xl font-bold tabular-nums text-accent-dark">
+                  <p className="text-2xl font-bold tabular-nums text-black">
                     {mgmtPersonalTotalMins > 0 ? formatMinutesToHoursAndMinutes(mgmtPersonalTotalMins) : '–'}
                   </p>
                 </div>
@@ -797,7 +804,7 @@ export default function Statistics() {
                               <span className="text-[9px] font-bold uppercase tracking-wide text-accent/60">
                                 {format(clampedStart, 'dd/MM')} → {format(clampedEnd, 'dd/MM')}
                               </span>
-                              <span className={`text-sm font-extrabold tabular-nums ${weekMins > 0 ? 'text-accent-dark' : 'text-accent/25'}`}>
+                              <span className={`text-sm font-extrabold tabular-nums ${weekMins > 0 ? 'text-black' : 'text-accent/25'}`}>
                                 {weekMins > 0 ? formatMinutesToHoursAndMinutes(weekMins) : '—'}
                               </span>
                             </div>
@@ -814,7 +821,7 @@ export default function Statistics() {
                                       {format(day, 'dd')}
                                     </span>
                                     {mins > 0 ? (
-                                      <span className="text-[11px] font-bold text-accent-dark tabular-nums leading-none">
+                                      <span className="text-[11px] font-bold text-black tabular-nums leading-none">
                                         {formatMinutesToHoursAndMinutes(mins)}
                                       </span>
                                     ) : (
@@ -865,7 +872,7 @@ export default function Statistics() {
                                     return (
                                       <td key={dayKey} className="py-2.5 px-1 text-center tabular-nums">
                                         {mins > 0 ? (
-                                          <span className="text-[13px] font-bold text-accent-dark">
+                                          <span className="text-[13px] font-bold text-black">
                                             {formatMinutesToHoursAndMinutes(mins)}
                                           </span>
                                         ) : (
@@ -875,7 +882,7 @@ export default function Statistics() {
                                     );
                                   })}
                                   <td className="py-2.5 pr-5 text-right tabular-nums">
-                                    <span className={`text-[13px] font-extrabold ${weekMins > 0 ? 'text-accent-dark' : 'text-accent/20'}`}>
+                                    <span className={`text-[13px] font-extrabold ${weekMins > 0 ? 'text-black' : 'text-accent/20'}`}>
                                       {weekMins > 0 ? formatMinutesToHoursAndMinutes(weekMins) : '—'}
                                     </span>
                                   </td>

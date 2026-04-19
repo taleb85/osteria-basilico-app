@@ -198,7 +198,7 @@ export function TimesheetDrawerHeader({
                 <button
                   type="button"
                   onClick={onFreezeShift}
-                  className="flex shrink-0 items-center gap-1.5 rounded-xl bg-accent px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-accent-hover hover:scale-105 active:scale-95"
+                  className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#0B3573] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:opacity-90 hover:scale-105 active:scale-95"
                   title={t.ts_drawer_freeze_title}
                 >
                   <Lock className="w-3.5 h-3.5" />
@@ -331,7 +331,7 @@ export function TimesheetDrawerHeader({
                 <button
                   type="button"
                   onClick={onFreezeShift}
-                  className="flex shrink-0 items-center gap-1.5 rounded-xl bg-accent hover:bg-accent-hover px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-105 active:scale-95"
+                  className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#0B3573] hover:opacity-90 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-105 active:scale-95"
                 >
                   <Lock className="w-3.5 h-3.5" />
                   <span>{t.ts_drawer_freeze_btn}</span>

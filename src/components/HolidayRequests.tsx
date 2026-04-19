@@ -386,12 +386,12 @@ export default function HolidayRequests() {
                     onClick={() => isPending && isAdmin && setSelectedH(holiday)}
                     className={`min-h-[44px] min-w-[44px] aspect-square rounded-xl flex items-center justify-center text-xs font-semibold transition-all select-none touch-target
                       ${isPending && isAdmin ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}
-                      ${status === 'approved' ? 'bg-[#3366CC]/15 text-[#2255BB] ring-1 ring-[#3366CC]/25' :
+                      ${status === 'approved' ? 'bg-[#7AB9E5]/20 text-cyan-700 ring-1 ring-[#7AB9E5]/30' :
                         status === 'pending'  ? 'bg-amber-100 text-amber-700'  :
                         status === 'rejected' ? 'bg-red-100 text-red-700'    :
-                        today                 ? 'text-white ring-1 ring-[#3366CC]/40' :
-                        'text-slate-600 hover:bg-[#3366CC]/8'}`}
-                    style={today && !status ? { background: 'linear-gradient(110deg, #3366CC, #001A80)' } : undefined}
+                        today                 ? 'text-white ring-1 ring-[#0B3573]/40' :
+                        'text-slate-600 hover:bg-[#7AB9E5]/10'}`}
+                    style={today && !status ? { background: 'linear-gradient(110deg, #0B3573, #001A80)' } : undefined}
                   >
                     {format(day, 'd')}
                   </div>
