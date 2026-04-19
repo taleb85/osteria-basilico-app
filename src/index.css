@@ -130,6 +130,11 @@ body,
     --text-dark: #1a1a1a;
     --text-secondary: #475569;
     --text-muted: #64748b;
+    /* B&W Glass Design System */
+    --text-on-dark-bg: #e2e8f0; /* slate-200 per testi su sfondo scuro */
+    --text-on-glass: #000000; /* nero puro per testi su card glass */
+    --text-on-glass-secondary: #334155; /* slate-700 per testi secondari su glass */
+    --text-shift-time: #000000; /* nero puro per orari turni - massima leggibilità */
     --bg: #f8fafc;
     --color-bg: #f8fafc;
     --color-text: #1a1a1a;
@@ -1042,6 +1047,44 @@ html.no-motion *::after {
   border: none;
   box-shadow: 0 8px 32px 0 rgba(11, 53, 115, 0.08);
   border-radius: 1rem;
+}
+
+/* ── CARD GLASS LAYOUT: distribuzione spazio uniforme ─────────────────── */
+
+/* Card glass con layout flex verticale per uniformare altezza */
+.glass-card-flex {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 120px;
+}
+
+/* Card glass per tabella turni - padding coerente */
+.shift-cell-glass {
+  padding: 0.75rem; /* p-3 */
+  white-space: nowrap;
+  min-height: 84px;
+}
+
+/* Orari turni: nero puro forzato per massima leggibilità su glass */
+.shift-time-text {
+  color: var(--text-shift-time) !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Testi su sfondo scuro (fuori dalle card glass) */
+.text-on-dark-bg {
+  color: var(--text-on-dark-bg);
+}
+
+/* Testi su card glass */
+.text-on-glass {
+  color: var(--text-on-glass);
+}
+
+.text-on-glass-secondary {
+  color: var(--text-on-glass-secondary);
 }
 
 /* ── SPAZIATURA ARIOSA (+40% BASE) ───────────────────────────────────────────── */
