@@ -4956,27 +4956,27 @@ export default function Timesheets() {
                         const punchComplete = s.punched && !s.isCrossDay && !showTimbratureEditForm;
                         const punchCrossDay = s.punched && s.isCrossDay && !showTimbratureEditForm;
                         const cardCls = punchCrossDay
-                          ? 'border-red-200 border-l-error bg-red-50/90'
+                          ? 'border-red-400/50 border-l-error bg-red-500/12'
                           : punchComplete
                           ? 'border-[#001A80]/25 border-l-[#3366CC] bg-[#001A80]/8'
-                          : 'border-amber-400/90 bg-white/85';
+                          : 'border-amber-400/70 bg-amber-500/12';
                         const hoverCls = timbraturePinGateTarget
                           ? punchCrossDay
-                            ? 'hover:bg-red-50'
+                            ? 'hover:bg-red-500/20'
                             : punchComplete
-                            ? 'hover:bg-[#001A80]/8'
-                            : 'hover:bg-amber-50/90'
+                            ? 'hover:bg-[#001A80]/12'
+                            : 'hover:bg-amber-500/20'
                           : '';
                         const titleCls = punchCrossDay
-                          ? 'text-red-900'
+                          ? 'text-red-300'
                           : punchComplete
-                          ? 'text-slate-900'
-                          : 'text-amber-950';
+                          ? 'text-white'
+                          : 'text-amber-200';
                         const hintCls = punchCrossDay
-                          ? 'text-red-700/80'
+                          ? 'text-red-300/80'
                           : punchComplete
-                          ? 'text-[#001A80]/80'
-                          : 'text-amber-900/85';
+                          ? 'text-blue-300/80'
+                          : 'text-amber-200/85';
                         return (
                       <div className={`space-y-0.5 sm:space-y-1 rounded-xl border-2 border-l-4 p-1.5 sm:p-2 shadow-sm flex flex-col h-auto overflow-visible ${cardCls}`}>
                         <div
@@ -5038,18 +5038,18 @@ export default function Timesheets() {
                             }
                             className={`rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 ring-1 transition-colors ${
                               !s.actualStart
-                                ? 'bg-red-50 ring-red-300'
+                                ? 'bg-red-500/15 ring-red-400/40'
                                 : punchCrossDay
-                                  ? 'bg-red-50/80 ring-red-200/70'
+                                  ? 'bg-red-500/12 ring-red-400/30'
                                   : punchComplete
-                                  ? 'bg-[#001A80]/7 ring-[#001A80]/25'
-                                  : 'bg-white/80 ring-amber-200/80'
-                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-50/90' : ''}`}
+                                  ? 'bg-[#001A80]/10 ring-[#001A80]/25'
+                                  : 'bg-white/8 ring-amber-400/40'
+                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''}`}
                           >
-                            <p className={`mb-0.5 text-[9px] font-semibold uppercase tracking-wide ${!s.actualStart ? 'text-red-600' : punchCrossDay ? 'text-red-600/80' : punchComplete ? 'text-[#001A80]/80' : 'text-amber-800/80'}`}>
+                            <p className={`mb-0.5 text-[9px] font-semibold uppercase tracking-wide ${!s.actualStart ? 'text-red-400' : punchCrossDay ? 'text-red-300/80' : punchComplete ? 'text-blue-300/80' : 'text-amber-300/80'}`}>
                               {t.ts_drawer_manual_punch_in}
                             </p>
-                            <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualStart ? 'text-slate-900' : s.plannedStart ? 'text-slate-400' : 'text-red-500'}`}>
+                            <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualStart ? 'text-white' : s.plannedStart ? 'text-white/40' : 'text-red-400'}`}>
                               {s.actualStart ?? s.plannedStart ?? '—'}
                             </p>
                           </div>
@@ -5066,22 +5066,22 @@ export default function Timesheets() {
                             }
                             className={`rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 ring-1 transition-colors ${
                               !s.actualEnd
-                                ? 'bg-red-50 ring-red-300'
+                                ? 'bg-red-500/15 ring-red-400/40'
                                 : punchCrossDay
-                                  ? 'bg-red-50/80 ring-red-200/70'
+                                  ? 'bg-red-500/12 ring-red-400/30'
                                   : punchComplete
-                                  ? 'bg-[#001A80]/7 ring-[#001A80]/25'
-                                  : 'bg-white/80 ring-amber-200/80'
-                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-50/90' : ''}`}
+                                  ? 'bg-[#001A80]/10 ring-[#001A80]/25'
+                                  : 'bg-white/8 ring-amber-400/40'
+                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''}`}
                           >
-                            <p className={`mb-0.5 text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide ${!s.actualEnd ? 'text-red-600' : punchCrossDay ? 'text-red-600/80' : punchComplete ? 'text-[#001A80]/80' : 'text-amber-800/80'}`}>
+                            <p className={`mb-0.5 text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide ${!s.actualEnd ? 'text-red-400' : punchCrossDay ? 'text-red-300/80' : punchComplete ? 'text-blue-300/80' : 'text-amber-300/80'}`}>
                               {t.ts_drawer_manual_punch_out}
                             </p>
-                            <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualEnd ? 'text-slate-900' : s.plannedEnd ? 'text-slate-400' : 'text-red-500'}`}>
+                            <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualEnd ? 'text-white' : s.plannedEnd ? 'text-white/40' : 'text-red-400'}`}>
                               {s.actualEnd ?? s.plannedEnd ?? '—'}
                             </p>
                             {s.isCrossDay && s.actualEndFull && s.actualEnd && (
-                              <p className="mt-1 flex items-center gap-1 text-[10px] font-bold text-amber-900">
+                              <p className="mt-1 flex items-center gap-1 text-[10px] font-bold text-amber-300">
                                 <AlertTriangle className="h-3 w-3 flex-shrink-0" />
                                 {formatTrans(t.ts_crossday_out_label, {
                                   time: format(new Date(s.actualEndFull), 'dd/MM HH:mm'),
@@ -5089,7 +5089,7 @@ export default function Timesheets() {
                               </p>
                             )}
                             {s.nightRolloverOk && s.actualEndFull && s.actualEnd && (
-                              <p className="mt-1 text-[10px] font-medium text-slate-500">
+                              <p className="mt-1 text-[10px] font-medium text-white/50">
                                 {formatTrans(t.ts_punch_out_next_calendar_day_hint, {
                                   time: format(new Date(s.actualEndFull), 'dd/MM HH:mm'),
                                 })}
@@ -5100,7 +5100,7 @@ export default function Timesheets() {
                         )}
                         </div>
                       {showTimbratureEditForm && drawerManualPunchFormExpanded && (
-                        <div className="space-y-2 border-t border-amber-200/80 pt-3">
+                        <div className="space-y-2 border-t border-amber-400/30 pt-3">
                           {/* ORA ENTRATA */}
                           <div>
                             <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-800/70">
