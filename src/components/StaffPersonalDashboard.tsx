@@ -146,10 +146,10 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                 return (
                   <div
                     key={dateStr}
-                    className={`flex flex-col min-h-[160px] ${today ? 'bg-slate-50' : isWeekend ? 'bg-white' : 'bg-white'}`}
+                    className={`flex flex-col min-h-[160px] ${today ? 'bg-white/20' : ''}`}
                   >
                     {/* Day header */}
-                    <div className={`px-3 py-3 ${today ? 'bg-slate-100' : ''}`}>
+                    <div className={`px-3 py-3 ${today ? 'bg-white/15' : ''}`}>
                       <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-black' : 'text-slate-500'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
@@ -320,10 +320,10 @@ function StaffDesktopTimesheet({
                 return (
                   <div
                     key={dateStr}
-                    className={`flex flex-col min-h-[160px] ${today ? 'bg-slate-50' : isWeekend ? 'bg-white' : 'bg-white'}`}
+                    className={`flex flex-col min-h-[160px] ${today ? 'bg-white/20' : ''}`}
                   >
                     {/* Day header */}
-                    <div className={`px-3 py-3 ${today ? 'bg-slate-100' : ''}`}>
+                    <div className={`px-3 py-3 ${today ? 'bg-white/15' : ''}`}>
                       <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-black' : 'text-slate-500'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
@@ -957,11 +957,25 @@ export default function StaffPersonalDashboard({
         <div className="hidden md:block pb-4 pt-1">
           <div className="surface-glass p-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-center">
+              <div className="rounded-2xl px-4 py-3 text-center"
+                style={{ 
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                }}
+              >
                 <p className="text-slate-500 text-[10px] font-medium uppercase tracking-widest mb-1">{t.week_hours}</p>
                 <p className="text-slate-900 text-2xl font-bold tabular-nums">{totalApprovedHours}</p>
               </div>
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-center">
+              <div className="rounded-2xl px-4 py-3 text-center"
+                style={{ 
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                }}
+              >
                 <p className="text-slate-500 text-[10px] font-medium uppercase tracking-widest mb-1">{t.shifts_week}</p>
                 <p className="text-slate-900 text-2xl font-bold tabular-nums">{upcomingShifts.length + todayShifts.length}</p>
               </div>

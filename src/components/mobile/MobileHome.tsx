@@ -188,7 +188,14 @@ export default function MobileHome({
 
         {/* Tempo trascorso (ULTRA-CLEAN: solo testo pulito) */}
         {inProgress && elapsedLabel && (
-          <div className="flex items-center gap-3 mb-5 px-4 py-4 bg-slate-50 rounded-xl">
+          <div className="flex items-center gap-3 mb-5 px-4 py-4 rounded-xl"
+            style={{ 
+              background: 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+            }}
+          >
             <Clock className="w-6 h-6 text-slate-700 shrink-0" strokeWidth={1.5} />
             <span className="text-4xl shift-time-clean font-medium text-black">
               {elapsedLabel}
@@ -233,7 +240,7 @@ export default function MobileHome({
               type="button"
               disabled={punchBusy}
               onClick={onStart}
-              className="w-full h-14 bg-[#001A80] hover:bg-[#001266] text-white rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-[#001A80]/15 transition-all active:scale-95 disabled:opacity-60"
+              className="w-full h-14 bg-[#0B3573] hover:bg-[#0a2f5f] text-white rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-[#0B3573]/15 transition-all active:scale-95 disabled:opacity-60"
             >
               <Play className="w-5 h-5 fill-current" />
               <span className="text-base font-bold uppercase tracking-wider">
@@ -302,7 +309,14 @@ export default function MobileHome({
       </section>
 
       {/* ── Colleghi in turno oggi ───────────────────────────────────── */}
-      <div className="rounded-2xl border border-slate-100 overflow-hidden bg-white/80 supports-[backdrop-filter]:backdrop-blur-xl">
+      <div className="rounded-2xl overflow-hidden"
+        style={{ 
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+        }}
+      >
         <HeaderTodayCoworkersCard />
       </div>
 
