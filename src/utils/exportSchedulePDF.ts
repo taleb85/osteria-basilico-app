@@ -22,9 +22,10 @@ const DEPT_BORDER: Record<string, [number, number, number]> = {
 };
 /** Brand FLOW var(--brand) = rgb(0, 82, 255) */
 const BASILICO: [number, number, number] = [45, 90, 39];
+const FLOW_BLUE: [number, number, number] = [51, 102, 204]; // #3366CC
 const STATUS_COLOR: Record<string, [number, number, number]> = {
   approved: BASILICO,
-  confirmed: BASILICO,
+  confirmed: FLOW_BLUE,
   draft: [203, 213, 225],
   absent: [251, 113, 133],
 };
