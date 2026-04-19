@@ -348,9 +348,9 @@ export default function ProfileNavTabPanel({
     setTimeout(() => setLangSaved(false), 2000);
   };
 
-  const menuRowBase = 'w-full flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:scale-[0.98] border border-slate-100 bg-white shadow-sm';
-  const chevronCls = 'text-slate-300';
-  const rowLabelCls = 'text-[13px] font-semibold text-slate-700';
+  const menuRowBase = 'w-full flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:scale-[0.98] border border-white/15 hover:bg-white/10';
+  const chevronCls = 'text-white/40';
+  const rowLabelCls = 'text-[13px] font-semibold text-white/85';
 
   const deptLabel = currentUser.department ?? '';
   const roleMap: Record<string, string> = {
@@ -388,7 +388,7 @@ export default function ProfileNavTabPanel({
         {/* ── Hero ─────────────────────────────────────────────────────── */}
         <div
           className="flex flex-col items-center gap-3 pt-8 pb-6 px-5"
-          style={{ borderBottom: '1px solid #F1F5F9' }}
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}
         >
           {/* Avatar + photo button */}
           <div className="relative inline-block" ref={photoMenuWrapRef}>
@@ -458,7 +458,7 @@ export default function ProfileNavTabPanel({
 
           {/* Name + role/dept */}
           <div className="flex flex-col items-center gap-0.5">
-            <h2 className="text-base font-bold tracking-tight" style={{ color: '#1e293b' }}>
+            <h2 className="text-base font-bold tracking-tight" style={{ color: '#ffffff' }}>
               {displayName}
             </h2>
             <p className="text-[11px]" style={{ color: '#94a3b8' }}>
@@ -486,15 +486,15 @@ export default function ProfileNavTabPanel({
         <div className="flex flex-col gap-2 px-4 pt-4 pb-8">
 
           {/* Impostazioni profilo */}
-          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-            <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98]" onClick={() => toggleSection('settings')}>
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}>
+            <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98] hover:bg-white/10" onClick={() => toggleSection('settings')}>
               <span className={rowLabelCls}>{tv.profile_tab_group_settings ?? 'Impostazioni profilo'}</span>
               <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'settings' ? 'rotate-90' : ''}`} />
             </button>
             <AnimatePresence initial={false}>
               {expanded === 'settings' && (
                 <motion.div key="settings-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
-                  <div style={{ borderTop: '1px solid #F1F5F9' }} className="px-4 py-4 text-slate-900">
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }} className="px-4 py-4 text-white">
                     <ProfileFormSelf
                       formData={formData}
                       setFormData={setFormData}
@@ -513,15 +513,15 @@ export default function ProfileNavTabPanel({
           </div>
 
           {/* Notifiche */}
-          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-            <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98]" onClick={() => toggleSection('notif')}>
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}>
+            <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98] hover:bg-white/10" onClick={() => toggleSection('notif')}>
               <span className={rowLabelCls}>{tv.profile_notifications ?? 'Notifiche'}</span>
               <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'notif' ? 'rotate-90' : ''}`} />
             </button>
             <AnimatePresence initial={false}>
               {expanded === 'notif' && (
                 <motion.div key="notif-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
-                  <div style={{ borderTop: '1px solid #F1F5F9' }} className="px-4 py-3">
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }} className="px-4 py-3">
                     <NotificationPermissionButton effectiveLanguage={effectiveLanguage} userId={currentUser?.id} />
                   </div>
                 </motion.div>
@@ -530,16 +530,16 @@ export default function ProfileNavTabPanel({
           </div>
 
           {/* Lingua */}
-          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-            <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98]" onClick={() => toggleSection('lang')}>
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}>
+            <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98] hover:bg-white/10" onClick={() => toggleSection('lang')}>
               <span className={rowLabelCls}>{t.language ?? 'Lingua'}</span>
               <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'lang' ? 'rotate-90' : ''}`} />
             </button>
             <AnimatePresence initial={false}>
               {expanded === 'lang' && (
                 <motion.div key="lang-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
-                  <div style={{ borderTop: '1px solid #F1F5F9' }} className="px-4 py-3 space-y-3">
-                    <div className="flex gap-1 rounded-xl p-1" style={{ background: '#f1f5f9', border: '1px solid #F1F5F9' }}>
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }} className="px-4 py-3 space-y-3">
+                    <div className="flex gap-1 rounded-xl p-1" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
                       {(() => {
                         const deviceLang = getDeviceUiLanguage();
                         const isAuto = pendingLang === null;
@@ -548,7 +548,7 @@ export default function ProfileNavTabPanel({
                             type="button"
                             onClick={() => setPendingLang(null)}
                             className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
-                            style={isAuto ? { background: '#0052FF', color: '#ffffff', outline: 'none' } : { color: '#64748b', outline: 'none' }}
+                            style={isAuto ? { background: '#0052FF', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
                             title={`Auto → ${deviceLang.toUpperCase()}`}
                           >
                             Auto
@@ -561,7 +561,7 @@ export default function ProfileNavTabPanel({
                           type="button"
                           onClick={() => setPendingLang(l)}
                           className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
-                          style={pendingLang === l ? { background: '#0052FF', color: '#ffffff', outline: 'none' } : { color: '#64748b', outline: 'none' }}
+                          style={pendingLang === l ? { background: '#0052FF', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
                         >
                           {l.toUpperCase()}
                         </button>

@@ -2944,20 +2944,21 @@ export default function Timesheets() {
                   }}
                   className={`group w-full rounded-xl border px-2.5 py-2 shadow-none flex items-center gap-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 ${
                     isActive
-                      ? `${border} bg-slate-100/80 ring-1 ring-inset ring-accent/30`
-                      : `${border} ${bg} ${hoverBg}`
+                      ? `${border} ring-1 ring-inset ring-accent/30`
+                      : `${border} hover:bg-white/10`
                   }`}
+                  style={{ background: isActive ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.06)' }}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
                     <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xl font-bold text-slate-900 leading-none tabular-nums">{value}</p>
-                    <p className="text-[10px] text-slate-500 mt-0.5 leading-tight pr-1">{label}</p>
+                    <p className="text-xl font-bold text-white leading-none tabular-nums">{value}</p>
+                    <p className="text-[10px] text-white/60 mt-0.5 leading-tight pr-1">{label}</p>
                   </div>
                   {isActive
                     ? <span className="text-[10px] font-bold text-accent shrink-0">× Filtro</span>
-                    : <ChevronRight className="w-4 h-4 text-slate-300 shrink-0 opacity-70 group-hover:text-accent group-hover:opacity-100 transition-colors" aria-hidden />
+                    : <ChevronRight className="w-4 h-4 text-white/30 shrink-0 opacity-70 group-hover:text-accent group-hover:opacity-100 transition-colors" aria-hidden />
                   }
                 </button>
                 );
@@ -3002,7 +3003,7 @@ export default function Timesheets() {
                         {item.user?.first_name?.[0] ?? '?'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-800">{item.user?.first_name ?? '—'}</p>
+                        <p className="text-sm font-bold text-white">{item.user?.first_name ?? '—'}</p>
                         <p className="text-[11px] text-slate-500 truncate">{item.user?.department ?? ''}</p>
                       </div>
                       <span className="flex flex-shrink-0 items-center gap-1 rounded-full border border-[#001A80]/25 bg-[#001A80]/10 px-2 py-0.5 text-[10px] font-bold text-[#001A80]">
@@ -3226,7 +3227,8 @@ export default function Timesheets() {
                         <div
                           ref={periodPopoverRef}
                           style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999 }}
-                          className="w-64 rounded-xl border border-[#3366CC]/25 bg-white shadow-2xl overflow-hidden"
+                          className="w-64 rounded-xl border border-white/15 shadow-2xl overflow-hidden"
+                          style={{ background: '#112240' }}
                         >
                           {/* Header anno con navigazione */}
                           <div className="flex items-center justify-between border-b border-[#3366CC]/15 px-3 py-2 bg-[#3366CC]/5">
@@ -3311,7 +3313,8 @@ export default function Timesheets() {
                       setTsUndoStack(rest);
                       await top.fn();
                     }}
-                    className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50"
+                    className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold text-white/80 shadow-sm transition-all hover:bg-white/10"
+                    style={{ background: 'rgba(255,255,255,0.06)' }}
                     title={tsUndoStack[0]?.label ?? 'Annulla ultima azione'}
                   >
                     <RotateCcw className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
@@ -3408,7 +3411,8 @@ export default function Timesheets() {
                               initial={{ opacity: 0, y: 4, scale: 0.95 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                              className="fixed z-[10050] max-h-[min(70vh,420px)] w-64 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl"
+                              className="fixed z-[10050] max-h-[min(70vh,420px)] w-64 overflow-y-auto rounded-xl border border-white/15 p-1 shadow-xl"
+                              style={{ background: '#112240' }}
                               style={{
                                 top: weekApproveDesktopPos.top,
                                 left: weekApproveDesktopPos.left,
@@ -3507,8 +3511,8 @@ export default function Timesheets() {
                                     }
                                     className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-colors ${
                                       w.fullWeekComplete
-                                        ? 'text-slate-700 hover:bg-slate-50'
-                                        : 'cursor-not-allowed text-slate-400 opacity-60'
+                                        ? 'text-white/85 hover:bg-white/10'
+                                        : 'cursor-not-allowed text-white/30 opacity-60'
                                     }`}
                                   >
                                     <Users className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
@@ -3531,8 +3535,8 @@ export default function Timesheets() {
                                       onClick={() => openSummary(pendingShifts, w.weekApproved, false, name)}
                                       className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-colors ${
                                         complete
-                                          ? 'text-slate-700 hover:bg-slate-50'
-                                          : 'cursor-not-allowed text-slate-400 opacity-60'
+                                          ? 'text-white/85 hover:bg-white/10'
+                                          : 'cursor-not-allowed text-white/30 opacity-60'
                                       }`}
                                     >
                                       <UserCheck className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
@@ -3594,8 +3598,8 @@ export default function Timesheets() {
 
                                 return (
                                   <>
-                                    <div className="flex items-center justify-between border-b border-slate-100 px-2 py-2">
-                                      <span className="text-[11px] font-bold text-slate-700">
+                                    <div className="flex items-center justify-between border-b border-white/10 px-2 py-2">
+                                      <span className="text-[11px] font-bold text-white/85">
                                         {w.isApprovedState ? 'Ripristina' : 'Approvazione settimana'}
                                       </span>
                                       <button
@@ -3604,7 +3608,7 @@ export default function Timesheets() {
                                           setShowWeekApproveMenu(false);
                                           setWeekApproveDesktopPos(null);
                                         }}
-                                        className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"
+                                        className="rounded-lg p-1 text-white/50 hover:bg-white/10"
                                         aria-label="Chiudi"
                                       >
                                         <X className="h-4 w-4" />
@@ -3618,7 +3622,7 @@ export default function Timesheets() {
                                             onClick={() =>
                                               openSummary(w.weekApproved, w.weekApproved, true, `Tutti (${visibleUsers.length})`)
                                             }
-                                            className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-slate-50"
+                                            className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold text-white/85 hover:bg-white/10"
                                           >
                                             <Users className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                                             Tutti i dipendenti visibili
@@ -3628,7 +3632,7 @@ export default function Timesheets() {
                                               key={user.id}
                                               type="button"
                                               onClick={() => openSummary(approvedShifts, approvedShifts, true, name)}
-                                              className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-slate-50"
+                                              className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold text-white/85 hover:bg-white/10"
                                             >
                                               <UserCheck className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
                                               {name}
@@ -3650,14 +3654,14 @@ export default function Timesheets() {
                                             }
                                             className={`flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold ${
                                               w.fullWeekComplete
-                                                ? 'text-slate-700 hover:bg-slate-50'
-                                                : 'cursor-not-allowed text-slate-400 opacity-60'
+                                                ? 'text-white/85 hover:bg-white/10'
+                                                : 'cursor-not-allowed text-white/30 opacity-60'
                                             }`}
                                           >
                                             <Users className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                                             Settimana intera (tutti)
                                           </button>
-                                          <p className="px-2 pt-2 pb-1 text-[9px] font-semibold uppercase text-slate-400">
+                                          <p className="px-2 pt-2 pb-1 text-[9px] font-semibold uppercase text-white/40">
                                             Per dipendente
                                           </p>
                                           {w.employeesPending.map(({ user, name, pendingShifts, complete }) => (
@@ -3668,8 +3672,8 @@ export default function Timesheets() {
                                               onClick={() => openSummary(pendingShifts, w.weekApproved, false, name)}
                                               className={`flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold ${
                                                 complete
-                                                  ? 'text-slate-700 hover:bg-slate-50'
-                                                  : 'cursor-not-allowed text-slate-400 opacity-60'
+                                                  ? 'text-white/85 hover:bg-white/10'
+                                                  : 'cursor-not-allowed text-white/30 opacity-60'
                                               }`}
                                             >
                                               <UserCheck className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
@@ -3716,7 +3720,8 @@ export default function Timesheets() {
                             initial={{ opacity: 0, y: 4, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                            className="hidden lg:block absolute left-0 lg:right-0 lg:left-auto top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl"
+                            className="hidden lg:block absolute left-0 lg:right-0 lg:left-auto top-full z-[9999] mt-1 w-48 rounded-xl border border-white/15 p-1 shadow-xl"
+                            style={{ background: '#112240', isolation: 'isolate' }}
                             style={{ isolation: 'isolate' }}
                           >
                             <button
@@ -3725,7 +3730,7 @@ export default function Timesheets() {
                               className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
                                 pdfDeptFilter === 'all' 
                                   ? 'bg-accent text-white shadow-md' 
-                                  : 'text-slate-600 hover:bg-slate-50'
+                                  : 'text-white/80 hover:bg-white/10'
                               }`}
                             >
                               <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
@@ -3874,7 +3879,7 @@ export default function Timesheets() {
                 <div key={user.id} className="surface-glass rounded-2xl p-4 shadow-sm border border-slate-200 overflow-hidden">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h4 className="font-bold text-lg text-slate-900">{user.first_name}</h4>
+                      <h4 className="font-bold text-lg text-white">{user.first_name}</h4>
                       {user.department && (
                         <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{user.department}</p>
                       )}
