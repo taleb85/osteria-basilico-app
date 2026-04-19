@@ -10,6 +10,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { buildUserInviteSlug, buildProfiloAccessLink, PATH_PROFILO } from '../config/appPaths';
+import { getTranslations } from '../utils/translations';
+import { useApp } from '../context/AppContext';
 
 function cleanSlug(s: string | null | undefined): string {
   return (s ?? '')
@@ -34,6 +36,8 @@ export default function InviteRedirect() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('verifying');
+  const { effectiveLanguage } = useApp();
+  const t = getTranslations(effectiveLanguage);
 
   useEffect(() => {
     if (!slug) {
@@ -166,7 +170,7 @@ export default function InviteRedirect() {
             transition={{ delay: 0.25, duration: 0.4 }}
             className="text-[1.25rem] font-bold text-white tracking-tight mb-1.5 text-center"
           >
-            Sei stato invitato
+            {t.invite_title}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -174,7 +178,7 @@ export default function InviteRedirect() {
             transition={{ delay: 0.35, duration: 0.4 }}
             className="text-[0.8rem] text-white/45 text-center leading-relaxed"
           >
-            Accedi con le credenziali ricevute
+            {t.invite_subtitle}
           </motion.p>
         </div>
 
@@ -184,15 +188,15 @@ export default function InviteRedirect() {
         {/* Steps */}
         <div className="px-5 py-5 space-y-3">
           <StepRow
-            label="Verifica invito in corso…"
-            doneLabel="Invito verificato"
+            label={t.invite_verifying}
+            doneLabel={t.invite_verified}
             done={stepsDone.verified}
             active={step === 'verifying'}
             delay={0.45}
           />
           <StepRow
-            label="Reindirizzamento al login…"
-            doneLabel="Reindirizzamento al login…"
+            label={t.invite_redirecting}
+            doneLabel={t.invite_redirecting}
             done={false}
             active={step === 'redirecting'}
             delay={0.55}
