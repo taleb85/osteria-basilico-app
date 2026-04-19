@@ -1292,23 +1292,43 @@ tbody tr:hover {
 }
 
 /* 2. TOOLBAR BUTTONS - Turni page top bar */
+/* All toolbar buttons base styling */
 .ui-toolbar-chip,
+.ui-toolbar-tab,
 .ui-toolbar-accent,
-button[class*="ui-toolbar"] {
+button[class*="ui-toolbar"],
+.ui-toolbar-page-band button,
+.ui-toolbar-group button {
   color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Override slate text colors in toolbar */
+.ui-toolbar-chip.text-slate-600,
+.ui-toolbar-tab.text-slate-600,
+button[class*="ui-toolbar"].text-slate-600 {
+  color: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* Active/selected toolbar button */
 .ui-toolbar-chip.bg-accent,
-button[class*="bg-accent"] {
+.ui-toolbar-tab.bg-accent,
+button[class*="ui-toolbar"].bg-accent,
+button[class*="bg-accent"][class*="ui-toolbar"] {
   background: #3b82f6 !important;
   color: #ffffff !important;
 }
 
 /* Inactive toolbar buttons */
-.ui-toolbar-chip:not(.bg-accent) {
+.ui-toolbar-chip:not(.bg-accent),
+.ui-toolbar-tab:not(.bg-accent) {
   background: rgba(255, 255, 255, 0.08) !important;
   color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Toolbar hover states */
+.ui-toolbar-chip:hover,
+.ui-toolbar-tab:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
 }
 
 /* Toolbar dropdown selects */
@@ -1318,35 +1338,54 @@ button[class*="bg-accent"] {
   background: rgba(255, 255, 255, 0.1) !important;
 }
 
+/* Toolbar icons */
+.ui-toolbar-chip svg,
+.ui-toolbar-tab svg,
+.ui-toolbar-page-band svg {
+  color: currentColor !important;
+  opacity: 0.8;
+}
+
 /* 3. KPI STAT CARDS - Presenze page top */
-/* KPI card background */
+/* KPI card background - more specific selectors */
 .surface-glass.surface-ghost-interactive,
-.rounded-2xl.border.px-4.py-3\.5 {
+div.rounded-2xl.border.px-4.py-3\.5,
+.rounded-2xl.border.px-4 {
   background: rgba(255, 255, 255, 0.06) !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 
-/* KPI number */
-.surface-glass .text-2xl {
+/* KPI number - force white color */
+.surface-glass .text-2xl,
+.surface-glass p.text-2xl,
+div[class*="surface-glass"] .text-2xl,
+.rounded-2xl p.text-2xl {
   color: #ffffff !important;
   font-size: 1.5rem !important;
   font-weight: 700 !important;
 }
 
-/* KPI label */
+/* KPI label - improved visibility */
 .surface-glass .text-\[11px\],
-.surface-glass .text-\[10px\] {
+.surface-glass .text-\[10px\],
+.surface-glass p.text-\[11px\],
+.surface-glass p.text-\[10px\],
+div[class*="rounded-2xl"] .text-\[11px\],
+div[class*="rounded-2xl"] .text-\[10px\] {
   color: rgba(255, 255, 255, 0.6) !important;
-  font-size: 0.8rem !important;
 }
 
 /* KPI icon */
-.surface-glass svg {
+.surface-glass svg,
+div[class*="rounded-2xl"] svg {
   color: rgba(255, 255, 255, 0.5) !important;
 }
 
-/* ORE APPROVATE bar */
-.surface-glass .bg-slate-50 {
+/* ORE APPROVATE bar and secondary surfaces */
+.surface-glass .bg-slate-50,
+.surface-glass .bg-slate-100,
+div[class*="surface-glass"] .bg-slate-50,
+div[class*="surface-glass"] .bg-slate-100 {
   background: rgba(255, 255, 255, 0.06) !important;
   color: rgba(255, 255, 255, 0.8) !important;
 }

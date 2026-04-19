@@ -1480,32 +1480,32 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   const VARIANT_CLASSES: Record<ShiftColorVariant, { bg: string; text: string; selRing: string; border?: string; borderBottom?: string }> = {
     planned: {
-      bg: 'bg-white/80 hover:bg-white/95',
-      text: 'text-black',
+      bg: 'hover:bg-white/15',
+      text: 'text-white',
       selRing: 'ring-slate-500/50',
       border: 'border-l-[3px] border-l-slate-400 rounded-xl shadow-sm backdrop-blur-sm',
     },
     inprogress: {
-      bg: 'bg-white/85 hover:bg-white/95',
-      text: 'text-black',
+      bg: 'hover:bg-white/15',
+      text: 'text-white',
       selRing: 'ring-cyan-500/55',
       border: 'border-l-[3px] border-l-cyan-500 rounded-xl shadow-sm backdrop-blur-sm',
     },
     approved: {
-      bg: 'bg-white/90 hover:bg-white/95',
-      text: 'text-black',
+      bg: 'hover:bg-white/20',
+      text: 'text-white',
       selRing: 'ring-cyan-600/60',
       border: 'border-l-[3px] border-l-cyan-600 rounded-xl shadow-sm backdrop-blur-sm',
     },
     punchMissing: {
-      bg: 'bg-white/85 hover:bg-white/95',
-      text: 'text-black',
+      bg: 'hover:bg-white/15',
+      text: 'text-amber-300',
       selRing: 'ring-amber-500/60',
       border: 'border-l-[3px] border-l-amber-500 rounded-xl shadow-sm backdrop-blur-sm',
     },
     absent: {
-      bg: 'bg-white/80 hover:bg-white/90',
-      text: 'text-slate-500',
+      bg: 'hover:bg-white/10',
+      text: 'text-slate-400',
       selRing: 'ring-slate-400/50',
       border: 'border-l-[3px] border-l-slate-400 border-dashed rounded-xl shadow-sm backdrop-blur-sm',
     },
@@ -3669,7 +3669,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               <thead>
                 <tr>
                   <th
-                    className="text-left px-4 py-4 text-[9px] font-black uppercase tracking-widest text-slate-400"
+                    className="text-left px-4 py-4 text-[9px] font-black uppercase tracking-widest"
+                    style={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 600 }}
                     style={{ borderBottom: headBorder, borderRight: cellBorder }}
                   >
                     Staff
@@ -3708,7 +3709,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         className="px-4"
                         style={{ borderTop: cellBorder, borderRight: cellBorder, verticalAlign: 'middle', paddingTop: '22px', paddingBottom: '22px' }}
                       >
-                        <span className="text-[12px] font-semibold text-slate-800 truncate">
+                        <span className="text-[12px] font-semibold truncate" style={{ color: '#ffffff', fontWeight: 500 }}>
                           {user.first_name}
                         </span>
                       </td>
