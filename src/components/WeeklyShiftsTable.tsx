@@ -3564,13 +3564,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             navRowClassName="pb-2"
             scrollClassName="overflow-x-auto-safe"
           >
-          <div className="min-w-[640px] surface-ghost-sm overflow-hidden">
+          <div className="min-w-[640px] overflow-hidden rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)' }}>
             {/* Intestazione giorni settimana */}
-            <div className="grid grid-cols-7 bg-slate-50 border-b-2 border-slate-400">
+            <div className="grid grid-cols-7 border-b border-white/15" style={{ background: 'rgba(255,255,255,0.06)' }}>
               {allWeekDays.slice(0, 7).map((d, i) => (
                 <div
                   key={d.toString()}
-                  className={`py-2 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 ${i < 6 ? 'border-r-2 border-slate-400' : ''}`}
+                  className={`py-2 text-center text-[10px] font-bold uppercase tracking-wider text-white/50 ${i < 6 ? 'border-r border-white/10' : ''}`}
                 >
                   {format(d, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it })}
                 </div>
@@ -3608,14 +3608,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       setSidebarDay(dayStr);
                       if (ids.length > 0 && canEditShifts) setSidebarOpen(true);
                     }}
-                    className={`min-h-[72px] sm:min-h-[84px] p-2 text-left transition-colors border-b-2 border-slate-200 ${!isLastCol ? 'border-r-2 border-r-slate-200' : ''} ${
+                    className={`min-h-[72px] sm:min-h-[84px] p-2 text-left transition-colors border-b border-white/10 ${!isLastCol ? 'border-r border-r-white/10' : ''} ${
                       !inPlanning
-                        ? 'bg-slate-50/80 hover:bg-slate-100/90'
+                        ? 'hover:bg-white/5'
                         : isPayrollDay
                           ? 'bg-cyan-600/10 ring-1 ring-inset ring-cyan-600/40 hover:bg-cyan-600/15'
                           : isTodayDate
-                            ? 'bg-accent/5 hover:bg-accent/10'
-                            : 'bg-white hover:bg-slate-50'
+                            ? 'bg-accent/8 hover:bg-accent/12'
+                            : 'hover:bg-white/8'
                     }`}
                   >
                     {/* Numero giorno */}
@@ -3625,11 +3625,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           ? 'bg-accent text-white'
                           : !inPlanning
                             ? isPayrollDay
-                              ? 'bg-cyan-600/20 text-slate-700 ring-1 ring-cyan-600/40'
-                              : 'text-slate-300'
+                              ? 'bg-cyan-600/20 text-white/50 ring-1 ring-cyan-600/40'
+                              : 'text-white/25'
                             : isPayrollDay
                               ? 'bg-cyan-600 text-white'
-                              : 'text-slate-700'
+                              : 'text-white/70'
                       }`}
                     >
                       {format(day, 'd')}
@@ -3664,14 +3664,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           /* ── DESKTOP: flat unified table ─────────────────────────── */
           <div
             className="overflow-hidden rounded-2xl"
-            style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-              ? { border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)' }
-              : { border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', background: '#ffffff' }}
+            style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}
           >
             {(() => {
-              const isDarkGrid = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-              const cellBorder = isDarkGrid ? '1px solid rgba(255,255,255,0.06)' : '1px solid #E2E8F0';
-              const headBorder = isDarkGrid ? '1px solid rgba(255,255,255,0.10)' : '1px solid #CBD5E1';
+              const isDarkGrid = true;
+              const cellBorder = '1px solid rgba(255,255,255,0.08)';
+              const headBorder = '1px solid rgba(255,255,255,0.12)';
               return (
             <table className="w-full border-collapse table-fixed">
               <colgroup>
@@ -3682,8 +3680,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 <tr>
                   <th
                     className="text-left px-4 py-4 text-[9px] font-black uppercase tracking-widest"
-                    style={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 600 }}
-                    style={{ borderBottom: headBorder, borderRight: cellBorder }}
+                    style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 600, borderBottom: headBorder, borderRight: cellBorder }}
                   >
                     Staff
                   </th>
@@ -3696,15 +3693,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         style={{
                           borderBottom: headBorder,
                           borderRight: di < allWeekDays.length - 1 ? cellBorder : undefined,
-                          background: isTodayDH
-                            ? (isDarkGrid ? 'rgba(0,82,255,0.07)' : 'rgba(0,82,255,0.04)')
-                            : undefined,
+                          background: isTodayDH ? 'rgba(0,82,255,0.10)' : undefined,
                         }}
                       >
-                        <div className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-cyan-700/60' : 'text-slate-400'}`}>
+                        <div className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-accent/70' : 'text-white/40'}`}>
                           {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it })}
                         </div>
-                        <div className={`text-[13px] font-black tabular-nums ${isTodayDH ? 'text-cyan-700' : 'text-slate-700'}`}>
+                        <div className={`text-[13px] font-black tabular-nums ${isTodayDH ? 'text-accent' : 'text-white/70'}`}>
                           {format(day, 'd/MM')}
                         </div>
                       </th>
@@ -3751,10 +3746,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   : cellBorder
                                 : undefined,
                               background: dropTargetKey === `flat_${user.id}_${dayStr}`
-                                ? (dragCopyMode ? (isDarkGrid ? 'rgba(0,82,255,0.12)' : 'rgba(0,82,255,0.07)') : (isDarkGrid ? 'rgba(251,191,36,0.12)' : 'rgba(251,191,36,0.08)'))
+                                ? (dragCopyMode ? 'rgba(0,82,255,0.15)' : 'rgba(251,191,36,0.15)')
                                 : isTodayCell
-                                  ? (isDarkGrid ? 'rgba(0,82,255,0.05)' : 'rgba(0,82,255,0.03)')
-                                  : isDarkGrid ? undefined : (userIdx % 2 === 0 ? '#ffffff' : '#f9fbff'),
+                                  ? 'rgba(0,82,255,0.07)'
+                                  : userIdx % 2 === 0 ? undefined : 'rgba(255,255,255,0.02)',
                             }}
                             onContextMenu={(e) => canEditInApp ? handleShiftContextMenu(e, user.id, dayStr, null) : e.preventDefault()}
                             onDragOver={(e) => {

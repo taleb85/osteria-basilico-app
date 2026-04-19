@@ -4050,7 +4050,7 @@ export default function Timesheets() {
             </div>
           )}
 
-          <div id="timesheet-section-main-grid" className="hidden md:block surface-glass overflow-hidden scroll-mt-24 depth-card" style={{ background: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'rgba(255,255,255,0.04)' : '#ffffff' }}>
+          <div id="timesheet-section-main-grid" className="hidden md:block overflow-hidden scroll-mt-24 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)' }}>
             <HorizontalScrollArea
               variant="overlay"
               remeasureKey={`${viewMode}-${weekStr}-${weekDays.length}`}
@@ -4073,7 +4073,7 @@ export default function Timesheets() {
               </colgroup>
               <thead ref={timesheetTheadRef}>
                 <tr className="border-b border-slate-300">
-                  <th className="sticky left-0 z-10 box-border bg-white py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500 border-r border-r-slate-300 md:py-1.5 md:pl-3 md:pr-2" style={{ background: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'transparent' : '#ffffff', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'none' }}>
+                  <th className="sticky left-0 z-10 box-border py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/50 border-r border-r-white/15 md:py-1.5 md:pl-3 md:pr-2" style={{ background: 'rgba(17,34,64,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'none' }}>
                     {t.employee}
                   </th>
                   {weekDays.map((day, dayIdx) => {
@@ -4089,7 +4089,6 @@ export default function Timesheets() {
                     }, 0);
                     const canReview = inP && canReviewThisDay && canTeamTimesheetOps && dayReviewableCount > 0;
                     const weekEndCol = viewMode === 'month' && (dayIdx + 1) % 7 === 0;
-                    const _isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
                     return (
                       <th key={dStr}
                         onClick={canReview ? () => handleOpenDayReview(dStr) : undefined}
@@ -4101,19 +4100,13 @@ export default function Timesheets() {
                               : undefined
                         }
                         className={`box-border px-2 py-1.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1 ${
-                          weekEndCol ? 'border-r-2 border-r-slate-300' : 'border-r border-r-slate-300'
-                        } ${
-                          payrollHighlight
-                            ? 'bg-[#3366CC]/10'
-                            : todayDate
-                              ? 'bg-[#3366CC]/6'
-                              : 'bg-white'
-                        } ${viewMode === 'month' && !inP ? '!bg-slate-100/90 opacity-70' : ''} ${canReview ? 'cursor-pointer hover:bg-[#3366CC]/10 group' : ''}`}
-                        style={!_isDark ? { background: payrollHighlight ? '#f0f7ff' : todayDate ? '#f5f9ff' : '#ffffff' } : {}}
+                          weekEndCol ? 'border-r-2 border-r-white/15' : 'border-r border-r-white/10'
+                        } ${viewMode === 'month' && !inP ? 'opacity-40' : ''} ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''}`}
+                        style={{ background: payrollHighlight ? 'rgba(51,102,204,0.15)' : todayDate ? 'rgba(51,102,204,0.10)' : 'rgba(255,255,255,0.04)' }}
                       >
                         <div
                           className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${
-                            todayDate && inP ? 'text-[#3366CC]/60' : !inP ? 'text-slate-400' : 'text-slate-400'
+                            todayDate && inP ? 'text-accent/70' : 'text-white/40'
                           }`}
                         >
                           {format(day, 'EEE', { locale })}
@@ -4122,12 +4115,12 @@ export default function Timesheets() {
                           <div
                             className={`font-black tabular-nums text-[13px] md:text-xs ${
                               todayDate && inP
-                                ? 'text-[#001A80]'
+                                ? 'text-accent'
                                 : !inP
-                                  ? 'text-slate-500'
+                                  ? 'text-white/30'
                                   : payrollHighlight
-                                    ? 'text-slate-900'
-                                    : 'text-slate-700'
+                                    ? 'text-white/90'
+                                    : 'text-white/70'
                             }`}
                           >
                             {format(day, 'd/MM')}
@@ -4160,32 +4153,32 @@ export default function Timesheets() {
                           <tr
                             key={user.id}
                             className={`depth-row last:border-b-0`}
-                            style={{ background: _isDark ? (userIdx % 2 === 0 ? 'transparent' : 'rgba(51,102,204,0.04)') : (userIdx % 2 === 0 ? '#ffffff' : '#f9fbff') }}
+                            style={{ background: userIdx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}
                           >
                       {/* Nome dipendente — click → revisione settimana (coda turni) */}
-                      <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-slate-300 z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: _isDark ? 'transparent' : (userIdx % 2 === 0 ? '#ffffff' : '#f9fbff'), boxShadow: 'none' }}>
+                      <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-white/10 z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: userIdx % 2 === 0 ? 'rgba(17,34,64,0.95)' : 'rgba(17,34,64,0.92)', boxShadow: 'none', backdropFilter: 'blur(8px)' }}>
                         {canTeamTimesheetOps ? (
                           <div className="flex flex-col gap-1 justify-center">
                             <button
                               type="button"
-                              className="w-full max-w-full rounded-lg py-0.5 text-right transition-colors hover:bg-slate-200/60"
+                              className="w-full max-w-full rounded-lg py-0.5 text-right transition-colors hover:bg-white/10"
                               aria-label={formatTrans(t.ts_employee_week_review_open_aria, { name: user.first_name })}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleOpenEmployeeWeekReview(user);
                               }}
                             >
-                              <div className="font-semibold text-sm text-slate-800 md:text-xs">{user.first_name}</div>
+                              <div className="font-semibold text-sm text-white md:text-xs">{user.first_name}</div>
                               {user.department && (
-                                <div className="text-[10px] text-slate-400 mt-0.5 md:text-[9px] uppercase">{user.department}</div>
+                                <div className="text-[10px] text-white/40 mt-0.5 md:text-[9px] uppercase">{user.department}</div>
                               )}
                             </button>
                           </div>
                         ) : (
                           <div className="text-right">
-                            <div className="font-semibold text-sm text-slate-800 md:text-xs">{user.first_name}</div>
+                            <div className="font-semibold text-sm text-white md:text-xs">{user.first_name}</div>
                             {user.department && (
-                              <div className="text-[10px] text-slate-400 mt-0.5 md:text-[9px] uppercase">{user.department}</div>
+                              <div className="text-[10px] text-white/40 mt-0.5 md:text-[9px] uppercase">{user.department}</div>
                             )}
                           </div>
                         )}
@@ -4200,29 +4193,20 @@ export default function Timesheets() {
                         const isPayrollDay = dateStr === weekViewPayrollDayStr;
                         const payrollHighlight = isPayrollDay && (viewMode === 'week' || inP);
                         const weekEndCol = viewMode === 'month' && (dayIdx + 1) % 7 === 0;
-                        const tdBorder = weekEndCol ? 'border-r-2 border-r-slate-300' : 'border-r border-r-slate-300';
+                        const tdBorder = weekEndCol ? 'border-r-2 border-r-white/15' : 'border-r border-r-white/10';
                         const tdMuted = viewMode === 'month' && !inP;
-                        const _isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-                        const tdBg =
-                          payrollHighlight
-                            ? 'bg-[#3366CC]/7'
-                            : todayDate && inP
-                              ? 'bg-accent/5'
-                              : tdMuted
-                                ? 'bg-slate-100/90 opacity-70'
-                                : '';
                         const tdStyle: React.CSSProperties = payrollHighlight
-                          ? { background: _isDark ? 'rgba(51,102,204,0.06)' : 'rgba(51,102,204,0.06)' }
+                          ? { background: 'rgba(51,102,204,0.12)' }
                           : todayDate && inP
-                            ? { background: _isDark ? 'rgba(0,82,255,0.05)' : 'rgba(0,82,255,0.04)' }
+                            ? { background: 'rgba(0,82,255,0.08)' }
                             : tdMuted
-                              ? { background: 'transparent', opacity: _isDark ? 0.5 : 0.7 }
-                              : { background: _isDark ? 'transparent' : (userIdx % 2 === 0 ? '#ffffff' : '#f9fbff') };
+                              ? { background: 'transparent', opacity: 0.35 }
+                              : { background: userIdx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' };
 
                         if (!dayData || dayData.shifts.length === 0) {
                           return (
-                            <td key={dateStr} className={`px-2 py-2 text-center ${tdBorder} ${tdBg} md:px-1.5 md:py-1.5`} style={tdStyle}>
-                              <span className={`text-sm md:text-xs ${tdMuted ? 'text-slate-300' : 'text-slate-200'}`}>–</span>
+                            <td key={dateStr} className={`px-2 py-2 text-center ${tdBorder} md:px-1.5 md:py-1.5`} style={tdStyle}>
+                              <span className="text-sm md:text-xs text-white/25">–</span>
                             </td>
                           );
                         }
@@ -4389,19 +4373,19 @@ export default function Timesheets() {
                       })}
 
                       {/* Totale settimana */}
-                      <td className="px-3 py-2 text-center border-l-2 border-l-slate-300 bg-slate-50/50 md:px-2 md:py-1.5" style={_isDark ? { background: 'transparent' } : { background: userIdx % 2 === 0 ? '#ffffff' : '#f9fbff' }}>
+                      <td className="px-3 py-2 text-center border-l-2 border-l-white/15 md:px-2 md:py-1.5" style={{ background: userIdx % 2 === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.06)' }}>
                         <div className="flex flex-col items-center gap-2">
-                          <div className="text-xs font-semibold text-slate-500 md:text-[10px]">
+                          <div className="text-xs font-semibold text-white/55 md:text-[10px]">
                             {showFullTimesheetGrid || plannedOnlyTimesheetGrid
                               ? formatMinutesToHoursAndMinutes(totals?.plannedMins ?? 0)
                               : t.ts_times_masked_hm}
                           </div>
                           {showFullTimesheetGrid && (totals?.actualMins ?? 0) > 0 && (
                             <>
-                              <div className="text-sm font-bold text-slate-900 md:text-xs">
+                              <div className="text-sm font-bold text-white md:text-xs">
                                 {formatMinutesToHoursAndMinutes(totals?.actualMins ?? 0)}
                               </div>
-                              <div className={`text-[10px] font-semibold ${(totals?.deltaMins ?? 0) >= 0 ? 'text-[#3366CC]' : 'text-red-500'} md:text-[9px]`}>
+                              <div className={`text-[10px] font-semibold ${(totals?.deltaMins ?? 0) >= 0 ? 'text-accent' : 'text-red-400'} md:text-[9px]`}>
                                 {(totals?.deltaMins ?? 0) >= 0 ? '+' : ''}
                                 {fmtHM(totals?.deltaMins ?? 0)}
                               </div>
@@ -4409,7 +4393,7 @@ export default function Timesheets() {
                           )}
                           {plannedOnlyTimesheetGrid && (totals?.frozenOfficialMins ?? 0) > 0 && (
                             <div
-                              className="text-sm font-bold text-slate-900 md:text-xs"
+                              className="text-sm font-bold text-white md:text-xs"
                               title={t.ts_kpi_frozen_official}
                             >
                               {formatMinutesToHoursAndMinutes(totals?.frozenOfficialMins ?? 0)}
@@ -4457,7 +4441,7 @@ export default function Timesheets() {
               {canTeamTimesheetOps && (
                 <tfoot>
                   <tr className="bg-[#3366CC]/5 border-t-2 border-[#3366CC]/35">
-                    <td className="sticky left-0 bg-[#3366CC]/5 pl-4 pr-3 py-3 text-[#2255BB] font-bold text-xs uppercase border-r-2 border-r-[#3366CC]/30 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[10px]" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent' } : undefined}>
+                    <td className="sticky left-0 pl-4 pr-3 py-3 text-accent font-bold text-xs uppercase border-r-2 border-r-white/15 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[10px]" style={{ background: 'rgba(17,34,64,0.95)', backdropFilter: 'blur(8px)' }}>
                       {t.stats_total}
                     </td>
                     {weekDays.map((day, dayIdx) => {
