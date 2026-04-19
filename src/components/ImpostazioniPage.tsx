@@ -28,8 +28,14 @@ const IMPOSTAZIONI_GROUPS: readonly {
   readonly slugs: readonly string[];
 }[] = [
   { titleKey: 'impostazioni_group_org', slugs: ['department_creation'] },
-  { titleKey: 'impostazioni_group_rules', slugs: ['violation_rules', 'auto_breaks', 'geofence_punch'] },
-  { titleKey: 'impostazioni_group_tools', slugs: ['visibility_management', 'master_control_panel'] },
+  { titleKey: 'impostazioni_group_rules', slugs: ['auto_breaks'] },
+];
+
+const ADVANCED_SLUGS: readonly string[] = [
+  'violation_rules',
+  'geofence_punch',
+  'visibility_management',
+  'master_control_panel',
 ];
 
 const SLUG_ICONS: Record<string, typeof LayoutGrid> = {
@@ -59,6 +65,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
   const t = getTranslations(effectiveLanguage);
   const [howOpen, setHowOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState<Record<string, boolean>>({});
+  const [showAdvancedFlags, setShowAdvancedFlags] = useState(false);
   const [teamNotifyLoading, setTeamNotifyLoading] = useState(false);
 
   useEffect(() => {
@@ -297,6 +304,33 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{group.slugs.map((slug) => renderCard(slug))}</div>
             </section>
           ))}
+
+          {/* Impostazioni avanzate collapsibile */}
+          <section>
+            <button
+              type="button"
+              onClick={() => setShowAdvancedFlags((v) => !v)}
+              className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors py-1 mb-1"
+            >
+              <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${showAdvancedFlags ? 'rotate-180' : ''}`} />
+              {(t as Record<string, string>)['impostazioni_advanced_section'] ?? 'Impostazioni avanzate'}
+            </button>
+            <AnimatePresence initial={false}>
+              {showAdvancedFlags && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    {ADVANCED_SLUGS.map((slug) => renderCard(slug))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </section>
         </div>
 
       </motion.div>
