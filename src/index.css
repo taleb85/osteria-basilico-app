@@ -1158,6 +1158,91 @@ html.no-motion *::after {
   -webkit-backdrop-filter: blur(20px);
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   DARK THEME FORMS & INPUTS
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Input fields dark theme */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+input[type="number"]::placeholder,
+input[type="tel"]::placeholder,
+input[type="url"]::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: var(--accent-blue) !important;
+  outline: none;
+}
+
+/* Labels dark theme */
+label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DARK THEME TABLES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Table containers */
+table {
+  background: transparent;
+}
+
+/* Table headers */
+thead tr,
+thead th {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Table rows alternating */
+tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+tbody tr:nth-child(odd) {
+  background: transparent !important;
+}
+
+/* Table cells */
+td, th {
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Table hover */
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
 /* ── SPAZIATURA ARIOSA (+40% BASE) ───────────────────────────────────────────── */
 
 /* Padding generoso per dare aria alle card */
