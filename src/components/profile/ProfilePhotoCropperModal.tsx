@@ -87,7 +87,9 @@ export default function ProfilePhotoCropperModal({ imageSrc, labels, onClose, on
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
       if (!natural) return;
-      e.preventDefault();
+      // Scoped all'elemento viewport del cropper: non interferisce con lo scroll pagina.
+      // e.cancelable: alcune implementazioni browser ignorano preventDefault se passive.
+      if (e.cancelable) e.preventDefault();
       const delta = e.deltaY > 0 ? -0.07 : 0.07;
       setUserScale((s) => Math.min(4, Math.max(1, s + delta)));
     };

@@ -72,9 +72,13 @@ export default function BodyPullToRefresh({ onRefresh, disabled }: BodyPullToRef
     };
   }, [isStandalone]);
 
-  // Browser (non standalone): implementazione custom
+  // Browser (non standalone): implementazione custom — solo su dispositivi touch.
+  // Su Windows desktop (pointer: fine) non ha senso registrare touchmove con passive:false.
   useEffect(() => {
     if (isStandalone) return;
+    const isTouch = typeof window !== 'undefined'
+      && window.matchMedia('(pointer: coarse)').matches;
+    if (!isTouch) return;
 
     const handleTouchStart = (e: TouchEvent) => {
       if (disabled || e.touches.length === 0) return;

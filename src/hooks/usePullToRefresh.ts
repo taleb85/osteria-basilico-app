@@ -48,7 +48,9 @@ export function usePullToRefresh({ onRefresh, containerRef, disabled = false }: 
       return;
     }
     const clamped = Math.min(dy * RESISTANCE, THRESHOLD * 1.6);
-    if (clamped > 4) e.preventDefault();
+    // Controlla e.cancelable prima di preventDefault: evita errori in modalità passive
+    // e non blocca lo scroll verticale su Windows/desktop con touchscreen.
+    if (clamped > 4 && e.cancelable) e.preventDefault();
     setState({ pullDistance: clamped, isRefreshing: false, isTriggered: clamped >= THRESHOLD });
   }, []);
 
@@ -79,7 +81,15 @@ export function usePullToRefresh({ onRefresh, containerRef, disabled = false }: 
   }, [onRefresh]);
 
   useEffect(() => {
+    // Pull-to-refresh è rilevante solo su dispositivi touch.
+    // Su Windows desktop (pointer: fine, no coarse) saltiamo il listener touchmove
+    // così evitiamo di registrare un listener passive:false inutile su mouse+wheel.
+    const isTouch = typeof window !== 'undefined'
+      && window.matchMedia('(pointer: coarse)').matches;
+    if (!isTouch) return;
+
     const target = containerRef?.current ?? document;
+    // passive: false è necessario per poter chiamare e.preventDefault() durante il pull
     const opts: AddEventListenerOptions = { passive: false };
     target.addEventListener('touchstart', handleTouchStart as EventListener, { passive: true });
     target.addEventListener('touchmove', handleTouchMove as EventListener, opts);

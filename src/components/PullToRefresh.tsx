@@ -43,8 +43,13 @@ export default function PullToRefresh({ onRefresh, children, className = '', dis
     [disabled, isRefreshing]
   );
 
-  // Listener nativo con passive: false per poter chiamare preventDefault (altrimenti il browser lo ignora)
+  // Listener nativo con passive: false solo su touch device: su Windows mouse-only
+  // questo listener sarebbe inutile e causerebbe il violation warning nel browser.
   useEffect(() => {
+    const isTouch = typeof window !== 'undefined'
+      && window.matchMedia('(pointer: coarse)').matches;
+    if (!isTouch) return;
+
     const el = mainRef.current;
     if (!el) return;
     const onTouchMove = (e: TouchEvent) => {
@@ -53,7 +58,8 @@ export default function PullToRefresh({ onRefresh, children, className = '', dis
       if (e.touches.length === 0) return;
       const currentY = e.touches[0].clientY;
       const diff = currentY - startY.current;
-      if (diff > 2) e.preventDefault();
+      // e.cancelable: sicuro in modalità passive: false
+      if (diff > 2 && e.cancelable) e.preventDefault();
     };
     el.addEventListener('touchmove', onTouchMove, { passive: false });
     return () => el.removeEventListener('touchmove', onTouchMove);
