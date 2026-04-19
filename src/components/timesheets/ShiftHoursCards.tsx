@@ -97,10 +97,22 @@ export function ShiftHoursCards({
   tv,
 }: ShiftHoursCardsProps) {
   return (
-    <div className="border-b border-slate-100 px-5 py-7 sm:px-6 sm:py-8 shrink-0">
+    <div className="border-b border-white/30 px-5 py-7 sm:px-6 sm:py-8 shrink-0"
+      style={{
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      }}
+    >
       <div className="mb-6 grid grid-cols-2 gap-6 items-stretch">
-        {/* Card Pianificato (BIANCO PURO) */}
-        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden min-h-[130px] px-5 py-5">
+        {/* Card Pianificato (GLASSMORPHISM) */}
+        <div className="rounded-2xl overflow-hidden min-h-[130px] px-5 py-5"
+          style={{ 
+            background: 'rgba(255, 255, 255, 0.75)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.4)',
+          }}
+        >
           <p className="mb-2.5 text-xs font-medium uppercase tracking-wider text-slate-500">{t.ts_label_planned}</p>
           <div className="flex items-start gap-2">
             {(s.status === 'confirmed' || s.status === 'approved') && (
@@ -127,15 +139,25 @@ export function ShiftHoursCards({
           </div>
         </div>
         
-        {/* Card Timbrato (BIANCO PURO) */}
+        {/* Card Timbrato (GLASSMORPHISM) */}
         <div
-          className={`px-5 py-5 overflow-hidden min-h-[130px] rounded-2xl border ${
-            s.punched
-              ? s.isCrossDay
-                ? 'bg-slate-50 border-slate-200'
-                : 'bg-white border-slate-100'
-              : 'bg-slate-50 border-slate-200 animate-pulse'
+          className={`px-5 py-5 overflow-hidden min-h-[130px] rounded-2xl ${
+            s.punched && s.isCrossDay
+              ? 'bg-slate-100/80'
+              : s.punched
+                ? ''
+                : 'bg-slate-50/60 animate-pulse'
           }`}
+          style={s.punched && !s.isCrossDay ? { 
+            background: 'rgba(255, 255, 255, 0.75)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.4)',
+          } : s.isCrossDay ? {
+            border: '1px solid rgba(203, 213, 225, 0.5)',
+          } : {
+            border: '1px solid rgba(203, 213, 225, 0.3)',
+          }}
         >
           <div className="flex items-center justify-between mb-2.5">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-600">{t.ts_label_punched}</p>

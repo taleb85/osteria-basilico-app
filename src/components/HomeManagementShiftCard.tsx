@@ -59,7 +59,14 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
           : 'text-amber-950';
 
   return (
-    <div className={`rounded-2xl border border-slate-100 border-l-4 ${style.border} ${style.bg} p-4 shadow-sm`}>
+    <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-4 shadow-sm backdrop-blur-md`}
+      style={{ 
+        background: style.bg.includes('white') ? 'rgba(255, 255, 255, 0.85)' : undefined,
+        backdropFilter: style.bg.includes('white') ? 'blur(12px)' : undefined,
+        WebkitBackdropFilter: style.bg.includes('white') ? 'blur(12px)' : undefined,
+        border: style.bg.includes('white') ? '1px solid rgba(255, 255, 255, 0.3)' : undefined,
+      }}
+    >
       {/* Header: avatar + name + badge */}
       <div className="flex items-center gap-3 mb-3">
         <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${style.bg} border ${style.badge.split(' ')[2] ?? 'border-slate-200'} text-slate-700`}>
@@ -83,14 +90,28 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
         </div>
       </div>
 
-      {/* Scheduled vs Actual */}
+      {/* Scheduled vs Actual - Glassmorphism */}
       <div className="grid grid-cols-2 gap-2 mb-3">
-        <div className="bg-white border border-slate-100 rounded-xl px-2.5 py-2">
-          <p className="text-[9px] text-slate-500 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
+        <div className="rounded-xl px-2.5 py-2"
+          style={{ 
+            background: 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255, 255, 255, 0.4)',
+          }}
+        >
+          <p className="text-[9px] text-slate-600 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
           <p className="text-sm font-bold text-black tabular-nums">{e.scheduledStart} → {e.scheduledEnd}</p>
         </div>
-        <div className="bg-white border border-slate-100 rounded-xl px-2.5 py-2">
-          <p className="text-[9px] text-slate-500 uppercase font-semibold mb-0.5">{t.ts_label_punched}</p>
+        <div className="rounded-xl px-2.5 py-2"
+          style={{ 
+            background: 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255, 255, 255, 0.4)',
+          }}
+        >
+          <p className="text-[9px] text-slate-600 uppercase font-semibold mb-0.5">{t.ts_label_punched}</p>
           {e.actualStart ? (
             <p className="text-sm font-bold text-black tabular-nums">
               {e.actualStart} → {e.actualEnd ?? <span className="text-red-500">…</span>}

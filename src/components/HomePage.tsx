@@ -601,7 +601,15 @@ export default function HomePage({
                 const { punchIn } = getPunchForShift(s.id, s.user_id, todayStr, !isDinner);
                 const punched = !!punchIn;
                 return (
-                  <div key={s.id} className={`rounded-2xl border border-slate-100 border-l-4 p-4 shadow-sm ${punched ? 'border-l-slate-300 bg-white' : 'border-l-amber-400 bg-amber-50'}`}>
+                  <div key={s.id} className={`rounded-2xl border-l-4 p-4 shadow-sm ${punched ? 'border-l-slate-300' : 'border-l-amber-400 bg-amber-50'}`}
+                    style={punched ? { 
+                      background: 'rgba(255, 255, 255, 0.85)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderLeft: '4px solid rgb(203 213 225)',
+                    } : undefined}
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         {isDinner ? <Moon className="w-4 h-4 text-amber-600" /> : <Sun className="w-4 h-4 text-amber-500" />}

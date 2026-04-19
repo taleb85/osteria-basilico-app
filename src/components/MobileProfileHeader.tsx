@@ -92,8 +92,8 @@ export default function MobileProfileHeader({
     <div
       className="flow-brand-header rounded-2xl overflow-hidden px-3 py-2 flex items-center justify-between gap-3"
       style={{
-        background: 'linear-gradient(135deg, #001080 0%, #0033BB 45%, #0055EE 80%, #00AAEE 100%)',
-        boxShadow: '0 4px 16px -4px rgba(0, 82, 255, 0.40), 0 2px 8px -2px rgba(0, 0, 0, 0.15)',
+        background: '#0B3573',
+        boxShadow: '0 4px 16px -4px rgba(11, 53, 115, 0.40), 0 2px 8px -2px rgba(0, 0, 0, 0.15)',
       }}
     >
       {/* Sinistra: icona F + testo */}
