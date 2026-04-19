@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import type { Shift } from '../types';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
 
@@ -61,16 +60,17 @@ function computeIsFrozen(shiftRow: ShiftRow, fullShift?: Shift | null): boolean 
 }
 
 /**
- * Hook per calcolare i permessi del drawer dettaglio turno.
+ * Utility function (NON hook) per calcolare i permessi del drawer dettaglio turno.
  * 
  * Centralizza tutta la logica di:
  * - Quali operazioni può fare l'utente (approve, edit, mark absent, ...)
  * - Se il PIN è richiesto per ciascuna operazione
  * - Se il form di modifica deve essere visibile
  * 
- * Sostituisce le variabili locali sparse nel componente Timesheets.tsx.
+ * NOTA: Convertito da hook a funzione pura per permettere chiamata condizionale
+ * dentro il blocco {drawerData && ...} senza violare Rules of Hooks.
  */
-export function useDrawerPermissions(params: DrawerPermissionsParams) {
+export function calculateDrawerPermissions(params: DrawerPermissionsParams) {
   const {
     shiftRow: s,
     fullShift,
@@ -86,11 +86,10 @@ export function useDrawerPermissions(params: DrawerPermissionsParams) {
     globalSessionId,
   } = params;
 
-  return useMemo(() => {
-    const isFrozen = computeIsFrozen(s, fullShift);
-    const isApproved = isFrozen;
-    const isAbsent = s.status === 'absent';
-    const isInPast = dateStr <= todayStr;
+  const isFrozen = computeIsFrozen(s, fullShift);
+  const isApproved = isFrozen;
+  const isAbsent = s.status === 'absent';
+  const isInPast = dateStr <= todayStr;
 
     // ── Azioni principali ──
     
@@ -183,48 +182,34 @@ export function useDrawerPermissions(params: DrawerPermissionsParams) {
       !!drawerSessionId ||
       !!globalSessionId;
 
-    return {
-      // Stato generale
-      isFrozen,
-      isApproved,
-      isAbsent,
-      isInPast,
+  return {
+    // Stato generale
+    isFrozen,
+    isApproved,
+    isAbsent,
+    isInPast,
 
-      // Azioni principali
-      canClose,
-      canMarkAbsent,
-      canFreeze,
-      canUnlockFrozen,
+    // Azioni principali
+    canClose,
+    canMarkAbsent,
+    canFreeze,
+    canUnlockFrozen,
 
-      // Timbrature
-      pinRequiredForTimbrature,
-      timbratureEditorEligible,
-      canTimbratureInsert,
-      canTimbratureEdit,
-      showTimbratureForm,
-      timbraturePinGateActive,
+    // Timbrature
+    pinRequiredForTimbrature,
+    timbratureEditorEligible,
+    canTimbratureInsert,
+    canTimbratureEdit,
+    showTimbratureForm,
+    timbraturePinGateActive,
 
-      // Orari pianificati
-      pinRequiredForPlannedTimes,
-      showPlannedTimesEditor,
-      showPlannedTimesPinButton,
+    // Orari pianificati
+    pinRequiredForPlannedTimes,
+    showPlannedTimesEditor,
+    showPlannedTimesPinButton,
 
-      // Storico
-      pinRequiredForHistory,
-      historyUnlocked,
-    };
-  }, [
-    s,
-    fullShift,
-    dateStr,
-    todayStr,
-    canTimesheetApprove,
-    canTeamTimesheetOps,
-    unlockWithPinEnabled,
-    timbratureUnlockedShiftId,
-    plannedTimesUnlockedShiftId,
-    historyUnlockedShiftId,
-    drawerSessionId,
-    globalSessionId,
-  ]);
+    // Storico
+    pinRequiredForHistory,
+    historyUnlocked,
+  };
 }

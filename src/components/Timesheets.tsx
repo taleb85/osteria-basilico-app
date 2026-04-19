@@ -80,7 +80,7 @@ import { getTimesheetGridPrivacyMode } from '../utils/timesheetGridPrivacy';
 import { PinPadModal } from './ui/PinPadModal';
 import { runAutoApprove } from '../utils/autoApprovePunches';
 import { useDrawerUnlock } from '../hooks/useDrawerUnlock';
-import { useDrawerPermissions } from '../hooks/useDrawerPermissions';
+import { calculateDrawerPermissions } from '../utils/drawerPermissions';
 import { TimesheetDrawerHeader } from './timesheets/TimesheetDrawerHeader';
 import { ShiftHoursCards } from './timesheets/ShiftHoursCards';
 import { ShiftHistoryCard } from './timesheets/ShiftHistoryCard';
@@ -4623,8 +4623,8 @@ export default function Timesheets() {
           const s = drawerData.shift;
           const fullShift = shifts.find((sh) => sh.id === s.id);
           
-          // Hook unificato per calcolo permessi drawer
-          const permissions = useDrawerPermissions({
+          // Utility function per calcolo permessi drawer
+          const permissions = calculateDrawerPermissions({
             shiftRow: s as ShiftRow,
             fullShift: fullShift ?? null,
             dateStr: drawerData.dateStr,
