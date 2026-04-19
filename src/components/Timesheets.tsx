@@ -1174,6 +1174,9 @@ export default function Timesheets() {
         // Solo attivi e visibili in planning
         if (u.status !== 'active' || !isUserVisibleOnTeamSchedule(u, shifts)) return false;
         
+        // Filtro data inizio rapporto: nascondi se employment_start_date > fine settimana visualizzata
+        if (u.employment_start_date && u.employment_start_date >= weekEnd) return false;
+        
       // Filtro reparto (se attivo)
       if (pdfDeptFilter !== 'all') {
         return deptMatchesFilterKey(u.department, pdfDeptFilter);
@@ -1201,7 +1204,7 @@ export default function Timesheets() {
       });
       return list;
     }
-  }, [users, shifts, currentUser, pdfDeptFilter]);
+  }, [users, shifts, currentUser, pdfDeptFilter, weekEnd]);
 
   const weekShifts = useMemo(() =>
     shifts.filter((s) => s.date >= weekStr && s.date < weekEnd && !s.notes?.startsWith('__OPEN__')),

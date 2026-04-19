@@ -1210,6 +1210,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const activeUsers = useMemo(() => {
     let list = users.filter((u) => isUserVisibleOnTeamSchedule(u, shifts));
     
+    // Filtro data inizio rapporto: nascondi se employment_start_date > fine settimana visualizzata
+    const lastDayOfView = viewMode === 'day' 
+      ? weekStart 
+      : addDays(weekStart, viewMode === '2weeks' ? 13 : 6);
+    const lastDayStr = format(lastDayOfView, 'yyyy-MM-dd');
+    
+    list = list.filter((u) => {
+      if (!u.employment_start_date) return true;
+      return u.employment_start_date <= lastDayStr;
+    });
+    
     // Filtro reparto (se attivo)
     if (localFilterDepartment) {
       list = list.filter((u) => deptMatchesFilterKey(u.department, localFilterDepartment));
