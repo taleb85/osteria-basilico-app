@@ -83,7 +83,7 @@ export async function exportSchedulePDF(
   } = {}
 ): Promise<void> {
   const {
-    restaurantName = 'FLOW',
+    restaurantName = '',
     filterLabel = '',
     includeOpen = false,
     breakRules = [],
@@ -143,17 +143,22 @@ export async function exportSchedulePDF(
     doc.setTextColor(...BLACK);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text(restaurantName, MARGIN, 14);
+    
+    let rangeLabelX = MARGIN;
+    if (restaurantName) {
+      doc.text(restaurantName, MARGIN, 14);
+      rangeLabelX = MARGIN + 65;
+    }
 
     // Week range
     const rangeLabel = `${format(chunkStart, 'd MMMM', { locale })} – ${format(addDays(chunkEnd, -1), 'd MMMM yyyy', { locale })}`;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...GRAY_TEXT);
-    doc.text(rangeLabel, MARGIN + 65, 14);
+    doc.text(rangeLabel, rangeLabelX, 14);
 
     if (filterLabel) {
-      doc.text(`· ${filterLabel}`, MARGIN + 65 + doc.getTextWidth(rangeLabel) + 2, 14);
+      doc.text(`· ${filterLabel}`, rangeLabelX + doc.getTextWidth(rangeLabel) + 2, 14);
     }
 
     // Print timestamp
@@ -198,8 +203,36 @@ export async function exportSchedulePDF(
 
     // ── Data rows ──────────────────────────────────────────────────────────────
     let prevDept = '';
+    let employeesOnCurrentPage = 0;
+    const MAX_EMPLOYEES_PER_PAGE = 10;
 
     scheduleUsers.forEach((user, rowIdx) => {
+      // Page break ogni 10 dipendenti
+      if (employeesOnCurrentPage >= MAX_EMPLOYEES_PER_PAGE && rowIdx < scheduleUsers.length - 1) {
+        doc.addPage();
+        y = 24;
+        prevDept = '';
+        employeesOnCurrentPage = 0;
+        
+        // Ripeti header colonne
+        doc.setTextColor(...GRAY_TEXT);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text(t.ts_pdf_col_employee, MARGIN + 2, y + 5);
+        
+        weekDaysChunk.forEach((day, i) => {
+          const x = MARGIN + NAME_W + i * DAY_W;
+          const label = fmtDay(day, locale);
+          doc.text(label, x + DAY_W / 2 - doc.getTextWidth(label) / 2, y + 5);
+        });
+        
+        const totX = MARGIN + NAME_W + numDays * DAY_W;
+        const totLabel = t.schedule_pdf_total_abbr;
+        doc.text(totLabel, totX + TOT_W / 2 - doc.getTextWidth(totLabel) / 2, y + 5);
+        
+        y += HEADER_ROW;
+      }
+
       // Separator tra reparti
       const dept = user.department ?? 'sala_bar';
       if (dept !== prevDept && rowIdx > 0) {
@@ -281,13 +314,7 @@ export async function exportSchedulePDF(
       doc.line(MARGIN, y + DATA_ROW, MARGIN + CONTENT_W, y + DATA_ROW);
 
       y += DATA_ROW;
-
-      // Page break interno (troppi dipendenti per 1 pagina)
-      if (y > PAGE_H - 30 && rowIdx < scheduleUsers.length - 1) {
-        doc.addPage();
-        y = 24;
-        prevDept = '';
-      }
+      employeesOnCurrentPage++;
     });
 
     // ── Legend (solo prima pagina/settimana) ───────────────────────────────────

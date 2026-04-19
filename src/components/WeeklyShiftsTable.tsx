@@ -5,6 +5,7 @@ import { database } from '../lib/database';
 import { it } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu, ClipboardCopy, ClipboardPaste, Calendar, RotateCcw, FileDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useTenant } from '../context/TenantContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
@@ -575,6 +576,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   void setSavingOrder; // reserved for future drag-reorder save
   const isWideShiftViewport = useMinViewportMd();
   const { users, shifts, holidays, availability, toggleAvailability, updateShift, updateUser, currentUser, punchRecords, addShift, deleteShifts, bulkCopyPreviousWeek, showError, showSuccess, silentRefreshData, requestConfirmAndSaveOrder, requestConfirmAndPublishWeek, postRefreshLocked, effectiveLanguage, workRules, breakRules, featureFlags, departmentsRevision, isSessionElevated } = useApp();
+  const { tenant } = useTenant();
   void departmentsRevision;
   // Ruoli gestionali: filtro libero. Staff operativo: vincolato al reparto del profilo.
   // Capo: management ma bloccato al proprio reparto (non può cambiarlo).
@@ -1971,6 +1973,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       const filterLabelToUse = localFilterDepartment || undefined;
 
       await exportSchedulePDF(periodStartDate, daysToExport, usersToExport, shifts, {
+        restaurantName: tenant?.name,
         filterLabel: filterLabelToUse,
         breakRules,
         breakComputeOpts,
@@ -2826,6 +2829,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         type="button"
                         onClick={() => void (async () => {
                           await exportSchedulePDF(weekStart, allWeekDays, activeUsers, shifts, {
+                            restaurantName: tenant?.name,
                             filterLabel: localFilterDepartment || undefined,
                             breakRules,
                             breakComputeOpts,
