@@ -61,24 +61,24 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
       <button
         type="button"
         onClick={handleOpen}
-        className={`relative flex items-center justify-center transition-all h-full w-full text-slate-600 dark:text-slate-600 hover:text-slate-900 dark:hover:text-slate-900`}
+        className={`relative flex items-center justify-center transition-all h-full w-full text-slate-600 hover:text-slate-900`}
         title={t.profile_notifications}
       >
-        <Bell className={`${denseTrigger ? 'h-4 w-4' : 'h-5 w-5'} ${unreadCount > 0 ? 'animate-ring text-red-500 dark:text-red-400' : ''}`} />
+        <Bell className={`${denseTrigger ? 'h-4 w-4' : 'h-5 w-5'} ${unreadCount > 0 ? 'animate-ring text-red-500' : ''}`} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-neutral-950">
+          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       <CenteredModalPortal open={isOpen} onClose={() => setIsOpen(false)}>
-        <div className="flex h-full max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-neutral-900">
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-white/5">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-neutral-100">{t.profile_notifications}</h3>
+        <div className="flex h-full max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+            <h3 className="text-lg font-bold text-slate-900">{t.profile_notifications}</h3>
             <button
               onClick={() => setIsOpen(false)}
-              className="rounded-full p-2 hover:bg-slate-100 dark:hover:bg-neutral-800"
+              className="rounded-full p-2 hover:bg-slate-100"
             >
               <X className="h-5 w-5 text-slate-500" />
             </button>
@@ -87,10 +87,10 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
           <div className="flex-1 overflow-y-auto p-2">
             {feed.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 dark:bg-neutral-800">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50">
                   <BellOff className="h-8 w-8 text-slate-300" />
                 </div>
-                <p className="text-sm font-medium text-slate-500 dark:text-neutral-400">{t.notif_empty_state || 'Nessuna notifica'}</p>
+                <p className="text-sm font-medium text-slate-500">{t.notif_empty_state || 'Nessuna notifica'}</p>
               </div>
             ) : (
               <div className="flex flex-col gap-1">
@@ -98,13 +98,13 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
                   <div
                     key={n.id}
                     className={`relative flex gap-3 rounded-2xl p-4 transition-colors ${
-                      !seenIds.has(n.id) ? 'bg-accent/[0.06] dark:bg-accent/[0.10]' : 'hover:bg-slate-50 dark:hover:bg-neutral-800/50'
+                      !seenIds.has(n.id) ? 'bg-accent/[0.06]' : 'hover:bg-slate-50'
                     }`}
                   >
                     <div className="mt-0.5 shrink-0">{getIcon(n.type, n.severity)}</div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-slate-900 dark:text-neutral-100">{n.title}</p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-slate-600 dark:text-neutral-400">{n.body}</p>
+                      <p className="text-sm font-bold text-slate-900">{n.title}</p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-slate-600">{n.body}</p>
                       <p className="mt-2 text-[10px] font-medium uppercase tracking-wider text-slate-400">
                         {n.timestamp}
                       </p>
@@ -118,10 +118,10 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
             )}
           </div>
 
-          <div className="border-t border-slate-100 bg-slate-50/50 p-4 dark:border-white/5 dark:bg-neutral-800/50">
+          <div className="border-t border-slate-100 bg-slate-50/50 p-4">
             <button
               onClick={() => setIsOpen(false)}
-              className="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white transition-transform active:scale-95 dark:bg-white dark:text-neutral-900"
+              className="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white transition-transform active:scale-95"
             >
               {t.close}
             </button>

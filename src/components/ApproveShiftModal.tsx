@@ -57,7 +57,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/35 backdrop-blur-sm dark:bg-black/50 flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/35 backdrop-blur-sm flex items-center justify-center z-50 p-4"
         onClick={onClose}
       >
         <motion.div
@@ -68,7 +68,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
           className="modal-glass-panel flex max-h-[min(90vh,40rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex flex-shrink-0 items-center justify-between bg-gradient-to-br from-yellow-400 to-yellow-500 p-6 dark:from-yellow-600 dark:to-yellow-700">
+          <div className="flex flex-shrink-0 items-center justify-between bg-gradient-to-br from-yellow-400 to-yellow-500 p-6">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
                 <Check className="w-6 h-6 text-white" strokeWidth={2.5} />
@@ -87,70 +87,70 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
           </div>
 
           <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-6">
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-500/30 rounded-xl p-4">
-              <p className="text-yellow-800 dark:text-yellow-200 text-sm font-bold mb-2">{t.check_and_edit_times}</p>
-              <p className="text-yellow-700 dark:text-yellow-300/80 text-xs">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+              <p className="text-yellow-800 text-sm font-bold mb-2">{t.check_and_edit_times}</p>
+              <p className="text-yellow-700 text-xs">
                 {t.times_based_on_punches}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300 mb-1">{t.home_label_planned}</p>
-                <p className="font-bold tabular-nums text-slate-800 dark:text-gray-100">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t.home_label_planned}</p>
+                <p className="font-bold tabular-nums text-slate-800">
                   {pair.plannedStart} → {pair.plannedEnd}
                 </p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-[#001A80]/8 px-3 py-2 dark:border-white/10 dark:bg-[#001A80]/12">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300 mb-1">{t.ts_label_punched}</p>
-                <p className="font-bold tabular-nums text-slate-800 dark:text-gray-100">
+              <div className="rounded-xl border border-slate-200 bg-[#001A80]/8 px-3 py-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t.ts_label_punched}</p>
+                <p className="font-bold tabular-nums text-slate-800">
                   {pair.actualStart ?? '—'} → {pair.actualEnd ?? '—'}
                 </p>
               </div>
             </div>
 
-            <p className="text-[11px] text-slate-500 dark:text-gray-400 font-semibold">{t.approve_shift_edit_hint}</p>
+            <p className="text-[11px] text-slate-500 font-semibold">{t.approve_shift_edit_hint}</p>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-slate-600 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-2">
                   {t.entry}
                 </label>
                 <TimeInputField
                   value={startTime}
                   onChange={setStartTime}
                   aria-label={t.entry}
-                  className="w-full border-slate-200 bg-slate-100 px-2 dark:border-white/5 dark:bg-white/5"
+                  className="w-full border-slate-200 bg-slate-100 px-2"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-2">
                   {t.exit}
                 </label>
                 <TimeInputField
                   value={endTime}
                   onChange={setEndTime}
                   aria-label={t.exit}
-                  className="w-full border-slate-200 bg-slate-100 px-2 dark:border-white/5 dark:bg-white/5"
+                  className="w-full border-slate-200 bg-slate-100 px-2"
                 />
               </div>
             </div>
 
-            <div className="bg-accent/10 dark:bg-accent/20 border border-accent/30 dark:border-accent/40 rounded-xl p-4 flex items-center justify-between">
-              <span className="text-[#1a1a1a] dark:text-accent-light text-sm font-bold">{t.total_hours_label}</span>
-              <span className="text-accent dark:text-accent-light text-2xl font-black">{formattedTime}</span>
+            <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 flex items-center justify-between">
+              <span className="text-[#1a1a1a] text-sm font-bold">{t.total_hours_label}</span>
+              <span className="text-accent text-2xl font-black">{formattedTime}</span>
             </div>
 
             {canRevertToPending && (
-              <div className="mb-4 rounded-xl border border-slate-200 bg-slate-100 p-4 dark:border-white/10 dark:bg-neutral-800/90">
-                <p className="mb-3 text-sm font-bold text-slate-800 dark:text-neutral-100">
+              <div className="mb-4 rounded-xl border border-slate-200 bg-slate-100 p-4">
+                <p className="mb-3 text-sm font-bold text-slate-800">
                   Questo turno è già approvato. Vuoi riportarlo in sospeso?
                 </p>
                 <button
                   type="button"
                   onClick={handleRevert}
-                  className="flex w-full items-center justify-center space-x-2 rounded-xl bg-slate-700 py-3 font-black uppercase tracking-wider text-white transition-all hover:bg-slate-600 dark:bg-neutral-600 dark:hover:bg-neutral-500"
+                  className="flex w-full items-center justify-center space-x-2 rounded-xl bg-slate-700 py-3 font-black uppercase tracking-wider text-white transition-all hover:bg-slate-600"
                 >
                   <RotateCcw className="w-5 h-5" />
                   <span>Riporta in Sospeso</span>
@@ -162,7 +162,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 bg-slate-200 dark:bg-white/5 text-slate-800 dark:text-gray-100 rounded-xl py-4 font-black uppercase tracking-wider hover:bg-slate-300 dark:hover:bg-white/10 transition-all"
+                className="flex-1 bg-slate-200 text-slate-800 rounded-xl py-4 font-black uppercase tracking-wider hover:bg-slate-300 transition-all"
               >
                 {isAlreadyApproved ? t.close : t.cancel}
               </button>

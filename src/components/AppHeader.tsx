@@ -43,11 +43,11 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
   if (!currentUser) return null;
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-slate-100/90 bg-white/90 shadow-sm backdrop-blur-md safe-area-pad pt-0 dark:border-white/10 dark:bg-neutral-950/90">
+    <header className="sticky top-0 z-30 w-full border-b border-slate-100/90 bg-white/90 shadow-sm backdrop-blur-md safe-area-pad pt-0">
       <div className="w-full px-3 sm:px-6 py-1.5 sm:py-2.5 flex items-center justify-between gap-2">
         {/* Logo — nascosto su desktop (gestito dalla Sidebar) */}
         <h1
-          className="text-[35px] text-accent dark:text-white tracking-tight min-w-0 flex-1 truncate pr-2 leading-[33px] md:hidden"
+          className="text-[35px] text-accent tracking-tight min-w-0 flex-1 truncate pr-2 leading-[33px] md:hidden"
           style={{ fontFamily: 'var(--brand-header-font)' }}
         >
           {tenantName}
@@ -55,12 +55,12 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
         {/* Brand su desktop (la sidebar non ha più l'header) */}
         <div className="hidden md:flex flex-col justify-center min-w-0 flex-1">
           <h1
-            className="text-[22px] text-accent dark:text-white tracking-tight leading-tight truncate"
+            className="text-[22px] text-accent tracking-tight leading-tight truncate"
             style={{ fontFamily: 'var(--brand-header-font)' }}
           >
             {tenantName}
           </h1>
-          <p className="text-[9px] text-slate-400 dark:text-neutral-400 font-semibold uppercase tracking-widest leading-none">
+          <p className="text-[9px] text-slate-400 font-semibold uppercase tracking-widest leading-none">
             {t.header_tagline}
           </p>
         </div>
@@ -75,11 +75,11 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
             <button
               type="button"
               onClick={() => setLangOpen((v) => !v)}
-              className="flex min-h-[36px] items-center gap-0.5 surface-glass-sm px-2 py-1 text-xs font-semibold text-slate-600 surface-ghost-interactive dark:text-neutral-200"
+              className="flex min-h-[36px] items-center gap-0.5 surface-glass-sm px-2 py-1 text-xs font-semibold text-slate-600 surface-ghost-interactive"
             >
               <span>{langFlags[effectiveLanguage]}</span>
               <span className="hidden sm:inline ml-0.5">{langLabels[effectiveLanguage]}</span>
-              <ChevronDown className="w-3 h-3 text-slate-400 dark:text-neutral-400" />
+              <ChevronDown className="w-3 h-3 text-slate-400" />
             </button>
             {langOpen && (
               <CenteredModalPortal
@@ -91,7 +91,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
                 maxWidthClass="max-w-xs"
                 panelClassName="py-1"
               >
-                <p className="border-b border-slate-100 px-4 py-3 text-sm font-bold text-slate-900 dark:border-white/10 dark:text-neutral-100">{t.language}</p>
+                <p className="border-b border-slate-100 px-4 py-3 text-sm font-bold text-slate-900">{t.language}</p>
                 {(['it', 'en', 'es', 'fr'] as const).map((lang) => (
                   <button
                     key={lang}
@@ -102,8 +102,8 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
                     }}
                     className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors ${
                       effectiveLanguage === lang
-                        ? 'bg-accent/10 font-semibold text-accent dark:bg-accent/15'
-                        : 'text-slate-700 hover:bg-slate-50 dark:text-neutral-200 dark:hover:bg-white/[0.06]'
+                        ? 'bg-accent/10 font-semibold text-accent'
+                        : 'text-slate-700 hover:bg-slate-50'
                     }`}
                   >
                     <span>{langFlags[lang]}</span>
@@ -120,13 +120,13 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
               type="button"
               onClick={onLogout}
               title={t.header_logout}
-              className="flex min-h-[36px] min-w-[36px] flex-shrink-0 items-center justify-center surface-glass-sm text-slate-600 surface-ghost-interactive md:hidden dark:text-neutral-300"
+              className="flex min-h-[36px] min-w-[36px] flex-shrink-0 items-center justify-center surface-glass-sm text-slate-600 surface-ghost-interactive md:hidden"
             >
               <LogOut className="w-4 h-4" strokeWidth={2} />
             </button>
           )}
 
-          <span className="hidden sm:block text-slate-400 dark:text-neutral-400 text-xs font-medium tabular-nums">
+          <span className="hidden sm:block text-slate-400 text-xs font-medium tabular-nums">
             {format(now, 'HH:mm', { locale })}
           </span>
         </div>

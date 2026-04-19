@@ -55,10 +55,10 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
   const STATUS_CFG = {
-    approved:  { label: t.ts_status_approved  ?? 'Approvato',  Icon: CheckCircle2, pill: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/30' },
-    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle,  pill: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 dark:border-amber-500/30' },
-    draft:     { label: t.status_draft        ?? 'Bozza',      Icon: AlertCircle,  pill: 'bg-slate-100 text-slate-500 dark:text-white/30 border-slate-200 dark:border-white/10' },
-    absent:    { label: t.status_absent       ?? 'Assente',    Icon: XCircle,      pill: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20 dark:border-red-500/30' },
+    approved:  { label: t.ts_status_approved  ?? 'Approvato',  Icon: CheckCircle2, pill: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' },
+    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle,  pill: 'bg-amber-500/10 text-amber-700 border-amber-500/20' },
+    draft:     { label: t.status_draft        ?? 'Bozza',      Icon: AlertCircle,  pill: 'bg-slate-100 text-slate-500 border-slate-200' },
+    absent:    { label: t.status_absent       ?? 'Assente',    Icon: XCircle,      pill: 'bg-red-500/10 text-red-700 border-red-500/20' },
   } as const;
 
   const weeks = useMemo(() => {
@@ -78,10 +78,10 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
   if (shifts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-slate-200 dark:border-white/[0.08]">
-          <Calendar className="w-7 h-7 text-slate-300 dark:text-white/20" />
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-slate-200">
+          <Calendar className="w-7 h-7 text-slate-300" />
         </div>
-        <p className="text-slate-400 dark:text-white/30 font-bold uppercase tracking-widest text-[10px]">
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
           {t.no_shifts_scheduled}
         </p>
       </div>
@@ -113,26 +113,26 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
 
         return (
           <div key={wIdx}
-            className="rounded-2xl border border-slate-100 dark:border-white/[0.08] overflow-hidden"
+            className="rounded-2xl border border-slate-100 overflow-hidden"
             style={isDark ? { background: 'transparent' } : { background: '#ffffff', boxShadow: '0 1px 4px 0 rgba(0,0,0,0.06)' }}
           >
             {/* Week header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-white/[0.06]">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#4361EE]/10 dark:bg-transparent dark:border dark:border-[#3366CC]/30 flex items-center justify-center">
-                  <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-[#93c5fd]" />
+                <div className="w-8 h-8 rounded-xl bg-[#4361EE]/10 flex items-center justify-center">
+                  <Calendar className="w-3.5 h-3.5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 leading-none mb-0.5">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-0.5">
                     {t.week_label ?? 'Sett.'}
                   </p>
-                  <p className="text-sm font-bold text-slate-800 dark:text-white">
+                  <p className="text-sm font-bold text-slate-800">
                     {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM', { locale })}
                   </p>
                 </div>
               </div>
               {totalLabel && (
-                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 dark:bg-transparent text-blue-700 dark:text-[#93c5fd] border border-[#4361EE]/15 dark:border-[#3366CC]/30">
+                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 text-blue-700 border border-[#4361EE]/15">
                   {totalLabel}
                 </span>
               )}
@@ -149,14 +149,14 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                 return (
                   <div
                     key={dateStr}
-                    className={`flex flex-col min-h-[120px] ${dIdx < 6 ? 'border-r border-slate-100 dark:border-white/[0.06]' : ''} ${today ? 'bg-[#3366CC]/[0.04] dark:bg-[#3366CC]/[0.06]' : isWeekend ? 'bg-slate-50/60 dark:bg-transparent' : ''}`}
+                    className={`flex flex-col min-h-[120px] ${dIdx < 6 ? 'border-r border-slate-100' : ''} ${today ? 'bg-[#3366CC]/[0.04]' : isWeekend ? 'bg-slate-50/60' : ''}`}
                   >
                     {/* Day header */}
-                    <div className="px-2.5 py-2 border-b border-slate-100 dark:border-white/[0.05]">
-                      <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${today ? 'text-[#3366CC] dark:text-[#93c5fd]' : 'text-slate-400 dark:text-white/30'}`}>
+                    <div className="px-2.5 py-2 border-b border-slate-100">
+                      <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${today ? 'text-[#3366CC]' : 'text-slate-400'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
-                      <p className={`text-sm font-black tabular-nums ${today ? 'text-[#001A80] dark:text-[#93c5fd]' : 'text-slate-700 dark:text-white/60'}`}>
+                      <p className={`text-sm font-black tabular-nums ${today ? 'text-[#001A80]' : 'text-slate-700'}`}>
                         {format(day, 'd')}
                       </p>
                     </div>
@@ -165,7 +165,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                     <div className="flex flex-col gap-1.5 p-2 flex-1">
                       {dayShifts.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center">
-                          <span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/[0.06]" />
+                          <span className="w-1 h-1 rounded-full bg-slate-200" />
                         </div>
                       ) : dayShifts.map((shift: any) => {
                         const sk = (shift.approval_status as keyof typeof STATUS_CFG) in STATUS_CFG
@@ -186,21 +186,21 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                         return (
                           <div
                             key={shift.id}
-                            className={`rounded-lg px-2 py-1.5 border text-left ${isAbsent ? 'border-red-500/10' : 'border-slate-100 dark:border-white/[0.08]'}`}
+                            className={`rounded-lg px-2 py-1.5 border text-left ${isAbsent ? 'border-red-500/10' : 'border-slate-100'}`}
                             style={isDark ? { background: 'transparent' } : isAbsent ? { background: 'rgba(239,68,68,0.04)' } : { background: '#f8fafc' }}
                           >
                             {/* Hours (primary) */}
-                            <p className={`text-sm font-black tabular-nums leading-none mb-1 ${isAbsent ? 'text-slate-400 dark:text-white/25' : 'text-slate-800 dark:text-white'}`}>
+                            <p className={`text-sm font-black tabular-nums leading-none mb-1 ${isAbsent ? 'text-slate-400' : 'text-slate-800'}`}>
                               {hoursLabel}
                             </p>
                             {/* Time range (secondary) */}
-                            <p className={`text-[9px] font-bold tabular-nums ${isAbsent ? 'text-slate-400 dark:text-white/20 line-through' : 'text-slate-500 dark:text-white/35'}`}>
+                            <p className={`text-[9px] font-bold tabular-nums ${isAbsent ? 'text-slate-400 line-through' : 'text-slate-500'}`}>
                               {shift.start_time.slice(0, 5)}–{shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
                             {/* Type + badge with icon */}
                             <div className="flex items-center justify-between mt-1 gap-1">
                               {shift.type && (
-                                <p className="text-[8px] font-bold uppercase tracking-wide text-slate-400 dark:text-white/25">
+                                <p className="text-[8px] font-bold uppercase tracking-wide text-slate-400">
                                   {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
                                 </p>
                               )}
@@ -235,9 +235,9 @@ function StaffDesktopTimesheet({
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
   const STATUS_CONFIG = {
-    approved: { label: t.ts_status_approved ?? 'Approvato', Icon: CheckCircle2, pill: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/30' },
-    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle, pill: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 dark:border-amber-500/30' },
-    absent: { label: t.status_absent ?? 'Assente', Icon: XCircle, pill: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20 dark:border-red-500/30' },
+    approved: { label: t.ts_status_approved ?? 'Approvato', Icon: CheckCircle2, pill: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' },
+    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle, pill: 'bg-amber-500/10 text-amber-700 border-amber-500/20' },
+    absent: { label: t.status_absent ?? 'Assente', Icon: XCircle, pill: 'bg-red-500/10 text-red-700 border-red-500/20' },
   } as const;
 
   const history = shifts
@@ -247,10 +247,10 @@ function StaffDesktopTimesheet({
   if (history.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-slate-200 dark:border-white/[0.08]">
-          <Clock className="w-7 h-7 text-slate-300 dark:text-white/20" />
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-slate-200">
+          <Clock className="w-7 h-7 text-slate-300" />
         </div>
-        <p className="text-slate-400 dark:text-white/30 font-bold uppercase tracking-widest text-[10px]">
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
           {t.no_shifts_scheduled ?? 'Nessuno storico disponibile'}
         </p>
       </div>
@@ -298,26 +298,26 @@ function StaffDesktopTimesheet({
 
         return (
           <div key={wIdx}
-            className="rounded-2xl border border-slate-100 dark:border-white/[0.08] overflow-hidden"
+            className="rounded-2xl border border-slate-100 overflow-hidden"
             style={isDark ? { background: 'transparent' } : { background: '#ffffff', boxShadow: '0 1px 4px 0 rgba(0,0,0,0.06)' }}
           >
             {/* Week header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-white/[0.06]">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#4361EE]/10 dark:bg-transparent dark:border dark:border-[#3366CC]/30 flex items-center justify-center">
-                  <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-[#93c5fd]" />
+                <div className="w-8 h-8 rounded-xl bg-[#4361EE]/10 flex items-center justify-center">
+                  <Calendar className="w-3.5 h-3.5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 leading-none mb-0.5">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-0.5">
                     {t.week_label ?? 'Sett.'}
                   </p>
-                  <p className="text-sm font-bold text-slate-800 dark:text-white">
+                  <p className="text-sm font-bold text-slate-800">
                     {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM', { locale })}
                   </p>
                 </div>
               </div>
               {totalMins > 0 && (
-                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 dark:bg-transparent text-blue-700 dark:text-[#93c5fd] border border-[#4361EE]/15 dark:border-[#3366CC]/30">
+                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 text-blue-700 border border-[#4361EE]/15">
                   {totalLabel}
                 </span>
               )}
@@ -334,14 +334,14 @@ function StaffDesktopTimesheet({
                 return (
                   <div
                     key={dateStr}
-                    className={`flex flex-col min-h-[120px] ${dIdx < 6 ? 'border-r border-slate-100 dark:border-white/[0.06]' : ''} ${today ? 'bg-[#3366CC]/[0.04] dark:bg-[#3366CC]/[0.06]' : isWeekend ? 'bg-slate-50/60 dark:bg-transparent' : ''}`}
+                    className={`flex flex-col min-h-[120px] ${dIdx < 6 ? 'border-r border-slate-100' : ''} ${today ? 'bg-[#3366CC]/[0.04]' : isWeekend ? 'bg-slate-50/60' : ''}`}
                   >
                     {/* Day header */}
-                    <div className={`px-2.5 py-2 border-b border-slate-100 dark:border-white/[0.05] ${today ? 'border-b-[#3366CC]/30 dark:border-b-[#3366CC]/30' : ''}`}>
-                      <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${today ? 'text-[#3366CC] dark:text-[#93c5fd]' : 'text-slate-400 dark:text-white/30'}`}>
+                    <div className={`px-2.5 py-2 border-b border-slate-100 ${today ? 'border-b-[#3366CC]/30' : ''}`}>
+                      <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${today ? 'text-[#3366CC]' : 'text-slate-400'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
-                      <p className={`text-sm font-black tabular-nums ${today ? 'text-[#001A80] dark:text-[#93c5fd]' : 'text-slate-700 dark:text-white/60'}`}>
+                      <p className={`text-sm font-black tabular-nums ${today ? 'text-[#001A80]' : 'text-slate-700'}`}>
                         {format(day, 'd')}
                       </p>
                     </div>
@@ -350,7 +350,7 @@ function StaffDesktopTimesheet({
                     <div className="flex flex-col gap-1.5 p-2 flex-1">
                       {dayShifts.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center">
-                          <span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/[0.06]" />
+                          <span className="w-1 h-1 rounded-full bg-slate-200" />
                         </div>
                       ) : dayShifts.map((shift: any) => {
                         const sk = (shift.approval_status as keyof typeof STATUS_CONFIG) || 'confirmed';
@@ -366,18 +366,18 @@ function StaffDesktopTimesheet({
                         return (
                           <div
                             key={shift.id}
-                            className={`rounded-lg px-2 py-1.5 border text-left ${isAbsent ? 'border-red-500/10' : 'border-slate-100 dark:border-white/[0.08]'}`}
+                            className={`rounded-lg px-2 py-1.5 border text-left ${isAbsent ? 'border-red-500/10' : 'border-slate-100'}`}
                             style={isDark ? { background: 'transparent' } : isAbsent ? { background: 'rgba(239,68,68,0.04)' } : { background: '#f8fafc' }}
                           >
-                            <p className={`text-sm font-black tabular-nums leading-none mb-1 ${isAbsent ? 'text-slate-400 dark:text-white/25' : 'text-slate-800 dark:text-white'}`}>
+                            <p className={`text-sm font-black tabular-nums leading-none mb-1 ${isAbsent ? 'text-slate-400' : 'text-slate-800'}`}>
                               {hoursLabel}
                             </p>
-                            <p className={`text-[9px] font-bold tabular-nums ${isAbsent ? 'text-slate-400 dark:text-white/20 line-through' : 'text-slate-500 dark:text-white/35'}`}>
+                            <p className={`text-[9px] font-bold tabular-nums ${isAbsent ? 'text-slate-400 line-through' : 'text-slate-500'}`}>
                               {shift.start_time.slice(0, 5)}–{shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
                             <div className="flex items-center justify-between mt-1 gap-1">
                               {shift.type && (
-                                <p className="text-[8px] font-bold uppercase tracking-wide text-slate-400 dark:text-white/25">
+                                <p className="text-[8px] font-bold uppercase tracking-wide text-slate-400">
                                   {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
                                 </p>
                               )}
@@ -789,18 +789,18 @@ export default function StaffPersonalDashboard({
       </span>
 
       {/* Frecce + chip data a destra */}
-      <div className="flex items-center border border-slate-100 dark:border-white/[0.08] rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md" style={{ background: 'transparent', boxShadow: 'none' }}>
+      <div className="flex items-center border border-slate-100 rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md" style={{ background: 'transparent', boxShadow: 'none' }}>
         <button
           type="button"
           onClick={() => setMobileNavOffset(o => o - 1)}
-          className="flex items-center justify-center h-9 w-9 text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors shrink-0 border-r border-slate-100 dark:border-white/[0.08]"
+          className="flex items-center justify-center h-9 w-9 text-slate-500 hover:bg-slate-50 transition-colors shrink-0 border-r border-slate-100"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
 
         <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0">
-          <Calendar className="h-3 w-3 text-slate-400 dark:text-neutral-500 shrink-0" />
-          <span className="text-[10px] font-bold text-slate-700 dark:text-neutral-200 tabular-nums truncate">
+          <Calendar className="h-3 w-3 text-slate-400 shrink-0" />
+          <span className="text-[10px] font-bold text-slate-700 tabular-nums truncate">
             {mobileNavTab === 'week'
               ? `S.${getISOWeek(mobileRange.start)} · ${format(mobileRange.start, 'd MMM', { locale: mobileLocale })} – ${format(mobileRange.end, 'd MMM', { locale: mobileLocale })}`
               : `${format(mobileRange.start, 'd MMM', { locale: mobileLocale })} – ${format(mobileRange.end, 'd MMM yy', { locale: mobileLocale })}`
@@ -811,7 +811,7 @@ export default function StaffPersonalDashboard({
         <button
           type="button"
           onClick={() => setMobileNavOffset(o => o + 1)}
-          className="flex items-center justify-center h-9 w-9 text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors shrink-0 border-l border-slate-100 dark:border-white/[0.08]"
+          className="flex items-center justify-center h-9 w-9 text-slate-500 hover:bg-slate-50 transition-colors shrink-0 border-l border-slate-100"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -841,13 +841,13 @@ export default function StaffPersonalDashboard({
     <div className="space-y-4">
       {uiW('staff_profile.panel') && (
       <div className="surface-glass">
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-white/10">
+        <div className="px-5 py-4 border-b border-slate-100">
           <h3 className="ui-section-title text-slate-600">{(t as { profile_settings?: string }).profile_settings ?? 'Impostazioni profilo'}</h3>
         </div>
         <div>
           <AdminRow
             label={t.sidebar_profile}
-            action={<span className="text-sm font-semibold text-slate-900 dark:text-neutral-100 uppercase tracking-wide truncate max-w-[55%] text-right">{displayName}</span>}
+            action={<span className="text-sm font-semibold text-slate-900 uppercase tracking-wide truncate max-w-[55%] text-right">{displayName}</span>}
           />
           <AdminRow
             label={(t as { email?: string }).email ?? 'Email'}
@@ -872,7 +872,7 @@ export default function StaffPersonalDashboard({
             }
           />
           {showProfileDemoSeed && (
-            <div className="border-t border-slate-100 dark:border-white/10 px-5 py-4 space-y-2">
+            <div className="border-t border-slate-100 px-5 py-4 space-y-2">
               <button
                 type="button"
                 disabled={seedingDemoProfile}
@@ -893,13 +893,13 @@ export default function StaffPersonalDashboard({
               >
                 {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
               </button>
-              <p className="text-[10px] text-slate-400 dark:text-neutral-400 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
+              <p className="text-[10px] text-slate-400 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
             </div>
           )}
           <button
             type="button"
             onClick={onLogout}
-            className="w-full flex items-center justify-between border-t border-slate-100 dark:border-white/10 px-5 py-4 text-left hover:bg-red-50 transition-colors min-h-[52px] text-red-600 font-medium"
+            className="w-full flex items-center justify-between border-t border-slate-100 px-5 py-4 text-left hover:bg-red-50 transition-colors min-h-[52px] text-red-600 font-medium"
           >
             <span className="text-sm">{(t as { header_logout?: string }).header_logout ?? 'Esci'}</span>
             <LogOut className="w-5 h-5" strokeWidth={2} />
@@ -931,16 +931,16 @@ export default function StaffPersonalDashboard({
   // Profilo gestionale solo Admin: nessun turno assegnato (Proprietario = stesso flusso Manager)
   if (isPurelyManagementRole(displayUser.role)) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0a0a0a] text-slate-800 dark:text-neutral-100 font-sans antialiased flex flex-col items-center justify-center px-6 safe-area-pad">
+      <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans antialiased flex flex-col items-center justify-center px-6 safe-area-pad">
         <div className="surface-glass max-w-sm p-8 text-center">
-          <Shield className="w-14 h-14 text-slate-500 dark:text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-          <h2 className="text-lg font-bold text-slate-800 dark:text-neutral-100 mb-2">Profilo Gestionale</h2>
-          <p className="text-slate-500 dark:text-neutral-400 text-sm">Nessun turno assegnato</p>
-          <p className="text-slate-500 dark:text-neutral-400 text-xs mt-3">Questo profilo è riservato alla gestione. Accedi al pannello di controllo per amministrare turni e personale.</p>
+          <Shield className="w-14 h-14 text-slate-500 mx-auto mb-4" strokeWidth={1.5} />
+          <h2 className="text-lg font-bold text-slate-800 mb-2">Profilo Gestionale</h2>
+          <p className="text-slate-500 text-sm">Nessun turno assegnato</p>
+          <p className="text-slate-500 text-xs mt-3">Questo profilo è riservato alla gestione. Accedi al pannello di controllo per amministrare turni e personale.</p>
           <button
             type="button"
             onClick={onLogout}
-            className="mt-6 w-full py-3 rounded-xl bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 font-semibold text-sm hover:bg-slate-200 dark:hover:bg-neutral-700 transition-colors"
+            className="mt-6 w-full py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition-colors"
           >
             {(t as { header_logout?: string }).header_logout ?? 'Esci'}
           </button>
@@ -958,7 +958,7 @@ export default function StaffPersonalDashboard({
   );
 
   return (
-    <div className="w-full scroll-smooth text-slate-800 dark:text-neutral-100 font-sans antialiased pb-content">
+    <div className="w-full scroll-smooth text-slate-800 font-sans antialiased pb-content">
       {holidaysFocus && (
         <div className="mb-3 flex items-center gap-2">
           <button
@@ -977,13 +977,13 @@ export default function StaffPersonalDashboard({
         <div className="hidden md:block pb-4 pt-1">
           <div className="surface-glass p-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-50 dark:bg-transparent border border-slate-100 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-center">
-                <p className="text-slate-500 dark:text-neutral-400 text-[10px] font-medium uppercase tracking-widest mb-1">{t.week_hours}</p>
-                <p className="text-slate-900 dark:text-neutral-100 text-2xl font-bold tabular-nums">{totalApprovedHours}</p>
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-center">
+                <p className="text-slate-500 text-[10px] font-medium uppercase tracking-widest mb-1">{t.week_hours}</p>
+                <p className="text-slate-900 text-2xl font-bold tabular-nums">{totalApprovedHours}</p>
               </div>
-              <div className="bg-slate-50 dark:bg-transparent border border-slate-100 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-center">
-                <p className="text-slate-500 dark:text-neutral-400 text-[10px] font-medium uppercase tracking-widest mb-1">{t.shifts_week}</p>
-                <p className="text-slate-900 dark:text-neutral-100 text-2xl font-bold tabular-nums">{upcomingShifts.length + todayShifts.length}</p>
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-center">
+                <p className="text-slate-500 text-[10px] font-medium uppercase tracking-widest mb-1">{t.shifts_week}</p>
+                <p className="text-slate-900 text-2xl font-bold tabular-nums">{upcomingShifts.length + todayShifts.length}</p>
               </div>
             </div>
           </div>
@@ -1022,7 +1022,7 @@ export default function StaffPersonalDashboard({
                               className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
                                 active
                                   ? 'bg-[#3366CC] text-white shadow-sm'
-                                  : 'bg-transparent border border-slate-200 dark:border-white/[0.12] text-slate-500 dark:text-white/40 hover:border-[#3366CC]/40 hover:text-[#3366CC] dark:hover:text-[#93c5fd]'
+                                  : 'bg-transparent border border-slate-200 text-slate-500 hover:border-[#3366CC]/40 hover:text-[#3366CC]'
                               }`}
                             >
                               {label}
@@ -1119,13 +1119,13 @@ export default function StaffPersonalDashboard({
                 {isIos ? <Share className="w-4 h-4 text-white" /> : <Download className="w-4 h-4 text-white" />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100 leading-tight">Installa l'app FLOW</p>
+                <p className="text-sm font-semibold text-slate-800 leading-tight">Installa l'app FLOW</p>
                 {isIos ? (
-                  <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-snug">
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
                     Tocca <strong>Condividi</strong> → <strong>Aggiungi a schermata Home</strong>
                   </p>
                 ) : (
-                  <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5">Accedi più velocemente ai tuoi turni</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Accedi più velocemente ai tuoi turni</p>
                 )}
               </div>
               {!isIos && (
@@ -1135,7 +1135,7 @@ export default function StaffPersonalDashboard({
                 </button>
               )}
               <button type="button" onClick={dismissInstallBanner}
-                className="flex-shrink-0 p-1 rounded-xl text-slate-400 dark:text-neutral-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" aria-label="Chiudi">
+                className="flex-shrink-0 p-1 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" aria-label="Chiudi">
                 <X className="w-4 h-4" />
               </button>
             </div>

@@ -176,13 +176,13 @@ export default function HeaderTodayCoworkersCard() {
       {rows.length === 0 ? (
         <div className="flex items-start gap-1.5 px-1">
           <Users className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} aria-hidden />
-          <p className="min-w-0 text-[11px] leading-snug text-slate-500 dark:text-neutral-400">{empty}</p>
+          <p className="min-w-0 text-[11px] leading-snug text-slate-500">{empty}</p>
         </div>
       ) : (
         <div className="flex w-full min-w-0 flex-col gap-3">
           <div className="flex items-center justify-between px-1">
-            <p className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest">
-              <span className="text-slate-900 dark:text-white mr-1">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+              <span className="text-slate-900 mr-1">
                 {formatTrans(summaryTpl, { n: String(rows.length) })}
               </span>
               · {title}
@@ -217,7 +217,7 @@ export default function HeaderTodayCoworkersCard() {
                     className="relative shrink-0 rounded-xl surface-glass-sm"
                     title={`${ringTitle}${timeCaption ? ` · ${timeCaption}` : ''}`}
                   >
-                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-slate-50 dark:bg-neutral-900">
+                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-slate-50">
                       {avatarSrc ? (
                         <img
                           src={avatarSrc}
@@ -227,23 +227,23 @@ export default function HeaderTodayCoworkersCard() {
                           draggable={false}
                         />
                       ) : (
-                        <span className="text-lg font-bold text-slate-400 dark:text-neutral-500" aria-hidden>
+                        <span className="text-lg font-bold text-slate-400" aria-hidden>
                           {initial}
                         </span>
                       )}
                     </div>
                     {/* Shift Type Indicator */}
-                    <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-2 border-white dark:border-neutral-800 rounded-full shadow-sm z-10 ${shiftRingOuterClass(r.shifts)}`}></div>
+                    <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-2 border-white rounded-full shadow-sm z-10 ${shiftRingOuterClass(r.shifts)}`}></div>
                     {isPunchedIn && (
-                      <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-brand-500 border-2 border-white dark:border-neutral-800 rounded-full shadow-sm z-10"></div>
+                      <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-brand-500 border-2 border-white rounded-full shadow-sm z-10"></div>
                     )}
                   </div>
                   <div className="min-w-0 w-full px-0.5">
-                    <span className="block truncate text-[9px] font-black uppercase tracking-tight text-slate-900 dark:text-neutral-100">
+                    <span className="block truncate text-[9px] font-black uppercase tracking-tight text-slate-900">
                       {r.name}
                     </span>
                     {timeCaption ? (
-                      <span className="block truncate text-[8px] font-bold tabular-nums text-slate-400 dark:text-neutral-500 mt-0.5">
+                      <span className="block truncate text-[8px] font-bold tabular-nums text-slate-400 mt-0.5">
                         {timeCaption}
                       </span>
                     ) : null}

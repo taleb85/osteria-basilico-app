@@ -89,7 +89,7 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
           transition={{ duration: 3.2, ease: 'easeInOut' }}
         />
       </svg>
-        <div className="flex aspect-square w-[min(44vw,7.5rem)] max-w-[120px] items-center justify-center rounded-[1.75rem] bg-[#3366CC]/10 dark:bg-[#3366CC]/15">
+        <div className="flex aspect-square w-[min(44vw,7.5rem)] max-w-[120px] items-center justify-center rounded-[1.75rem] bg-[#3366CC]/10">
           <motion.div
             animate={{ rotate: [0, 360] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
@@ -99,10 +99,10 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
         </div>
       </div>
 
-      <h1 className="text-xl font-bold text-slate-800 dark:text-white mb-1 tracking-tight">
+      <h1 className="text-xl font-bold text-slate-800 mb-1 tracking-tight">
         Dati aggiornati dall'admin
       </h1>
-      <p className="text-sm text-slate-500 dark:text-neutral-400 mb-8 max-w-xs leading-relaxed">
+      <p className="text-sm text-slate-500 mb-8 max-w-xs leading-relaxed">
         L'amministratore ha modificato le impostazioni. Aggiornamento automatico in corso…
       </p>
 
@@ -122,7 +122,7 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
                 <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-colors duration-300 ${
                   done
                     ? 'bg-[#3366CC]'
-                    : 'border-2 border-slate-300 dark:border-neutral-600'
+                    : 'border-2 border-slate-300'
                 }`}>
                   {done && !isLast && (
                     <Check className="w-3 h-3 text-white" strokeWidth={3} />
@@ -140,8 +140,8 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
                 </div>
                 <span className={`text-sm font-medium transition-colors duration-300 ${
                   done
-                    ? 'text-slate-700 dark:text-neutral-200'
-                    : 'text-slate-400 dark:text-neutral-500'
+                    ? 'text-slate-700'
+                    : 'text-slate-400'
                 }`}>
                   {step.label}
                 </span>

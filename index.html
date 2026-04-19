@@ -11,15 +11,9 @@
     </script>
     <script>
       (function(){
-        var t=localStorage.getItem('userTheme')||localStorage.getItem('theme');
-        var isDark;
-        if(t==='dark'||t==='light'){
-          isDark = t==='dark';
-        } else {
-          isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        }
-        document.documentElement.classList.toggle('dark', isDark);
-        if (document.body) document.body.style.background = isDark ? '#0a0a0a' : '#f8fafc';
+        /* Tema fisso: solo Light. Rimuove classe dark e pulisce preferenze precedenti. */
+        document.documentElement.classList.remove('dark');
+        try { localStorage.removeItem('userTheme'); localStorage.removeItem('theme'); } catch(e){}
         if(location.search.includes('nocache=1')){
           Promise.all([
             navigator.serviceWorker?.getRegistrations?.().then(function(r){ return Promise.all(r.map(function(s){return s.unregister();})); })||Promise.resolve(),
@@ -56,9 +50,9 @@
 
     <!-- PWA Manifest (iniettato da vite-plugin-pwa) -->
 
-    <!-- Theme FLOW -->
-    <meta name="theme-color" content="#0052FF" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0033BB" media="(prefers-color-scheme: dark)" />
+    <!-- Theme FLOW — Light only -->
+    <meta name="color-scheme" content="only light" />
+    <meta name="theme-color" content="#0052FF" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <!-- black-translucent → status bar trasparente, app a tutto schermo -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

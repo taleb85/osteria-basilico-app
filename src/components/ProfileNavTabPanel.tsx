@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Camera, ShieldCheck, ChevronRight, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,32 +6,8 @@ import { useApp } from '../context/AppContext';
 import { useProfileLeaveGuardRef } from '../context/ProfileLeaveGuardContext';
 import { getTranslations } from '../utils/translations';
 import { getDeviceUiLanguage, readStoredUiLanguage } from '../utils/uiLanguagePreference';
-import { readStoredThemePreference, persistThemePreference } from '../utils/theme';
 import { NotificationPermissionButton } from './NotificationPermissionButton';
 
-function ThemeContrastIcon({ mode, className }: { mode: 'light' | 'dark'; className?: string }) {
-  const activeLight = mode === 'light';
-  const svgTransition =
-    'absolute inset-0 h-full w-full transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.34,1.2,0.64,1)]';
-  return (
-    <span className={`relative inline-block shrink-0 ${className ?? ''}`} aria-hidden>
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={svgTransition} style={{ opacity: activeLight ? 1 : 0, transform: activeLight ? 'rotate(0deg) scale(1)' : 'rotate(-100deg) scale(0.82)' }}>
-        <circle cx="12" cy="12" r="9.15" fill="#1e293b" />
-        <path d="M12 3.35C16.7773 3.35 20.65 7.22274 20.65 12C20.65 16.7773 16.7773 20.65 12 20.65V3.35Z" fill="white" />
-        <circle cx="12" cy="12" r="3.95" fill="white" />
-        <path d="M12 8.05C14.1815 8.05 15.95 9.81848 15.95 12C15.95 14.1815 14.1815 15.95 12 15.95V8.05Z" fill="#1e293b" />
-        <circle cx="12" cy="12" r="9.15" fill="none" stroke="#f1f5f9" strokeWidth="1.5" />
-      </svg>
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={svgTransition} style={{ opacity: activeLight ? 0 : 1, transform: activeLight ? 'rotate(100deg) scale(0.82)' : 'rotate(0deg) scale(1)' }}>
-        <circle cx="12" cy="12" r="9.85" fill="#ffffff" />
-        <path d="M12 5.45C15.6175 5.45 18.55 8.38254 18.55 12C18.55 15.6175 15.6175 18.55 12 18.55V5.45Z" fill="white" />
-        <path d="M12 5.45C8.38254 5.45 5.45 8.38254 5.45 12C5.45 15.6175 8.38254 18.55 12 18.55V5.45Z" fill="#0a0a0a" />
-        <path d="M12 8.25C14.0711 8.25 15.75 9.92893 15.75 12C15.75 14.0711 14.0711 15.75 12 15.75V8.25Z" fill="#0a0a0a" />
-        <path d="M12 8.25C9.92893 8.25 8.25 9.92893 8.25 12C8.25 14.0711 9.92893 15.75 12 15.75V8.25Z" fill="white" />
-      </svg>
-    </span>
-  );
-}
 import { isManagementRole, isAdminOnly } from '../utils/permissions';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { PinPadModal } from './ui/PinPadModal';
@@ -70,7 +46,7 @@ export default function ProfileNavTabPanel({
   onLogout: () => void;
   onGoToSettings?: () => void;
 }) {
-  const { currentUser, effectiveLanguage, setLanguage, clearLanguage, updateUser, updateUserPreferences, showError, isSessionElevated } = useApp();
+  const { currentUser, effectiveLanguage, setLanguage, clearLanguage, updateUser, showError, isSessionElevated } = useApp();
   const profileLeaveGuardRef = useProfileLeaveGuardRef();
   const navigate = useNavigate();
   const t = getTranslations(effectiveLanguage);
@@ -317,28 +293,13 @@ export default function ProfileNavTabPanel({
     };
   }, [profileLeaveGuardRef, isDirty, performProfileSave]);
 
-  const [expanded, setExpanded] = useState<'settings' | 'notif' | 'theme' | null>(null);
+  const [expanded, setExpanded] = useState<'settings' | 'notif' | 'lang' | null>(null);
   const toggleSection = (s: typeof expanded) => setExpanded(prev => prev === s ? null : s);
 
-  // ── Tema & Lingua — hooks PRIMA dell'early return (Rules of Hooks) ─────
-  // Segue prefers-color-scheme in tempo reale
-  const systemDark = useSyncExternalStore(
-    (cb) => {
-      const mq = window.matchMedia('(prefers-color-scheme: dark)');
-      mq.addEventListener('change', cb);
-      return () => mq.removeEventListener('change', cb);
-    },
-    () => window.matchMedia('(prefers-color-scheme: dark)').matches,
-    () => false,
-  );
-
-  const [savedTheme, setSavedTheme] = useState<'light' | 'dark' | null>(() => readStoredThemePreference());
-  const [pendingTheme, setPendingTheme] = useState<'light' | 'dark' | null>(() => readStoredThemePreference());
   const [savedLang, setSavedLang] = useState<import('../types').Language | null>(() => readStoredUiLanguage());
   const [pendingLang, setPendingLang] = useState<import('../types').Language | null>(() => readStoredUiLanguage());
-  const [themeLangSaving, setThemeLangSaving] = useState(false);
-  const [themeLangSaved, setThemeLangSaved] = useState(false);
-  // ─────────────────────────────────────────────────────────────────────────
+  const [langSaving, setLangSaving] = useState(false);
+  const [langSaved, setLangSaved] = useState(false);
 
   if (!currentUser) return null;
 
@@ -370,20 +331,10 @@ export default function ProfileNavTabPanel({
     if (window.confirm(logoutConfirm)) onLogout();
   };
 
-  const uiTheme: 'light' | 'dark' = savedTheme === 'light' || savedTheme === 'dark'
-    ? savedTheme
-    : systemDark ? 'dark' : 'light';
+  const hasLangChanges = pendingLang !== savedLang;
 
-  const hasThemeLangChanges = pendingTheme !== savedTheme || pendingLang !== savedLang;
-
-  const saveThemeLang = async () => {
-    setThemeLangSaving(true);
-    // Applica tema
-    const themeToSave: 'light' | 'dark' =
-      pendingTheme === 'light' || pendingTheme === 'dark' ? pendingTheme : uiTheme;
-    updateUserPreferences({ theme: themeToSave });
-    setSavedTheme(themeToSave);
-    // Applica lingua
+  const saveLang = async () => {
+    setLangSaving(true);
     if (pendingLang !== savedLang) {
       if (pendingLang === null) {
         clearLanguage();
@@ -392,17 +343,14 @@ export default function ProfileNavTabPanel({
       }
       setSavedLang(pendingLang);
     }
-    setThemeLangSaving(false);
-    setThemeLangSaved(true);
-    setTimeout(() => setThemeLangSaved(false), 2000);
+    setLangSaving(false);
+    setLangSaved(true);
+    setTimeout(() => setLangSaved(false), 2000);
   };
 
-  const dark = uiTheme === 'dark';
-  const menuRowBase = dark
-    ? 'w-full flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:scale-[0.98] border border-white/[0.08] bg-transparent'
-    : 'w-full flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:scale-[0.98] border border-slate-100 bg-white shadow-sm';
-  const chevronCls = dark ? 'text-white/25' : 'text-slate-300';
-  const rowLabelCls = dark ? 'text-[13px] font-semibold text-white/80' : 'text-[13px] font-semibold text-slate-700';
+  const menuRowBase = 'w-full flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:scale-[0.98] border border-slate-100 bg-white shadow-sm';
+  const chevronCls = 'text-slate-300';
+  const rowLabelCls = 'text-[13px] font-semibold text-slate-700';
 
   const deptLabel = currentUser.department ?? '';
   const roleMap: Record<string, string> = {
@@ -440,15 +388,13 @@ export default function ProfileNavTabPanel({
         {/* ── Hero ─────────────────────────────────────────────────────── */}
         <div
           className="flex flex-col items-center gap-3 pt-8 pb-6 px-5"
-          style={{ borderBottom: dark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #F1F5F9' }}
+          style={{ borderBottom: '1px solid #F1F5F9' }}
         >
           {/* Avatar + photo button */}
           <div className="relative inline-block" ref={photoMenuWrapRef}>
             <div
               className="flex h-[9rem] w-[9rem] items-center justify-center overflow-hidden rounded-3xl text-[3.5rem] font-bold"
-              style={dark
-                ? { background: 'rgba(102,153,255,0.10)', border: '2px solid rgba(255,255,255,0.12)', color: '#6699FF' }
-                : { background: 'rgba(0,82,255,0.06)', border: '2px solid #F1F5F9', color: '#0052FF' }}
+              style={{ background: 'rgba(0,82,255,0.06)', border: '2px solid #F1F5F9', color: '#0052FF' }}
             >
               {resolvedAvatar ? (
                 <img
@@ -512,10 +458,10 @@ export default function ProfileNavTabPanel({
 
           {/* Name + role/dept */}
           <div className="flex flex-col items-center gap-0.5">
-            <h2 className="text-base font-bold tracking-tight" style={{ color: dark ? '#fff' : '#1e293b' }}>
+            <h2 className="text-base font-bold tracking-tight" style={{ color: '#1e293b' }}>
               {displayName}
             </h2>
-            <p className="text-[11px]" style={{ color: dark ? 'rgba(255,255,255,0.40)' : '#94a3b8' }}>
+            <p className="text-[11px]" style={{ color: '#94a3b8' }}>
               {roleDisplay}{deptLabel && deptLabel !== roleDisplay ? ` · ${deptLabel}` : ''}
             </p>
           </div>
@@ -526,9 +472,7 @@ export default function ProfileNavTabPanel({
               <span
                 key={i}
                 className="text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
-                style={dark
-                  ? { background: 'transparent', border: '1px solid rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.40)' }
-                  : { background: 'transparent', border: '1px solid #CBD5E1', color: '#94a3b8' }}
+                style={{ background: 'transparent', border: '1px solid #CBD5E1', color: '#94a3b8' }}
               >
                 {label}
               </span>
@@ -542,7 +486,7 @@ export default function ProfileNavTabPanel({
         <div className="flex flex-col gap-2 px-4 pt-4 pb-8">
 
           {/* Impostazioni profilo */}
-          <div className="rounded-xl overflow-hidden" style={dark ? { border: '1px solid rgba(255,255,255,0.18)' } : { border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
             <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98]" onClick={() => toggleSection('settings')}>
               <span className={rowLabelCls}>{tv.profile_tab_group_settings ?? 'Impostazioni profilo'}</span>
               <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'settings' ? 'rotate-90' : ''}`} />
@@ -550,7 +494,7 @@ export default function ProfileNavTabPanel({
             <AnimatePresence initial={false}>
               {expanded === 'settings' && (
                 <motion.div key="settings-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
-                  <div style={dark ? { borderTop: '1px solid rgba(255,255,255,0.06)' } : { borderTop: '1px solid #F1F5F9' }} className="px-4 py-4 text-slate-900 dark:text-neutral-100">
+                  <div style={{ borderTop: '1px solid #F1F5F9' }} className="px-4 py-4 text-slate-900">
                     <ProfileFormSelf
                       formData={formData}
                       setFormData={setFormData}
@@ -569,7 +513,7 @@ export default function ProfileNavTabPanel({
           </div>
 
           {/* Notifiche */}
-          <div className="rounded-xl overflow-hidden" style={dark ? { border: '1px solid rgba(255,255,255,0.18)' } : { border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
             <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98]" onClick={() => toggleSection('notif')}>
               <span className={rowLabelCls}>{tv.profile_notifications ?? 'Notifiche'}</span>
               <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'notif' ? 'rotate-90' : ''}`} />
@@ -577,7 +521,7 @@ export default function ProfileNavTabPanel({
             <AnimatePresence initial={false}>
               {expanded === 'notif' && (
                 <motion.div key="notif-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
-                  <div style={dark ? { borderTop: '1px solid rgba(255,255,255,0.06)' } : { borderTop: '1px solid #F1F5F9' }} className="px-4 py-3">
+                  <div style={{ borderTop: '1px solid #F1F5F9' }} className="px-4 py-3">
                     <NotificationPermissionButton effectiveLanguage={effectiveLanguage} userId={currentUser?.id} />
                   </div>
                 </motion.div>
@@ -585,106 +529,56 @@ export default function ProfileNavTabPanel({
             </AnimatePresence>
           </div>
 
-          {/* Tema & Lingua */}
-          <div className="rounded-xl overflow-hidden" style={dark ? { border: '1px solid rgba(255,255,255,0.18)' } : { border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-            <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98]" onClick={() => toggleSection('theme')}>
-              <span className={rowLabelCls}>{tv.profile_theme_language ?? 'Tema & Lingua'}</span>
-              <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'theme' ? 'rotate-90' : ''}`} />
+          {/* Lingua */}
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #CBD5E1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98]" onClick={() => toggleSection('lang')}>
+              <span className={rowLabelCls}>{t.language ?? 'Lingua'}</span>
+              <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'lang' ? 'rotate-90' : ''}`} />
             </button>
             <AnimatePresence initial={false}>
-              {expanded === 'theme' && (
-                <motion.div key="theme-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
-                  <div style={dark ? { borderTop: '1px solid rgba(255,255,255,0.06)' } : { borderTop: '1px solid #F1F5F9' }} className="px-4 py-3 space-y-3">
-                    {/* Selettore tema: Sistema / Chiaro / Scuro */}
-                    <div className="flex gap-1.5">
-                      {([
-                        { value: null,    label: tv.theme_system ?? 'Sistema', icon: '⚙︎' },
-                        { value: 'light', label: t.light ?? 'Chiaro', icon: null },
-                        { value: 'dark',  label: t.dark  ?? 'Scuro',  icon: null },
-                      ] as { value: 'light' | 'dark' | null; label: string; icon: string | null }[]).map(({ value, label, icon }) => {
-                        const isActive = value === null ? pendingTheme === null : pendingTheme === value;
+              {expanded === 'lang' && (
+                <motion.div key="lang-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
+                  <div style={{ borderTop: '1px solid #F1F5F9' }} className="px-4 py-3 space-y-3">
+                    <div className="flex gap-1 rounded-xl p-1" style={{ background: '#f1f5f9', border: '1px solid #F1F5F9' }}>
+                      {(() => {
+                        const deviceLang = getDeviceUiLanguage();
+                        const isAuto = pendingLang === null;
                         return (
                           <button
-                            key={String(value)}
                             type="button"
-                            onClick={() => setPendingTheme(value)}
-                            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all active:scale-[0.97]"
-                            style={isActive
-                              ? { background: '#0052FF', color: '#fff', border: '1px solid #0033BB' }
-                              : dark
-                                ? { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }
-                                : { background: '#f8fafc', border: '1px solid #e2e8f0', color: '#64748b' }}
+                            onClick={() => setPendingLang(null)}
+                            className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
+                            style={isAuto ? { background: '#0052FF', color: '#ffffff', outline: 'none' } : { color: '#64748b', outline: 'none' }}
+                            title={`Auto → ${deviceLang.toUpperCase()}`}
                           >
-                            {icon && <span className="text-sm leading-none">{icon}</span>}
-                            {!icon && <ThemeContrastIcon mode={value as 'light' | 'dark'} className="h-4 w-4" />}
-                            <span>{label}</span>
+                            Auto
                           </button>
                         );
-                      })}
+                      })()}
+                      {(['it', 'en', 'es', 'fr'] as const).map((l) => (
+                        <button
+                          key={l}
+                          type="button"
+                          onClick={() => setPendingLang(l)}
+                          className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
+                          style={pendingLang === l ? { background: '#0052FF', color: '#ffffff', outline: 'none' } : { color: '#64748b', outline: 'none' }}
+                        >
+                          {l.toUpperCase()}
+                        </button>
+                      ))}
                     </div>
-
-                    {/* Selettore lingua */}
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30 mb-2">
-                        {t.language ?? 'Lingua'}
-                      </p>
-                      <div
-                        className="flex gap-1 rounded-xl p-1"
-                        style={dark
-                          ? { background: 'rgba(0,0,0,0.30)', border: '1px solid rgba(255,255,255,0.08)' }
-                          : { background: '#f1f5f9', border: '1px solid #F1F5F9' }}
-                      >
-                        {(() => {
-                          const deviceLang = getDeviceUiLanguage();
-                          const isAuto = pendingLang === null;
-                          return (
-                            <button
-                              type="button"
-                              onClick={() => setPendingLang(null)}
-                              className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
-                              style={isAuto
-                                ? { background: '#0052FF', color: '#ffffff', outline: 'none' }
-                                : { color: dark ? 'rgba(255,255,255,0.45)' : '#64748b', outline: 'none' }}
-                              title={`Auto → ${deviceLang.toUpperCase()}`}
-                            >
-                              Auto
-                            </button>
-                          );
-                        })()}
-                        {(['it', 'en', 'es', 'fr'] as const).map((l) => {
-                          const isActive = pendingLang === l;
-                          return (
-                            <button
-                              key={l}
-                              type="button"
-                              onClick={() => setPendingLang(l)}
-                              className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
-                              style={isActive
-                                ? { background: '#0052FF', color: '#ffffff', outline: 'none' }
-                                : { color: dark ? 'rgba(255,255,255,0.45)' : '#64748b', outline: 'none' }}
-                            >
-                              {l.toUpperCase()}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Bottone Salva tema & lingua */}
                     <button
                       type="button"
-                      disabled={themeLangSaving || (!hasThemeLangChanges && !themeLangSaved)}
-                      onClick={() => void saveThemeLang()}
+                      disabled={langSaving || (!hasLangChanges && !langSaved)}
+                      onClick={() => void saveLang()}
                       className="w-full py-2.5 rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-40"
-                      style={themeLangSaved
+                      style={langSaved
                         ? { background: '#10b981', color: '#fff' }
-                        : hasThemeLangChanges
+                        : hasLangChanges
                           ? { background: '#0052FF', color: '#fff' }
-                          : dark
-                            ? { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.08)' }
-                            : { background: '#f1f5f9', color: '#94a3b8', border: '1px solid #e2e8f0' }}
+                          : { background: '#f1f5f9', color: '#94a3b8', border: '1px solid #e2e8f0' }}
                     >
-                      {themeLangSaved ? '✓ Salvato' : themeLangSaving ? 'Salvataggio…' : 'Salva'}
+                      {langSaved ? '✓ Salvato' : langSaving ? 'Salvataggio…' : 'Salva'}
                     </button>
                   </div>
                 </motion.div>

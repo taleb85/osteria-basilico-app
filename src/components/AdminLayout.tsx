@@ -14,7 +14,7 @@ type AdminTab = 'profili' | 'regole' | 'impostazioni';
 
 /** `overflow-visible` così il pannello del menu hamburger non viene tagliato dal bordo arrotondato. */
 const adminHeaderCardClass =
-  'w-full rounded-2xl border border-slate-100 dark:border-white/10 bg-white/80 dark:bg-neutral-900/80 shadow-[0_4px_16px_-4px_rgba(0,26,128,0.10),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] overflow-visible supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
+  'w-full rounded-2xl border border-slate-100 bg-white/80 shadow-[0_4px_16px_-4px_rgba(0,26,128,0.10),0_2px_8px_-4px_rgba(15,23,42,0.08)])] overflow-visible supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -70,7 +70,7 @@ export default function AdminLayout() {
   }, [currentUser]);
 
   return (
-    <div className="min-h-screen min-h-[100dvh] w-full bg-[#f8fafc] dark:bg-[#0a0a0a] text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased flex flex-col safe-area-pad overflow-x-clip">
+    <div className="min-h-screen min-h-[100dvh] w-full bg-[#f8fafc] text-[#1a1a1a] font-sans antialiased flex flex-col safe-area-pad overflow-x-clip">
       <header className="sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2">
         <div className={`${adminHeaderCardClass}`}>
           {/* Riga principale: torna + tab inline */}
@@ -94,7 +94,7 @@ export default function AdminLayout() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                   activeTab === 'profili'
                     ? 'bg-accent text-white shadow-sm'
-                    : 'text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-800 dark:hover:text-neutral-100'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
                 }`}
               >
                 <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -109,7 +109,7 @@ export default function AdminLayout() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                     activeTab === 'regole'
                       ? 'bg-accent text-white shadow-sm'
-                      : 'text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-800 dark:hover:text-neutral-100'
+                      : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
                   }`}
                 >
                   <LayoutList className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -125,7 +125,7 @@ export default function AdminLayout() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                     activeTab === 'impostazioni'
                       ? 'bg-accent text-white shadow-sm'
-                      : 'text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-800 dark:hover:text-neutral-100'
+                      : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
                   }`}
                 >
                   <Settings className="h-3.5 w-3.5 shrink-0" aria-hidden />

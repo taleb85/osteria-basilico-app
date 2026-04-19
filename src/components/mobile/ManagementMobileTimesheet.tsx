@@ -111,17 +111,17 @@ const dayStatusCfg: Record<DayStatus, { block: string; dot?: string }> = {
   late:     { block: 'bg-amber-500/[0.15] border border-amber-500/[0.30]',   dot: 'bg-amber-400' },
   absent:   { block: 'bg-red-500/[0.08] border border-red-500/[0.18]',       dot: 'bg-red-500' },
   no_punch: { block: 'bg-[#3366CC]/[0.12] border border-[#3366CC]/[0.25]',  dot: 'bg-[#3366CC]' },
-  empty:    { block: 'border border-slate-50 bg-slate-50/30 dark:border-white/[0.04] dark:bg-white/[0.02]' },
+  empty:    { block: 'border border-slate-50 bg-slate-50/30' },
 };
 
 function ShiftStatusBadge({ shift, t }: { shift: Shift; t: Record<string, string> }) {
   const isAbsent = shift.approval_status === 'absent';
   const isDraft  = shift.approval_status === 'draft';
   const cls = isAbsent
-    ? 'text-red-500 border-red-200 bg-red-50 dark:text-red-400 dark:border-red-500/20 dark:bg-red-500/[0.08]'
+    ? 'text-red-500 border-red-200 bg-red-50'
     : isDraft
-      ? 'text-slate-400 border-slate-200 bg-slate-50 dark:text-white/35 dark:border-white/10 dark:bg-white/[0.04]'
-      : 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-500/20 dark:bg-emerald-500/[0.08]';
+      ? 'text-slate-400 border-slate-200 bg-slate-50'
+      : 'text-emerald-600 border-emerald-200 bg-emerald-50';
   const label = isAbsent
     ? (t.status_absent ?? 'Assente')
     : isDraft
@@ -174,8 +174,8 @@ function MyTimesheetSection({
   if (myShifts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
-        <Clock className="w-6 h-6 text-slate-300 dark:text-white/20 mb-2" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/25">{t.no_attendance_records}</p>
+        <Clock className="w-6 h-6 text-slate-300 mb-2" />
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.no_attendance_records}</p>
       </div>
     );
   }
@@ -205,7 +205,7 @@ function MyTimesheetSection({
         return (
           <div key={wIdx}>
             <div
-              className="rounded-2xl border border-slate-100 dark:border-white/[0.08] overflow-hidden shadow-sm dark:shadow-none"
+              className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm"
               style={cardBg}
             >
               {/* Griglia giorni — stile identico alla scheda turni */}
@@ -222,7 +222,7 @@ function MyTimesheetSection({
                     ? 'bg-[#3366CC]/[0.18] border border-[#3366CC]/[0.30]'
                     : isAbsent
                       ? 'bg-red-500/[0.08] border border-red-500/[0.18]'
-                      : 'border border-slate-50 bg-slate-50/30 dark:border-white/[0.04] dark:bg-white/[0.02]';
+                      : 'border border-slate-50 bg-slate-50/30';
                   return (
                     <div
                       key={i}
@@ -236,11 +236,11 @@ function MyTimesheetSection({
                         });
                       }}
                     >
-                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-slate-400 dark:text-white/25'}`}>
+                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-slate-400'}`}>
                         {dayLetters[i]}
                       </span>
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-bold ${
-                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-slate-500 dark:text-white/55'
+                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-slate-500'
                       }`}>
                         {format(day, 'd')}
                       </div>
@@ -248,11 +248,11 @@ function MyTimesheetSection({
                         isSelected && !plannedOnly ? 'ring-2 ring-[#3366CC]/60 ring-offset-1' : ''
                       }`}>
                         {shiftCount > 0 && (
-                          <span className="text-[13px] font-black text-[#3366CC] dark:text-[#93c5fd] leading-none drop-shadow-sm">
+                          <span className="text-[13px] font-black text-[#3366CC] leading-none drop-shadow-sm">
                             {shiftCount}
                           </span>
                         )}
-                        {isAbsent && <span className="text-[10px] font-bold text-red-500 dark:text-red-400 opacity-80">—</span>}
+                        {isAbsent && <span className="text-[10px] font-bold text-red-500 opacity-80">—</span>}
                       </div>
                     </div>
                   );
@@ -260,15 +260,15 @@ function MyTimesheetSection({
               </div>
 
               {/* Footer stats — identico alla scheda turni */}
-              <div className="border-t border-slate-50 dark:border-white/[0.06] mx-3 pt-2.5 pb-3 flex items-center justify-around">
+              <div className="border-t border-slate-50 mx-3 pt-2.5 pb-3 flex items-center justify-around">
                 {[
                   { label: t.shift_plural ?? 'Turni', value: confirmed.length.toString() },
                   { label: t.stat_hours_total_abbr ?? 'Ore tot', value: minsLabel(totalMins) },
                   { label: t.rest_days_label ?? 'Riposi', value: restDays.toString() },
                 ].map(({ label, value }, i) => (
                   <div key={i} className="flex flex-col items-center gap-0.5">
-                    <span className="text-sm font-bold text-slate-800 dark:text-white/90 tabular-nums">{value}</span>
-                    <span className="text-[8px] text-slate-400 dark:text-white/30 uppercase font-bold tracking-wider">{label}</span>
+                    <span className="text-sm font-bold text-slate-800 tabular-nums">{value}</span>
+                    <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">{label}</span>
                   </div>
                 ))}
                 {!plannedOnly && (
@@ -279,7 +279,7 @@ function MyTimesheetSection({
                     else { toggleWeek(wIdx); }
                   }}
                   aria-label={isOpen ? 'Chiudi lista' : 'Apri lista'}
-                  className="flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest border-[#3366CC]/40 text-[#3366CC] dark:text-[#93c5fd]"
+                  className="flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest border-[#3366CC]/40 text-[#3366CC]"
                 >
                   <span>{t.ts_period_week ?? 'Settimana'}</span>
                   <svg viewBox="0 0 16 16" fill="none" className={`w-3 h-3 transition-transform duration-200 ${isOpen && !isDayInThisWeek ? 'rotate-180' : 'rotate-0'}`} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -304,7 +304,7 @@ function MyTimesheetSection({
                   const isToday_ = isToday(day);
                   return (
                     <div key={key}>
-                      <p className="text-[10px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-[#3366CC] dark:text-[#93c5fd]">
+                      <p className="text-[10px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-[#3366CC]">
                         {format(day, 'EEEE d MMMM', { locale })}
                         {isToday_ && <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
                       </p>
@@ -312,26 +312,26 @@ function MyTimesheetSection({
                         const isAbsent = shift.approval_status === 'absent';
                         return (
                           <div key={shift.id}
-                            className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm dark:shadow-none ${
+                            className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm ${
                               isAbsent
-                                ? 'border-red-100 dark:border-red-500/[0.08] bg-red-50 dark:bg-red-500/[0.04]'
-                                : 'border-slate-100 dark:border-white/[0.08]'
+                                ? 'border-red-100 bg-red-50'
+                                : 'border-slate-100'
                             }`}
                             style={isAbsent ? undefined : cardBg}
                           >
                             <div className="flex flex-col gap-0.5">
-                              <p className={`font-bold tabular-nums text-base leading-none ${isAbsent ? 'text-slate-300 line-through dark:text-white/25' : 'text-slate-800 dark:text-white/90'}`}>
+                              <p className={`font-bold tabular-nums text-base leading-none ${isAbsent ? 'text-slate-300 line-through' : 'text-slate-800'}`}>
                                 {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                               </p>
                               {/* Timbratura — nascosta in modalità plannedOnly */}
                               {!plannedOnly && !isAbsent && (pIn || pOut) && (
-                                <p className="text-[9px] tabular-nums text-slate-400 dark:text-white/30 mt-0.5 flex items-center gap-1">
+                                <p className="text-[9px] tabular-nums text-slate-400 mt-0.5 flex items-center gap-1">
                                   <Clock className="w-2.5 h-2.5 shrink-0" />
                                   {pIn ? punchLabel(pIn) : '–'} → {pOut ? punchLabel(pOut) : '–'}
                                 </p>
                               )}
                               {shift.department && (
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30 mt-0.5">
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">
                                   {translateDepartmentValue(shift.department, language as any)}
                                 </p>
                               )}
@@ -415,8 +415,8 @@ function TeamTimesheetSection({
   if (sortedDays.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
-        <Users className="w-6 h-6 text-slate-300 dark:text-white/20 mb-2" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/25">{t.no_team_attendance}</p>
+        <Users className="w-6 h-6 text-slate-300 mb-2" />
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.no_team_attendance}</p>
       </div>
     );
   }
@@ -431,27 +431,27 @@ function TeamTimesheetSection({
         const confirmed = dayShifts.filter(s => s.approval_status !== 'absent');
 
         return (
-          <div key={key} className="rounded-xl border border-slate-100 dark:border-white/[0.08] overflow-hidden shadow-sm dark:shadow-none" style={cardBg}>
+          <div key={key} className="rounded-xl border border-slate-100 overflow-hidden shadow-sm" style={cardBg}>
             {/* Header cassetto */}
             <button
               type="button"
               onClick={() => toggle(key)}
-              className="w-full flex items-center justify-between px-3 py-2.5 active:bg-slate-50 dark:active:bg-white/[0.03] transition-colors"
+              className="w-full flex items-center justify-between px-3 py-2.5 active:bg-slate-50 transition-colors"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className={`text-[10px] font-black uppercase tracking-widest truncate ${
-                  isToday_ ? 'text-[#3366CC] dark:text-[#93c5fd]' : 'text-slate-700 dark:text-white/70'
+                  isToday_ ? 'text-[#3366CC]' : 'text-slate-700'
                 }`}>
                   {format(day, 'EEE d MMM', { locale })}
                 </span>
                 {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-[#3366CC] shrink-0 shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[9px] font-black tabular-nums text-slate-400 dark:text-white/30">
+                <span className="text-[9px] font-black tabular-nums text-slate-400">
                   {confirmed.length} {t.shift_plural ?? 'turni'}
                 </span>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-slate-400 dark:text-white/30 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                   strokeWidth={2.5}
                 />
               </div>
@@ -459,7 +459,7 @@ function TeamTimesheetSection({
 
             {/* Corpo cassetto */}
             {isOpen && (
-              <div className="border-t border-slate-50 dark:border-white/[0.05] px-3 pb-2 pt-1.5 flex flex-col gap-1">
+              <div className="border-t border-slate-50 px-3 pb-2 pt-1.5 flex flex-col gap-1">
                 {dayShifts.map(shift => {
                   const isAbsent = shift.approval_status === 'absent';
                   const u = userMap[shift.user_id];
@@ -471,28 +471,28 @@ function TeamTimesheetSection({
                     <div key={shift.id}
                       className={`flex items-center justify-between rounded-lg px-2.5 py-2 border ${
                         isAbsent
-                          ? 'border-red-100 dark:border-red-500/[0.08] bg-red-50/50 dark:bg-red-500/[0.03]'
-                          : 'border-slate-100 dark:border-white/[0.06]'
+                          ? 'border-red-100 bg-red-50/50'
+                          : 'border-slate-100'
                       }`}
                       style={isAbsent ? undefined : cardBg}
                     >
                       <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                        <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-white/50 truncate">
+                        <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 truncate">
                           {fullName}
                         </p>
                         <p className={`font-black tabular-nums text-sm leading-none ${
-                          isAbsent ? 'text-slate-300 line-through dark:text-white/25' : 'text-slate-800 dark:text-white/90'
+                          isAbsent ? 'text-slate-300 line-through' : 'text-slate-800'
                         }`}>
                           {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                         </p>
                         {!plannedOnly && !isAbsent && (pIn || pOut) && (
-                          <p className="text-[9px] tabular-nums text-slate-400 dark:text-white/30 mt-0.5 flex items-center gap-1">
+                          <p className="text-[9px] tabular-nums text-slate-400 mt-0.5 flex items-center gap-1">
                             <Clock className="w-2.5 h-2.5 shrink-0" />
                             {pIn ? punchLabel(pIn) : '–'} → {pOut ? punchLabel(pOut) : '–'}
                           </p>
                         )}
                         {shift.department && (
-                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30 mt-0.5">
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">
                             {translateDepartmentValue(shift.department, language as any)}
                           </p>
                         )}
@@ -561,20 +561,20 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
 
       {/* Barra navigazione periodo */}
       <div className="flex items-center gap-2 mb-5 px-4">
-        <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#3366CC]/40 text-[#3366CC] dark:text-[#93c5fd] text-[9px] font-black uppercase tracking-widest shrink-0">
+        <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#3366CC]/40 text-[#3366CC] text-[9px] font-black uppercase tracking-widest shrink-0">
           {t.tab_period ?? 'Periodo'}
         </span>
-        <div className="flex items-center border border-slate-300 dark:border-white/20 rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md" style={{ background: 'transparent', boxShadow: '0 0 0 1px rgba(0,0,0,0.06)' }}>
+        <div className="flex items-center border border-slate-300 rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md" style={{ background: 'transparent', boxShadow: '0 0 0 1px rgba(0,0,0,0.06)' }}>
           <button type="button" onClick={() => setNavOffset(o => o - 1)}
-            className="flex items-center justify-center h-9 w-9 text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors shrink-0 border-r border-slate-100 dark:border-white/[0.08]">
+            className="flex items-center justify-center h-9 w-9 text-slate-500 hover:bg-slate-50 transition-colors shrink-0 border-r border-slate-100">
             <ChevronLeft className="h-4 w-4" />
           </button>
           <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0">
-            <Clock className="h-3 w-3 text-slate-400 dark:text-neutral-500 shrink-0" />
-            <span className="text-[10px] font-bold text-slate-700 dark:text-neutral-200 tabular-nums truncate">{rangeLabel}</span>
+            <Clock className="h-3 w-3 text-slate-400 shrink-0" />
+            <span className="text-[10px] font-bold text-slate-700 tabular-nums truncate">{rangeLabel}</span>
           </div>
           <button type="button" onClick={() => setNavOffset(o => o + 1)}
-            className="flex items-center justify-center h-9 w-9 text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors shrink-0 border-l border-slate-100 dark:border-white/[0.08]">
+            className="flex items-center justify-center h-9 w-9 text-slate-500 hover:bg-slate-50 transition-colors shrink-0 border-l border-slate-100">
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -585,8 +585,8 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
         {/* I miei turni */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white/80">{t.my_attendance_label ?? 'Le mie presenze'}</span>
-            {myShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#3366CC] dark:text-[#93c5fd]">({myShifts.length})</span>}
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">{t.my_attendance_label ?? 'Le mie presenze'}</span>
+            {myShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#3366CC]">({myShifts.length})</span>}
           </div>
           <MyTimesheetSection myShifts={myShifts} myPunches={myPunches} locale={locale} dayLetters={dayLetters} language={language} t={t} plannedOnly={plannedOnly} />
         </section>
@@ -594,8 +594,8 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
         {/* Team */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white/80">Team</span>
-            {teamShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#3366CC] dark:text-[#93c5fd]">({teamShifts.length})</span>}
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">Team</span>
+            {teamShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#3366CC]">({teamShifts.length})</span>}
           </div>
           <TeamTimesheetSection teamShifts={teamShifts} allPunches={teamPunches} users={users} locale={locale} language={language} t={t} plannedOnly={plannedOnly} />
         </section>

@@ -1,64 +1,29 @@
-import type { Theme } from '../types';
-
-const STORAGE_KEY = 'userTheme';
-
-/** Applica la classe `dark` su `<html>` per Tailwind `darkMode: 'class'`. */
-export function applyDocumentTheme(theme: Theme | null | undefined): void {
-  let resolved: Theme;
-  if (theme === 'dark' || theme === 'light') {
-    resolved = theme;
-  } else {
-    // Se il tema non è specificato (null/undefined), segui il sistema
-    resolved = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-
-  if (resolved === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
-}
-
-export function persistThemePreference(theme: Theme | null): void {
-  try {
-    if (theme === null) {
-      localStorage.removeItem(STORAGE_KEY);
-    } else {
-      localStorage.setItem(STORAGE_KEY, theme);
-    }
-  } catch {
-    /* ignore */
-  }
-}
-
-export function readStoredThemePreference(): Theme | null {
-  try {
-    const v = localStorage.getItem(STORAGE_KEY);
-    if (v === 'dark' || v === 'light') return v;
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
 /**
- * Login, kiosk, dopo logout: applica il tema da preferenza salvata (`userTheme`) o,
- * se assente, da `prefers-color-scheme`. Non cancella la scelta utente in localStorage.
+ * Tema fisso: l'app usa esclusivamente il tema chiaro (Blu/Light).
+ * Il supporto dark mode è stato rimosso per alleggerire il bundle CSS
+ * e garantire un'interfaccia immutabile.
  */
-export function applyUnauthenticatedDocumentTheme(): void {
-  const stored = readStoredThemePreference();
-  if (stored === 'dark' || stored === 'light') {
-    applyDocumentTheme(stored);
-    return;
-  }
-  if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
-    applyDocumentTheme('dark');
-    return;
-  }
-  applyDocumentTheme('light');
+
+/** Rimuove la classe `dark` e blocca il tema chiaro. */
+export function applyDocumentTheme(): void {
+  document.documentElement.classList.remove('dark');
 }
 
-/** Alias storico: non forza più il tema chiaro né rimuove le preferenze. */
+export function persistThemePreference(): void {
+  try {
+    localStorage.removeItem('userTheme');
+    localStorage.removeItem('theme');
+  } catch { /* ignore */ }
+}
+
+export function readStoredThemePreference(): 'light' {
+  return 'light';
+}
+
+export function applyUnauthenticatedDocumentTheme(): void {
+  applyDocumentTheme();
+}
+
 export function forceLightTheme(): void {
-  applyUnauthenticatedDocumentTheme();
+  applyDocumentTheme();
 }

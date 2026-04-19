@@ -74,15 +74,15 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
         transition={{ duration: 0.28, ease: 'easeOut' }}
-        className="w-full max-w-sm bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden"
       >
         {/* Header */}
-        <div className="px-5 pt-6 pb-4 text-center border-b border-slate-100 dark:border-white/10">
-          <p className="text-xs font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-widest mb-1">Prima di iniziare</p>
-          <h2 className="text-base font-bold text-slate-800 dark:text-neutral-100 font-sans">
+        <div className="px-5 pt-6 pb-4 text-center border-b border-slate-100">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Prima di iniziare</p>
+          <h2 className="text-base font-bold text-slate-800 font-sans">
             Abilita le funzionalità
           </h2>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Per ricevere avvisi e usare il timbratore con posizione
           </p>
         </div>
@@ -96,21 +96,21 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
             disabled={notifGranted || notifDenied || notifLoading}
             className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all active:scale-[0.98] border
               ${notifGranted
-                ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/40'
+                ? 'bg-emerald-50 border-emerald-200'
                 : notifDenied
-                ? 'bg-slate-50 dark:bg-neutral-800/50 border-slate-200 dark:border-white/10 opacity-50 cursor-not-allowed'
-                : 'bg-slate-50 dark:bg-neutral-800/40 border-slate-200 dark:border-white/10 hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-200 dark:hover:border-blue-800/40 cursor-pointer'
+                ? 'bg-slate-50 border-slate-200 opacity-50 cursor-not-allowed'
+                : 'bg-slate-50 border-slate-200 hover:bg-blue-50 hover:border-blue-200 cursor-pointer'
               }`}
           >
             <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl
-              ${notifGranted ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-blue-100 dark:bg-blue-950/40'}`}>
+              ${notifGranted ? 'bg-emerald-100' : 'bg-blue-100'}`}>
               {notifGranted
-                ? <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                : <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
+                ? <CheckCircle className="h-5 w-5 text-emerald-600" />
+                : <Bell className="h-5 w-5 text-blue-600" />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Notifiche</p>
-              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+              <p className="text-sm font-semibold text-slate-800">Notifiche</p>
+              <p className="text-xs text-slate-500 mt-0.5">
                 {notifGranted ? 'Attivate' : notifDenied ? 'Bloccate — abilita dalle impostazioni' : notifLoading ? 'In attesa…' : 'Turni, messaggi e avvisi in tempo reale'}
               </p>
             </div>
@@ -126,21 +126,21 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
             disabled={locGranted || locDenied || locationLoading}
             className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all active:scale-[0.98] border
               ${locGranted
-                ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/40'
+                ? 'bg-emerald-50 border-emerald-200'
                 : locDenied
-                ? 'bg-slate-50 dark:bg-neutral-800/50 border-slate-200 dark:border-white/10 opacity-50 cursor-not-allowed'
-                : 'bg-slate-50 dark:bg-neutral-800/40 border-slate-200 dark:border-white/10 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-200 dark:hover:border-emerald-800/40 cursor-pointer'
+                ? 'bg-slate-50 border-slate-200 opacity-50 cursor-not-allowed'
+                : 'bg-slate-50 border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer'
               }`}
           >
             <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl
-              ${locGranted ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}`}>
+              ${locGranted ? 'bg-emerald-100' : 'bg-emerald-100'}`}>
               {locGranted
-                ? <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                : <MapPin className="h-5 w-5 text-emerald-600 dark:text-emerald-500" />}
+                ? <CheckCircle className="h-5 w-5 text-emerald-600" />
+                : <MapPin className="h-5 w-5 text-emerald-600" />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Posizione</p>
-              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+              <p className="text-sm font-semibold text-slate-800">Posizione</p>
+              <p className="text-xs text-slate-500 mt-0.5">
                 {locGranted ? 'Consentita' : locDenied ? 'Bloccata — abilita dalle impostazioni' : locationLoading ? 'In attesa…' : 'Necessaria per il timbratore con verifica area'}
               </p>
             </div>
@@ -159,7 +159,7 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
           >
             Continua
           </button>
-          <p className="text-center text-[10px] text-slate-400 dark:text-neutral-500 mt-2">
+          <p className="text-center text-[10px] text-slate-400 mt-2">
             Puoi modificare questi permessi in qualsiasi momento dalle impostazioni del dispositivo
           </p>
         </div>

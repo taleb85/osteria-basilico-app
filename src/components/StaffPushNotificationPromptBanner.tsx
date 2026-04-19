@@ -41,16 +41,16 @@ export function StaffPushNotificationPromptBanner({ userId, effectiveLanguage }:
   return (
     <div
       role="status"
-      className="mx-4 mb-3 flex items-start gap-2.5 rounded-xl border border-amber-200/90 bg-amber-50/95 px-3 py-2.5 dark:border-amber-500/25 dark:bg-amber-950/35"
+      className="mx-4 mb-3 flex items-start gap-2.5 rounded-xl border border-amber-200/90 bg-amber-50/95 px-3 py-2.5"
     >
-      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-800 dark:text-amber-200">
+      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-800">
         <Bell className="h-4 w-4" aria-hidden />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-amber-900/90 dark:text-amber-100/90">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-amber-900/90">
           {t.staff_push_banner_title}
         </p>
-        <p className="mt-0.5 text-[11px] leading-snug text-amber-950/80 dark:text-amber-100/75">
+        <p className="mt-0.5 text-[11px] leading-snug text-amber-950/80">
           {isDenied ? t.staff_push_banner_body_denied : t.staff_push_banner_body_default}
         </p>
         {!isDenied && (
@@ -60,7 +60,7 @@ export function StaffPushNotificationPromptBanner({ userId, effectiveLanguage }:
             onClick={() => void requestNotificationPermission().then(() => {
               if (typeof Notification !== 'undefined') setPerm(Notification.permission);
             })}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white hover:bg-amber-700 disabled:opacity-50 dark:bg-amber-600 dark:hover:bg-amber-500"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white hover:bg-amber-700 disabled:opacity-50"
           >
             {isLoading ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden /> : null}
             {t.staff_push_banner_cta}

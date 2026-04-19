@@ -156,14 +156,14 @@ export function TimeInputField({
         ? 'min-h-[52px] gap-1 rounded-xl border px-1.5 py-2 text-xl'
         : 'min-h-[44px] gap-0.5 rounded-xl border-2 px-1 text-sm font-semibold';
   const inner =
-    'min-w-0 flex-1 bg-transparent text-center font-bold tabular-nums text-slate-900 outline-none placeholder:text-slate-400 focus:outline-none dark:text-neutral-100 dark:placeholder:text-neutral-500 cursor-pointer';
+    'min-w-0 flex-1 bg-transparent text-center font-bold tabular-nums text-slate-900 outline-none placeholder:text-slate-400 focus:outline-none cursor-pointer';
 
   const borderTone =
     size === 'hero'
-      ? 'border-slate-200 bg-white focus-within:border-transparent focus-within:ring-2 focus-within:ring-accent dark:border-white/10 dark:bg-neutral-950 dark:focus-within:ring-accent'
+      ? 'border-slate-200 bg-white focus-within:border-transparent focus-within:ring-2 focus-within:ring-accent'
       : size === 'lg'
-        ? 'border-slate-200 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30 dark:border-white/10 dark:bg-neutral-800 dark:focus-within:border-accent'
-        : 'border-slate-300 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/25 dark:border-white/15 dark:bg-neutral-800 dark:focus-within:border-accent';
+        ? 'border-slate-200 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30'
+        : 'border-slate-300 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/25';
 
   return (
     <div
@@ -213,7 +213,7 @@ export function TimeInputField({
         onKeyDown={handleHourKeyDown}
         className={`${inner} pl-2 pr-0.5`}
       />
-      <span className="select-none text-slate-400 dark:text-neutral-500" aria-hidden>
+      <span className="select-none text-slate-400" aria-hidden>
         :
       </span>
       <input

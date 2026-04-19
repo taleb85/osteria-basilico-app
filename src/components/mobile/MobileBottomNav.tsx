@@ -71,7 +71,7 @@ export default function MobileBottomNav({ activeTab, onNavigate, visibleTabs, la
   return (
     <nav
       ref={navRef}
-      className="fixed bottom-0 left-0 right-0 h-20 bg-white dark:bg-neutral-900 border-t border-gray-100 dark:border-white/[0.08] shadow-[0_-4px_12px_rgba(0,0,0,0.06)] flex justify-around items-stretch px-2 z-[9999] md:hidden safe-area-pb"
+      className="fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-gray-100 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] flex justify-around items-stretch px-2 z-[9999] md:hidden safe-area-pb"
       aria-label="Navigazione principale mobile"
     >
       {shown.map(({ tab, icon: Icon, label }) => {
@@ -84,8 +84,8 @@ export default function MobileBottomNav({ activeTab, onNavigate, visibleTabs, la
             aria-current={isActive ? 'page' : undefined}
             className={`flex h-full min-h-[48px] min-w-[48px] flex-col items-center justify-center flex-1 transition-colors duration-200 gap-1 py-2 ${
               isActive
-                ? 'text-accent dark:text-[#93c5fd]'
-                : 'text-slate-400 dark:text-neutral-400'
+                ? 'text-accent'
+                : 'text-slate-400'
             }`}
           >
             <Icon

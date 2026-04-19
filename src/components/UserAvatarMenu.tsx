@@ -142,14 +142,14 @@ export default function UserAvatarMenu({
           onClick={() => setIsOpen(!isOpen)}
           title={titleHint}
           aria-label={`${t.sidebar_profile}: ${titleHint}`}
-          className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 text-slate-700 surface-ghost-interactive dark:text-neutral-200 hover:text-slate-900 dark:hover:text-neutral-50 touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+          className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 text-slate-700 surface-ghost-interactive hover:text-slate-900 touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
         >
           <span className="text-[14px] font-bold leading-none select-none" aria-hidden>
             {profileInitial}
           </span>
           {displayRole ? (
             <span
-              className="w-full text-center text-[8px] font-semibold uppercase leading-tight text-slate-500 dark:text-neutral-300 truncate select-none"
+              className="w-full text-center text-[8px] font-semibold uppercase leading-tight text-slate-500 truncate select-none"
               aria-hidden
             >
               {displayRole}
@@ -215,7 +215,7 @@ export default function UserAvatarMenu({
               >
                 <div
                   onClick={() => setIsOpen(false)}
-                  className="fixed inset-0 bg-black/35 backdrop-blur-sm dark:bg-black/50 z-[9998]"
+                  className="fixed inset-0 bg-black/35 backdrop-blur-sm z-[9998]"
                 />
                 <motion.div
                   ref={modalRef}
@@ -224,14 +224,14 @@ export default function UserAvatarMenu({
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="relative z-[9999] mx-4 w-full max-w-sm overflow-visible rounded-2xl modal-glass-panel p-5 font-sans dark:text-neutral-100"
+                  className="relative z-[9999] mx-4 w-full max-w-sm overflow-visible rounded-2xl modal-glass-panel p-5 font-sans"
                 >
                   <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                     <h3 className="text-base font-bold text-slate-900">{t.profile_settings}</h3>
                     <button
                       type="button"
                       onClick={() => setIsOpen(false)}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 dark:text-neutral-300 hover:text-slate-800 hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                       aria-label={t.close}
                     >
                       <span className="text-xl leading-none">×</span>

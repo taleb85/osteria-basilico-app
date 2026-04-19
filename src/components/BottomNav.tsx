@@ -287,8 +287,8 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   className={`keep-white-glass flex ${id === 'profile' ? 'h-[46px] sm:h-[52px] px-2 sm:px-2.5 min-w-[46px] sm:min-w-[52px] lg:px-3 gap-2' : 'h-[46px] w-[46px] sm:h-[52px] sm:w-[52px]'} shrink-0 rounded-xl sm:rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.97] items-center justify-center ${
                     over
                       ? isActive
-                        ? 'bg-white dark:bg-neutral-900 shadow-[0_0_6px_1px_rgba(0,26,128,0.22),0_0_14px_3px_rgba(51,102,204,0.12)] text-accent dark:text-white focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
-                        : 'bg-white/60 dark:bg-neutral-800/50 text-accent/55 dark:text-neutral-400 hover:bg-white dark:hover:bg-neutral-900 hover:text-accent dark:hover:text-white focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
+                        ? 'bg-white shadow-[0_0_6px_1px_rgba(0,26,128,0.22),0_0_14px_3px_rgba(51,102,204,0.12)] text-accent focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
+                        : 'bg-white/60 text-accent/55 hover:bg-white hover:text-accent focus-visible:ring-accent/45 focus-visible:ring-offset-transparent'
                       : isActive
                         ? 'bg-white/22 text-white focus-visible:ring-white/35 focus-visible:ring-offset-transparent'
                         : 'bg-white/8 text-white/45 hover:bg-white/18 hover:text-white focus-visible:ring-white/35 focus-visible:ring-offset-transparent'
@@ -312,7 +312,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                     <span
                       className={`flex h-[22px] w-[22px] sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md text-[11px] sm:text-xs font-bold transition-all duration-200 ${
                         over
-                          ? `bg-accent/10 dark:bg-white/10 ${isActive ? 'text-accent dark:text-white' : 'text-accent/65 dark:text-neutral-400'}`
+                          ? `bg-accent/10 ${isActive ? 'text-accent' : 'text-accent/65'}`
                           : `bg-white/15 ${isActive ? 'text-white' : 'text-white/45'}`
                       }`}
                       aria-hidden
@@ -325,7 +325,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                         !over ? (isActive ? 'nav-icon-3d-active' : 'nav-icon-3d') : ''
                       } ${
                         over
-                          ? isActive ? 'text-accent dark:text-white' : 'text-accent/55 dark:text-neutral-400'
+                          ? isActive ? 'text-accent' : 'text-accent/55'
                           : isActive ? 'text-white' : 'text-white/45'
                       }`}
                       strokeWidth={isActive ? 1.75 : 1.2}
@@ -375,17 +375,17 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
         onClose={() => setIsQuickSwitchOpen(false)}
         ariaLabel="Cambio rapido utente"
         maxWidthClass="max-w-md"
-        panelClassName="p-0 !bg-white/70 dark:!bg-neutral-900/70 backdrop-blur-2xl border-white/20 dark:border-white/10"
+        panelClassName="p-0 !bg-white/70 backdrop-blur-2xl border-white/20"
       >
         <div className="flex flex-col h-full max-h-[80vh]">
-          <div className="p-4 border-b border-slate-200/30 dark:border-white/10 sticky top-0 bg-white/40 dark:bg-neutral-900/40 backdrop-blur-md z-10">
+          <div className="p-4 border-b border-slate-200/30 sticky top-0 bg-white/40 backdrop-blur-md z-10">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-bold text-slate-900 dark:text-neutral-50 uppercase tracking-tight">
+              <h3 className="text-base font-bold text-slate-900 uppercase tracking-tight">
                 {tv.quick_switch_title ?? 'Cambio rapido utente'}
               </h3>
               <button
                 onClick={() => setIsQuickSwitchOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500"
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -398,7 +398,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                 value={quickSwitchSearch}
                 onChange={(e) => setQuickSwitchSearch(e.target.value)}
                 placeholder={tv.quick_switch_search_placeholder ?? 'Cerca dipendente...'}
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-neutral-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 outline-none"
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 outline-none"
               />
             </div>
           </div>
@@ -416,7 +416,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-colors text-left ${
                     currentUser?.id === u.id 
                       ? 'bg-accent/10 text-accent' 
-                      : 'hover:bg-slate-50 dark:hover:bg-neutral-800/50 text-slate-700 dark:text-neutral-200'
+                      : 'hover:bg-slate-50 text-slate-700'
                   }`}
                 >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-accent/30 bg-accent/10 text-accent/90 ring-1 ring-accent/25 shadow-sm transition-transform duration-200">

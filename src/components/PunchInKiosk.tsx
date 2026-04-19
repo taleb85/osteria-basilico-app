@@ -127,7 +127,7 @@ function GiantBrandHeader({ now, locale, children }: { now: Date; locale: Return
         className="flex flex-col items-center w-full"
       >
         <StraightLogo />
-        <p className="text-sm sm:text-base text-slate-600 dark:text-neutral-200 font-sans font-semibold tracking-tight mt-3">
+        <p className="text-sm sm:text-base text-slate-600 font-sans font-semibold tracking-tight mt-3">
           {format(now, 'EEEE d MMMM · HH:mm', { locale })}
         </p>
         {children && <div className="mt-3 flex justify-center">{children}</div>}
@@ -524,9 +524,9 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
         <button
           type="button"
           onClick={onGoToLogin}
-          className="group flex items-center gap-2 rounded-xl border-2 border-[#001A80]/30 bg-[#001A80]/8 dark:border-[#001A80]/40 dark:bg-[#001A80]/12 px-4 py-2.5 text-xs font-semibold text-[#001A80] dark:text-[#00D1FF] shadow-[0_2px_8px_-2px_rgba(0,26,128,0.12)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-[#001A80]/60 hover:bg-[#001A80]/15 hover:shadow-[0_4px_12px_-3px_rgba(0,26,128,0.2)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
+          className="group flex items-center gap-2 rounded-xl border-2 border-[#001A80]/30 bg-[#001A80]/8 px-4 py-2.5 text-xs font-semibold text-[#001A80] shadow-[0_2px_8px_-2px_rgba(0,26,128,0.12)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-[#001A80]/60 hover:bg-[#001A80]/15 hover:shadow-[0_4px_12px_-3px_rgba(0,26,128,0.2)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
         >
-          <User className="h-4 w-4 shrink-0 text-[#001A80] dark:text-[#00D1FF]" strokeWidth={2} />
+          <User className="h-4 w-4 shrink-0 text-[#001A80]" strokeWidth={2} />
           {t.area_personale}
         </button>
       </GiantBrandHeader>
@@ -539,7 +539,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
       >
         {employeesWithShifts.length === 0 ? (
           <div className="flex flex-col items-center justify-center">
-            <p className="text-sm font-sans font-semibold text-slate-600 dark:text-neutral-200">{t.waiting_publication}</p>
+            <p className="text-sm font-sans font-semibold text-slate-600">{t.waiting_publication}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-3 w-full max-w-md mx-auto">
@@ -583,7 +583,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                   ? {
                       label: t.punch_clock_out_label,
                       color:
-                        'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-200',
+                        'border-amber-200 bg-amber-50 text-amber-800',
                     }
                   : nextShift &&
                         nowMinutes >= nextShift.startM - KIOSK_CLOCK_IN_LEAD_MINUTES
@@ -597,7 +597,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                   ? 'border-l-amber-400'
                   : nextShift?.nearStart || nextShift?.inProgress
                       ? 'border-l-accent'
-                      : 'border-l-slate-200 dark:border-l-neutral-600';
+                      : 'border-l-slate-200';
 
               return (
                 <motion.button
@@ -613,7 +613,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                   {/* Riga 1: nome + badge azione */}
                   <div className="flex items-center justify-between gap-2 w-full">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="truncate text-base font-semibold uppercase text-slate-900 dark:text-neutral-100">
+                      <span className="truncate text-base font-semibold uppercase text-slate-900">
                         {user.first_name.toUpperCase()}
                       </span>
                       {allPunched && (
@@ -750,7 +750,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
             onClick={() => !selectedShift && !isLoading && closeOverlay()}
           >
             <motion.div
@@ -810,12 +810,12 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                           } ${isSuggested ? 'ring-2 ring-accent/40' : ''}`}
                         >
                           <span
-                            className={`flex-shrink-0 ${done ? 'text-accent' : awaitingOut ? 'text-amber-500' : isDayShift ? 'text-amber-500' : 'text-slate-400 dark:text-neutral-500'}`}
+                            className={`flex-shrink-0 ${done ? 'text-accent' : awaitingOut ? 'text-amber-500' : isDayShift ? 'text-amber-500' : 'text-slate-400'}`}
                           >
                             {isDayShift ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                           </span>
-                          <span className="flex flex-1 items-center gap-2 text-base font-medium text-slate-700 dark:text-neutral-200">
-                            <Clock className="w-4 h-4 text-slate-400 dark:text-neutral-400" />
+                          <span className="flex flex-1 items-center gap-2 text-base font-medium text-slate-700">
+                            <Clock className="w-4 h-4 text-slate-400" />
                             {shift.start_time.slice(0, 5)} — {shift.end_time ? shift.end_time.slice(0, 5) : '--:--'}
                           </span>
                           {done ? (
@@ -871,7 +871,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55"
+            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}

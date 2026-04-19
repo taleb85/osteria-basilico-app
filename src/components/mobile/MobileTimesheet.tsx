@@ -41,17 +41,17 @@ export default function MobileTimesheet({
     approved: {
       label: t.ts_status_approved ?? 'Approvato',
       icon: CheckCircle2,
-      pill: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/30',
+      pill: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
     },
     confirmed: {
       label: t.ts_status_confirmed ?? 'Confermato',
       icon: AlertCircle,
-      pill: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 dark:border-amber-500/30',
+      pill: 'bg-amber-500/10 text-amber-700 border-amber-500/20',
     },
     absent: {
       label: t.status_absent ?? 'Assente',
       icon: XCircle,
-      pill: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20 dark:border-red-500/30',
+      pill: 'bg-red-500/10 text-red-700 border-red-500/20',
     },
   } as const;
 
@@ -63,9 +63,9 @@ export default function MobileTimesheet({
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-white/[0.08]">
-          <Clock className="w-7 h-7 text-slate-400 dark:text-white/30" />
+          <Clock className="w-7 h-7 text-slate-400" />
         </div>
-        <p className="text-slate-400 dark:text-white/30 font-bold uppercase tracking-widest text-[10px]">
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
           {t.no_shifts_scheduled ?? 'Nessuno storico disponibile'}
         </p>
       </div>
@@ -109,33 +109,33 @@ export default function MobileTimesheet({
         return (
           <div key={wIdx} className={cardCls} style={cardStyle}>
             {/* Header settimana */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/[0.06]">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#4361EE]/15 dark:bg-transparent dark:border dark:border-[#3366CC]/30 flex items-center justify-center shrink-0">
-                  <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-[#93c5fd]" />
+                <div className="w-8 h-8 rounded-xl bg-[#4361EE]/15 flex items-center justify-center shrink-0">
+                  <Calendar className="w-3.5 h-3.5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 leading-none mb-0.5">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-0.5">
                     {t.week_label ?? 'Sett.'}
                   </p>
-                  <p className="text-sm font-bold text-slate-800 dark:text-white leading-none">
+                  <p className="text-sm font-bold text-slate-800 leading-none">
                     {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM', { locale })}
                   </p>
                 </div>
               </div>
               {totalMins > 0 && (
-                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 dark:bg-transparent text-blue-700 dark:text-[#93c5fd] border border-[#4361EE]/15 dark:border-[#3366CC]/30">
+                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 text-blue-700 border border-[#4361EE]/15">
                   {totalLabel}
                 </span>
               )}
             </div>
 
             {/* Giorni */}
-            <div className="flex flex-col divide-y divide-slate-50 dark:divide-white/[0.06]">
+            <div className="flex flex-col divide-y divide-slate-50">
               {days.map((day) => (
                 <div key={day.date} className="px-4 py-3 flex flex-col gap-2">
                   {/* Label giorno */}
-                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-[#93c5fd]">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">
                     {safeFormatDate(day.date, 'EEEE d MMMM', { locale })}
                   </p>
 
@@ -158,8 +158,8 @@ export default function MobileTimesheet({
                           key={shift.id}
                           className={`rounded-xl px-3 py-2.5 border ${
                             isAbsent
-                              ? 'border-red-500/10 dark:border-red-500/[0.15]'
-                              : 'bg-slate-50 dark:border-white/[0.08] border-slate-100'
+                              ? 'border-red-500/10'
+                              : 'bg-slate-50 border-slate-100'
                           }`}
                           style={
                             typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
@@ -170,7 +170,7 @@ export default function MobileTimesheet({
                           <div className="flex items-center justify-between mb-1.5">
                             {/* Ore lavorate */}
                             <p className={`font-black tabular-nums text-xl leading-none ${
-                              isAbsent ? 'text-slate-400 dark:text-white/25' : 'text-slate-800 dark:text-white'
+                              isAbsent ? 'text-slate-400' : 'text-slate-800'
                             }`}>
                               {isAbsent ? '—' : hoursWorked}
                             </p>
@@ -183,12 +183,12 @@ export default function MobileTimesheet({
                           {/* Orario pianificato + tipo */}
                           <div className="flex items-center justify-between">
                             <p className={`text-[10px] font-bold tabular-nums ${
-                              isAbsent ? 'text-slate-400 dark:text-white/25 line-through' : 'text-slate-500 dark:text-white/40'
+                              isAbsent ? 'text-slate-400 line-through' : 'text-slate-500'
                             }`}>
                               {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
                             {shift.type && (
-                              <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-400 dark:text-white/25">
+                              <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-400">
                                 {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
                               </p>
                             )}

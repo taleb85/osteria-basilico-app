@@ -70,11 +70,11 @@ function MaintenancePage() {
         <Wrench className="w-10 h-10 text-amber-500" />
       </div>
       <h1 className="text-2xl font-bold text-slate-800 mb-2">In Manutenzione</h1>
-      <p className="text-slate-500 dark:text-neutral-300 text-base max-w-xs leading-relaxed mb-1">
+      <p className="text-slate-500 text-base max-w-xs leading-relaxed mb-1">
         L'app è temporaneamente in manutenzione.
       </p>
-      <p className="text-slate-400 dark:text-neutral-400 text-sm mb-8">Torneremo attivi tra poco. 👨‍🍳</p>
-      <div className="surface-glass-sm px-4 py-2 text-[11px] text-slate-500 dark:text-neutral-400">
+      <p className="text-slate-400 text-sm mb-8">Torneremo attivi tra poco. 👨‍🍳</p>
+      <div className="surface-glass-sm px-4 py-2 text-[11px] text-slate-500">
         Per assistenza contatta il responsabile.
       </div>
     </div>
@@ -147,7 +147,7 @@ function KioskRoute() {
   if (featureFlags['kiosk_active'] === false) return null;
 
   return (
-    <div className="min-h-screen w-full flex flex-col safe-area-pad bg-[#f8fafc] dark:bg-[#0a0a0a] font-sans antialiased text-slate-900 dark:text-neutral-100">
+    <div className="min-h-screen w-full flex flex-col safe-area-pad bg-[#f8fafc] font-sans antialiased text-slate-900">
       <PunchInKiosk onGoToLogin={() => navigate(PATH_PROFILO)} />
     </div>
   );
@@ -627,9 +627,9 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   }, [currentUser?.role]);
 
   /** `overflow-visible` così popover / menu non vengono tagliati dal bordo arrotondato della card. */
-  const appHeaderMainCardClass = 'w-full rounded-2xl overflow-visible supports-[backdrop-filter]:backdrop-blur-[30px] supports-[backdrop-filter]:backdrop-saturate-[2.4] supports-[backdrop-filter]:brightness-[1.06] shadow-[0_10px_28px_-4px_rgba(0,26,128,0.12),0_4px_12px_-2px_rgba(15,23,42,0.10)] dark:shadow-[0_12px_32px_-4px_rgba(0,0,0,0.55),0_4px_12px_-2px_rgba(0,0,0,0.35)]'
-    + ' bg-white/58 dark:bg-white/[0.06]';
-  const appHeaderCardClass = 'w-full rounded-2xl border border-slate-100 dark:border-white/[0.08] bg-white/80 dark:bg-white/[0.04] shadow-[0_4px_16px_-4px_rgba(0,26,128,0.10),0_2px_8px_-4px_rgba(15,23,42,0.08)] dark:shadow-none overflow-hidden supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-[1.8]';
+  const appHeaderMainCardClass = 'w-full rounded-2xl overflow-visible supports-[backdrop-filter]:backdrop-blur-[30px] supports-[backdrop-filter]:backdrop-saturate-[2.4] supports-[backdrop-filter]:brightness-[1.06] shadow-[0_10px_28px_-4px_rgba(0,26,128,0.12),0_4px_12px_-2px_rgba(15,23,42,0.10)]),0_4px_12px_-2px_rgba(0,0,0,0.35)]'
+    + ' bg-white/58';
+  const appHeaderCardClass = 'w-full rounded-2xl border border-slate-100 bg-white/80 shadow-[0_4px_16px_-4px_rgba(0,26,128,0.10),0_2px_8px_-4px_rgba(15,23,42,0.08)] overflow-hidden supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-[1.8]';
 
   return (
     <ProfileLeaveGuardRefContext.Provider value={profileLeaveGuardRef}>
@@ -651,7 +651,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         <PermissionRequestModal key="perm-modal" onDone={() => setShowPermissions(false)} />
       )}
     </AnimatePresence>
-    <div className={`min-h-screen min-h-[100dvh] w-full text-[#1a1a1a] dark:text-neutral-100 font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col ${activeTab === 'home' ? 'page-home-bg' : 'page-depth-bg'}`}>
+    <div className={`min-h-screen min-h-[100dvh] w-full text-[#1a1a1a] font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col ${activeTab === 'home' ? 'page-home-bg' : 'page-depth-bg'}`}>
       <BodyPullToRefresh
         onRefresh={() => silentRefreshData({ pullRemoteConfig: true })}
         disabled={!!(isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending)}
@@ -698,7 +698,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                 <span className="hidden sm:inline text-sm sm:text-base font-semibold whitespace-nowrap capitalize tabular-nums tab-title-gradient">
                   {format(now, 'EEEE d MMMM · HH:mm', { locale: getDateLocale(effectiveLanguage) ?? it })}
                 </span>
-                <span className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-white/10 shrink-0" />
+                <span className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
                 {/* Sync — solo desktop */}
                 <button
                   type="button"
@@ -710,7 +710,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                       ? 'text-amber-500 liquid-glass-amber'
                       : isSynced
                         ? 'text-emerald-500 liquid-glass-green'
-                        : 'text-slate-300 dark:text-neutral-600'
+                        : 'text-slate-300'
                   }`}
                 >
                   {isRefreshing || dataSyncInProgress ? (
@@ -727,7 +727,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                 {/* PIN lock — solo management desktop */}
                 {featureFlags['unlock_with_pin'] !== false && currentUser && isManagement && (
                   <>
-                  <span className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-white/10 shrink-0" />
+                  <span className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
                   <button
                     type="button"
                     onClick={() => setShowPinMenu(true)}
@@ -785,7 +785,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                   key="global-pin-unlock"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.18 }}
-                  className="fixed inset-0 z-[10080] bg-black/40 backdrop-blur-md dark:bg-black/55 flex flex-col items-center justify-center"
+                  className="fixed inset-0 z-[10080] bg-black/40 backdrop-blur-md flex flex-col items-center justify-center"
                 >
                   <button type="button" onClick={closePinMenu} className="absolute top-5 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors" aria-label="Chiudi">
                     <X size={20} strokeWidth={2.5} />

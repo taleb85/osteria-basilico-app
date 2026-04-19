@@ -29,18 +29,18 @@ export default function SettingsTabPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="surface-glass overflow-hidden">
-          <div className="border-b border-slate-100 bg-slate-50 px-4 py-4 dark:border-white/10 dark:bg-neutral-800/80">
+          <div className="border-b border-slate-100 bg-slate-50 px-4 py-4">
             <div className="flex items-center gap-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15 text-lg font-bold text-accent">
                 {(previewUser.first_name?.[0] ?? '?').toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-base font-bold text-slate-900 dark:text-neutral-100">{name}</p>
-                <p className="text-xs text-slate-500 dark:text-neutral-300">{previewUser.email ?? 'email@…'}</p>
+                <p className="truncate text-base font-bold text-slate-900">{name}</p>
+                <p className="text-xs text-slate-500">{previewUser.email ?? 'email@…'}</p>
               </div>
             </div>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-white/10">
+          <div className="divide-y divide-slate-100">
             {[
               { Icon: UserIcon, label: t.profile_settings },
               { Icon: Bell, label: t.profile_notifications },
@@ -48,8 +48,8 @@ export default function SettingsTabPreview({
               { Icon: ShieldCheck, label: t.pin_for_profile },
             ].map(({ Icon, label }) => (
               <div key={label} className="flex items-center gap-3 px-4 py-3">
-                <Icon className="h-5 w-5 text-slate-400 dark:text-neutral-400" />
-                <span className="text-sm font-medium text-slate-800 dark:text-neutral-200">{label}</span>
+                <Icon className="h-5 w-5 text-slate-400" />
+                <span className="text-sm font-medium text-slate-800">{label}</span>
               </div>
             ))}
           </div>
@@ -71,8 +71,8 @@ export function GlobalPopupsPreview({
   hiddenBadge: string;
 }) {
   return (
-    <div className="space-y-2 mt-4 pt-4 border-t border-slate-200 dark:border-white/10">
-      <p className="px-1 text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">Menu e Popup Globali</p>
+    <div className="space-y-2 mt-4 pt-4 border-t border-slate-200">
+      <p className="px-1 text-[9px] font-bold uppercase tracking-wider text-slate-500">Menu e Popup Globali</p>
       
       <WidgetChrome
         widgetKey="global.quick_switch"
@@ -82,12 +82,12 @@ export function GlobalPopupsPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-800">
-            <Users className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+            <Users className="h-5 w-5 text-slate-500" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Cambio rapido utente</p>
-            <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500 dark:text-neutral-400">Pressione lunga sull'avatar</p>
+            <p className="text-sm font-semibold text-slate-800">Cambio rapido utente</p>
+            <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500">Pressione lunga sull'avatar</p>
           </div>
         </div>
       </WidgetChrome>
@@ -100,12 +100,12 @@ export function GlobalPopupsPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-neutral-800">
-            <Bell className="h-5 w-5 text-slate-500 dark:text-neutral-400" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+            <Bell className="h-5 w-5 text-slate-500" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">Centro notifiche</p>
-            <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500 dark:text-neutral-400">Icona campanella nell'header</p>
+            <p className="text-sm font-semibold text-slate-800">Centro notifiche</p>
+            <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500">Icona campanella nell'header</p>
           </div>
         </div>
       </WidgetChrome>

@@ -114,7 +114,7 @@ function DepartmentColorPicker({
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((o) => !o)}
-        className="relative h-9 w-9 shrink-0 rounded-full border-2 border-white shadow-[0_2px_10px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/90 outline-none transition-transform hover:ring-slate-300 focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 active:scale-[0.96] dark:ring-neutral-600 dark:hover:ring-neutral-500 dark:focus-visible:ring-offset-neutral-900"
+        className="relative h-9 w-9 shrink-0 rounded-full border-2 border-white shadow-[0_2px_10px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/90 outline-none transition-transform hover:ring-slate-300 focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 active:scale-[0.96]"
         style={{ backgroundColor: value }}
       />
       {open && (
@@ -127,7 +127,7 @@ function DepartmentColorPicker({
           maxWidthClass="max-w-sm"
           panelClassName="p-3.5"
         >
-          <p className="mb-3 px-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-800 dark:text-neutral-100">
+          <p className="mb-3 px-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-800">
             {title}
           </p>
           <div className="grid grid-cols-6 gap-2.5">
@@ -142,10 +142,10 @@ function DepartmentColorPicker({
                     onChange(hex);
                     setOpen(false);
                   }}
-                  className={`h-9 w-9 shrink-0 rounded-full outline-none transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-900 ${
+                  className={`h-9 w-9 shrink-0 rounded-full outline-none transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
                     selected
-                      ? 'ring-2 ring-offset-2 ring-accent ring-offset-slate-100 dark:ring-offset-neutral-800 shadow-md'
-                      : 'ring-2 ring-slate-400/90 ring-offset-1 ring-offset-white dark:ring-neutral-500 dark:ring-offset-neutral-900 shadow-[inset_0_0_0_1px_rgba(15,23,42,0.12)]'
+                      ? 'ring-2 ring-offset-2 ring-accent ring-offset-slate-100 shadow-md'
+                      : 'ring-2 ring-slate-400/90 ring-offset-1 ring-offset-white shadow-[inset_0_0_0_1px_rgba(15,23,42,0.12)]'
                   }`}
                   style={{ backgroundColor: hex }}
                 />
@@ -351,7 +351,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
   const builtinValues = new Set(BUILTIN_DEPARTMENTS.map((d) => d.value));
 
   const deptPermissionCategorySelectClass =
-    'w-full min-w-[10rem] max-w-[16rem] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100';
+    'w-full min-w-[10rem] max-w-[16rem] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
 
   const updateWorkRule = useCallback(<K extends keyof WorkRules>(key: K, value: WorkRules[K]) => {
     const next = { ...workRules, [key]: value };
@@ -454,7 +454,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
   if (!isManager) {
     return (
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
-        <p className="text-sm text-slate-600 dark:text-neutral-300">{t.no_access_settings}</p>
+        <p className="text-sm text-slate-600">{t.no_access_settings}</p>
       </div>
     );
   }
@@ -491,26 +491,26 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <p className="mb-4 text-sm leading-relaxed text-slate-600 dark:text-neutral-300">
+          <p className="mb-4 text-sm leading-relaxed text-slate-600">
             {t.settings_delegated_intro}
           </p>
           <section className="mb-6">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-700 dark:text-neutral-200">
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-700">
                 {t.settings_team_section_title}
               </h2>
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="rounded-xl border border-slate-200 px-2 py-1 text-xs uppercase tracking-wider text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 dark:border-white/10 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+                  className="rounded-xl border border-slate-200 px-2 py-1 text-xs uppercase tracking-wider text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateStaff(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
                 >
                   <UserPlus className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   {t.admin_add_employee}
@@ -518,7 +518,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               </div>
             </div>
             <div
-              className="divide-y divide-slate-100 overflow-hidden rounded-xl dark:divide-white/[0.06]"
+              className="divide-y divide-slate-100 overflow-hidden rounded-xl"
               style={
                 typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
                   ? { background: 'transparent', border: '1px solid rgba(255,255,255,0.08)' }
@@ -526,7 +526,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               }
             >
               {displayUsersDelegated.length === 0 ? (
-                <p className="px-4 py-6 text-center text-sm text-slate-500 dark:text-neutral-400">
+                <p className="px-4 py-6 text-center text-sm text-slate-500">
                   {t.settings_delegated_empty_list}
                 </p>
               ) : (
@@ -538,13 +538,13 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       className={`flex flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-4 ${!isActiveRow ? 'opacity-70' : ''}`}
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold uppercase text-slate-900 dark:text-neutral-100">
+                        <p className="truncate text-sm font-semibold uppercase text-slate-900">
                           {user.first_name} {user.last_name ?? ''}
                         </p>
-                        <p className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-neutral-400">
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500">
                           {translateRole(user.role, currentUser.language)}
                           {!isActiveRow && (
-                            <span className="ml-1.5 font-semibold text-amber-700 dark:text-amber-400">
+                            <span className="ml-1.5 font-semibold text-amber-700">
                               ·{' '}
                               {user.status === 'suspended'
                                 ? t.status_suspended
@@ -566,7 +566,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               showError?.((t as { copy_failed?: string }).copy_failed ?? 'Copia non riuscita.');
                             }
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/20 dark:text-white/70 dark:hover:bg-white/5"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
                         >
                           <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
                           Link accesso
@@ -574,7 +574,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         <button
                           type="button"
                           onClick={() => setEditingUser(user)}
-                          className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/20 dark:text-white/70 dark:hover:bg-white/5"
+                          className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
                         >
                           {t.settings_delegated_view_profile}
                         </button>
@@ -582,7 +582,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           <button
                             type="button"
                             onClick={() => handleDelegateSuspend(user)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-red-700 transition-colors hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60"
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-red-700 transition-colors hover:bg-red-100"
                           >
                             <UserX className="h-3.5 w-3.5 shrink-0" aria-hidden />
                             {t.settings_delegated_suspend}
@@ -594,7 +594,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                 <button
                                   type="button"
                                   onClick={() => setDeleteConfirmUserId(null)}
-                                  className="rounded-lg border border-slate-200 dark:border-white/10 px-2 py-1 text-[10px] font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+                                  className="rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-semibold text-slate-500 hover:bg-slate-100"
                                 >
                                   {t.cancel ?? 'Annulla'}
                                 </button>
@@ -615,7 +615,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               <button
                                 type="button"
                                 onClick={() => setDeleteConfirmUserId(user.id)}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100"
                                 title={t.settings_delete_user_title}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -624,7 +624,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             <button
                               type="button"
                               onClick={() => handleDelegateReactivate(user)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-accent/35 bg-accent/10 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-accent transition-colors hover:bg-accent/15 dark:border-accent-light/40 dark:bg-accent-light/15 dark:text-accent-light dark:hover:bg-accent-light/20"
+                              className="inline-flex items-center gap-1 rounded-lg border border-accent/35 bg-accent/10 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-accent transition-colors hover:bg-accent/15"
                             >
                               <UserCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
                               {t.settings_delegated_reactivate}
@@ -674,8 +674,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               exit={{ opacity: 0 }}
               className={`mb-4 rounded-xl border p-4 ${
                 importStatus.type === 'success'
-                  ? 'border-accent/40 bg-accent/10 text-accent dark:bg-accent/15 dark:text-accent-light'
-                  : 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-950/35 dark:text-red-300'
+                  ? 'border-accent/40 bg-accent/10 text-accent'
+                  : 'border-red-200 bg-red-50 text-red-700'
               }`}
             >
               {importStatus.message}
@@ -690,14 +690,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             <button
               type="button"
               onClick={toggleTeamSectionExpanded}
-              className="-ml-1 flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-slate-100/80 dark:hover:bg-white/[0.06]"
+              className="-ml-1 flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-slate-100/80"
               aria-expanded={teamSectionExpanded}
             >
               <ChevronDown
-                className={`h-4 w-4 shrink-0 text-slate-400 transition-transform dark:text-neutral-400 ${teamSectionExpanded ? 'rotate-180' : ''}`}
+                className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${teamSectionExpanded ? 'rotate-180' : ''}`}
                 aria-hidden
               />
-              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-700 dark:text-neutral-200">
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-700">
                 {t.settings_team_section_title}
               </h2>
             </button>
@@ -706,7 +706,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowCreateStaff(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
                 >
                   <UserPlus className="w-3.5 h-3.5" aria-hidden />
                   {t.admin_add_employee}
@@ -716,7 +716,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="rounded-xl border border-slate-200 px-2 py-1 text-xs uppercase tracking-wider text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 dark:border-white/10 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+                  className="rounded-xl border border-slate-200 px-2 py-1 text-xs uppercase tracking-wider text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>
@@ -734,7 +734,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 className="overflow-hidden"
               >
                 <div
-                  className="divide-y divide-slate-100 overflow-hidden rounded-xl dark:divide-white/[0.06]"
+                  className="divide-y divide-slate-100 overflow-hidden rounded-xl"
                   style={
                     typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
                       ? { background: 'transparent', border: '1px solid rgba(255,255,255,0.08)' }
@@ -752,10 +752,10 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         onClick={() => canEdit && setEditingUser(user)}
                         className={`flex-1 min-w-0 text-left ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
                       >
-                        <span className="block truncate text-sm font-semibold uppercase text-slate-900 dark:text-neutral-100">
+                        <span className="block truncate text-sm font-semibold uppercase text-slate-900">
                           {user.first_name ?? ''} {user.last_name ?? ''}
                         </span>
-                        <span className="text-slate-500 dark:text-neutral-300 text-[10px] uppercase tracking-wider">
+                        <span className="text-slate-500 text-[10px] uppercase tracking-wider">
                           {translateRole(user.role, currentUser.language)}
                           {!isPurelyManagementRole(user.role) && user.status === 'active' && !isUserVisibleOnTeamSchedule(user) && (
                             <span className="ml-1.5 text-amber-600 font-semibold normal-case">
@@ -776,7 +776,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                 e.stopPropagation();
                                 setShareMenuUserId(shareMenuUserId === user.id ? null : user.id);
                               }}
-                              className={`p-1.5 rounded-md border transition-all ${shareMenuUserId === user.id ? 'text-accent border-accent/30 bg-accent/5' : 'text-slate-400 dark:text-white/30 border-slate-200 dark:border-white/10 hover:text-accent hover:border-accent/30 hover:bg-accent/5'}`}
+                              className={`p-1.5 rounded-md border transition-all ${shareMenuUserId === user.id ? 'text-accent border-accent/30 bg-accent/5' : 'text-slate-400 border-slate-200 hover:text-accent hover:border-accent/30 hover:bg-accent/5'}`}
                             >
                               <Link2 className="w-3.5 h-3.5" />
                             </button>
@@ -794,7 +794,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.92, y: -4 }}
                                     transition={{ duration: 0.13 }}
-                                    className="absolute right-0 top-full mt-1.5 z-[61] w-52 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-lg overflow-hidden"
+                                    className="absolute right-0 top-full mt-1.5 z-[61] w-52 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden"
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     {/* Copia link accesso */}
@@ -810,12 +810,12 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                         }
                                         setShareMenuUserId(null);
                                       }}
-                                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[12px] font-medium text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors"
+                                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[12px] font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                                     >
-                                      <Link2 className="w-3.5 h-3.5 shrink-0 text-slate-400 dark:text-neutral-400" />
+                                      <Link2 className="w-3.5 h-3.5 shrink-0 text-slate-400" />
                                       Copia link accesso
                                     </button>
-                                    <div className="h-px bg-slate-100 dark:bg-white/[0.06]" />
+                                    <div className="h-px bg-slate-100" />
                                     {/* Condividi installazione iPhone */}
                                     <button
                                       type="button"
@@ -846,9 +846,9 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                         }
                                         setShareMenuUserId(null);
                                       }}
-                                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[12px] font-medium text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors"
+                                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[12px] font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                                     >
-                                      <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-400 dark:text-neutral-400" />
+                                      <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-400" />
                                       Condividi installazione iPhone
                                     </button>
                                   </motion.div>
@@ -866,7 +866,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               setExpandedVisibilityUserId(expandedVisibilityUserId === user.id ? null : user.id);
                               setExpandedPermsUserId(null);
                             }}
-                            className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all border ${expandedVisibilityUserId === user.id ? 'bg-white dark:bg-white/[0.08] text-accent border-slate-200 dark:border-white/[0.12] shadow-sm' : 'text-slate-500 dark:text-white/40 border-transparent hover:text-slate-700 dark:hover:text-white/60'}`}
+                            className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all border ${expandedVisibilityUserId === user.id ? 'bg-white text-accent border-slate-200 shadow-sm' : 'text-slate-500 border-transparent hover:text-slate-700'}`}
                           >
                             {t.what_sees}
                           </button>
@@ -882,7 +882,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                   <button
                                     type="button"
                                     onClick={() => setDeleteConfirmUserId(null)}
-                                    className="rounded-lg border border-slate-200 dark:border-white/10 px-2 py-1 text-[10px] font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+                                    className="rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-semibold text-slate-500 hover:bg-slate-100"
                                   >
                                     {t.cancel ?? 'Annulla'}
                                   </button>
@@ -903,7 +903,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                 <button
                                   type="button"
                                   onClick={() => setDeleteConfirmUserId(user.id)}
-                                  className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
+                                  className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100"
                                   title={t.settings_delete_user_title}
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
@@ -916,7 +916,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               aria-checked={user.status === 'active'}
                               onClick={() => handleToggleStatus(user)}
                               className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
-                                user.status === 'active' ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
+                                user.status === 'active' ? 'bg-accent' : 'bg-slate-200'
                               }`}
                             >
                               <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${user.status === 'active' ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -936,7 +936,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden"
                         >
-                          <div className="border-t border-slate-100 dark:border-white/[0.06] px-4 py-4 space-y-4" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'rgba(255,255,255,0.02)' } : { background: '#f8fafc' }}>
+                          <div className="border-t border-slate-100 px-4 py-4 space-y-4" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'rgba(255,255,255,0.02)' } : { background: '#f8fafc' }}>
                             {expandedVisibilityUserId === user.id && (
                               <ProfileVisibilityHub 
                                 initialSelectedUserId={user.id} 
@@ -949,14 +949,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                 {/* Matrice permessi: solo lettura (definita dal ruolo) */}
                             {!isPurelyManagementRole(user.role) && (
                               <div className="space-y-4">
-                                <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">
+                                <p className="text-[11px] text-slate-500 leading-snug">
                                   {formatTrans(t.settings_perms_effective_intro, {
                                     name: user.first_name ?? '',
                                     role: translateRole(user.role, currentUser.language),
                                   })}
                                 </p>
                                 <div>
-                                  <p className="ui-section-title mb-2 text-slate-400 dark:text-neutral-400">
+                                  <p className="ui-section-title mb-2 text-slate-400">
                                     {formatTrans(t.settings_perms_tab_heading, { name: user.first_name ?? '' })}
                                   </p>
                                   <RoleFeatureSectionsBlock
@@ -971,8 +971,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                         <span
                                           className={
                                             isUserVisibleOnTeamSchedule(user)
-                                              ? 'text-slate-800 dark:text-neutral-100'
-                                              : 'text-slate-600 dark:text-neutral-400'
+                                              ? 'text-slate-800'
+                                              : 'text-slate-600'
                                           }
                                         >
                                           {t.settings_visible_on_schedule_row}
@@ -989,7 +989,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                       }
                                     />
                                   </div>
-                                  <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-2 leading-snug">
+                                  <p className="text-[10px] text-slate-400 mt-2 leading-snug">
                                     Template + pulsante Griglia in riga (override solo visibilità tabellone).
                                   </p>
                                 </div>
@@ -999,10 +999,10 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             {/* Moduli scheda Impostazioni: globali, solo Admin modifica (Permessi ruoli) */}
                             {isManagementRole(user.role) && (
                               <div>
-                                <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-2">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                                   {formatTrans(t.settings_admin_settings_modules_heading, { name: user.first_name ?? '' })}
                                 </p>
-                                <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-2">
+                                <p className="text-[11px] text-slate-500 mb-2">
                                   {t.settings_admin_settings_modules_body}
                                 </p>
                                 <div className={PERMISSION_SUMMARY_LIST_CLASS}>
@@ -1014,7 +1014,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                         key={key}
                                         className="!py-2.5 !px-4"
                                         label={
-                                          <span className={enabled ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-500 dark:text-neutral-400'}>
+                                          <span className={enabled ? 'text-slate-800' : 'text-slate-500'}>
                                             {getAdminModuleLabel(key, t as Record<string, string>)}
                                           </span>
                                         }
@@ -1023,7 +1023,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                             className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
                                             enabled
                                               ? 'bg-accent text-white shadow-sm'
-                                              : 'bg-slate-100 text-slate-500 dark:bg-neutral-800 dark:text-neutral-400'
+                                              : 'bg-slate-100 text-slate-500'
                                           }`}
                                         >
                                           {enabled ? t.role_template_yes : t.role_template_no}
@@ -1043,9 +1043,9 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             )}
 
                             {isPurelyManagementRole(user.role) ? (
-                              <div className="rounded-xl border border-accent/25 bg-accent/5 px-4 py-3 dark:border-accent/35 dark:bg-accent/10">
-                                <p className="text-sm font-bold text-slate-800 dark:text-neutral-100">{t.settings_admin_perm_title}</p>
-                                <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600 dark:text-neutral-300">
+                              <div className="rounded-xl border border-accent/25 bg-accent/5 px-4 py-3">
+                                <p className="text-sm font-bold text-slate-800">{t.settings_admin_perm_title}</p>
+                                <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600">
                                   {t.settings_admin_perm_readonly_body}
                                 </p>
                               </div>
@@ -1091,8 +1091,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             title={t.settings_departments_section_title}
             defaultOpen={false}
           >
-            <div className="p-4 rounded-xl space-y-4 border border-slate-100 dark:border-white/[0.08]" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent' } : { background: '#ffffff' }}>
-              <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-snug">{t.settings_departments_cloud_hint}</p>
+            <div className="p-4 rounded-xl space-y-4 border border-slate-100" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent' } : { background: '#ffffff' }}>
+              <p className="text-[11px] text-slate-500 leading-snug">{t.settings_departments_cloud_hint}</p>
               {/* Lista reparti */}
               <div className="flex flex-wrap gap-2">
                 {departments.map((d) => {
@@ -1104,7 +1104,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       key={d.value}
                       className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold uppercase text-white transition-shadow ${
                         isEditingChip
-                          ? 'shadow-md ring-2 ring-white/90 ring-offset-2 ring-offset-slate-100 dark:ring-offset-neutral-900'
+                          ? 'shadow-md ring-2 ring-white/90 ring-offset-2 ring-offset-slate-100'
                           : ''
                       }`}
                       style={{ backgroundColor: badgeColor }}
@@ -1176,8 +1176,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
 
               {/* Reparti built-in nascosti — pulsante ripristino */}
               {hiddenBuiltins.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 dark:border-white/10">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Nascosti
                   </span>
                   {hiddenBuiltins.map((v) => {
@@ -1194,7 +1194,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           setHiddenBuiltins(getHiddenBuiltinValues());
                           void notifyDepartmentsChanged();
                         }}
-                        className="flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:border-accent/50 hover:text-accent dark:border-white/15 dark:bg-white/[0.04] dark:text-neutral-400 dark:hover:border-accent/40 dark:hover:text-accent-light"
+                        className="flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:border-accent/50 hover:text-accent"
                       >
                         <span
                           className="h-2.5 w-2.5 shrink-0 rounded-full"
@@ -1216,12 +1216,12 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="space-y-3 rounded-xl border border-accent/25 bg-slate-50/90 p-3 dark:border-accent/30 dark:bg-accent/[0.06]">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
+                    <div className="space-y-3 rounded-xl border border-accent/25 bg-slate-50/90 p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                         {t.settings_dept_edit_title}
                       </p>
                       {builtinValues.has(editingDeptValue) && (
-                        <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">{t.settings_dept_builtin_edit_hint}</p>
+                        <p className="text-[11px] text-slate-500 leading-snug">{t.settings_dept_builtin_edit_hint}</p>
                       )}
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
                         <DepartmentColorPicker
@@ -1248,11 +1248,11 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               void notifyDepartmentsChanged();
                             }
                           }}
-                          className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100 sm:min-w-[12rem]"
+                          className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 sm:min-w-[12rem]"
                         />
                         {!builtinValues.has(editingDeptValue) && (
                           <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-1">
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
                               {t.settings_dept_permission_group}
                             </label>
                             <select
@@ -1294,14 +1294,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           <button
                             type="button"
                             onClick={() => setEditingDeptValue(null)}
-                            className="surface-glass-sm px-3 py-2 text-xs font-semibold text-slate-600 surface-ghost-interactive dark:text-neutral-200"
+                            className="surface-glass-sm px-3 py-2 text-xs font-semibold text-slate-600 surface-ghost-interactive"
                           >
                             {t.cancel}
                           </button>
                         </div>
                       </div>
                       {!builtinValues.has(editingDeptValue) && (
-                        <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">{t.settings_dept_permission_group_hint}</p>
+                        <p className="text-[11px] text-slate-500 leading-snug">{t.settings_dept_permission_group_hint}</p>
                       )}
                     </div>
                   </motion.div>
@@ -1309,7 +1309,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               </AnimatePresence>
 
               {/* Aggiunta nuovo reparto */}
-              <div className="space-y-3 border-t border-slate-100 pt-1 dark:border-white/10">
+              <div className="space-y-3 border-t border-slate-100 pt-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <DepartmentColorPicker
                     value={newDeptColor}
@@ -1332,7 +1332,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       }
                     }}
                     placeholder={t.settings_new_dept_placeholder}
-                    className="min-w-[8rem] flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-transparent dark:bg-white/[0.04] text-sm text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+                    className="min-w-[8rem] flex-1 px-3 py-2 rounded-xl border border-slate-200 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
                   />
                   <button
                     type="button"
@@ -1356,7 +1356,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
                   <div className="shrink-0 sm:w-56">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-1">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
                       {t.settings_dept_permission_group}
                     </label>
                     <select
@@ -1370,12 +1370,12 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       <option value="bar">{t.department_bar}</option>
                     </select>
                   </div>
-                  <p className="text-[11px] text-slate-400 dark:text-neutral-400 leading-snug flex-1 pt-0 sm:pt-5">
+                  <p className="text-[11px] text-slate-400 leading-snug flex-1 pt-0 sm:pt-5">
                     {t.settings_dept_permission_group_hint}
                   </p>
                 </div>
               </div>
-              <p className="text-[11px] text-slate-400 dark:text-neutral-400">{t.settings_builtin_depts_hint}</p>
+              <p className="text-[11px] text-slate-400">{t.settings_builtin_depts_hint}</p>
             </div>
           </SettingsAccordionSection>
         )}
@@ -1392,46 +1392,46 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               {/* Critico */}
               <div className="surface-glass-sm depth-card flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-100 dark:bg-red-950/50">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-100">
                     <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
                   </span>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-neutral-100">{t.wst_violation_critical}</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">{t.wst_violation_critical}</h3>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">{t.wst_violation_critical_sub}</p>
+                <p className="text-[11px] text-slate-500 leading-snug">{t.wst_violation_critical_sub}</p>
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] font-medium text-slate-600 dark:text-neutral-300">{t.settings_toggle_on}</span>
+                  <span className="text-[11px] font-medium text-slate-600">{t.settings_toggle_on}</span>
                   <button
                     type="button"
                     role="switch"
                     aria-checked={workRules.criticEnabled}
                     onClick={() => updateWorkRule('criticEnabled', !workRules.criticEnabled)}
-                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.criticEnabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.criticEnabled ? 'bg-accent' : 'bg-slate-200'}`}
                   >
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${workRules.criticEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
                 </div>
                 {workRules.criticEnabled && (
-                  <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2 dark:border-white/10">
+                  <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
                     <div>
-                      <label className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 mb-0.5">{t.settings_wr_max_shift_h}</label>
+                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">{t.settings_wr_max_shift_h}</label>
                       <input
                         type="number"
                         min={4}
                         max={14}
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
-                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 mb-0.5">{t.settings_wr_min_rest}</label>
+                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">{t.settings_wr_min_rest}</label>
                       <input
                         type="number"
                         min={6}
                         max={24}
                         value={workRules.minRestHours}
                         onChange={(e) => updateWorkRule('minRestHours', Math.max(6, Math.min(24, +e.target.value || 11)))}
-                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                   </div>
@@ -1441,46 +1441,46 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               {/* Attenzione */}
               <div className="surface-glass-sm depth-card flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950/45">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100">
                     <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
                   </span>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-neutral-100">{t.wst_violation_attention}</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">{t.wst_violation_attention}</h3>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">{t.wst_violation_attention_sub}</p>
+                <p className="text-[11px] text-slate-500 leading-snug">{t.wst_violation_attention_sub}</p>
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] font-medium text-slate-600 dark:text-neutral-300">{t.settings_toggle_on}</span>
+                  <span className="text-[11px] font-medium text-slate-600">{t.settings_toggle_on}</span>
                   <button
                     type="button"
                     role="switch"
                     aria-checked={workRules.attentionEnabled}
                     onClick={() => updateWorkRule('attentionEnabled', !workRules.attentionEnabled)}
-                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.attentionEnabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.attentionEnabled ? 'bg-accent' : 'bg-slate-200'}`}
                   >
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${workRules.attentionEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
                 </div>
                 {workRules.attentionEnabled && (
-                  <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2 dark:border-white/10">
+                  <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
                     <div>
-                      <label className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 mb-0.5">{t.settings_wr_max_day}</label>
+                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">{t.settings_wr_max_day}</label>
                       <input
                         type="number"
                         min={4}
                         max={14}
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
-                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold text-slate-500 dark:text-neutral-300 mb-0.5">{t.settings_wr_max_week}</label>
+                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">{t.settings_wr_max_week}</label>
                       <input
                         type="number"
                         min={20}
                         max={60}
                         value={workRules.maxWeeklyHours}
                         onChange={(e) => updateWorkRule('maxWeeklyHours', Math.max(20, Math.min(60, +e.target.value || 48)))}
-                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100"
+                        className="w-full rounded-xl border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                   </div>
@@ -1490,20 +1490,20 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               {/* Sovrapposizione */}
               <div className="surface-glass-sm depth-card flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-100 bg-red-50 shadow-[0_0_6px_rgba(239,68,68,0.3)] dark:border-red-900/40 dark:bg-red-950/35">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-100 bg-red-50 shadow-[0_0_6px_rgba(239,68,68,0.3)]">
                     <span className="h-2.5 w-2.5 rounded-full bg-red-300" />
                   </span>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-neutral-100">{t.wst_violation_overlap}</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">{t.wst_violation_overlap}</h3>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">{t.wst_violation_overlap_sub}</p>
+                <p className="text-[11px] text-slate-500 leading-snug">{t.wst_violation_overlap_sub}</p>
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] font-medium text-slate-600 dark:text-neutral-300">{t.settings_toggle_on}</span>
+                  <span className="text-[11px] font-medium text-slate-600">{t.settings_toggle_on}</span>
                   <button
                     type="button"
                     role="switch"
                     aria-checked={workRules.overlapEnabled}
                     onClick={() => updateWorkRule('overlapEnabled', !workRules.overlapEnabled)}
-                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.overlapEnabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.overlapEnabled ? 'bg-accent' : 'bg-slate-200'}`}
                   >
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${workRules.overlapEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
@@ -1540,7 +1540,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     className={`surface-glass flex flex-col gap-3 p-4 transition-all ${
                       isEnabled
                         ? ''
-                        : 'border-slate-100/90 opacity-70 bg-slate-50/45 dark:border-white/[0.06] dark:bg-neutral-900/25'
+                        : 'border-slate-100/90 opacity-70 bg-slate-50/45'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -1548,19 +1548,19 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         <Coffee className="w-4 h-4 text-amber-600" />
                       </span>
                       <h3
-                        className={`flex-1 truncate text-xs font-bold uppercase tracking-wider ${isEnabled ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-400 dark:text-neutral-500'}`}
+                        className={`flex-1 truncate text-xs font-bold uppercase tracking-wider ${isEnabled ? 'text-slate-800' : 'text-slate-400'}`}
                       >
                         {rule.title}
                       </h3>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-neutral-300 leading-snug">
+                    <p className="text-[11px] text-slate-500 leading-snug">
                       {rule.breakStart} – {rule.breakEnd}
                       {rule.minShiftDurationEnabled !== false ? (
                         <>
                           {' · '}min. {Math.round(rule.minShiftMinutes / 60 * 10) / 10}{t.settings_break_hours_suffix}
                         </>
                       ) : (
-                        <span className="text-slate-400 dark:text-neutral-400"> · {t.settings_break_no_shift_threshold}</span>
+                        <span className="text-slate-400"> · {t.settings_break_no_shift_threshold}</span>
                       )}
                       {' · '}
                       <span className={rule.paid ? 'text-accent' : 'text-amber-600'}>
@@ -1568,7 +1568,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       </span>
                     </p>
                     <div className="flex items-center justify-between pt-1 mt-auto">
-                      <span className="text-[11px] font-medium text-slate-600 dark:text-neutral-300">{t.settings_toggle_on}</span>
+                      <span className="text-[11px] font-medium text-slate-600">{t.settings_toggle_on}</span>
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
@@ -1576,14 +1576,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           aria-checked={isEnabled}
                           onClick={toggle}
                           title={isEnabled ? t.settings_break_toggle_disable : t.settings_break_toggle_enable}
-                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${isEnabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
+                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${isEnabled ? 'bg-accent' : 'bg-slate-200'}`}
                         >
                           <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${isEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
-                        <button type="button" onClick={() => setEditingBreakRule(rule)} className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-neutral-100 transition-colors">
+                        <button type="button" onClick={() => setEditingBreakRule(rule)} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" onClick={() => handleDeleteBreakRule(rule.id)} className="p-1.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-400 dark:text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                        <button type="button" onClick={() => handleDeleteBreakRule(rule.id)} className="p-1.5 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1594,7 +1594,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               <button
                 type="button"
                 onClick={() => setCreatingBreakRule(true)}
-                className="surface-glass surface-ghost-interactive flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200/90 p-4 text-slate-500 transition-colors hover:border-accent hover:bg-accent/5 hover:text-accent dark:border-white/15 dark:text-neutral-300 dark:hover:bg-accent/10"
+                className="surface-glass surface-ghost-interactive flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200/90 p-4 text-slate-500 transition-colors hover:border-accent hover:bg-accent/5 hover:text-accent"
               >
                 <Plus className="w-6 h-6" />
                 <span className="text-xs font-semibold">{t.settings_break_new_rule}</span>
@@ -1617,7 +1617,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             }
           >
             <div className="space-y-3">
-              <p className="text-[12px] text-slate-500 dark:text-neutral-400 leading-relaxed">
+              <p className="text-[12px] text-slate-500 leading-relaxed">
                 {t.settings_week_template_manage_hint ?? 'Gestisci i template di settimana salvati dal tabellone turni. Ogni template memorizza i turni assegnati per giorno e dipendente e può essere riapplicato in qualsiasi settimana.'}
               </p>
 
@@ -1626,7 +1626,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 type="button"
                 onClick={loadShiftTemplates}
                 disabled={shiftTemplatesLoading}
-                className="flex items-center gap-1.5 text-[12px] text-blue-600 dark:text-blue-400 font-medium disabled:opacity-50"
+                className="flex items-center gap-1.5 text-[12px] text-blue-600 font-medium disabled:opacity-50"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${shiftTemplatesLoading ? 'animate-spin' : ''}`} />
                 {shiftTemplatesLoading ? 'Aggiornamento…' : 'Aggiorna lista'}
@@ -1635,9 +1635,9 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               {/* Empty state */}
               {!shiftTemplatesLoading && shiftTemplates.length === 0 && (
                 <div className="flex flex-col items-center gap-2 py-8 text-center">
-                  <CalendarDays className="h-8 w-8 text-slate-300 dark:text-neutral-600" />
-                  <p className="text-[13px] text-slate-400 dark:text-neutral-500">{t.settings_no_templates_saved ?? 'Nessun template salvato.'}</p>
-                  <p className="text-[11px] text-slate-400 dark:text-neutral-600">Salva una settimana dal tabellone turni usando il menu Template.</p>
+                  <CalendarDays className="h-8 w-8 text-slate-300" />
+                  <p className="text-[13px] text-slate-400">{t.settings_no_templates_saved ?? 'Nessun template salvato.'}</p>
+                  <p className="text-[11px] text-slate-400">Salva una settimana dal tabellone turni usando il menu Template.</p>
                 </div>
               )}
 
@@ -1652,16 +1652,16 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         key={tmpl.name}
                         className="surface-glass-sm rounded-lg p-3 flex items-start gap-3"
                       >
-                        <div className="flex-shrink-0 w-8 h-8 rounded-md bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                          <BookTemplate className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                        <div className="flex-shrink-0 w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center">
+                          <BookTemplate className="h-4 w-4 text-blue-500" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-semibold text-slate-800 dark:text-neutral-100 truncate">{tmpl.name}</p>
-                          <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                          <p className="text-[13px] font-semibold text-slate-800 truncate">{tmpl.name}</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
                             {tmpl.count} turno{tmpl.count !== 1 ? 'i' : ''} · {tmpl.days.map(d => DAY_LABELS[d] ?? d).join(', ')}
                           </p>
                           {tmpl.created_at && (
-                            <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                            <p className="text-[10px] text-slate-400 mt-0.5">
                               {new Date(tmpl.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                             </p>
                           )}
@@ -1670,7 +1670,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           type="button"
                           onClick={() => handleDeleteShiftTemplate(tmpl.name)}
                           disabled={isDeletingThis}
-                          className="flex-shrink-0 p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors disabled:opacity-40"
+                          className="flex-shrink-0 p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
                           title={`Elimina template "${tmpl.name}"`}
                         >
                           {isDeletingThis
@@ -1699,7 +1699,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             })()}
             defaultOpen={false}
           >
-            <div className="surface-glass depth-card p-4 dark:bg-transparent space-y-4">
+            <div className="surface-glass depth-card p-4 space-y-4">
 
               {/* Periodo attivo + bozza */}
               <div className="grid grid-cols-2 gap-3">
@@ -1710,24 +1710,24 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   const previewEnd = getPeriodEndDate(periodCfg);
                   const ruleName = isLastSunday ? 'Ultima domenica' : 'Primo giorno';
                   const ruleColor = isLastSunday
-                    ? 'text-accent dark:text-accent-light'
-                    : 'text-[#001A80] dark:text-[#00D1FF]';
+                    ? 'text-accent'
+                    : 'text-[#001A80]';
                   const borderColor = isLastSunday
                     ? 'border-accent/25 border-l-accent'
                     : 'border-[#001A80]/25 border-l-[#001A80]';
                   return (
-                    <div className={`rounded-xl border-2 border-l-4 ${borderColor} bg-white px-3 py-2.5 dark:bg-white/[0.04]`}>
+                    <div className={`rounded-xl border-2 border-l-4 ${borderColor} bg-white px-3 py-2.5`}>
                       <div className="flex items-center gap-1.5 mb-1">
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                           Periodo attivo
                         </p>
                         <span className={`text-[9px] font-extrabold uppercase tracking-wide ${ruleColor}`}>
                           · {ruleName}
                         </span>
                       </div>
-                      <p className="text-[13px] font-bold text-slate-800 dark:text-neutral-100 tabular-nums">
+                      <p className="text-[13px] font-bold text-slate-800 tabular-nums">
                         {format(previewStart, 'dd/MM/yy')}
-                        <span className="text-slate-400 dark:text-neutral-500 font-normal"> → </span>
+                        <span className="text-slate-400 font-normal"> → </span>
                         {format(previewEnd, 'dd/MM/yy')}
                       </p>
                       <p className={`text-[10px] mt-0.5 ${ruleColor}`}>
@@ -1738,22 +1738,22 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 })()}
                 {/* Bozza (non ancora salvata) */}
                 {periodDraftDirty ? (
-                  <div className="rounded-xl border-2 border-l-4 border-amber-300/60 border-l-amber-500 bg-amber-50/80 px-3 py-2.5 dark:bg-amber-950/30 dark:border-amber-700/40">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1">
+                  <div className="rounded-xl border-2 border-l-4 border-amber-300/60 border-l-amber-500 bg-amber-50/80 px-3 py-2.5">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-amber-600 mb-1">
                       Bozza non salvata
                     </p>
-                    <p className="text-[13px] font-bold text-slate-800 dark:text-neutral-100 tabular-nums">
+                    <p className="text-[13px] font-bold text-slate-800 tabular-nums">
                       {format(parseISO(periodDraftStart), 'dd/MM/yy')}
-                      <span className="text-slate-400 dark:text-neutral-500 font-normal"> → </span>
+                      <span className="text-slate-400 font-normal"> → </span>
                       {format(addDays(parseISO(periodDraftStart), periodDraftWeeks * 7 - 1), 'dd/MM/yy')}
                     </p>
-                    <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
+                    <p className="text-[10px] text-amber-600 mt-0.5">
                       {periodDraftWeeks} sett. · premi Salva per confermare
                     </p>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-slate-100 dark:border-white/8 bg-white/50 dark:bg-white/[0.03] px-3 py-2.5 flex items-center justify-center">
-                    <p className="text-[10px] text-slate-400 dark:text-neutral-500 text-center leading-snug">
+                  <div className="rounded-xl border border-slate-100 bg-white/50 px-3 py-2.5 flex items-center justify-center">
+                    <p className="text-[10px] text-slate-400 text-center leading-snug">
                       Nessuna modifica in bozza
                     </p>
                   </div>
@@ -1762,7 +1762,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
 
               {/* ── Selettore regola ────────────────────────────────────────── */}
               <div>
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Regola di calcolo
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -1776,14 +1776,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     }}
                     className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
                       periodRuleMode === 'last_sunday'
-                        ? 'border-accent bg-accent/8 dark:bg-accent/12'
-                        : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-white/20'
+                        ? 'border-accent bg-accent/8'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
-                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'last_sunday' ? 'text-accent dark:text-accent-light' : 'text-slate-600 dark:text-neutral-300'}`}>
+                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'last_sunday' ? 'text-accent' : 'text-slate-600'}`}>
                       Ultima domenica
                     </span>
-                    <span className="text-[10px] leading-snug text-slate-400 dark:text-neutral-500">
+                    <span className="text-[10px] leading-snug text-slate-400">
                       Il periodo termina sull'ultima dom. del mese
                     </span>
                   </button>
@@ -1797,14 +1797,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     }}
                     className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
                       periodRuleMode === 'fixed_start'
-                        ? 'border-[#001A80] bg-[#001A80]/8 dark:bg-[#001A80]/12'
-                        : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-white/20'
+                        ? 'border-[#001A80] bg-[#001A80]/8'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
-                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-[#001A80] dark:text-[#00D1FF]' : 'text-slate-600 dark:text-neutral-300'}`}>
+                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-[#001A80]' : 'text-slate-600'}`}>
                       Primo giorno
                     </span>
-                    <span className="text-[10px] leading-snug text-slate-400 dark:text-neutral-500">
+                    <span className="text-[10px] leading-snug text-slate-400">
                       Imposti la data di inizio, il sistema calcola la fine
                     </span>
                   </button>
@@ -1815,7 +1815,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               {periodRuleMode === 'fixed_start' && (
                 /* Regola "Primo giorno": l'utente imposta la data di inizio */
                 <div>
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Primo giorno del periodo
                   </p>
                   <DatePickerField
@@ -1829,7 +1829,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     allowClear={false}
                     compact
                     aria-label="Primo giorno del periodo"
-                    className="mb-3 w-full !border-slate-200 !bg-white dark:!border-white/10 dark:!bg-neutral-800"
+                    className="mb-3 w-full !border-slate-200 !bg-white"
                   />
                   {/* Preview periodo calcolato dalla data scelta */}
                   {(() => {
@@ -1837,14 +1837,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     const cfg = periodConfigFromStartDate(draftStart);
                     const endDate = addDays(draftStart, cfg.numWeeks * 7 - 1);
                     return (
-                      <div className="flex items-center justify-between rounded-xl border border-[#001A80]/22 bg-[#001A80]/80/8 px-3 py-2.5 dark:border-[#001A80]/18 dark:bg-[#001A80]/80/10">
+                      <div className="flex items-center justify-between rounded-xl border border-[#001A80]/22 bg-[#001A80]/80/8 px-3 py-2.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold text-[#001A80] dark:text-[#00D1FF]">Primo giorno</span>
-                          <span className="rounded-full bg-[#001A80]/80/15 px-2 py-0.5 text-[9px] font-bold text-[#001A80] dark:text-[#00D1FF]">
+                          <span className="text-[11px] font-bold text-[#001A80]">Primo giorno</span>
+                          <span className="rounded-full bg-[#001A80]/80/15 px-2 py-0.5 text-[9px] font-bold text-[#001A80]">
                             {cfg.numWeeks} sett.
                           </span>
                         </div>
-                        <span className="text-[11px] tabular-nums font-semibold text-slate-600 dark:text-neutral-300">
+                        <span className="text-[11px] tabular-nums font-semibold text-slate-600">
                           {format(draftStart, 'dd/MM/yy')} → {format(endDate, 'dd/MM/yy')}
                         </span>
                       </div>
@@ -1860,7 +1860,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 onClick={() => applyPeriod({ startDate: periodDraftStart, numWeeks: periodDraftWeeks }, periodRuleMode)}
                 className={`w-full rounded-xl py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
                   !periodDraftDirty || periodSavingCloud
-                    ? 'bg-slate-100 text-slate-400 dark:bg-neutral-800 dark:text-neutral-500 cursor-not-allowed'
+                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                     : 'bg-accent text-white hover:bg-accent-hover'
                 }`}
               >
@@ -1878,8 +1878,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             subtitle={t.settings_presence_accordion_subtitle}
             defaultOpen={true}
           >
-            <div className="surface-glass depth-card p-4 dark:bg-transparent">
-              <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-3 leading-snug">{t.settings_presence_section_hint}</p>
+            <div className="surface-glass depth-card p-4">
+              <p className="text-[11px] text-slate-500 mb-3 leading-snug">{t.settings_presence_section_hint}</p>
               {(() => {
                 const effectiveTok = resolveEffectiveVerificationToken(presenceVerificationConfig);
                 const diskTok = presenceVerificationConfig.verificationToken?.trim() ?? '';
@@ -1887,19 +1887,19 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   effectiveTok.length > 20 ? `${effectiveTok.slice(0, 20)}…` : effectiveTok || '—';
                 return (
                   <div className="surface-glass-sm mb-3 space-y-1.5 px-3 py-2">
-                    <p className="text-[11px] leading-snug text-slate-700 dark:text-neutral-200">
+                    <p className="text-[11px] leading-snug text-slate-700">
                       {effectiveTok
                         ? formatTrans(t.settings_presence_effective_token_preview, { preview })
                         : t.settings_presence_token_none}
                     </p>
                     {!diskTok && effectiveTok ? (
-                      <p className="text-[10px] text-slate-500 dark:text-neutral-300 leading-snug">{t.settings_presence_token_env_only}</p>
+                      <p className="text-[10px] text-slate-500 leading-snug">{t.settings_presence_token_env_only}</p>
                     ) : null}
                   </div>
                 );
               })()}
               <div className="surface-glass-sm mb-3 flex items-center justify-between gap-3 px-3 py-2.5">
-                <span className="text-xs font-semibold text-slate-800 dark:text-neutral-100">{t.settings_presence_require_label}</span>
+                <span className="text-xs font-semibold text-slate-800">{t.settings_presence_require_label}</span>
                 <button
                   type="button"
                   role="switch"
@@ -1916,7 +1916,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     }
                   }}
                   className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
-                    presenceVerificationConfig.requireVerification ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
+                    presenceVerificationConfig.requireVerification ? 'bg-accent' : 'bg-slate-200'
                   }`}
                 >
                   <span
@@ -1974,16 +1974,16 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             subtitle={holidayEmail ? holidayEmail : 'Nessuna email configurata'}
             defaultOpen={false}
           >
-            <div className="surface-glass depth-card p-4 dark:bg-transparent space-y-4">
+            <div className="surface-glass depth-card p-4 space-y-4">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#3366CC]/10 dark:bg-[#3366CC]/20 text-[#2255BB] dark:text-[#93BBFF]">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#3366CC]/10 text-[#2255BB]">
                   <Mail className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100 leading-tight">
+                  <p className="text-sm font-semibold text-slate-800 leading-tight">
                     Destinatario richieste ferie
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-neutral-400 leading-snug">
+                  <p className="mt-0.5 text-xs text-slate-500 leading-snug">
                     Quando un dipendente invia una richiesta di ferie, la mail viene indirizzata a questo indirizzo.
                   </p>
                 </div>
@@ -1991,14 +1991,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
 
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#3366CC]/60 dark:text-[#6699FF]/80 pointer-events-none" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#3366CC]/60 pointer-events-none" />
                   <input
                     type="email"
                     value={holidayEmailDraft}
                     onChange={(e) => setHolidayEmailDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') saveHolidayEmail(); }}
                     placeholder="es. direzione@azienda.it"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#3366CC]/25 dark:border-[#3366CC]/35 bg-white dark:bg-neutral-900 text-sm text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 outline-none transition-all focus:border-[#3366CC] focus:ring-2 focus:ring-[#3366CC]/20 focus:shadow-[0_0_0_3px_rgba(51,102,204,0.10)]"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#3366CC]/25 bg-white text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all focus:border-[#3366CC] focus:ring-2 focus:ring-[#3366CC]/20 focus:shadow-[0_0_0_3px_rgba(51,102,204,0.10)]"
                   />
                 </div>
                 <button
@@ -2017,15 +2017,15 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               </div>
 
               {holidayEmail && (
-                <div className="flex items-center justify-between rounded-xl border border-[#3366CC]/20 bg-[#3366CC]/5 dark:bg-[#3366CC]/8 px-3 py-2">
+                <div className="flex items-center justify-between rounded-xl border border-[#3366CC]/20 bg-[#3366CC]/5 px-3 py-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <Check className="h-3.5 w-3.5 flex-shrink-0 text-[#2255BB] dark:text-[#93BBFF]" />
-                    <span className="text-xs font-medium text-[#2255BB] dark:text-[#93BBFF] truncate">{holidayEmail}</span>
+                    <Check className="h-3.5 w-3.5 flex-shrink-0 text-[#2255BB]" />
+                    <span className="text-xs font-medium text-[#2255BB] truncate">{holidayEmail}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => { setHolidayEmailDraft(''); setHolidayEmail(''); try { localStorage.removeItem(HOLIDAY_EMAIL_KEY); } catch { /* */ } }}
-                    className="ml-2 flex-shrink-0 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    className="ml-2 flex-shrink-0 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                     title="Rimuovi email"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -2069,8 +2069,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     className={`relative flex flex-col gap-3 rounded-2xl border p-4 transition-all duration-200 ${
                       isMaintenance
                         ? enabled
-                          ? 'border-red-300 bg-red-50 shadow-[0_0_0_3px_rgba(239,68,68,0.12)] dark:border-red-800/50 dark:bg-red-950/40 dark:shadow-[0_0_0_3px_rgba(239,68,68,0.2)]'
-                          : 'border-amber-200 bg-amber-50/60 dark:border-amber-800/40 dark:bg-amber-950/35'
+                          ? 'border-red-300 bg-red-50 shadow-[0_0_0_3px_rgba(239,68,68,0.12)])]'
+                          : 'border-amber-200 bg-amber-50/60'
                         : 'surface-glass shadow-none'
                     }`}
                   >
@@ -2082,11 +2082,11 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl ${
                             isMaintenance
                               ? enabled
-                                ? 'bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-300'
-                                : 'bg-amber-100 text-amber-600 dark:bg-amber-950/45 dark:text-amber-300'
+                                ? 'bg-red-100 text-red-600'
+                                : 'bg-amber-100 text-amber-600'
                               : enabled
-                                ? 'bg-accent/10 dark:bg-accent/25 text-accent dark:text-[#6699FF]'
-                                : 'bg-slate-100 text-slate-400 dark:bg-neutral-800 dark:text-neutral-400'
+                                ? 'bg-accent/10 text-accent'
+                                : 'bg-slate-100 text-slate-400'
                           }`}
                         >
                           {iconMap[feature.slug]}
@@ -2096,17 +2096,17 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             className={`text-sm font-semibold leading-tight ${
                               isMaintenance
                                 ? enabled
-                                  ? 'text-red-700 dark:text-red-300'
-                                  : 'text-amber-700 dark:text-amber-200'
+                                  ? 'text-red-700'
+                                  : 'text-amber-700'
                                 : enabled
-                                  ? 'text-slate-800 dark:text-neutral-100'
-                                  : 'text-slate-400 dark:text-neutral-500'
+                                  ? 'text-slate-800'
+                                  : 'text-slate-400'
                             }`}
                           >
                             {featureLabel}
                           </p>
                           {isMaintenance && enabled && (
-                            <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400">
+                            <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold text-red-600">
                               <AlertTriangle className="w-2.5 h-2.5" />
                               {t.settings_maintenance_active_badge}
                             </span>
@@ -2125,8 +2125,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         }}
                         className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
                           isMaintenance
-                            ? enabled ? 'bg-red-500' : 'bg-slate-200 dark:bg-neutral-600'
-                            : enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
+                            ? enabled ? 'bg-red-500' : 'bg-slate-200'
+                            : enabled ? 'bg-accent' : 'bg-slate-200'
                         }`}
                       >
                         <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -2138,9 +2138,9 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       className={`text-[11px] leading-snug ${
                         isMaintenance
                           ? enabled
-                            ? 'text-red-500 dark:text-red-400'
-                            : 'text-amber-600/80 dark:text-amber-300/90'
-                          : 'text-slate-400 dark:text-neutral-400'
+                            ? 'text-red-500'
+                            : 'text-amber-600/80'
+                          : 'text-slate-400'
                       }`}
                     >
                       {featureDescription}
@@ -2150,20 +2150,20 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               })}
             </div>
 
-            <div className="surface-glass mt-4 bg-slate-50/45 p-4 dark:bg-neutral-900/25">
+            <div className="surface-glass mt-4 bg-slate-50/45 p-4">
               <div className="mb-2 flex items-center gap-2">
                 <MapPin className="h-4 w-4 flex-shrink-0 text-accent" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-neutral-100">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
                   {t.settings_geofence_editor_title}
                 </h3>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-3 leading-snug">
+              <p className="text-[11px] text-slate-500 mb-3 leading-snug">
                 {t.settings_geofence_editor_hint}
               </p>
               {geofenceEffectiveConfig && (
-                <div className="mb-3 flex items-start gap-2 rounded-xl border border-brand-200/80 bg-brand-50/90 px-3 py-2 dark:border-brand-800/50 dark:bg-[#001A80]/8">
-                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-600 dark:text-brand-400" aria-hidden />
-                  <p className="text-[11px] leading-snug text-brand-900 dark:text-brand-100">
+                <div className="mb-3 flex items-start gap-2 rounded-xl border border-brand-200/80 bg-brand-50/90 px-3 py-2">
+                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-600" aria-hidden />
+                  <p className="text-[11px] leading-snug text-brand-900">
                     {formatTrans(t.settings_geofence_active_summary, {
                       lat: geofenceEffectiveConfig.lat.toFixed(6),
                       lng: geofenceEffectiveConfig.lng.toFixed(6),
@@ -2173,36 +2173,36 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600 dark:text-neutral-300">
+                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600">
                   {t.settings_geofence_lat}
                   <input
                     type="text"
                     inputMode="decimal"
                     value={geoLat}
                     onChange={(e) => setGeoLat(e.target.value)}
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-100"
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800"
                     placeholder="45.123456"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600 dark:text-neutral-300">
+                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600">
                   {t.settings_geofence_lng}
                   <input
                     type="text"
                     inputMode="decimal"
                     value={geoLng}
                     onChange={(e) => setGeoLng(e.target.value)}
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-100"
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800"
                     placeholder="9.123456"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600 dark:text-neutral-300">
+                <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-600">
                   {t.settings_geofence_radius}
                   <input
                     type="text"
                     inputMode="numeric"
                     value={geoRadius}
                     onChange={(e) => setGeoRadius(e.target.value)}
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-100"
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800"
                     placeholder="120"
                   />
                 </label>
@@ -2233,7 +2233,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       setGeoAcquiring(false);
                     }
                   }}
-                  className="inline-flex min-h-[40px] items-center justify-center gap-2 surface-glass-sm px-4 text-xs font-bold uppercase tracking-wider text-slate-700 surface-ghost-interactive disabled:opacity-60 dark:text-neutral-100"
+                  className="inline-flex min-h-[40px] items-center justify-center gap-2 surface-glass-sm px-4 text-xs font-bold uppercase tracking-wider text-slate-700 surface-ghost-interactive disabled:opacity-60"
                 >
                   <LocateFixed className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                   {geoAcquiring ? t.ui_ellipsis : t.settings_geofence_acquire_gps}
@@ -2277,13 +2277,13 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
           >
             <div className="surface-glass-sm overflow-hidden">
               <div className="space-y-3 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400">{t.settings_backup_data_section}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t.settings_backup_data_section}</p>
 
                 {dataToolsLocked ? (
                   /* ── Stato bloccato ── */
-                  <div className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 py-5 px-4 dark:border-white/10 dark:bg-neutral-800/40">
-                    <Lock className="h-7 w-7 text-slate-400 dark:text-neutral-500" />
-                    <p className="text-[12px] text-center text-slate-500 dark:text-neutral-400 leading-snug">
+                  <div className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 py-5 px-4">
+                    <Lock className="h-7 w-7 text-slate-400" />
+                    <p className="text-[12px] text-center text-slate-500 leading-snug">
                       Sezione protetta.<br/>Inserisci il tuo PIN per sbloccare.
                     </p>
                     <button
@@ -2299,13 +2299,13 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   /* ── Stato sbloccato ── */
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <span className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
                         <Unlock className="h-3 w-3" /> Sbloccato
                       </span>
                       <button
                         type="button"
                         onClick={() => setDataToolsLocked(true)}
-                        className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 transition-colors"
+                        className="text-[10px] text-slate-400 hover:text-slate-600 transition-colors"
                       >
                         Blocca di nuovo
                       </button>
@@ -2314,14 +2314,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       <button
                         type="button"
                         onClick={handleImportClick}
-                        className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive dark:text-neutral-200"
+                        className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive"
                       >
                         {t.restore}
                       </button>
                       <button
                         type="button"
                         onClick={() => exportToJSON({ users, shifts, punchRecords, holidays })}
-                        className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive dark:text-neutral-200"
+                        className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-slate-600 surface-ghost-interactive"
                       >
                         {t.backup_json}
                       </button>
@@ -2378,15 +2378,15 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
 
         {/* ── Sincronizzazione cloud — in fondo alla scheda ─────────────────── */}
         {adminOnly && (
-          <div className="rounded-2xl border border-accent/25 bg-accent/[0.04] dark:border-accent/20 dark:bg-accent/[0.07] p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="rounded-2xl border border-accent/25 bg-accent/[0.04] p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex gap-3 min-w-0">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
                 <UploadCloud className="h-5 w-5" aria-hidden />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100">{t.settings_cloud_sync_heading}</p>
-                <p className="text-xs text-slate-600 dark:text-neutral-400 mt-0.5 leading-relaxed">{t.settings_cloud_sync_hint}</p>
-                <p className="text-[11px] font-medium text-accent dark:text-[#6699FF] mt-1.5">
+                <p className="text-sm font-semibold text-slate-800">{t.settings_cloud_sync_heading}</p>
+                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{t.settings_cloud_sync_hint}</p>
+                <p className="text-[11px] font-medium text-accent mt-1.5">
                   {settingsCloudLastSyncedAt
                     ? formatTrans(t.settings_cloud_synced_at, {
                         when: new Date(settingsCloudLastSyncedAt).toLocaleString(
@@ -2404,7 +2404,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 type="button"
                 disabled={pullSyncBusy || pushSyncBusy || dataSyncInProgress}
                 onClick={() => void handlePullSync()}
-                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-accent/40 bg-white/80 dark:bg-neutral-800/60 px-4 text-xs font-bold uppercase tracking-wider text-accent hover:bg-accent/10 disabled:opacity-60 transition-colors"
+                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-accent/40 bg-white/80 px-4 text-xs font-bold uppercase tracking-wider text-accent hover:bg-accent/10 disabled:opacity-60 transition-colors"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${pullSyncBusy ? 'animate-spin' : ''}`} />
                 {pullSyncBusy ? t.ui_ellipsis : 'Sincronizza'}
@@ -2465,10 +2465,10 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <Trash2 className="h-4 w-4 text-white" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-neutral-50">
+                <h3 className="text-sm font-bold text-slate-900">
                   Elimina reparto
                 </h3>
-                <p className="mt-0.5 text-xs text-slate-500 dark:text-neutral-400">
+                <p className="mt-0.5 text-xs text-slate-500">
                   <span
                     className="inline-block rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-white"
                     style={{ backgroundColor: deletingDept.color ?? 'var(--brand)' }}
@@ -2485,31 +2485,31 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               const affected = users.filter(u => u.department === deletingDept.value);
               if (affected.length === 0) {
                 return (
-                  <p className="mb-4 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-500 dark:bg-neutral-800/60 dark:text-neutral-400">
+                  <p className="mb-4 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-500">
                     Nessun profilo associato a questo reparto.
                   </p>
                 );
               }
               return (
                 <div className="mb-4">
-                  <p className="mb-2 text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                  <p className="mb-2 text-xs font-semibold text-slate-700">
                     {affected.length} {affected.length === 1 ? 'profilo associato' : 'profili associati'} — scegli il nuovo reparto:
                   </p>
                   <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
                     {affected.map(u => {
                       const initials = ((u.first_name?.[0] ?? '') + (u.last_name?.[0] ?? '')).toUpperCase() || '?';
                       return (
-                        <div key={u.id} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 dark:border-white/10 dark:bg-neutral-800/80">
-                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-[11px] font-bold text-accent dark:bg-accent/20">
+                        <div key={u.id} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-[11px] font-bold text-accent">
                             {initials}
                           </div>
-                          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700 dark:text-neutral-200">
+                          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700">
                             {u.first_name} {u.last_name}
                           </span>
                           <select
                             value={reassignMap[u.id] ?? ''}
                             onChange={e => setReassignMap(m => ({ ...m, [u.id]: e.target.value }))}
-                            className="min-w-0 max-w-[130px] shrink rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/30 dark:border-white/10 dark:bg-neutral-700 dark:text-neutral-200"
+                            className="min-w-0 max-w-[130px] shrink rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/30"
                           >
                             <option value="">— nessun reparto —</option>
                             {departments
@@ -2534,7 +2534,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 type="button"
                 disabled={isDeleting}
                 onClick={() => setDeletingDept(null)}
-                className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-200 disabled:opacity-50 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-200 disabled:opacity-50"
               >
                 Annulla
               </button>
@@ -2559,7 +2559,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     setIsDeleting(false);
                   }
                 }}
-                className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-red-600 disabled:opacity-50 dark:bg-red-600 dark:hover:bg-red-700"
+                className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
               >
                 {isDeleting ? 'Eliminazione…' : 'Conferma eliminazione'}
               </button>
@@ -2569,11 +2569,11 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
       )}
 
       {showImportConfirm && importFile && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm dark:bg-black/60">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="modal-glass-panel w-full max-w-sm rounded-2xl p-6">
-            <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-neutral-50">{t.attention}</h3>
-            <p className="mb-4 text-sm text-slate-700 dark:text-neutral-300">{t.import_warning}</p>
-            <p className="mb-4 break-all text-center font-sans text-xs tabular-nums text-slate-600 dark:text-neutral-400">{importFile.name}</p>
+            <h3 className="mb-2 text-sm font-semibold text-slate-900">{t.attention}</h3>
+            <p className="mb-4 text-sm text-slate-700">{t.import_warning}</p>
+            <p className="mb-4 break-all text-center font-sans text-xs tabular-nums text-slate-600">{importFile.name}</p>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -2588,7 +2588,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   setShowImportConfirm(false);
                   setImportFile(null);
                 }}
-                className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-semibold uppercase text-slate-600 hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-semibold uppercase text-slate-600 hover:bg-slate-200"
               >
                 {t.cancel}
               </button>
@@ -2671,19 +2671,19 @@ function BreakRuleModal({
   };
 
   const labelClass =
-    'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400';
+    'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500';
   const inputClass =
-    'w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100';
+    'w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20';
   const chipClass = (active: boolean) =>
     `cursor-pointer px-2.5 py-1 text-xs font-semibold transition-colors ${
       active
         ? 'rounded-full border border-accent bg-accent text-white'
-        : 'surface-glass-sm !rounded-full text-slate-600 surface-ghost-interactive hover:border-accent hover:text-accent dark:text-neutral-200 dark:hover:border-accent'
+        : 'surface-glass-sm !rounded-full text-slate-600 surface-ghost-interactive hover:border-accent hover:text-accent'
     }`;
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55 sm:items-center"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm sm:items-center"
       onClick={onClose}
     >
       <motion.form
@@ -2696,23 +2696,23 @@ function BreakRuleModal({
         className="modal-glass-panel max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl font-sans"
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100/90 bg-white/80 px-5 pt-5 pb-4 backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/80">
-          <h2 className="text-base font-bold text-slate-900 dark:text-neutral-50">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100/90 bg-white/80 px-5 pt-5 pb-4 backdrop-blur-md">
+          <h2 className="text-base font-bold text-slate-900">
             {isEdit ? t.settings_break_modal_edit_title : t.settings_break_modal_new_title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+            className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 transition-colors hover:bg-slate-200"
           >
-            <X className="h-4 w-4 text-slate-500 dark:text-neutral-300" />
+            <X className="h-4 w-4 text-slate-500" />
           </button>
         </div>
 
         <div className="px-5 py-5 space-y-5">
           {/* ── Generale ── */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-3">{t.settings_break_section_general}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">{t.settings_break_section_general}</p>
             <div className="space-y-3">
               {/* Titolo */}
               <div>
@@ -2735,7 +2735,7 @@ function BreakRuleModal({
                     value={breakStart}
                     onChange={setBreakStart}
                     aria-label={t.settings_break_label_start}
-                    className="w-full border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900"
+                    className="w-full border-slate-200 bg-white"
                   />
                 </div>
                 <div>
@@ -2744,17 +2744,17 @@ function BreakRuleModal({
                     value={breakEnd}
                     onChange={setBreakEnd}
                     aria-label={t.settings_break_label_end}
-                    className="w-full border-slate-200 bg-white dark:border-white/10 dark:bg-neutral-900"
+                    className="w-full border-slate-200 bg-white"
                   />
                 </div>
               </div>
 
               {/* Soglia turno: attivabile/disattivabile */}
-              <div className="space-y-3 rounded-xl border border-slate-100 bg-slate-50/70 p-3 dark:border-white/10 dark:bg-neutral-800/50">
+              <div className="space-y-3 rounded-xl border border-slate-100 bg-slate-50/70 p-3">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-700 dark:text-neutral-200">{t.settings_break_shift_threshold_title}</p>
-                    <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5 leading-snug">
+                    <p className="text-xs font-semibold text-slate-700">{t.settings_break_shift_threshold_title}</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
                       {minShiftThresholdOn ? t.settings_break_shift_threshold_on : t.settings_break_shift_threshold_off}
                     </p>
                   </div>
@@ -2763,24 +2763,24 @@ function BreakRuleModal({
                     role="switch"
                     aria-checked={minShiftThresholdOn}
                     onClick={() => setMinShiftThresholdOn((v) => !v)}
-                    className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${minShiftThresholdOn ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'}`}
+                    className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${minShiftThresholdOn ? 'bg-accent' : 'bg-slate-300'}`}
                   >
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${minShiftThresholdOn ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
                 </div>
                 {minShiftThresholdOn && (
-                  <div className="flex items-center gap-3 border-t border-slate-100/90 pt-1 dark:border-white/10">
-                    <span className="shrink-0 text-[10px] font-semibold uppercase text-slate-500 dark:text-neutral-300">{t.settings_break_min_label}</span>
+                  <div className="flex items-center gap-3 border-t border-slate-100/90 pt-1">
+                    <span className="shrink-0 text-[10px] font-semibold uppercase text-slate-500">{t.settings_break_min_label}</span>
                     <button
                       type="button"
                       onClick={() => setMinHours((h) => Math.max(0.5, Math.round((h - 0.5) * 10) / 10))}
-                      className="flex h-8 w-8 items-center justify-center surface-glass-sm font-bold text-slate-700 surface-ghost-interactive dark:text-neutral-100"
+                      className="flex h-8 w-8 items-center justify-center surface-glass-sm font-bold text-slate-700 surface-ghost-interactive"
                     >−</button>
-                    <span className="w-16 text-center text-sm font-bold text-slate-800 dark:text-neutral-100">{minHours}h</span>
+                    <span className="w-16 text-center text-sm font-bold text-slate-800">{minHours}h</span>
                     <button
                       type="button"
                       onClick={() => setMinHours((h) => Math.min(12, Math.round((h + 0.5) * 10) / 10))}
-                      className="flex h-8 w-8 items-center justify-center surface-glass-sm font-bold text-slate-700 surface-ghost-interactive dark:text-neutral-100"
+                      className="flex h-8 w-8 items-center justify-center surface-glass-sm font-bold text-slate-700 surface-ghost-interactive"
                     >+</button>
                   </div>
                 )}
@@ -2797,23 +2797,23 @@ function BreakRuleModal({
                     {t.settings_break_paid_btn}
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-1.5">
+                <p className="text-[11px] text-slate-400 mt-1.5">
                   {paid ? t.settings_break_paid_hint : t.settings_break_unpaid_hint}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-slate-100 dark:border-white/10" />
+          <div className="border-t border-slate-100" />
 
           {/* ── Assegna a ── */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-3">{t.settings_break_assign_section}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">{t.settings_break_assign_section}</p>
             <div className="space-y-3">
               <div>
                 <label className={labelClass}>
                   {t.settings_break_label_depts}{' '}
-                  <span className="font-normal normal-case tracking-normal text-slate-400 dark:text-neutral-400">{t.settings_break_none_means_all}</span>
+                  <span className="font-normal normal-case tracking-normal text-slate-400">{t.settings_break_none_means_all}</span>
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {getDepartments().map((d) => (
@@ -2831,7 +2831,7 @@ function BreakRuleModal({
               <div>
                 <label className={labelClass}>
                   {t.settings_break_label_roles}{' '}
-                  <span className="font-normal normal-case tracking-normal text-slate-400 dark:text-neutral-400">{t.settings_break_none_means_all}</span>
+                  <span className="font-normal normal-case tracking-normal text-slate-400">{t.settings_break_none_means_all}</span>
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {BREAK_MODAL_ROLE_VALUES.map((r) => (
@@ -2849,11 +2849,11 @@ function BreakRuleModal({
             </div>
           </div>
 
-          <div className="border-t border-slate-100 dark:border-white/10" />
+          <div className="border-t border-slate-100" />
 
           {/* ── Applica a ── */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-3">{t.settings_break_apply_section}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">{t.settings_break_apply_section}</p>
             <div className="space-y-3">
               {/* Date range */}
               <div className="grid grid-cols-2 gap-3">
@@ -2875,7 +2875,7 @@ function BreakRuleModal({
               <div>
                 <label className={labelClass}>
                   {t.settings_break_weekdays}{' '}
-                  <span className="font-normal normal-case tracking-normal text-slate-400 dark:text-neutral-400">{t.settings_break_none_means_all}</span>
+                  <span className="font-normal normal-case tracking-normal text-slate-400">{t.settings_break_none_means_all}</span>
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {weekdayOptions.map((d) => (
@@ -2905,7 +2905,7 @@ function BreakRuleModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+              className="rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-200"
             >
               {t.cancel}
             </button>

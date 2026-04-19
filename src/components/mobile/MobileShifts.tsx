@@ -88,7 +88,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
         return (
           <div key={wIdx} className="mb-4">
             {/* Card griglia settimanale — trasparente, solo bordo */}
-            <div className="rounded-2xl border border-slate-100 dark:border-white/[0.08] bg-white dark:bg-transparent overflow-hidden shadow-sm dark:shadow-none" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+            <div className="rounded-2xl border border-slate-100 bg-white overflow-hidden shadow-sm" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
               {/* Griglia giorni */}
               <div className="grid grid-cols-7 gap-1 px-2 pt-3 pb-2">
                 {weekDays.map((day, i) => {
@@ -102,26 +102,26 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                   const shiftCount = hasShift && !isAbsent ? dayShifts.length : 0;
 
                   const blockCls = hasShift && !isAbsent
-                    ? 'bg-[#3366CC]/[0.18] border border-[#3366CC]/[0.30] dark:bg-[#3366CC]/[0.18] dark:border-[#3366CC]/[0.30]'
+                    ? 'bg-[#3366CC]/[0.18] border border-[#3366CC]/[0.30]'
                     : isAbsent
-                      ? 'bg-red-500/[0.08] border border-red-500/[0.18] dark:bg-red-500/[0.08] dark:border-red-500/[0.18]'
-                      : 'border border-slate-50 bg-slate-50/30 dark:border-white/[0.04] dark:bg-white/[0.02]';
+                      ? 'bg-red-500/[0.08] border border-red-500/[0.18]'
+                      : 'border border-slate-50 bg-slate-50/30';
 
                   return (
                     <div key={i} className="flex flex-col items-center gap-1">
-                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-slate-400 dark:text-white/25'}`}>{dayLetters[i]}</span>
+                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-slate-400'}`}>{dayLetters[i]}</span>
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold ${
-                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-slate-500 dark:text-white/55'
+                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-slate-500'
                       }`}>
                         {format(day, 'd')}
                       </div>
                       <div className={`w-full rounded-lg flex flex-col items-center justify-center py-1.5 px-0.5 min-h-[38px] transition-all ${blockCls}`}>
                         {shiftCount > 0 && (
-                          <span className="text-[13px] font-black text-[#3366CC] dark:text-[#93c5fd] leading-none drop-shadow-sm">
+                          <span className="text-[13px] font-black text-[#3366CC] leading-none drop-shadow-sm">
                             {shiftCount}
                           </span>
                         )}
-                        {isAbsent && <span className="text-[10px] font-bold text-red-500 dark:text-red-400 opacity-80">—</span>}
+                        {isAbsent && <span className="text-[10px] font-bold text-red-500 opacity-80">—</span>}
                       </div>
                     </div>
                   );
@@ -129,15 +129,15 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
               </div>
 
               {/* Riepilogo settimana */}
-              <div className="border-t border-slate-50 dark:border-white/[0.06] mx-3 mt-0 pt-2.5 pb-3 flex justify-around">
+              <div className="border-t border-slate-50 mx-3 mt-0 pt-2.5 pb-3 flex justify-around">
                 {[
                   { label: t.shift_plural ?? 'Turni', value: confirmedShifts.length.toString() },
                   { label: t.stat_hours_total_abbr ?? 'Ore tot', value: hoursLabel },
                   { label: t.stat_rest_days ?? 'Riposi', value: restDays.toString() },
                 ].map(({ label, value }, i) => (
                   <div key={i} className="flex flex-col items-center gap-0.5">
-                    <span className="text-sm font-black text-slate-800 dark:text-white/90 tabular-nums">{value}</span>
-                    <span className="text-[8px] text-slate-400 dark:text-white/30 uppercase font-bold tracking-wider">{label}</span>
+                    <span className="text-sm font-black text-slate-800 tabular-nums">{value}</span>
+                    <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">{label}</span>
                   </div>
                 ))}
               </div>
@@ -151,7 +151,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                 if (!dayShifts.length) return null;
                 return (
                   <div key={key}>
-                    <p className="text-[10px] font-black uppercase tracking-widest mt-2 mb-1.5 text-[#3366CC] dark:text-[#93c5fd] flex items-center gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest mt-2 mb-1.5 text-[#3366CC] flex items-center gap-2">
                       {format(day, 'EEEE d MMMM', { locale })}
                       {isToday(day) && (
                         <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />
@@ -161,10 +161,10 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                       const isAbsent = shift.approval_status === 'absent';
                       const isDraft  = shift.approval_status === 'draft';
                       const badgeCls = isAbsent
-                        ? 'text-red-500 border-red-200 bg-red-50 dark:text-red-400 dark:border-red-500/20 dark:bg-red-500/[0.08]'
+                        ? 'text-red-500 border-red-200 bg-red-50'
                         : isDraft
-                          ? 'text-slate-400 border-slate-200 bg-slate-50 dark:text-white/35 dark:border-white/10 dark:bg-white/[0.04]'
-                          : 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-500/20 dark:bg-emerald-500/[0.08]';
+                          ? 'text-slate-400 border-slate-200 bg-slate-50'
+                          : 'text-emerald-600 border-emerald-200 bg-emerald-50';
                       const badgeLabel = isAbsent
                         ? (t.status_absent ?? 'Assente')
                         : isDraft
@@ -173,19 +173,19 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
 
                       return (
                         <div key={shift.id}
-                          className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm dark:shadow-none ${
+                          className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm ${
                             isAbsent
-                              ? 'bg-red-50/30 border-red-100 dark:bg-red-500/[0.05] dark:border-red-500/[0.08]'
-                              : 'bg-white border-slate-100 dark:bg-white/[0.04] dark:border-white/[0.08]'
+                              ? 'bg-red-50/30 border-red-100'
+                              : 'bg-white border-slate-100'
                           }`}
                           style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') && !isAbsent ? { background: '#ffffff' } : {}}
                         >
                           <div className="flex flex-col gap-0.5">
-                            <p className={`font-black tabular-nums text-base leading-none ${isAbsent ? 'text-slate-300 line-through dark:text-white/25' : 'text-slate-800 dark:text-white/90'}`}>
+                            <p className={`font-black tabular-nums text-base leading-none ${isAbsent ? 'text-slate-300 line-through' : 'text-slate-800'}`}>
                               {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
                             {shift.department && (
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30 mt-0.5">
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">
                                 {translateDepartmentValue(shift.department, language as any)}
                               </p>
                             )}

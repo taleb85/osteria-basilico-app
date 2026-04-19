@@ -104,7 +104,7 @@ export default function AdminPanel() {
 
         <AnimatePresence>
           {importStatus && (
-            <div className={`mb-4 rounded-2xl p-4 border ${importStatus.type === 'success' ? 'bg-accent/15 dark:bg-accent/25 text-accent dark:text-accent-light border-accent/30 dark:border-white/5' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-white/5'} text-center font-medium`}>
+            <div className={`mb-4 rounded-2xl p-4 border ${importStatus.type === 'success' ? 'bg-accent/15 text-accent border-accent/30' : 'bg-red-100 text-red-700 border-red-200'} text-center font-medium`}>
               {importStatus.message}
             </div>
           )}
@@ -200,19 +200,19 @@ export default function AdminPanel() {
       )}
       {editingUser && <EditStaffModal isOpen={true} user={users.find((u) => u.id === editingUser.id) ?? editingUser} onClose={() => setEditingUser(null)} />}
       {showImportConfirm && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md dark:bg-black/55 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[100] flex items-center justify-center p-4">
           <div className="modal-glass-panel w-full max-w-md overflow-hidden rounded-[40px]">
             <div className="bg-red-600 p-8 text-center text-white">
               <h2 className="text-2xl font-medium uppercase tracking-tighter">{t.attention}</h2>
             </div>
             <div className="p-8 space-y-6 text-center">
-              <p className="text-slate-600 dark:text-gray-300 font-medium">{t.import_warning}</p>
+              <p className="text-slate-600 font-medium">{t.import_warning}</p>
               <div className="surface-glass-sm p-4">
-                <p className="text-slate-900 dark:text-white font-sans text-xs break-all text-center">{importFile?.name}</p>
+                <p className="text-slate-900 font-sans text-xs break-all text-center">{importFile?.name}</p>
               </div>
               <div className="flex space-x-3 pt-4">
                 <button onClick={handleConfirmImport} className="flex-1 bg-red-600 text-white rounded-2xl py-4 font-medium uppercase tracking-widest text-xs">{t.confirm}</button>
-                <button onClick={handleCancelImport} className="flex-1 bg-slate-200 dark:bg-white/5 text-slate-700 dark:text-gray-400 rounded-2xl py-4 font-medium uppercase tracking-widest text-xs">{t.cancel}</button>
+                <button onClick={handleCancelImport} className="flex-1 bg-slate-200 text-slate-700 rounded-2xl py-4 font-medium uppercase tracking-widest text-xs">{t.cancel}</button>
               </div>
             </div>
           </div>

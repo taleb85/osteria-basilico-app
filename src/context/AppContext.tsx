@@ -3,8 +3,6 @@ import { persistStoredUiLanguage, readStoredUiLanguage, clearStoredUiLanguage, g
 import {
   applyDocumentTheme,
   applyUnauthenticatedDocumentTheme,
-  readStoredThemePreference,
-  persistThemePreference,
 } from '../utils/theme';
 import {
   User,
@@ -246,23 +244,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Listener prefers-color-scheme: attivo solo quando non c'è preferenza esplicita in localStorage.
   // Dipende solo da currentUser?.id per non riattivarsi su ogni cambio di proprietà (es. lingua).
   useEffect(() => {
-    // Il tema è sempre in localStorage (locale per dispositivo). Controlla subito.
-    const stored = readStoredThemePreference();
-    if (stored === 'light' || stored === 'dark') {
-      // Preferenza esplicita salvata: applicala e non aggiungere listener di sistema
-      applyDocumentTheme(stored);
-      return;
-    }
-
-    // Nessuna preferenza localStorage → segui prefers-color-scheme in tempo reale (tema "Sistema")
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
-      applyDocumentTheme(e.matches ? 'dark' : 'light');
-    };
-
-    handleChange(mediaQuery);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    applyDocumentTheme();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id]);
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -515,8 +497,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { tenantSettingsRef.current = tenantSettings; }, [tenantSettings]);
 
   useEffect(() => {
-    // null → applyDocumentTheme segue prefers-color-scheme
-    applyDocumentTheme(readStoredThemePreference() ?? null);
+    applyDocumentTheme();
   }, []);
 
   useEffect(() => {
@@ -581,9 +562,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [tenantId, tenantIsLoading, loadTenantBySlug]);
 
   useEffect(() => {
-    // Il tema è sempre locale per dispositivo (localStorage), mai dal DB
-    const th = readStoredThemePreference(); // null = segui sistema operativo
-    applyDocumentTheme(th);
+    applyDocumentTheme();
   }, [currentUser?.id]);
 
   useEffect(() => {
@@ -1921,19 +1900,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!currentUser) return;
     const dbPayload: Record<string, unknown> = {};
     if (pref.language) dbPayload.language = pref.language;
-    const hasTheme = 'theme' in pref;
-    if (hasTheme) {
-      // Il tema è locale per dispositivo: solo localStorage, mai nel DB
-      applyDocumentTheme(pref.theme ?? null);
-      persistThemePreference(pref.theme ?? null);
-    }
     if (Object.keys(dbPayload).length > 0) {
       updateUser(currentUser.id, dbPayload as Partial<User>);
     }
     setCurrentUser({
       ...currentUser,
       ...(pref.language ? { language: pref.language } : {}),
-      ...(hasTheme ? { theme: (pref.theme ?? undefined) as 'light' | 'dark' | undefined } : {}),
     });
   }, [currentUser, updateUser]);
 

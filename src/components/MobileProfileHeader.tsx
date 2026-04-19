@@ -9,29 +9,6 @@ import { useState, useEffect, useRef } from 'react';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
-import { persistThemePreference } from '../utils/theme';
-function ThemeContrastIcon({ mode, className }: { mode: 'light' | 'dark'; className?: string }) {
-  const activeLight = mode === 'light';
-  const svgTransition = 'absolute inset-0 h-full w-full transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.34,1.2,0.64,1)]';
-  return (
-    <span className={`relative inline-block shrink-0 ${className ?? ''}`} aria-hidden>
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={svgTransition} style={{ opacity: activeLight ? 1 : 0, transform: activeLight ? 'rotate(0deg) scale(1)' : 'rotate(-100deg) scale(0.82)' }}>
-        <circle cx="12" cy="12" r="9.15" fill="#1e293b" />
-        <path d="M12 3.35C16.7773 3.35 20.65 7.22274 20.65 12C20.65 16.7773 16.7773 20.65 12 20.65V3.35Z" fill="white" />
-        <circle cx="12" cy="12" r="3.95" fill="white" />
-        <path d="M12 8.05C14.1815 8.05 15.95 9.81848 15.95 12C15.95 14.1815 14.1815 15.95 12 15.95V8.05Z" fill="#1e293b" />
-        <circle cx="12" cy="12" r="9.15" fill="none" stroke="#f1f5f9" strokeWidth="1.5" />
-      </svg>
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={svgTransition} style={{ opacity: activeLight ? 0 : 1, transform: activeLight ? 'rotate(100deg) scale(0.82)' : 'rotate(0deg) scale(1)' }}>
-        <circle cx="12" cy="12" r="9.85" fill="#ffffff" />
-        <path d="M12 5.45C15.6175 5.45 18.55 8.38254 18.55 12C18.55 15.6175 15.6175 18.55 12 18.55V5.45Z" fill="white" />
-        <path d="M12 5.45C8.38254 5.45 5.45 8.38254 5.45 12C5.45 15.6175 8.38254 18.55 12 18.55V5.45Z" fill="#0a0a0a" />
-        <path d="M12 8.25C14.0711 8.25 15.75 9.92893 15.75 12C15.75 14.0711 14.0711 15.75 12 15.75V8.25Z" fill="#0a0a0a" />
-        <path d="M12 8.25C9.92893 8.25 8.25 9.92893 8.25 12C8.25 14.0711 9.92893 15.75 12 15.75V8.25Z" fill="white" />
-      </svg>
-    </span>
-  );
-}
 interface MobileProfileHeaderProps {
   onLogout?: () => void;
   /** Tab attiva: titolo come la dashboard (h1) in base alla scheda. */
@@ -65,16 +42,7 @@ export default function MobileProfileHeader({
     effectiveLanguage,
     featureFlags,
     isSessionElevated,
-    updateUserPreferences,
   } = useApp();
-
-  const systemDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const uiTheme = (currentUser?.theme ?? (systemDark ? 'dark' : 'light')) as 'light' | 'dark';
-  const toggleUiTheme = () => {
-    const nextTheme = uiTheme === 'light' ? 'dark' : 'light';
-    updateUserPreferences({ theme: nextTheme });
-    persistThemePreference(nextTheme);
-  };
 
   // Animazioni on/off — persiste in localStorage
   const [animationsOn, setAnimationsOn] = useState<boolean>(() => {

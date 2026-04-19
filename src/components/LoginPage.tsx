@@ -393,7 +393,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             opacity: 0.055,
             filter: 'saturate(0) brightness(0) blur(6px)',
           }}
-          className="dark:opacity-[0.07] dark:[filter:saturate(0)_brightness(10)_blur(6px)]"
+          className=")_brightness(10)_blur(6px)]"
         />
       </div>
 

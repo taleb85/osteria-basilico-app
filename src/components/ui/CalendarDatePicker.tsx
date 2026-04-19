@@ -87,7 +87,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
   return (
     <div
       ref={containerRef}
-      className="w-full rounded-2xl bg-white dark:bg-neutral-900 border border-slate-100 dark:border-white/10 shadow-sm p-4 select-none"
+      className="w-full rounded-2xl bg-white border border-slate-100 shadow-sm p-4 select-none"
     >
       {/* ── Header ── */}
       <div className="flex items-center justify-between mb-3">
@@ -97,13 +97,13 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
             <button
               type="button"
               onClick={() => { setShowMonthPicker(v => !v); setShowYearPicker(false); }}
-              className="flex items-center gap-0.5 text-[15px] font-bold text-slate-900 dark:text-neutral-100 hover:text-accent dark:hover:text-accent transition-colors"
+              className="flex items-center gap-0.5 text-[15px] font-bold text-slate-900 hover:text-accent transition-colors"
             >
               {MONTHS_IT[viewMonth].toLowerCase()}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </button>
             {showMonthPicker && (
-              <div className="absolute top-full left-0 z-20 mt-1.5 w-44 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-neutral-800 shadow-lg p-1.5 grid grid-cols-3 gap-0.5">
+              <div className="absolute top-full left-0 z-20 mt-1.5 w-44 rounded-xl border border-slate-100 bg-white shadow-lg p-1.5 grid grid-cols-3 gap-0.5">
                 {MONTHS_IT.map((m, i) => (
                   <button
                     key={i}
@@ -112,7 +112,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
                     className={`rounded-lg py-1.5 text-[11px] font-semibold transition-colors ${
                       i === viewMonth
                         ? 'bg-accent text-white'
-                        : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-700'
+                        : 'text-slate-600 hover:bg-slate-100'
                     }`}
                   >
                     {m.slice(0, 3).toLowerCase()}
@@ -127,13 +127,13 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
             <button
               type="button"
               onClick={() => { setShowYearPicker(v => !v); setShowMonthPicker(false); }}
-              className="flex items-center gap-0.5 text-[15px] font-bold text-slate-900 dark:text-neutral-100 hover:text-accent dark:hover:text-accent transition-colors"
+              className="flex items-center gap-0.5 text-[15px] font-bold text-slate-900 hover:text-accent transition-colors"
             >
               {viewYear}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </button>
             {showYearPicker && (
-              <div className="absolute top-full left-0 z-20 mt-1.5 w-20 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-neutral-800 shadow-lg p-1.5 flex flex-col gap-0.5 max-h-48 overflow-y-auto">
+              <div className="absolute top-full left-0 z-20 mt-1.5 w-20 rounded-xl border border-slate-100 bg-white shadow-lg p-1.5 flex flex-col gap-0.5 max-h-48 overflow-y-auto">
                 {years.map(y => (
                   <button
                     key={y}
@@ -142,7 +142,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
                     className={`rounded-lg py-1.5 text-[12px] font-semibold transition-colors ${
                       y === viewYear
                         ? 'bg-accent text-white'
-                        : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-700'
+                        : 'text-slate-600 hover:bg-slate-100'
                     }`}
                   >
                     {y}
@@ -158,14 +158,14 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
           <button
             type="button"
             onClick={() => setViewDate(subMonths(viewDate, 1))}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 dark:border-white/10 text-accent hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 text-accent hover:bg-slate-50 transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             type="button"
             onClick={() => setViewDate(addMonths(viewDate, 1))}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 dark:border-white/10 text-accent hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 text-accent hover:bg-slate-50 transition-colors"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -175,7 +175,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
       {/* ── Intestazioni giorno ── */}
       <div className="grid grid-cols-7 mb-1">
         {DAY_HEADERS.map(d => (
-          <div key={d} className="text-center text-[11px] font-semibold text-slate-400 dark:text-neutral-500 py-1">
+          <div key={d} className="text-center text-[11px] font-semibold text-slate-400 py-1">
             {d}
           </div>
         ))}
@@ -202,8 +202,8 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
                     : isTodayDay
                       ? 'border-2 border-accent text-accent'
                       : isCurrentMonth
-                        ? 'text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800'
-                        : 'text-slate-300 dark:text-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-800/50'
+                        ? 'text-slate-800 hover:bg-slate-100'
+                        : 'text-slate-300 hover:bg-slate-50'
               }`}
             >
               {format(day, 'd')}
@@ -272,10 +272,10 @@ export function DatePickerInput({ value, onChange, inputClassName, minDate, maxD
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className={`flex w-full items-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 dark:border-white/15 dark:bg-neutral-800 dark:text-neutral-100 ${inputClassName ?? ''}`}
+        className={`flex w-full items-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 ${inputClassName ?? ''}`}
       >
-        <CalendarDays className="h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-500" />
-        <span className="flex-1 text-left">{displayValue || <span className="text-slate-400 dark:text-neutral-500 font-normal">Seleziona data</span>}</span>
+        <CalendarDays className="h-4 w-4 shrink-0 text-slate-400" />
+        <span className="flex-1 text-left">{displayValue || <span className="text-slate-400 font-normal">Seleziona data</span>}</span>
         <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
 

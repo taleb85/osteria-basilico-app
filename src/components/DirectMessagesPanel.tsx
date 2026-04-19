@@ -92,16 +92,16 @@ function NewChatPicker({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-20 flex min-h-0 flex-col bg-white dark:bg-neutral-900 rounded-[inherit]"
+      className="absolute inset-0 z-20 flex min-h-0 flex-col bg-white rounded-[inherit]"
     >
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-100 dark:border-neutral-800">
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-100">
         <button
           onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white flex-1">{t.messages_new_conversation ?? 'Nuova conversazione'}</h3>
+        <h3 className="text-sm font-bold text-slate-900 flex-1">{t.messages_new_conversation ?? 'Nuova conversazione'}</h3>
       </div>
       <div className="px-4 pt-3 pb-2">
         <input
@@ -109,7 +109,7 @@ function NewChatPicker({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.messages_search_employee ?? 'Cerca dipendente...'}
-          className="w-full rounded-xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#0052FF] transition-colors"
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#0052FF] transition-colors"
         />
       </div>
       <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-2 pb-4 [-webkit-overflow-scrolling:touch]">
@@ -120,11 +120,11 @@ function NewChatPicker({
             <button
               key={u.id}
               onClick={() => onSelect(u)}
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 transition-colors text-left"
             >
               <UserAvatar user={u} size={38} />
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                <p className="text-sm font-semibold text-slate-900 truncate">
                   {u.first_name} {u.last_name ?? ''}
                 </p>
                 <p className="text-[10px] text-slate-400 uppercase tracking-wide">{translateRole(u.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</p>
@@ -145,20 +145,20 @@ function ChatBubble({ body, time, isMine }: { body: string; time: string; isMine
         className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm ${
           isMine
             ? 'rounded-br-[4px]'
-            : 'bg-slate-100 dark:bg-white/[0.10] rounded-bl-[4px]'
+            : 'bg-slate-100 rounded-bl-[4px]'
         }`}
         style={isMine ? { background: BRAND, borderBottomRightRadius: 4 } : undefined}
       >
         <p
           className={`text-sm leading-snug whitespace-pre-wrap break-words ${
-            isMine ? 'text-white' : 'text-slate-900 dark:text-neutral-100'
+            isMine ? 'text-white' : 'text-slate-900'
           }`}
         >
           {body}
         </p>
         <p
           className={`text-[10px] mt-1 text-right ${
-            isMine ? 'text-white/65' : 'text-slate-400 dark:text-neutral-400'
+            isMine ? 'text-white/65' : 'text-slate-400'
           }`}
         >
           {time}
@@ -267,11 +267,11 @@ function ChatView({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-      className="absolute inset-0 flex min-h-0 flex-col bg-white dark:bg-neutral-900 rounded-[inherit]"
+      className="absolute inset-0 flex min-h-0 flex-col bg-white rounded-[inherit]"
     >
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-3 py-3 shrink-0 border-b border-slate-100 dark:border-neutral-800"
+        className="flex items-center gap-3 px-3 py-3 shrink-0 border-b border-slate-100"
         style={{ background: BRAND }}
       >
         <button
@@ -302,7 +302,7 @@ function ChatView({
         {grouped.map(({ label, msgs }) => (
           <div key={label}>
             <div className="flex items-center justify-center my-3">
-              <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-neutral-800 text-[10px] font-semibold text-slate-400 uppercase tracking-wide">
+              <span className="px-3 py-1 rounded-full bg-slate-100 text-[10px] font-semibold text-slate-400 uppercase tracking-wide">
                 {label}
               </span>
             </div>
@@ -322,7 +322,7 @@ function ChatView({
       </div>
 
       {/* Input */}
-      <div className="px-3 py-3 border-t border-slate-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shrink-0">
+      <div className="px-3 py-3 border-t border-slate-100 bg-white shrink-0">
         <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}
@@ -336,7 +336,7 @@ function ChatView({
             onKeyDown={handleKeyDown}
             placeholder={t.messages_write_placeholder ?? 'Scrivi un messaggio...'}
             rows={1}
-            className="flex-1 resize-none rounded-2xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-[#0052FF] transition-colors"
+            className="flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-[#0052FF] transition-colors"
             style={{ maxHeight: 120, overflowY: 'auto' }}
           />
           <button
@@ -386,11 +386,11 @@ function ConversationList({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '-100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-      className="absolute inset-0 flex min-h-0 flex-col bg-white dark:bg-neutral-900 rounded-[inherit]"
+      className="absolute inset-0 flex min-h-0 flex-col bg-white rounded-[inherit]"
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 py-4 shrink-0 border-b border-slate-100 dark:border-neutral-800"
+        className="flex items-center justify-between px-4 py-4 shrink-0 border-b border-slate-100"
         style={{ background: BRAND }}
       >
         <h2 className="text-base font-bold text-white tracking-tight">{t.messages_title}</h2>
@@ -424,7 +424,7 @@ function ConversationList({
             >
               <MessageCircle className="w-8 h-8" style={{ color: BRAND }} />
             </div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Nessuna conversazione</p>
+            <p className="text-sm font-semibold text-slate-900">Nessuna conversazione</p>
             <p className="text-xs text-slate-400">
               {currentUserIsManagement
                 ? <>Tocca <span className="font-bold">+</span> per scrivere a un collega</>
@@ -432,7 +432,7 @@ function ConversationList({
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-50 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-50">
             {conversations.map((conv) => {
               const contact = users.find((u) => u.id === conv.contactId);
               const preview = conv.lastMessage.body;
@@ -441,13 +441,13 @@ function ConversationList({
                 <button
                   key={conv.contactId}
                   onClick={() => onSelect(conv.contactId)}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors text-left"
                 >
                   <UserAvatar user={contact} size={44} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-2">
                       <p
-                        className="text-sm font-bold truncate text-slate-900 dark:text-white"
+                        className="text-sm font-bold truncate text-slate-900"
                       >
                         {contact
                           ? `${contact.first_name} ${contact.last_name ?? ''}`.trim()
@@ -460,7 +460,7 @@ function ConversationList({
                     <p
                       className={`text-xs truncate mt-0.5 ${
                         conv.unreadCount > 0
-                          ? 'font-semibold text-slate-900 dark:text-white'
+                          ? 'font-semibold text-slate-900'
                           : 'text-slate-400'
                       }`}
                     >

@@ -32,15 +32,15 @@ export default function MobileStatsCards({
   return (
     <div className="grid grid-cols-2 gap-4">
       {/* CARD SETTIMANA */}
-      <div className="bg-white dark:bg-neutral-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5">
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
         <p className="text-xs font-medium text-slate-400 uppercase mb-1">
           {labels.week}
         </p>
-        <p className="text-xl font-bold text-slate-900 dark:text-neutral-100 mb-3 tabular-nums">
-          {fmtHoursShort(weekWorkedMins)} <span className="text-slate-300 dark:text-neutral-700 font-normal">/</span>{' '}
+        <p className="text-xl font-bold text-slate-900 mb-3 tabular-nums">
+          {fmtHoursShort(weekWorkedMins)} <span className="text-slate-300 font-normal">/</span>{' '}
           {fmtHoursShort(weekCapMins)}
         </p>
-        <div className="w-full bg-slate-100 dark:bg-neutral-800 rounded-full h-2">
+        <div className="w-full bg-slate-100 rounded-full h-2">
           <div
             className="h-full rounded-full bg-[var(--brand)] transition-[width] duration-700 ease-out"
             style={{ width: `${pct}%` }}
@@ -49,14 +49,14 @@ export default function MobileStatsCards({
       </div>
 
       {/* CARD MESE */}
-      <div className="bg-white dark:bg-neutral-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5">
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
         <p className="text-xs font-medium text-slate-400 uppercase mb-1">
           {labels.month}
         </p>
-        <p className="text-xl font-bold text-slate-900 dark:text-neutral-100 mb-1 tabular-nums">
+        <p className="text-xl font-bold text-slate-900 mb-1 tabular-nums">
           {fmtHoursShort(monthWorkedMins)}
         </p>
-        <p className="text-xs font-medium text-slate-500 dark:text-neutral-400">
+        <p className="text-xs font-medium text-slate-500">
           {monthDaysWorked} {labels.daysWorked}
         </p>
       </div>

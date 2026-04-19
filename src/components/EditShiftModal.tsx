@@ -71,7 +71,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/35 backdrop-blur-sm dark:bg-black/50 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/35 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div
@@ -100,39 +100,39 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
 
           <div className="p-6 space-y-4">
             <div>
-              <label className="text-slate-600 dark:text-gray-400 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
+              <label className="text-slate-600 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
                 Data
               </label>
               <input
                 type="date"
                 value={tempShifts.date}
                 onChange={(e) => setTempShifts((s) => ({ ...s, date: e.target.value }))}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 focus:border-accent outline-none font-bold text-slate-900 dark:text-gray-100"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-100 border border-slate-200 focus:border-accent outline-none font-bold text-slate-900"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-slate-600 dark:text-gray-400 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
+                <label className="text-slate-600 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
                   {t.start}
                 </label>
                 <TimeInputField
                   value={tempShifts.start_time}
                   onChange={(next) => setTempShifts((s) => ({ ...s, start_time: next }))}
                   aria-label={t.start}
-                  className="w-full rounded-2xl border-slate-200 bg-slate-100 px-2 dark:border-white/5 dark:bg-white/5"
+                  className="w-full rounded-2xl border-slate-200 bg-slate-100 px-2"
                 />
               </div>
 
               <div>
-                <label className="text-slate-600 dark:text-gray-400 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
+                <label className="text-slate-600 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
                   Fine {!tempShifts.end_time && <span className="text-amber-600">(da completare)</span>}
                 </label>
                 <TimeInputField
                   value={tempShifts.end_time}
                   onChange={(next) => setTempShifts((s) => ({ ...s, end_time: next }))}
                   aria-label={t.end}
-                  className="w-full rounded-2xl border-slate-200 bg-slate-100 px-2 dark:border-white/5 dark:bg-white/5"
+                  className="w-full rounded-2xl border-slate-200 bg-slate-100 px-2"
                 />
               </div>
             </div>
@@ -147,9 +147,9 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
               </button>
               <button
                 onClick={handleCopy}
-                className="w-14 h-14 bg-slate-100 dark:bg-white/5 rounded-2xl flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
+                className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center hover:bg-slate-200 transition-colors"
               >
-                <Copy className="w-5 h-5 text-slate-700 dark:text-gray-100" />
+                <Copy className="w-5 h-5 text-slate-700" />
               </button>
               <button
                 onClick={handleDelete}

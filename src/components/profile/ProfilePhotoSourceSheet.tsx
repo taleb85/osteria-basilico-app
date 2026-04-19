@@ -40,19 +40,19 @@ export default function ProfilePhotoSourceSheet({
       id={menuId}
       role="menu"
       aria-label={labels.sheetAria}
-      className="absolute right-0 top-[calc(100%+4px)] z-[80] min-w-[10.25rem] max-w-[min(14rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-slate-200/90 bg-white/95 py-0.5 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-neutral-900/95 supports-[backdrop-filter]:backdrop-saturate-150"
+      className="absolute right-0 top-[calc(100%+4px)] z-[80] min-w-[10.25rem] max-w-[min(14rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-slate-200/90 bg-white/95 py-0.5 shadow-lg backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150"
     >
       <li role="none">
         <button
           type="button"
           role="menuitem"
-          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-slate-800 transition-colors hover:bg-slate-50 active:bg-slate-100 dark:text-neutral-100 dark:hover:bg-white/5 dark:active:bg-white/10 touch-manipulation"
+          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-slate-800 transition-colors hover:bg-slate-50 active:bg-slate-100 touch-manipulation"
           onClick={() => {
             onPickGallery();
             onClose();
           }}
         >
-          <ImageIcon className="h-3.5 w-3.5 shrink-0 text-slate-600 dark:text-neutral-400" strokeWidth={2} aria-hidden />
+          <ImageIcon className="h-3.5 w-3.5 shrink-0 text-slate-600" strokeWidth={2} aria-hidden />
           <span className="leading-snug">{labels.gallery}</span>
         </button>
       </li>
@@ -60,13 +60,13 @@ export default function ProfilePhotoSourceSheet({
         <button
           type="button"
           role="menuitem"
-          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-slate-800 transition-colors hover:bg-slate-50 active:bg-slate-100 dark:text-neutral-100 dark:hover:bg-white/5 dark:active:bg-white/10 touch-manipulation"
+          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-slate-800 transition-colors hover:bg-slate-50 active:bg-slate-100 touch-manipulation"
           onClick={() => {
             onPickCamera();
             onClose();
           }}
         >
-          <Camera className="h-3.5 w-3.5 shrink-0 text-slate-600 dark:text-neutral-400" strokeWidth={2} aria-hidden />
+          <Camera className="h-3.5 w-3.5 shrink-0 text-slate-600" strokeWidth={2} aria-hidden />
           <span className="leading-snug">{labels.camera}</span>
         </button>
       </li>
@@ -74,22 +74,22 @@ export default function ProfilePhotoSourceSheet({
         <button
           type="button"
           role="menuitem"
-          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-slate-800 transition-colors hover:bg-slate-50 active:bg-slate-100 dark:text-neutral-100 dark:hover:bg-white/5 dark:active:bg-white/10 touch-manipulation"
+          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-slate-800 transition-colors hover:bg-slate-50 active:bg-slate-100 touch-manipulation"
           onClick={() => {
             onPickFiles();
             onClose();
           }}
         >
-          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-slate-600 dark:text-neutral-400" strokeWidth={2} aria-hidden />
+          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-slate-600" strokeWidth={2} aria-hidden />
           <span className="leading-snug">{labels.files}</span>
         </button>
       </li>
       {onRemovePhoto && (
-        <li role="none" className="border-t border-slate-100 dark:border-white/5 mt-0.5 pt-0.5">
+        <li role="none" className="border-t border-slate-100 mt-0.5 pt-0.5">
           <button
             type="button"
             role="menuitem"
-            className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-red-600 transition-colors hover:bg-red-50 active:bg-red-100 dark:text-red-400 dark:hover:bg-red-950/20 dark:active:bg-red-950/30 touch-manipulation"
+            className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-red-600 transition-colors hover:bg-red-50 active:bg-red-100 touch-manipulation"
             onClick={() => {
               onRemovePhoto();
               onClose();

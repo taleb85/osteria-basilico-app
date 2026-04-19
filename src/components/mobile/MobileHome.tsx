@@ -110,7 +110,7 @@ export default function MobileHome({
           className="absolute -top-10 left-0 right-0 flex justify-center pointer-events-none"
           style={{ opacity: indicatorOpacity }}
         >
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${isTriggered ? 'bg-accent text-white' : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-300'}`}>
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${isTriggered ? 'bg-accent text-white' : 'bg-slate-100 text-slate-500'}`}>
             <RotateCcw
               className={`h-3.5 w-3.5 shrink-0 ${isRefreshing ? 'animate-spin' : ''}`}
               style={{ transform: isRefreshing ? undefined : `rotate(${indicatorRotation}deg)` }}
@@ -154,20 +154,20 @@ export default function MobileHome({
       <section className={`${cardCls} px-5 py-4 mt-5`} style={cardStyle}>
         <div className="flex items-start justify-between mb-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/35 mb-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
               {todayShiftLabel}
             </p>
             {shiftRange ? (
-              <p className="text-2xl font-black text-slate-800 dark:text-white tabular-nums">
+              <p className="text-2xl font-black text-slate-800 tabular-nums">
                 {shiftRange}
               </p>
             ) : (
-              <p className="text-base font-bold text-slate-400 dark:text-white/40">
+              <p className="text-base font-bold text-slate-400">
                 {noShiftsHint}
               </p>
             )}
             {shiftTimeHint && (
-              <p className="text-[10px] font-semibold text-slate-400 dark:text-white/30 mt-0.5">
+              <p className="text-[10px] font-semibold text-slate-400 mt-0.5">
                 {shiftTimeHint}
               </p>
             )}
@@ -175,12 +175,12 @@ export default function MobileHome({
 
           {/* Badge stato */}
           {inProgress ? (
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               {inProgressLabel}
             </span>
           ) : todayWorkShiftsCount > 0 ? (
-            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:bg-[#4361EE]/20 dark:text-[#93c5fd]">
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600">
               {nextShiftLabel}
             </span>
           ) : null}
@@ -188,9 +188,9 @@ export default function MobileHome({
 
         {/* Tempo trascorso se in turno */}
         {inProgress && elapsedLabel && (
-          <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl bg-slate-50 dark:bg-transparent border border-slate-100 dark:border-white/[0.08]">
-            <Clock className="w-4 h-4 text-slate-400 dark:text-white/40 shrink-0" />
-            <span className="text-lg font-mono font-semibold text-slate-600 dark:text-white/80 tabular-nums">
+          <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl bg-slate-50 border border-slate-100">
+            <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+            <span className="text-lg font-mono font-semibold text-slate-600 tabular-nums">
               {elapsedLabel}
             </span>
           </div>
@@ -200,14 +200,14 @@ export default function MobileHome({
         {!inProgress && todayWorkShifts.length > 1 && (
           <div className="flex flex-col gap-1.5 mb-3">
             {todayWorkShifts.slice(1).map((s) => (
-              <div key={s.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 dark:bg-transparent border border-slate-100 dark:border-white/[0.08]">
+              <div key={s.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 border border-slate-100">
                 <div className="flex items-center gap-2">
                   <div className={`w-1.5 h-1.5 rounded-full ${s.type === 'lunch' ? 'bg-amber-400' : 'bg-violet-500'}`} />
-                  <span className="text-xs font-bold text-slate-700 dark:text-white/70">
+                  <span className="text-xs font-bold text-slate-700">
                     {s.start_time.slice(0, 5)} – {s.end_time?.slice(0, 5) ?? '…'}
                   </span>
                 </div>
-                <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400 dark:text-white/35">
+                <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400">
                   {s.type === 'lunch' ? 'Pranzo' : 'Cena'}
                 </span>
               </div>
@@ -236,7 +236,7 @@ export default function MobileHome({
               type="button"
               disabled={punchBusy}
               onClick={onStart}
-              className="w-full h-14 bg-[#001A80] hover:bg-[#001266] dark:bg-[#4361EE]/30 dark:hover:bg-[#4361EE]/45 dark:border dark:border-[#4361EE]/50 text-white dark:text-[#93c5fd] rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-[#001A80]/15 dark:shadow-none transition-all active:scale-95 disabled:opacity-60"
+              className="w-full h-14 bg-[#001A80] hover:bg-[#001266] text-white rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-[#001A80]/15 transition-all active:scale-95 disabled:opacity-60"
             >
               <Play className="w-5 h-5 fill-current" />
               <span className="text-base font-bold uppercase tracking-wider">
@@ -245,7 +245,7 @@ export default function MobileHome({
             </button>
           ) : (
             todayWorkShiftsCount > 0 && (
-              <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">
+              <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
                 {tapStartHint}
               </p>
             )
@@ -256,13 +256,13 @@ export default function MobileHome({
       {/* ── I miei numeri ───────────────────────────────────────────── */}
       <section>
         <div className="flex items-center justify-between px-1 mb-2">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 dark:text-white/80">
+          <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-800">
             {statsLabels.title}
           </h2>
           {onNavigateToTimesheet && (
             <button
               onClick={onNavigateToTimesheet}
-              className="text-[10px] font-bold text-blue-600 dark:text-[#93c5fd] flex items-center gap-0.5 hover:opacity-80 transition-opacity"
+              className="text-[10px] font-bold text-blue-600 flex items-center gap-0.5 hover:opacity-80 transition-opacity"
             >
               {detailLabel} <ChevronRight className="w-3 h-3" />
             </button>
@@ -272,32 +272,32 @@ export default function MobileHome({
         <div className="grid grid-cols-2 gap-3">
           {/* Ore settimana */}
           <div className={`${cardCls} px-4 py-3`} style={cardStyle}>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/35 mb-1">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
               {statsLabels.week}
             </p>
-            <p className="text-xl font-black text-slate-800 dark:text-white tabular-nums leading-none mb-2">
+            <p className="text-xl font-black text-slate-800 tabular-nums leading-none mb-2">
               {fmtH(weeklyMinutes)}
             </p>
-            <div className="w-full bg-slate-100 dark:bg-white/[0.08] rounded-full h-1.5">
+            <div className="w-full bg-slate-100 rounded-full h-1.5">
               <div
                 className="h-full rounded-full bg-[var(--brand)] transition-[width] duration-700 ease-out"
                 style={{ width: `${weekPct}%` }}
               />
             </div>
-            <p className="text-[8px] text-slate-400 dark:text-white/25 mt-1 tabular-nums">
+            <p className="text-[8px] text-slate-400 mt-1 tabular-nums">
               / {fmtH(weekCapMinutes)}
             </p>
           </div>
 
           {/* Ore mese */}
           <div className={`${cardCls} px-4 py-3`} style={cardStyle}>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/35 mb-1">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
               {statsLabels.month}
             </p>
-            <p className="text-xl font-black text-slate-800 dark:text-white tabular-nums leading-none mb-1">
+            <p className="text-xl font-black text-slate-800 tabular-nums leading-none mb-1">
               {fmtH(monthlyMinutes)}
             </p>
-            <p className="text-[10px] text-slate-400 dark:text-white/35 tabular-nums">
+            <p className="text-[10px] text-slate-400 tabular-nums">
               {monthDaysWorked} {statsLabels.daysWorked}
             </p>
           </div>
@@ -305,7 +305,7 @@ export default function MobileHome({
       </section>
 
       {/* ── Colleghi in turno oggi ───────────────────────────────────── */}
-      <div className="rounded-2xl border border-slate-100 dark:border-white/[0.08] overflow-hidden bg-white/80 dark:bg-white/[0.04] supports-[backdrop-filter]:backdrop-blur-xl">
+      <div className="rounded-2xl border border-slate-100 overflow-hidden bg-white/80 supports-[backdrop-filter]:backdrop-blur-xl">
         <HeaderTodayCoworkersCard />
       </div>
 

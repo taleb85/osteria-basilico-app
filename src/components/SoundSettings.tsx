@@ -44,7 +44,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
         className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
           isSoundEnabled 
             ? 'bg-accent/10 text-accent' 
-            : 'bg-slate-100 text-slate-400 dark:bg-neutral-800'
+            : 'bg-slate-100 text-slate-400'
         }`}
         title={isSoundEnabled ? 'Muta suoni' : 'Attiva suoni'}
       >
@@ -54,13 +54,13 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
   }
 
   return (
-    <div className="space-y-4 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm dark:border-white/5 dark:bg-neutral-900/50">
+    <div className="space-y-4 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-accent">
           <BellRing size={20} />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight">
+          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight">
             Notifiche e Feedback
           </h3>
           <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
@@ -76,12 +76,12 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
             <div className={`p-2 rounded-lg ${isSoundEnabled ? 'bg-brand-50 text-brand-600' : 'bg-slate-50 text-slate-400'}`}>
               {isSoundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
             </div>
-            <span className="text-xs font-bold text-slate-700 dark:text-neutral-300">Suoni Notifica</span>
+            <span className="text-xs font-bold text-slate-700">Suoni Notifica</span>
           </div>
           <button
             onClick={handleToggleSound}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-              isSoundEnabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-700'
+              isSoundEnabled ? 'bg-accent' : 'bg-slate-200'
             }`}
           >
             <span
@@ -105,19 +105,19 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
               max="100"
               value={soundVolume}
               onChange={handleVolumeChange}
-              className="w-full h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-accent"
+              className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
             />
           </div>
         )}
 
         {/* Info Vibrazione */}
-        <div className="flex flex-col gap-2 border-t border-slate-50 dark:border-white/5 pt-4">
+        <div className="flex flex-col gap-2 border-t border-slate-50 pt-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-accent/10 text-accent dark:bg-accent/15 dark:text-accent">
+              <div className="p-2 rounded-lg bg-accent/10 text-accent">
                 <Smartphone size={16} />
               </div>
-              <span className="text-xs font-bold text-slate-700 dark:text-neutral-300">Feedback Aptico</span>
+              <span className="text-xs font-bold text-slate-700">Feedback Aptico</span>
             </div>
             <span className="text-[10px] font-black text-accent uppercase tracking-widest">{hapticIntensity}%</span>
           </div>
@@ -128,14 +128,14 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
             step="25"
             value={hapticIntensity}
             onChange={(e) => setHapticIntensity(parseInt(e.target.value, 10))}
-            className="w-full h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-accent"
+            className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
           />
         </div>
 
         {/* Tasto Test */}
         <button
           onClick={handleTestSound}
-          className="w-full py-3 rounded-2xl bg-[#001A80]/8 dark:bg-[#001A80]/12 text-[10px] font-black text-[#001A80] uppercase tracking-[0.2em] hover:bg-[#001A80]/15 dark:hover:bg-[#001A80]/20 transition-colors border border-[#001A80]/20 dark:border-[#001A80]/25"
+          className="w-full py-3 rounded-2xl bg-[#001A80]/8 text-[10px] font-black text-[#001A80] uppercase tracking-[0.2em] hover:bg-[#001A80]/15 transition-colors border border-[#001A80]/20"
         >
           Prova Feedback
         </button>

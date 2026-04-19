@@ -81,17 +81,17 @@ export function MessageWriter({
 
   if (compact) {
     return (
-      <div className="space-y-3 rounded-lg border-2 border-amber-300/80 bg-amber-50/80 p-3 dark:border-amber-600/60 dark:bg-amber-950/40">
+      <div className="space-y-3 rounded-lg border-2 border-amber-300/80 bg-amber-50/80 p-3">
         <div className="flex items-center gap-2">
-          <Send className="h-4 w-4 text-amber-700 dark:text-amber-300" />
-          <h3 className="text-xs font-bold text-amber-900 dark:text-amber-100">
+          <Send className="h-4 w-4 text-amber-700" />
+          <h3 className="text-xs font-bold text-amber-900">
             {t.messages_write_title ?? 'Scrivi Messaggio'}
           </h3>
         </div>
 
         {/* Tipo messaggio */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold text-amber-900 dark:text-amber-200">
+          <label className="text-[11px] font-semibold text-amber-900">
             {t.messages_recipient_label ?? 'Destinatario:'}
           </label>
           <div className="flex gap-2">
@@ -103,8 +103,8 @@ export function MessageWriter({
               }}
               className={`flex-1 flex items-center justify-center gap-1 rounded px-2 py-1.5 text-xs font-semibold transition-colors ${
                 messageType === 'broadcast'
-                  ? 'bg-amber-300 text-amber-900 dark:bg-amber-700 dark:text-amber-50'
-                  : 'bg-white/70 text-amber-700 hover:bg-white dark:bg-neutral-800 dark:text-amber-300'
+                  ? 'bg-amber-300 text-amber-900'
+                  : 'bg-white/70 text-amber-700 hover:bg-white'
               }`}
             >
               <Users className="h-3 w-3" />
@@ -115,8 +115,8 @@ export function MessageWriter({
               onClick={() => setMessageType('private')}
               className={`flex-1 flex items-center justify-center gap-1 rounded px-2 py-1.5 text-xs font-semibold transition-colors ${
                 messageType === 'private'
-                  ? 'bg-amber-300 text-amber-900 dark:bg-amber-700 dark:text-amber-50'
-                  : 'bg-white/70 text-amber-700 hover:bg-white dark:bg-neutral-800 dark:text-amber-300'
+                  ? 'bg-amber-300 text-amber-900'
+                  : 'bg-white/70 text-amber-700 hover:bg-white'
               }`}
             >
               <User className="h-3 w-3" />
@@ -128,13 +128,13 @@ export function MessageWriter({
         {/* Seleziona destinatario (se privato) */}
         {messageType === 'private' && (
           <div>
-            <label className="text-[11px] font-semibold text-amber-900 dark:text-amber-200">
+            <label className="text-[11px] font-semibold text-amber-900">
               {t.messages_recipient_to ?? 'A chi:'}
             </label>
             <select
               value={selectedRecipientId}
               onChange={(e) => setSelectedRecipientId(e.target.value)}
-              className="mt-1 w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-xs dark:border-amber-700 dark:bg-neutral-900 dark:text-neutral-100"
+              className="mt-1 w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-xs"
             >
               <option value="">{t.messages_recipient_select ?? 'Seleziona utente...'}</option>
               {allUsers
@@ -156,7 +156,7 @@ export function MessageWriter({
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             maxLength={100}
-            className="w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-xs placeholder-amber-400/60 dark:border-amber-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder-amber-700"
+            className="w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-xs placeholder-amber-400/60"
           />
         </div>
 
@@ -168,24 +168,24 @@ export function MessageWriter({
             onChange={(e) => setBody(e.target.value)}
             maxLength={500}
             rows={3}
-            className="w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-xs placeholder-amber-400/60 resize-none dark:border-amber-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder-amber-700"
+            className="w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-xs placeholder-amber-400/60 resize-none"
           />
-          <p className="mt-1 text-[10px] text-amber-700/70 dark:text-amber-300/70">
+          <p className="mt-1 text-[10px] text-amber-700/70">
             {body.length}/500
           </p>
         </div>
 
         {/* Errore */}
         {error && (
-          <div className="flex gap-2 rounded bg-red-100 p-2 dark:bg-red-950/40">
-            <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-700 dark:text-red-400" />
-            <p className="text-xs text-red-700 dark:text-red-300">{error}</p>
+          <div className="flex gap-2 rounded bg-red-100 p-2">
+            <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-700" />
+            <p className="text-xs text-red-700">{error}</p>
           </div>
         )}
 
         {/* Successo */}
         {success && (
-          <div className="rounded bg-brand-100 p-2 text-xs font-semibold text-brand-700 dark:bg-[#001A80]/12 dark:text-brand-300">
+          <div className="rounded bg-brand-100 p-2 text-xs font-semibold text-brand-700">
             {t.messages_sent_ok_short ?? '✓ Messaggio inviato!'}
           </div>
         )}
@@ -196,7 +196,7 @@ export function MessageWriter({
             type="button"
             onClick={handleSend}
             disabled={isSending}
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-2 py-1.5 text-xs font-bold text-white transition-colors hover:bg-amber-700 disabled:opacity-60 dark:bg-amber-700 dark:hover:bg-amber-800"
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-2 py-1.5 text-xs font-bold text-white transition-colors hover:bg-amber-700 disabled:opacity-60"
           >
             {isSending ? (
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -209,7 +209,7 @@ export function MessageWriter({
             <button
               type="button"
               onClick={onCancel}
-              className="rounded-lg border border-amber-300 px-2 py-1.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-neutral-800"
+              className="rounded-lg border border-amber-300 px-2 py-1.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50"
             >
               {t.cancel ?? 'Annulla'}
             </button>
@@ -221,15 +221,15 @@ export function MessageWriter({
 
   // Versione full (non compact)
   return (
-    <div className="space-y-4 rounded-lg border-2 border-accent/50 bg-accent/5 p-4 dark:border-accent/60 dark:bg-accent/10">
-      <h3 className="flex items-center gap-2 text-sm font-bold text-accent dark:text-accent-light">
+    <div className="space-y-4 rounded-lg border-2 border-accent/50 bg-accent/5 p-4">
+      <h3 className="flex items-center gap-2 text-sm font-bold text-accent">
         <Send className="h-5 w-5" />
         {t.messages_write_title ?? 'Scrivi Messaggio'}
       </h3>
 
       {/* Tipo messaggio - Full */}
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-accent dark:text-accent-light">
+        <label className="text-sm font-semibold text-accent">
           {t.messages_recipient_label ?? 'Destinatario:'}
         </label>
         <div className="flex gap-3">
@@ -245,7 +245,7 @@ export function MessageWriter({
               }}
               className="h-4 w-4"
             />
-            <span className="text-sm text-accent dark:text-accent-light">📢 {t.messages_recipient_all ?? 'Tutti'}</span>
+            <span className="text-sm text-accent">📢 {t.messages_recipient_all ?? 'Tutti'}</span>
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -256,7 +256,7 @@ export function MessageWriter({
               onChange={(e) => setMessageType(e.target.value as 'broadcast' | 'private')}
               className="h-4 w-4"
             />
-            <span className="text-sm text-accent dark:text-accent-light">✉️ {t.messages_recipient_private ?? 'Privato'}</span>
+            <span className="text-sm text-accent">✉️ {t.messages_recipient_private ?? 'Privato'}</span>
           </label>
         </div>
       </div>
@@ -264,13 +264,13 @@ export function MessageWriter({
       {/* Seleziona destinatario - Full */}
       {messageType === 'private' && (
         <div>
-          <label className="block text-sm font-semibold text-accent dark:text-accent-light">
+          <label className="block text-sm font-semibold text-accent">
             {t.messages_recipient_to ?? 'A chi:'}
           </label>
           <select
             value={selectedRecipientId}
             onChange={(e) => setSelectedRecipientId(e.target.value)}
-            className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm dark:border-accent/50 dark:bg-neutral-900 dark:text-neutral-100"
+            className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm"
           >
             <option value="">{t.messages_recipient_select ?? 'Seleziona utente...'}</option>
             {allUsers
@@ -286,7 +286,7 @@ export function MessageWriter({
 
       {/* Oggetto - Full */}
       <div>
-        <label className="block text-sm font-semibold text-accent dark:text-accent-light">
+        <label className="block text-sm font-semibold text-accent">
           {t.messages_subject_label ?? 'Oggetto:'}
         </label>
         <input
@@ -295,13 +295,13 @@ export function MessageWriter({
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           maxLength={100}
-          className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40 dark:border-accent/50 dark:bg-neutral-900 dark:text-neutral-100"
+          className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40"
         />
       </div>
 
       {/* Corpo - Full */}
       <div>
-        <label className="block text-sm font-semibold text-accent dark:text-accent-light">
+        <label className="block text-sm font-semibold text-accent">
           {t.messages_body_label ?? 'Messaggio:'}
         </label>
         <textarea
@@ -310,22 +310,22 @@ export function MessageWriter({
           onChange={(e) => setBody(e.target.value)}
           maxLength={500}
           rows={4}
-          className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40 resize-none dark:border-accent/50 dark:bg-neutral-900 dark:text-neutral-100"
+          className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40 resize-none"
         />
-        <p className="mt-1 text-xs text-slate-400 dark:text-neutral-500">
+        <p className="mt-1 text-xs text-slate-400">
           {body.length}/500 {t.messages_chars_count ?? 'caratteri'}
         </p>
       </div>
 
       {error && (
-        <div className="flex gap-2 rounded-lg bg-red-100 p-3 dark:bg-red-950/40">
-          <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-700 dark:text-red-400" />
-          <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+        <div className="flex gap-2 rounded-lg bg-red-100 p-3">
+          <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-700" />
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
       {success && (
-        <div className="rounded-lg bg-brand-100 p-3 text-sm font-semibold text-brand-700 dark:bg-[#001A80]/12 dark:text-brand-300">
+        <div className="rounded-lg bg-brand-100 p-3 text-sm font-semibold text-brand-700">
           {t.messages_sent_ok ?? '✓ Messaggio inviato con successo!'}
         </div>
       )}
@@ -335,7 +335,7 @@ export function MessageWriter({
           type="button"
           onClick={handleSend}
           disabled={isSending}
-          className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-accent-hover disabled:opacity-60 dark:bg-accent dark:hover:bg-accent-hover"
+          className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-accent-hover disabled:opacity-60"
         >
           {isSending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -348,7 +348,7 @@ export function MessageWriter({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-accent/30 px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/10 dark:border-accent/50 dark:text-accent-light dark:hover:bg-accent/20"
+            className="rounded-lg border border-accent/30 px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/10"
           >
             {t.cancel ?? 'Annulla'}
           </button>

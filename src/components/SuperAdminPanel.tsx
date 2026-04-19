@@ -387,7 +387,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
   return (
     <div className="space-y-3" ref={topRef}>
       {error && (
-        <div className="rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 px-3 py-2 text-xs text-red-700 dark:text-red-300 flex gap-2 items-center">
+        <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700 flex gap-2 items-center">
           <X className="w-3.5 h-3.5 shrink-0" />
           <span className="flex-1">{error}</span>
           <button onClick={() => setError(null)}><X className="w-3 h-3" /></button>
@@ -403,47 +403,47 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="rounded-xl border border-accent/30 bg-white dark:bg-neutral-900 p-4 space-y-3 shadow-sm">
+            <div className="rounded-xl border border-accent/30 bg-white p-4 space-y-3 shadow-sm">
               <p className="text-xs font-bold uppercase tracking-wider text-accent">
                 {editingId === 'new' ? 'Nuovo dipendente' : 'Modifica dipendente'}
               </p>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">Nome *</label>
+                  <label className="text-[11px] font-semibold text-slate-500">Nome *</label>
                   <input value={form.first_name} onChange={(e) => setF('first_name', e.target.value)} placeholder="Mario"
-                    className="w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2.5 py-2 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                    className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">Cognome</label>
+                  <label className="text-[11px] font-semibold text-slate-500">Cognome</label>
                   <input value={form.last_name ?? ''} onChange={(e) => setF('last_name', e.target.value)} placeholder="Rossi"
-                    className="w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2.5 py-2 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                    className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">Email</label>
+                <label className="text-[11px] font-semibold text-slate-500">Email</label>
                 <input type="email" value={form.email} onChange={(e) => setF('email', e.target.value)} placeholder="mario@email.com"
-                  className="w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2.5 py-2 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40" />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">Ruolo *</label>
+                  <label className="text-[11px] font-semibold text-slate-500">Ruolo *</label>
                   <select value={form.role} onChange={(e) => setF('role', e.target.value as UserRole)}
-                    className="w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2.5 py-2 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40">
+                    className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40">
                     {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">Reparto</label>
+                  <label className="text-[11px] font-semibold text-slate-500">Reparto</label>
                   <input value={form.department ?? ''} onChange={(e) => setF('department', e.target.value)} placeholder="sala, bar, cucina…"
-                    className="w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2.5 py-2 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                    className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">PIN (4 cifre) *</label>
+                <label className="text-[11px] font-semibold text-slate-500">PIN (4 cifre) *</label>
                 <div className="relative">
                   <input
                     type={showPin ? 'text' : 'password'}
@@ -452,7 +452,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
                     placeholder="••••"
                     maxLength={4}
                     inputMode="numeric"
-                    className="w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2.5 py-2 pr-9 text-sm font-mono text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 pr-9 text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40"
                   />
                   <button type="button" onClick={() => setShowPin((p) => !p)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-accent transition">
                     {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -471,7 +471,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
                   {saving ? 'Salvataggio…' : 'Salva'}
                 </button>
                 <button type="button" onClick={() => { setEditingId(null); setError(null); }}
-                  className="rounded-xl bg-slate-100 dark:bg-neutral-800 px-3 py-2 text-sm font-bold text-slate-600 dark:text-neutral-300 hover:bg-slate-200 dark:hover:bg-neutral-700 transition active:scale-95">
+                  className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-200 transition active:scale-95">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -494,25 +494,25 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
       ) : (
         <div className="space-y-1.5">
           {users.map((u) => (
-            <div key={u.id} className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 border transition ${u.status === 'active' ? 'border-slate-100 dark:border-neutral-800 bg-white dark:bg-neutral-900' : 'border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-950 opacity-60'}`}>
+            <div key={u.id} className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 border transition ${u.status === 'active' ? 'border-slate-100 bg-white' : 'border-slate-100 bg-slate-50 opacity-60'}`}>
               {/* Avatar iniziali */}
               <span className="w-8 h-8 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0">
                 {u.first_name.charAt(0)}{u.last_name?.charAt(0) ?? ''}
               </span>
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 dark:text-neutral-100 truncate">
+                <p className="text-sm font-semibold text-slate-800 truncate">
                   {u.first_name} {u.last_name}
                   {u.status !== 'active' && <span className="ml-1.5 text-[10px] font-bold text-red-400">(sospeso)</span>}
                 </p>
-                <p className="text-[11px] text-slate-400 dark:text-neutral-500 truncate">
+                <p className="text-[11px] text-slate-400 truncate">
                   {ROLE_LABELS[u.role]}{u.department ? ` · ${u.department}` : ''}
                 </p>
               </div>
               {/* Azioni */}
               <div className="flex items-center gap-1 shrink-0">
                 <button onClick={() => toggleStatus(u)} title={u.status === 'active' ? 'Sospendi' : 'Riattiva'}
-                  className={`p-1.5 rounded-lg transition ${u.status === 'active' ? 'text-brand-500 hover:bg-brand-50 dark:hover:bg-[#001A80]/10' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800'}`}>
+                  className={`p-1.5 rounded-lg transition ${u.status === 'active' ? 'text-brand-500 hover:bg-brand-50' : 'text-slate-400 hover:bg-slate-100'}`}>
                   {u.status === 'active' ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
                 </button>
                 <button onClick={() => openEdit(u)} title="Modifica"
@@ -520,7 +520,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
                 <button onClick={() => handleDelete(u.id)} title="Elimina" disabled={deleting === u.id}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition disabled:opacity-40">
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition disabled:opacity-40">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -720,9 +720,9 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
   const flags = settings.featureFlags ?? {};
 
   return (
-    <div className="mt-3 rounded-xl border border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-950 overflow-hidden">
+    <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 overflow-hidden">
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-neutral-800 overflow-x-auto">
+      <div className="flex border-b border-slate-200 overflow-x-auto">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -730,8 +730,8 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors ${
               tab === t.id
-                ? 'text-accent border-b-2 border-accent bg-white dark:bg-neutral-900'
-                : 'text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-neutral-200'
+                ? 'text-accent border-b-2 border-accent bg-white'
+                : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             {t.icon}{t.label}
@@ -748,7 +748,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
         {/* TAB: Funzionalità */}
         {tab === 'features' && (
           <>
-            <p className="text-[11px] text-slate-400 dark:text-neutral-500 mb-3">Abilita o disabilita i moduli per questa sede.</p>
+            <p className="text-[11px] text-slate-400 mb-3">Abilita o disabilita i moduli per questa sede.</p>
 
             <div className="space-y-1 mb-4">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Moduli principali</p>
@@ -759,17 +759,17 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                 { key: 'statistics', label: 'Statistiche ore' },
               ] as { key: keyof NonNullable<TenantSettings['modules']>; label: string }[]).map(({ key, label }) => (
                 <div key={key} className="flex items-center justify-between py-1.5">
-                  <span className="text-sm text-slate-700 dark:text-neutral-200">{label}</span>
+                  <span className="text-sm text-slate-700">{label}</span>
                   <Toggle value={mods[key] !== false} onChange={(v) => setModule(key, v)} />
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-slate-200 dark:border-neutral-800 pt-3 space-y-1">
+            <div className="border-t border-slate-200 pt-3 space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Funzionalità avanzate</p>
               {FEATURE_DEFS.map((f) => (
                 <div key={f.slug} className="flex items-center justify-between py-1.5">
-                  <span className={`text-sm ${f.dangerous ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-neutral-200'}`}>
+                  <span className={`text-sm ${f.dangerous ? 'text-red-600' : 'text-slate-700'}`}>
                     {f.label}
                   </span>
                   <Toggle value={flags[f.slug] !== false ? (flags[f.slug] ?? f.defaultEnabled) : false} onChange={(v) => setFlag(f.slug, v)} danger={f.dangerous} />
@@ -782,7 +782,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
         {/* TAB: Regole turni */}
         {tab === 'workrules' && (
           <div className="space-y-4">
-            <p className="text-[11px] text-slate-400 dark:text-neutral-500">Valori predefiniti per le regole di lavoro. L'admin della sede può modificarli.</p>
+            <p className="text-[11px] text-slate-400">Valori predefiniti per le regole di lavoro. L'admin della sede può modificarli.</p>
 
             <RuleRow
               label="Ore max giornaliere"
@@ -816,7 +816,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
               <NumberInput value={wr.lateThresholdMinutes ?? 10} min={0} max={60} onChange={(v) => setWorkRule('lateThresholdMinutes', v)} suffix="min" />
             </RuleRow>
 
-            <div className="border-t border-slate-200 dark:border-neutral-800 pt-3 space-y-2">
+            <div className="border-t border-slate-200 pt-3 space-y-2">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Alert automatici</p>
               {([
                 { key: 'criticEnabled',    label: 'Alert critico (turno lungo + riposo insufficiente)' },
@@ -824,7 +824,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                 { key: 'overlapEnabled',   label: 'Alert sovrapposizione turni' },
               ] as { key: keyof NonNullable<TenantSettings['workRules']>; label: string }[]).map(({ key, label }) => (
                 <div key={key} className="flex items-center justify-between py-1">
-                  <span className="text-sm text-slate-700 dark:text-neutral-200 pr-4">{label}</span>
+                  <span className="text-sm text-slate-700 pr-4">{label}</span>
                   <Toggle value={(wr[key] as boolean | undefined) !== false} onChange={(v) => setWorkRule(key, v as never)} />
                 </div>
               ))}
@@ -835,12 +835,12 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
         {/* TAB: Geofence */}
         {tab === 'geofence' && (
           <div className="space-y-3">
-            <p className="text-[11px] text-slate-400 dark:text-neutral-500">
+            <p className="text-[11px] text-slate-400">
               Coordinate GPS del locale per la funzione geofence (timbratura entro un raggio).
               Richiede di abilitare "Geofence timbrature" nelle Funzionalità.
             </p>
             <div className="flex items-center justify-between py-1">
-              <span className="text-sm font-semibold text-slate-700 dark:text-neutral-200">Geofence attiva</span>
+              <span className="text-sm font-semibold text-slate-700">Geofence attiva</span>
               <Toggle
                 value={settings.geofence != null}
                 onChange={(v) => set('geofence', v ? { lat: 41.9028, lng: 12.4964, radiusM: 100 } : null)}
@@ -850,31 +850,31 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
               <div className="space-y-3 pt-1">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 dark:text-neutral-400">Latitudine</label>
+                    <label className="text-xs font-semibold text-slate-500">Latitudine</label>
                     <input
                       type="number" step="0.000001"
                       value={settings.geofence.lat}
                       onChange={(e) => set('geofence', { ...settings.geofence!, lat: parseFloat(e.target.value) || 0 })}
-                      className="w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 dark:text-neutral-400">Longitudine</label>
+                    <label className="text-xs font-semibold text-slate-500">Longitudine</label>
                     <input
                       type="number" step="0.000001"
                       value={settings.geofence.lng}
                       onChange={(e) => set('geofence', { ...settings.geofence!, lng: parseFloat(e.target.value) || 0 })}
-                      className="w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40"
                     />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-500 dark:text-neutral-400">Raggio (metri)</label>
+                  <label className="text-xs font-semibold text-slate-500">Raggio (metri)</label>
                   <input
                     type="number" min={10} max={5000}
                     value={settings.geofence.radiusM}
                     onChange={(e) => set('geofence', { ...settings.geofence!, radiusM: parseInt(e.target.value) || 100 })}
-                    className="w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40"
                   />
                 </div>
                 <p className="text-[10px] text-slate-400">
@@ -888,25 +888,25 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
         {/* TAB: Locale */}
         {tab === 'locale' && (
           <div className="space-y-4">
-            <p className="text-[11px] text-slate-400 dark:text-neutral-500">Lingua predefinita e fuso orario della sede.</p>
+            <p className="text-[11px] text-slate-400">Lingua predefinita e fuso orario della sede.</p>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-600 dark:text-neutral-300">Lingua predefinita</label>
+              <label className="text-xs font-semibold text-slate-600">Lingua predefinita</label>
               <select
                 value={settings.defaultLanguage ?? 'it'}
                 onChange={(e) => set('defaultLanguage', e.target.value as 'it' | 'en' | 'es' | 'fr')}
-                className="w-full rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40"
               >
                 {LANGUAGES.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-600 dark:text-neutral-300">Fuso orario</label>
+              <label className="text-xs font-semibold text-slate-600">Fuso orario</label>
               <select
                 value={settings.timezone ?? 'Europe/Rome'}
                 onChange={(e) => set('timezone', e.target.value)}
-                className="w-full rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40"
               >
                 {TIMEZONES.map((tz) => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
               </select>
@@ -915,14 +915,14 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
         )}
 
         {/* Salva impostazioni — sempre visibile, disabilitato nel tab Dipendenti (salvataggio inline per-utente) */}
-        <div className="pt-2 border-t border-slate-200 dark:border-neutral-800 space-y-1.5">
+        <div className="pt-2 border-t border-slate-200 space-y-1.5">
           {dirty && !saving && (
-            <p className="text-center text-[11px] font-semibold text-amber-500 dark:text-amber-400">
+            <p className="text-center text-[11px] font-semibold text-amber-500">
               ● Modifiche non salvate
             </p>
           )}
           {saved && (
-            <p className="text-center text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+            <p className="text-center text-[11px] font-semibold text-emerald-600">
               ✓ Impostazioni salvate
             </p>
           )}
@@ -955,7 +955,7 @@ function Toggle({ value, onChange, danger }: { value: boolean; onChange: (v: boo
       className={`relative w-10 h-5.5 rounded-full transition-colors duration-200 shrink-0 ${
         value
           ? danger ? 'bg-red-500' : 'bg-accent'
-          : 'bg-slate-200 dark:bg-neutral-700'
+          : 'bg-slate-200'
       }`}
       style={{ minWidth: '2.5rem', height: '1.375rem' }}
     >
@@ -978,7 +978,7 @@ function RuleRow({ label, enabled, onToggle, children }: {
   return (
     <div className="flex items-center gap-3">
       <Toggle value={enabled} onChange={onToggle} />
-      <span className={`text-sm flex-1 ${enabled ? 'text-slate-700 dark:text-neutral-200' : 'text-slate-400 dark:text-neutral-500'}`}>{label}</span>
+      <span className={`text-sm flex-1 ${enabled ? 'text-slate-700' : 'text-slate-400'}`}>{label}</span>
       <div className={`transition-opacity ${enabled ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
         {children}
       </div>
@@ -995,7 +995,7 @@ function NumberInput({ value, min, max, onChange, suffix }: {
         type="number" min={min} max={max}
         value={value}
         onChange={(e) => onChange(Math.max(min, Math.min(max, parseInt(e.target.value) || min)))}
-        className="w-16 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 py-1 text-sm text-center text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40"
+        className="w-16 rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-center text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40"
       />
       <span className="text-xs text-slate-400">{suffix}</span>
     </div>
@@ -1045,25 +1045,25 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 8 }}
       onSubmit={handleSubmit}
-      className="space-y-4 p-5 bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 dark:border-neutral-700 shadow-sm"
+      className="space-y-4 p-5 bg-white rounded-2xl border border-slate-200 shadow-sm"
     >
       <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{initial?.id ? 'Modifica sede' : 'Nuova sede'}</p>
 
       {/* Nome */}
       <div className="space-y-1">
-        <label className="text-xs font-semibold text-slate-600 dark:text-neutral-300">Nome sede *</label>
+        <label className="text-xs font-semibold text-slate-600">Nome sede *</label>
         <input
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Es. Ristorante Mario"
-          className="w-full rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
+          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
         />
       </div>
 
       {/* Slug */}
       <div className="space-y-1">
-        <label className="text-xs font-semibold text-slate-600 dark:text-neutral-300">Slug (sottodominio) *</label>
+        <label className="text-xs font-semibold text-slate-600">Slug (sottodominio) *</label>
         <div className="flex gap-2 items-center">
           <input
             required
@@ -1071,7 +1071,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
             onChange={(e) => { setSlug(slugify(e.target.value)); setSlugManual(true); }}
             placeholder="es-ristorante-mario"
             pattern="[a-z0-9\-]+"
-            className="flex-1 rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm font-mono text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
+            className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
           />
           <button type="button" onClick={() => { setSlugManual(false); setSlug(slugify(name)); }} className="text-xs text-accent hover:underline shrink-0">Auto</button>
         </div>
@@ -1083,7 +1083,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
         <div className="w-6 h-6 rounded-full bg-[#001A80] flex items-center justify-center shrink-0">
           <span className="text-white text-[10px] font-bold">F</span>
         </div>
-        <p className="text-[11px] text-slate-500 dark:text-neutral-400">
+        <p className="text-[11px] text-slate-500">
           Colore, font e logo sono fissi — brand FLOW per tutte le sedi.
         </p>
       </div>
@@ -1093,10 +1093,10 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
         <div className="rounded-xl border border-[#001A80]/20 bg-[#001A80]/5 px-3.5 py-3 flex items-start gap-3">
           <Toggle value={seedDemo} onChange={onSeedDemoChange} />
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-700 dark:text-neutral-200 leading-snug">
+            <p className="text-sm font-semibold text-slate-700 leading-snug">
               Carica dati demo
             </p>
-            <p className="text-[11px] text-slate-400 dark:text-neutral-500 leading-snug mt-0.5">
+            <p className="text-[11px] text-slate-400 leading-snug mt-0.5">
               Dipendenti anonimizzati + turni settimana corrente dal template demo
             </p>
           </div>
@@ -1113,7 +1113,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
           <Check className="w-4 h-4" />
           {saving ? 'Salvataggio…' : 'Salva'}
         </button>
-        <button type="button" onClick={onCancel} className="rounded-xl bg-slate-100 dark:bg-neutral-800 px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-neutral-200 hover:bg-slate-200 dark:hover:bg-neutral-700 transition">
+        <button type="button" onClick={onCancel} className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-200 transition">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -1173,45 +1173,45 @@ function NewAdminCredentialsModal({ creds, onClose }: { creds: NewAdminCredentia
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 backdrop-blur-sm dark:bg-black/50 p-4">
-      <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
-            <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5 text-emerald-600" />
           </div>
           <div>
-            <p className="font-bold text-slate-900 dark:text-white text-sm">Admin creato automaticamente</p>
-            <p className="text-xs text-slate-500 dark:text-neutral-400">Salva queste credenziali in un posto sicuro</p>
+            <p className="font-bold text-slate-900 text-sm">Admin creato automaticamente</p>
+            <p className="text-xs text-slate-500">Salva queste credenziali in un posto sicuro</p>
           </div>
         </div>
 
-        <div className="bg-slate-50 dark:bg-neutral-800 rounded-xl p-4 space-y-2 font-mono text-sm">
+        <div className="bg-slate-50 rounded-xl p-4 space-y-2 font-mono text-sm">
           <div className="flex justify-between">
-            <span className="text-slate-500 dark:text-neutral-400 text-xs font-sans">Sede</span>
-            <span className="font-semibold text-slate-800 dark:text-white">{creds.tenantName}</span>
+            <span className="text-slate-500 text-xs font-sans">Sede</span>
+            <span className="font-semibold text-slate-800">{creds.tenantName}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-500 dark:text-neutral-400 text-xs font-sans">Nome login</span>
-            <span className="font-semibold text-slate-800 dark:text-white">{creds.firstName}</span>
+            <span className="text-slate-500 text-xs font-sans">Nome login</span>
+            <span className="font-semibold text-slate-800">{creds.firstName}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-slate-500 dark:text-neutral-400 text-xs font-sans">PIN</span>
+            <span className="text-slate-500 text-xs font-sans">PIN</span>
             <span className="text-2xl font-bold tracking-widest text-accent">{creds.pin}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-500 dark:text-neutral-400 text-xs font-sans">Ruolo</span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">Admin</span>
+            <span className="text-slate-500 text-xs font-sans">Ruolo</span>
+            <span className="font-semibold text-emerald-600">Admin</span>
           </div>
         </div>
 
-        <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2">
+        <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
           ⚠ Cambia il PIN subito dopo il primo accesso tramite il profilo utente nell'app.
         </p>
 
         <div className="flex gap-2">
           <button
             onClick={handleCopy}
-            className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-neutral-700 py-2.5 text-sm font-semibold text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800 transition"
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
             {copied ? 'Copiato!' : 'Copia'}

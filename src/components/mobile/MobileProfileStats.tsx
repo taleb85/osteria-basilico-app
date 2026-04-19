@@ -2,7 +2,7 @@ import { FileText, Wallet } from 'lucide-react';
 import { lightHaptic } from '../../utils/hapticFeedbackCore';
 
 const cardShadow =
-  'shadow-[0_8px_30px_-12px_rgba(0,26,128,0.12),0_2px_8px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_10px_32px_-12px_rgba(0,0,0,0.5)]';
+  'shadow-[0_8px_30px_-12px_rgba(0,26,128,0.12),0_2px_8px_-4px_rgba(15,23,42,0.06)])]';
 
 export interface MobileProfileStatsProps {
   monthHoursLabel: string;
@@ -42,13 +42,13 @@ export default function MobileProfileStats({
           ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', boxShadow: 'none' }
           : { background: 'rgba(255,255,255,0.95)', borderColor: 'rgba(241,245,249,0.80)' }}
       >
-        <p className="text-center text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-neutral-400">
+        <p className="text-center text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
           {monthHoursLabel}
         </p>
-        <p className="mt-2 text-center text-4xl font-bold tabular-nums tracking-tight text-accent-dark dark:text-accent-light">
+        <p className="mt-2 text-center text-4xl font-bold tabular-nums tracking-tight text-accent-dark">
           {hoursFormatted}
         </p>
-        <p className="mt-1 text-center text-sm text-slate-500 dark:text-neutral-400">
+        <p className="mt-1 text-center text-sm text-slate-500">
           {shiftsInMonth} {shiftsLabel}
         </p>
       </div>
@@ -62,10 +62,10 @@ export default function MobileProfileStats({
             ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', boxShadow: 'none' }
             : { background: 'rgba(255,255,255,0.95)', borderColor: 'rgba(241,245,249,0.80)' }}
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent dark:bg-accent/20 dark:text-accent-light">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent">
             <FileText className="h-5 w-5" strokeWidth={2} />
           </span>
-          <span className="text-[11px] font-bold uppercase tracking-wide text-slate-700 dark:text-neutral-200">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-slate-700">
             {documentsLabel}
           </span>
         </button>
@@ -77,10 +77,10 @@ export default function MobileProfileStats({
             ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', boxShadow: 'none' }
             : { background: 'rgba(255,255,255,0.95)', borderColor: 'rgba(241,245,249,0.80)' }}
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent dark:bg-accent/20 dark:text-accent-light">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent">
             <Wallet className="h-5 w-5" strokeWidth={2} />
           </span>
-          <span className="text-[11px] font-bold uppercase tracking-wide text-slate-700 dark:text-neutral-200">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-slate-700">
             {payslipLabel}
           </span>
         </button>

@@ -65,13 +65,13 @@ export function NotificationDropdown({
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 top-full z-50 mt-2 w-80 max-h-96 rounded-lg border border-slate-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
+      className="absolute right-0 top-full z-50 mt-2 w-80 max-h-96 rounded-lg border border-slate-200 bg-white shadow-xl"
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/50">
+      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 bg-slate-50/50">
         <div className="flex items-center gap-2">
-          <Bell className="h-4 w-4 text-accent dark:text-accent-light" />
-          <h3 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
+          <Bell className="h-4 w-4 text-accent" />
+          <h3 className="text-sm font-bold text-slate-900">
             {t.messages_latest}
           </h3>
           {unreadCount > 0 && (
@@ -83,23 +83,23 @@ export function NotificationDropdown({
         <button
           type="button"
           onClick={onClose}
-          className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-neutral-700 transition-colors"
+          className="p-0.5 rounded hover:bg-slate-200 transition-colors"
           title="Chiudi"
           aria-label="Chiudi notifiche"
         >
-          <X className="h-4 w-4 text-slate-600 dark:text-neutral-400" />
+          <X className="h-4 w-4 text-slate-600" />
         </button>
       </div>
 
       {/* Lista messaggi */}
-      <div className="divide-y divide-slate-100 dark:divide-neutral-800 overflow-y-auto max-h-80">
+      <div className="divide-y divide-slate-100 overflow-y-auto max-h-80">
         {recentMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-8 text-center px-4">
-            <MessageCircle className="h-8 w-8 text-slate-300 dark:text-neutral-700" />
-            <p className="text-xs font-medium text-slate-600 dark:text-neutral-400">
+            <MessageCircle className="h-8 w-8 text-slate-300" />
+            <p className="text-xs font-medium text-slate-600">
               {t.messages_no_new}
             </p>
-            <p className="text-[11px] text-slate-500 dark:text-neutral-500">
+            <p className="text-[11px] text-slate-500">
               {t.messages_all_read}
             </p>
           </div>
@@ -118,20 +118,20 @@ export function NotificationDropdown({
                 key={msg.id}
                 type="button"
                 onClick={() => handleMessageClick(msg)}
-                className={`w-full px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-neutral-800 ${
-                  isUnread ? 'bg-accent/5 dark:bg-accent/10' : ''
+                className={`w-full px-4 py-3 text-left transition-colors hover:bg-slate-50 ${
+                  isUnread ? 'bg-accent/5' : ''
                 }`}
               >
                 <div className="flex gap-3">
                   {/* Icona */}
                   <div className="flex-shrink-0 pt-0.5">
                     {isBroadcast ? (
-                      <div className="flex h-5 w-5 items-center justify-center rounded bg-brand-100 dark:bg-[#001A80]/12 text-sm">
+                      <div className="flex h-5 w-5 items-center justify-center rounded bg-brand-100 text-sm">
                         📢
                       </div>
                     ) : (
-                      <div className="flex h-5 w-5 items-center justify-center rounded bg-accent/10 dark:bg-accent/20">
-                        <Mail className="h-3 w-3 text-accent dark:text-accent-light" />
+                      <div className="flex h-5 w-5 items-center justify-center rounded bg-accent/10">
+                        <Mail className="h-3 w-3 text-accent" />
                       </div>
                     )}
                   </div>
@@ -142,8 +142,8 @@ export function NotificationDropdown({
                     <div className="flex items-center gap-2">
                       <p className={`text-xs font-bold truncate ${
                         isUnread
-                          ? 'text-slate-900 dark:text-neutral-100'
-                          : 'text-slate-700 dark:text-neutral-400'
+                          ? 'text-slate-900'
+                          : 'text-slate-700'
                       }`}>
                         {msg.subject}
                       </p>
@@ -153,19 +153,19 @@ export function NotificationDropdown({
                     </div>
 
                     {/* Anteprima testo */}
-                    <p className="text-xs text-slate-600 dark:text-neutral-400 truncate mt-0.5">
+                    <p className="text-xs text-slate-600 truncate mt-0.5">
                       {preview}
                     </p>
 
                     {/* Tempo */}
-                    <p className="text-[10px] text-slate-500 dark:text-neutral-500 mt-1">
+                    <p className="text-[10px] text-slate-500 mt-1">
                       {timeAgo}
                     </p>
                   </div>
 
                   {/* Freccia */}
                   <div className="flex-shrink-0 pt-1">
-                    <ChevronRight className="h-4 w-4 text-slate-400 dark:text-neutral-600" />
+                    <ChevronRight className="h-4 w-4 text-slate-400" />
                   </div>
                 </div>
               </button>
@@ -176,14 +176,14 @@ export function NotificationDropdown({
 
       {/* Footer: Link al centro messaggi */}
       {recentMessages.length > 0 && (
-        <div className="border-t border-slate-200 px-4 py-2 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/50">
+        <div className="border-t border-slate-200 px-4 py-2 bg-slate-50/50">
           <button
             type="button"
             onClick={() => {
               // TODO: Naviga a profilo con sezione messaggi
               onClose();
             }}
-            className="w-full text-center text-xs font-semibold text-accent hover:text-accent-hover dark:text-accent-light dark:hover:text-accent transition-colors py-1"
+            className="w-full text-center text-xs font-semibold text-accent hover:text-accent-hover transition-colors py-1"
           >
             Visualizza Tutti →
           </button>

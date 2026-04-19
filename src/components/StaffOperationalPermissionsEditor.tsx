@@ -56,10 +56,10 @@ export default function StaffOperationalPermissionsEditor({ user, currentUser }:
 
   return (
     <div>
-      <p className="ui-section-title mb-2 text-slate-400 dark:text-neutral-400">
+      <p className="ui-section-title mb-2 text-slate-400">
         {formatTrans(t.settings_operational_perms_heading, { name: user.first_name ?? '' })}
       </p>
-      <p className="text-[11px] text-slate-500 dark:text-neutral-300 mb-2 leading-snug">{t.settings_operational_perms_editable_hint}</p>
+      <p className="text-[11px] text-slate-500 mb-2 leading-snug">{t.settings_operational_perms_editable_hint}</p>
       <div className={PERMISSION_SUMMARY_LIST_CLASS}>
         {rows.map((perm) => {
           const enabled = isUserPermissionEffective(user, perm.key);
@@ -71,7 +71,7 @@ export default function StaffOperationalPermissionsEditor({ user, currentUser }:
               label={
                 <span
                   className={
-                    enabled ? 'text-slate-800 dark:text-neutral-100' : 'text-slate-500 dark:text-neutral-400'
+                    enabled ? 'text-slate-800' : 'text-slate-500'
                   }
                 >
                   {perm.label}
@@ -95,7 +95,7 @@ export default function StaffOperationalPermissionsEditor({ user, currentUser }:
                     disabled={busyKey !== null}
                     onClick={() => void handleToggle(perm.key, perm.adminOnly)}
                     className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${
-                      enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'
+                      enabled ? 'bg-accent' : 'bg-slate-200'
                     } ${busyKey !== null ? 'cursor-wait opacity-60' : ''}`}
                   >
                     <span

@@ -63,7 +63,7 @@ export function CenteredModalPortal({
         >
           <button
             type="button"
-            className={`absolute inset-0 bg-black/40 backdrop-blur-md dark:bg-black/55 ${disableBackdropClose ? 'cursor-default' : ''}`}
+            className={`absolute inset-0 bg-black/40 backdrop-blur-md ${disableBackdropClose ? 'cursor-default' : ''}`}
             aria-label={backdropAriaLabel}
             onClick={disableBackdropClose ? undefined : onClose}
           />

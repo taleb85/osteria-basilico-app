@@ -57,7 +57,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
         {/* Overlay */}
         <button
           type="button"
-          className="absolute inset-0 bg-black/40 backdrop-blur-md dark:bg-black/55 w-screen h-screen"
+          className="absolute inset-0 bg-black/40 backdrop-blur-md w-screen h-screen"
           aria-label="Chiudi"
           onClick={onClose}
         />
@@ -68,7 +68,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative my-auto flex w-full max-w-[92vw] min-h-0 flex-col overflow-hidden rounded-[40px] border border-white/10 bg-white shadow-2xl dark:bg-neutral-900 sm:max-w-[460px] z-[100001]"
+          className="relative my-auto flex w-full max-w-[92vw] min-h-0 flex-col overflow-hidden rounded-[40px] border border-white/10 bg-white shadow-2xl sm:max-w-[460px] z-[100001]"
           style={{ height: 'min(88vh, 680px)', maxHeight: 'min(88vh, 680px)' }}
           onClick={(e) => e.stopPropagation()}
         >

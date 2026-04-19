@@ -83,7 +83,7 @@ export default function PunchPresenceVerificationModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/55 p-4 backdrop-blur-sm dark:bg-black/65 sm:items-center"
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/55 p-4 backdrop-blur-sm sm:items-center"
           role="dialog"
           aria-modal="true"
           aria-labelledby="punch-presence-title"
@@ -97,20 +97,20 @@ export default function PunchPresenceVerificationModal({
             <button
               type="button"
               onClick={onClose}
-              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200"
               aria-label={tv.close ?? 'Chiudi'}
             >
               <X className="h-4 w-4" />
             </button>
             <div className="p-5 pt-6">
-              <h2 id="punch-presence-title" className="pr-10 text-base font-bold text-slate-900 dark:text-neutral-50">
+              <h2 id="punch-presence-title" className="pr-10 text-base font-bold text-slate-900">
                 {title}
               </h2>
-              <p className="mt-1 text-xs leading-snug text-slate-500 dark:text-neutral-300">{subtitle}</p>
+              <p className="mt-1 text-xs leading-snug text-slate-500">{subtitle}</p>
 
               {mode === 'qr' && (
                 <div className="mt-4">
-                  <div className="mb-2 flex items-center justify-center gap-2 text-xs font-medium text-slate-600 dark:text-neutral-400">
+                  <div className="mb-2 flex items-center justify-center gap-2 text-xs font-medium text-slate-600">
                     <Camera className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                     <span>{t.punch_presence_point_camera}</span>
                   </div>
@@ -127,7 +127,7 @@ export default function PunchPresenceVerificationModal({
               )}
 
               {localError && (
-                <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-center text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+                <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-center text-sm text-red-700">
                   {localError}
                 </p>
               )}
@@ -136,7 +136,7 @@ export default function PunchPresenceVerificationModal({
                 <button
                   type="button"
                   onClick={handleRetry}
-                  className="mt-4 w-full rounded-xl bg-slate-100 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
+                  className="mt-4 w-full rounded-xl bg-slate-100 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-200"
                 >
                   {t.punch_presence_try_again}
                 </button>

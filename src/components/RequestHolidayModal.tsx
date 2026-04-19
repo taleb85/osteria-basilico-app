@@ -92,8 +92,8 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
   };
 
   const inputCls =
-    'w-full px-3 py-2.5 text-sm rounded-2xl bg-white border border-slate-100 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-slate-900 placeholder:text-slate-500 transition-all dark:bg-neutral-900 dark:border-white/10 dark:text-neutral-100';
-  const labelCls = 'block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1 dark:text-neutral-300';
+    'w-full px-3 py-2.5 text-sm rounded-2xl bg-white border border-slate-100 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-slate-900 placeholder:text-slate-500 transition-all';
+  const labelCls = 'block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1';
 
   if (!isOpen) return null;
 
@@ -143,7 +143,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
         <label className={labelCls}>
           <FileText className="inline h-3 w-3 mr-1" aria-hidden />
           {reasonLbl}{' '}
-          <span className="text-slate-400 normal-case font-normal dark:text-neutral-500">{reasonOpt}</span>
+          <span className="text-slate-400 normal-case font-normal">{reasonOpt}</span>
         </label>
         <textarea
           value={reason}
@@ -162,7 +162,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[1000] flex flex-col bg-slate-900/50 backdrop-blur-sm dark:bg-black/65"
+          className="fixed inset-0 z-[1000] flex flex-col bg-slate-900/50 backdrop-blur-sm"
           role="presentation"
         >
           <motion.form
@@ -171,17 +171,17 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
             exit={{ opacity: 0, y: 16 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
             onSubmit={handleSubmit}
-            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-[0_8px_40px_-12px_rgba(0,26,128,0.12)] dark:bg-neutral-950 dark:shadow-[0_8px_40px_-12px_rgba(0,0,0,0.55)]"
+            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-[0_8px_40px_-12px_rgba(0,26,128,0.12)])]"
           >
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))] dark:border-white/10">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-neutral-100">{title}</h3>
+            <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))]">
+              <h3 className="text-lg font-bold text-slate-900">{title}</h3>
               <button
                 type="button"
                 onClick={() => {
                   lightHaptic();
                   handleClose();
                 }}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200"
                 aria-label={t.cancel}
               >
                 <X className="h-5 w-5" />
@@ -192,7 +192,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
               {fields}
             </div>
 
-            <div className="shrink-0 border-t border-slate-100 bg-white/98 px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom,0px))] shadow-[0_-8px_24px_-8px_rgba(0,26,128,0.06)] dark:border-white/10 dark:bg-neutral-950/98 dark:shadow-[0_-8px_24px_-8px_rgba(0,0,0,0.35)]">
+            <div className="shrink-0 border-t border-slate-100 bg-white/98 px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom,0px))] shadow-[0_-8px_24px_-8px_rgba(0,26,128,0.06)])]">
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -200,7 +200,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
                     lightHaptic();
                     handleClose();
                   }}
-                  className="min-h-[56px] rounded-3xl border border-slate-200 text-base font-bold text-slate-700 transition-colors active:scale-[0.99] dark:border-white/15 dark:text-neutral-200"
+                  className="min-h-[56px] rounded-3xl border border-slate-200 text-base font-bold text-slate-700 transition-colors active:scale-[0.99]"
                 >
                   {t.cancel}
                 </button>
@@ -232,7 +232,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm dark:bg-black/55"
+        className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
         onClick={handleClose}
       >
         <motion.form
@@ -244,14 +244,14 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
           className="modal-glass-panel w-full max-w-md rounded-3xl p-6 shadow-[0_8px_32px_-8px_rgba(0,26,128,0.12)]"
         >
           <div className="mb-5 flex items-center justify-between">
-            <h3 className="text-base font-semibold text-slate-900 dark:text-neutral-100">{title}</h3>
+            <h3 className="text-base font-semibold text-slate-900">{title}</h3>
             <button
               type="button"
               onClick={() => {
                 lightHaptic();
                 handleClose();
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-300"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200"
             >
               <X className="h-4 w-4" />
             </button>

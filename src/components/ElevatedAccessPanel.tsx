@@ -31,7 +31,7 @@ export default function ElevatedAccessPanel() {
 
   if (eligibleUsers.length === 0) {
     return (
-      <p className="text-xs text-slate-500 dark:text-neutral-400 px-1">
+      <p className="text-xs text-slate-500 px-1">
         Nessun dipendente non-admin attivo da configurare.
       </p>
     );
@@ -39,8 +39,8 @@ export default function ElevatedAccessPanel() {
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] text-slate-500 dark:text-white/35 leading-relaxed mb-3">
-        Quando attivato, il dipendente vede la scheda <strong className="text-slate-700 dark:text-white/60">Admin</strong> nella navigazione e può accedere all'area gestionale senza PIN aggiuntivo.
+      <p className="text-[11px] text-slate-500 leading-relaxed mb-3">
+        Quando attivato, il dipendente vede la scheda <strong className="text-slate-700">Admin</strong> nella navigazione e può accedere all'area gestionale senza PIN aggiuntivo.
       </p>
 
       {eligibleUsers.map((u) => {
@@ -50,7 +50,7 @@ export default function ElevatedAccessPanel() {
         return (
           <div
             key={u.id}
-            className="flex items-center justify-between rounded-xl border border-slate-100 dark:border-white/[0.08] px-3 py-2.5"
+            className="flex items-center justify-between rounded-xl border border-slate-100 px-3 py-2.5"
             style={
               typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
                 ? { background: enabled ? 'rgba(51,102,204,0.06)' : 'transparent' }
@@ -58,12 +58,12 @@ export default function ElevatedAccessPanel() {
             }
           >
             <div className="flex items-center gap-2 min-w-0">
-              <ShieldCheck className={`h-4 w-4 shrink-0 ${enabled ? 'text-[#3366CC]' : 'text-slate-300 dark:text-white/20'}`} />
+              <ShieldCheck className={`h-4 w-4 shrink-0 ${enabled ? 'text-[#3366CC]' : 'text-slate-300'}`} />
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-800 dark:text-white/90 truncate">
+                <p className="text-sm font-semibold text-slate-800 truncate">
                   {u.first_name} {u.last_name ?? ''}
                 </p>
-                <p className="text-[10px] text-slate-400 dark:text-white/30 uppercase tracking-wide">
+                <p className="text-[10px] text-slate-400 uppercase tracking-wide">
                   {translateRole(u.role, effectiveLanguage)}
                 </p>
               </div>
@@ -76,7 +76,7 @@ export default function ElevatedAccessPanel() {
               role="switch"
               aria-checked={enabled}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-50 ${
-                enabled ? 'bg-[#3366CC]' : 'bg-slate-200 dark:bg-white/10'
+                enabled ? 'bg-[#3366CC]' : 'bg-slate-200'
               }`}
             >
               <span

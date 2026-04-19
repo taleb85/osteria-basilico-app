@@ -21,7 +21,7 @@ export class RootErrorBoundary extends Component<{ children: ReactNode }, { erro
             Ricarica la pagina. Se l’app era installata come PWA, apri una volta con{' '}
             <code className="rounded bg-slate-200 px-1">?nocache=1</code> per svuotare cache e service worker.
           </p>
-          <pre className="surface-glass-sm max-w-2xl overflow-auto p-3 text-xs dark:text-neutral-200">
+          <pre className="surface-glass-sm max-w-2xl overflow-auto p-3 text-xs">
             {this.state.error.message}
           </pre>
         </div>

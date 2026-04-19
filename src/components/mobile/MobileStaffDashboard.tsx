@@ -291,11 +291,11 @@ export default function MobileStaffDashboard({
             >
               <div className="mb-4 flex items-start justify-between">
                 <div>
-                  <h3 className="flex items-center gap-2 text-lg font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight">
-                    <Moon className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  <h3 className="flex items-center gap-2 text-lg font-extrabold text-slate-900 tracking-tight">
+                    <Moon className="h-5 w-5 text-amber-600" />
                     {t.home_modal_close_dinner}
                   </h3>
-                  <p className="mt-0.5 text-sm text-slate-500 dark:text-neutral-400">
+                  <p className="mt-0.5 text-sm text-slate-500">
                     {safeFormatDate(todayStr, 'd MMM', { locale })}
                   </p>
                 </div>
@@ -305,12 +305,12 @@ export default function MobileStaffDashboard({
                     setCloseModal(null);
                     setClockOutInput('');
                   }}
-                  className="rounded-xl p-1.5 hover:bg-slate-100 dark:hover:bg-neutral-800"
+                  className="rounded-xl p-1.5 hover:bg-slate-100"
                 >
                   <X className="h-4 w-4 text-slate-500" />
                 </button>
               </div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-neutral-300">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-600">
                 {t.home_label_exit_time}
               </label>
               <TimeInputField
@@ -328,7 +328,7 @@ export default function MobileStaffDashboard({
                     setCloseModal(null);
                     setClockOutInput('');
                   }}
-                  className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 dark:border-white/10 dark:text-neutral-300"
+                  className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600"
                 >
                   {t.cancel}
                 </button>

@@ -47,37 +47,37 @@ function fmtHM(mins: number): string {
 /** Esportato per anteprima admin (Cosa vede chi) — stessa UI dei turni in Home gestionale. */
 export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprove, approvingId, t }: HomeManagementShiftCardProps) {
   const deltaColor =
-    e.deltaMins > 5 ? 'text-accent' : e.deltaMins < -5 ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-neutral-400';
+    e.deltaMins > 5 ? 'text-accent' : e.deltaMins < -5 ? 'text-red-500' : 'text-slate-500';
   const notPunchedLineCls = style.border.includes('[#00C896]')
-    ? 'text-brand-900 dark:text-brand-50'
+    ? 'text-brand-900'
     : style.border.includes('slate-400')
-      ? 'text-slate-700 dark:text-neutral-200'
+      ? 'text-slate-700'
       : style.border.includes('rose-')
-        ? 'text-rose-900 dark:text-rose-100'
+        ? 'text-rose-900'
         : style.border.includes('red-')
-          ? 'text-red-800 dark:text-red-100'
-          : 'text-amber-950 dark:text-amber-100';
+          ? 'text-red-800'
+          : 'text-amber-950';
 
   return (
     <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-4 shadow-sm`}>
       {/* Header: avatar + name + badge */}
       <div className="flex items-center gap-3 mb-3">
-        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${style.bg} border ${style.badge.split(' ')[2] ?? 'border-slate-200'} text-slate-700 dark:text-neutral-200`}>
+        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${style.bg} border ${style.badge.split(' ')[2] ?? 'border-slate-200'} text-slate-700`}>
           {e.user?.first_name?.[0] ?? '?'}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-slate-800 dark:text-neutral-100 text-sm truncate">{e.user?.first_name ?? '—'}</p>
-          <p className="text-[10px] text-slate-500 dark:text-neutral-400 truncate">{e.user?.department ?? e.user?.role ?? ''}</p>
+          <p className="font-bold text-slate-800 text-sm truncate">{e.user?.first_name ?? '—'}</p>
+          <p className="text-[10px] text-slate-500 truncate">{e.user?.department ?? e.user?.role ?? ''}</p>
           {e.shift.date && (
-            <p className="text-[10px] font-semibold text-slate-500 dark:text-neutral-400 tabular-nums">
+            <p className="text-[10px] font-semibold text-slate-500 tabular-nums">
               {safeFormatDate(e.shift.date, 'EEE d MMM', { locale: it })}
             </p>
           )}
         </div>
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${style.badge}`}>{style.label}</span>
-          <span className="text-[10px] font-semibold text-slate-500 dark:text-neutral-400 flex items-center gap-0.5">
-            {e.isDinner ? <Moon className="h-2.5 w-2.5 text-amber-500 dark:text-amber-400" /> : <Sun className="h-2.5 w-2.5 text-amber-400" />}
+          <span className="text-[10px] font-semibold text-slate-500 flex items-center gap-0.5">
+            {e.isDinner ? <Moon className="h-2.5 w-2.5 text-amber-500" /> : <Sun className="h-2.5 w-2.5 text-amber-400" />}
             {e.isDinner ? t.dinner : t.lunch}
           </span>
         </div>
@@ -85,15 +85,15 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
 
       {/* Scheduled vs Actual */}
       <div className="grid grid-cols-2 gap-2 mb-3">
-        <div className="surface-glass-sm bg-slate-50/35 px-2.5 py-2 dark:bg-neutral-900/25">
-          <p className="text-[9px] text-slate-500 dark:text-neutral-400 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
-          <p className="text-sm font-bold text-slate-600 dark:text-neutral-200 tabular-nums">{e.scheduledStart} → {e.scheduledEnd}</p>
+        <div className="surface-glass-sm bg-slate-50/35 px-2.5 py-2">
+          <p className="text-[9px] text-slate-500 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
+          <p className="text-sm font-bold text-slate-600 tabular-nums">{e.scheduledStart} → {e.scheduledEnd}</p>
         </div>
-        <div className="surface-glass-sm bg-slate-50/35 px-2.5 py-2 dark:bg-neutral-900/25">
-          <p className="text-[9px] text-slate-500 dark:text-neutral-400 uppercase font-semibold mb-0.5">{t.ts_label_punched}</p>
+        <div className="surface-glass-sm bg-slate-50/35 px-2.5 py-2">
+          <p className="text-[9px] text-slate-500 uppercase font-semibold mb-0.5">{t.ts_label_punched}</p>
           {e.actualStart ? (
-            <p className="text-sm font-bold text-slate-800 dark:text-neutral-100 tabular-nums">
-              {e.actualStart} → {e.actualEnd ?? <span className="text-red-500 dark:text-red-400">…</span>}
+            <p className="text-sm font-bold text-slate-800 tabular-nums">
+              {e.actualStart} → {e.actualEnd ?? <span className="text-red-500">…</span>}
             </p>
           ) : (
             <p className={`text-sm font-semibold italic ${notPunchedLineCls}`}>{t.home_status_not_punched}</p>
