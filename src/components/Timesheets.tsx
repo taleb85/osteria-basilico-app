@@ -3050,7 +3050,7 @@ export default function Timesheets() {
 
           {/* ── Toolbar presenze: sopra la griglia ── */}
           {uiW('timesheet.header') && (
-          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-1 overflow-x-auto sticky top-0 z-[1000] bg-white/95 backdrop-blur-sm">
+          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-1 overflow-x-auto sticky top-0 z-[1000] backdrop-blur-md" style={{ background: 'rgba(10, 22, 40, 0.92)' }}>
             <div className="flex min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-1.5 overflow-visible relative z-[1001]">
               <div className="ui-toolbar-row-tight min-w-0 shrink-0 md:gap-1.5">
 
@@ -3066,7 +3066,8 @@ export default function Timesheets() {
                       else setPeriodNavOffset(o => o - 1);
                     }}
                     disabled={viewMode === 'week' && !timesheetMainGridWeekNav?.canPrev}
-                    className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 disabled:opacity-30"
+                    className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 disabled:opacity-30"
+                    style={{ color: 'rgba(255,255,255,0.80)' }}
                     aria-label={viewMode === 'week' ? 'Settimana precedente' : 'Periodo precedente'}
                   >
                     <ChevronLeft className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
@@ -3080,8 +3081,9 @@ export default function Timesheets() {
                     className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
                       viewMode === 'week'
                         ? 'bg-accent text-white font-extrabold'
-                        : 'text-slate-600 hover:bg-slate-100'
+                        : 'hover:bg-white/10'
                     }`}
+                    style={viewMode !== 'week' ? { color: 'rgba(255,255,255,0.80)' } : {}}
                   >
                     {t.ts_period_week}
                   </button>
@@ -3093,8 +3095,9 @@ export default function Timesheets() {
                     className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
                       viewMode === 'month' && periodNavOffset === 0
                         ? 'bg-accent text-white font-extrabold'
-                        : 'text-slate-600 hover:bg-slate-100'
+                        : 'hover:bg-white/10'
                     }`}
+                    style={!(viewMode === 'month' && periodNavOffset === 0) ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     title={monthTabTitle}
                   >
                     {t.ts_period_month}
@@ -3108,7 +3111,8 @@ export default function Timesheets() {
                       else setPeriodNavOffset(o => o + 1);
                     }}
                     disabled={viewMode === 'week' && !timesheetMainGridWeekNav?.canNext}
-                    className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 disabled:opacity-30"
+                    className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 disabled:opacity-30"
+                    style={{ color: 'rgba(255,255,255,0.80)' }}
                     aria-label={viewMode === 'week' ? 'Settimana successiva' : 'Periodo successivo'}
                   >
                     <span className="hidden sm:inline">{t.nav_next_abbr ?? 'Pros.'}</span>
@@ -3127,7 +3131,7 @@ export default function Timesheets() {
                   <span className="min-w-0 truncate tabular-nums">
                     {viewMode === 'week'
                       ? <>
-                          <span className="text-[#001A80] font-extrabold">S.{weekIndex + 1}&nbsp;</span>
+                          <span className="text-white font-extrabold">S.{weekIndex + 1}&nbsp;</span>
                           {format(weekStart, 'dd/MM', { locale })}
                           <span className="text-slate-400 hidden sm:inline"> → {format(lastDay, 'dd/MM/yy', { locale })}</span>
                         </>
@@ -3145,21 +3149,22 @@ export default function Timesheets() {
                   aria-label={
                     isShowingTodayWeek ? t.ts_toolbar_current_week_already : t.ts_toolbar_today_hint
                   }
-                  className={`hidden md:inline-flex ui-toolbar-chip !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs shrink-0 items-center gap-1 border-slate-200/90 bg-white/80 hover:bg-slate-50 ${
+                  className={`hidden md:inline-flex ui-toolbar-chip !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs shrink-0 items-center gap-1 hover:bg-white/10 ${
                     isShowingTodayWeek
                       ? 'cursor-default opacity-50'
                       : 'cursor-pointer'
                   } disabled:opacity-40 disabled:cursor-not-allowed`}
                 >
-                  <Calendar className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-[#001A80]" aria-hidden />
-                  <span className="font-semibold text-[#001A80]">
+                  <Calendar className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" style={{ color: 'rgba(255,255,255,0.70)' }} aria-hidden />
+                  <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>
                     {t.ts_toolbar_current_week_btn}
                   </span>
                 </button>
 
                 {viewMode === 'month' && payrollStripForToolbar && (
                   <span
-                    className="hidden min-[400px]:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,12rem)] shrink-0 items-center truncate rounded-lg border border-[#3366CC]/30 bg-[#3366CC]/10 px-2 lg:px-2.5 text-[9px] lg:text-[10px] font-semibold text-slate-900"
+                    className="hidden min-[400px]:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,12rem)] shrink-0 items-center truncate rounded-lg px-2 lg:px-2.5 text-[9px] lg:text-[10px] font-semibold"
+                    style={{ border: '1px solid rgba(59,130,246,0.35)', background: 'rgba(59,130,246,0.12)', color: 'rgba(255,255,255,0.85)' }}
                     title={tv.ts_timesheet_month_tab_hint}
                   >
                     {payrollStripForToolbar}

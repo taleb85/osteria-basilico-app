@@ -2068,7 +2068,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 else setPeriodPanOffsetWeeks(p => p - displayPeriodConfig.numWeeks);
               }}
               disabled={viewMode === 'week' && weekIndex <= 0}
-              className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 disabled:opacity-30"
+              className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 disabled:opacity-30"
+              style={{ color: 'rgba(255,255,255,0.80)' }}
               aria-label={viewMode === 'week' ? 'Settimana precedente' : 'Periodo precedente'}
             >
               <ChevronLeft className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
@@ -2079,7 +2080,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             <button
               type="button"
               onClick={() => { setViewMode('week'); setPeriodPanOffsetWeeks(0); setWeekIndex(weekIndexForDateInPeriod(periodConfig)); }}
-              className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${viewMode === 'week' ? 'bg-accent text-white font-extrabold' : 'text-slate-600 hover:bg-slate-100'}`}
+              className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${viewMode === 'week' ? 'bg-accent text-white font-extrabold' : 'hover:bg-white/10'}`}
+              style={viewMode !== 'week' ? { color: 'rgba(255,255,255,0.80)' } : {}}
             >
               {t.view_week}
             </button>
@@ -2088,7 +2090,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             <button
               type="button"
               onClick={() => { setViewMode('month'); setPeriodPanOffsetWeeks(0); }}
-              className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${viewMode === 'month' && periodPanOffsetWeeks === 0 ? 'bg-accent text-white font-extrabold' : 'text-slate-600 hover:bg-slate-100'}`}
+              className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${viewMode === 'month' && periodPanOffsetWeeks === 0 ? 'bg-accent text-white font-extrabold' : 'hover:bg-white/10'}`}
+              style={!(viewMode === 'month' && periodPanOffsetWeeks === 0) ? { color: 'rgba(255,255,255,0.80)' } : {}}
             >
               {t.view_month}
             </button>
@@ -2101,7 +2104,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 else setPeriodPanOffsetWeeks(p => p + displayPeriodConfig.numWeeks);
               }}
               disabled={viewMode === 'week' && weekIndex >= maxWeekIndex}
-              className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 disabled:opacity-30"
+              className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 disabled:opacity-30"
+              style={{ color: 'rgba(255,255,255,0.80)' }}
               aria-label={viewMode === 'week' ? 'Settimana successiva' : 'Periodo successivo'}
             >
               <span className="hidden sm:inline">{t.nav_next_abbr ?? 'Pros.'}</span>
@@ -2111,7 +2115,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           {viewMode === 'month' && (
             <>
               <span
-                className="hidden sm:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,16rem)] items-center truncate rounded-lg border border-slate-200 bg-slate-50 px-2 lg:px-2.5 text-[11px] lg:text-sm font-semibold tabular-nums text-slate-600 shrink-0"
+                className="hidden sm:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,16rem)] items-center truncate rounded-lg px-2 lg:px-2.5 text-[11px] lg:text-sm font-semibold tabular-nums shrink-0"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)' }}
                 title={`${format(monthViewPeriodStart, 'd MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })} → ${format(monthViewPeriodEnd, 'd MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })}`}
               >
                 {format(monthViewPeriodStart, 'd MMM', { locale: getDateLocale(effectiveLanguage) ?? it })} –{' '}
@@ -2203,7 +2208,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     <div
                       ref={wstPeriodPopoverRef}
                       style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999 }}
-                      className="w-64 rounded-xl border border-cyan-600/25 bg-white shadow-2xl overflow-hidden"
+                      className="w-64 rounded-xl overflow-hidden shadow-2xl"
+                    style={{ background: 'var(--bg-surface-solid)', border: '1px solid rgba(255,255,255,0.15)' }}
                     >
                       <div className="flex items-center justify-between border-b border-cyan-600/15 px-3 py-2 bg-cyan-600/5">
                         <button
@@ -2320,7 +2326,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 4, scale: 0.95 }}
                     transition={{ duration: 0.1 }}
-                    className="hidden lg:block absolute right-0 lg:left-auto top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl"
+                    className="hidden lg:block absolute right-0 lg:left-auto top-full z-[9999] mt-1 w-48 rounded-xl p-1 shadow-xl"
+                    style={{ background: 'var(--bg-surface-solid)', border: '1px solid rgba(255,255,255,0.15)' }}
                     style={{ isolation: 'isolate' }}
                   >
                     <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1">
@@ -2433,7 +2440,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 setUndoStack(rest);
                 await top.fn();
               }}
-              className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50"
+              className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold shadow-sm transition-all"
+              style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.85)' }}
               title={undoStack[0]?.label ?? 'Annulla ultima azione'}
             >
               <RotateCcw className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
@@ -2639,17 +2647,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         check: false,
                       },
                       {
-                        bg: 'bg-white',
-                        border: 'border-2 border-dashed border-slate-300',
-                        textCls: 'text-black',
+                        bg: 'bg-white/10',
+                        border: 'border-2 border-dashed border-white/30',
+                        textCls: 'text-white/70',
                         label: t.status_draft,
                         sub: t.wst_status_sub_draft,
                         check: false,
                       },
                       {
-                        bg: 'bg-rose-50',
-                        border: 'border-2 border-dashed border-rose-400',
-                        textCls: 'text-rose-900',
+                        bg: 'bg-red-500/20',
+                        border: 'border-2 border-dashed border-red-400/60',
+                        textCls: 'text-red-300',
                         label: t.status_absent,
                         sub: t.wst_status_sub_absent,
                         check: false,
@@ -2738,8 +2746,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
                             periodDraftNumWeeks === 4
                               ? 'bg-accent text-white'
-                              : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                              : ''
                           }`}
+                          style={periodDraftNumWeeks !== 4 ? { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)' } : {}}
                         >
                           {t.ts_preset_4weeks}
                         </button>
@@ -2753,8 +2762,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors ${
                             periodDraftNumWeeks === 5
                               ? 'bg-accent text-white'
-                              : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                              : ''
                           }`}
+                          style={periodDraftNumWeeks !== 5 ? { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)' } : {}}
                         >
                           {t.ts_preset_5weeks}
                         </button>
@@ -2768,9 +2778,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         disabled={periodDraftSaved}
                         className={`mt-2 w-full rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
                           periodDraftSaved
-                            ? 'cursor-not-allowed bg-slate-200 text-slate-500'
+                            ? 'cursor-not-allowed opacity-40'
                             : 'bg-accent text-white hover:bg-accent-hover'
                         }`}
+                        style={periodDraftSaved ? { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.40)' } : {}}
                       >
                         {t.ts_save_period}
                       </button>
@@ -2860,7 +2871,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             if (e.key === 'Enter') void handleSaveTemplate(saveTemplateName);
                           }}
                           placeholder={t.template_name_placeholder}
-                          className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-accent"
+                          className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-accent"
+                          style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)', color: '#ffffff' }}
                         />
                         <button
                           type="button"

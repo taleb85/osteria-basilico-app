@@ -188,8 +188,14 @@ export default function HolidayRequests() {
 
   // ── Shared input style ────────────────────────────────────────────────────
   const inputCls =
-    'w-full rounded-lg border border-[#3366CC]/25 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-[#3366CC] focus:ring-2 focus:ring-[#3366CC]/20 focus:shadow-[0_0_0_3px_rgba(51,102,204,0.10)]';
-  const labelCls = 'block text-xs font-semibold text-[#2255BB]/80 uppercase tracking-wider mb-1';
+    'w-full rounded-lg px-3 py-2 text-sm outline-none transition-all';
+  const inputStyle = {
+    background: 'rgba(255,255,255,0.08)',
+    border: '1px solid rgba(255,255,255,0.20)',
+    color: '#ffffff',
+  } as React.CSSProperties;
+  const labelCls = 'block text-xs font-semibold uppercase tracking-wider mb-1';
+  const labelStyle = { color: 'rgba(255,255,255,0.60)' } as React.CSSProperties;
 
   return (
     <div className="pb-content pt-4 px-4 w-full max-w-full font-sans">
@@ -235,9 +241,10 @@ export default function HolidayRequests() {
               className="modal-glass-panel w-full max-w-md rounded-2xl p-6"
             >
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-slate-900 font-semibold text-base">{t.new_request}</h3>
+                <h3 className="text-white font-semibold text-base">{t.new_request}</h3>
                 <button type="button" onClick={() => setShowForm(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200">
+                  className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/10"
+                  style={{ color: 'rgba(255,255,255,0.60)' }}>
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -245,22 +252,23 @@ export default function HolidayRequests() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelCls}>{t.holiday_start_date ?? 'Data inizio'}</label>
-                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required className={inputCls} />
+                    <label className={labelCls} style={labelStyle}>{t.holiday_start_date ?? 'Data inizio'}</label>
+                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required className={inputCls} style={inputStyle} />
                   </div>
                   <div>
-                    <label className={labelCls}>{t.holiday_end_date ?? 'Data fine'}</label>
-                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required min={startDate} className={inputCls} />
+                    <label className={labelCls} style={labelStyle}>{t.holiday_end_date ?? 'Data fine'}</label>
+                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required min={startDate} className={inputCls} style={inputStyle} />
                   </div>
                 </div>
 
                 <div>
-                  <label className={labelCls}>{t.holiday_request_reason} <span className="text-slate-400 normal-case font-normal">{t.holiday_request_reason_optional}</span></label>
+                  <label className={labelCls} style={labelStyle}>{t.holiday_request_reason} <span className="normal-case font-normal" style={{ color: 'rgba(255,255,255,0.40)' }}>{t.holiday_request_reason_optional}</span></label>
                   <textarea
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     placeholder={t.holiday_request_reason_placeholder}
                     className={`${inputCls} resize-none h-20`}
+                    style={inputStyle}
                   />
                 </div>
 
@@ -292,9 +300,10 @@ export default function HolidayRequests() {
               className="modal-glass-panel w-full max-w-sm rounded-2xl p-6"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-slate-900 font-semibold">{t.pending}</h3>
+                <h3 className="text-white font-semibold">{t.pending}</h3>
                 <button type="button" onClick={() => setSelectedH(null)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200">
+                  className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/10"
+                  style={{ color: 'rgba(255,255,255,0.60)' }}>
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -302,13 +311,13 @@ export default function HolidayRequests() {
                 const u = users.find((u) => u.id === selectedH.user_id);
                 return (
                   <>
-                    <div className="surface-glass-sm mb-4 bg-slate-50/40 p-4">
-                      <p className="text-slate-900 font-semibold text-sm">{u?.first_name} {u?.last_name}</p>
-                      <p className="text-slate-600 text-xs mt-1">
+                    <div className="surface-glass-sm mb-4 p-4">
+                      <p className="text-white font-semibold text-sm">{u?.first_name} {u?.last_name}</p>
+                      <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.65)' }}>
                         {safeFormatDate(selectedH.start_date, 'd MMM', { locale: it })} – {safeFormatDate(selectedH.end_date, 'd MMM yyyy', { locale: it })}
                       </p>
                       {'reason' in selectedH && selectedH.reason && (
-                        <p className="text-slate-500 text-xs mt-1 italic">{String(selectedH.reason)}</p>
+                        <p className="text-xs mt-1 italic" style={{ color: 'rgba(255,255,255,0.50)' }}>{String(selectedH.reason)}</p>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -331,7 +340,8 @@ export default function HolidayRequests() {
                         type="button"
                         onClick={() => handleStatusChange(selectedH.id, 'rejected')}
                         disabled={updatingId === selectedH.id}
-                        className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-100 text-xs font-bold uppercase tracking-wider text-red-700 transition-colors hover:bg-red-200 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="flex h-10 items-center justify-center gap-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                        style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.35)', color: '#fca5a5' }}
                       >
                         {updatingId === selectedH.id ? (
                           <span className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />

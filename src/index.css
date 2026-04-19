@@ -251,43 +251,43 @@ body,
 @layer components {
   /** Titoli sezione unificati (Admin, permessi, impostazioni) */
   .ui-section-title {
-    @apply text-xs font-bold uppercase tracking-widest text-slate-600;
+    @apply text-xs font-bold uppercase tracking-widest;
+    color: rgba(255, 255, 255, 0.50);
   }
 
   .panel {
-    background: #ffffff;
+    background: var(--bg-surface-solid);
     border-radius: 16px;
-    border: 1px solid rgb(226 232 240);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     padding: 1.5rem;
-    color: #1a1a1a;
+    color: var(--text-primary);
   }
 
   .panel h1,
   .panel h2,
   .panel h3 {
-    color: #1a1a1a;
+    color: #ffffff;
   }
 
-  /* Nessun `.panel span`: altrimenti sovrascrive utility tipo `text-white` sui badge (specificità .panel span > .text-white). */
   .panel p,
   .panel label,
   .panel td,
   .panel th {
-    color: #1a1a1a;
+    color: rgba(255, 255, 255, 0.85);
   }
 
   .panel input,
   .panel textarea,
   .panel select {
-    background: #ffffff;
-    border: 1px solid rgb(226 232 240);
-    color: #1a1a1a;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #ffffff;
   }
 
   .panel input::placeholder,
   .panel textarea::placeholder {
-    color: #64748b;
+    color: rgba(255, 255, 255, 0.35);
   }
 
   nav {
@@ -339,19 +339,21 @@ body,
    * Card contenuti: preferire `.surface-glass` / `.surface-glass-sm` per allineamento al vetro app.
    */
   .surface-ghost {
-    @apply rounded-2xl border border-slate-200/85 bg-transparent transition-colors duration-200;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.80),
-      inset 0 -1px 4px rgba(0,0,0,0.03),
-      0 2px 8px -3px rgba(0,0,0,0.07);
+    @apply rounded-2xl bg-transparent transition-colors duration-200;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px -3px rgba(0,0,0,0.2);
   }
   .surface-ghost-sm {
-    @apply rounded-xl border border-slate-200/85 bg-transparent shadow-none transition-colors duration-200;
+    @apply rounded-xl bg-transparent shadow-none transition-colors duration-200;
+    border: 1px solid var(--border-color);
   }
 
   /** Da affiancare a `.surface-ghost` / `-sm` per card o righe cliccabili */
   .surface-ghost-interactive {
-    @apply cursor-pointer hover:bg-slate-50/85;
+    @apply cursor-pointer;
+  }
+  .surface-ghost-interactive:hover {
+    background: rgba(255, 255, 255, 0.08);
   }
 
   /**
@@ -393,7 +395,10 @@ body,
    * overscroll-behavior-y: contain → impedisce scroll chaining verso la pagina.
    */
   .drawer-glass-panel {
-    @apply bg-white/[0.92] text-slate-900 shadow-2xl backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150;
+    @apply shadow-2xl backdrop-blur-xl;
+    background: var(--bg-surface-solid);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
     overscroll-behavior-y: contain;
   }
 
@@ -516,10 +521,10 @@ body,
    */
   .ui-toolbar-group {
     @apply flex h-[22px] items-center gap-0 overflow-hidden rounded-lg shadow-sm;
-    @apply divide-x divide-[#F1F5F9];
-    background: #ffffff;
-    border: 1.5px solid #F1F5F9;
-    box-shadow: 0 1px 4px -1px rgba(0, 82, 255, 0.08);
+    @apply divide-x divide-white/15;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: none;
   }
   /** Fascia grigia periodo Presenze: stesso schema segmenti; scroll orizzontale se serve */
   .ui-toolbar-group-muted {
@@ -539,7 +544,8 @@ body,
 
   /** Testo statico tra icone (es. 1 / 5) nello stesso gruppo segmentato */
   .ui-toolbar-segment-static {
-    @apply flex h-[20px] min-h-[20px] shrink-0 items-center justify-center px-1.5 text-center text-[13px] font-semibold tabular-nums leading-none text-slate-600;
+    @apply flex h-[20px] min-h-[20px] shrink-0 items-center justify-center px-1.5 text-center text-[13px] font-semibold tabular-nums leading-none;
+    color: rgba(255, 255, 255, 0.70);
   }
 
   /** Sotto-segmento (es. 4 sett. | 5 sett.) dentro fascia muted */
@@ -557,12 +563,17 @@ body,
     @apply flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 px-2.5 text-center text-[13px] font-medium leading-none shadow-none transition-colors;
   }
 
-  /** Chip toolbar (filtri turni, ecc.) — glass senza backdrop-filter */
+  /** Chip toolbar (filtri turni, ecc.) — dark glass */
   .ui-toolbar-chip {
     @apply inline-flex h-[22px] items-center justify-center gap-1 rounded-lg px-2 text-center text-[13px] font-medium leading-none transition-colors;
-    background: #ffffff;
-    border: 1.5px solid #F1F5F9;
-    box-shadow: 0 1px 4px -1px rgba(0, 82, 255, 0.08);
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.85);
+    box-shadow: none;
+  }
+  .ui-toolbar-chip:hover {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
   }
   /** «Oggi» / outline accent */
   .ui-toolbar-ghost-accent {
@@ -576,7 +587,14 @@ body,
 
   /** Pulsante secondario bordo (CSV, outline) */
   .ui-toolbar-outline {
-    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-transparent px-2.5 text-center text-[13px] font-semibold leading-none text-slate-600 shadow-none transition-colors hover:bg-slate-50/90;
+    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg px-2.5 text-center text-[13px] font-semibold leading-none shadow-none transition-colors;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .ui-toolbar-outline:hover {
+    background: rgba(255, 255, 255, 0.10);
+    color: #ffffff;
   }
 
   /**
@@ -652,16 +670,18 @@ body,
   }
 
   .ui-toolbar-page-band-presences .ui-toolbar-segment-static {
-    @apply flex h-full min-h-0 shrink-0 items-center justify-center self-stretch px-2 text-center text-sm font-semibold tabular-nums leading-none text-slate-600;
+    @apply flex h-full min-h-0 shrink-0 items-center justify-center self-stretch px-2 text-center text-sm font-semibold tabular-nums leading-none;
+    color: rgba(255, 255, 255, 0.70);
   }
 
   .ui-toolbar-page-band-presences .ui-toolbar-chip {
-    @apply inline-flex h-9 lg:h-10 items-center justify-center gap-1.5 rounded-xl px-3 lg:px-3.5 text-sm font-medium leading-none text-slate-700 transition-colors;
-    background: rgba(255, 255, 255, 0.20);
+    @apply inline-flex h-9 lg:h-10 items-center justify-center gap-1.5 rounded-xl px-3 lg:px-3.5 text-sm font-medium leading-none transition-colors;
+    background: rgba(255, 255, 255, 0.10);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    box-shadow: 0 1px 4px -1px rgba(0, 82, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.85);
+    box-shadow: none;
   }
   .ui-toolbar-page-band-presences .ui-toolbar-accent {
     @apply inline-flex h-9 lg:h-10 items-center justify-center gap-1.5 rounded-xl bg-accent px-3 lg:px-3.5 text-sm font-semibold leading-none text-white shadow-sm transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60;
@@ -706,8 +726,6 @@ body,
     background-clip: text;
     -webkit-text-fill-color: transparent;
     text-fill-color: transparent;
-  }
-    -webkit-text-fill-color: transparent;
   }
   /** Card a elevazione media — solo lift, senza specular (neutro su sfondi colorati) */
   .depth-card {
@@ -871,12 +889,11 @@ body,
   }
 }
 
-/* react-day-picker — calendario custom (accent FLOW blue) */
+/* react-day-picker — calendario custom dark theme */
 .rdp-modern.rdp-root {
-  --rdp-accent-color: var(--brand);
-  --rdp-accent-background-color: rgb(var(--brand-rgb) / 0.14);
-  /* Default RDP: solo bordo — poco contrasto; il fill è sotto con .rdp-selected .rdp-day_button */
-  --rdp-selected-border: 2px solid var(--brand-dark);
+  --rdp-accent-color: #3b82f6;
+  --rdp-accent-background-color: rgba(59, 130, 246, 0.25);
+  --rdp-selected-border: 2px solid #3b82f6;
   --rdp-day_button-border-radius: 0.5rem;
   --rdp-day-height: 2rem;
   --rdp-day-width: 2rem;
@@ -885,7 +902,7 @@ body,
   --rdp-nav-height: 2.125rem;
   font-family: inherit;
   font-size: 0.8125rem;
-  color: #1e293b;
+  color: rgba(255, 255, 255, 0.85);
   width: fit-content;
   max-width: 100%;
   margin-inline: auto;
@@ -893,18 +910,19 @@ body,
 
 .rdp-modern.rdp-root .rdp-dropdown_root select {
   border-radius: 0.5rem;
-  border: 1px solid rgb(226 232 240);
-  background: rgb(248 250 252);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
   padding: 0.1rem 0.35rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: rgb(30 41 59);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .rdp-modern.rdp-root .rdp-button_previous,
 .rdp-modern.rdp-root .rdp-button_next {
   border-radius: 0.5rem;
-  border: 1px solid rgb(226 232 240);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.70);
   width: 1.75rem;
   height: 1.75rem;
 }
@@ -913,8 +931,21 @@ body,
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: rgb(100 116 139);
+  color: rgba(255, 255, 255, 0.50);
   opacity: 1;
+}
+
+.rdp-modern.rdp-root .rdp-day_button {
+  color: rgba(255, 255, 255, 0.80);
+}
+
+.rdp-modern.rdp-root .rdp-day_button:hover {
+  background: rgba(59, 130, 246, 0.25);
+  color: #ffffff;
+}
+
+.rdp-modern.rdp-root .rdp-outside .rdp-day_button {
+  color: rgba(255, 255, 255, 0.25);
 }
 
 /* Giorno selezionato: riempimento brand + testo bianco (il tema RDP di default usa quasi solo il bordo). */
@@ -939,9 +970,9 @@ body,
 }
 
 .rdp-modern.rdp-root .rdp-today:not(.rdp-selected) .rdp-day_button {
-  color: var(--brand);
+  color: #3b82f6;
   font-weight: 700;
-  box-shadow: inset 0 0 0 2px rgb(var(--brand-rgb) / 0.45);
+  box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.5);
 }
 
 .rdp-modern.rdp-root .rdp-day_button:focus-visible {
@@ -1003,14 +1034,14 @@ html.no-motion *::after {
 
 /* ── ORARI MAXI-LEGGIBILITÀ (GIGANTISMO ULTRA-READABLE) ─────────────── */
 
-/* Orari turni: 24px nero puro font-weight 700 per massimo contrasto */
+/* Orari turni: 24px bianco puro font-weight 700 per massimo contrasto su dark */
 .shift-time-ultra {
   font-size: 1.5rem; /* 24px */
   line-height: 1.2;
-  font-weight: 700; /* aumentato da 800 per leggibilità */
-  color: #000000;
+  font-weight: 700;
+  color: #ffffff;
   letter-spacing: -0.02em;
-  white-space: nowrap; /* evita spezzature su righe multiple */
+  white-space: nowrap;
 }
 
 @media (max-width: 640px) {
@@ -1024,7 +1055,7 @@ html.no-motion *::after {
 .shift-name-ultra {
   font-size: 1rem; /* 16px */
   font-weight: 600;
-  color: #000000;
+  color: #ffffff;
   letter-spacing: 0.01em;
 }
 
@@ -1032,15 +1063,15 @@ html.no-motion *::after {
 .shift-total-ultra {
   font-size: 1.5rem; /* 24px */
   font-weight: 600;
-  color: #000000;
+  color: #ffffff;
   letter-spacing: -0.01em;
 }
 
 /* ── STATI TURNO: SIMBOLI DISCRETI ───────────────────────────────────── */
 
-/* Confermato: nero normale */
+/* Confermato: bianco su dark */
 .shift-status-confirmed {
-  color: #000000;
+  color: #ffffff;
   font-weight: 500;
 }
 
@@ -1558,6 +1589,138 @@ thead th {
   font-weight: 600 !important;
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK THEME GLOBAL FORCED OVERRIDES
+   Converts all Tailwind light text/bg utilities to dark theme equivalents.
+   Applied at end of file for maximum specificity.
+   EXCEPTIONS: text-green-*, text-emerald-*, text-red-*, text-amber-*,
+               text-blue-*, text-white, text-black (left unchanged).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Text color overrides — slate/gray families → white equivalents */
+body .text-slate-900, body .text-gray-900 { color: rgba(255, 255, 255, 1.0) !important; }
+body .text-slate-800, body .text-gray-800 { color: rgba(255, 255, 255, 0.90) !important; }
+body .text-slate-700, body .text-gray-700 { color: rgba(255, 255, 255, 0.80) !important; }
+body .text-slate-600, body .text-gray-600 { color: rgba(255, 255, 255, 0.70) !important; }
+body .text-slate-500, body .text-gray-500 { color: rgba(255, 255, 255, 0.60) !important; }
+body .text-slate-400, body .text-gray-400 { color: rgba(255, 255, 255, 0.50) !important; }
+body .text-slate-300, body .text-gray-300 { color: rgba(255, 255, 255, 0.40) !important; }
+
+/* Preserve colored text classes explicitly (do NOT override these) */
+body [class*="text-green-"],
+body [class*="text-emerald-"],
+body [class*="text-red-"],
+body [class*="text-amber-"],
+body [class*="text-yellow-"],
+body [class*="text-blue-"],
+body [class*="text-cyan-"],
+body [class*="text-indigo-"],
+body [class*="text-purple-"],
+body [class*="text-pink-"],
+body [class*="text-white"],
+body [class*="text-black"],
+body [class*="text-accent"],
+body .flow-brand-header,
+body .flow-brand-header * {
+  /* These classes keep their own colors - no override */
+  color: revert;
+}
+
+/* Re-apply brand header override (highest priority) */
+body .flow-brand-header,
+body .flow-brand-header * {
+  color: #ffffff !important;
+}
+
+/* Background overrides — white/light → dark surfaces */
+body .bg-white:not(input):not(textarea):not(select):not([class*="modal"]):not([class*="pin"]):not([class*="kiosk"]) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+body .bg-slate-50:not(input):not(textarea):not(select) { background-color: rgba(255, 255, 255, 0.05) !important; }
+body .bg-gray-50:not(input):not(textarea):not(select)  { background-color: rgba(255, 255, 255, 0.05) !important; }
+body .bg-slate-100:not(input):not(textarea):not(select){ background-color: rgba(255, 255, 255, 0.08) !important; }
+body .bg-gray-100:not(input):not(textarea):not(select) { background-color: rgba(255, 255, 255, 0.08) !important; }
+body .bg-slate-200:not(input):not(textarea):not(select){ background-color: rgba(255, 255, 255, 0.10) !important; }
+
+/* Hover state overrides */
+body .hover\:bg-slate-50:hover { background-color: rgba(255, 255, 255, 0.08) !important; }
+body .hover\:bg-gray-50:hover  { background-color: rgba(255, 255, 255, 0.08) !important; }
+body .hover\:bg-white:hover    { background-color: rgba(255, 255, 255, 0.10) !important; }
+body .hover\:bg-slate-100:hover{ background-color: rgba(255, 255, 255, 0.10) !important; }
+body .hover\:bg-gray-100:hover { background-color: rgba(255, 255, 255, 0.10) !important; }
+
+/* Border overrides — light borders → dark equivalents */
+body .border-slate-200 { border-color: rgba(255, 255, 255, 0.15) !important; }
+body .border-gray-200  { border-color: rgba(255, 255, 255, 0.15) !important; }
+body .border-slate-100 { border-color: rgba(255, 255, 255, 0.10) !important; }
+body .border-gray-100  { border-color: rgba(255, 255, 255, 0.10) !important; }
+body .border-slate-300 { border-color: rgba(255, 255, 255, 0.20) !important; }
+body .border-gray-300  { border-color: rgba(255, 255, 255, 0.20) !important; }
+body .divide-slate-200 > * + * { border-color: rgba(255, 255, 255, 0.15) !important; }
+body .divide-gray-200  > * + * { border-color: rgba(255, 255, 255, 0.15) !important; }
+
+/* bg-white with opacity variants */
+body .bg-white\/95 { background-color: rgba(10, 22, 40, 0.97) !important; }
+body .bg-white\/90 { background-color: rgba(255, 255, 255, 0.10) !important; }
+body .bg-white\/80 { background-color: rgba(255, 255, 255, 0.09) !important; }
+body .bg-white\/70 { background-color: rgba(255, 255, 255, 0.08) !important; }
+body .bg-white\/60 { background-color: rgba(255, 255, 255, 0.07) !important; }
+
+/* divide colors */
+body .divide-\[#F1F5F9\] > * + * { border-color: rgba(255, 255, 255, 0.15) !important; }
+
+/* Progress bar tracks */
+body .bg-gray-200  { background-color: rgba(255, 255, 255, 0.10) !important; }
+body .bg-slate-200 { background-color: rgba(255, 255, 255, 0.10) !important; }
+
+/* Avatar boost — slightly more visible */
+.shift-card-ultra [class*="rounded-full"][class*="bg-white\/"] {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Icon opacity boost inside dark cards */
+.shift-card-ultra .opacity-50,
+.surface-glass .opacity-50,
+.modal-glass-panel .opacity-50 {
+  opacity: 0.70 !important;
+}
+
+/* Bottom nav inactive icons */
+.bottom-nav-glass [class*="text-slate-400"],
+.bottom-nav-glass [class*="text-gray-400"] {
+  color: rgba(255, 255, 255, 0.40) !important;
+}
+
+/* Toolbar pill dark */
+.ui-toolbar-pill {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: rgba(255, 255, 255, 0.80) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ui-toolbar-group-muted dark */
+.ui-toolbar-group-muted {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.ui-toolbar-group-muted > * + * {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* card-factorial dark */
+.card-factorial {
+  background: var(--bg-surface-solid) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Depth-row dark separator */
+.depth-row {
+  border-bottom-color: rgba(255, 255, 255, 0.10) !important;
+  box-shadow: none !important;
+}
 
 /* ── SPAZIATURA ARIOSA (+40% BASE) ───────────────────────────────────────────── */
 
