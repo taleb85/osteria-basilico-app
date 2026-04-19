@@ -370,10 +370,10 @@ export default function HomePage({
     }
     if (e.isApproved) {
       return {
-        border: 'border-l-accent',
-        bg: 'bg-accent/5',
-        badge: 'bg-accent/10 text-accent-dark border-accent/20',
-        dot: 'bg-accent',
+        border: 'border-l-slate-300',
+        bg: 'bg-white',
+        badge: 'bg-white text-black border-slate-200',
+        dot: 'bg-black',
         label: t.home_status_approved,
       };
     }
@@ -397,10 +397,10 @@ export default function HomePage({
     }
     if (e.canApprove) {
       return {
-        border: 'border-l-brand-500',
-        bg: 'bg-brand-50/95',
-        badge: 'bg-brand-100 text-brand-900 border-brand-500/80',
-        dot: 'bg-brand-500',
+        border: 'border-l-slate-400',
+        bg: 'bg-slate-50',
+        badge: 'bg-slate-100 text-slate-800 border-slate-400',
+        dot: 'bg-slate-400',
         label: t.home_status_to_approve,
       };
     }
@@ -416,10 +416,10 @@ export default function HomePage({
       }
       if (publishedHome) {
         return {
-          border: 'border-l-brand-500',
-          bg: 'bg-brand-50/95',
-          badge: 'bg-brand-100 text-brand-900 border-brand-500/80',
-          dot: 'bg-brand-500',
+          border: 'border-l-slate-400',
+          bg: 'bg-slate-50',
+          badge: 'bg-slate-100 text-slate-800 border-slate-400',
+          dot: 'bg-slate-400',
           label: t.home_status_not_punched,
         };
       }
@@ -433,28 +433,28 @@ export default function HomePage({
     }
     if (inTodayKpiWindow && e.punchIn && !e.isLate && !e.hasMissingOut) {
       return {
-        border: 'border-l-brand-500',
-        bg: 'bg-brand-50/95',
-        badge: 'bg-brand-100 text-brand-900 border-brand-500/80',
-        dot: 'bg-brand-500',
+        border: 'border-l-slate-400',
+        bg: 'bg-white',
+        badge: 'bg-white text-black border-slate-200',
+        dot: 'bg-black',
         label: t.home_status_in_shift,
       };
     }
     if (e.punchIn && !e.actualEnd) {
       return {
-        border: 'border-l-brand-500',
-        bg: 'bg-brand-50/95',
-        badge: 'bg-brand-100 text-brand-900 border-brand-500/80',
-        dot: 'animate-pulse bg-brand-500',
+        border: 'border-l-slate-400',
+        bg: 'bg-white',
+        badge: 'bg-white text-black border-slate-200',
+        dot: 'animate-pulse bg-black',
         label: t.home_status_in_shift,
       };
     }
     if (e.punchIn && e.actualEnd) {
       return {
-        border: 'border-l-brand-500',
-        bg: 'bg-brand-50/95',
-        badge: 'bg-brand-100 text-brand-900 border-brand-500/80',
-        dot: 'bg-brand-500',
+        border: 'border-l-slate-300',
+        bg: 'bg-white',
+        badge: 'bg-white text-black border-slate-200',
+        dot: 'bg-black',
         label: t.home_status_complete,
       };
     }
@@ -601,13 +601,13 @@ export default function HomePage({
                 const { punchIn } = getPunchForShift(s.id, s.user_id, todayStr, !isDinner);
                 const punched = !!punchIn;
                 return (
-                  <div key={s.id} className={`rounded-2xl border-l-4 p-4 shadow-sm ${punched ? 'border-l-accent bg-accent/5' : 'border-l-amber-400 bg-amber-50'}`}>
+                  <div key={s.id} className={`rounded-2xl border border-slate-100 border-l-4 p-4 shadow-sm ${punched ? 'border-l-slate-300 bg-white' : 'border-l-amber-400 bg-amber-50'}`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         {isDinner ? <Moon className="w-4 h-4 text-amber-600" /> : <Sun className="w-4 h-4 text-amber-500" />}
                         <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{isDinner ? t.dinner : t.lunch}</span>
                       </div>
-                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${punched ? 'bg-accent/10 text-accent-dark border-accent/20' : 'bg-amber-100 text-amber-950 border-amber-400/70'}`}>
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${punched ? 'bg-white text-black border-slate-200' : 'bg-amber-100 text-amber-950 border-amber-400/70'}`}>
                         {punched ? t.home_punched : t.home_not_punched}
                       </span>
                     </div>

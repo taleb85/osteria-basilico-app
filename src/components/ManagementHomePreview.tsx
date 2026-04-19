@@ -48,10 +48,10 @@ export default function ManagementHomePreview({
   const todayStr = format(now, 'yyyy-MM-dd');
 
   const styleApproved: HomeManagementShiftCardProps['style'] = {
-    border: 'border-l-accent',
-    bg: 'bg-accent/5',
-    badge: 'bg-accent/10 text-accent-dark border-accent/20',
-    dot: 'bg-accent',
+    border: 'border-l-slate-300',
+    bg: 'bg-white',
+    badge: 'bg-white text-black border-slate-200',
+    dot: 'bg-black',
     label: t.home_status_approved,
   };
 

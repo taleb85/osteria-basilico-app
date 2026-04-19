@@ -47,7 +47,7 @@ function fmtHM(mins: number): string {
 /** Esportato per anteprima admin (Cosa vede chi) — stessa UI dei turni in Home gestionale. */
 export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprove, approvingId, t }: HomeManagementShiftCardProps) {
   const deltaColor =
-    e.deltaMins > 5 ? 'text-accent' : e.deltaMins < -5 ? 'text-red-500' : 'text-slate-500';
+    e.deltaMins > 5 ? 'text-black' : e.deltaMins < -5 ? 'text-red-500' : 'text-slate-500';
   const notPunchedLineCls = style.border.includes('[#00C896]')
     ? 'text-brand-900'
     : style.border.includes('slate-400')
@@ -59,7 +59,7 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
           : 'text-amber-950';
 
   return (
-    <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-4 shadow-sm`}>
+    <div className={`rounded-2xl border border-slate-100 border-l-4 ${style.border} ${style.bg} p-4 shadow-sm`}>
       {/* Header: avatar + name + badge */}
       <div className="flex items-center gap-3 mb-3">
         <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${style.bg} border ${style.badge.split(' ')[2] ?? 'border-slate-200'} text-slate-700`}>
@@ -85,14 +85,14 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
 
       {/* Scheduled vs Actual */}
       <div className="grid grid-cols-2 gap-2 mb-3">
-        <div className="surface-glass-sm bg-slate-50/35 px-2.5 py-2">
+        <div className="bg-white border border-slate-100 rounded-xl px-2.5 py-2">
           <p className="text-[9px] text-slate-500 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
-          <p className="text-sm font-bold text-slate-600 tabular-nums">{e.scheduledStart} → {e.scheduledEnd}</p>
+          <p className="text-sm font-bold text-black tabular-nums">{e.scheduledStart} → {e.scheduledEnd}</p>
         </div>
-        <div className="surface-glass-sm bg-slate-50/35 px-2.5 py-2">
+        <div className="bg-white border border-slate-100 rounded-xl px-2.5 py-2">
           <p className="text-[9px] text-slate-500 uppercase font-semibold mb-0.5">{t.ts_label_punched}</p>
           {e.actualStart ? (
-            <p className="text-sm font-bold text-slate-800 tabular-nums">
+            <p className="text-sm font-bold text-black tabular-nums">
               {e.actualStart} → {e.actualEnd ?? <span className="text-red-500">…</span>}
             </p>
           ) : (
