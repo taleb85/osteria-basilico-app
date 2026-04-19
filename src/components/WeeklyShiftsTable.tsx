@@ -5908,6 +5908,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
   const [notifyEmployee, setNotifyEmployee] = useState(true);
   const [publicNote, setPublicNote] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const endTimeHourRef = useRef<HTMLInputElement | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
 
@@ -6168,61 +6169,71 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               );
             })()}
 
-            <label className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 shadow-sm transition-colors ${
-              deductBreak
-                ? 'border-accent/60 bg-accent/5 hover:bg-accent/10 dark:border-accent/50 dark:bg-accent/10'
-                : 'border-slate-300 bg-slate-50/90 hover:bg-slate-50 dark:border-white/15 dark:bg-neutral-800/90 dark:hover:bg-neutral-800'
-            }`}>
-              <div className="relative shrink-0 mt-0.5">
-                <input
-                  type="checkbox"
-                  className="peer sr-only"
-                  checked={deductBreak}
-                  onChange={(e) => setDeductBreak(e.target.checked)}
-                />
-                <div className={`h-5 w-9 rounded-full transition-colors duration-200 ${deductBreak ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`} />
-                <div className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${deductBreak ? 'translate-x-4' : 'translate-x-0'}`} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className={`text-xs font-semibold ${deductBreak ? 'text-accent dark:text-accent-light' : 'text-slate-800 dark:text-neutral-100'}`}>{t.deduct_break_label}</p>
-                <p className="mt-0.5 text-[11px] leading-snug text-slate-500 dark:text-neutral-400">
-                  {deductBreak ? t.wst_drawer_break_deducted_readout : t.wst_create_shift_no_deduct_badge}
-                </p>
-              </div>
-            </label>
+            {/* ── Avanzate collapsible ── */}
+            <div className="border-t border-slate-200 dark:border-white/10 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowAdvanced((v) => !v)}
+                className="flex w-full items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors py-1"
+              >
+                <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
+                Avanzate
+              </button>
+              {showAdvanced && (
+                <div className="mt-2 space-y-4">
+                  <label className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 shadow-sm transition-colors ${
+                    deductBreak
+                      ? 'border-accent/60 bg-accent/5 hover:bg-accent/10 dark:border-accent/50 dark:bg-accent/10'
+                      : 'border-slate-300 bg-slate-50/90 hover:bg-slate-50 dark:border-white/15 dark:bg-neutral-800/90 dark:hover:bg-neutral-800'
+                  }`}>
+                    <div className="relative shrink-0 mt-0.5">
+                      <input
+                        type="checkbox"
+                        className="peer sr-only"
+                        checked={deductBreak}
+                        onChange={(e) => setDeductBreak(e.target.checked)}
+                      />
+                      <div className={`h-5 w-9 rounded-full transition-colors duration-200 ${deductBreak ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`} />
+                      <div className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${deductBreak ? 'translate-x-4' : 'translate-x-0'}`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-xs font-semibold ${deductBreak ? 'text-accent dark:text-accent-light' : 'text-slate-800 dark:text-neutral-100'}`}>{t.deduct_break_label}</p>
+                      <p className="mt-0.5 text-[11px] leading-snug text-slate-500 dark:text-neutral-400">
+                        {deductBreak ? t.wst_drawer_break_deducted_readout : t.wst_create_shift_no_deduct_badge}
+                      </p>
+                    </div>
+                  </label>
 
-            {/* ── Note pubblica ── */}
-            <div>
-              <label className={labelClass}>{t.notes_label} <span className="font-normal normal-case tracking-normal text-slate-400 dark:text-neutral-400">{t.notes_optional_paren}</span></label>
-              <input
-                type="text"
-                value={publicNote}
-                onChange={(e) => setPublicNote(e.target.value)}
-                placeholder={t.notes_placeholder_staff}
-                className={inputClass}
-              />
+                  <div>
+                    <label className={labelClass}>{t.notes_label} <span className="font-normal normal-case tracking-normal text-slate-400 dark:text-neutral-400">{t.notes_optional_paren}</span></label>
+                    <input
+                      type="text"
+                      value={publicNote}
+                      onChange={(e) => setPublicNote(e.target.value)}
+                      placeholder={t.notes_placeholder_staff}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <div className="relative flex-shrink-0 mt-0.5">
+                      <input
+                        type="checkbox"
+                        checked={notifyEmployee}
+                        onChange={(e) => setNotifyEmployee(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="h-5 w-9 rounded-full bg-slate-200 transition-colors peer-checked:bg-accent dark:bg-neutral-700" />
+                      <div className="toggle-knob absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold leading-tight text-slate-700 dark:text-neutral-200">Avvisa il dipendente</p>
+                      <p className="text-xs text-slate-400 dark:text-neutral-400 mt-0.5">{t.shift_visible_after_publish}</p>
+                    </div>
+                  </label>
+                </div>
+              )}
             </div>
-
-            {/* ── Separator ── */}
-            <div className="border-t border-slate-200 dark:border-white/10" />
-
-            {/* ── Avvisa il dipendente (= pubblicato) / altrimenti bozza ── */}
-            <label className="flex items-start gap-3 cursor-pointer">
-              <div className="relative flex-shrink-0 mt-0.5">
-                <input
-                  type="checkbox"
-                  checked={notifyEmployee}
-                  onChange={(e) => setNotifyEmployee(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="h-5 w-9 rounded-full bg-slate-200 transition-colors peer-checked:bg-accent dark:bg-neutral-700" />
-                <div className="toggle-knob absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold leading-tight text-slate-700 dark:text-neutral-200">Avvisa il dipendente</p>
-                <p className="text-xs text-slate-400 dark:text-neutral-400 mt-0.5">{t.shift_visible_after_publish}</p>
-              </div>
-            </label>
 
             {/* ── Footer buttons ── */}
             <div className="flex gap-2 pt-1">
