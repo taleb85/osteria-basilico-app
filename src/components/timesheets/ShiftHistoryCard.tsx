@@ -142,7 +142,7 @@ export function ShiftHistoryCard({
                         {fmtAuditValue(e.newValue)}
                       </span>
                     </div>
-                    <p className="mt-1 text-[10px] text-slate-500">da {e.actorName}</p>
+                    <p className="mt-1 text-[10px] text-slate-500">{t.edited_by_prefix} {e.actorName}</p>
                   </div>
                 ))}
               </div>
@@ -183,7 +183,7 @@ export function ShiftHistoryCard({
                         {fmtAuditValue(e.new_value)}
                       </span>
                     </div>
-                    <p className="mt-1 text-[10px] text-slate-500">da {e.actor_name}</p>
+                    <p className="mt-1 text-[10px] text-slate-500">{t.edited_by_prefix} {e.actor_name}</p>
                   </div>
                 ))}
               </div>

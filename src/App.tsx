@@ -795,21 +795,21 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
               {showPinMenu && !globalPinSessionId && currentUser && (
                 <PinPadModal
                   key="global-pin-lock"
-                  title="Sblocco sessione"
-                  subtitle="Inserisci il PIN per sbloccare tutte le operazioni protette"
+                  title={t.global_pin_unlock_title}
+                  subtitle={t.global_pin_unlock_subtitle}
                   pinLabel="PIN"
                   pin={globalPinValue}
                   onPinChange={setGlobalPinValue}
                   error={globalPinError}
                   onConfirm={() => handleGlobalPinSubmit(globalPinValue)}
                   onCancel={closePinMenu}
-                  confirmLabel="Sblocca"
+                  confirmLabel={t.ts_drawer_unlock_btn}
                   userId={currentUser.id}
                   userDisplayName={[currentUser.first_name, currentUser.last_name].filter(Boolean).join(' ')}
                   userEmail={currentUser.email ?? ''}
                   onBiometricSuccess={() => {
                     const verifier = findFreezeVerifierById(users, currentUser.id);
-                    if (!verifier) { setGlobalPinError('Ruolo insufficiente per lo sblocco'); return; }
+                    if (!verifier) { setGlobalPinError(t.global_pin_unlock_insufficient_role); return; }
                     setGlobalPinSessionId(Date.now().toString());
                     closePinMenu();
                   }}
@@ -827,7 +827,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                   transition={{ duration: 0.18 }}
                   className="fixed inset-0 z-[10080] bg-black/40 backdrop-blur-md flex flex-col items-center justify-center"
                 >
-                  <button type="button" onClick={closePinMenu} className="absolute top-5 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors" aria-label="Chiudi">
+                  <button type="button" onClick={closePinMenu} className="absolute top-5 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors" aria-label={t.close}>
                     <X size={20} strokeWidth={2.5} />
                   </button>
                   <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }} transition={{ type: 'spring', stiffness: 380, damping: 30, mass: 0.9 }} className="flex flex-col items-center w-full max-w-[320px] px-6">
@@ -1081,7 +1081,7 @@ function IosSafariInstallBanner() {
           sessionStorage.setItem('ios_install_banner_dismissed', '1');
           setVisible(false);
         }}
-        aria-label="Chiudi"
+        aria-label={t.close}
         className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors"
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg>

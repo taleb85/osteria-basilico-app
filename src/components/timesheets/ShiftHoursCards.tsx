@@ -149,7 +149,7 @@ export function ShiftHoursCards({
                 : 'text-amber-800/90'
             }`}>{t.ts_label_punched}</p>
             {(s.punched && !s.actualEnd) || !s.punched ? (
-              <span className="flex h-2 w-2 rounded-full bg-red-500 animate-pulse" title="Dato mancante" />
+              <span className="flex h-2 w-2 rounded-full bg-red-500 animate-pulse" title={t.data_missing} />
             ) : null}
           </div>
           {s.punched ? (

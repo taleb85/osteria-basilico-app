@@ -189,20 +189,20 @@ export function TimesheetDrawerHeader({
                   type="button"
                   onClick={onUnlockFrozen}
                   className="flex shrink-0 items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-105 active:scale-95"
-                  title="Sblocca turno per revisione"
+                  title={t.ts_drawer_unlock_title}
                 >
                   <Unlock className="w-3.5 h-3.5" />
-                  <span>Sblocca</span>
+                  <span>{t.ts_drawer_unlock_btn}</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={onFreezeShift}
                   className="flex shrink-0 items-center gap-1.5 rounded-xl bg-accent px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-accent-hover hover:scale-105 active:scale-95"
-                  title={t.shift_freeze_title || 'Congela questo turno'}
+                  title={t.ts_drawer_freeze_title}
                 >
                   <Lock className="w-3.5 h-3.5" />
-                  <span>Congela</span>
+                  <span>{t.ts_drawer_freeze_btn}</span>
                 </button>
               )
             )}
@@ -221,7 +221,7 @@ export function TimesheetDrawerHeader({
                       disabled={!navigationReviewDay.canPrev}
                       onClick={() => navigationReviewDay.onNavigate(-1)}
                       className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
-                      aria-label={t.prev || 'Su'}
+                      aria-label={t.nav_up || t.prev}
                     >
                       <ChevronUp className="h-4 w-4 text-slate-700" />
                     </button>
@@ -230,7 +230,7 @@ export function TimesheetDrawerHeader({
                       disabled={!navigationReviewDay.canNext}
                       onClick={() => navigationReviewDay.onNavigate(1)}
                       className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
-                      aria-label={t.next || 'Giù'}
+                      aria-label={t.nav_down || t.next}
                     >
                       <ChevronDown className="h-4 w-4 text-slate-700" />
                     </button>
@@ -245,7 +245,7 @@ export function TimesheetDrawerHeader({
                       disabled={!navigation.canPrev}
                       onClick={() => navigation.onNavigate(-1)}
                       className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
-                      aria-label={t.prev || 'Precedente'}
+                      aria-label={t.nav_prev || t.prev}
                     >
                       <ChevronLeft className="h-4 w-4 text-slate-700" />
                     </button>
@@ -254,7 +254,7 @@ export function TimesheetDrawerHeader({
                       disabled={!navigation.canNext}
                       onClick={() => navigation.onNavigate(1)}
                       className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
-                      aria-label={t.next || 'Successivo'}
+                      aria-label={t.nav_next || t.next}
                     >
                       <ChevronRight className="h-4 w-4 text-slate-700" />
                     </button>
@@ -325,7 +325,7 @@ export function TimesheetDrawerHeader({
                   className="flex shrink-0 items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-105 active:scale-95"
                 >
                   <Unlock className="w-3.5 h-3.5" />
-                  <span>Sblocca</span>
+                  <span>{t.ts_drawer_unlock_btn}</span>
                 </button>
               ) : (
                 <button
@@ -334,7 +334,7 @@ export function TimesheetDrawerHeader({
                   className="flex shrink-0 items-center gap-1.5 rounded-xl bg-accent hover:bg-accent-hover px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-105 active:scale-95"
                 >
                   <Lock className="w-3.5 h-3.5" />
-                  <span>Congela</span>
+                  <span>{t.ts_drawer_freeze_btn}</span>
                 </button>
               )
             )}
