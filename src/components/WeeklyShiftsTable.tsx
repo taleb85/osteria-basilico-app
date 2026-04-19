@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { format, startOfWeek, endOfWeek, addDays, differenceInCalendarDays, parseISO, isToday, eachDayOfInterval, getDay } from 'date-fns';
 import { database } from '../lib/database';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu, ClipboardCopy, ClipboardPaste, Calendar, RotateCcw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu, ClipboardCopy, ClipboardPaste, Calendar, RotateCcw, FileDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
@@ -1947,6 +1947,42 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     });
   }, [slotRemapPicker, shifts, updateShift, showSuccess, showError, trackSave, t]);
 
+  /** Export turni in PDF: settimana corrente o intero periodo */
+  const handleExportSchedulePdf = useCallback(async (mode: 'WEEK' | 'PERIOD' = 'WEEK') => {
+    if (!currentUser || !isFeatureEnabled(currentUser, 'export_pdf')) return;
+    try {
+      const daysToExport = mode === 'WEEK' 
+        ? (viewMode === 'day' ? [weekStart] : eachDayOfInterval({ start: weekStart, end: addDays(weekStart, viewMode === '2weeks' ? 13 : 6) }))
+        : allWeekDays;
+
+      await exportSchedulePDF(weekStart, daysToExport, activeUsers, shifts, {
+        filterLabel: localFilterDepartment || undefined,
+        breakRules,
+        breakComputeOpts,
+        punchRecords,
+        language: effectiveLanguage,
+      });
+      showSuccess?.((t as { mod_pdf_export?: string }).mod_pdf_export ?? 'PDF turni esportato');
+    } catch (e) {
+      showError?.(e instanceof Error ? e.message : 'Export PDF non riuscito');
+    }
+  }, [
+    currentUser,
+    viewMode,
+    weekStart,
+    allWeekDays,
+    activeUsers,
+    shifts,
+    localFilterDepartment,
+    breakRules,
+    breakComputeOpts,
+    punchRecords,
+    effectiveLanguage,
+    showSuccess,
+    showError,
+    t,
+  ]);
+
   if (!currentUser) return null;
 
   return (
@@ -2404,6 +2440,35 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               </span>
             </button>
           )}
+          
+          {/* ── Bottoni Export PDF ── */}
+          {currentUser && isFeatureEnabled(currentUser, 'export_pdf') && (
+            <div className="hidden sm:flex items-center gap-1">
+              <div className="h-4 w-px bg-slate-200 mx-0.5" />
+
+              <button
+                type="button"
+                onClick={() => void handleExportSchedulePdf('WEEK')}
+                className="ui-toolbar-chip hover:bg-slate-50 inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs"
+                title={t.ts_export_week_pdf || "Esporta PDF settimana corrente"}
+                aria-label={t.ts_export_week_pdf || "Esporta PDF settimana corrente"}
+              >
+                <FileDown className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" aria-hidden />
+                <span>{t.ts_week_pdf || "Week PDF"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleExportSchedulePdf('PERIOD')}
+                className="ui-toolbar-chip hover:bg-slate-50 inline-flex border-accent/30 text-accent !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs"
+                title={t.ts_export_period_pdf || "Esporta PDF intero periodo"}
+                aria-label={t.ts_export_period_pdf || "Esporta PDF intero periodo"}
+              >
+                <FileDown className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" aria-hidden />
+                <span>{t.ts_period_pdf || "Period PDF"}</span>
+              </button>
+            </div>
+          )}
+          
           <div className="ui-toolbar-dropdown-root shrink-0" ref={wstToolbarDrawerRef}>
             <button
               type="button"
