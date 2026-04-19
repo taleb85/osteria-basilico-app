@@ -19,5 +19,5 @@
     "noFallthroughCasesInSwitch": true,
     "allowJs": true
   },
-  "include": ["vite.config.ts", "scripts/vite.config.mjs"]
+  "include": ["scripts/vite.config.mjs"]
 }
