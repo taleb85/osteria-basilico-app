@@ -616,7 +616,7 @@ export default function HomePage({
                         {isDinner ? <Moon className="w-4 h-4 text-amber-600" /> : <Sun className="w-4 h-4 text-amber-500" />}
                         <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{isDinner ? t.dinner : t.lunch}</span>
                       </div>
-                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${punched ? 'bg-white text-black border-slate-200' : 'bg-amber-100 text-amber-950 border-amber-400/70'}`}>
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${punched ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40' : 'bg-amber-500/15 text-amber-200 border-amber-400/50'}`}>
                         {punched ? t.home_punched : t.home_not_punched}
                       </span>
                     </div>
@@ -865,7 +865,7 @@ export default function HomePage({
               <div className="flex items-center gap-2 mb-3">
                 <Moon className="w-4 h-4 text-amber-600" />
                 <h2 className="text-sm font-bold text-white">{t.home_dinner_close_required}</h2>
-                <span className="ml-auto rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
+                <span className="ml-auto rounded-full border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 text-[11px] font-bold text-amber-300">
                   {dinnerNeedsClose.length}
                 </span>
               </div>
@@ -873,15 +873,15 @@ export default function HomePage({
                 {dinnerNeedsClose.map((e) => (
                   <div
                     key={e.shift.id}
-                    className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4"
+                    className="rounded-2xl border border-amber-400/25 bg-amber-500/10 p-4"
                   >
                     <div className="mb-3 flex items-center gap-3">
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-amber-200 text-sm font-bold text-amber-900">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/25 text-sm font-bold text-amber-200">
                         {e.user?.first_name?.[0] ?? '?'}
                       </div>
                       <div>
-                        <p className="font-bold text-slate-800 text-sm">{e.user?.first_name ?? '—'}</p>
-                        <p className="text-[11px] text-slate-500">{e.user?.department ?? e.user?.role ?? ''}</p>
+                        <p className="font-bold text-white text-sm">{e.user?.first_name ?? '—'}</p>
+                        <p className="text-[11px] text-white/55">{e.user?.department ?? e.user?.role ?? ''}</p>
                       </div>
                       <span className="ml-auto flex items-center gap-1 rounded-full border border-brand-500/80 bg-brand-100 px-2 py-0.5 text-[10px] font-bold text-brand-900">
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500" /> {t.home_badge_in_shift}
@@ -920,7 +920,7 @@ export default function HomePage({
               <div className="flex items-center gap-2 mb-3">
                 <AlertCircle className="w-4 h-4 text-red-500" />
                 <h2 className="text-sm font-bold text-white">{t.home_requires_attention}</h2>
-                <span className="ml-auto text-[11px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full border border-red-200">{criticalShifts.length}</span>
+                <span className="ml-auto text-[11px] font-bold text-red-300 bg-red-500/15 px-2 py-0.5 rounded-full border border-red-400/30">{criticalShifts.length}</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {criticalShifts.map((e) => {
@@ -1010,18 +1010,18 @@ export default function HomePage({
                 <Palmtree className="w-4 h-4 text-accent" />
               </div>
               {pendingHolidays.length > 0 && (
-                <div className="flex items-center gap-2 mb-3 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                <div className="flex items-center gap-2 mb-3 bg-amber-500/12 border border-amber-400/30 rounded-xl px-3 py-2">
                   <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
-                  <p className="text-xs font-semibold text-amber-700">{pendingHolidays.length} {t.home_holiday_pending}</p>
+                  <p className="text-xs font-semibold text-amber-300">{pendingHolidays.length} {t.home_holiday_pending}</p>
                 </div>
               )}
               <div className="space-y-1.5">
                 {holidays.slice(0, 3).map((h) => {
                   const u = users.find((x) => x.id === h.user_id);
                   return (
-                    <div key={h.id} className="flex items-center justify-between py-1 border-b border-slate-50 last:border-0">
-                      <span className="text-slate-600 text-xs font-medium truncate flex-1">{u?.first_name ?? '?'}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ml-2 ${h.status === 'approved' ? 'bg-accent/10 text-accent-dark border-accent/20' : h.status === 'pending' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                    <div key={h.id} className="flex items-center justify-between py-1 border-b border-white/8 last:border-0">
+                      <span className="text-white/70 text-xs font-medium truncate flex-1">{u?.first_name ?? '?'}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ml-2 ${h.status === 'approved' ? 'bg-accent/15 text-accent border-accent/30' : h.status === 'pending' ? 'bg-amber-500/15 text-amber-300 border-amber-400/30' : 'bg-red-500/15 text-red-300 border-red-400/30'}`}>
                         {h.status === 'approved' ? t.home_holiday_approved : h.status === 'pending' ? t.home_holiday_pending : t.home_holiday_rejected}
                       </span>
                     </div>

@@ -47,16 +47,16 @@ function fmtHM(mins: number): string {
 /** Esportato per anteprima admin (Cosa vede chi) — stessa UI dei turni in Home gestionale. */
 export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprove, approvingId, t }: HomeManagementShiftCardProps) {
   const deltaColor =
-    e.deltaMins > 5 ? 'text-black' : e.deltaMins < -5 ? 'text-red-500' : 'text-slate-500';
+    e.deltaMins > 5 ? 'text-emerald-400' : e.deltaMins < -5 ? 'text-red-400' : 'text-white/50';
   const notPunchedLineCls = style.border.includes('[#00C896]')
-    ? 'text-brand-900'
+    ? 'text-emerald-300'
     : style.border.includes('slate-400')
-      ? 'text-slate-700'
+      ? 'text-white/70'
       : style.border.includes('rose-')
-        ? 'text-rose-900'
+        ? 'text-rose-300'
         : style.border.includes('red-')
-          ? 'text-red-800'
-          : 'text-amber-950';
+          ? 'text-red-300'
+          : 'text-amber-200';
 
   return (
     <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-5 shadow-sm`}
