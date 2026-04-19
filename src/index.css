@@ -997,150 +997,106 @@ html.no-motion *::after {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   HIGH-CONTRAST B&W — OTTIMIZZAZIONE LEGGIBILITÀ TURNI
+   ULTRA-CLEAN MINIMALISTA — BIANCO E NERO
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* Font monospace tabular per orari turni — sempre allineati */
-.shift-time-mono {
-  font-family: 'Roboto Mono', 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+/* Font moderno sans-serif per orari — Inter o fallback system */
+.shift-time-clean {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
+  font-weight: 500;
   letter-spacing: -0.01em;
-  font-weight: 600;
 }
 
-/* ── BADGE STATI TURNO: HIGH-CONTRAST B&W ────────────────────────────── */
+/* ── ORARI MAXI-LEGGIBILITÀ (ULTRA-CLEAN) ──────────────────────────────── */
 
-/* APPROVATO: testo nero grassetto, sfondo bianco, bordo nero spesso */
-.shift-badge-approved {
-  background: #ffffff;
-  color: #000000;
-  border: 2.5px solid #000000;
-  font-weight: 900;
-  text-shadow: none;
-  letter-spacing: 0.05em;
-}
-
-/* CONFERMATO/CONFIRMED: come approvato ma con bordo grigio scuro */
-.shift-badge-confirmed {
-  background: #ffffff;
-  color: #000000;
-  border: 2.5px solid #333333;
-  font-weight: 900;
-  text-shadow: none;
-  letter-spacing: 0.05em;
-}
-
-/* BOZZA: testo nero normale, sfondo grigio chiaro, bordo tratteggiato */
-.shift-badge-draft {
-  background: #f2f2f2;
-  color: #333333;
-  border: 2px dashed #999999;
-  font-weight: 700;
-  text-shadow: none;
-}
-
-/* ASSENTE/RIPOSO: testo grigio chiaro, sfondo bianco (quasi invisibile) */
-.shift-badge-absent {
-  background: #ffffff;
-  color: #999999;
-  border: 1.5px solid #e0e0e0;
-  font-weight: 600;
-  text-shadow: none;
-}
-
-/* Pillola "OFF/RIPOSO" per giorni non lavorati — B&W pulita */
-.shift-off-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  background: #f8f8f8;
-  color: #666666;
-  border: 1.5px solid #cccccc;
-  border-radius: 0.5rem;
-  font-size: 0.625rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-/* ── TIPOGRAFIA MAXI-VISIBILITÀ ─────────────────────────────────────── */
-
-/* Orari turni: da 17px → 22px desktop, 30px → 36px mobile */
-.shift-time-maxi {
+/* Orari turni: 20-22px nero puro su bianco puro */
+.shift-time-ultra {
   font-size: 1.375rem; /* 22px */
-  line-height: 1.2;
-  font-weight: 900;
+  line-height: 1.3;
+  font-weight: 500;
   color: #000000;
 }
 
 @media (max-width: 640px) {
-  .shift-time-maxi {
-    font-size: 2.25rem; /* 36px */
+  .shift-time-ultra {
+    font-size: 1.75rem; /* 28px mobile */
   }
 }
 
-/* Nomi dipendenti: 20px grassetto nero */
-.shift-name-maxi {
-  font-size: 1.25rem; /* 20px */
-  font-weight: 900;
+/* Nomi dipendenti: 16px medio */
+.shift-name-ultra {
+  font-size: 1rem; /* 16px */
+  font-weight: 600;
   color: #000000;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
-/* Totale ore settimanale: enorme e in grassetto nero */
-.shift-total-maxi {
-  font-size: 2rem; /* 32px */
-  font-weight: 900;
+/* Totale ore: 24px medio */
+.shift-total-ultra {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 600;
   color: #000000;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
-/* ── PULIZIA VISUALE: NO SHADOWS, NO GRADIENTS ───────────────────────── */
+/* ── STATI TURNO: SIMBOLI DISCRETI ───────────────────────────────────── */
 
-/* Card turni: sfondo bianco puro, bordo nero netto */
-.shift-card-bw {
-  background: #ffffff !important;
-  border: 2px solid #000000 !important;
-  box-shadow: none !important;
-  border-radius: 0.75rem;
+/* Confermato: nero normale */
+.shift-status-confirmed {
+  color: #000000;
+  font-weight: 500;
 }
 
-/* Card turni bozza: grigio chiaro */
-.shift-card-bw-draft {
-  background: #f8f8f8 !important;
-  border: 2px dashed #999999 !important;
-  box-shadow: none !important;
-  border-radius: 0.75rem;
+/* Bozza: grigio scuro leggero */
+.shift-status-draft {
+  color: #6b7280;
+  font-weight: 400;
 }
 
-/* Card turni assenti: quasi invisibile */
-.shift-card-bw-absent {
-  background: #fafafa !important;
-  border: 1.5px solid #e0e0e0 !important;
-  box-shadow: none !important;
-  border-radius: 0.75rem;
+/* Assente/OFF: grigio chiarissimo, quasi invisibile */
+.shift-status-off {
+  color: #d1d5db;
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
-/* ── SPAZIATURA AUMENTATA +30% ──────────────────────────────────────── */
+/* ── LINEE SOTTILISSIME SEPARATOR ──────────────────────────────────────── */
 
-/* Padding verticale aumentato per card turni */
-.shift-spacing-comfort {
-  padding-top: 1rem;    /* era 0.75rem */
-  padding-bottom: 1rem; /* era 0.75rem */
-  padding-left: 1.25rem;
-  padding-right: 1.25rem;
+/* Separatore riga dipendente: 0.5px grigio chiaro */
+.shift-separator-ultra {
+  border-bottom: 0.5px solid #e5e7eb;
 }
 
-/* Gap tra turni aumentato */
-.shift-gap-comfort {
-  gap: 1rem; /* era 0.75rem */
+/* Card ultra-clean: sfondo bianco puro, NO bordi, NO shadows */
+.shift-card-ultra {
+  background: #ffffff;
+  border: none;
+  box-shadow: none;
+  border-radius: 1rem;
 }
 
-/* Safe area laterali aumentate per mobile */
+/* ── SPAZIATURA ARIOSA (+40%) ───────────────────────────────────────────── */
+
+/* Padding generoso per dare aria */
+.shift-spacing-ultra {
+  padding-top: 1.5rem;    /* 24px */
+  padding-bottom: 1.5rem; /* 24px */
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Gap ampio tra turni */
+.shift-gap-ultra {
+  gap: 1.5rem; /* 24px */
+}
+
+/* Safe area mobile ultra */
 @media (max-width: 640px) {
-  .shift-mobile-safe {
-    padding-left: max(1.25rem, env(safe-area-inset-left));
-    padding-right: max(1.25rem, env(safe-area-inset-right));
+  .shift-mobile-ultra {
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
   }
 }

@@ -150,64 +150,61 @@ export default function MobileHome({
         </p>
       </div>
 
-      {/* ── Il tuo turno oggi ───────────────────────────────────────── */}
-      <section className="shift-card-bw px-5 py-5 mt-5">
-        <div className="flex items-start justify-between mb-4">
+      {/* ── Il tuo turno oggi (ULTRA-CLEAN) ──────────────────────────────── */}
+      <section className="shift-card-ultra px-6 py-6 mt-5">
+        <div className="flex items-start justify-between mb-5">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-1.5">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500 mb-2">
               {todayShiftLabel}
             </p>
             {shiftRange ? (
-              <p className="text-4xl font-black shift-time-mono text-black leading-tight">
+              <p className="text-5xl font-medium shift-time-clean text-black leading-tight tracking-tight">
                 {shiftRange}
               </p>
             ) : (
-              <p className="text-base font-bold text-slate-500">
+              <p className="text-base font-medium text-slate-400">
                 {noShiftsHint}
               </p>
             )}
             {shiftTimeHint && (
-              <p className="text-[10px] font-semibold text-slate-600 mt-1.5">
+              <p className="text-xs font-medium text-slate-500 mt-2">
                 {shiftTimeHint}
               </p>
             )}
           </div>
 
-          {/* Badge stato */}
+          {/* Badge stato (ULTRA-CLEAN) */}
           {inProgress ? (
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold bg-white text-black border-2 border-black">
+            <span className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-medium text-black">
               <span className="w-2 h-2 rounded-full bg-black" />
               {inProgressLabel}
             </span>
           ) : todayWorkShiftsCount > 0 ? (
-            <span className="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-800 border-2 border-slate-400">
+            <span className="px-3 py-1.5 text-[10px] font-medium text-slate-600">
               {nextShiftLabel}
             </span>
           ) : null}
         </div>
 
-        {/* Tempo trascorso se in turno */}
+        {/* Tempo trascorso (ULTRA-CLEAN: solo testo pulito) */}
         {inProgress && elapsedLabel && (
-          <div className="flex items-center gap-3 mb-4 shift-card-bw shift-spacing-comfort">
-            <Clock className="w-6 h-6 text-slate-800 shrink-0" strokeWidth={2.5} />
-            <span className="text-3xl shift-time-mono font-black text-black">
+          <div className="flex items-center gap-3 mb-5 px-4 py-4 bg-slate-50 rounded-xl">
+            <Clock className="w-6 h-6 text-slate-700 shrink-0" strokeWidth={1.5} />
+            <span className="text-4xl shift-time-clean font-medium text-black">
               {elapsedLabel}
             </span>
           </div>
         )}
 
-        {/* Lista turni del giorno (se non in corso) */}
+        {/* Lista turni del giorno (ULTRA-CLEAN) */}
         {!inProgress && todayWorkShifts.length > 1 && (
-          <div className="flex flex-col shift-gap-comfort mb-4">
+          <div className="flex flex-col shift-gap-ultra mb-5">
             {todayWorkShifts.slice(1).map((s) => (
-              <div key={s.id} className="flex items-center justify-between shift-card-bw shift-spacing-comfort">
-                <div className="flex items-center gap-3">
-                  <div className={`w-2.5 h-2.5 rounded-full ${s.type === 'lunch' ? 'bg-slate-800' : 'bg-slate-600'} border-2 border-black`} />
-                  <span className="text-lg font-black shift-time-mono text-black">
-                    {s.start_time.slice(0, 5)} – {s.end_time?.slice(0, 5) ?? '…'}
-                  </span>
-                </div>
-                <span className="text-[9px] font-black uppercase tracking-tighter text-slate-600">
+              <div key={s.id} className="flex items-center justify-between py-3 shift-separator-ultra">
+                <span className="text-xl font-medium shift-time-clean text-black">
+                  {s.start_time.slice(0, 5)} – {s.end_time?.slice(0, 5) ?? '…'}
+                </span>
+                <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
                   {s.type === 'lunch' ? 'Pranzo' : 'Cena'}
                 </span>
               </div>

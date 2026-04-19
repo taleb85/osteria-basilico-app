@@ -58,29 +58,18 @@ function minsLabel(m: number): string {
 function StatusBadge({ shift, t }: { shift: Shift; t: Record<string, string> }) {
   const isAbsent = shift.approval_status === 'absent';
   const isDraft  = shift.approval_status === 'draft';
-  const isApproved = shift.approval_status === 'approved';
   
-  const cls = isAbsent
-    ? 'shift-badge-absent'
-    : isDraft
-      ? 'shift-badge-draft'
-      : isApproved
-        ? 'shift-badge-approved'
-        : 'shift-badge-confirmed';
+  if (isAbsent) {
+    return <span className="shift-status-off">OFF</span>;
+  }
   
-  const label = isAbsent
-    ? (t.status_absent ?? 'Assente')
-    : isDraft
-      ? (t.status_draft ?? 'Bozza')
-      : isApproved
-        ? (t.ts_status_approved ?? 'Approvato')
-        : (t.ts_status_confirmed ?? 'Confermato');
+  // ULTRA-CLEAN: solo check discreto per approved, niente per confirmed/draft
+  if (shift.approval_status === 'approved') {
+    return <span className="text-xs text-black">✓</span>;
+  }
   
-  return (
-    <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-lg shrink-0 ${cls}`}>
-      {label}
-    </span>
-  );
+  // Draft: niente badge visibile, il grigio del testo è sufficiente
+  return null;
 }
 
 /* ── Raggruppamento per settimana ──────────────────────────────────────── */
@@ -248,9 +237,9 @@ function MyShiftsSection({
               </div>
             </div>
 
-              {/* Lista turni */}
+              {/* Lista turni (ULTRA-CLEAN) */}
             {isOpen && (
-              <div className="flex flex-col shift-gap-comfort mt-3 shift-mobile-safe">
+              <div className="flex flex-col shift-gap-ultra mt-3 shift-mobile-ultra">
                 {weekDays.map(day => {
                   const key = format(day, 'yyyy-MM-dd');
                   const dayShifts = byDay[key] ?? [];
@@ -259,31 +248,29 @@ function MyShiftsSection({
                   const isToday_ = isToday(day);
                   return (
                     <div key={key}>
-                      <p className="text-[10px] font-black uppercase tracking-widest mb-2.5 flex items-center gap-2 text-black">
+                      <p className="text-[10px] font-medium uppercase tracking-wider mb-3 flex items-center gap-2 text-black">
                         {format(day, 'EEEE d MMMM', { locale })}
                         {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-black" />}
                       </p>
                       {dayShifts.map(shift => {
                         const isAbsent = shift.approval_status === 'absent';
                         const isDraft = shift.approval_status === 'draft';
-                        const cardCls = isAbsent 
-                          ? 'shift-card-bw-absent' 
-                          : isDraft 
-                            ? 'shift-card-bw-draft' 
-                            : 'shift-card-bw';
+                        const statusCls = isDraft ? 'shift-status-draft' : 'shift-status-confirmed';
                         
                         return (
                           <div key={shift.id}
-                            className={`flex items-center justify-between ${cardCls} shift-spacing-comfort mb-2.5`}
+                            className="flex items-center justify-between py-3 shift-separator-ultra mb-3"
                           >
                             <div className="flex flex-col gap-1.5">
-                              <p className={`font-black shift-time-mono shift-time-maxi leading-none ${
-                                isAbsent ? 'text-slate-400 line-through' : 'text-black'
-                              }`}>
-                                {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
-                              </p>
-                              {shift.department && (
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mt-0.5">
+                              {isAbsent ? (
+                                <p className="shift-status-off">OFF</p>
+                              ) : (
+                                <p className={`font-medium shift-time-clean shift-time-ultra leading-tight ${statusCls}`}>
+                                  {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
+                                </p>
+                              )}
+                              {shift.department && !isAbsent && (
+                                <p className="text-[9px] font-medium uppercase tracking-wider text-slate-500">
                                   {translateDepartmentValue(shift.department, language as never)}
                                 </p>
                               )}
@@ -396,34 +383,31 @@ function TeamShiftsSection({
               </div>
             </button>
 
-            {/* Corpo cassetto */}
+            {/* Corpo cassetto (ULTRA-CLEAN) */}
             {isOpen && (
-              <div className="border-t-2 border-slate-300 px-4 pb-4 pt-3 flex flex-col shift-gap-comfort">
+              <div className="border-t border-slate-100 px-4 pb-4 pt-3 flex flex-col shift-gap-ultra">
                 {dayShifts.map(shift => {
                   const isAbsent = shift.approval_status === 'absent';
                   const isDraft = shift.approval_status === 'draft';
                   const u = userMap[shift.user_id];
                   const fullName = u ? `${u.first_name}${u.last_name ? ' ' + u.last_name : ''}` : '–';
-                  
-                  const cardCls = isAbsent 
-                    ? 'shift-card-bw-absent' 
-                    : isDraft 
-                      ? 'shift-card-bw-draft' 
-                      : 'shift-card-bw';
+                  const statusCls = isDraft ? 'shift-status-draft' : 'shift-status-confirmed';
                   
                   return (
-                    <div key={shift.id} className={`flex items-center justify-between ${cardCls} shift-spacing-comfort`}>
+                    <div key={shift.id} className="flex items-center justify-between py-3 shift-separator-ultra">
                       <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-                        <p className="shift-name-maxi uppercase tracking-wide truncate text-slate-800">
+                        <p className="shift-name-ultra uppercase tracking-wide truncate text-black">
                           {fullName}
                         </p>
-                        <p className={`font-black shift-time-mono shift-time-maxi leading-none ${
-                          isAbsent ? 'text-slate-400 line-through' : 'text-black'
-                        }`}>
-                          {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
-                        </p>
-                        {shift.department && (
-                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mt-0.5">
+                        {isAbsent ? (
+                          <p className="shift-status-off">OFF</p>
+                        ) : (
+                          <p className={`font-medium shift-time-clean shift-time-ultra leading-tight ${statusCls}`}>
+                            {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
+                          </p>
+                        )}
+                        {shift.department && !isAbsent && (
+                          <p className="text-[9px] font-medium uppercase tracking-wider text-slate-500">
                             {translateDepartmentValue(shift.department, language as never)}
                           </p>
                         )}
