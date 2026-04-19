@@ -55,10 +55,10 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
   const STATUS_CFG = {
-    approved:  { label: t.ts_status_approved  ?? 'Approvato',  Icon: CheckCircle2, pill: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' },
-    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle,  pill: 'bg-amber-500/10 text-amber-700 border-amber-500/20' },
-    draft:     { label: t.status_draft        ?? 'Bozza',      Icon: AlertCircle,  pill: 'bg-slate-100 text-slate-500 border-slate-200' },
-    absent:    { label: t.status_absent       ?? 'Assente',    Icon: XCircle,      pill: 'bg-red-500/10 text-red-700 border-red-500/20' },
+    approved:  { label: t.ts_status_approved  ?? 'Approvato',  Icon: CheckCircle2, pill: 'shift-badge-approved' },
+    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle,  pill: 'shift-badge-confirmed' },
+    draft:     { label: t.status_draft        ?? 'Bozza',      Icon: AlertCircle,  pill: 'shift-badge-draft' },
+    absent:    { label: t.status_absent       ?? 'Assente',    Icon: XCircle,      pill: 'shift-badge-absent' },
   } as const;
 
   const weeks = useMemo(() => {
@@ -89,7 +89,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
   }
 
   return (
-    <div className="flex flex-col gap-4 pb-8">
+    <div className="flex flex-col gap-5 pb-8">
       {weeks.map((week, wIdx) => {
         const weekDays = eachDayOfInterval({ start: week.start, end: week.end });
         const byDay = new Map<string, any[]>();
@@ -113,8 +113,8 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
 
         return (
           <div key={wIdx}
-            className="rounded-2xl border border-slate-100 overflow-hidden"
-            style={isDark ? { background: 'transparent' } : { background: '#ffffff', boxShadow: '0 1px 4px 0 rgba(0,0,0,0.06)' }}
+            className="rounded-2xl border-2 border-slate-200 overflow-hidden"
+            style={isDark ? { background: 'transparent' } : { background: '#ffffff', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.08)' }}
           >
             {/* Week header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
@@ -149,7 +149,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                 return (
                   <div
                     key={dateStr}
-                    className={`flex flex-col min-h-[120px] ${dIdx < 6 ? 'border-r border-slate-100' : ''} ${today ? 'bg-[#3366CC]/[0.04]' : isWeekend ? 'bg-slate-50/60' : ''}`}
+                    className={`flex flex-col min-h-[140px] border-r-2 ${dIdx === 6 ? '!border-r-0' : 'border-r-slate-200'} ${today ? 'bg-[#3366CC]/[0.05] ring-1 ring-inset ring-[#3366CC]/20' : isWeekend ? 'bg-slate-50/80' : 'bg-white'}`}
                   >
                     {/* Day header */}
                     <div className="px-2.5 py-2 border-b border-slate-100">
@@ -162,7 +162,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                     </div>
 
                     {/* Shifts */}
-                    <div className="flex flex-col gap-1.5 p-2 flex-1">
+                    <div className="flex flex-col gap-2.5 p-2.5 flex-1">
                       {dayShifts.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center">
                           <span className="w-1 h-1 rounded-full bg-slate-200" />
@@ -186,25 +186,25 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                         return (
                           <div
                             key={shift.id}
-                            className={`rounded-lg px-2 py-1.5 border text-left ${isAbsent ? 'border-red-500/10' : 'border-slate-100'}`}
-                            style={isDark ? { background: 'transparent' } : isAbsent ? { background: 'rgba(239,68,68,0.04)' } : { background: '#f8fafc' }}
+                            className={`rounded-xl px-3 py-2.5 border-2 text-left ${isAbsent ? 'border-red-500/15 bg-red-50/60' : 'border-slate-100 bg-slate-50/70'}`}
+                            style={isDark ? { background: 'transparent' } : {}}
                           >
-                            {/* Hours (primary) */}
-                            <p className={`text-sm font-black tabular-nums leading-none mb-1 ${isAbsent ? 'text-slate-400' : 'text-slate-800'}`}>
+                            {/* Hours (primary) — OTTIMIZZATO: +2px font-size, monospace */}
+                            <p className={`text-[17px] font-black leading-none mb-2 shift-time-mono ${isAbsent ? 'text-slate-400' : 'text-slate-900'}`}>
                               {hoursLabel}
                             </p>
-                            {/* Time range (secondary) */}
-                            <p className={`text-[9px] font-bold tabular-nums ${isAbsent ? 'text-slate-400 line-through' : 'text-slate-500'}`}>
+                            {/* Time range (secondary) — OTTIMIZZATO: +2px font-size, monospace, +spacing */}
+                            <p className={`text-[11px] font-bold mb-2 shift-time-mono ${isAbsent ? 'text-slate-400 line-through' : 'text-slate-600'}`}>
                               {shift.start_time.slice(0, 5)}–{shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
-                            {/* Type + badge with icon */}
-                            <div className="flex items-center justify-between mt-1 gap-1">
+                            {/* Type + badge with icon — OTTIMIZZATO: badge custom */}
+                            <div className="flex items-center justify-between gap-1.5">
                               {shift.type && (
                                 <p className="text-[8px] font-bold uppercase tracking-wide text-slate-400">
                                   {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
                                 </p>
                               )}
-                              <span className={`flex items-center gap-0.5 text-[8px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-full border ml-auto ${cfg.pill}`}>
+                              <span className={`flex items-center gap-1 text-[8px] px-2 py-1 rounded-lg uppercase tracking-wide ml-auto shift-badge-${sk}`}>
                                 <Icon className="w-2.5 h-2.5" />
                                 {cfg.label}
                               </span>
@@ -235,9 +235,9 @@ function StaffDesktopTimesheet({
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
   const STATUS_CONFIG = {
-    approved: { label: t.ts_status_approved ?? 'Approvato', Icon: CheckCircle2, pill: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' },
-    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle, pill: 'bg-amber-500/10 text-amber-700 border-amber-500/20' },
-    absent: { label: t.status_absent ?? 'Assente', Icon: XCircle, pill: 'bg-red-500/10 text-red-700 border-red-500/20' },
+    approved: { label: t.ts_status_approved ?? 'Approvato', Icon: CheckCircle2, pill: 'shift-badge-approved' },
+    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle, pill: 'shift-badge-confirmed' },
+    absent: { label: t.status_absent ?? 'Assente', Icon: XCircle, pill: 'shift-badge-absent' },
   } as const;
 
   const history = shifts
@@ -269,7 +269,7 @@ function StaffDesktopTimesheet({
   });
 
   return (
-    <div className="flex flex-col gap-4 pb-8">
+    <div className="flex flex-col gap-5 pb-8">
       {weeks.map((week, wIdx) => {
         // Total hours
         let totalMins = 0;
@@ -298,8 +298,8 @@ function StaffDesktopTimesheet({
 
         return (
           <div key={wIdx}
-            className="rounded-2xl border border-slate-100 overflow-hidden"
-            style={isDark ? { background: 'transparent' } : { background: '#ffffff', boxShadow: '0 1px 4px 0 rgba(0,0,0,0.06)' }}
+            className="rounded-2xl border-2 border-slate-200 overflow-hidden"
+            style={isDark ? { background: 'transparent' } : { background: '#ffffff', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.08)' }}
           >
             {/* Week header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
@@ -334,7 +334,7 @@ function StaffDesktopTimesheet({
                 return (
                   <div
                     key={dateStr}
-                    className={`flex flex-col min-h-[120px] ${dIdx < 6 ? 'border-r border-slate-100' : ''} ${today ? 'bg-[#3366CC]/[0.04]' : isWeekend ? 'bg-slate-50/60' : ''}`}
+                    className={`flex flex-col min-h-[140px] border-r-2 ${dIdx === 6 ? '!border-r-0' : 'border-r-slate-200'} ${today ? 'bg-[#3366CC]/[0.05] ring-1 ring-inset ring-[#3366CC]/20' : isWeekend ? 'bg-slate-50/80' : 'bg-white'}`}
                   >
                     {/* Day header */}
                     <div className={`px-2.5 py-2 border-b border-slate-100 ${today ? 'border-b-[#3366CC]/30' : ''}`}>
@@ -347,7 +347,7 @@ function StaffDesktopTimesheet({
                     </div>
 
                     {/* Shifts */}
-                    <div className="flex flex-col gap-1.5 p-2 flex-1">
+                    <div className="flex flex-col gap-2.5 p-2.5 flex-1">
                       {dayShifts.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center">
                           <span className="w-1 h-1 rounded-full bg-slate-200" />
@@ -366,22 +366,25 @@ function StaffDesktopTimesheet({
                         return (
                           <div
                             key={shift.id}
-                            className={`rounded-lg px-2 py-1.5 border text-left ${isAbsent ? 'border-red-500/10' : 'border-slate-100'}`}
-                            style={isDark ? { background: 'transparent' } : isAbsent ? { background: 'rgba(239,68,68,0.04)' } : { background: '#f8fafc' }}
+                            className={`rounded-xl px-3 py-2.5 border-2 text-left ${isAbsent ? 'border-red-500/15 bg-red-50/60' : 'border-slate-100 bg-slate-50/70'}`}
+                            style={isDark ? { background: 'transparent' } : {}}
                           >
-                            <p className={`text-sm font-black tabular-nums leading-none mb-1 ${isAbsent ? 'text-slate-400' : 'text-slate-800'}`}>
+                            {/* Hours (primary) — OTTIMIZZATO: +3px font-size, monospace */}
+                            <p className={`text-[17px] font-black leading-none mb-2 shift-time-mono ${isAbsent ? 'text-slate-400' : 'text-slate-900'}`}>
                               {hoursLabel}
                             </p>
-                            <p className={`text-[9px] font-bold tabular-nums ${isAbsent ? 'text-slate-400 line-through' : 'text-slate-500'}`}>
+                            {/* Time range (secondary) — OTTIMIZZATO: +2px font-size, monospace */}
+                            <p className={`text-[11px] font-bold mb-2 shift-time-mono ${isAbsent ? 'text-slate-400 line-through' : 'text-slate-600'}`}>
                               {shift.start_time.slice(0, 5)}–{shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
-                            <div className="flex items-center justify-between mt-1 gap-1">
+                            {/* Type + badge — OTTIMIZZATO: badge custom */}
+                            <div className="flex items-center justify-between gap-1.5">
                               {shift.type && (
                                 <p className="text-[8px] font-bold uppercase tracking-wide text-slate-400">
                                   {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
                                 </p>
                               )}
-                              <span className={`flex items-center gap-0.5 text-[8px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-full border ${cfg.pill} ml-auto`}>
+                              <span className={`flex items-center gap-1 text-[8px] px-2 py-1 rounded-lg uppercase tracking-wide ml-auto shift-badge-${sk}`}>
                                 <Icon className="w-2.5 h-2.5" />
                                 {cfg.label}
                               </span>

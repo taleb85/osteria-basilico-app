@@ -58,18 +58,26 @@ function minsLabel(m: number): string {
 function StatusBadge({ shift, t }: { shift: Shift; t: Record<string, string> }) {
   const isAbsent = shift.approval_status === 'absent';
   const isDraft  = shift.approval_status === 'draft';
+  const isApproved = shift.approval_status === 'approved';
+  
   const cls = isAbsent
-    ? 'text-red-500 border-red-200 bg-red-50'
+    ? 'shift-badge-absent'
     : isDraft
-      ? 'text-slate-400 border-slate-200 bg-slate-50'
-      : 'text-emerald-600 border-emerald-200 bg-emerald-50';
+      ? 'shift-badge-draft'
+      : isApproved
+        ? 'shift-badge-approved'
+        : 'shift-badge-confirmed';
+  
   const label = isAbsent
     ? (t.status_absent ?? 'Assente')
     : isDraft
       ? (t.status_draft ?? 'Bozza')
-      : (t.shifts_confirmed ?? 'Confermato');
+      : isApproved
+        ? (t.ts_status_approved ?? 'Approvato')
+        : (t.ts_status_confirmed ?? 'Confermato');
+  
   return (
-    <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${cls}`}>
+    <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-lg shrink-0 ${cls}`}>
       {label}
     </span>
   );
@@ -240,9 +248,9 @@ function MyShiftsSection({
               </div>
             </div>
 
-            {/* Lista turni */}
+              {/* Lista turni */}
             {isOpen && (
-              <div className="flex flex-col gap-1.5 mt-2.5">
+              <div className="flex flex-col gap-2.5 mt-2.5 shift-mobile-safe">
                 {weekDays.map(day => {
                   const key = format(day, 'yyyy-MM-dd');
                   const dayShifts = byDay[key] ?? [];
@@ -251,7 +259,7 @@ function MyShiftsSection({
                   const isToday_ = isToday(day);
                   return (
                     <div key={key}>
-                      <p className="text-[10px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-[#3366CC]">
+                      <p className="text-[10px] font-black uppercase tracking-widest mb-2 flex items-center gap-2 text-[#3366CC]">
                         {format(day, 'EEEE d MMMM', { locale })}
                         {isToday_ && <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
                       </p>
@@ -259,16 +267,16 @@ function MyShiftsSection({
                         const isAbsent = shift.approval_status === 'absent';
                         return (
                           <div key={shift.id}
-                            className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm ${
+                            className={`flex items-center justify-between rounded-xl px-4 py-3.5 mb-2 border-2 shadow-sm ${
                               isAbsent
                                 ? 'border-red-100 bg-red-50'
-                                : 'border-slate-100'
+                                : 'border-slate-200 bg-white'
                             }`}
                             style={isAbsent ? undefined : cardBg}
                           >
-                            <div className="flex flex-col gap-0.5">
-                              <p className={`font-bold tabular-nums text-base leading-none ${
-                                isAbsent ? 'text-slate-300 line-through' : 'text-slate-800'
+                            <div className="flex flex-col gap-1">
+                              <p className={`font-black shift-time-mono text-lg leading-none ${
+                                isAbsent ? 'text-slate-300 line-through' : 'text-slate-900'
                               }`}>
                                 {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                               </p>
@@ -388,29 +396,29 @@ function TeamShiftsSection({
 
             {/* Corpo cassetto */}
             {isOpen && (
-              <div className="border-t border-slate-50 px-3 pb-2 pt-1.5 flex flex-col gap-1">
+              <div className="border-t border-slate-50 px-4 pb-3 pt-2 flex flex-col gap-2.5">
                 {dayShifts.map(shift => {
                   const isAbsent = shift.approval_status === 'absent';
                   const u = userMap[shift.user_id];
                   const fullName = u ? `${u.first_name}${u.last_name ? ' ' + u.last_name : ''}` : '–';
                   return (
-                    <div key={shift.id} className={`flex items-center justify-between rounded-lg px-2.5 py-2 border ${
+                    <div key={shift.id} className={`flex items-center justify-between rounded-xl px-4 py-3 border-2 ${
                       isAbsent
                         ? 'border-red-100 bg-red-50'
-                        : 'border-slate-100'
+                        : 'border-slate-200 bg-white'
                     }`}
                     style={isAbsent ? undefined : cardBg}>
-                      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                        <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 truncate">
+                      <div className="flex flex-col gap-1 min-w-0 flex-1">
+                        <p className="text-[11px] font-extrabold uppercase tracking-wide text-slate-600 truncate">
                           {fullName}
                         </p>
-                        <p className={`font-black tabular-nums text-sm leading-none ${
-                          isAbsent ? 'text-slate-300 line-through' : 'text-slate-800'
+                        <p className={`font-black shift-time-mono text-[17px] leading-none ${
+                          isAbsent ? 'text-slate-300 line-through' : 'text-slate-900'
                         }`}>
                           {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                         </p>
                         {shift.department && (
-                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">
                             {translateDepartmentValue(shift.department, language as never)}
                           </p>
                         )}

@@ -101,7 +101,7 @@ export default function MobileHome({
 
   return (
     <div
-      className="flex flex-col gap-3 px-4 py-4 pb-12 relative"
+      className="flex flex-col gap-3 px-4 py-4 pb-12 relative shift-mobile-safe"
       style={{ transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : undefined, transition: pullDistance === 0 ? 'transform 0.25s ease-out' : undefined }}
     >
       {/* Pull-to-refresh indicator */}
@@ -158,7 +158,7 @@ export default function MobileHome({
               {todayShiftLabel}
             </p>
             {shiftRange ? (
-              <p className="text-2xl font-black text-slate-800 tabular-nums">
+              <p className="text-3xl font-black shift-time-mono text-slate-900 leading-tight">
                 {shiftRange}
               </p>
             ) : (
@@ -167,7 +167,7 @@ export default function MobileHome({
               </p>
             )}
             {shiftTimeHint && (
-              <p className="text-[10px] font-semibold text-slate-400 mt-0.5">
+              <p className="text-[10px] font-semibold text-slate-400 mt-1">
                 {shiftTimeHint}
               </p>
             )}
@@ -188,9 +188,9 @@ export default function MobileHome({
 
         {/* Tempo trascorso se in turno */}
         {inProgress && elapsedLabel && (
-          <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl bg-slate-50 border border-slate-100">
-            <Clock className="w-4 h-4 text-slate-400 shrink-0" />
-            <span className="text-lg font-mono font-semibold text-slate-600 tabular-nums">
+          <div className="flex items-center gap-2.5 mb-3 px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200">
+            <Clock className="w-5 h-5 text-slate-400 shrink-0" />
+            <span className="text-2xl shift-time-mono font-black text-slate-700">
               {elapsedLabel}
             </span>
           </div>
@@ -198,12 +198,12 @@ export default function MobileHome({
 
         {/* Lista turni del giorno (se non in corso) */}
         {!inProgress && todayWorkShifts.length > 1 && (
-          <div className="flex flex-col gap-1.5 mb-3">
+          <div className="flex flex-col gap-2 mb-3">
             {todayWorkShifts.slice(1).map((s) => (
-              <div key={s.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full ${s.type === 'lunch' ? 'bg-amber-400' : 'bg-violet-500'}`} />
-                  <span className="text-xs font-bold text-slate-700">
+              <div key={s.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200">
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-2 h-2 rounded-full ${s.type === 'lunch' ? 'bg-amber-400' : 'bg-violet-500'}`} />
+                  <span className="text-base font-black shift-time-mono text-slate-800">
                     {s.start_time.slice(0, 5)} – {s.end_time?.slice(0, 5) ?? '…'}
                   </span>
                 </div>
@@ -245,7 +245,7 @@ export default function MobileHome({
             </button>
           ) : (
             todayWorkShiftsCount > 0 && (
-              <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 py-3">
                 {tapStartHint}
               </p>
             )
