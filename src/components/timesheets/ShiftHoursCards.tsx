@@ -97,30 +97,30 @@ export function ShiftHoursCards({
   tv,
 }: ShiftHoursCardsProps) {
   return (
-    <div className="border-b border-slate-100 p-3 sm:p-5 shrink-0">
-      <div className="mb-3 grid grid-cols-2 gap-3 items-stretch">
+    <div className="border-b-2 border-black p-4 sm:p-6 shrink-0">
+      <div className="mb-4 grid grid-cols-2 gap-4 items-stretch">
         {/* Card Pianificato */}
-        <div className={`${plannedCardBoxClass} overflow-hidden min-h-[90px]`}>
-          <p className={`mb-1 text-[10px] font-semibold uppercase ${plannedCardLabelCls}`}>{t.ts_label_planned}</p>
+        <div className={`${plannedCardBoxClass} overflow-hidden min-h-[110px] shift-card-bw shift-spacing-comfort`}>
+          <p className={`mb-2 text-[11px] font-bold uppercase ${plannedCardLabelCls} text-slate-700`}>{t.ts_label_planned}</p>
           <div className="flex items-start gap-2">
             {(s.status === 'confirmed' || s.status === 'approved') && (
               <span className="flex shrink-0 flex-col items-center justify-center gap-1 pr-1">
                 {s.status === 'confirmed' && (
-                  <Check className="h-4 w-4 text-[#3366CC]" strokeWidth={2.5} aria-hidden />
+                  <Check className="h-5 w-5 text-black" strokeWidth={3} aria-hidden />
                 )}
                 {s.status === 'approved' && (
-                  <Lock className="h-4 w-4 text-emerald-600" strokeWidth={2.5} aria-hidden />
+                  <Lock className="h-5 w-5 text-black" strokeWidth={3} aria-hidden />
                 )}
               </span>
             )}
             <div className="min-w-0 flex-1">
-              <p className={`text-base font-bold tabular-nums ${plannedCardMainCls}`}>
+              <p className={`shift-time-maxi shift-time-mono ${plannedCardMainCls} text-black`}>
                 {s.plannedStart}–{s.plannedEnd}
               </p>
-              <p className={`mt-0.5 text-[11px] ${plannedCardSubCls}`}>
+              <p className={`mt-1 text-sm font-bold ${plannedCardSubCls} text-slate-700`}>
                 {fmtHM(s.plannedMins)}
                 {s.breakMinutes > 0 ? (
-                  <span className="opacity-80">
+                  <span className="opacity-70">
                     {' '}
                     (−{fmtBreakDeductionShort(s.breakMinutes)})
                   </span>
@@ -132,55 +132,55 @@ export function ShiftHoursCards({
         
         {/* Card Timbrato */}
         <div
-          className={`rounded-xl p-3 overflow-hidden border-2 border-l-4 min-h-[90px] ${
+          className={`rounded-xl p-4 overflow-hidden border-2 border-l-[6px] min-h-[110px] ${
             s.punched
               ? s.isCrossDay
-                ? 'border-red-200 border-l-error bg-red-50'
-                : 'border-[#001A80]/25 border-l-[#3366CC] bg-[#001A80]/8'
-              : 'border-amber-400/90 border-l-review bg-amber-50 animate-pulse'
+                ? 'border-slate-400 border-l-black bg-slate-100'
+                : 'border-black border-l-black bg-white'
+              : 'border-slate-500 border-l-slate-800 bg-slate-50 animate-pulse'
           }`}
         >
-          <div className="flex items-center justify-between mb-1">
-            <p className={`text-[10px] font-semibold uppercase ${
+          <div className="flex items-center justify-between mb-2">
+            <p className={`text-[11px] font-bold uppercase ${
               s.punched
                 ? s.isCrossDay
-                  ? 'text-red-600'
-                  : 'text-[#001A80]'
-                : 'text-amber-800/90'
+                  ? 'text-black'
+                  : 'text-black'
+                : 'text-slate-800'
             }`}>{t.ts_label_punched}</p>
             {(s.punched && !s.actualEnd) || !s.punched ? (
-              <span className="flex h-2 w-2 rounded-full bg-red-500 animate-pulse" title={t.data_missing} />
+              <span className="flex h-2.5 w-2.5 rounded-full bg-black animate-pulse" title={t.data_missing} />
             ) : null}
           </div>
           {s.punched ? (
             <>
-              <p className="text-base font-bold tabular-nums text-slate-900">
+              <p className="shift-time-maxi shift-time-mono text-black">
                 {s.actualStart}
                 {s.actualEnd ? `–${s.actualEnd}` : ''}
               </p>
               {s.isCrossDay && s.actualEndFull && (
-                <p className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-red-600">
-                  <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+                <p className="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-black">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} />
                   {formatTrans(t.ts_crossday_out_label, {
                     time: format(new Date(s.actualEndFull), 'dd/MM HH:mm'),
                   })}
                 </p>
               )}
               {s.nightRolloverOk && s.actualEndFull && (
-                <p className="mt-0.5 text-[10px] font-medium text-slate-500">
+                <p className="mt-1 text-[11px] font-medium text-slate-700">
                   {formatTrans(t.ts_punch_out_next_calendar_day_hint, {
                     time: format(new Date(s.actualEndFull), 'dd/MM HH:mm'),
                   })}
                 </p>
               )}
               <p
-                className={`mt-0.5 text-[11px] font-semibold ${s.actualMins > 0 && !s.isCrossDay ? deltaColor : 'text-amber-600'}`}
+                className={`mt-1 text-sm font-bold ${s.actualMins > 0 && !s.isCrossDay ? 'text-black' : 'text-slate-700'}`}
               >
                 {s.isCrossDay ? (
                   <>
                     {t.ts_fix_exit_time_label}
                     {s.breakMinutes > 0 ? (
-                      <span className="mt-0.5 block font-semibold text-slate-600">
+                      <span className="mt-1 block font-bold text-slate-700">
                         −{fmtBreakDeductionShort(s.breakMinutes)}
                       </span>
                     ) : null}
@@ -195,7 +195,7 @@ export function ShiftHoursCards({
                   <>
                     {t.ts_out_missing_short}
                     {s.breakMinutes > 0 ? (
-                      <span className="mt-0.5 block font-semibold text-slate-600">
+                      <span className="mt-1 block font-bold text-slate-700">
                         −{fmtBreakDeductionShort(s.breakMinutes)}
                       </span>
                     ) : null}

@@ -250,7 +250,7 @@ function MyShiftsSection({
 
               {/* Lista turni */}
             {isOpen && (
-              <div className="flex flex-col gap-2.5 mt-2.5 shift-mobile-safe">
+              <div className="flex flex-col shift-gap-comfort mt-3 shift-mobile-safe">
                 {weekDays.map(day => {
                   const key = format(day, 'yyyy-MM-dd');
                   const dayShifts = byDay[key] ?? [];
@@ -259,29 +259,31 @@ function MyShiftsSection({
                   const isToday_ = isToday(day);
                   return (
                     <div key={key}>
-                      <p className="text-[10px] font-black uppercase tracking-widest mb-2 flex items-center gap-2 text-[#3366CC]">
+                      <p className="text-[10px] font-black uppercase tracking-widest mb-2.5 flex items-center gap-2 text-black">
                         {format(day, 'EEEE d MMMM', { locale })}
-                        {isToday_ && <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
+                        {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-black" />}
                       </p>
                       {dayShifts.map(shift => {
                         const isAbsent = shift.approval_status === 'absent';
+                        const isDraft = shift.approval_status === 'draft';
+                        const cardCls = isAbsent 
+                          ? 'shift-card-bw-absent' 
+                          : isDraft 
+                            ? 'shift-card-bw-draft' 
+                            : 'shift-card-bw';
+                        
                         return (
                           <div key={shift.id}
-                            className={`flex items-center justify-between rounded-xl px-4 py-3.5 mb-2 border-2 shadow-sm ${
-                              isAbsent
-                                ? 'border-red-100 bg-red-50'
-                                : 'border-slate-200 bg-white'
-                            }`}
-                            style={isAbsent ? undefined : cardBg}
+                            className={`flex items-center justify-between ${cardCls} shift-spacing-comfort mb-2.5`}
                           >
-                            <div className="flex flex-col gap-1">
-                              <p className={`font-black shift-time-mono text-lg leading-none ${
-                                isAbsent ? 'text-slate-300 line-through' : 'text-slate-900'
+                            <div className="flex flex-col gap-1.5">
+                              <p className={`font-black shift-time-mono shift-time-maxi leading-none ${
+                                isAbsent ? 'text-slate-400 line-through' : 'text-black'
                               }`}>
                                 {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                               </p>
                               {shift.department && (
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mt-0.5">
                                   {translateDepartmentValue(shift.department, language as never)}
                                 </p>
                               )}
@@ -396,29 +398,32 @@ function TeamShiftsSection({
 
             {/* Corpo cassetto */}
             {isOpen && (
-              <div className="border-t border-slate-50 px-4 pb-3 pt-2 flex flex-col gap-2.5">
+              <div className="border-t-2 border-slate-300 px-4 pb-4 pt-3 flex flex-col shift-gap-comfort">
                 {dayShifts.map(shift => {
                   const isAbsent = shift.approval_status === 'absent';
+                  const isDraft = shift.approval_status === 'draft';
                   const u = userMap[shift.user_id];
                   const fullName = u ? `${u.first_name}${u.last_name ? ' ' + u.last_name : ''}` : '–';
+                  
+                  const cardCls = isAbsent 
+                    ? 'shift-card-bw-absent' 
+                    : isDraft 
+                      ? 'shift-card-bw-draft' 
+                      : 'shift-card-bw';
+                  
                   return (
-                    <div key={shift.id} className={`flex items-center justify-between rounded-xl px-4 py-3 border-2 ${
-                      isAbsent
-                        ? 'border-red-100 bg-red-50'
-                        : 'border-slate-200 bg-white'
-                    }`}
-                    style={isAbsent ? undefined : cardBg}>
-                      <div className="flex flex-col gap-1 min-w-0 flex-1">
-                        <p className="text-[11px] font-extrabold uppercase tracking-wide text-slate-600 truncate">
+                    <div key={shift.id} className={`flex items-center justify-between ${cardCls} shift-spacing-comfort`}>
+                      <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                        <p className="shift-name-maxi uppercase tracking-wide truncate text-slate-800">
                           {fullName}
                         </p>
-                        <p className={`font-black shift-time-mono text-[17px] leading-none ${
-                          isAbsent ? 'text-slate-300 line-through' : 'text-slate-900'
+                        <p className={`font-black shift-time-mono shift-time-maxi leading-none ${
+                          isAbsent ? 'text-slate-400 line-through' : 'text-black'
                         }`}>
                           {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                         </p>
                         {shift.department && (
-                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mt-0.5">
                             {translateDepartmentValue(shift.department, language as never)}
                           </p>
                         )}

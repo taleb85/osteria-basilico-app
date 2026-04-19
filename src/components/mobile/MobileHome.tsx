@@ -151,23 +151,23 @@ export default function MobileHome({
       </div>
 
       {/* ── Il tuo turno oggi ───────────────────────────────────────── */}
-      <section className={`${cardCls} px-5 py-4 mt-5`} style={cardStyle}>
-        <div className="flex items-start justify-between mb-3">
+      <section className="shift-card-bw px-5 py-5 mt-5">
+        <div className="flex items-start justify-between mb-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-1.5">
               {todayShiftLabel}
             </p>
             {shiftRange ? (
-              <p className="text-3xl font-black shift-time-mono text-slate-900 leading-tight">
+              <p className="text-4xl font-black shift-time-mono text-black leading-tight">
                 {shiftRange}
               </p>
             ) : (
-              <p className="text-base font-bold text-slate-400">
+              <p className="text-base font-bold text-slate-500">
                 {noShiftsHint}
               </p>
             )}
             {shiftTimeHint && (
-              <p className="text-[10px] font-semibold text-slate-400 mt-1">
+              <p className="text-[10px] font-semibold text-slate-600 mt-1.5">
                 {shiftTimeHint}
               </p>
             )}
@@ -175,12 +175,12 @@ export default function MobileHome({
 
           {/* Badge stato */}
           {inProgress ? (
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-500">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold bg-white text-black border-2 border-black">
+              <span className="w-2 h-2 rounded-full bg-black" />
               {inProgressLabel}
             </span>
           ) : todayWorkShiftsCount > 0 ? (
-            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600">
+            <span className="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-800 border-2 border-slate-400">
               {nextShiftLabel}
             </span>
           ) : null}
@@ -188,9 +188,9 @@ export default function MobileHome({
 
         {/* Tempo trascorso se in turno */}
         {inProgress && elapsedLabel && (
-          <div className="flex items-center gap-2.5 mb-3 px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200">
-            <Clock className="w-5 h-5 text-slate-400 shrink-0" />
-            <span className="text-2xl shift-time-mono font-black text-slate-700">
+          <div className="flex items-center gap-3 mb-4 shift-card-bw shift-spacing-comfort">
+            <Clock className="w-6 h-6 text-slate-800 shrink-0" strokeWidth={2.5} />
+            <span className="text-3xl shift-time-mono font-black text-black">
               {elapsedLabel}
             </span>
           </div>
@@ -198,16 +198,16 @@ export default function MobileHome({
 
         {/* Lista turni del giorno (se non in corso) */}
         {!inProgress && todayWorkShifts.length > 1 && (
-          <div className="flex flex-col gap-2 mb-3">
+          <div className="flex flex-col shift-gap-comfort mb-4">
             {todayWorkShifts.slice(1).map((s) => (
-              <div key={s.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200">
-                <div className="flex items-center gap-2.5">
-                  <div className={`w-2 h-2 rounded-full ${s.type === 'lunch' ? 'bg-amber-400' : 'bg-violet-500'}`} />
-                  <span className="text-base font-black shift-time-mono text-slate-800">
+              <div key={s.id} className="flex items-center justify-between shift-card-bw shift-spacing-comfort">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2.5 h-2.5 rounded-full ${s.type === 'lunch' ? 'bg-slate-800' : 'bg-slate-600'} border-2 border-black`} />
+                  <span className="text-lg font-black shift-time-mono text-black">
                     {s.start_time.slice(0, 5)} – {s.end_time?.slice(0, 5) ?? '…'}
                   </span>
                 </div>
-                <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400">
+                <span className="text-[9px] font-black uppercase tracking-tighter text-slate-600">
                   {s.type === 'lunch' ? 'Pranzo' : 'Cena'}
                 </span>
               </div>

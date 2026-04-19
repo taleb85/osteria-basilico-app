@@ -113,8 +113,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
 
         return (
           <div key={wIdx}
-            className="rounded-2xl border-2 border-slate-200 overflow-hidden"
-            style={isDark ? { background: 'transparent' } : { background: '#ffffff', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.08)' }}
+            className="rounded-2xl overflow-hidden shift-card-bw"
           >
             {/* Week header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
@@ -132,7 +131,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                 </div>
               </div>
               {totalLabel && (
-                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 text-blue-700 border border-[#4361EE]/15">
+                <span className="shift-total-maxi shift-time-mono px-3 py-1 rounded-lg bg-white text-black border-2 border-black">
                   {totalLabel}
                 </span>
               )}
@@ -149,23 +148,23 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                 return (
                   <div
                     key={dateStr}
-                    className={`flex flex-col min-h-[140px] border-r-2 ${dIdx === 6 ? '!border-r-0' : 'border-r-slate-200'} ${today ? 'bg-[#3366CC]/[0.05] ring-1 ring-inset ring-[#3366CC]/20' : isWeekend ? 'bg-slate-50/80' : 'bg-white'}`}
+                    className={`flex flex-col min-h-[140px] border-r-2 ${dIdx === 6 ? '!border-r-0' : 'border-r-black'} ${today ? 'bg-slate-100 ring-2 ring-inset ring-black' : isWeekend ? 'bg-slate-50' : 'bg-white'}`}
                   >
                     {/* Day header */}
-                    <div className="px-2.5 py-2 border-b border-slate-100">
-                      <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${today ? 'text-[#3366CC]' : 'text-slate-400'}`}>
+                    <div className={`px-2.5 py-2.5 border-b-2 ${today ? 'border-b-black bg-slate-200' : 'border-b-slate-300'}`}>
+                      <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${today ? 'text-black' : 'text-slate-600'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
-                      <p className={`text-sm font-black tabular-nums ${today ? 'text-[#001A80]' : 'text-slate-700'}`}>
+                      <p className={`text-sm font-black tabular-nums ${today ? 'text-black' : 'text-slate-800'}`}>
                         {format(day, 'd')}
                       </p>
                     </div>
 
                     {/* Shifts */}
-                    <div className="flex flex-col gap-2.5 p-2.5 flex-1">
+                    <div className="flex flex-col shift-gap-comfort p-2.5 flex-1">
                       {dayShifts.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center">
-                          <span className="w-1 h-1 rounded-full bg-slate-200" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                         </div>
                       ) : dayShifts.map((shift: any) => {
                         const sk = (shift.approval_status as keyof typeof STATUS_CFG) in STATUS_CFG
@@ -174,6 +173,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                         const cfg = STATUS_CFG[sk];
                         const { Icon } = cfg;
                         const isAbsent = shift.approval_status === 'absent';
+                        const isDraft = shift.approval_status === 'draft';
 
                         // Planned hours
                         const [sh, sm2] = (shift.start_time ?? '00:00').split(':').map(Number);
@@ -183,29 +183,35 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                         const pm = plannedMins % 60;
                         const hoursLabel = isAbsent ? '—' : (pm > 0 ? `${ph}h ${pm}m` : `${ph}h`);
 
+                        // Classe card dinamica
+                        const cardCls = isAbsent 
+                          ? 'shift-card-bw-absent' 
+                          : isDraft 
+                            ? 'shift-card-bw-draft' 
+                            : 'shift-card-bw';
+
                         return (
                           <div
                             key={shift.id}
-                            className={`rounded-xl px-3 py-2.5 border-2 text-left ${isAbsent ? 'border-red-500/15 bg-red-50/60' : 'border-slate-100 bg-slate-50/70'}`}
-                            style={isDark ? { background: 'transparent' } : {}}
+                            className={`${cardCls} shift-spacing-comfort text-left`}
                           >
-                            {/* Hours (primary) — OTTIMIZZATO: +2px font-size, monospace */}
-                            <p className={`text-[17px] font-black leading-none mb-2 shift-time-mono ${isAbsent ? 'text-slate-400' : 'text-slate-900'}`}>
+                            {/* Hours (primary) — MAXI-VISIBILITÀ */}
+                            <p className={`shift-time-maxi shift-time-mono leading-none mb-2 ${isAbsent ? 'text-slate-400' : ''}`}>
                               {hoursLabel}
                             </p>
-                            {/* Time range (secondary) — OTTIMIZZATO: +2px font-size, monospace, +spacing */}
-                            <p className={`text-[11px] font-bold mb-2 shift-time-mono ${isAbsent ? 'text-slate-400 line-through' : 'text-slate-600'}`}>
+                            {/* Time range (secondary) — font 14px monospace */}
+                            <p className={`text-sm font-bold mb-2 shift-time-mono ${isAbsent ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
                               {shift.start_time.slice(0, 5)}–{shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
-                            {/* Type + badge with icon — OTTIMIZZATO: badge custom */}
+                            {/* Type + badge */}
                             <div className="flex items-center justify-between gap-1.5">
                               {shift.type && (
-                                <p className="text-[8px] font-bold uppercase tracking-wide text-slate-400">
+                                <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">
                                   {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
                                 </p>
                               )}
-                              <span className={`flex items-center gap-1 text-[8px] px-2 py-1 rounded-lg uppercase tracking-wide ml-auto shift-badge-${sk}`}>
-                                <Icon className="w-2.5 h-2.5" />
+                              <span className={`flex items-center gap-1 text-[9px] px-2.5 py-1 rounded-lg uppercase tracking-wide ml-auto shift-badge-${sk}`}>
+                                <Icon className="w-3 h-3" strokeWidth={2.5} />
                                 {cfg.label}
                               </span>
                             </div>
@@ -298,8 +304,7 @@ function StaffDesktopTimesheet({
 
         return (
           <div key={wIdx}
-            className="rounded-2xl border-2 border-slate-200 overflow-hidden"
-            style={isDark ? { background: 'transparent' } : { background: '#ffffff', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.08)' }}
+            className="rounded-2xl overflow-hidden shift-card-bw"
           >
             {/* Week header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
@@ -317,7 +322,7 @@ function StaffDesktopTimesheet({
                 </div>
               </div>
               {totalMins > 0 && (
-                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 text-blue-700 border border-[#4361EE]/15">
+                <span className="shift-total-maxi shift-time-mono px-3 py-1 rounded-lg bg-white text-black border-2 border-black">
                   {totalLabel}
                 </span>
               )}
@@ -334,58 +339,65 @@ function StaffDesktopTimesheet({
                 return (
                   <div
                     key={dateStr}
-                    className={`flex flex-col min-h-[140px] border-r-2 ${dIdx === 6 ? '!border-r-0' : 'border-r-slate-200'} ${today ? 'bg-[#3366CC]/[0.05] ring-1 ring-inset ring-[#3366CC]/20' : isWeekend ? 'bg-slate-50/80' : 'bg-white'}`}
+                    className={`flex flex-col min-h-[140px] border-r-2 ${dIdx === 6 ? '!border-r-0' : 'border-r-black'} ${today ? 'bg-slate-100 ring-2 ring-inset ring-black' : isWeekend ? 'bg-slate-50' : 'bg-white'}`}
                   >
                     {/* Day header */}
-                    <div className={`px-2.5 py-2 border-b border-slate-100 ${today ? 'border-b-[#3366CC]/30' : ''}`}>
-                      <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${today ? 'text-[#3366CC]' : 'text-slate-400'}`}>
+                    <div className={`px-2.5 py-2.5 border-b-2 ${today ? 'border-b-black bg-slate-200' : 'border-b-slate-300'}`}>
+                      <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${today ? 'text-black' : 'text-slate-600'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
-                      <p className={`text-sm font-black tabular-nums ${today ? 'text-[#001A80]' : 'text-slate-700'}`}>
+                      <p className={`text-sm font-black tabular-nums ${today ? 'text-black' : 'text-slate-800'}`}>
                         {format(day, 'd')}
                       </p>
                     </div>
 
                     {/* Shifts */}
-                    <div className="flex flex-col gap-2.5 p-2.5 flex-1">
+                    <div className="flex flex-col shift-gap-comfort p-2.5 flex-1">
                       {dayShifts.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center">
-                          <span className="w-1 h-1 rounded-full bg-slate-200" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                         </div>
                       ) : dayShifts.map((shift: any) => {
                         const sk = (shift.approval_status as keyof typeof STATUS_CONFIG) || 'confirmed';
                         const cfg = STATUS_CONFIG[sk] ?? STATUS_CONFIG.confirmed;
                         const { Icon } = cfg;
                         const isAbsent = shift.approval_status === 'absent';
+                        const isDraft = shift.approval_status === 'draft';
                         const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
                         const mins = getNetShiftMinutes(shift, start, end, user, breakRules, breakComputeOpts);
                         const hh = Math.floor(mins / 60);
                         const mm = mins % 60;
                         const hoursLabel = isAbsent ? '—' : (mm > 0 ? `${hh}h ${mm}m` : `${hh}h`);
 
+                        // Classe card dinamica
+                        const cardCls = isAbsent 
+                          ? 'shift-card-bw-absent' 
+                          : isDraft 
+                            ? 'shift-card-bw-draft' 
+                            : 'shift-card-bw';
+
                         return (
                           <div
                             key={shift.id}
-                            className={`rounded-xl px-3 py-2.5 border-2 text-left ${isAbsent ? 'border-red-500/15 bg-red-50/60' : 'border-slate-100 bg-slate-50/70'}`}
-                            style={isDark ? { background: 'transparent' } : {}}
+                            className={`${cardCls} shift-spacing-comfort text-left`}
                           >
-                            {/* Hours (primary) — OTTIMIZZATO: +3px font-size, monospace */}
-                            <p className={`text-[17px] font-black leading-none mb-2 shift-time-mono ${isAbsent ? 'text-slate-400' : 'text-slate-900'}`}>
+                            {/* Hours (primary) — MAXI-VISIBILITÀ */}
+                            <p className={`shift-time-maxi shift-time-mono leading-none mb-2 ${isAbsent ? 'text-slate-400' : ''}`}>
                               {hoursLabel}
                             </p>
-                            {/* Time range (secondary) — OTTIMIZZATO: +2px font-size, monospace */}
-                            <p className={`text-[11px] font-bold mb-2 shift-time-mono ${isAbsent ? 'text-slate-400 line-through' : 'text-slate-600'}`}>
+                            {/* Time range (secondary) */}
+                            <p className={`text-sm font-bold mb-2 shift-time-mono ${isAbsent ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
                               {shift.start_time.slice(0, 5)}–{shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
-                            {/* Type + badge — OTTIMIZZATO: badge custom */}
+                            {/* Type + badge */}
                             <div className="flex items-center justify-between gap-1.5">
                               {shift.type && (
-                                <p className="text-[8px] font-bold uppercase tracking-wide text-slate-400">
+                                <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">
                                   {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
                                 </p>
                               )}
-                              <span className={`flex items-center gap-1 text-[8px] px-2 py-1 rounded-lg uppercase tracking-wide ml-auto shift-badge-${sk}`}>
-                                <Icon className="w-2.5 h-2.5" />
+                              <span className={`flex items-center gap-1 text-[9px] px-2.5 py-1 rounded-lg uppercase tracking-wide ml-auto shift-badge-${sk}`}>
+                                <Icon className="w-3 h-3" strokeWidth={2.5} />
                                 {cfg.label}
                               </span>
                             </div>

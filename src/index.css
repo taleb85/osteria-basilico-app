@@ -997,56 +997,66 @@ html.no-motion *::after {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   OTTIMIZZAZIONE LEGGIBILITÀ TURNI (Dashboard Staff)
+   HIGH-CONTRAST B&W — OTTIMIZZAZIONE LEGGIBILITÀ TURNI
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* Font monospace tabular per orari turni — sempre allineati */
 .shift-time-mono {
   font-family: 'Roboto Mono', 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  font-weight: 600;
 }
 
-/* Badge stati turno con contrasto ottimizzato */
+/* ── BADGE STATI TURNO: HIGH-CONTRAST B&W ────────────────────────────── */
+
+/* APPROVATO: testo nero grassetto, sfondo bianco, bordo nero spesso */
 .shift-badge-approved {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%);
-  color: #065f46;
-  border: 1.5px solid rgba(16, 185, 129, 0.30);
-  font-weight: 800;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  background: #ffffff;
+  color: #000000;
+  border: 2.5px solid #000000;
+  font-weight: 900;
+  text-shadow: none;
+  letter-spacing: 0.05em;
 }
 
+/* CONFERMATO/CONFIRMED: come approvato ma con bordo grigio scuro */
 .shift-badge-confirmed {
-  background: linear-gradient(135deg, rgba(51, 102, 204, 0.12) 0%, rgba(0, 82, 255, 0.08) 100%);
-  color: #1e40af;
-  border: 1.5px solid rgba(51, 102, 204, 0.30);
-  font-weight: 800;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  background: #ffffff;
+  color: #000000;
+  border: 2.5px solid #333333;
+  font-weight: 900;
+  text-shadow: none;
+  letter-spacing: 0.05em;
 }
 
+/* BOZZA: testo nero normale, sfondo grigio chiaro, bordo tratteggiato */
 .shift-badge-draft {
-  background: linear-gradient(135deg, rgba(148, 163, 184, 0.12) 0%, rgba(100, 116, 139, 0.08) 100%);
-  color: #475569;
-  border: 1.5px solid rgba(148, 163, 184, 0.25);
-  font-weight: 800;
+  background: #f2f2f2;
+  color: #333333;
+  border: 2px dashed #999999;
+  font-weight: 700;
+  text-shadow: none;
 }
 
+/* ASSENTE/RIPOSO: testo grigio chiaro, sfondo bianco (quasi invisibile) */
 .shift-badge-absent {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.08) 100%);
-  color: #991b1b;
-  border: 1.5px solid rgba(239, 68, 68, 0.30);
-  font-weight: 800;
+  background: #ffffff;
+  color: #999999;
+  border: 1.5px solid #e0e0e0;
+  font-weight: 600;
+  text-shadow: none;
 }
 
-/* Pillola "OFF/RIPOSO" per giorni non lavorati — visual pulita */
+/* Pillola "OFF/RIPOSO" per giorni non lavorati — B&W pulita */
 .shift-off-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.375rem 0.75rem;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  color: #64748b;
-  border: 1.5px solid #cbd5e1;
+  padding: 0.5rem 1rem;
+  background: #f8f8f8;
+  color: #666666;
+  border: 1.5px solid #cccccc;
   border-radius: 0.5rem;
   font-size: 0.625rem;
   font-weight: 900;
@@ -1054,10 +1064,83 @@ html.no-motion *::after {
   text-transform: uppercase;
 }
 
+/* ── TIPOGRAFIA MAXI-VISIBILITÀ ─────────────────────────────────────── */
+
+/* Orari turni: da 17px → 22px desktop, 30px → 36px mobile */
+.shift-time-maxi {
+  font-size: 1.375rem; /* 22px */
+  line-height: 1.2;
+  font-weight: 900;
+  color: #000000;
+}
+
+@media (max-width: 640px) {
+  .shift-time-maxi {
+    font-size: 2.25rem; /* 36px */
+  }
+}
+
+/* Nomi dipendenti: 20px grassetto nero */
+.shift-name-maxi {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 900;
+  color: #000000;
+  letter-spacing: 0.02em;
+}
+
+/* Totale ore settimanale: enorme e in grassetto nero */
+.shift-total-maxi {
+  font-size: 2rem; /* 32px */
+  font-weight: 900;
+  color: #000000;
+  letter-spacing: -0.02em;
+}
+
+/* ── PULIZIA VISUALE: NO SHADOWS, NO GRADIENTS ───────────────────────── */
+
+/* Card turni: sfondo bianco puro, bordo nero netto */
+.shift-card-bw {
+  background: #ffffff !important;
+  border: 2px solid #000000 !important;
+  box-shadow: none !important;
+  border-radius: 0.75rem;
+}
+
+/* Card turni bozza: grigio chiaro */
+.shift-card-bw-draft {
+  background: #f8f8f8 !important;
+  border: 2px dashed #999999 !important;
+  box-shadow: none !important;
+  border-radius: 0.75rem;
+}
+
+/* Card turni assenti: quasi invisibile */
+.shift-card-bw-absent {
+  background: #fafafa !important;
+  border: 1.5px solid #e0e0e0 !important;
+  box-shadow: none !important;
+  border-radius: 0.75rem;
+}
+
+/* ── SPAZIATURA AUMENTATA +30% ──────────────────────────────────────── */
+
+/* Padding verticale aumentato per card turni */
+.shift-spacing-comfort {
+  padding-top: 1rem;    /* era 0.75rem */
+  padding-bottom: 1rem; /* era 0.75rem */
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+/* Gap tra turni aumentato */
+.shift-gap-comfort {
+  gap: 1rem; /* era 0.75rem */
+}
+
 /* Safe area laterali aumentate per mobile */
 @media (max-width: 640px) {
   .shift-mobile-safe {
-    padding-left: max(1rem, env(safe-area-inset-left));
-    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-left: max(1.25rem, env(safe-area-inset-left));
+    padding-right: max(1.25rem, env(safe-area-inset-right));
   }
 }
