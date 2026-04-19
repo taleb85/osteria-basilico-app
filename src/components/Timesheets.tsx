@@ -78,6 +78,7 @@ import { getDeptColor, getDepartments, deptMatchesFilterKey } from '../utils/dep
 import { translateDepartmentValue } from '../utils/departmentLabels';
 import { getTimesheetGridPrivacyMode } from '../utils/timesheetGridPrivacy';
 import { PinPadModal } from './ui/PinPadModal';
+import { runAutoApprove } from '../utils/autoApprovePunches';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -523,6 +524,26 @@ export default function Timesheets() {
   /** Sub-tab interno: griglia presenze o statistiche. */
   const [tsView, setTsView] = useState<'grid' | 'stats'>('grid');
   const showStatsSubTab = currentUser ? isFeatureEnabled(currentUser, 'view_stats') : false;
+
+  // ── Auto-Conferma timbrature ─────────────────────────────────────────────────
+  const [autoApprovedCount, setAutoApprovedCount] = useState(0);
+  const [autoApproveBannerDismissed, setAutoApproveBannerDismissed] = useState(false);
+  const autoApproveRunRef = useRef(false);
+
+  useEffect(() => {
+    if (!canTimesheetApprove) return;
+    if (autoApproveRunRef.current) return;
+    if (!shifts.length || !punchRecords.length) return;
+
+    autoApproveRunRef.current = true;
+
+    void runAutoApprove(shifts, punchRecords, (id, updates) => updateShift(id, updates)).then(
+      ({ approved }) => {
+        if (approved > 0) setAutoApprovedCount(approved);
+      },
+    );
+  }, [shifts, punchRecords, updateShift, canTimesheetApprove]);
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const handleSavePeriodConfig = () => {
     const cfg = { startDate: periodStart, numWeeks: periodNumWeeks };
@@ -2819,6 +2840,52 @@ export default function Timesheets() {
         {/* ── Griglia presenze (sub-tab default) ──────────────────────────────── */}
         {tsView === 'grid' && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+
+          {/* ── Banner Auto-Conferma ──────────────────────────────────────────── */}
+          <AnimatePresence>
+            {autoApprovedCount > 0 && !autoApproveBannerDismissed && (
+              <motion.div
+                key="auto-approve-banner"
+                initial={{ opacity: 0, y: -8, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                exit={{ opacity: 0, y: -8, height: 0 }}
+                transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                className="overflow-hidden mb-3"
+              >
+                <div
+                  className="flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-medium"
+                  style={{
+                    background: 'linear-gradient(90deg, #e8f4e8 0%, #f0faf0 100%)',
+                    border: '1px solid #86efac',
+                    color: '#166534',
+                  }}
+                >
+                  <span
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-xs font-bold"
+                    style={{ background: '#16a34a' }}
+                  >
+                    ✓
+                  </span>
+                  <span className="flex-1">
+                    <strong>{autoApprovedCount}</strong>{' '}
+                    {autoApprovedCount === 1
+                      ? 'turno approvato automaticamente ieri'
+                      : 'turni approvati automaticamente ieri'}{' '}
+                    — GPS ✓ · scarto &lt; 5 min
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAutoApproveBannerDismissed(true)}
+                    className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-green-200"
+                    aria-label="Chiudi notifica"
+                    style={{ color: '#166534' }}
+                  >
+                    <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* ── Stats Cards: settimana visualizzata (management) ────────────────── */}
           {uiW('timesheet.stats_today') && canTeamTimesheetOps && (
