@@ -357,20 +357,20 @@ export default function HolidayRequests() {
         {/* Left: calendar */}
         <div className="md:col-span-1 space-y-4">
           {uiW('ferie.calendar') && (
-          <div className="surface-glass p-4">
+          <div className="surface-glass p-4" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-slate-900 font-semibold text-xl">
+              <h3 className="font-semibold text-xl" style={{ color: '#ffffff' }}>
                 {format(now, 'MMMM yyyy', { locale: it })}
               </h3>
-              <div className="flex items-center gap-3 text-xs text-slate-500">
+              <div className="flex items-center gap-3 text-xs" style={{ color: '#ffffff' }}>
                 <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />{t.pending}</span>
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#3366CC] inline-block" />{t.status_approved}</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-cyan-500 inline-block" />{t.status_approved}</span>
               </div>
             </div>
 
             <div className="grid grid-cols-7 gap-0.5 mb-1">
               {weekDays.map((d, i) => (
-                <div key={i} className="text-center text-xs font-semibold text-[#2255BB]/70 uppercase">{d}</div>
+                <div key={i} className="text-center text-xs font-semibold uppercase" style={{ color: 'rgba(255, 255, 255, 0.5)' }}>{d}</div>
               ))}
             </div>
             <div className="grid grid-cols-7 gap-1">
@@ -380,18 +380,38 @@ export default function HolidayRequests() {
                 const holiday = getHolidayForDay(day);
                 const isPending = status === 'pending' && holiday;
                 const today = isToday(day);
+                
+                let dayStyle: React.CSSProperties = { color: 'rgba(255, 255, 255, 0.8)' };
+                
+                if (status === 'approved') {
+                  dayStyle = { background: 'rgba(16, 185, 129, 0.3)', color: '#34d399', fontWeight: 600 };
+                } else if (status === 'pending') {
+                  dayStyle = { background: 'rgba(245, 158, 11, 0.3)', color: '#fbbf24', fontWeight: 600 };
+                } else if (status === 'rejected') {
+                  dayStyle = { background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5' };
+                } else if (today) {
+                  dayStyle = { background: '#3b82f6', color: '#ffffff', fontWeight: 700 };
+                }
+                
                 return (
                   <div
                     key={day.toString()}
                     onClick={() => isPending && isAdmin && setSelectedH(holiday)}
                     className={`min-h-[44px] min-w-[44px] aspect-square rounded-xl flex items-center justify-center text-xs font-semibold transition-all select-none touch-target
-                      ${isPending && isAdmin ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}
-                      ${status === 'approved' ? 'bg-[#7AB9E5]/20 text-cyan-700 ring-1 ring-[#7AB9E5]/30' :
-                        status === 'pending'  ? 'bg-amber-100 text-amber-700'  :
-                        status === 'rejected' ? 'bg-red-100 text-red-700'    :
-                        today                 ? 'text-white ring-1 ring-[#0B3573]/40' :
-                        'text-slate-600 hover:bg-[#7AB9E5]/10'}`}
-                    style={today && !status ? { background: 'linear-gradient(110deg, #0B3573, #001A80)' } : undefined}
+                      ${isPending && isAdmin ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+                    style={dayStyle}
+                    onMouseEnter={(e) => {
+                      if (!status && !today) {
+                        e.currentTarget.style.background = 'rgba(59, 130, 246, 0.3)';
+                        e.currentTarget.style.color = '#ffffff';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!status && !today) {
+                        e.currentTarget.style.background = '';
+                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                      }
+                    }}
                   >
                     {format(day, 'd')}
                   </div>

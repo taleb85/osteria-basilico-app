@@ -143,10 +143,11 @@ body,
     
     /* ═══ DARK THEME GLOBAL TOKENS ═══ */
     --bg-primary: #0a1628;
-    --bg-surface: rgba(255, 255, 255, 0.07);
+    --bg-surface: rgba(255, 255, 255, 0.09); /* slightly lighter for better readability */
     --bg-surface-hover: rgba(255, 255, 255, 0.12);
     --bg-surface-solid: #112240;
-    --border-color: rgba(255, 255, 255, 0.12);
+    --bg-surface-secondary: rgba(255, 255, 255, 0.07); /* for nested/secondary surfaces */
+    --border-color: rgba(255, 255, 255, 0.15); /* slightly more visible */
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.65);
     --text-muted: rgba(255, 255, 255, 0.35);
@@ -1242,6 +1243,265 @@ td, th {
 tbody tr:hover {
   background: rgba(255, 255, 255, 0.08) !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DARK THEME CONTRAST FIXES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* 1. CARD TEXT CONTRAST - Dashboard/Panoramica cards */
+/* Employee name in card header */
+.shift-card-ultra h3,
+.shift-card-ultra .font-bold,
+.shift-card-ultra > div > div > div > p:first-child {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* Card subtitle (sala, date) */
+.shift-card-ultra .text-xs,
+.shift-card-ultra .text-\[11px\] {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Avatar circle initials */
+.shift-card-ultra .rounded-full {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Inner time boxes (PIANIFICATO / TIMBRATO sub-cards) */
+.shift-card-ultra .rounded-xl {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+/* Footer text "Oh rispetto al pianificato" */
+.shift-card-ultra .text-slate-500,
+.shift-card-ultra .text-slate-600 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Approvato badge */
+.shift-card-ultra .bg-brand-50,
+.shift-card-ultra .bg-green-50 {
+  background: rgba(16, 185, 129, 0.25) !important;
+  color: #6ee7b7 !important;
+  border: 1px solid rgba(16, 185, 129, 0.4) !important;
+}
+
+/* 2. TOOLBAR BUTTONS - Turni page top bar */
+.ui-toolbar-chip,
+.ui-toolbar-accent,
+button[class*="ui-toolbar"] {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Active/selected toolbar button */
+.ui-toolbar-chip.bg-accent,
+button[class*="bg-accent"] {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* Inactive toolbar buttons */
+.ui-toolbar-chip:not(.bg-accent) {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Toolbar dropdown selects */
+.ui-toolbar-chip select,
+.ui-toolbar-page-band select {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 3. KPI STAT CARDS - Presenze page top */
+/* KPI card background */
+.surface-glass.surface-ghost-interactive,
+.rounded-2xl.border.px-4.py-3\.5 {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+/* KPI number */
+.surface-glass .text-2xl {
+  color: #ffffff !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+}
+
+/* KPI label */
+.surface-glass .text-\[11px\],
+.surface-glass .text-\[10px\] {
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 0.8rem !important;
+}
+
+/* KPI icon */
+.surface-glass svg {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ORE APPROVATE bar */
+.surface-glass .bg-slate-50 {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* 4. CALENDAR - Ferie page */
+/* Calendar day numbers (normal) */
+.calendar-day,
+[class*="calendar"] td button {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Calendar day numbers (other month) */
+.calendar-day.other-month,
+[class*="calendar"] td button[disabled] {
+  color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Calendar day hover */
+.calendar-day:hover,
+[class*="calendar"] td button:hover {
+  background: rgba(59, 130, 246, 0.3) !important;
+  color: #ffffff !important;
+}
+
+/* In attesa days */
+.calendar-day.pending,
+[class*="bg-amber-100"] {
+  background: rgba(245, 158, 11, 0.3) !important;
+  color: #fbbf24 !important;
+  font-weight: 600 !important;
+}
+
+/* Approvato days */
+.calendar-day.approved,
+[class*="bg-\[#3366CC\]"],
+[class*="bg-\[#7AB9E5\]"] {
+  background: rgba(16, 185, 129, 0.3) !important;
+  color: #34d399 !important;
+}
+
+/* Today */
+.calendar-day.today {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+/* Week day headers */
+.calendar-header th,
+[class*="calendar"] thead th {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Calendar container */
+.calendar-container,
+[class*="calendar-wrapper"] {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Legend text */
+.calendar-legend span,
+[class*="legend"] span {
+  color: #ffffff !important;
+}
+
+/* 5. PROFILE PAGE - Hide native file inputs */
+input[type="file"] {
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+  z-index: -1 !important;
+}
+
+/* 6. SIDEBAR / DROPDOWN MENU - filter panel */
+/* Row label text */
+.ui-toolbar-drawer label,
+.ui-toolbar-drawer span,
+[class*="drawer"] label,
+[class*="drawer"] span {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Section headers */
+.ui-toolbar-drawer .text-\[10px\],
+[class*="drawer"] .uppercase.tracking-wider {
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+}
+
+/* Row hover */
+.ui-toolbar-drawer button:hover,
+[class*="drawer"] button:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Input "Nome template..." */
+.ui-toolbar-drawer input,
+[class*="drawer"] input[type="text"] {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.ui-toolbar-drawer input::placeholder,
+[class*="drawer"] input[type="text"]::placeholder {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* 8. GRIGLIA PRESENZE - table cells */
+/* Green approved shifts */
+.shift-cell.approved,
+td.bg-green-50,
+[class*="bg-green"] {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border: 1px solid rgba(16, 185, 129, 0.5) !important;
+  color: #ffffff !important;
+}
+
+/* Red/absent shifts */
+.shift-cell.absent,
+td.bg-red-50,
+[class*="bg-red-"] {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  color: #fca5a5 !important;
+}
+
+/* Pink "no timbratura" */
+.shift-cell.missing,
+td[class*="border-dashed"] {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border: 1px dashed rgba(239, 68, 68, 0.4) !important;
+  color: #fca5a5 !important;
+}
+
+/* Employee name column text */
+.employee-name-cell,
+tbody td:first-child {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+/* Column day headers */
+.day-header,
+thead th {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-weight: 600 !important;
+}
+
 
 /* ── SPAZIATURA ARIOSA (+40% BASE) ───────────────────────────────────────────── */
 
