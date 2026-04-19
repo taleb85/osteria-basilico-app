@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { format, isValid } from 'date-fns';
 import type { User, Shift, PunchRecord } from '../types';
 import { useApp } from '../context/AppContext';
@@ -24,6 +24,7 @@ export interface SmartPunchResult {
   mode: SmartPunchMode;
   label: string;
   execute: () => Promise<void>;
+  checkGeofence: () => Promise<boolean>;
   isLoading: boolean;
   geoState: GeoState;
   shiftForStart: Shift | null;
@@ -107,6 +108,11 @@ export function useSmartPunchAction({
   const { addPunchRecord, showError, showSuccess, featureFlags, geofenceEffectiveConfig } = useApp();
   const [isLoading, setIsLoading] = useState(false);
   const [geoState, setGeoState] = useState<GeoState>('idle');
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const enriched = useMemo<EnrichedShift[]>(() => {
     return todayShifts
@@ -159,9 +165,10 @@ export function useSmartPunchAction({
     if (featureFlags['geofence_punch'] === false) return true;
     const config = geofenceEffectiveConfig || readGeofenceEnvConfig();
     if (!config) return true;
-    setGeoState('checking');
+    if (mountedRef.current) setGeoState('checking');
     try {
       const pos = await getCurrentPositionCoords();
+      if (!mountedRef.current) return false;
       const { inRange } = isUserInRestaurantRange(pos.lat, pos.lng, config);
       if (!inRange) {
         setGeoState('outside');
@@ -171,6 +178,7 @@ export function useSmartPunchAction({
       setGeoState('ok');
       return true;
     } catch {
+      if (!mountedRef.current) return false;
       setGeoState('denied');
       showError?.(t.punch_error_geo_denied || 'Impossibile verificare la posizione.');
       return false;
@@ -207,12 +215,13 @@ export function useSmartPunchAction({
         showError?.(res.error as string);
         return;
       }
+      if (!mountedRef.current) return;
       showSuccess?.(mode === 'start' ? t.home_punched : t.home_toast_exit_registered);
       setGeoState('idle');
     } catch {
-      showError?.(t.punch_save_error);
+      if (mountedRef.current) showError?.(t.punch_save_error);
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) setIsLoading(false);
     }
   }, [
     mode,
@@ -230,5 +239,5 @@ export function useSmartPunchAction({
     checkGeofence,
   ]);
 
-  return { mode, label, execute, isLoading, geoState, shiftForStart, inProgress, enriched };
+  return { mode, label, execute, checkGeofence, isLoading, geoState, shiftForStart, inProgress, enriched };
 }

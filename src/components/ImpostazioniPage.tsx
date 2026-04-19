@@ -2,7 +2,7 @@
  * Scheda Impostazioni — attiva/disattiva le funzioni disponibili per i profili.
  * Solo Admin. Le modifiche sono immediate e salvate in DB o localStorage.
  */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid,
@@ -46,6 +46,103 @@ const SLUG_ICONS: Record<string, typeof LayoutGrid> = {
   auto_breaks: Coffee,
   geofence_punch: MapPin,
 };
+
+interface FeatureCardProps {
+  slug: string;
+  enabled: boolean;
+  label: string;
+  description: string;
+  detailLines: string[];
+  detailsExpanded: boolean;
+  toggleDetailLabel: string;
+  featureOnLabel: string;
+  featureOffLabel: string;
+  detailLabel: string;
+  onToggle: () => void;
+  onToggleDetail: () => void;
+}
+
+const FeatureCard = memo(function FeatureCard({
+  slug,
+  enabled,
+  label,
+  description,
+  detailLines,
+  detailsExpanded,
+  toggleDetailLabel,
+  featureOnLabel,
+  featureOffLabel,
+  detailLabel,
+  onToggle,
+  onToggleDetail,
+}: FeatureCardProps) {
+  const Icon = SLUG_ICONS[slug] ?? Zap;
+  const hasDetails = detailLines.length > 0;
+  return (
+    <div className="surface-glass-sm flex h-full flex-col p-3.5 transition-colors surface-ghost-interactive hover:border-slate-300/90 dark:hover:border-white/15 sm:p-4">
+      <div className="flex items-start gap-3 min-w-0">
+        <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+          <Icon className="w-[18px] h-[18px] text-accent" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold leading-tight text-slate-800 dark:text-neutral-100">{label}</p>
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-neutral-300 mt-1 leading-snug">{description}</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={enabled}
+              aria-label={label}
+              onClick={onToggle}
+              className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 ${enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
+            >
+              <span
+                className={`pointer-events-none absolute top-0 left-0 h-5 w-5 rounded-full bg-white toggle-knob shadow transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-0'}`}
+              />
+            </button>
+          </div>
+          {hasDetails && (
+            <>
+              <button
+                type="button"
+                aria-expanded={detailsExpanded}
+                onClick={onToggleDetail}
+                className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-accent hover:text-accent/80"
+              >
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${detailsExpanded ? 'rotate-180' : ''}`} />
+                {toggleDetailLabel}
+              </button>
+              <AnimatePresence initial={false}>
+                {detailsExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="surface-glass-sm mt-2 bg-slate-50/40 px-2.5 py-2 dark:bg-neutral-900/30">
+                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
+                        {detailLabel}
+                      </p>
+                      <ul className="list-disc space-y-1 pl-3.5 text-[11px] leading-relaxed text-slate-600 dark:text-neutral-300">
+                        {detailLines.map((line, i) => (
+                          <li key={i}>{line}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
 
 type ImpostazioniPageProps = {
   onOpenProfilesTab?: () => void;
@@ -144,93 +241,35 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     );
   }
 
-  const renderCard = (slug: string) => {
+  const renderCard = useCallback((slug: string) => {
     const def = FEATURE_DEFINITIONS.find((f) => f.slug === slug);
     const enabled = featureFlags[slug] ?? (def?.defaultEnabled ?? true);
-    const Icon = SLUG_ICONS[slug] ?? Zap;
     const { label, description, detailLines } = getFeatureStrings(t, slug);
     const detailsExpanded = detailOpen[slug] === true;
-    const hasDetails = detailLines.length > 0;
-
     return (
-      <div
+      <FeatureCard
         key={slug}
-        className="surface-glass-sm flex h-full flex-col p-3.5 transition-colors surface-ghost-interactive hover:border-slate-300/90 dark:hover:border-white/15 sm:p-4"
-      >
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-            <Icon className="w-[18px] h-[18px] text-accent" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-sm font-semibold leading-tight text-slate-800 dark:text-neutral-100">{label}</p>
-                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-neutral-300 mt-1 leading-snug">{description}</p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={enabled}
-                aria-label={label}
-                onClick={async () => {
-                  const next = !enabled;
-                  await setFeatureFlag?.(slug, next);
-                  showSuccess?.(
-                    formatTrans(next ? t.settings_feature_toggle_on : t.settings_feature_toggle_off, {
-                      name: label,
-                    })
-                  );
-                }}
-                className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 ${enabled ? 'bg-accent' : 'bg-slate-200 dark:bg-neutral-600'}`}
-              >
-                <span
-                  className={`pointer-events-none absolute top-0 left-0 h-5 w-5 rounded-full bg-white toggle-knob shadow transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-0'}`}
-                />
-              </button>
-            </div>
-
-            {hasDetails && (
-              <>
-                <button
-                  type="button"
-                  aria-expanded={detailsExpanded}
-                  onClick={() => toggleDetail(slug)}
-                  className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-accent hover:text-accent/80"
-                >
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${detailsExpanded ? 'rotate-180' : ''}`}
-                  />
-                  {t.impostazioni_toggle_details}
-                </button>
-                <AnimatePresence initial={false}>
-                  {detailsExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
-                      className="overflow-hidden"
-                    >
-                      <div className="surface-glass-sm mt-2 bg-slate-50/40 px-2.5 py-2 dark:bg-neutral-900/30">
-                        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-300">
-                          {t.impostazioni_detail_label}
-                        </p>
-                        <ul className="list-disc space-y-1 pl-3.5 text-[11px] leading-relaxed text-slate-600 dark:text-neutral-300">
-                          {detailLines.map((line, i) => (
-                            <li key={i}>{line}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+        slug={slug}
+        enabled={enabled}
+        label={label}
+        description={description}
+        detailLines={detailLines}
+        detailsExpanded={detailsExpanded}
+        toggleDetailLabel={t.impostazioni_toggle_details}
+        featureOnLabel={t.settings_feature_toggle_on}
+        featureOffLabel={t.settings_feature_toggle_off}
+        detailLabel={t.impostazioni_detail_label}
+        onToggle={async () => {
+          const next = !enabled;
+          await setFeatureFlag?.(slug, next);
+          showSuccess?.(
+            formatTrans(next ? t.settings_feature_toggle_on : t.settings_feature_toggle_off, { name: label })
+          );
+        }}
+        onToggleDetail={() => toggleDetail(slug)}
+      />
     );
-  };
+  }, [featureFlags, detailOpen, t, setFeatureFlag, showSuccess, toggleDetail]);
 
   return (
     <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">

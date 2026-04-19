@@ -83,8 +83,8 @@ export default function MobileStaffDashboard({
   );
 
   const {
-    mode: smartMode,
     execute: smartExecute,
+    checkGeofence,
     isLoading: punchBusy,
     inProgress,
     shiftForStart,
