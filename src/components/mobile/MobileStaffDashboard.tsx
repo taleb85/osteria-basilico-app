@@ -1,8 +1,7 @@
-import { lightHaptic } from '../../utils/hapticFeedbackCore';
 import ProfileNavTabPanel from '../ProfileNavTabPanel';
 import type { AppNavTab } from '../../utils/enabledModules';
 import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
-import { format, isValid, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LogOut, Moon, X } from 'lucide-react';
 import type { User, Shift, PunchRecord, Language } from '../../types';
@@ -13,8 +12,8 @@ import { TimeInputField } from '../ui/TimeInputField';
 import { safeFormatDate } from '../../utils/safeDateFormat';
 import MobileHome from './MobileHome';
 import { calculateUserStats } from '../../utils/stats';
-import { isUserInRestaurantRange, getCurrentPositionCoords } from '../../utils/geo';
-import { readGeofenceEnvConfig } from '../../utils/geofencePunch';
+import { lightHaptic } from '../../utils/hapticFeedbackCore';
+import { useSmartPunchAction } from '../../hooks/useSmartPunchAction';
 
 const Timesheets = lazy(() => import('../Timesheets'));
 const HolidayRequests = lazy(() => import('../HolidayRequests'));
@@ -22,55 +21,6 @@ const Statistics = lazy(() => import('../Statistics'));
 const SettingsPage = lazy(() => import('../SettingsPage'));
 const WeeklyShiftsTable = lazy(() => import('../WeeklyShiftsTable'));
 
-function timeToMins(t: string): number {
-  const [h, m] = (t || '00:00').slice(0, 5).split(':').map(Number);
-  return (h || 0) * 60 + (m || 0);
-}
-
-function punchTimeHHMM(ts: string | null | undefined): string | null {
-  if (!ts) return null;
-  try {
-    const d = new Date(ts);
-    if (!isValid(d)) return null;
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-  } catch {
-    return null;
-  }
-}
-
-function getPunchPair(
-  shiftId: string,
-  userId: string,
-  dateStr: string,
-  isLunchSlot: boolean,
-  punchRecords: PunchRecord[]
-) {
-  const punchIn = punchRecords.find((p) => {
-    if (p.type !== 'in') return false;
-    if (shiftId && p.shift_id) return p.shift_id === shiftId;
-    if (p.user_id !== userId) return false;
-    const d = new Date(p.timestamp);
-    if (!isValid(d)) return false;
-    return format(d, 'yyyy-MM-dd') === dateStr && (isLunchSlot ? d.getHours() < 16 : d.getHours() >= 16);
-  });
-  const punchOut = punchRecords.find((p) => {
-    if (p.type !== 'out') return false;
-    if (shiftId && p.shift_id) return p.shift_id === shiftId;
-    if (p.user_id !== userId) return false;
-    const d = new Date(p.timestamp);
-    if (!isValid(d)) return false;
-    return format(d, 'yyyy-MM-dd') === dateStr && (isLunchSlot ? d.getHours() < 16 : d.getHours() >= 16);
-  });
-  return { punchIn, punchOut };
-}
-
-function actualEndFromPunches(punchIn: PunchRecord | undefined, punchOut: PunchRecord | undefined): string | null {
-  if (!punchIn) return null;
-  const clockOutRaw = (punchIn as { clock_out_time?: string | null }).clock_out_time ?? null;
-  if (clockOutRaw) return punchTimeHHMM(clockOutRaw);
-  if (punchOut?.timestamp) return punchTimeHHMM(punchOut.timestamp);
-  return null;
-}
 
 export interface MobileStaffDashboardProps {
   user: User;
@@ -110,17 +60,8 @@ export default function MobileStaffDashboard({
   const t = getTranslations(language);
   const tv = t as Record<string, string>;
   const locale = getDateLocale(language);
-  const { 
-    addPunchRecord, 
-    updatePunchRecord, 
-    showError, 
-    showSuccess, 
-    featureFlags,
-    breakRules,
-    geofenceEffectiveConfig,
-  } = useApp();
+  const { updatePunchRecord, showError, showSuccess, featureFlags, breakRules } = useApp();
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(language);
-  const [punchBusy, setPunchBusy] = useState(false);
   const [tick, setTick] = useState(0);
   const [closeModal, setCloseModal] = useState<{
     shiftId: string;
@@ -136,34 +77,38 @@ export default function MobileStaffDashboard({
     return () => window.clearInterval(id);
   }, []);
 
+  const todayShifts = useMemo(
+    () => myShifts.filter((s) => s.date === todayStr),
+    [myShifts, todayStr],
+  );
+
+  const {
+    mode: smartMode,
+    execute: smartExecute,
+    isLoading: punchBusy,
+    inProgress,
+    shiftForStart,
+    enriched,
+  } = useSmartPunchAction({
+    user,
+    language,
+    todayStr,
+    now,
+    todayShifts,
+    punchRecords,
+    onPresenceProof: requestProof,
+  });
+
+  const todayWorkShifts = useMemo(
+    () => enriched.map((e) => e.shift),
+    [enriched],
+  );
+
   const stats = useMemo(() => {
     return calculateUserStats(user, myShifts, punchRecords, now, breakRules, {
       autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false,
     });
   }, [user, myShifts, punchRecords, now, breakRules, featureFlags]);
-
-  const todayWorkShifts = useMemo(
-    () =>
-      myShifts
-        .filter(
-          (s) =>
-            s.date === todayStr && (s.approval_status === 'confirmed' || s.approval_status === 'approved')
-        )
-        .sort((a, b) => a.start_time.localeCompare(b.start_time)),
-    [myShifts, todayStr]
-  );
-
-  const enriched = useMemo(() => {
-    return todayWorkShifts.map((s) => {
-      const isLunchSlot = s.type === 'lunch' || timeToMins(s.start_time) < 16 * 60;
-      const { punchIn, punchOut } = getPunchPair(s.id, user.id, todayStr, isLunchSlot, punchRecords);
-      const actualStart = punchIn ? punchTimeHHMM(punchIn.calculated_time || punchIn.timestamp) : null;
-      const actualEnd = actualEndFromPunches(punchIn, punchOut);
-      return { shift: s, isLunchSlot, punchIn, punchOut, actualStart, actualEnd };
-    });
-  }, [todayWorkShifts, punchRecords, user.id, todayStr]);
-
-  const inProgress = useMemo(() => enriched.find((e) => e.punchIn && !e.actualEnd) ?? null, [enriched]);
 
   let elapsedLabel: string | null = null;
   if (inProgress?.punchIn) {
@@ -176,117 +121,8 @@ export default function MobileStaffDashboard({
   }
   void tick;
 
-  const shiftForStart = useMemo(() => {
-    const nowM = now.getHours() * 60 + now.getMinutes();
-    for (const e of enriched) {
-      if (e.punchIn) continue;
-      const startM = timeToMins(e.shift.start_time);
-      // Finestra più ampia per il debug o flessibilità: 2 ore prima o durante il turno
-      if (Math.abs(nowM - startM) <= 120 || (nowM >= startM - 60 && nowM <= timeToMins((e.shift.end_time || '23:59').slice(0, 5)) + 60)) {
-        return e.shift;
-      }
-    }
-    for (const e of enriched) {
-      if (!e.punchIn) return e.shift;
-    }
-    return null;
-  }, [enriched, now]);
-
   const canStart = !!shiftForStart && !punchBusy;
-  const canEnd =
-    !!inProgress &&
-    !inProgress.actualEnd &&
-    !punchBusy;
-
-  const checkGeofence = useCallback(async () => {
-    if (featureFlags['geofence_punch'] === false) return true;
-    const config = geofenceEffectiveConfig || readGeofenceEnvConfig();
-    if (!config) return true;
-    try {
-      const pos = await getCurrentPositionCoords();
-      const { inRange } = isUserInRestaurantRange(pos.lat, pos.lng, config);
-      if (!inRange) {
-        showError?.(t.punch_error_geofence || 'Sei troppo lontano dal ristorante.');
-        return false;
-      }
-      return true;
-    } catch (err) {
-      showError?.(t.punch_error_geo_denied || 'Impossibile verificare la posizione.');
-      return false;
-    }
-  }, [featureFlags, geofenceEffectiveConfig, showError, t]);
-
-  const handleStart = useCallback(async () => {
-    if (!shiftForStart) return;
-    if (featureFlags['maintenance_mode'] === true && user.role !== 'admin') {
-      showError?.(t.maintenance_mode_active || 'Sistema in manutenzione.');
-      return;
-    }
-    if (!(await checkGeofence())) return;
-    lightHaptic();
-    setPunchBusy(true);
-    try {
-      let presenceProof: string | undefined;
-      try {
-        presenceProof = (await requestProof(user.id)) || undefined;
-      } catch (e) {
-        if (e instanceof Error && e.message === 'presence_cancelled') {
-          showError?.(t.punch_presence_cancelled);
-          return;
-        }
-        throw e;
-      }
-      const res = await addPunchRecord(user.id, 'in', {
-        shift_id: shiftForStart.id,
-        presenceProof,
-      });
-      if (res && typeof res === 'object' && 'error' in res && res.error) {
-        showError?.(res.error);
-        return;
-      }
-      showSuccess?.(t.home_punched);
-    } catch {
-      showError?.(t.punch_save_error);
-    } finally {
-      setPunchBusy(false);
-    }
-  }, [shiftForStart, user.id, addPunchRecord, requestProof, showError, showSuccess, t, checkGeofence]);
-
-  const handleEnd = useCallback(async () => {
-    if (!inProgress?.shift) return;
-    if (featureFlags['maintenance_mode'] === true && user.role !== 'admin') {
-      showError?.(t.maintenance_mode_active || 'Sistema in manutenzione.');
-      return;
-    }
-    if (!(await checkGeofence())) return;
-    lightHaptic();
-    setPunchBusy(true);
-    try {
-      let presenceProof: string | undefined;
-      try {
-        presenceProof = (await requestProof(user.id)) || undefined;
-      } catch (e) {
-        if (e instanceof Error && e.message === 'presence_cancelled') {
-          showError?.(t.punch_presence_cancelled);
-          return;
-        }
-        throw e;
-      }
-      const res = await addPunchRecord(user.id, 'out', {
-        shift_id: inProgress.shift.id,
-        presenceProof,
-      });
-      if (res && typeof res === 'object' && 'error' in res && res.error) {
-        showError?.(res.error);
-        return;
-      }
-      showSuccess?.(t.home_toast_exit_registered);
-    } catch {
-      showError?.(t.punch_save_error);
-    } finally {
-      setPunchBusy(false);
-    }
-  }, [inProgress, user.id, addPunchRecord, requestProof, showError, showSuccess, t, checkGeofence]);
+  const canEnd = !!inProgress && !inProgress.actualEnd && !punchBusy;
 
   const openDinnerClose = useCallback(() => {
     if (!inProgress?.punchIn || !inProgress.actualStart) return;
@@ -370,8 +206,8 @@ export default function MobileStaffDashboard({
             canStart={canStart}
             canEnd={canEnd}
             punchBusy={punchBusy}
-            onStart={() => void handleStart()}
-            onEnd={() => void handleEnd()}
+            onStart={() => void smartExecute()}
+            onEnd={() => void smartExecute()}
             onNavigateToTimesheet={() => onTabChange?.('timesheet')}
             todayWorkShifts={todayWorkShifts}
             detailLabel={t.detail_link}
