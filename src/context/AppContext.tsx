@@ -1250,6 +1250,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [addShift, showError, effectiveLanguage]
   );
 
+  const bulkCopyPreviousWeek = useCallback(
+    async (currentWeekStart: Date): Promise<number> => {
+      const op = currentUserRef.current;
+      if (!op || !canEditTeamShifts(op)) {
+        showError(getTranslations(effectiveLanguage).app_access_denied);
+        return 0;
+      }
+      const prevWeekStart = addDays(currentWeekStart, -7);
+      const prevWeekEnd = addDays(currentWeekStart, -1);
+      const prevStartStr = format(prevWeekStart, 'yyyy-MM-dd');
+      const prevEndStr = format(prevWeekEnd, 'yyyy-MM-dd');
+      const prevShifts = shifts.filter(
+        (s) => s.date >= prevStartStr && s.date <= prevEndStr
+      );
+      let count = 0;
+      for (const shift of prevShifts) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- id excluded for new shift
+        const { id, ...rest } = shift;
+        const newDate = format(addDays(parseISO(shift.date), 7), 'yyyy-MM-dd');
+        const res = await addShift({ ...rest, date: newDate, approval_status: 'draft' });
+        if (res) count++;
+      }
+      return count;
+    },
+    [shifts, addShift, showError, effectiveLanguage]
+  );
+
   const publishWeekShifts = useCallback(async (weekStart: Date) => {
     const op = currentUserRef.current;
     if (!op || !canPublishScheduleDrafts(op)) {
@@ -2649,7 +2676,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         isLoading,
         currentUser, setCurrentUser, users, shifts, holidays, punchRecords, availability, toggleAvailability,
-        addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift,
+        addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift, bulkCopyPreviousWeek,
         publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, deleteHolidayRequest, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
         updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, clearLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing, syncStage, dataSyncInProgress,
         postRefreshLocked, postUnlockReloadPending, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest, logout, globalPinSessionId, setGlobalPinSessionId,

@@ -573,7 +573,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [savingOrder, setSavingOrder] = useState(false);
   void setSavingOrder; // reserved for future drag-reorder save
   const isWideShiftViewport = useMinViewportMd();
-  const { users, shifts, holidays, availability, toggleAvailability, updateShift, updateUser, currentUser, punchRecords, addShift, deleteShifts, showError, showSuccess, silentRefreshData, requestConfirmAndSaveOrder, requestConfirmAndPublishWeek, postRefreshLocked, effectiveLanguage, workRules, breakRules, featureFlags, departmentsRevision, isSessionElevated } = useApp();
+  const { users, shifts, holidays, availability, toggleAvailability, updateShift, updateUser, currentUser, punchRecords, addShift, deleteShifts, bulkCopyPreviousWeek, showError, showSuccess, silentRefreshData, requestConfirmAndSaveOrder, requestConfirmAndPublishWeek, postRefreshLocked, effectiveLanguage, workRules, breakRules, featureFlags, departmentsRevision, isSessionElevated } = useApp();
   void departmentsRevision;
   // Ruoli gestionali: filtro libero. Staff operativo: vincolato al reparto del profilo.
   // Capo: management ma bloccato al proprio reparto (non può cambiarlo).
@@ -2885,6 +2885,34 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       >
                         <Check className="h-4 w-4 shrink-0" strokeWidth={2.25} />
                         Incolla turni qui (come bozze)
+                      </button>
+                    )}
+                    {isAdminWst && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          closeWstToolbarDrawer();
+                          try {
+                            const n = await bulkCopyPreviousWeek(weekStart);
+                            if (n > 0) {
+                              showSuccess?.(
+                                (t as Record<string, string>)['bulk_copy_success']
+                                  ? (t as Record<string, string>)['bulk_copy_success'].replace('{n}', String(n))
+                                  : `${n} turni copiati dalla settimana precedente`
+                              );
+                            } else {
+                              showError?.(
+                                (t as Record<string, string>)['bulk_copy_empty'] ?? 'Nessun turno trovato nella settimana precedente'
+                              );
+                            }
+                          } catch {
+                            showError?.('Errore durante la copia dei turni.');
+                          }
+                        }}
+                        className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                      >
+                        <Copy className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
+                        Copia settimana precedente
                       </button>
                     )}
                     <button
