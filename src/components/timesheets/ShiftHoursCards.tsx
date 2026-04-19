@@ -114,23 +114,23 @@ export function ShiftHoursCards({
             boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.3)',
           }}
         >
-          <p className="mb-2.5 text-xs font-medium uppercase tracking-wider text-slate-500">{t.ts_label_planned}</p>
+          <p className="mb-2.5 text-xs font-medium uppercase tracking-wider text-white/50">{t.ts_label_planned}</p>
           <div className="flex items-start gap-2">
             {(s.status === 'confirmed' || s.status === 'approved') && (
               <span className="flex shrink-0 flex-col items-center justify-center gap-1 pr-1">
                 {s.status === 'approved' && (
-                  <span className="text-lg text-black">✓</span>
+                  <span className="text-lg text-emerald-400">✓</span>
                 )}
               </span>
             )}
             <div className="min-w-0 flex-1">
-              <p className="shift-time-ultra shift-time-clean text-black">
+              <p className="shift-time-ultra shift-time-clean text-white">
                 {s.plannedStart}–{s.plannedEnd}
               </p>
-              <p className="mt-2 text-sm font-medium text-slate-600">
+              <p className="mt-2 text-sm font-medium text-white/65">
                 {fmtHM(s.plannedMins)}
                 {s.breakMinutes > 0 ? (
-                  <span className="opacity-60">
+                  <span className="opacity-70">
                     {' '}
                     (−{fmtBreakDeductionShort(s.breakMinutes)})
                   </span>
@@ -144,10 +144,10 @@ export function ShiftHoursCards({
         <div
           className={`px-5 py-5 overflow-hidden min-h-[130px] rounded-2xl ${
             s.punched && s.isCrossDay
-              ? 'bg-slate-100/60'
+              ? 'bg-red-500/10'
               : s.punched
                 ? ''
-                : 'bg-slate-50/40 animate-pulse'
+                : 'bg-white/4 animate-pulse'
           }`}
           style={s.punched && !s.isCrossDay ? { 
             background: 'var(--bg-surface)',
@@ -164,19 +164,19 @@ export function ShiftHoursCards({
           }}
         >
           <div className="flex items-center justify-between mb-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-slate-600">{t.ts_label_punched}</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-white/50">{t.ts_label_punched}</p>
             {(s.punched && !s.actualEnd) || !s.punched ? (
-              <span className="flex h-2 w-2 rounded-full bg-slate-400 animate-pulse" title={t.data_missing} />
+              <span className="flex h-2 w-2 rounded-full bg-white/30 animate-pulse" title={t.data_missing} />
             ) : null}
           </div>
           {s.punched ? (
             <>
-              <p className="shift-time-ultra shift-time-clean text-black">
+              <p className="shift-time-ultra shift-time-clean text-white">
                 {s.actualStart}
                 {s.actualEnd ? `–${s.actualEnd}` : ''}
               </p>
               {s.isCrossDay && s.actualEndFull && (
-                <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-black">
+                <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-amber-300">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
                   {formatTrans(t.ts_crossday_out_label, {
                     time: format(new Date(s.actualEndFull), 'dd/MM HH:mm'),
@@ -184,20 +184,20 @@ export function ShiftHoursCards({
                 </p>
               )}
               {s.nightRolloverOk && s.actualEndFull && (
-                <p className="mt-2 text-xs font-medium text-slate-600">
+                <p className="mt-2 text-xs font-medium text-white/60">
                   {formatTrans(t.ts_punch_out_next_calendar_day_hint, {
                     time: format(new Date(s.actualEndFull), 'dd/MM HH:mm'),
                   })}
                 </p>
               )}
               <p
-                className="mt-2 text-sm font-medium text-slate-700"
+                className="mt-2 text-sm font-medium text-white/75"
               >
                 {s.isCrossDay ? (
                   <>
                     {t.ts_fix_exit_time_label}
                     {s.breakMinutes > 0 ? (
-                      <span className="mt-1 block font-medium text-slate-600">
+                      <span className="mt-1 block font-medium text-white/60">
                         −{fmtBreakDeductionShort(s.breakMinutes)}
                       </span>
                     ) : null}
@@ -212,21 +212,21 @@ export function ShiftHoursCards({
                   <>
                     {t.ts_out_missing_short}
                     {s.breakMinutes > 0 ? (
-                      <span className="mt-1 block font-medium text-slate-600">
+                      <span className="mt-1 block font-medium text-white/60">
                         −{fmtBreakDeductionShort(s.breakMinutes)}
                       </span>
                     ) : null}
                   </>
                 )}
               </p>
-              <div className="mt-2 space-y-0.5 border-t border-slate-200 pt-2">
-                <p className="text-[10px] leading-snug text-slate-600">
-                  <span className="font-semibold text-slate-500">{t.ts_punch_source_row_in}</span>{' '}
+              <div className="mt-2 space-y-0.5 border-t border-white/15 pt-2">
+                <p className="text-[10px] leading-snug text-white/55">
+                  <span className="font-semibold text-white/45">{t.ts_punch_source_row_in}</span>{' '}
                   {punchSourceLabel(s.punchInSource, t)}
                 </p>
                 {s.actualEnd ? (
-                  <p className="text-[10px] leading-snug text-slate-600">
-                    <span className="font-semibold text-slate-500">{t.ts_punch_source_row_out}</span>{' '}
+                  <p className="text-[10px] leading-snug text-white/55">
+                    <span className="font-semibold text-white/45">{t.ts_punch_source_row_out}</span>{' '}
                     {punchSourceLabel(s.punchOutSource, t)}
                   </p>
                 ) : null}
@@ -234,9 +234,9 @@ export function ShiftHoursCards({
             </>
           ) : (
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-semibold text-amber-950">{t.ts_status_unpunched}</p>
+              <p className="text-sm font-semibold text-amber-200">{t.ts_status_unpunched}</p>
               {s.breakMinutes > 0 ? (
-                <p className="text-[11px] font-semibold text-slate-600">
+                <p className="text-[11px] font-semibold text-white/60">
                   −{fmtBreakDeductionShort(s.breakMinutes)}
                 </p>
               ) : null}
@@ -252,12 +252,12 @@ export function ShiftHoursCards({
         !isFrozen &&
         !isAbsent && (
         <label
-          className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 shadow-sm transition-colors mt-5 ${
+          className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 transition-colors mt-5 ${
             deductBreakSaving ? 'pointer-events-none opacity-50' : ''
           } ${
             fullShift.deduct_break !== false
-              ? 'border-slate-300 bg-slate-50 hover:bg-slate-100'
-              : 'border-slate-200 bg-white hover:bg-slate-50'
+              ? 'border-white/20 bg-white/8 hover:bg-white/12'
+              : 'border-white/12 bg-white/5 hover:bg-white/8'
           }`}
         >
           <div className="relative shrink-0 mt-0.5">
@@ -268,7 +268,7 @@ export function ShiftHoursCards({
               disabled={deductBreakSaving}
               onChange={() => onDeductBreakChange(s.id, !(fullShift.deduct_break !== false))}
             />
-            <div className={`h-5 w-9 rounded-full transition-colors duration-200 ${fullShift.deduct_break !== false ? 'bg-black' : 'bg-slate-300'}`} />
+            <div className={`h-5 w-9 rounded-full transition-colors duration-200 ${fullShift.deduct_break !== false ? 'bg-accent' : 'bg-white/20'}`} />
             <div
               className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
                 fullShift.deduct_break !== false ? 'translate-x-4' : 'translate-x-0'
@@ -276,8 +276,8 @@ export function ShiftHoursCards({
             />
           </div>
           <div className="min-w-0 flex-1">
-            <p className={`text-xs font-semibold ${fullShift.deduct_break !== false ? 'text-black' : 'text-slate-700'}`}>{t.deduct_break_label}</p>
-            <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
+            <p className={`text-xs font-semibold ${fullShift.deduct_break !== false ? 'text-white' : 'text-white/70'}`}>{t.deduct_break_label}</p>
+            <p className="mt-0.5 text-[11px] leading-snug text-white/50">
               {fullShift.deduct_break !== false
                 ? tv.wst_drawer_break_deducted_readout
                 : tv.wst_create_shift_no_deduct_badge}
