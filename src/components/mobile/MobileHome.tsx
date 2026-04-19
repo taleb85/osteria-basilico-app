@@ -190,10 +190,11 @@ export default function MobileHome({
         {inProgress && elapsedLabel && (
           <div className="flex items-center gap-3 mb-5 px-4 py-4 rounded-xl"
             style={{ 
-              background: 'rgba(255, 255, 255, 0.7)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
+              background: 'rgba(255, 255, 255, 0.92)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: 'none',
+              boxShadow: '0 8px 32px 0 rgba(11, 53, 115, 0.08)',
             }}
           >
             <Clock className="w-6 h-6 text-slate-700 shrink-0" strokeWidth={1.5} />
@@ -311,10 +312,11 @@ export default function MobileHome({
       {/* ── Colleghi in turno oggi ───────────────────────────────────── */}
       <div className="rounded-2xl overflow-hidden"
         style={{ 
-          background: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255, 255, 255, 0.3)',
+          background: 'rgba(255, 255, 255, 0.92)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: 'none',
+          boxShadow: '0 8px 32px 0 rgba(11, 53, 115, 0.08)',
         }}
       >
         <HeaderTodayCoworkersCard />

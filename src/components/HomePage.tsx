@@ -603,11 +603,12 @@ export default function HomePage({
                 return (
                   <div key={s.id} className={`rounded-2xl border-l-4 p-4 shadow-sm ${punched ? 'border-l-slate-300' : 'border-l-amber-400 bg-amber-50'}`}
                     style={punched ? { 
-                      background: 'rgba(255, 255, 255, 0.85)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      background: 'rgba(255, 255, 255, 0.92)',
+                      backdropFilter: 'blur(16px)',
+                      WebkitBackdropFilter: 'blur(16px)',
+                      border: 'none',
                       borderLeft: '4px solid rgb(203 213 225)',
+                      boxShadow: '0 8px 32px 0 rgba(11, 53, 115, 0.08)',
                     } : undefined}
                   >
                     <div className="flex items-center justify-between mb-2">

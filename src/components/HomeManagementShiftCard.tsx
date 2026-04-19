@@ -59,12 +59,14 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
           : 'text-amber-950';
 
   return (
-    <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-4 shadow-sm backdrop-blur-md`}
+    <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-4 shadow-sm`}
       style={{ 
-        background: style.bg.includes('white') ? 'rgba(255, 255, 255, 0.85)' : undefined,
-        backdropFilter: style.bg.includes('white') ? 'blur(12px)' : undefined,
-        WebkitBackdropFilter: style.bg.includes('white') ? 'blur(12px)' : undefined,
-        border: style.bg.includes('white') ? '1px solid rgba(255, 255, 255, 0.3)' : undefined,
+        background: style.bg.includes('white') ? 'rgba(255, 255, 255, 0.92)' : undefined,
+        backdropFilter: style.bg.includes('white') ? 'blur(16px)' : undefined,
+        WebkitBackdropFilter: style.bg.includes('white') ? 'blur(16px)' : undefined,
+        border: style.bg.includes('white') ? 'none' : undefined,
+        borderLeft: style.bg.includes('white') ? '4px solid rgb(203 213 225)' : undefined,
+        boxShadow: style.bg.includes('white') ? '0 8px 32px 0 rgba(11, 53, 115, 0.08)' : undefined,
       }}
     >
       {/* Header: avatar + name + badge */}
@@ -90,14 +92,15 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
         </div>
       </div>
 
-      {/* Scheduled vs Actual - Glassmorphism */}
+      {/* Scheduled vs Actual - Glassmorphism Premium */}
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div className="rounded-xl px-2.5 py-2"
           style={{ 
-            background: 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.4)',
+            background: 'rgba(255, 255, 255, 0.92)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: 'none',
+            boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
           }}
         >
           <p className="text-[9px] text-slate-600 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
@@ -105,10 +108,11 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
         </div>
         <div className="rounded-xl px-2.5 py-2"
           style={{ 
-            background: 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.4)',
+            background: 'rgba(255, 255, 255, 0.92)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: 'none',
+            boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
           }}
         >
           <p className="text-[9px] text-slate-600 uppercase font-semibold mb-0.5">{t.ts_label_punched}</p>

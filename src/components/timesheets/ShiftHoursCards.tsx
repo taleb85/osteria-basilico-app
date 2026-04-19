@@ -97,20 +97,21 @@ export function ShiftHoursCards({
   tv,
 }: ShiftHoursCardsProps) {
   return (
-    <div className="border-b border-white/30 px-5 py-7 sm:px-6 sm:py-8 shrink-0"
+    <div className="border-b border-white/10 px-5 py-7 sm:px-6 sm:py-8 shrink-0"
       style={{
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
       }}
     >
       <div className="mb-6 grid grid-cols-2 gap-6 items-stretch">
-        {/* Card Pianificato (GLASSMORPHISM) */}
+        {/* Card Pianificato (GLASSMORPHISM PREMIUM) */}
         <div className="rounded-2xl overflow-hidden min-h-[130px] px-5 py-5"
           style={{ 
-            background: 'rgba(255, 255, 255, 0.75)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.4)',
+            background: 'rgba(255, 255, 255, 0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: 'none',
+            boxShadow: '0 8px 32px 0 rgba(11, 53, 115, 0.08)',
           }}
         >
           <p className="mb-2.5 text-xs font-medium uppercase tracking-wider text-slate-500">{t.ts_label_planned}</p>
@@ -139,24 +140,27 @@ export function ShiftHoursCards({
           </div>
         </div>
         
-        {/* Card Timbrato (GLASSMORPHISM) */}
+        {/* Card Timbrato (GLASSMORPHISM PREMIUM) */}
         <div
           className={`px-5 py-5 overflow-hidden min-h-[130px] rounded-2xl ${
             s.punched && s.isCrossDay
-              ? 'bg-slate-100/80'
+              ? 'bg-slate-100/60'
               : s.punched
                 ? ''
-                : 'bg-slate-50/60 animate-pulse'
+                : 'bg-slate-50/40 animate-pulse'
           }`}
           style={s.punched && !s.isCrossDay ? { 
-            background: 'rgba(255, 255, 255, 0.75)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.4)',
+            background: 'rgba(255, 255, 255, 0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: 'none',
+            boxShadow: '0 8px 32px 0 rgba(11, 53, 115, 0.08)',
           } : s.isCrossDay ? {
-            border: '1px solid rgba(203, 213, 225, 0.5)',
+            border: 'none',
+            boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
           } : {
-            border: '1px solid rgba(203, 213, 225, 0.3)',
+            border: 'none',
+            boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
           }}
         >
           <div className="flex items-center justify-between mb-2.5">

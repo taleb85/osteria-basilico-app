@@ -55,7 +55,7 @@ button:active,
   color: #ffffff !important;
 }
 
-/* Reset globale — sfondo elegante blu fisso, scroll naturale */
+/* Reset globale — sfondo elegante blu fisso alta risoluzione, scroll naturale */
 html,
 body,
 #root {
@@ -67,30 +67,12 @@ body,
   overflow-x: hidden;
   overflow-y: auto;
   background: 
-    linear-gradient(rgba(11, 53, 115, 0.15), rgba(11, 53, 115, 0.15)),
-    url('/bg-elegant-blue.png') no-repeat center center fixed;
+    linear-gradient(rgba(11, 53, 115, 0.08), rgba(11, 53, 115, 0.08)),
+    url('/bg-elegant-blue.png') no-repeat center top fixed;
   background-size: cover;
-  image-rendering: smooth;
-  image-rendering: -webkit-optimize-contrast;
-  filter: blur(0.3px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--text-main);
-}
-
-/* Pseudo-elemento per sfondo sfocato che non influenza il contenuto */
-html::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: url('/bg-elegant-blue.png') no-repeat center center fixed;
-  background-size: cover;
-  filter: blur(0.5px);
-  z-index: -1;
-  pointer-events: none;
 }
 /* iOS rubber-band touch scroll */
 @media (pointer: coarse) {
@@ -457,7 +439,7 @@ html::before {
       background 0.6s cubic-bezier(0.4, 0, 0.2, 1),
       box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    z-index: 10;
+    z-index: 100;
     overflow: hidden;
     opacity: 1;
   }
@@ -988,20 +970,21 @@ html.no-motion *::after {
   letter-spacing: -0.01em;
 }
 
-/* ── ORARI MAXI-LEGGIBILITÀ (GIGANTISMO) ──────────────────────────────── */
+/* ── ORARI MAXI-LEGGIBILITÀ (GIGANTISMO ULTRA-READABLE) ─────────────── */
 
-/* Orari turni: 24px nero puro font-weight 800 per massimo contrasto su vetro */
+/* Orari turni: 24px nero puro font-weight 700 per massimo contrasto */
 .shift-time-ultra {
   font-size: 1.5rem; /* 24px */
   line-height: 1.2;
-  font-weight: 800; /* aumentato da 500 per glassmorphism */
+  font-weight: 700; /* aumentato da 800 per leggibilità */
   color: #000000;
+  letter-spacing: -0.02em;
 }
 
 @media (max-width: 640px) {
   .shift-time-ultra {
     font-size: 1.875rem; /* 30px mobile */
-    font-weight: 800;
+    font-weight: 700;
   }
 }
 
@@ -1051,13 +1034,13 @@ html.no-motion *::after {
   border-bottom: 0.5px solid #f1f5f9; /* slate-100 più chiaro */
 }
 
-/* Card glassmorphism: bianco 85% opacità + backdrop-blur */
+/* Card glassmorphism premium: bianco 92% opacità + backdrop-blur 16px */
 .shift-card-ultra {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: none;
+  box-shadow: 0 8px 32px 0 rgba(11, 53, 115, 0.08);
   border-radius: 1rem;
 }
 
