@@ -68,10 +68,12 @@ body,
   overflow-y: auto;
   background: 
     linear-gradient(rgba(11, 53, 115, 0.2), rgba(11, 53, 115, 0.2)),
-    url('/bg-elegant-blue.png') no-repeat center top fixed;
-  background-size: 110%;
-  image-rendering: high-quality;
+    url('/bg-elegant-blue.png') no-repeat center center fixed;
+  background-size: cover;
   image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   color: var(--text-main);
 }
 /* iOS rubber-band touch scroll */
