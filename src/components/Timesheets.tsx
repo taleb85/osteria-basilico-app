@@ -4355,7 +4355,7 @@ export default function Timesheets() {
                         };
 
                         return (
-                          <td key={dateStr} className={`px-1.5 py-1.5 ${tdBorder} align-top ${tdBg} md:px-1 md:py-1 h-px`} style={tdStyle}>
+                          <td key={dateStr} className={`px-1.5 py-1.5 ${tdBorder} align-top md:px-1 md:py-1 h-px`} style={tdStyle}>
                             <div className="flex h-full flex-col">
                               {before16.length > 0 && (
                                 <div className="flex flex-col gap-1 md:gap-0.5">
@@ -4458,21 +4458,20 @@ export default function Timesheets() {
                       const weekEndCol = viewMode === 'month' && (dayIdx + 1) % 7 === 0;
                       const tdBorder = weekEndCol ? 'border-r-[3px] border-r-slate-500' : 'border-r-2';
                       const tdMuted = viewMode === 'month' && !inP;
-                      const tdBg =
-                        payrollHighlight
-                          ? 'bg-[#3366CC]/7'
-                          : tdMuted
-                            ? 'bg-slate-100/90 opacity-70'
-                            : '';
+                      const tdBgStyle: React.CSSProperties = payrollHighlight
+                        ? { background: 'rgba(51,102,204,0.12)' }
+                        : tdMuted
+                          ? { background: 'transparent', opacity: 0.35 }
+                          : {};
                       return (
-                        <td key={dateStr} className={`px-2 py-3 text-center ${tdBorder} text-xs ${tdBg} md:px-1.5 md:py-2 md:text-[10px]`}>
+                        <td key={dateStr} className={`px-2 py-3 text-center ${tdBorder} text-xs md:px-1.5 md:py-2 md:text-[10px]`} style={tdBgStyle}>
                           {planned > 0 ? (
                             <>
-                              <div className={tdMuted ? 'text-slate-400' : 'text-slate-500'}>
+                              <div className={tdMuted ? 'text-white/30' : 'text-white/55'}>
                                 {formatMinutesToHoursAndMinutes(planned)}
                               </div>
                               {showFullTimesheetGrid && actual > 0 && (
-                                <div className={`font-semibold ${tdMuted ? 'text-slate-500' : 'text-slate-800'}`}>
+                                <div className={`font-semibold ${tdMuted ? 'text-white/40' : 'text-white'}`}>
                                   {formatMinutesToHoursAndMinutes(actual)}
                                 </div>
                               )}
