@@ -229,6 +229,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const currentUserRef = useRef<User | null>(null);
   useEffect(() => { currentUserRef.current = currentUser; }, [currentUser]);
   const [isSessionElevated, setIsSessionElevated] = useState(false);
+
+  // ── Impersonazione (Cambio Rapido Admin) ────────────────────────────────────
+  const [impersonatingAs, setImpersonatingAs] = useState<User | null>(null);
+  const [originalAdminUser, setOriginalAdminUser] = useState<User | null>(null);
+  const originalAdminUserRef = useRef<User | null>(null);
+  useEffect(() => { originalAdminUserRef.current = originalAdminUser; }, [originalAdminUser]);
+
+  const setImpersonating = useCallback((targetUser: User | null, adminUser: User | null) => {
+    setImpersonatingAs(targetUser);
+    setOriginalAdminUser(adminUser);
+  }, []);
   const [appLanguage, setAppLanguage] = useState<Language>(() => {
     const stored = readStoredUiLanguage();
     if (stored) return stored;
@@ -1510,6 +1521,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         user_id: userId,
         type: effectiveType,
         source: resolvedSource,
+        // Se è attiva una sessione di impersonazione, traccia l'admin originale per audit legale
+        ...(originalAdminUserRef.current ? { impersonated_by: originalAdminUserRef.current.id } : {}),
       };
       if (resolvedSource === 'manual' && manualTimestampIso) {
         record.timestamp = manualTimestampIso;
@@ -2661,6 +2674,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         pushSettingsToCloud, settingsCloudLastSyncedAt, settingsCloudPushBusy,
         managementDataTouchedSinceLastSync,
         isSessionElevated, setIsSessionElevated,
+        impersonatingAs, originalAdminUser, setImpersonating,
       } satisfies AppContextType}
     >
       {/* Children montano solo quando il caricamento è completato */}

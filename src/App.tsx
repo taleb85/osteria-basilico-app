@@ -211,6 +211,11 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     globalPinSessionId,
     setGlobalPinSessionId,
     isSessionElevated,
+    impersonatingAs,
+    originalAdminUser,
+    setImpersonating,
+    setCurrentUser: setCtxCurrentUser,
+    setIsSessionElevated,
   } = useApp();
 
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
@@ -657,17 +662,47 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         disabled={!!(isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending)}
       />
 
+      {/* ── Banner Impersonazione (Cambio Rapido Admin) ── */}
+      {impersonatingAs && originalAdminUser && (
+        <div
+          className="fixed left-0 right-0 z-[10039] flex items-center justify-between gap-2 px-4 py-2 text-sm font-semibold shadow-md"
+          style={{
+            top: 0,
+            background: 'linear-gradient(90deg, #fef3c7 0%, #fde68a 100%)',
+            borderBottom: '1px solid #f59e0b',
+            color: '#92400e',
+          }}
+        >
+          <span className="truncate">
+            Sessione attiva come: <strong>{impersonatingAs.first_name}{impersonatingAs.last_name ? ` ${impersonatingAs.last_name}` : ''}</strong>
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setCtxCurrentUser(originalAdminUser);
+              setIsSessionElevated(false);
+              setImpersonating(null, null);
+              void silentRefreshData?.();
+            }}
+            className="shrink-0 rounded-lg px-3 py-1 text-xs font-bold transition-colors hover:bg-amber-200 active:scale-95"
+            style={{ background: '#fcd34d', color: '#78350f' }}
+          >
+            Torna ad Admin
+          </button>
+        </div>
+      )}
+
       {/* ── Header fisso — sempre visibile, fuori dal flusso scroll ── */}
       <header
         ref={appStickyHeaderRef}
-        className={`fixed top-0 left-0 right-0 z-[10040] shrink-0 app-horizontal-pad pb-2 transition-[visibility,opacity] duration-150 ${
+        className={`fixed left-0 right-0 z-[10040] shrink-0 app-horizontal-pad pb-2 transition-[visibility,opacity,top] duration-150 ${
           activeTab === 'profile' ? 'hidden' : ''
         } ${
           overlayOpen ? 'invisible opacity-0 pointer-events-none' : ''
         } ${
           isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''
         }`}
-        style={{ background: 'transparent' }}
+        style={{ background: 'transparent', top: impersonatingAs ? 40 : 0 }}
       >
         <MobileProfileHeader
           onLogout={onLogout}

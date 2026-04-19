@@ -29,7 +29,7 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClassName }: BottomNavProps) {
   const navRef = useRef<HTMLElement>(null);
-  const { effectiveLanguage, currentUser, users, setCurrentUser, setIsSessionElevated, isSessionElevated } = useApp();
+  const { effectiveLanguage, currentUser, users, setCurrentUser, setIsSessionElevated, isSessionElevated, featureFlags, setImpersonating, silentRefreshData } = useApp();
   const { triggerHapticFeedback } = useMultisensorialFeedback();
   /** Contenuto che scorre sotto la nav fissa → vetro trasparente; altrimenti tinta piena FLOW blue. */
   const [navOverContent, setNavOverContent] = useState(false);
@@ -41,6 +41,8 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   const [switchPin, setSwitchPin] = useState('');
   const [switchError, setSwitchError] = useState('');
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  /** Utente che ha aperto la modale (catturato all'apertura per rilevare se è admin). */
+  const [switchingFromUser, setSwitchingFromUser] = useState<typeof currentUser>(null);
 
   const t = getTranslations(effectiveLanguage);
 
@@ -51,6 +53,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     if (!isUiWidgetVisible(currentUser, 'global.quick_switch')) return;
     
     longPressTimerRef.current = setTimeout(() => {
+      setSwitchingFromUser(currentUser); // cattura l'attore prima del cambio
       setIsQuickSwitchOpen(true);
       setQuickSwitchSearch('');
       setPendingSwitchUser(null);
@@ -67,6 +70,22 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   }, []);
 
   const handleSelectUserForSwitch = (user: any) => {
+    const actor = switchingFromUser ?? currentUser;
+    const isAdminActor = isAdminOnly(actor);
+    const isKioskMode = featureFlags['kiosk_active'] === true;
+
+    // Admin in modalità normale → cambio diretto senza PIN
+    if (isAdminActor && !isKioskMode) {
+      setImpersonating(user, actor);
+      setIsSessionElevated(false);
+      setCurrentUser(user);
+      setIsQuickSwitchOpen(false);
+      setPendingSwitchUser(null);
+      void silentRefreshData?.();
+      return;
+    }
+
+    // Kiosk o non-admin → richiedi PIN
     setPendingSwitchUser(user);
     setSwitchPin('');
     setSwitchError('');
@@ -74,29 +93,36 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
 
   const handleVerifyPinAndSwitch = useCallback(() => {
     if (!pendingSwitchUser) return;
+    const actor = switchingFromUser ?? currentUser;
+    const isAdminActor = isAdminOnly(actor);
+
     if (switchPin === pendingSwitchUser.pin) {
       setIsSessionElevated(false);
+      // Admin che usa flusso PIN (es. kiosk) → traccia impersonazione
+      if (isAdminActor) setImpersonating(pendingSwitchUser, actor);
       setCurrentUser(pendingSwitchUser);
       setIsQuickSwitchOpen(false);
       setPendingSwitchUser(null);
       setSwitchPin('');
+      void silentRefreshData?.();
     } else if (
       pendingSwitchUser.secondary_pin &&
       pendingSwitchUser.elevated_role &&
       switchPin === pendingSwitchUser.secondary_pin
     ) {
-      // Accesso tramite PIN secondario: eleva il ruolo per la sessione
+      // PIN secondario: eleva ruolo per la sessione (nessuna impersonazione)
       setIsSessionElevated(true);
       setCurrentUser({ ...pendingSwitchUser, role: pendingSwitchUser.elevated_role });
       setIsQuickSwitchOpen(false);
       setPendingSwitchUser(null);
       setSwitchPin('');
+      void silentRefreshData?.();
     } else {
       setSwitchError(t.pin_invalid || 'PIN non valido');
       setSwitchPin('');
       setTimeout(() => setSwitchError(''), 2000);
     }
-  }, [pendingSwitchUser, switchPin, setCurrentUser, setIsSessionElevated, t.pin_invalid]);
+  }, [pendingSwitchUser, switchPin, switchingFromUser, currentUser, setCurrentUser, setIsSessionElevated, setImpersonating, silentRefreshData, t.pin_invalid]);
 
   useEffect(() => {
     if (switchPin.length === 4 && pendingSwitchUser) {
@@ -107,14 +133,17 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   // Auto-trigger biometric switch if device is registered for the pending user
   useEffect(() => {
     if (pendingSwitchUser && isQuickSwitchOpen && hasPinUnlockCredential(pendingSwitchUser.id)) {
+      const actor = switchingFromUser ?? currentUser;
       const runBiometric = async () => {
         try {
           const ok = await authenticatePinUnlockCredential(pendingSwitchUser.id);
           if (ok) {
+            if (isAdminOnly(actor)) setImpersonating(pendingSwitchUser, actor);
             setCurrentUser(pendingSwitchUser);
             setIsQuickSwitchOpen(false);
             setPendingSwitchUser(null);
             setSwitchPin('');
+            void silentRefreshData?.();
           }
         } catch (err) {
           console.error('Biometric switch failed:', err);
@@ -122,6 +151,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
       };
       void runBiometric();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingSwitchUser, isQuickSwitchOpen, setCurrentUser]);
 
   const filteredUsers = useMemo(() => {
@@ -475,10 +505,13 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   onClick={async () => {
                     const ok = await authenticatePinUnlockCredential(pendingSwitchUser.id);
                     if (ok) {
+                      const actor = switchingFromUser ?? currentUser;
+                      if (isAdminOnly(actor)) setImpersonating(pendingSwitchUser, actor);
                       setCurrentUser(pendingSwitchUser);
                       setIsQuickSwitchOpen(false);
                       setPendingSwitchUser(null);
                       setSwitchPin('');
+                      void silentRefreshData?.();
                     }
                   }}
                   className="flex flex-col items-center justify-center gap-1 text-[#455a3f] active:scale-95 transition-transform"

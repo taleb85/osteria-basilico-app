@@ -197,6 +197,8 @@ export interface PunchRecord {
   type: 'in' | 'out';
   /** kiosk = terminale / app self; manual = inserimento da Presenze; manager = responsabile per altro utente */
   source?: PunchRecordSource | null;
+  /** ID admin che ha eseguito il quick-switch prima di questa timbratura (audit impersonazione). */
+  impersonated_by?: string | null;
 }
 
 /**

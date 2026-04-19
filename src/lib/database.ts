@@ -632,6 +632,12 @@ export const database = {
           payload = rest;
           continue;
         }
+        if (msg.includes('impersonated_by') && 'impersonated_by' in payload) {
+          const { impersonated_by: _ib, ...rest } = payload;
+          void _ib;
+          payload = rest;
+          continue;
+        }
         if (
           (msg.includes('calculated_time') || msg.includes('clock_out_time')) &&
           ('calculated_time' in payload || 'clock_out_time' in payload)

@@ -187,4 +187,19 @@ export interface AppContextType {
   /** True se l'utente ha eseguito l'accesso tramite PIN secondario (elevazione sessione). Si perde al refresh. */
   isSessionElevated: boolean;
   setIsSessionElevated: (v: boolean) => void;
+  /**
+   * Utente "impersonato" tramite Cambio Rapido da un Admin.
+   * Null se nessuna sessione di impersonazione è attiva.
+   */
+  impersonatingAs: User | null;
+  /**
+   * Admin originale che ha avviato la sessione di impersonazione.
+   * Null se nessuna sessione attiva.
+   */
+  originalAdminUser: User | null;
+  /**
+   * Avvia o termina una sessione di impersonazione.
+   * Chiamare con (null, null) per ripristinare l'Admin originale.
+   */
+  setImpersonating: (targetUser: User | null, adminUser: User | null) => void;
 }
