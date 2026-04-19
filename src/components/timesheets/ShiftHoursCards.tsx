@@ -107,11 +107,11 @@ export function ShiftHoursCards({
         {/* Card Pianificato (GLASSMORPHISM PREMIUM) */}
         <div className="rounded-2xl overflow-hidden min-h-[130px] px-5 py-5"
           style={{ 
-            background: 'rgba(255, 255, 255, 0.92)',
+            background: 'var(--bg-surface)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            border: 'none',
-            boxShadow: '0 8px 32px 0 rgba(11, 53, 115, 0.08)',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.3)',
           }}
         >
           <p className="mb-2.5 text-xs font-medium uppercase tracking-wider text-slate-500">{t.ts_label_planned}</p>
@@ -150,17 +150,17 @@ export function ShiftHoursCards({
                 : 'bg-slate-50/40 animate-pulse'
           }`}
           style={s.punched && !s.isCrossDay ? { 
-            background: 'rgba(255, 255, 255, 0.92)',
+            background: 'var(--bg-surface)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            border: 'none',
-            boxShadow: '0 8px 32px 0 rgba(11, 53, 115, 0.08)',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.3)',
           } : s.isCrossDay ? {
-            border: 'none',
-            boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 2px 8px -2px rgba(0, 0, 0, 0.25)',
           } : {
-            border: 'none',
-            boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 2px 8px -2px rgba(0, 0, 0, 0.25)',
           }}
         >
           <div className="flex items-center justify-between mb-2.5">

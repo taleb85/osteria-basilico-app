@@ -601,14 +601,14 @@ export default function HomePage({
                 const { punchIn } = getPunchForShift(s.id, s.user_id, todayStr, !isDinner);
                 const punched = !!punchIn;
                 return (
-                  <div key={s.id} className={`rounded-2xl border-l-4 p-4 shadow-sm ${punched ? 'border-l-slate-300' : 'border-l-amber-400 bg-amber-50'}`}
+                  <div key={s.id} className={`rounded-2xl border-l-4 p-4 shadow-sm ${punched ? 'border-l-slate-300' : 'border-l-amber-400 bg-amber-900/20'}`}
                     style={punched ? { 
-                      background: 'rgba(255, 255, 255, 0.92)',
+                      background: 'var(--bg-surface)',
                       backdropFilter: 'blur(16px)',
                       WebkitBackdropFilter: 'blur(16px)',
-                      border: 'none',
+                      border: '1px solid var(--border-color)',
                       borderLeft: '4px solid rgb(203 213 225)',
-                      boxShadow: '0 8px 32px 0 rgba(11, 53, 115, 0.08)',
+                      boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.3)',
                     } : undefined}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -842,9 +842,9 @@ export default function HomePage({
             ].map(({ label, value, Icon, iconColor, bg, border, iconWell }) => (
               <div key={label} className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 ${border}`}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)',
+                  background: 'var(--bg-surface)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
                 }}
               >
                 <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${border} ${iconWell}`}>
@@ -888,13 +888,13 @@ export default function HomePage({
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mb-3">
-                      <div className="bg-white/70 rounded-xl px-2.5 py-2 text-center">
-                        <p className="text-[9px] text-slate-500 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
-                        <p className="text-sm font-bold text-slate-700 tabular-nums">{e.scheduledStart}–{e.scheduledEnd}</p>
+                      <div className="bg-transparent rounded-xl px-2.5 py-2 text-center border border-white/10">
+                        <p className="text-[9px] text-slate-400 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
+                        <p className="text-sm font-bold text-white tabular-nums">{e.scheduledStart}–{e.scheduledEnd}</p>
                       </div>
-                      <div className="bg-white/70 rounded-xl px-2.5 py-2 text-center">
-                        <p className="text-[9px] text-slate-500 uppercase font-semibold mb-0.5">{t.home_label_entry}</p>
-                        <p className="text-sm font-bold text-slate-800 tabular-nums">{e.actualStart ?? '—'}</p>
+                      <div className="bg-transparent rounded-xl px-2.5 py-2 text-center border border-white/10">
+                        <p className="text-[9px] text-slate-400 uppercase font-semibold mb-0.5">{t.home_label_entry}</p>
+                        <p className="text-sm font-bold text-white tabular-nums">{e.actualStart ?? '—'}</p>
                       </div>
                     </div>
                     <button
@@ -1082,9 +1082,9 @@ export default function HomePage({
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 mb-4">
-                  <div className="bg-slate-50 rounded-xl p-3 text-center">
-                    <p className="text-[10px] text-slate-500 uppercase font-semibold mb-1">{t.home_label_planned}</p>
-                    <p className="font-bold text-slate-700 tabular-nums">{closeModal.actualStart} → {closeModal.plannedEnd}</p>
+                  <div className="bg-transparent rounded-xl p-3 text-center border border-white/10">
+                    <p className="text-[10px] text-slate-400 uppercase font-semibold mb-1">{t.home_label_planned}</p>
+                    <p className="font-bold text-white tabular-nums">{closeModal.actualStart} → {closeModal.plannedEnd}</p>
                   </div>
                   <div className="rounded-xl bg-[#001A80]/8 p-3 text-center">
                     <p className="text-[10px] text-slate-500 uppercase font-semibold mb-1">{t.home_label_entry}</p>
@@ -1105,15 +1105,15 @@ export default function HomePage({
                 </div>
 
                 {homeClockComplete && (
-                  <div className="bg-slate-50 rounded-xl p-3 mb-4 grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-transparent rounded-xl p-3 mb-4 grid grid-cols-3 gap-2 text-center border border-white/10">
                     {[
                       { label: t.home_modal_start, val: closeModal.actualStart },
                       { label: t.home_modal_end, val: clockOutInput },
                       { label: t.home_modal_duration, val: `${Math.floor(previewMins / 60)}h${previewMins % 60 > 0 ? String(previewMins % 60).padStart(2,'0') : ''}` },
                     ].map(({ label, val }) => (
                       <div key={label}>
-                        <p className="text-[10px] text-slate-500 uppercase font-semibold mb-0.5">{label}</p>
-                        <p className="font-bold text-slate-800 text-sm tabular-nums">{val}</p>
+                        <p className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">{label}</p>
+                        <p className="font-bold text-white text-sm tabular-nums">{val}</p>
                       </div>
                     ))}
                   </div>

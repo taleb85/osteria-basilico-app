@@ -61,12 +61,12 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
   return (
     <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-5 shadow-sm`}
       style={{ 
-        background: style.bg.includes('white') ? 'rgba(255, 255, 255, 0.92)' : undefined,
+        background: style.bg.includes('white') ? 'var(--bg-surface)' : undefined,
         backdropFilter: style.bg.includes('white') ? 'blur(16px)' : undefined,
         WebkitBackdropFilter: style.bg.includes('white') ? 'blur(16px)' : undefined,
-        border: style.bg.includes('white') ? 'none' : undefined,
+        border: style.bg.includes('white') ? '1px solid var(--border-color)' : undefined,
         borderLeft: style.bg.includes('white') ? '4px solid rgb(203 213 225)' : undefined,
-        boxShadow: style.bg.includes('white') ? '0 8px 32px 0 rgba(11, 53, 115, 0.08)' : undefined,
+        boxShadow: style.bg.includes('white') ? '0 4px 16px -4px rgba(0, 0, 0, 0.3)' : undefined,
       }}
     >
       {/* Header: avatar + name + badge */}
@@ -96,11 +96,11 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div className="rounded-xl px-2.5 py-2"
           style={{ 
-            background: 'rgba(255, 255, 255, 0.92)',
+            background: 'rgba(255, 255, 255, 0.06)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
-            border: 'none',
-            boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: '0 2px 8px -2px rgba(0, 0, 0, 0.25)',
           }}
         >
           <p className="text-[9px] text-slate-600 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
@@ -108,11 +108,11 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
         </div>
         <div className="rounded-xl px-2.5 py-2"
           style={{ 
-            background: 'rgba(255, 255, 255, 0.92)',
+            background: 'rgba(255, 255, 255, 0.06)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
-            border: 'none',
-            boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: '0 2px 8px -2px rgba(0, 0, 0, 0.25)',
           }}
         >
           <p className="text-[9px] text-slate-600 uppercase font-semibold mb-0.5">{t.ts_label_punched}</p>
