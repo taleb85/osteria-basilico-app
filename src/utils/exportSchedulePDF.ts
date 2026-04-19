@@ -97,225 +97,236 @@ export async function exportSchedulePDF(
   const t = getTranslations(language);
   const locale = getDateLocale(language) as Locale;
 
-  const numDays = weekDays.length;
-  const weekEnd = addDays(weekStart, numDays);
-  const weekStr = format(weekStart, 'yyyy-MM-dd');
-  const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
-  const weekShifts = shifts.filter(
-    (s) =>
-      s.date >= weekStr &&
-      s.date < weekEndStr &&
-      (includeOpen || !s.notes?.startsWith('__OPEN__'))
-  );
-
-  /** Difesa in profondità: l’admin non deve mai comparire nel PDF anche se passato per errore. */
+  /** Difesa in profondità: l'admin non deve mai comparire nel PDF anche se passato per errore. */
   const scheduleUsers = activeUsers.filter((u) => !isPurelyManagementRole(u.role));
 
-  // ── Page setup ─────────────────────────────────────────────────────────────
+  // ── Split in settimane (1 pagina per settimana se periodo lungo) ──────────
+  const weekChunks: Date[][] = [];
+  for (let i = 0; i < weekDays.length; i += 7) {
+    weekChunks.push(weekDays.slice(i, i + 7));
+  }
+
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const PAGE_W = 297;
   const PAGE_H = 210;
-  const MARGIN = 12; // aumentato da 10 per più aria
+  const MARGIN = 12;
   const CONTENT_W = PAGE_W - MARGIN * 2;
 
-  // Column widths
-  const NAME_W = 38; // per nomi più grandi
-  const DAY_W = (CONTENT_W - NAME_W - 24) / numDays;
-  const TOT_W = 24;
+  // ── Loop: 1 pagina per ogni settimana ─────────────────────────────────────
+  weekChunks.forEach((weekDaysChunk, chunkIdx) => {
+    if (chunkIdx > 0) {
+      doc.addPage();
+    }
 
-  // Row heights (ULTRA-CLEAN: +40% spacing)
-  const HEADER_ROW = 14; // da 12
-  const DATA_ROW = 18;   // da 16 (+40% aria)
+    const chunkStart = weekDaysChunk[0];
+    const numDays = weekDaysChunk.length;
+    const chunkEnd = addDays(chunkStart, numDays);
+    const chunkStartStr = format(chunkStart, 'yyyy-MM-dd');
+    const chunkEndStr = format(chunkEnd, 'yyyy-MM-dd');
+    const weekShifts = shifts.filter(
+      (s) =>
+        s.date >= chunkStartStr &&
+        s.date < chunkEndStr &&
+        (includeOpen || !s.notes?.startsWith('__OPEN__'))
+    );
 
-  // ── Page header (MINIMALISTA) ──────────────────────────────────────────────
-  // NO sfondo nero pesante, solo testo nero su bianco
-  doc.setTextColor(...BLACK);
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text(restaurantName, MARGIN, 14);
+    // Column widths
+    const NAME_W = 38;
+    const DAY_W = (CONTENT_W - NAME_W - 24) / numDays;
+    const TOT_W = 24;
 
-  // Week range (più piccolo, discreto)
-  const rangeLabel = `${format(weekStart, 'd MMMM', { locale })} – ${format(addDays(weekEnd, -1), 'd MMMM yyyy', { locale })}`;
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...GRAY_TEXT);
-  doc.text(rangeLabel, MARGIN + 65, 14);
+    // Row heights
+    const HEADER_ROW = 14;
+    const DATA_ROW = 18;
 
-  if (filterLabel) {
-    doc.text(`· ${filterLabel}`, MARGIN + 65 + doc.getTextWidth(rangeLabel) + 2, 14);
-  }
+    // ── Page header (MINIMALISTA) ──────────────────────────────────────────────
+    doc.setTextColor(...BLACK);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(restaurantName, MARGIN, 14);
 
-  // Print timestamp (discreto in alto a destra)
-  doc.setFontSize(8);
-  doc.setTextColor(...GRAY_ULTRA_LIGHT);
-  const printedAt = formatTrans(t.ts_pdf_printed_on, {
-    datetime: format(new Date(), 'd MMM yyyy HH:mm', { locale }),
-  });
-  doc.text(printedAt, PAGE_W - MARGIN - doc.getTextWidth(printedAt), 14);
+    // Week range
+    const rangeLabel = `${format(chunkStart, 'd MMMM', { locale })} – ${format(addDays(chunkEnd, -1), 'd MMMM yyyy', { locale })}`;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...GRAY_TEXT);
+    doc.text(rangeLabel, MARGIN + 65, 14);
 
-  // Linea sottile separator dopo header
-  doc.setDrawColor(...GRAY_ULTRA_LIGHT);
-  doc.setLineWidth(0.2);
-  doc.line(MARGIN, 20, PAGE_W - MARGIN, 20);
+    if (filterLabel) {
+      doc.text(`· ${filterLabel}`, MARGIN + 65 + doc.getTextWidth(rangeLabel) + 2, 14);
+    }
 
-  // ── Column headers (MINIMALISTA) ───────────────────────────────────────────
-  let y = 26;
-  // NO sfondo, NO bordi spessi, solo testo pulito
-  doc.setTextColor(...GRAY_TEXT);
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'bold');
-  doc.text(t.ts_pdf_col_employee, MARGIN + 2, y + 5);
+    // Print timestamp
+    doc.setFontSize(8);
+    doc.setTextColor(...GRAY_ULTRA_LIGHT);
+    const printedAt = formatTrans(t.ts_pdf_printed_on, {
+      datetime: format(new Date(), 'd MMM yyyy HH:mm', { locale }),
+    });
+    doc.text(printedAt, PAGE_W - MARGIN - doc.getTextWidth(printedAt), 14);
 
-  // Day column headers
-  weekDays.forEach((day, i) => {
-    const x = MARGIN + NAME_W + i * DAY_W;
+    // Linea separator
+    doc.setDrawColor(...GRAY_ULTRA_LIGHT);
+    doc.setLineWidth(0.2);
+    doc.line(MARGIN, 20, PAGE_W - MARGIN, 20);
+
+    // ── Column headers ─────────────────────────────────────────────────────────
+    let y = 26;
+    doc.setTextColor(...GRAY_TEXT);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text(t.ts_pdf_col_employee, MARGIN + 2, y + 5);
+
+    // Day column headers
+    weekDaysChunk.forEach((day, i) => {
+      const x = MARGIN + NAME_W + i * DAY_W;
+      doc.setTextColor(...GRAY_TEXT);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      const label = fmtDay(day, locale);
+      doc.text(label, x + DAY_W / 2 - doc.getTextWidth(label) / 2, y + 5);
+    });
+
+    // Total column header
+    const totX = MARGIN + NAME_W + numDays * DAY_W;
     doc.setTextColor(...GRAY_TEXT);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
-    const label = fmtDay(day, locale);
-    doc.text(label, x + DAY_W / 2 - doc.getTextWidth(label) / 2, y + 5);
-  });
+    const totLabel = t.schedule_pdf_total_abbr;
+    doc.text(totLabel, totX + TOT_W / 2 - doc.getTextWidth(totLabel) / 2, y + 5);
 
-  // Total column header
-  const totX = MARGIN + NAME_W + numDays * DAY_W;
-  doc.setTextColor(...GRAY_TEXT);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  const totLabel = t.schedule_pdf_total_abbr;
-  doc.text(totLabel, totX + TOT_W / 2 - doc.getTextWidth(totLabel) / 2, y + 5);
+    y += HEADER_ROW;
 
-  y += HEADER_ROW;
+    // ── Data rows ──────────────────────────────────────────────────────────────
+    let prevDept = '';
 
-  // ── Data rows ──────────────────────────────────────────────────────────────
-  let prevDept = '';
+    scheduleUsers.forEach((user, rowIdx) => {
+      // Separator tra reparti
+      const dept = user.department ?? 'sala_bar';
+      if (dept !== prevDept && rowIdx > 0) {
+        doc.setDrawColor(...GRAY_ULTRA_LIGHT);
+        doc.setLineWidth(0.3);
+        doc.line(MARGIN, y, MARGIN + CONTENT_W, y);
+        y += 2;
+      }
+      prevDept = dept;
 
-  scheduleUsers.forEach((user, rowIdx) => {
-    // ULTRA-CLEAN: separator sottilissimo solo tra reparti diversi
-    const dept = user.department ?? 'sala_bar';
-    if (dept !== prevDept && rowIdx > 0) {
-      doc.setDrawColor(...GRAY_ULTRA_LIGHT);
-      doc.setLineWidth(0.3);
-      doc.line(MARGIN, y, MARGIN + CONTENT_W, y);
-      y += 2; // piccolo spazio extra
-    }
-    prevDept = dept;
+      // Sfondo bianco puro
+      doc.setFillColor(...WHITE);
+      doc.rect(MARGIN, y, CONTENT_W, DATA_ROW, 'F');
 
-    // NO sfondo alternato, tutto bianco puro
-    doc.setFillColor(...WHITE);
-    doc.rect(MARGIN, y, CONTENT_W, DATA_ROW, 'F');
-
-    // NO accent bar colorato, rimosso completamente
-
-    // Name (ULTRA-CLEAN: 14pt medio sans-serif)
-    doc.setTextColor(...BLACK);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'normal');
-    const firstName = user.first_name.toUpperCase();
-    doc.text(firstName, MARGIN + 2, y + 7);
-    if (user.last_name) {
-      doc.setFontSize(11);
+      // Name
+      doc.setTextColor(...BLACK);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...GRAY_TEXT);
-      doc.text(user.last_name.toUpperCase(), MARGIN + 2, y + 12);
-    }
+      const firstName = user.first_name.toUpperCase();
+      doc.text(firstName, MARGIN + 2, y + 7);
+      if (user.last_name) {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...GRAY_TEXT);
+        doc.text(user.last_name.toUpperCase(), MARGIN + 2, y + 12);
+      }
 
-    // Day cells
-    const userShifts: Shift[] = [];
+      // Day cells
+      const userShifts: Shift[] = [];
 
-    weekDays.forEach((day, i) => {
-      const dateStr = format(day, 'yyyy-MM-dd');
-      const dayShifts = weekShifts.filter(
-        (s) => s.user_id === user.id && s.date === dateStr
-      );
-      userShifts.push(...dayShifts);
+      weekDaysChunk.forEach((day, i) => {
+        const dateStr = format(day, 'yyyy-MM-dd');
+        const dayShifts = weekShifts.filter(
+          (s) => s.user_id === user.id && s.date === dateStr
+        );
+        userShifts.push(...dayShifts);
 
-      const x = MARGIN + NAME_W + i * DAY_W;
+        const x = MARGIN + NAME_W + i * DAY_W;
 
-      // NO vertical separators, solo whitespace
-
-      if (dayShifts.length > 0) {
-        // NO cell fill, NO bordi, solo testo pulito
-
-        // Shift times (ULTRA-CLEAN: 10pt Helvetica medio)
-        dayShifts.slice(0, 2).forEach((s, si) => {
-          const isAbsent = String(s.approval_status).toLowerCase() === 'absent';
-          const { start, end } = getResolvedStartEndForHours(s, punchRecords);
-          const cleanStart = cleanTimeFormat(start);
-          const cleanEnd = cleanTimeFormat(end);
-          const timeStr = isAbsent ? 'OFF' : `${cleanStart}–${cleanEnd}`;
-          
-          // Status: grassetto per confirmed/approved, normale per draft
-          const statusColor = STATUS_COLOR_MINIMAL[s.approval_status] ?? BLACK;
-          const statusWeight = STATUS_WEIGHT[s.approval_status] ?? 'normal';
-          
-          doc.setTextColor(...statusColor);
-          doc.setFontSize(10);
-          doc.setFont('helvetica', statusWeight);
-          doc.text(timeStr, x + 3, y + 6 + si * 6);
-        });
-        if (dayShifts.length > 2) {
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(...GRAY_TEXT);
-          doc.text(`+${dayShifts.length - 2}`, x + DAY_W - 8, y + DATA_ROW - 3);
+        if (dayShifts.length > 0) {
+          dayShifts.slice(0, 2).forEach((s, si) => {
+            const isAbsent = String(s.approval_status).toLowerCase() === 'absent';
+            const { start, end } = getResolvedStartEndForHours(s, punchRecords);
+            const cleanStart = cleanTimeFormat(start);
+            const cleanEnd = cleanTimeFormat(end);
+            const timeStr = isAbsent ? 'OFF' : `${cleanStart}–${cleanEnd}`;
+            
+            const statusColor = STATUS_COLOR_MINIMAL[s.approval_status] ?? BLACK;
+            const statusWeight = STATUS_WEIGHT[s.approval_status] ?? 'normal';
+            
+            doc.setTextColor(...statusColor);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', statusWeight);
+            doc.text(timeStr, x + 3, y + 6 + si * 6);
+          });
+          if (dayShifts.length > 2) {
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(...GRAY_TEXT);
+            doc.text(`+${dayShifts.length - 2}`, x + DAY_W - 8, y + DATA_ROW - 3);
+          }
         }
+      });
+
+      // Total cell
+      const totX2 = MARGIN + NAME_W + numDays * DAY_W;
+      const weekTotal = totalHours(userShifts, user, breakRules, breakComputeOpts, punchRecords);
+      if (weekTotal) {
+        doc.setTextColor(...BLACK);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        const tw = doc.getTextWidth(weekTotal);
+        doc.text(weekTotal, totX2 + TOT_W / 2 - tw / 2, y + 10);
+      }
+
+      // Separator orizzontale
+      doc.setDrawColor(...GRAY_ULTRA_LIGHT);
+      doc.setLineWidth(0.2);
+      doc.line(MARGIN, y + DATA_ROW, MARGIN + CONTENT_W, y + DATA_ROW);
+
+      y += DATA_ROW;
+
+      // Page break interno (troppi dipendenti per 1 pagina)
+      if (y > PAGE_H - 30 && rowIdx < scheduleUsers.length - 1) {
+        doc.addPage();
+        y = 24;
+        prevDept = '';
       }
     });
 
-    // Total cell (ULTRA-CLEAN: solo testo nero medio, no box)
-    const totX2 = MARGIN + NAME_W + numDays * DAY_W;
-    const weekTotal = totalHours(userShifts, user, breakRules, breakComputeOpts, punchRecords);
-    if (weekTotal) {
-      doc.setTextColor(...BLACK);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      const tw = doc.getTextWidth(weekTotal);
-      doc.text(weekTotal, totX2 + TOT_W / 2 - tw / 2, y + 10);
-    }
-
-    // Horizontal separator sottilissimo dopo ogni riga
-    doc.setDrawColor(...GRAY_ULTRA_LIGHT);
-    doc.setLineWidth(0.2);
-    doc.line(MARGIN, y + DATA_ROW, MARGIN + CONTENT_W, y + DATA_ROW);
-
-    y += DATA_ROW;
-
-    // Page break
-    if (y > PAGE_H - 25 && rowIdx < scheduleUsers.length - 1) {
-      doc.addPage();
-      y = 24;
+    // ── Legend (solo prima pagina/settimana) ───────────────────────────────────
+    if (chunkIdx === 0) {
+      const legendY = Math.min(y + 8, PAGE_H - 14);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      
+      const legend = [
+        { label: `${t.status_approved}: ${t.status_confirmed} (grassetto)` },
+        { label: `${t.status_draft} (grigio)` },
+      ];
+      
+      let lx = MARGIN;
+      legend.forEach(({ label }) => {
+        doc.setTextColor(...GRAY_TEXT);
+        doc.setFont('helvetica', 'normal');
+        doc.text(label, lx, legendY + 2.5);
+        lx += doc.getTextWidth(label) + 8;
+      });
     }
   });
 
-  // ── Legend (ULTRA-CLEAN MINIMALISTA) ──────────────────────────────────────
-  const legendY = Math.min(y + 8, PAGE_H - 14);
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  
-  // ULTRA-CLEAN: solo spiegazione grassetto/grigio (no badge colorati)
-  const legend = [
-    { label: `${t.status_approved}: ${t.status_confirmed}` },
-    { label: `${t.status_draft} (grigio)` },
-  ];
-  
-  let lx = MARGIN;
-  legend.forEach(({ label }) => {
-    doc.setTextColor(...GRAY_TEXT);
-    doc.setFont('helvetica', 'normal');
-    doc.text(label, lx, legendY + 2.5);
-    lx += doc.getTextWidth(label) + 8;
-  });
-
-  // ── Footer ────────────────────────────────────────────────────────────────
-  doc.setFontSize(7);
-  doc.setTextColor(...GRAY_ULTRA_LIGHT);
-  const pageStr = formatTrans(t.schedule_pdf_page_x_of_y, {
-    page: 1,
-    total: doc.getNumberOfPages(),
-  });
-  doc.text(pageStr, PAGE_W - MARGIN - doc.getTextWidth(pageStr), PAGE_H - 5);
+  // ── Footer (tutte le pagine) ──────────────────────────────────────────────
+  const totalPages = doc.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFontSize(7);
+    doc.setTextColor(...GRAY_ULTRA_LIGHT);
+    const pageStr = formatTrans(t.schedule_pdf_page_x_of_y, {
+      page: p,
+      total: totalPages,
+    });
+    doc.text(pageStr, PAGE_W - MARGIN - doc.getTextWidth(pageStr), PAGE_H - 5);
+  }
 
   // ── Save ──────────────────────────────────────────────────────────────────
-  const fileName = `schedule_${format(weekStart, 'yyyy-MM-dd')}.pdf`;
+  const fileName = weekChunks.length > 1
+    ? `schedule_${format(weekDays[0], 'yyyy-MM-dd')}_to_${format(weekDays[weekDays.length - 1], 'yyyy-MM-dd')}.pdf`
+    : `schedule_${format(weekStart, 'yyyy-MM-dd')}.pdf`;
   doc.save(fileName);
 }
