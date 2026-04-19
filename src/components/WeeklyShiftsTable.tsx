@@ -1955,8 +1955,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         ? (viewMode === 'day' ? [weekStart] : eachDayOfInterval({ start: weekStart, end: addDays(weekStart, viewMode === '2weeks' ? 13 : 6) }))
         : allWeekDays;
 
-      await exportSchedulePDF(weekStart, daysToExport, activeUsers, shifts, {
-        filterLabel: localFilterDepartment || undefined,
+      // PERIOD: esporta TUTTI i reparti, ignora filtro locale
+      // WEEK: applica filtro reparto corrente
+      const usersToExport = mode === 'PERIOD'
+        ? users.filter((u) => isUserVisibleOnTeamSchedule(u, shifts))
+        : activeUsers;
+      
+      const filterLabelToUse = mode === 'PERIOD' ? undefined : (localFilterDepartment || undefined);
+
+      await exportSchedulePDF(weekStart, daysToExport, usersToExport, shifts, {
+        filterLabel: filterLabelToUse,
         breakRules,
         breakComputeOpts,
         punchRecords,
@@ -1971,6 +1979,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     viewMode,
     weekStart,
     allWeekDays,
+    users,
     activeUsers,
     shifts,
     localFilterDepartment,
