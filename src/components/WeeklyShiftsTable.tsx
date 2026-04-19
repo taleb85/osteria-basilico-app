@@ -1480,34 +1480,34 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   const VARIANT_CLASSES: Record<ShiftColorVariant, { bg: string; text: string; selRing: string; border?: string; borderBottom?: string }> = {
     planned: {
-      bg: 'bg-transparent hover:bg-slate-100/70',
-      text: 'text-slate-700',
+      bg: 'bg-white/80 hover:bg-white/95',
+      text: 'text-black',
       selRing: 'ring-slate-500/50',
-      border: 'border-2 border-dashed border-slate-500 rounded-xl shadow-sm',
+      border: 'border-l-[3px] border-l-slate-400 rounded-xl shadow-sm backdrop-blur-sm',
     },
     inprogress: {
-      bg: 'bg-blue-300 hover:bg-blue-400',
-      text: 'text-blue-900',
-      selRing: 'ring-blue-500/55',
-      border: 'border-2 border-blue-500 rounded-xl shadow-sm',
+      bg: 'bg-white/85 hover:bg-white/95',
+      text: 'text-black',
+      selRing: 'ring-cyan-500/55',
+      border: 'border-l-[3px] border-l-cyan-500 rounded-xl shadow-sm backdrop-blur-sm',
     },
     approved: {
-      bg: 'bg-emerald-300 hover:bg-emerald-400',
-      text: 'text-emerald-900',
-      selRing: 'ring-emerald-500/60',
-      border: 'border-2 border-emerald-500 rounded-xl shadow-sm',
+      bg: 'bg-white/90 hover:bg-white/95',
+      text: 'text-black',
+      selRing: 'ring-cyan-600/60',
+      border: 'border-l-[3px] border-l-cyan-600 rounded-xl shadow-sm backdrop-blur-sm',
     },
     punchMissing: {
-      bg: 'bg-amber-300 hover:bg-amber-400',
-      text: 'text-amber-900',
+      bg: 'bg-white/85 hover:bg-white/95',
+      text: 'text-black',
       selRing: 'ring-amber-500/60',
-      border: 'border-2 border-amber-500 rounded-xl shadow-sm',
+      border: 'border-l-[3px] border-l-amber-500 rounded-xl shadow-sm backdrop-blur-sm',
     },
     absent: {
-      bg: 'bg-rose-300 hover:bg-rose-400',
-      text: 'text-rose-900',
-      selRing: 'ring-rose-500/50',
-      border: 'border-2 border-dashed border-rose-500 rounded-xl shadow-sm',
+      bg: 'bg-white/80 hover:bg-white/90',
+      text: 'text-slate-500',
+      selRing: 'ring-slate-400/50',
+      border: 'border-l-[3px] border-l-slate-400 border-dashed rounded-xl shadow-sm backdrop-blur-sm',
     },
   };
 
@@ -2119,7 +2119,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               </span>
               {periodPayrollChipDatesWst && (
                 <span
-                  className="hidden min-[480px]:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,20rem)] shrink-0 items-center truncate rounded-lg border border-[#0052FF]/40 bg-[#0052FF]/10 px-2 lg:px-2.5 text-[10px] lg:text-xs font-bold text-[#0052FF]"
+                  className="hidden min-[480px]:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,20rem)] shrink-0 items-center truncate rounded-lg border border-cyan-600/40 bg-cyan-600/10 px-2 lg:px-2.5 text-[10px] lg:text-xs font-bold text-cyan-700"
                   title={periodPayrollChipDatesWst}
                 >
                   {formatTrans((t as Record<string, string>).wst_month_payroll_chip ?? 'Pagamento: {date}', {
@@ -2137,7 +2137,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             >
               <Calendar className="hidden sm:block h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-slate-500" aria-hidden />
               <span className="min-w-0 truncate tabular-nums">
-                <span className="text-[#0052FF] font-extrabold">S.{weekIndex + 1}&nbsp;</span>
+                <span className="text-cyan-700 font-extrabold">S.{weekIndex + 1}&nbsp;</span>
                 {format(weekStart, 'dd/MM', { locale: getDateLocale(effectiveLanguage) ?? it })}
                 <span className="text-slate-400 hidden sm:inline">
                   {' → '}{format(addDays(weekStart, (viewMode === '2weeks' ? 13 : viewMode === 'day' ? 0 : 6)), 'dd/MM/yy', { locale: getDateLocale(effectiveLanguage) ?? it })}
@@ -2177,7 +2177,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     const rule = (() => { try { return localStorage.getItem('osteria_period_rule') ?? 'last_sunday'; } catch { return 'last_sunday'; } })();
                     const isFixedStart = rule === 'fixed_start';
                     return (
-                      <span className={`text-[12px] lg:text-sm font-extrabold ${isFixedStart ? 'text-[#0052FF]' : (periodConfig.numWeeks === 4 ? 'text-accent' : 'text-[#0052FF]')}`}>
+                      <span className={`text-[12px] lg:text-sm font-extrabold ${isFixedStart ? 'text-cyan-700' : (periodConfig.numWeeks === 4 ? 'text-accent' : 'text-cyan-700')}`}>
                         {periodConfig.numWeeks} sett.
                       </span>
                     );
@@ -2203,23 +2203,23 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     <div
                       ref={wstPeriodPopoverRef}
                       style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999 }}
-                      className="w-64 rounded-xl border border-[#0052FF]/25 bg-white shadow-2xl overflow-hidden"
+                      className="w-64 rounded-xl border border-cyan-600/25 bg-white shadow-2xl overflow-hidden"
                     >
-                      <div className="flex items-center justify-between border-b border-[#0052FF]/15 px-3 py-2 bg-[#0052FF]/5">
+                      <div className="flex items-center justify-between border-b border-cyan-600/15 px-3 py-2 bg-cyan-600/5">
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y - 1); }}
-                          className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#0052FF]/12"
+                          className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-cyan-600/12"
                         >
                           <ChevronLeft className="h-3.5 w-3.5" />
                         </button>
-                        <span className="text-[11px] font-extrabold text-[#0052FF] tabular-nums">
+                        <span className="text-[11px] font-extrabold text-cyan-700 tabular-nums">
                           {listYear}
                         </span>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y + 1); }}
-                          className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#0052FF]/12"
+                          className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-cyan-600/12"
                         >
                           <ChevronRight className="h-3.5 w-3.5" />
                         </button>
@@ -2232,13 +2232,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             onClick={() => { applyAndSavePeriodWst(cfg); setShowPeriodPopover(false); }}
                             className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors ${
                               isActive
-                                ? 'bg-[#0052FF]/10'
-                                : 'hover:bg-[#0052FF]/5'
+                                ? 'bg-cyan-600/10'
+                                : 'hover:bg-cyan-600/5'
                             }`}
                           >
                             <span className={`text-[12px] font-bold capitalize ${
                               isActive
-                                ? 'text-[#0052FF]'
+                                ? 'text-cyan-700'
                                 : isCurrentMonth
                                   ? 'text-slate-800'
                                   : 'text-slate-600'
@@ -2248,16 +2248,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 <span className="ml-1 text-[10px] font-normal text-slate-400">{listYear}</span>
                               )}
                               {isCurrentMonth && !isActive && (
-                                <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#0052FF] align-middle" />
+                                <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-cyan-600 align-middle" />
                               )}
                             </span>
                             <span className={`shrink-0 text-[10px] tabular-nums ${
                               isActive
-                                ? 'text-[#0052FF] font-bold'
+                                ? 'text-cyan-700 font-bold'
                                 : 'text-slate-400'
                             }`}>
                               {format(s, 'dd/MM', { locale: getDateLocale(effectiveLanguage) ?? it })}–{format(e, 'dd/MM', { locale: getDateLocale(effectiveLanguage) ?? it })}
-                              <span className={`ml-1 font-extrabold ${cfg.numWeeks === 5 ? 'text-[#0052FF]' : ''}`}>
+                              <span className={`ml-1 font-extrabold ${cfg.numWeeks === 5 ? 'text-cyan-700' : ''}`}>
                                 {cfg.numWeeks}s
                               </span>
                             </span>
@@ -2631,9 +2631,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         check: true,
                       },
                       {
-                        bg: 'bg-[#0052FF]/8',
+                        bg: 'bg-cyan-600/8',
                         border: 'border-2 border-[#0052FF]/70',
-                        textCls: 'text-[#0052FF]',
+                        textCls: 'text-cyan-700',
                         label: t.wst_filter_published,
                         sub: t.wst_status_sub_published,
                         check: false,
@@ -3428,7 +3428,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         hiddenDates.has(dayStr)
                           ? 'bg-slate-200/60'
                           : isPayrollDayBar
-                            ? 'bg-[#0052FF]/8 ring-1 ring-inset ring-[#0052FF]/25'
+                            ? 'bg-cyan-600/8 ring-1 ring-inset ring-cyan-600/25'
                             : isTodayDate
                               ? 'bg-accent/10 ring-1 ring-inset ring-accent/45'
                               : ''
@@ -3600,7 +3600,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       !inPlanning
                         ? 'bg-slate-50/80 hover:bg-slate-100/90'
                         : isPayrollDay
-                          ? 'bg-[#0052FF]/10 ring-1 ring-inset ring-[#0052FF]/40 hover:bg-[#0052FF]/15'
+                          ? 'bg-cyan-600/10 ring-1 ring-inset ring-cyan-600/40 hover:bg-cyan-600/15'
                           : isTodayDate
                             ? 'bg-accent/5 hover:bg-accent/10'
                             : 'bg-white hover:bg-slate-50'
@@ -3613,17 +3613,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           ? 'bg-accent text-white'
                           : !inPlanning
                             ? isPayrollDay
-                              ? 'bg-[#0052FF]/20 text-slate-700 ring-1 ring-[#0052FF]/40'
+                              ? 'bg-cyan-600/20 text-slate-700 ring-1 ring-cyan-600/40'
                               : 'text-slate-300'
                             : isPayrollDay
-                              ? 'bg-[#0052FF] text-white'
+                              ? 'bg-cyan-600 text-white'
                               : 'text-slate-700'
                       }`}
                     >
                       {format(day, 'd')}
                     </span>
                     {isPayrollDay && (
-                      <span className="mt-1 block text-[8px] font-bold uppercase tracking-wide text-[#0052FF]">
+                      <span className="mt-1 block text-[8px] font-bold uppercase tracking-wide text-cyan-700">
                         {tr.ts_payroll_day_abbr ?? 'Paga'}
                       </span>
                     )}
@@ -3688,10 +3688,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             : undefined,
                         }}
                       >
-                        <div className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-[#0052FF]/60' : 'text-slate-400'}`}>
+                        <div className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-cyan-700/60' : 'text-slate-400'}`}>
                           {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it })}
                         </div>
-                        <div className={`text-[13px] font-black tabular-nums ${isTodayDH ? 'text-[#0052FF]' : 'text-slate-700'}`}>
+                        <div className={`text-[13px] font-black tabular-nums ${isTodayDH ? 'text-cyan-700' : 'text-slate-700'}`}>
                           {format(day, 'd/MM')}
                         </div>
                       </th>
@@ -3862,7 +3862,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       e.stopPropagation();
                                       setCreatingShift({ userId: user.id, date: dayStr, defaultTime });
                                     }}
-                                    className="w-full rounded-md flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity border border-dashed border-slate-300 text-slate-400 hover:border-[#0052FF]/40 hover:text-[#0052FF] text-[16px] font-light"
+                                    className="w-full rounded-md flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity border border-dashed border-slate-300 text-slate-400 hover:border-cyan-600/40 hover:text-cyan-700 text-[16px] font-light"
                                     style={{ height: '28px' }}
                                   >
                                     +
@@ -4062,7 +4062,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               pasteMode
                                 ? 'ring-2 ring-inset ring-accent/20 hover:ring-accent/60 hover:bg-accent/5 transition-colors'
                                 : isPayrollCol
-                                  ? 'bg-[#0052FF]/6 ring-1 ring-inset ring-[#0052FF]/18'
+                                  ? 'bg-cyan-600/6 ring-1 ring-inset ring-[#0052FF]/18'
                                   : isToday(day)
                                     ? 'bg-accent/5'
                                     : isUnavailDay
@@ -4196,7 +4196,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       {/* Barra sinistra: turno pubblicato (tabellone) */}
                                       {showPublishedBarDay && (
                                         <span
-                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-[#0052FF]`}
+                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-cyan-600`}
                                           title={t.wst_filter_published}
                                           aria-hidden
                                         />
@@ -4300,7 +4300,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                                         : dayVariant === 'punchMissing'
                                                           ? 'bg-amber-200/90 text-amber-950'
                                                           : dayVariant === 'inprogress'
-                                                            ? 'bg-[#0052FF]/20 text-slate-900'
+                                                            ? 'bg-cyan-600/20 text-slate-900'
                                                             : 'bg-slate-200 text-slate-600'
                                                   }`}
                                                 >
@@ -4417,7 +4417,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       {/* Barra sinistra: turno pubblicato (tabellone) */}
                                       {showPublishedBarEv && (
                                         <span
-                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-[#0052FF]`}
+                                          className={`absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 ${shiftCardStatusPillClass} bg-cyan-600`}
                                           title={t.wst_filter_published}
                                           aria-hidden
                                         />
@@ -5032,7 +5032,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             </div>
                           </div>
                           {isFrozen && shift.approved_start_time && shift.approved_end_time && (
-                            <p className="text-[11px] text-[#0052FF] font-semibold mt-2">
+                            <p className="text-[11px] text-cyan-700 font-semibold mt-2">
                               Ore congelate: {(shift.approved_start_time || '').slice(0, 5)} –{' '}
                               {(shift.approved_end_time || '').slice(0, 5)}
                             </p>
@@ -5065,12 +5065,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const hasIn = drawerTimbrature.inTime !== '—';
                           const hasOut = drawerTimbrature.outTime !== '—';
                           const timbCard = hasIn && hasOut
-                            ? 'border-2 border-l-4 border-[#0052FF]/25 border-l-[#0052FF] bg-[#0052FF]/8'
+                            ? 'border-2 border-l-4 border-cyan-600/25 border-l-[#0052FF] bg-cyan-600/8'
                             : hasIn
                             ? 'border-2 border-l-4 border-amber-300/80 border-l-review bg-amber-50'
                             : 'border-2 border-l-4 border-slate-200 border-l-slate-300 bg-slate-50/90';
                           const labelCls = hasIn && hasOut
-                            ? 'text-[#0052FF]'
+                            ? 'text-cyan-700'
                             : hasIn
                             ? 'text-amber-700'
                             : 'text-slate-400';
@@ -5080,7 +5080,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
-                                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasIn ? 'bg-[#0052FF]' : 'bg-slate-300'}`} aria-hidden />
+                                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasIn ? 'bg-cyan-600' : 'bg-slate-300'}`} aria-hidden />
                                     {t.wst_punch_in_label}
                                   </p>
                                   <p className={`text-sm font-bold tabular-nums ${hasIn ? 'text-slate-800' : 'text-slate-400'}`}>{drawerTimbrature.inTime}</p>
@@ -5089,7 +5089,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   ) : drawerTimbrature.inMode === 'manual' ? (
                                     <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500">{t.wst_punch_mode_manual}</p>
                                   ) : drawerTimbrature.inMode === 'frozen' ? (
-                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-[#0052FF]">{t.wst_punch_mode_frozen}</p>
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-cyan-700">{t.wst_punch_mode_frozen}</p>
                                   ) : null}
                                 </div>
                                 <div>
@@ -5103,7 +5103,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   ) : drawerTimbrature.outMode === 'manual' ? (
                                     <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500">{t.wst_punch_mode_manual}</p>
                                   ) : drawerTimbrature.outMode === 'frozen' ? (
-                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-[#0052FF]">{t.wst_punch_mode_frozen}</p>
+                                    <p className="mt-0.5 text-[10px] font-medium leading-snug text-cyan-700">{t.wst_punch_mode_frozen}</p>
                                   ) : null}
                                 </div>
                               </div>
@@ -5116,14 +5116,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const delta = actualNetMins != null && plannedNetMins != null ? actualNetMins - plannedNetMins : null;
                           const hoursCard = actualNetMins != null && plannedNetMins != null
                             ? delta! >= 0
-                              ? 'border-2 border-l-4 border-[#0052FF]/25 border-l-[#0052FF] bg-[#0052FF]/8'
+                              ? 'border-2 border-l-4 border-cyan-600/25 border-l-[#0052FF] bg-cyan-600/8'
                               : 'border-2 border-l-4 border-amber-300/80 border-l-review bg-amber-50'
                             : 'border-2 border-l-4 border-slate-200 border-l-slate-300 bg-slate-50/90';
                           const hoursLabelCls = actualNetMins != null && plannedNetMins != null
-                            ? delta! >= 0 ? 'text-[#0052FF]' : 'text-amber-700'
+                            ? delta! >= 0 ? 'text-cyan-700' : 'text-amber-700'
                             : 'text-slate-400';
                           const actualCls = actualNetMins != null && plannedNetMins != null
-                            ? delta! > 0 ? 'text-[#0052FF]' : delta! < 0 ? 'text-amber-700' : 'text-slate-800'
+                            ? delta! > 0 ? 'text-cyan-700' : delta! < 0 ? 'text-amber-700' : 'text-slate-800'
                             : 'text-accent';
                           return (
                             <div className={`space-y-2 rounded-xl p-3.5 ${hoursCard}`}>
@@ -5881,7 +5881,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           className="pointer-events-auto fixed left-1/2 z-[9000] -translate-x-1/2"
           style={{ bottom: 'calc(var(--app-bottom-nav-offset, 72px) + 8px)' }}
         >
-          <div className="flex items-center gap-1 rounded-2xl bg-[#0052FF] px-3 py-2 shadow-[0_4px_24px_-4px_rgba(0,26,128,0.55)] ring-1 ring-white/10">
+          <div className="flex items-center gap-1 rounded-2xl bg-cyan-600 px-3 py-2 shadow-[0_4px_24px_-4px_rgba(0,26,128,0.55)] ring-1 ring-white/10">
             {/* Contatore */}
             <span className="mr-1 text-[11px] font-extrabold text-white/90 tabular-nums whitespace-nowrap">
               {formatTrans(tv.selection_bar_label ?? t.selection_bar_label, { n: selectedShiftIds.length })}
