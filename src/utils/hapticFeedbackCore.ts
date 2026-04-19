@@ -135,3 +135,25 @@ export const lightHaptic = () => {
     audioClick(440, 220, 20, 0.15);
   } catch { /* not supported */ }
 };
+
+/** Vibrate + ascending double-beep: usato per clock-in riuscito. */
+export function punchInSound(): void {
+  try {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate([8, 40, 12]); } catch { /* ignore */ }
+    }
+    audioClick(440, 660, 90, 0.16);
+    setTimeout(() => audioClick(550, 880, 80, 0.13), 110);
+  } catch { /* not supported */ }
+}
+
+/** Vibrate + descending double-beep: usato per clock-out riuscito. */
+export function punchOutSound(): void {
+  try {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate([12, 40, 8]); } catch { /* ignore */ }
+    }
+    audioClick(660, 330, 90, 0.16);
+    setTimeout(() => audioClick(440, 220, 80, 0.13), 110);
+  } catch { /* not supported */ }
+}

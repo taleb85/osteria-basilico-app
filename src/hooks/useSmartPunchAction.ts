@@ -4,7 +4,7 @@ import type { User, Shift, PunchRecord } from '../types';
 import { useApp } from '../context/AppContext';
 import { isUserInRestaurantRange, getCurrentPositionCoords } from '../utils/geo';
 import { readGeofenceEnvConfig } from '../utils/geofencePunch';
-import { lightHaptic } from '../utils/hapticFeedbackCore';
+import { lightHaptic, punchInSound, punchOutSound } from '../utils/hapticFeedbackCore';
 import { getTranslations } from '../utils/translations';
 import type { Language } from '../types';
 
@@ -194,6 +194,7 @@ export function useSmartPunchAction({
     if (!(await checkGeofence())) return;
     lightHaptic();
     setIsLoading(true);
+    const punchType = mode;
     try {
       let presenceProof: string | undefined;
       try {
@@ -216,7 +217,8 @@ export function useSmartPunchAction({
         return;
       }
       if (!mountedRef.current) return;
-      showSuccess?.(mode === 'start' ? t.home_punched : t.home_toast_exit_registered);
+      if (punchType === 'start') punchInSound(); else punchOutSound();
+      showSuccess?.(punchType === 'start' ? t.home_punched : t.home_toast_exit_registered);
       setGeoState('idle');
     } catch {
       if (mountedRef.current) showError?.(t.punch_save_error);

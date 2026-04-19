@@ -443,6 +443,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   dragSelectRef.current = dragSelect;
   const [creatingShift, setCreatingShift] = useState<{ userId: string; date: string; defaultTime: string } | null>(null);
   const [creatingOpenShift, setCreatingOpenShift] = useState<{ date: string } | null>(null);
+  const [bulkCopied, setBulkCopied] = useState(false);
   const [openShiftsBarCollapsed, setOpenShiftsBarCollapsed] = useState(false);
   const [assigningOpenShiftId, setAssigningOpenShiftId] = useState<string | null>(null);
   const [assignExternalName, setAssignExternalName] = useState('');
@@ -2890,11 +2891,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     {isAdminWst && (
                       <button
                         type="button"
+                        disabled={bulkCopied}
                         onClick={async () => {
                           closeWstToolbarDrawer();
                           try {
                             const n = await bulkCopyPreviousWeek(weekStart);
                             if (n > 0) {
+                              setBulkCopied(true);
+                              setTimeout(() => setBulkCopied(false), 2000);
                               showSuccess?.(
                                 (t as Record<string, string>)['bulk_copy_success']
                                   ? (t as Record<string, string>)['bulk_copy_success'].replace('{n}', String(n))
@@ -2909,10 +2913,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             showError?.('Errore durante la copia dei turni.');
                           }
                         }}
-                        className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm text-slate-800 hover:bg-slate-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                        className={`flex w-full items-center gap-2 border-b border-slate-100 px-4 py-2 text-left text-sm transition-colors dark:border-white/10 ${bulkCopied ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 hover:bg-slate-100 dark:text-neutral-100 dark:hover:bg-neutral-800'}`}
                       >
-                        <Copy className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
-                        Copia settimana precedente
+                        {bulkCopied
+                          ? <Check className="h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2.5} />
+                          : <Copy className="h-4 w-4 shrink-0 text-slate-500 dark:text-neutral-300" strokeWidth={2.25} />
+                        }
+                        {bulkCopied ? 'Copiato! ✅' : 'Copia settimana precedente'}
                       </button>
                     )}
                     <button
@@ -5909,8 +5916,14 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
   const [publicNote, setPublicNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const startHourRef = useRef<HTMLInputElement | null>(null);
   const endTimeHourRef = useRef<HTMLInputElement | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => startHourRef.current?.focus(), 80);
+    return () => clearTimeout(t);
+  }, []);
 
   const user = users.find((u) => u.id === userId);
   const startNormForType = toHHmm(tempShifts.start_time);
@@ -6113,6 +6126,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                   onChange={(next) => setTempShifts((s) => ({ ...s, start_time: next }))}
                   aria-label={t.start_time}
                   className="w-full font-sans shadow-sm"
+                  hourInputRef={startHourRef}
                   onMinutesEnter={() => {
                     endTimeHourRef.current?.focus();
                     endTimeHourRef.current?.select();
@@ -6150,18 +6164,21 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                     {presets.map(({ start, end }) => {
                       const isActive = tempShifts.start_time.slice(0, 5) === start && tempShifts.end_time.slice(0, 5) === end;
                       return (
-                        <button
+                        <motion.button
                           key={`${start}-${end}`}
                           type="button"
                           onClick={() => setTempShifts({ start_time: start, end_time: end })}
-                          className={`rounded-lg px-2.5 py-1 text-[12px] font-bold tabular-nums transition-all ${
+                          whileTap={{ scale: 0.88 }}
+                          animate={isActive ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+                          transition={{ duration: 0.18, ease: 'easeOut' }}
+                          className={`rounded-lg px-2.5 py-1 text-[12px] font-bold tabular-nums transition-colors ${
                             isActive
                               ? 'bg-accent text-white shadow-sm'
                               : 'bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-white/60 hover:bg-slate-200 dark:hover:bg-white/[0.12]'
                           }`}
                         >
                           {start}–{end}
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
