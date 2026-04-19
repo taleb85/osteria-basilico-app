@@ -66,8 +66,6 @@ body,
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  /* Windows: riserva spazio per la barra verticale → evita layout jump al comparire */
-  scrollbar-gutter: stable;
   background-color: var(--app-bg);
   color: var(--text-main);
 }
@@ -165,58 +163,21 @@ body,
     min-height: 100%;
     min-height: -webkit-fill-available;
     transition: background-color 0.3s ease;
-    /* Overflow: auto garantisce scroll su tutti i browser/OS */
     overflow-y: auto;
-    /* Windows: riserva spazio per la scrollbar → nessun layout jump */
-    scrollbar-gutter: stable;
-    /* Blocca solo il bounce laterale; il comportamento verticale è gestito per contenitore */
     overscroll-behavior-x: none;
-    /* zoom già disabilitato da viewport (user-scalable=no); evitare manipulation qui per non rompere pull-to-refresh */
   }
 
-  /* ── Scrollbar: nascosta su touch (mobile), visibile su pointer device (desktop Windows/Mac) ── */
+  /* ── Scrollbar: nascosta su tutti i dispositivi ─────────────────────────── */
 
-  /* Touch / mobile — nessuna scrollbar visibile */
-  @media (pointer: coarse) {
-    * {
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    html::-webkit-scrollbar,
-    body::-webkit-scrollbar,
-    *::-webkit-scrollbar {
-      display: none;
-    }
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-
-  /* Desktop/mouse — scrollbar sottile e non invasiva */
-  @media (hover: hover) and (pointer: fine) {
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
-    }
-    *::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    *::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    *::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.18);
-      border-radius: 3px;
-    }
-    *::-webkit-scrollbar-thumb:hover {
-      background: rgba(0, 0, 0, 0.32);
-    }
-    /* Elementi che non devono mostrare scrollbar neanche su desktop */
-    .no-scrollbar,
-    .no-scrollbar::-webkit-scrollbar {
-      scrollbar-width: none;
-    }
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
+  
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none;
   }
 
   body {
@@ -230,12 +191,9 @@ body,
     min-height: 100vh;
     min-height: -webkit-fill-available;
     overflow-y: auto;
-    /* Windows: riserva spazio per la barra → nessun salto quando compare la scrollbar */
-    scrollbar-gutter: stable;
     padding-left: env(safe-area-inset-left, 0);
     padding-right: env(safe-area-inset-right, 0);
     padding-bottom: env(safe-area-inset-bottom, 0);
-    /* Blocca lo scroll chaining solo in orizzontale; il verticale è gestito per contenitore */
     overscroll-behavior-x: none;
   }
 
