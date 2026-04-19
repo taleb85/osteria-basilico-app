@@ -6,31 +6,46 @@ import { isPurelyManagementRole } from './permissions';
 import { getResolvedStartEndForHours, type PunchRecordLike } from './shiftResolvedClockTimes';
 import { formatTrans, getDateLocale, getTranslations } from './translations';
 
-// ── Colours ───────────────────────────────────────────────────────────────────
+// ── Colours (HIGH-CONTRAST B&W) ──────────────────────────────────────────────
 
-const DEPT_FILL: Record<string, [number, number, number]> = {
-  sala_bar: [220, 230, 218], // light blue tint
-  sala:    [237, 242, 255],  // light blue (allinea a reparto Sala)
-  bar:     [220, 230, 218],  // light blue tint (accent light)
-  kitchen: [255, 237, 213],  // light orange
-};
-const DEPT_BORDER: Record<string, [number, number, number]> = {
-  sala_bar: [45, 90, 39],
-  sala:    [0, 82, 255],   // flow-blue
-  bar:     [45, 90, 39],
-  kitchen: [249, 115, 22],
-};
-/** Brand FLOW var(--brand) = rgb(0, 82, 255) */
-const BASILICO: [number, number, number] = [45, 90, 39];
-const FLOW_BLUE: [number, number, number] = [51, 102, 204]; // #3366CC
+/** HIGH-CONTRAST B&W: solo bianco, nero, grigi */
+const WHITE: [number, number, number] = [255, 255, 255];
+const BLACK: [number, number, number] = [0, 0, 0];
+const GRAY_LIGHT: [number, number, number] = [242, 242, 242];
+const GRAY_MID: [number, number, number] = [224, 224, 224];
+const GRAY_DARK: [number, number, number] = [51, 51, 51];
+const GRAY_BORDER: [number, number, number] = [153, 153, 153];
+
+/** Badge stati turno: B&W uniformi */
 const STATUS_COLOR: Record<string, [number, number, number]> = {
-  approved: BASILICO,
-  confirmed: FLOW_BLUE,
-  draft: [203, 213, 225],
-  absent: [251, 113, 133],
+  approved: BLACK,    // nero pieno
+  confirmed: GRAY_DARK, // grigio scuro
+  draft: GRAY_MID,    // grigio medio
+  absent: GRAY_BORDER, // grigio chiaro
 };
 
 // ── Helper ────────────────────────────────────────────────────────────────────
+
+/**
+ * Valida e formatta orario in formato HH:mm.
+ * Rimuove doppi punti, spazi extra, garantisce sempre 5 caratteri.
+ */
+function cleanTimeFormat(time: string): string {
+  if (!time) return '—';
+  // Rimuovi doppi punti (es. "23::00" → "23:00")
+  let cleaned = time.replace(/:+/g, ':');
+  // Rimuovi spazi
+  cleaned = cleaned.trim();
+  // Se è nel formato "HHmm" (senza ":"), aggiungi ":"
+  if (/^\d{4}$/.test(cleaned)) {
+    cleaned = `${cleaned.slice(0, 2)}:${cleaned.slice(2)}`;
+  }
+  // Verifica formato finale HH:mm
+  if (!/^\d{2}:\d{2}$/.test(cleaned)) {
+    return '—';
+  }
+  return cleaned;
+}
 
 function fmtDay(date: Date, locale: Locale): string {
   return format(date, 'EEE d', { locale }).toUpperCase();
@@ -108,37 +123,38 @@ export async function exportSchedulePDF(
   const CONTENT_W = PAGE_W - MARGIN * 2;
 
   // Column widths
-  const NAME_W = 32;
-  const DAY_W = (CONTENT_W - NAME_W - 20) / numDays; // 20 = total hours col
-  const TOT_W = 20;
+  const NAME_W = 36; // aumentato da 32 per nomi più grandi
+  const DAY_W = (CONTENT_W - NAME_W - 22) / numDays; // 22 = total hours col (aumentata da 20)
+  const TOT_W = 22;
 
-  // Row heights
-  const HEADER_ROW = 10;
-  const DATA_ROW = 12;
+  // Row heights (aumentate per +30% spacing)
+  const HEADER_ROW = 12; // da 10
+  const DATA_ROW = 16;   // da 12 (+33% padding)
 
   // ── Page header ────────────────────────────────────────────────────────────
-  doc.setFillColor(...BASILICO);
+  // HIGH-CONTRAST B&W: header nero con testo bianco
+  doc.setFillColor(...BLACK);
   doc.rect(0, 0, PAGE_W, 18, 'F');
 
-  // Restaurant name
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
+  // Restaurant name (MAXI-SIZE)
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.text(restaurantName, MARGIN, 12);
 
   // Week range
   const rangeLabel = `${format(weekStart, 'd MMMM', { locale })} – ${format(addDays(weekEnd, -1), 'd MMMM yyyy', { locale })}`;
-  doc.setFontSize(9);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text(rangeLabel, MARGIN + 56, 12);
+  doc.text(rangeLabel, MARGIN + 60, 12);
 
   if (filterLabel) {
-    doc.text(`· ${filterLabel}`, MARGIN + 56 + doc.getTextWidth(rangeLabel) + 2, 12);
+    doc.text(`· ${filterLabel}`, MARGIN + 60 + doc.getTextWidth(rangeLabel) + 2, 12);
   }
 
   // Print timestamp (right)
-  doc.setFontSize(7);
-  doc.setTextColor(220, 230, 218);
+  doc.setFontSize(8);
+  doc.setTextColor(...GRAY_MID);
   const printedAt = formatTrans(t.ts_pdf_printed_on, {
     datetime: format(new Date(), 'd MMM yyyy HH:mm', { locale }),
   });
@@ -146,39 +162,41 @@ export async function exportSchedulePDF(
 
   // ── Column headers ─────────────────────────────────────────────────────────
   let y = 22;
-  doc.setFillColor(248, 250, 252);
+  // B&W: sfondo bianco, bordo nero spesso
+  doc.setFillColor(...WHITE);
   doc.rect(MARGIN, y, CONTENT_W, HEADER_ROW, 'F');
-  doc.setDrawColor(226, 232, 240);
+  doc.setDrawColor(...BLACK);
+  doc.setLineWidth(1);
   doc.rect(MARGIN, y, CONTENT_W, HEADER_ROW, 'S');
 
-  // Name column header
-  doc.setTextColor(100, 116, 139);
-  doc.setFontSize(7);
+  // Name column header (MAXI-SIZE)
+  doc.setTextColor(...BLACK);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text(t.ts_pdf_col_employee, MARGIN + 2, y + 6.5);
+  doc.text(t.ts_pdf_col_employee, MARGIN + 2, y + 7);
 
   // Day column headers
   weekDays.forEach((day, i) => {
     const x = MARGIN + NAME_W + i * DAY_W;
     const isWeekend = [0, 6].includes(day.getDay());
     if (isWeekend) {
-      doc.setFillColor(241, 245, 249);
+      doc.setFillColor(...GRAY_LIGHT);
       doc.rect(x, y, DAY_W, HEADER_ROW, 'F');
     }
-    doc.setTextColor(isWeekend ? 148 : 71, isWeekend ? 160 : 85, isWeekend ? 184 : 105);
+    doc.setTextColor(...BLACK);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
+    doc.setFontSize(8);
     const label = fmtDay(day, locale);
-    doc.text(label, x + DAY_W / 2 - doc.getTextWidth(label) / 2, y + 6.5);
+    doc.text(label, x + DAY_W / 2 - doc.getTextWidth(label) / 2, y + 7);
   });
 
-  // Total column header
+  // Total column header (MAXI-SIZE)
   const totX = MARGIN + NAME_W + numDays * DAY_W;
-  doc.setTextColor(100, 116, 139);
+  doc.setTextColor(...BLACK);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
+  doc.setFontSize(9);
   const totLabel = t.schedule_pdf_total_abbr;
-  doc.text(totLabel, totX + TOT_W / 2 - doc.getTextWidth(totLabel) / 2, y + 6.5);
+  doc.text(totLabel, totX + TOT_W / 2 - doc.getTextWidth(totLabel) / 2, y + 7);
 
   y += HEADER_ROW;
 
@@ -186,35 +204,35 @@ export async function exportSchedulePDF(
   let prevDept = '';
 
   scheduleUsers.forEach((user, rowIdx) => {
-    // Department separator
+    // Department separator (linea nera sottile)
     const dept = user.department ?? 'sala_bar';
     if (dept !== prevDept && rowIdx > 0) {
-      doc.setDrawColor(203, 213, 225);
-      doc.setLineWidth(0.5);
+      doc.setDrawColor(...BLACK);
+      doc.setLineWidth(0.8);
       doc.line(MARGIN, y, MARGIN + CONTENT_W, y);
     }
     prevDept = dept;
 
-    const rowBg: [number, number, number] = rowIdx % 2 === 0 ? [255, 255, 255] : [248, 250, 252];
+    // HIGH-CONTRAST B&W: alternare bianco puro e grigio chiarissimo
+    const rowBg: [number, number, number] = rowIdx % 2 === 0 ? WHITE : GRAY_LIGHT;
     doc.setFillColor(...rowBg);
     doc.rect(MARGIN, y, CONTENT_W, DATA_ROW, 'F');
 
-    // Department accent bar (left edge)
-    const [r, g, b] = DEPT_BORDER[dept] ?? [148, 163, 184];
-    doc.setFillColor(r, g, b);
-    doc.rect(MARGIN, y, 1.5, DATA_ROW, 'F');
+    // Accent bar nero a sinistra (invece di colori reparto)
+    doc.setFillColor(...BLACK);
+    doc.rect(MARGIN, y, 2, DATA_ROW, 'F');
 
-    // Name
-    doc.setTextColor(30, 41, 59);
-    doc.setFontSize(7.5);
+    // Name (MAXI-SIZE: 12pt nome, 10pt cognome)
+    doc.setTextColor(...BLACK);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     const firstName = user.first_name.toUpperCase();
-    doc.text(firstName, MARGIN + 3, y + 5.5);
+    doc.text(firstName, MARGIN + 4, y + 6);
     if (user.last_name) {
-      doc.setFontSize(6.5);
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 116, 139);
-      doc.text(user.last_name.toUpperCase(), MARGIN + 3, y + 9.5);
+      doc.setTextColor(...GRAY_DARK);
+      doc.text(user.last_name.toUpperCase(), MARGIN + 4, y + 10);
     }
 
     // Day cells
@@ -231,59 +249,73 @@ export async function exportSchedulePDF(
       const isWeekend = [0, 6].includes(day.getDay());
 
       if (isWeekend) {
-        const [fr, fg, fb] = rowIdx % 2 === 0 ? [248, 250, 252] : [241, 245, 249];
+        const [fr, fg, fb] = rowIdx % 2 === 0 ? GRAY_LIGHT : GRAY_MID;
         doc.setFillColor(fr, fg, fb);
         doc.rect(x, y, DAY_W, DATA_ROW, 'F');
       }
 
-      // Vertical separator
-      doc.setDrawColor(226, 232, 240);
-      doc.setLineWidth(0.2);
+      // Vertical separator (nero)
+      doc.setDrawColor(...BLACK);
+      doc.setLineWidth(0.5);
       doc.line(x, y, x, y + DATA_ROW);
 
       if (dayShifts.length > 0) {
-        // Cell fill based on dept
-        const [df, dg, db] = DEPT_FILL[dept] ?? [220, 252, 231];
-        doc.setFillColor(df, dg, db);
+        // Cell fill: bianco puro per turni confermati
+        doc.setFillColor(...WHITE);
         doc.roundedRect(x + 1, y + 1.5, DAY_W - 2, DATA_ROW - 3, 1, 1, 'F');
+        doc.setDrawColor(...BLACK);
+        doc.setLineWidth(1);
+        doc.roundedRect(x + 1, y + 1.5, DAY_W - 2, DATA_ROW - 3, 1, 1, 'S');
 
-        // Shift times
+        // Shift times (MONOSPACE, MAXI-SIZE)
         dayShifts.slice(0, 2).forEach((s, si) => {
           const isAbsent = String(s.approval_status).toLowerCase() === 'absent';
           const { start, end } = getResolvedStartEndForHours(s, punchRecords);
-          const timeStr = isAbsent ? t.status_absent : `${start}–${end}`;
-          const statusC = STATUS_COLOR[s.approval_status] ?? [148, 163, 184];
+          // Valida formato orari
+          const cleanStart = cleanTimeFormat(start);
+          const cleanEnd = cleanTimeFormat(end);
+          const timeStr = isAbsent ? t.status_absent : `${cleanStart}–${cleanEnd}`;
+          
+          // Status badge: nero per approved, grigio scuro per confirmed, grigio per draft
+          const statusC = STATUS_COLOR[s.approval_status] ?? GRAY_BORDER;
           doc.setFillColor(...statusC);
-          doc.roundedRect(x + 2, y + 2 + si * 4.5, 2, 3, 0.5, 0.5, 'F');
+          doc.roundedRect(x + 2, y + 2 + si * 5, 2.5, 3.5, 0.5, 0.5, 'F');
 
-          doc.setTextColor(30, 41, 59);
-          doc.setFontSize(6.5);
-          doc.setFont('helvetica', 'bold');
-          doc.text(timeStr, x + 5.5, y + 4.5 + si * 4.5);
+          // Orari in Courier (monospace) MAXI-SIZE
+          doc.setTextColor(...BLACK);
+          doc.setFontSize(9);
+          doc.setFont('courier', 'bold');
+          doc.text(timeStr, x + 6, y + 5 + si * 5);
         });
         if (dayShifts.length > 2) {
-          doc.setFontSize(5.5);
-          doc.setTextColor(100, 116, 139);
+          doc.setFontSize(7);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(...GRAY_DARK);
           doc.text(`+${dayShifts.length - 2}`, x + DAY_W - 6, y + DATA_ROW - 2);
         }
       }
     });
 
-    // Total cell
+    // Total cell (BOX NERO SPESSO con testo bianco)
     const totX2 = MARGIN + NAME_W + numDays * DAY_W;
-    doc.setDrawColor(226, 232, 240);
+    doc.setDrawColor(...BLACK);
+    doc.setLineWidth(2);
     doc.line(totX2, y, totX2, y + DATA_ROW);
     const weekTotal = totalHours(userShifts, user, breakRules, breakComputeOpts, punchRecords);
     if (weekTotal) {
-      doc.setTextColor(...BASILICO);
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'bold');
-      doc.text(weekTotal, totX2 + TOT_W / 2 - doc.getTextWidth(weekTotal) / 2, y + 7.5);
+      // Box nero con testo bianco per totale ore
+      doc.setFillColor(...BLACK);
+      doc.roundedRect(totX2 + 2, y + 2.5, TOT_W - 4, DATA_ROW - 5, 1, 1, 'F');
+      doc.setTextColor(...WHITE);
+      doc.setFontSize(10);
+      doc.setFont('courier', 'bold');
+      const tw = doc.getTextWidth(weekTotal);
+      doc.text(weekTotal, totX2 + TOT_W / 2 - tw / 2, y + 8);
     }
 
-    // Horizontal border
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.2);
+    // Horizontal border (nero)
+    doc.setDrawColor(...BLACK);
+    doc.setLineWidth(0.5);
     doc.rect(MARGIN, y, CONTENT_W, DATA_ROW, 'S');
 
     y += DATA_ROW;
@@ -295,39 +327,34 @@ export async function exportSchedulePDF(
     }
   });
 
-  // ── Legend ────────────────────────────────────────────────────────────────
+  // ── Legend (B&W) ──────────────────────────────────────────────────────────
   const legendY = Math.min(y + 6, PAGE_H - 12);
-  doc.setFontSize(6);
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
+  
+  // HIGH-CONTRAST B&W: solo stati turno (nero, grigio scuro, grigio medio)
   const legend = [
     { color: STATUS_COLOR.approved, label: t.status_approved },
     { color: STATUS_COLOR.confirmed, label: t.status_confirmed },
     { color: STATUS_COLOR.draft, label: t.status_draft },
-    { color: DEPT_FILL.sala_bar, label: t.department_sala_bar, border: DEPT_BORDER.sala_bar },
-    { color: DEPT_FILL.sala, label: t.department_sala, border: DEPT_BORDER.sala },
-    { color: DEPT_FILL.bar, label: t.department_bar, border: DEPT_BORDER.bar },
-    { color: DEPT_FILL.kitchen, label: t.department_kitchen, border: DEPT_BORDER.kitchen },
   ];
+  
   let lx = MARGIN;
-  legend.forEach(({ color, label, border }) => {
+  legend.forEach(({ color, label }) => {
     const [r, g, b] = color;
-    if (border) {
-      doc.setFillColor(r, g, b);
-      doc.setDrawColor(...border);
-      doc.setLineWidth(0.4);
-      doc.roundedRect(lx, legendY, 5, 3, 0.5, 0.5, 'FD');
-    } else {
-      doc.setFillColor(r, g, b);
-      doc.roundedRect(lx, legendY, 5, 3, 0.5, 0.5, 'F');
-    }
-    doc.setTextColor(71, 85, 105);
-    doc.text(label, lx + 6.5, legendY + 2.5);
-    lx += 6.5 + doc.getTextWidth(label) + 4;
+    doc.setFillColor(r, g, b);
+    doc.setDrawColor(...BLACK);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(lx, legendY, 6, 3.5, 0.5, 0.5, 'FD');
+    doc.setTextColor(...BLACK);
+    doc.setFont('helvetica', 'bold');
+    doc.text(label, lx + 7.5, legendY + 2.8);
+    lx += 7.5 + doc.getTextWidth(label) + 5;
   });
 
   // ── Footer ────────────────────────────────────────────────────────────────
-  doc.setFontSize(6);
-  doc.setTextColor(148, 163, 184);
+  doc.setFontSize(7);
+  doc.setTextColor(...GRAY_DARK);
   const pageStr = formatTrans(t.schedule_pdf_page_x_of_y, {
     page: 1,
     total: doc.getNumberOfPages(),
