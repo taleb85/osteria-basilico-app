@@ -65,9 +65,16 @@ body,
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  /* Windows: riserva spazio per la barra verticale → evita layout jump al comparire */
+  scrollbar-gutter: stable;
   background-color: var(--app-bg);
   color: var(--text-main);
+}
+/* iOS rubber-band touch scroll */
+@media (pointer: coarse) {
+  html, body, #root {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Container principale — spazio in fondo per non finire sotto la BottomNav */
@@ -163,23 +170,58 @@ body,
     min-height: 100%;
     min-height: -webkit-fill-available;
     transition: background-color 0.3s ease;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
-    overscroll-behavior: none; /* iOS: blocca bounce elastico sulla pagina */
+    /* Overflow: auto garantisce scroll su tutti i browser/OS */
+    overflow-y: auto;
+    /* Windows: riserva spazio per la scrollbar → nessun layout jump */
+    scrollbar-gutter: stable;
+    /* Blocca solo il bounce laterale; il comportamento verticale è gestito per contenitore */
+    overscroll-behavior-x: none;
     /* zoom già disabilitato da viewport (user-scalable=no); evitare manipulation qui per non rompere pull-to-refresh */
   }
 
-  /* Dark mode DOPO light mode per vincere la cascade */
-  /* Forza trasparenza per tutti gli elementi con dark:bg-transparent in dark mode */
-  * {
-    scrollbar-width: none; /* Firefox — nasconde tutte le scrollbar */
-    -ms-overflow-style: none; /* IE/Edge */
+  /* ── Scrollbar: nascosta su touch (mobile), visibile su pointer device (desktop Windows/Mac) ── */
+
+  /* Touch / mobile — nessuna scrollbar visibile */
+  @media (pointer: coarse) {
+    * {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar,
+    *::-webkit-scrollbar {
+      display: none;
+    }
   }
 
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar,
-  *::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera — nasconde tutte le scrollbar */
+  /* Desktop/mouse — scrollbar sottile e non invasiva */
+  @media (hover: hover) and (pointer: fine) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+    }
+    *::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    *::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    *::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.18);
+      border-radius: 3px;
+    }
+    *::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.32);
+    }
+    /* Elementi che non devono mostrare scrollbar neanche su desktop */
+    .no-scrollbar,
+    .no-scrollbar::-webkit-scrollbar {
+      scrollbar-width: none;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   body {
@@ -192,19 +234,20 @@ body,
     transition: background-color 0.3s ease, color 0.3s ease;
     min-height: 100vh;
     min-height: -webkit-fill-available;
+    overflow-y: auto;
+    /* Windows: riserva spazio per la barra → nessun salto quando compare la scrollbar */
+    scrollbar-gutter: stable;
     padding-left: env(safe-area-inset-left, 0);
     padding-right: env(safe-area-inset-right, 0);
     padding-bottom: env(safe-area-inset-bottom, 0);
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
-    -webkit-overflow-scrolling: touch; /* iOS scroll fluido */
-    overscroll-behavior: none;
+    /* Blocca lo scroll chaining solo in orizzontale; il verticale è gestito per contenitore */
+    overscroll-behavior-x: none;
   }
 
   /** Tutta l’app React: stessa stack Inter del tema Tailwind (`font-sans`). */
   #root {
-    @apply min-h-0 font-sans antialiased text-[#1a1a1a] dark:text-neutral-100;
-    overscroll-behavior: none;
+    @apply min-h-0 font-sans antialiased text-[#1a1a1a];
+    overscroll-behavior-x: none;
   }
 }
 
@@ -223,7 +266,7 @@ body,
 @layer components {
   /** Titoli sezione unificati (Admin, permessi, impostazioni) */
   .ui-section-title {
-    @apply text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-neutral-300;
+    @apply text-xs font-bold uppercase tracking-widest text-slate-600;
   }
 
   .panel {
@@ -297,7 +340,7 @@ body,
    * Per contenuto in pagina usare `.surface-ghost` (+ `.surface-ghost-interactive` se cliccabile).
    */
   .card-factorial {
-    @apply bg-white dark:bg-neutral-900 rounded-2xl border border-slate-100 dark:border-white/10 p-5 sm:p-6 transition-all duration-200;
+    @apply bg-white rounded-2xl border border-slate-100 p-5 sm:p-6 transition-all duration-200;
     box-shadow:
       inset 0 1.5px 0 rgba(255,255,255,0.90),
       inset 0 -2px 8px rgba(0,0,0,0.04),
@@ -311,19 +354,19 @@ body,
    * Card contenuti: preferire `.surface-glass` / `.surface-glass-sm` per allineamento al vetro app.
    */
   .surface-ghost {
-    @apply rounded-2xl border border-slate-200/85 bg-transparent transition-colors duration-200 dark:border-white/10 dark:bg-transparent;
+    @apply rounded-2xl border border-slate-200/85 bg-transparent transition-colors duration-200;
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.80),
       inset 0 -1px 4px rgba(0,0,0,0.03),
       0 2px 8px -3px rgba(0,0,0,0.07);
   }
   .surface-ghost-sm {
-    @apply rounded-xl border border-slate-200/85 bg-transparent shadow-none transition-colors duration-200 dark:border-white/10 dark:bg-transparent;
+    @apply rounded-xl border border-slate-200/85 bg-transparent shadow-none transition-colors duration-200;
   }
 
   /** Da affiancare a `.surface-ghost` / `-sm` per card o righe cliccabili */
   .surface-ghost-interactive {
-    @apply cursor-pointer hover:bg-slate-50/85 dark:hover:bg-white/[0.05];
+    @apply cursor-pointer hover:bg-slate-50/85;
   }
 
   /**
@@ -331,12 +374,12 @@ body,
    * Tabelle: tenere `surface-ghost` sul guscio; celle restano con bg propri.
    */
   .surface-glass {
-    @apply rounded-2xl bg-white text-slate-900 transition-colors duration-200 dark:text-neutral-100;
+    @apply rounded-2xl bg-white text-slate-900 transition-colors duration-200;
     border: 1px solid #F1F5F9;
     box-shadow: 0 2px 8px -2px rgba(0,82,255,0.08), 0 1px 3px -1px rgba(0,0,0,0.05);
   }
   .surface-glass-sm {
-    @apply rounded-xl border bg-white/[0.92] text-slate-900 backdrop-blur-lg transition-colors duration-200 dark:text-neutral-100 supports-[backdrop-filter]:backdrop-saturate-150;
+    @apply rounded-xl border bg-white/[0.92] text-slate-900 backdrop-blur-lg transition-colors duration-200 supports-[backdrop-filter]:backdrop-saturate-150;
     border-color: rgba(51, 102, 204, 0.22);
     box-shadow:
       inset 0 1.5px 0 rgba(255,255,255,0.90),
@@ -347,16 +390,21 @@ body,
   /**
    * Modali / dialog centrati su backdrop scuro — vetro (blur + fill semi-opaco).
    * Aggiungere `rounded-2xl` (o altro raggio) sullo stesso elemento.
+   * overscroll-behavior-y: contain → evita scroll chaining verso la pagina sottostante.
    */
   .modal-glass-panel {
-    @apply border border-slate-200 bg-white/[0.95] text-slate-900 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-neutral-900/[0.95] dark:text-neutral-100 supports-[backdrop-filter]:backdrop-saturate-150;
+    @apply border border-slate-200 bg-white/[0.95] text-slate-900 shadow-2xl backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150;
+    /* Impedisce il rimbalzo verso la pagina quando si scorre al limite della modale */
+    overscroll-behavior-y: contain;
   }
 
   /**
    * Drawer laterale fullscreen-height — stesso linguaggio vetro (bordo es. `border-l` dal componente).
+   * overscroll-behavior-y: contain → impedisce scroll chaining verso la pagina.
    */
   .drawer-glass-panel {
-    @apply bg-white/[0.92] text-slate-900 shadow-2xl backdrop-blur-xl dark:bg-neutral-950/[0.96] dark:text-neutral-100 supports-[backdrop-filter]:backdrop-saturate-150;
+    @apply bg-white/[0.92] text-slate-900 shadow-2xl backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150;
+    overscroll-behavior-y: contain;
   }
 
 
@@ -476,15 +524,15 @@ body,
    */
   .ui-toolbar-group {
     @apply flex h-[22px] items-center gap-0 overflow-hidden rounded-lg shadow-sm;
-    @apply divide-x divide-[#F1F5F9] dark:divide-white/10;
+    @apply divide-x divide-[#F1F5F9];
     background: #ffffff;
     border: 1.5px solid #F1F5F9;
     box-shadow: 0 1px 4px -1px rgba(0, 82, 255, 0.08);
   }
   /** Fascia grigia periodo Presenze: stesso schema segmenti; scroll orizzontale se serve */
   .ui-toolbar-group-muted {
-    @apply flex h-[22px] max-h-[22px] w-max max-w-full shrink-0 flex-nowrap items-center gap-0 overflow-x-auto-safe rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-neutral-900/80 shadow-sm;
-    @apply divide-x divide-slate-200 dark:divide-white/10;
+    @apply flex h-[22px] max-h-[22px] w-max max-w-full shrink-0 flex-nowrap items-center gap-0 overflow-x-auto-safe rounded-lg border border-slate-200 bg-slate-50/80 shadow-sm;
+    @apply divide-x divide-slate-200;
   }
 
   /** Tab affiancati: niente arrotondamento proprio (resta il clip del gruppo) */
@@ -499,12 +547,12 @@ body,
 
   /** Testo statico tra icone (es. 1 / 5) nello stesso gruppo segmentato */
   .ui-toolbar-segment-static {
-    @apply flex h-[20px] min-h-[20px] shrink-0 items-center justify-center px-1.5 text-center text-[13px] font-semibold tabular-nums leading-none text-slate-600 dark:text-neutral-300;
+    @apply flex h-[20px] min-h-[20px] shrink-0 items-center justify-center px-1.5 text-center text-[13px] font-semibold tabular-nums leading-none text-slate-600;
   }
 
   /** Sotto-segmento (es. 4 sett. | 5 sett.) dentro fascia muted */
   .ui-toolbar-segment-pair {
-    @apply flex h-[20px] shrink-0 items-stretch divide-x divide-slate-200 dark:divide-white/10;
+    @apply flex h-[20px] shrink-0 items-stretch divide-x divide-slate-200;
   }
 
   /** Pulsante compatto dentro fascia muted (preset settimane, Salva) */
@@ -514,7 +562,7 @@ body,
 
   /** Pill singola (preset periodo Ore) */
   .ui-toolbar-pill {
-    @apply flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 px-2.5 text-center text-[13px] font-medium leading-none shadow-none transition-colors;
+    @apply flex h-[22px] items-center justify-center gap-1 rounded-lg border border-slate-200 px-2.5 text-center text-[13px] font-medium leading-none shadow-none transition-colors;
   }
 
   /** Chip toolbar (filtri turni, ecc.) — glass senza backdrop-filter */
@@ -526,7 +574,7 @@ body,
   }
   /** «Oggi» / outline accent */
   .ui-toolbar-ghost-accent {
-    @apply box-border inline-flex h-[22px] min-h-[22px] max-h-[22px] items-center justify-center rounded-lg border border-accent/30 bg-transparent px-2 py-0 text-center text-[13px] font-semibold leading-none text-accent shadow-none transition-colors hover:bg-accent/10 dark:text-accent-light dark:hover:bg-accent/15;
+    @apply box-border inline-flex h-[22px] min-h-[22px] max-h-[22px] items-center justify-center rounded-lg border border-accent/30 bg-transparent px-2 py-0 text-center text-[13px] font-semibold leading-none text-accent shadow-none transition-colors hover:bg-accent/10;
   }
 
   /** Pulsante primario compatto in toolbar (accent) */
@@ -536,7 +584,7 @@ body,
 
   /** Pulsante secondario bordo (CSV, outline) */
   .ui-toolbar-outline {
-    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-transparent px-2.5 text-center text-[13px] font-semibold leading-none text-slate-600 dark:text-neutral-300 shadow-none transition-colors hover:bg-slate-50/90 dark:hover:bg-white/[0.06];
+    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-transparent px-2.5 text-center text-[13px] font-semibold leading-none text-slate-600 shadow-none transition-colors hover:bg-slate-50/90;
   }
 
   /**
@@ -593,7 +641,7 @@ body,
 
   .ui-toolbar-page-band-presences .ui-toolbar-group {
     @apply flex h-9 lg:h-10 items-stretch gap-0 overflow-hidden rounded-xl shadow-sm;
-    @apply divide-x divide-white/20 dark:divide-white/10;
+    @apply divide-x divide-white/20;
     background: rgba(255, 255, 255, 0.20);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -612,11 +660,11 @@ body,
   }
 
   .ui-toolbar-page-band-presences .ui-toolbar-segment-static {
-    @apply flex h-full min-h-0 shrink-0 items-center justify-center self-stretch px-2 text-center text-sm font-semibold tabular-nums leading-none text-slate-600 dark:text-neutral-300;
+    @apply flex h-full min-h-0 shrink-0 items-center justify-center self-stretch px-2 text-center text-sm font-semibold tabular-nums leading-none text-slate-600;
   }
 
   .ui-toolbar-page-band-presences .ui-toolbar-chip {
-    @apply inline-flex h-9 lg:h-10 items-center justify-center gap-1.5 rounded-xl px-3 lg:px-3.5 text-sm font-medium leading-none text-slate-700 transition-colors dark:text-neutral-200;
+    @apply inline-flex h-9 lg:h-10 items-center justify-center gap-1.5 rounded-xl px-3 lg:px-3.5 text-sm font-medium leading-none text-slate-700 transition-colors;
     background: rgba(255, 255, 255, 0.20);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
