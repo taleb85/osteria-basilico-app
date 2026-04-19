@@ -2651,31 +2651,31 @@ export default function Timesheets() {
       !!boardShift && shiftPastPlannedEndWithoutClockIn(boardShift, punchRecords);
     const publishedOnBoard = s.status === 'confirmed' || s.status === 'approved';
 
-    // sfondo comune bianco — il colore di stato è solo il bordo sinistro
-    const white = 'bg-white';
-    const ring0 = 'ring-1 ring-slate-200/80';
+    // sfondo dark glass — il colore di stato è il bordo sinistro + tinta sottile
+    const white = 'bg-white/8';
+    const ring0 = 'ring-1 ring-white/15';
 
-    // Assenza — bordo rosso, leggera tinta per distinguerla
+    // Assenza — bordo rosso
     if (s.status === 'absent') {
       const frozen = !!s.approved_at;
       return {
         border: 'border-l-rose-500',
-        bg: 'bg-rose-50',
-        ring: 'ring-1 ring-rose-200/80',
+        bg: 'bg-rose-500/15',
+        ring: 'ring-1 ring-rose-500/30',
         dot: 'bg-rose-500',
         label: frozen ? t.wst_grid_shift_frozen_short : t.status_absent,
-        labelCls: 'text-rose-700 bg-rose-100',
+        labelCls: 'text-rose-300 bg-rose-500/20',
       };
     }
     // Approvato / congelato contabilità
     if (s.status === 'approved' && shiftRowPayrollFrozen(s)) {
       return {
         border: 'border-l-emerald-500',
-        bg: 'bg-emerald-50',
-        ring: 'ring-1 ring-emerald-200/80',
+        bg: 'bg-emerald-500/15',
+        ring: 'ring-1 ring-emerald-500/30',
         dot: 'bg-emerald-500',
         label: t.wst_grid_shift_frozen_short,
-        labelCls: 'text-emerald-700 bg-emerald-100',
+        labelCls: 'text-emerald-300 bg-emerald-500/20',
       };
     }
     // Bozza
@@ -2686,43 +2686,43 @@ export default function Timesheets() {
         ring: ring0,
         dot: 'bg-slate-400',
         label: t.ts_status_draft,
-        labelCls: 'text-slate-500 bg-slate-100',
+        labelCls: 'text-white/50 bg-white/8',
       };
     }
-    // Ritardo / OUT mancante — tinta rossa leggera
+    // Ritardo / OUT mancante
     if (s.hasMissingOut || s.isLate) {
       return {
         border: 'border-l-red-500',
-        bg: 'bg-red-50',
-        ring: 'ring-1 ring-red-200/80',
+        bg: 'bg-red-500/15',
+        ring: 'ring-1 ring-red-500/30',
         dot: 'bg-red-500',
         label: s.hasMissingOut ? t.ts_status_missing_out : t.ts_status_late,
-        labelCls: 'text-red-700 bg-red-100',
+        labelCls: 'text-red-300 bg-red-500/20',
       };
     }
     // Modifiche manuali
     if (punchAuditCount > 0) {
       return {
         border: 'border-l-orange-500',
-        bg: white,
+        bg: 'bg-orange-500/12',
         ring: ring0,
         dot: 'bg-orange-500',
         label: t.ts_status_modified,
-        labelCls: 'text-orange-700 bg-orange-100',
+        labelCls: 'text-orange-300 bg-orange-500/20',
       };
     }
-    // Non timbrato dopo fine turno — tinta ambra leggera
+    // Non timbrato dopo fine turno
     if (!s.punched && punchMissingOnBoard) {
       return {
         border: 'border-l-amber-500',
-        bg: 'bg-amber-50',
-        ring: 'ring-1 ring-amber-200/80',
+        bg: 'bg-amber-500/12',
+        ring: 'ring-1 ring-amber-500/30',
         dot: 'bg-amber-500',
         label: t.ts_status_unpunched,
-        labelCls: 'text-amber-700 bg-amber-100',
+        labelCls: 'text-amber-300 bg-amber-500/20',
       };
     }
-    // Pubblicato senza timbratura (confermato/approvato ma non ancora timbrato)
+    // Pubblicato senza timbratura
     if (!s.punched && publishedOnBoard) {
       return {
         border: 'border-l-blue-400',
@@ -2730,28 +2730,28 @@ export default function Timesheets() {
         ring: ring0,
         dot: 'bg-blue-400',
         label: t.ts_status_unpunched,
-        labelCls: 'text-blue-600 bg-blue-100',
+        labelCls: 'text-blue-300 bg-blue-500/20',
       };
     }
     if (!s.punched) {
       return {
         border: 'border-l-amber-400',
-        bg: 'bg-amber-50',
-        ring: 'ring-1 ring-amber-200/80',
+        bg: 'bg-amber-500/10',
+        ring: 'ring-1 ring-amber-500/25',
         dot: 'bg-amber-500',
         label: t.ts_status_unpunched,
-        labelCls: 'text-amber-700 bg-amber-100',
+        labelCls: 'text-amber-300 bg-amber-500/20',
       };
     }
     // In turno ora
     if (inTodayKpiWindow) {
       return {
         border: 'border-l-blue-500',
-        bg: 'bg-blue-50',
-        ring: 'ring-1 ring-blue-200/80',
+        bg: 'bg-blue-500/18',
+        ring: 'ring-1 ring-blue-500/35',
         dot: 'bg-blue-500',
         label: t.ts_status_in_shift,
-        labelCls: 'text-blue-600 bg-blue-100',
+        labelCls: 'text-blue-300 bg-blue-500/20',
       };
     }
     if (s.punched && !s.actualEnd) {
@@ -2761,18 +2761,18 @@ export default function Timesheets() {
         ring: ring0,
         dot: 'bg-blue-400',
         label: t.ts_status_in_shift,
-        labelCls: 'text-blue-600 bg-blue-100',
+        labelCls: 'text-blue-300 bg-blue-500/20',
       };
     }
     // Timbrato e completato — verde
     if (s.punched && s.actualEnd) {
       return {
         border: 'border-l-emerald-500',
-        bg: 'bg-emerald-50',
-        ring: 'ring-1 ring-emerald-200/80',
+        bg: 'bg-emerald-500/15',
+        ring: 'ring-1 ring-emerald-500/30',
         dot: 'bg-emerald-500',
         label: t.ts_status_to_approve,
-        labelCls: 'text-emerald-700 bg-emerald-100',
+        labelCls: 'text-emerald-300 bg-emerald-500/20',
       };
     }
     return {
@@ -2781,7 +2781,7 @@ export default function Timesheets() {
       ring: ring0,
       dot: 'bg-slate-400',
       label: t.ts_status_unpunched,
-      labelCls: 'text-slate-500 bg-slate-100',
+      labelCls: 'text-white/50 bg-white/8',
     };
   };
 
@@ -4222,7 +4222,7 @@ export default function Timesheets() {
                                 const showPlannedTimesInCell =
                                   showFullTimesheetGrid || (plannedOnlyTimesheetGrid && publishedCell);
                                 const deltaColor =
-                                  s.deltaMins > 5 ? 'text-accent' : s.deltaMins < -5 ? 'text-red-500' : 'text-slate-500';
+                                  s.deltaMins > 5 ? 'text-accent' : s.deltaMins < -5 ? 'text-red-400' : 'text-white/50';
 
                                 // Logica per determinare se mostrare l'orario pianificato come "effettivo" in assenza di timbrature
                                 const showPlannedAsActual = !s.punched && publishedCell;
@@ -4264,7 +4264,7 @@ export default function Timesheets() {
                                     <div className="flex min-w-0 flex-1 flex-col gap-1 md:gap-0.5">
                                     <div className="mb-0.5 flex items-center justify-between gap-1 md:mb-0">
                                       <span
-                                        className="text-[11px] font-semibold text-slate-600 tabular-nums md:text-[10px]"
+                                        className="text-[11px] font-semibold text-white/70 tabular-nums md:text-[10px]"
                                         aria-label={
                                           showPlannedTimesInCell
                                             ? undefined
@@ -4282,12 +4282,12 @@ export default function Timesheets() {
                                       s.punched ? (
                                         s.actualEnd ? (
                                           <div className="flex items-center justify-between gap-1">
-                                            <span className="text-[11px] font-bold text-slate-800 tabular-nums md:text-[10px]">
+                                            <span className="text-[11px] font-bold text-white tabular-nums md:text-[10px]">
                                               {`${s.actualStart}–${s.actualEnd}`}
                                             </span>
                                             <span
                                               className={`max-w-[min(100%,5.5rem)] shrink-0 text-right text-[10px] font-semibold leading-tight tabular-nums md:max-w-[4.75rem] md:text-[9px] ${
-                                                s.breakMinutesActual > 0 ? 'text-slate-500' : deltaColor
+                                                s.breakMinutesActual > 0 ? 'text-white/50' : deltaColor
                                               }`}
                                               title={
                                                 s.breakMinutesActual > 0
@@ -4302,13 +4302,13 @@ export default function Timesheets() {
                                           </div>
                                         ) : (
                                           <div className="flex items-start justify-between gap-1 md:gap-0.5">
-                                            <div className="min-w-0 flex flex-1 flex-wrap items-center gap-x-0.5 text-[10px] font-semibold text-red-700 md:text-[9px]">
+                                            <div className="min-w-0 flex flex-1 flex-wrap items-center gap-x-0.5 text-[10px] font-semibold text-red-400 md:text-[9px]">
                                               <span>{s.actualStart}</span>
                                               <span className="text-red-500">{t.ts_missing_exit}</span>
                                             </div>
                                             {s.breakMinutes > 0 && (
                                               <span
-                                                className="max-w-[min(100%,5.5rem)] shrink-0 text-right text-[10px] font-semibold leading-tight tabular-nums text-slate-500 md:max-w-[4.75rem] md:text-[9px]"
+                                                className="max-w-[min(100%,5.5rem)] shrink-0 text-right text-[10px] font-semibold leading-tight tabular-nums text-white/50 md:max-w-[4.75rem] md:text-[9px]"
                                                 title={`${t.ts_kpi_planned}: ${fmtHM(s.plannedMins)}`}
                                               >
                                                 {`−${fmtBreakDeductionShort(s.breakMinutes)}`}
@@ -4317,7 +4317,7 @@ export default function Timesheets() {
                                           </div>
                                         )
                                       ) : (
-                                        <span className="text-[10px] font-semibold text-slate-300 md:text-[9px]">–</span>
+                                        <span className="text-[10px] font-semibold text-white/35 md:text-[9px]">–</span>
                                       )
                                     ) : plannedOnlyTimesheetGrid &&
                                       publishedCell &&
@@ -4326,7 +4326,7 @@ export default function Timesheets() {
                                       s.actualEnd ? (
                                       <div className="flex items-center justify-between gap-1">
                                         <span
-                                          className="text-[11px] font-bold text-slate-800 tabular-nums md:text-[10px]"
+                                          className="text-[11px] font-bold text-white tabular-nums md:text-[10px]"
                                           title={t.ts_kpi_frozen_official}
                                         >
                                           {`${s.actualStart}–${s.actualEnd}`}
@@ -4337,12 +4337,12 @@ export default function Timesheets() {
                                     {showFullTimesheetGrid && (punchAuditCount > 0 || getShiftHistory(s.id).length > 0) && (
                                       <div className="absolute top-0.5 right-1 flex items-center gap-0.5">
                                         {punchAuditCount > 0 && (
-                                          <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-orange-600 bg-orange-100 rounded px-0.5 py-px leading-none">
+                                          <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-orange-300 bg-orange-500/20 rounded px-0.5 py-px leading-none">
                                             <ShieldAlert className="w-2 h-2" />{punchAuditCount}
                                           </span>
                                         )}
                                         {getShiftHistory(s.id).length > 0 && (
-                                          <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-600 bg-amber-100 rounded px-0.5 py-px leading-none">
+                                          <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-300 bg-amber-500/20 rounded px-0.5 py-px leading-none">
                                             <History className="w-2 h-2" />{getShiftHistory(s.id).length}
                                           </span>
                                         )}
@@ -4683,41 +4683,41 @@ export default function Timesheets() {
           const plannedDraftCard = s.status === 'draft';
           const plannedAbsentCard = s.status === 'absent';
           const plannedCardBoxClass = plannedApprovedCard
-            ? 'rounded-xl border-2 border-l-4 border-emerald-200/80 border-l-emerald-600 bg-emerald-50 p-3'
+            ? 'rounded-xl border-2 border-l-4 border-emerald-500/30 border-l-emerald-500 bg-emerald-500/12 p-3'
             : plannedConfirmedCard
-              ? 'rounded-xl border-2 border-l-4 border-[#0052FF]/20 border-l-[#0052FF] bg-[#0052FF]/8 p-3'
+              ? 'rounded-xl border-2 border-l-4 border-[#0052FF]/30 border-l-[#0052FF] bg-[#0052FF]/10 p-3'
               : plannedAbsentCard
-                ? 'rounded-xl border-2 border-l-4 border-rose-200/80 border-l-error bg-rose-50 p-3'
+                ? 'rounded-xl border-2 border-l-4 border-rose-500/30 border-l-error bg-rose-500/12 p-3'
                 : plannedDraftCard
-                  ? 'rounded-xl border-2 border-l-4 border-slate-200 border-l-review bg-slate-50 p-3'
-                  : 'rounded-xl border-2 border-l-4 border-slate-200 border-l-slate-400 bg-slate-50/90 p-3';
+                  ? 'rounded-xl border-2 border-l-4 border-white/15 border-l-review bg-white/6 p-3'
+                  : 'rounded-xl border-2 border-l-4 border-white/15 border-l-white/30 bg-white/6 p-3';
           const plannedCardLabelCls = plannedApprovedCard
-            ? 'text-emerald-700'
+            ? 'text-emerald-300'
             : plannedConfirmedCard
-              ? 'text-[#0052FF]'
+              ? 'text-blue-300'
               : plannedAbsentCard
-                ? 'text-rose-600'
+                ? 'text-rose-300'
                 : plannedDraftCard
-                  ? 'text-slate-600'
-                  : 'text-slate-500';
+                  ? 'text-white/50'
+                  : 'text-white/40';
           const plannedCardMainCls = plannedApprovedCard
-            ? 'text-slate-900'
+            ? 'text-white'
             : plannedConfirmedCard
-              ? 'text-slate-900'
+              ? 'text-white'
               : plannedAbsentCard
-                ? 'text-rose-900'
+                ? 'text-rose-200'
                 : plannedDraftCard
-                  ? 'text-slate-900'
-                  : 'text-slate-800';
+                  ? 'text-white'
+                  : 'text-white/85';
           const plannedCardSubCls = plannedApprovedCard
-            ? 'text-emerald-700/90'
+            ? 'text-emerald-300/90'
             : plannedConfirmedCard
-              ? 'text-[#0052FF]/80'
+              ? 'text-blue-300/80'
               : plannedAbsentCard
-                ? 'text-rose-700'
+                ? 'text-rose-300'
                 : plannedDraftCard
-                  ? 'text-slate-600'
-                  : 'text-slate-500';
+                  ? 'text-white/55'
+                  : 'text-white/50';
 
           return (
               <div className="flex flex-1 flex-col overflow-hidden sm:overflow-y-auto lg:h-full sm:max-h-[calc(100vh-60px)] md:max-h-[calc(100vh-60px)]">
@@ -5328,25 +5328,25 @@ export default function Timesheets() {
                   )}
                   {/* ── Blocco Approvazione (sempre visibile se approvato) ── */}
                   {isApproved && (
-                    <div className="border-b border-slate-100 p-3 sm:p-5">
-                      <div className="rounded-xl border-2 border-l-4 border-emerald-500/25 border-l-emerald-600 bg-emerald-50 p-3">
+                    <div className="border-b border-white/10 p-3 sm:p-5">
+                      <div className="rounded-xl border-2 border-l-4 border-emerald-500/30 border-l-emerald-500 bg-emerald-500/12 p-3">
                         <div className="mb-3 flex items-center gap-2">
-                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100">
-                            <Lock className="h-4 w-4 text-emerald-600" />
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-500/20">
+                            <Lock className="h-4 w-4 text-emerald-400" />
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-slate-900">{t.ts_drawer_approved_frozen}</p>
-                            <p className="text-[11px] text-emerald-700">{t.ts_drawer_no_further_edits}</p>
+                            <p className="text-sm font-bold text-white">{t.ts_drawer_approved_frozen}</p>
+                            <p className="text-[11px] text-emerald-300">{t.ts_drawer_no_further_edits}</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="rounded-xl bg-white/60 border border-emerald-200 p-3">
-                            <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400">{t.ts_drawer_approved_by}</p>
-                            <p className="truncate text-sm font-bold text-slate-800">{fullShift?.approved_by ?? s.approved_by ?? '—'}</p>
+                          <div className="rounded-xl bg-white/8 border border-emerald-500/25 p-3">
+                            <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-white/40">{t.ts_drawer_approved_by}</p>
+                            <p className="truncate text-sm font-bold text-white">{fullShift?.approved_by ?? s.approved_by ?? '—'}</p>
                           </div>
-                          <div className="rounded-xl bg-white/60 border border-emerald-200 p-3">
-                            <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400">{t.ts_drawer_approval_date}</p>
-                            <p className="text-sm font-bold text-slate-800">
+                          <div className="rounded-xl bg-white/8 border border-emerald-500/25 p-3">
+                            <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-white/40">{t.ts_drawer_approval_date}</p>
+                            <p className="text-sm font-bold text-white">
                               {(fullShift?.approved_at ?? s.approved_at)
                                 ? format(new Date((fullShift?.approved_at ?? s.approved_at)!), 'dd/MM/yyyy HH:mm')
                                 : '—'}

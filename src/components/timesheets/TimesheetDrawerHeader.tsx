@@ -158,7 +158,7 @@ export function TimesheetDrawerHeader({
       <div className="px-4 pt-2.5 pb-2 sm:px-5 sm:pt-3 sm:pb-2.5">
         {/* Riga 1: nome + (sm: azioni) + nav/close */}
         <div className="flex items-center gap-2">
-          <h3 className="min-w-0 flex-1 truncate text-[13px] sm:text-base font-bold leading-tight text-slate-900">
+          <h3 className="min-w-0 flex-1 truncate text-[13px] sm:text-base font-bold leading-tight text-white">
             {employeeName.toUpperCase()}
           </h3>
           
@@ -223,7 +223,7 @@ export function TimesheetDrawerHeader({
                       className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
                       aria-label={t.nav_up || t.prev}
                     >
-                      <ChevronUp className="h-4 w-4 text-slate-700" />
+                      <ChevronUp className="h-4 w-4 text-white/70" />
                     </button>
                     <button
                       type="button"
@@ -232,7 +232,7 @@ export function TimesheetDrawerHeader({
                       className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
                       aria-label={t.nav_down || t.next}
                     >
-                      <ChevronDown className="h-4 w-4 text-slate-700" />
+                      <ChevronDown className="h-4 w-4 text-white/70" />
                     </button>
                   </>
                 )}
@@ -247,7 +247,7 @@ export function TimesheetDrawerHeader({
                       className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
                       aria-label={t.nav_prev || t.prev}
                     >
-                      <ChevronLeft className="h-4 w-4 text-slate-700" />
+                      <ChevronLeft className="h-4 w-4 text-white/70" />
                     </button>
                     <button
                       type="button"
@@ -256,7 +256,7 @@ export function TimesheetDrawerHeader({
                       className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
                       aria-label={t.nav_next || t.next}
                     >
-                      <ChevronRight className="h-4 w-4 text-slate-700" />
+                      <ChevronRight className="h-4 w-4 text-white/70" />
                     </button>
                   </>
                 )}
@@ -269,34 +269,34 @@ export function TimesheetDrawerHeader({
               className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10"
               aria-label={t.close}
             >
-              <X className="h-4 w-4 text-slate-600" />
+              <X className="h-4 w-4 text-white/70" />
             </button>
           </div>
         </div>
         
         {/* Riga 2: metadati — no wrap, scroll orizzontale su mobile */}
         <div className="mt-1 flex flex-nowrap items-center gap-x-1.5 overflow-x-auto [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:gap-x-2 sm:gap-y-1">
-          <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-slate-500">
+          <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-white/55">
             <Calendar className="h-3 w-3 shrink-0" />
             <span className="sm:hidden">{safeFormatDate(dateStr, 'EEE d MMM', { locale })}</span>
             <span className="hidden sm:inline">{safeFormatDate(dateStr, 'EEE d MMM yyyy', { locale })}</span>
           </span>
-          <span className="shrink-0 text-slate-300">·</span>
-          <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-slate-500">
+          <span className="shrink-0 text-white/30">·</span>
+          <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-white/55">
             {drawerOpenSource === 'name' && <UserCheck className="h-3 w-3 shrink-0" />}
             {drawerOpenSource === 'turno' && <Clock className="h-3 w-3 shrink-0" />}
             {(drawerOpenSource === 'date' || !drawerOpenSource) && <History className="h-3 w-3 shrink-0" />}
           </span>
-          <span className="shrink-0 text-slate-300">·</span>
+          <span className="shrink-0 text-white/30">·</span>
           <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${labelCls}`}>{label}</span>
           {department && (
             <span className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold" style={departmentChipStyle(getDeptColor(department))}>
               {translateDepartmentValue(department, effectiveLanguage as Language)}
             </span>
           )}
-          {isApproved && <Lock className="h-3 w-3 shrink-0 text-emerald-600" />}
+          {isApproved && <Lock className="h-3 w-3 shrink-0 text-emerald-400" />}
           {isEmployeeWeekReviewSheet && drawerReviewQueue && (
-            <span className="shrink-0 text-[10px] font-semibold text-slate-600">
+            <span className="shrink-0 text-[10px] font-semibold text-white/55">
               {formatTrans(t.ts_employee_week_review_progress, { current: String(drawerReviewQueue.currentIdx + 1), total: String(drawerReviewQueue.items.length) })}
             </span>
           )}
