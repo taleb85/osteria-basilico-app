@@ -59,7 +59,7 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
           : 'text-amber-950';
 
   return (
-    <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-4 shadow-sm`}
+    <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-5 shadow-sm`}
       style={{ 
         background: style.bg.includes('white') ? 'rgba(255, 255, 255, 0.92)' : undefined,
         backdropFilter: style.bg.includes('white') ? 'blur(16px)' : undefined,

@@ -992,6 +992,7 @@ html.no-motion *::after {
   font-weight: 700; /* aumentato da 800 per leggibilità */
   color: #000000;
   letter-spacing: -0.02em;
+  white-space: nowrap; /* evita spezzature su righe multiple */
 }
 
 @media (max-width: 640px) {
