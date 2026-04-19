@@ -83,6 +83,7 @@ import { useDrawerUnlock } from '../hooks/useDrawerUnlock';
 import { useDrawerPermissions } from '../hooks/useDrawerPermissions';
 import { TimesheetDrawerHeader } from './timesheets/TimesheetDrawerHeader';
 import { ShiftHoursCards } from './timesheets/ShiftHoursCards';
+import { ShiftHistoryCard } from './timesheets/ShiftHistoryCard';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -4930,132 +4931,22 @@ export default function Timesheets() {
 
                   {/* Storico: modifiche turno + audit timbrature — stessa scheda ambra, dettaglio dopo PIN */}
                   {!isEmployeeWeekReviewSheet && drawerHistoryTotalCount > 0 && (
-                    <div className="border-b border-slate-100 p-3 sm:p-5">
-                      <div className="overflow-hidden rounded-xl border-2 border-amber-400/90 bg-white/85 shadow-sm">
-                        <button
-                          type="button"
-                          aria-expanded={shiftEditsRevealUnlocked && drawerShiftEditsExpanded}
-                          aria-controls="timesheet-drawer-combined-history"
-                          onClick={() => {
-                            // Non chiedere il PIN durante la review queue
-                            if (!shiftEditsRevealUnlocked && !drawerReviewQueue) {
-                              setPinGateModal({ shiftId: s.id, mode: 'unlock_shift_edits' });
-                              setPinGatePin('');
-                              setPinGateError('');
-                              return;
-                            }
-                            setDrawerShiftEditsExpanded((v) => !v);
-                          }}
-                          className="flex w-full min-h-[2.75rem] items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-amber-50/80"
-                        >
-                          {shiftEdits.length === 0 && punchAuditEntries.length > 0 ? (
-                            <ShieldAlert className="h-4 w-4 shrink-0 text-orange-500" aria-hidden />
-                          ) : (
-                            <History className="h-4 w-4 shrink-0 text-amber-500" aria-hidden />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-bold text-slate-800">
-                              {drawerHistoryCardTitle}
-                            </span>
-                            {!shiftEditsRevealUnlocked ? (
-                              <span className="mt-0.5 block truncate text-[10px] font-medium text-amber-900/80">
-                                {t.ts_enter_manager_pin}
-                              </span>
-                            ) : null}
-                          </div>
-                          <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-                            {drawerHistoryTotalCount}
-                          </span>
-                          {shiftEditsRevealUnlocked ? (
-                            <ChevronDown
-                              className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${drawerShiftEditsExpanded ? 'rotate-180' : ''}`}
-                              aria-hidden
-                            />
-                          ) : (
-                            <Lock className="h-4 w-4 shrink-0 text-amber-700/80" aria-hidden />
-                          )}
-                        </button>
-                        {shiftEditsRevealUnlocked && drawerShiftEditsExpanded && (
-                          <div
-                            id="timesheet-drawer-combined-history"
-                            className="flex max-h-[min(24vh,200px)] flex-col gap-2 overflow-y-auto overscroll-contain border-t border-amber-200/80 px-3 pb-3 pt-2.5"
-                          >
-                            {shiftEdits.length > 0 && (
-                              <div className="flex flex-col gap-2">
-                                {punchAuditEntries.length > 0 && (
-                                  <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-amber-800/90">
-                                    <History className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
-                                    {t.ts_drawer_shift_edits}
-                                  </p>
-                                )}
-                                {shiftEdits.map((e) => (
-                                  <div
-                                    key={e.id}
-                                    className="rounded-lg border border-amber-100 bg-amber-50/90 p-2.5"
-                                  >
-                                    <div className="mb-1 flex items-center justify-between text-[10px] text-slate-500">
-                                      <span className="font-semibold text-amber-800">
-                                        {humanizeFieldName(e.field)}
-                                      </span>
-                                      <span>{format(new Date(e.timestamp), 'dd/MM HH:mm')}</span>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                                      <span className="rounded-lg bg-red-50 px-1.5 py-0.5 text-red-600 line-through">
-                                        {fmtAuditValue(e.oldValue)}
-                                      </span>
-                                      <ArrowRight className="h-3 w-3 shrink-0 text-slate-400" />
-                                      <span className="rounded-lg bg-[#3366CC]/10 px-1.5 py-0.5 font-semibold text-[#007A5E]">
-                                        {fmtAuditValue(e.newValue)}
-                                      </span>
-                                    </div>
-                                    <p className="mt-1 text-[10px] text-slate-500">da {e.actorName}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                            {punchAuditEntries.length > 0 && (
-                              <div className="flex flex-col gap-2">
-                                {shiftEdits.length > 0 && (
-                                  <>
-                                    <div
-                                      className="my-1 border-t border-amber-200/70"
-                                      role="separator"
-                                    />
-                                    <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-orange-800/90">
-                                      <ShieldAlert className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                                      {t.ts_drawer_punch_edits}
-                                    </p>
-                                  </>
-                                )}
-                                {punchAuditEntries.map((e) => (
-                                  <div
-                                    key={e.id}
-                                    className="rounded-lg border border-orange-100 bg-orange-50/90 p-2.5"
-                                  >
-                                    <div className="mb-1 flex items-center justify-between text-[10px] text-slate-500">
-                                      <span className="font-semibold text-orange-700">
-                                        {humanizeFieldName(e.field)}
-                                      </span>
-                                      <span>{format(new Date(e.changed_at), 'dd/MM HH:mm')}</span>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                                      <span className="rounded-lg bg-red-50 px-1.5 py-0.5 text-red-600 line-through">
-                                        {fmtAuditValue(e.old_value)}
-                                      </span>
-                                      <ArrowRight className="h-3 w-3 shrink-0 text-slate-400" />
-                                      <span className="rounded-lg bg-[#3366CC]/10 px-1.5 py-0.5 font-semibold text-[#007A5E]">
-                                        {fmtAuditValue(e.new_value)}
-                                      </span>
-                                    </div>
-                                    <p className="mt-1 text-[10px] text-slate-500">da {e.actor_name}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <ShiftHistoryCard
+                      shiftEdits={shiftEdits}
+                      punchAuditEntries={punchAuditEntries}
+                      isUnlocked={shiftEditsRevealUnlocked}
+                      isExpanded={drawerShiftEditsExpanded}
+                      onToggleExpand={() => setDrawerShiftEditsExpanded((v) => !v)}
+                      onRequestUnlock={() => {
+                        setPinGateModal({ shiftId: s.id, mode: 'unlock_shift_edits' });
+                        setPinGatePin('');
+                        setPinGateError('');
+                      }}
+                      skipPinDuringReview={!!drawerReviewQueue}
+                      humanizeFieldName={humanizeFieldName}
+                      fmtAuditValue={(v: unknown) => fmtAuditValue(v as string | null | undefined)}
+                      t={t}
+                    />
                   )}
 
                   </div>
