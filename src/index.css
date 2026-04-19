@@ -55,7 +55,7 @@ button:active,
   color: #ffffff !important;
 }
 
-/* Reset globale — sfondo elegante blu fisso alta risoluzione, scroll naturale */
+/* Reset globale — sfondo scuro blu con gradiente, scroll naturale */
 html,
 body,
 #root {
@@ -67,12 +67,12 @@ body,
   overflow-x: hidden;
   overflow-y: auto;
   background: 
-    linear-gradient(rgba(11, 53, 115, 0.08), rgba(11, 53, 115, 0.08)),
+    linear-gradient(180deg, rgba(10, 22, 40, 0.92), rgba(11, 53, 115, 0.88)),
     url('/bg-elegant-blue.png') no-repeat center top fixed;
   background-size: cover;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: var(--text-main);
+  color: var(--text-primary);
 }
 /* iOS rubber-band touch scroll */
 @media (pointer: coarse) {
@@ -130,22 +130,37 @@ body,
     --text-dark: #1a1a1a;
     --text-secondary: #475569;
     --text-muted: #64748b;
-    /* B&W Glass Design System */
+    /* B&W Glass Design System - DARK THEME */
     --text-on-dark-bg: #e2e8f0; /* slate-200 per testi su sfondo scuro */
-    --text-on-glass: #000000; /* nero puro per testi su card glass */
-    --text-on-glass-secondary: #334155; /* slate-700 per testi secondari su glass */
-    --text-shift-time: #000000; /* nero puro per orari turni - massima leggibilità */
+    --text-on-glass: #ffffff; /* bianco per testi su card glass dark */
+    --text-on-glass-secondary: rgba(255, 255, 255, 0.65); /* text-secondary per testi secondari su glass */
+    --text-shift-time: #ffffff; /* bianco per orari turni - massima leggibilità su dark */
     /* Palette Coordinata B&W Glass */
     --deep-blue: #0B3573; /* Deep blue da top/bottom nav per azioni primarie */
     --deep-blue-hover: #0d4085;
     --cyan-action: #7AB9E5; /* Ciano per conferme/azioni positive */
     --slate-neutral: #475569; /* Grigio ardesia per stati neutri */
-    --bg: #f8fafc;
-    --color-bg: #f8fafc;
-    --color-text: #1a1a1a;
-    --color-text-secondary: #475569;
-    --surface: #f8fafc;
-    --surface-card: #ffffff;
+    
+    /* ═══ DARK THEME GLOBAL TOKENS ═══ */
+    --bg-primary: #0a1628;
+    --bg-surface: rgba(255, 255, 255, 0.07);
+    --bg-surface-hover: rgba(255, 255, 255, 0.12);
+    --bg-surface-solid: #112240;
+    --border-color: rgba(255, 255, 255, 0.12);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.65);
+    --text-muted: rgba(255, 255, 255, 0.35);
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --accent-yellow: #f59e0b;
+    
+    --bg: var(--bg-primary);
+    --color-bg: var(--bg-primary);
+    --color-text: var(--text-primary);
+    --color-text-secondary: var(--text-secondary);
+    --surface: var(--bg-surface);
+    --surface-card: var(--bg-surface-solid);
     /** Offset sotto l’header sticky app (MainApp lo aggiorna in px via ResizeObserver). */
     --app-sticky-header-offset: calc(max(6px, env(safe-area-inset-top, 0px)) + 5rem);
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -174,7 +189,7 @@ body,
    */
 
   html {
-    background: #f8fafc;
+    background: var(--bg-primary);
     min-height: 100%;
     min-height: -webkit-fill-available;
     transition: background-color 0.3s ease;
@@ -199,8 +214,8 @@ body,
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #f8fafc;
-    color: #1a1a1a;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     width: 100%;
     transition: background-color 0.3s ease, color 0.3s ease;
     min-height: 100vh;
@@ -214,7 +229,8 @@ body,
 
   /** Tutta l’app React: stessa stack Inter del tema Tailwind (`font-sans`). */
   #root {
-    @apply min-h-0 font-sans antialiased text-[#1a1a1a];
+    @apply min-h-0 font-sans antialiased;
+    color: var(--text-primary);
     overscroll-behavior-x: none;
   }
 }
@@ -342,27 +358,31 @@ body,
    * Tabelle: tenere `surface-ghost` sul guscio; celle restano con bg propri.
    */
   .surface-glass {
-    @apply rounded-2xl bg-white text-slate-900 transition-colors duration-200;
-    border: 1px solid #F1F5F9;
-    box-shadow: 0 2px 8px -2px rgba(0,82,255,0.08), 0 1px 3px -1px rgba(0,0,0,0.05);
+    @apply rounded-2xl text-slate-50 transition-colors duration-200;
+    background: var(--bg-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.3);
   }
   .surface-glass-sm {
-    @apply rounded-xl border bg-white/[0.92] text-slate-900 backdrop-blur-lg transition-colors duration-200 supports-[backdrop-filter]:backdrop-saturate-150;
-    border-color: rgba(51, 102, 204, 0.22);
-    box-shadow:
-      inset 0 1.5px 0 rgba(255,255,255,0.90),
-      inset 0 -2px 6px rgba(0,0,0,0.04),
-      0 4px 24px -4px rgba(0,82,255,0.10),
-      0 1px 3px -1px rgba(0,0,0,0.06);
+    @apply rounded-xl text-slate-50 transition-colors duration-200;
+    background: var(--bg-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.25);
   }
   /**
    * Modali / dialog centrati su backdrop scuro — vetro (blur + fill semi-opaco).
    * Aggiungere `rounded-2xl` (o altro raggio) sullo stesso elemento.
    * overscroll-behavior-y: contain → evita scroll chaining verso la pagina sottostante.
-   * Opacità 95% per isolamento netto dallo sfondo blu
+   * DARK THEME: solid dark background per modali
    */
   .modal-glass-panel {
-    @apply border border-slate-200/80 bg-white/[0.95] text-slate-900 shadow-2xl backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150;
+    @apply text-slate-50 shadow-2xl backdrop-blur-2xl;
+    background: var(--bg-surface-solid);
+    border: 1px solid var(--border-color);
     /* Impedisce il rimbalzo verso la pagina quando si scorre al limite della modale */
     overscroll-behavior-y: contain;
   }
@@ -441,11 +461,14 @@ body,
    * variante `--over-content` vetro / più trasparente quando la pagina scrolla sotto la barra.
    */
   .bottom-nav-glass {
-    border: none;
-    background: #0B3573;
-    box-shadow:
-      0 4px 16px -4px rgba(11, 53, 115, 0.40),
-      0 2px 8px -2px rgba(0, 0, 0, 0.15);
+    background: rgba(10, 22, 40, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border-color);
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: 0 -4px 16px -4px rgba(0, 0, 0, 0.4);
     transition:
       background 0.6s cubic-bezier(0.4, 0, 0.2, 1),
       box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -481,10 +504,10 @@ body,
     z-index: 0;
   }
   .bottom-nav-glass.bottom-nav-glass--over-content {
-    background: #0B3573;
-    box-shadow:
-      0 4px 16px -4px rgba(11, 53, 115, 0.40),
-      0 2px 8px -2px rgba(0, 0, 0, 0.15);
+    background: rgba(10, 22, 40, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 -4px 16px -4px rgba(0, 0, 0, 0.4);
   }
   /**
    * Toolbar management — gruppi tipo “segmented control”:
@@ -660,16 +683,12 @@ body,
   .page-home-bg {
     background: #e8f0ff;
   }
-  /** Card header FLOW */
+  /** Card header FLOW - dark theme, use CSS variable backgrounds */
   .flow-header-card,
   .surface-glass,
   .surface-ghost-interactive,
   .depth-card {
-    background: #ffffff !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border-color: rgba(226, 232, 240, 1) !important;
-    box-shadow: 0 2px 8px rgba(0, 50, 200, 0.06) !important;
+    /* Dark theme: backgrounds managed by surface-glass class */
   }
   /** Banner "turni aperti" amber — vetro trasparente (solo banner specifici) */
   .page-depth-bg .bg-amber-50\/95,
@@ -951,14 +970,12 @@ body,
   z-index: 2;
   position: relative;
 }
-/** Card turni/presenze mobile — fuori da @layer per priorità massima */
+/** Card turni/presenze mobile — dark theme */
 /** Vetro globale — fuori da @layer per priorità massima su Tailwind utilities */
 .surface-glass,
 .surface-ghost-interactive,
 .depth-card {
-  background: #ffffff !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  /* Dark theme: backgrounds managed by surface-glass class */
 }
 /** Modalità no-motion: azzera tutte le transizioni e animazioni CSS */
 html.no-motion *,
@@ -1048,13 +1065,13 @@ html.no-motion *::after {
   border-bottom: 0.5px solid #f1f5f9; /* slate-100 più chiaro */
 }
 
-/* Card glassmorphism premium: bianco 92% opacità + backdrop-blur 16px */
+/* Card glassmorphism premium: dark surface con backdrop-blur 16px */
 .shift-card-ultra {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--bg-surface);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: none;
-  box-shadow: 0 8px 32px 0 rgba(11, 53, 115, 0.08);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
   border-radius: 1rem;
 }
 
