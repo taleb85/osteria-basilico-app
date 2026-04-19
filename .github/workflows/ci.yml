@@ -26,6 +26,17 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Test Unit
+        run: npm run test -- --run
+
       - name: Build
         run: npm run build
         # La build non richiede VITE_* per compilare (Supabase client può essere null in assenza di env).
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Test E2E
+        run: npm run test:e2e
+        env:
+          CI: true

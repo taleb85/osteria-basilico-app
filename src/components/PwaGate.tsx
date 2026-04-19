@@ -1,41 +1,29 @@
-/**
- * Gate PWA: dopo il login l’app è usabile solo in modalità installata (standalone),
- * su qualsiasi dispositivo (PC, tablet, telefono). Stesso storage e stesso comportamento ovunque.
- *
- * - PWA installata / avviata da icona Home: accesso completo.
- * - Non loggato: accesso al browser (login, kiosk timbratura).
- * - Dev, localhost, `VITE_ALLOW_BROWSER_APP`: anteprima senza installazione.
- * Nessun bypass per utente: regola unica qui.
- */
-import { useApp } from '../context/appContextCore';
+import { ReactNode } from 'react';
 import { isPWAStandalone } from '../utils/pwaStandalone';
-import PWAInstallRequired from './PWAInstallRequired';
-
-interface PwaGateProps {
-  children: React.ReactNode;
-}
+import PWAInstallRequired from '../components/PWAInstallRequired';
 
 /**
- * Anteprima nel browser senza PWA installata:
- * - `npm run dev` (import.meta.env.DEV)
- * - `npm run preview` su localhost / 127.0.0.1
- * - variabile `VITE_ALLOW_BROWSER_APP=true` (es. Vercel, solo se serve)
+ * PWA Gate — non-bloccante di default
+ * 
+ * Comportamento:
+ * - Dev mode: sempre pass
+ * - VITE_ALLOW_BROWSER_APP=true: sempre pass
+ * - Prod + PWA standalone: pass
+ * - Prod + browser: mostra install screen
  */
-function allowBrowserWithoutPwa(): boolean {
-  if (import.meta.env.DEV) return true;
-  if (import.meta.env.VITE_ALLOW_BROWSER_APP === 'true') return true;
-  if (typeof window !== 'undefined') {
-    const h = window.location.hostname;
-    if (h === 'localhost' || h === '127.0.0.1') return true;
+export function PwaGate({ children }: { children: ReactNode }) {
+  // Bypass env: permette uso browser senza PWA (dev debug / test)
+  const allowBrowser = import.meta.env.VITE_ALLOW_BROWSER_APP === 'true';
+  
+  // In dev o con bypass env: always pass
+  if (import.meta.env.DEV || allowBrowser) {
+    return <>{children}</>;
   }
-  return false;
-}
-
-export default function PwaGate({ children }: PwaGateProps) {
-  // Gate disattivato: l'app si carica normalmente anche da browser non-standalone.
-  // Safari iOS gestisce il prompt "Aggiungi a Home" nativamente tramite i meta tag.
-  void useApp;
-  void isPWAStandalone;
-  void allowBrowserWithoutPwa;
+  
+  // Prod: mostra install screen solo se NON è PWA standalone
+  if (!isPWAStandalone()) {
+    return <PWAInstallRequired />;
+  }
+  
   return <>{children}</>;
 }

@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 const LS_PREFIX = 'ob_profile_avatar_';
 const FOCUS_PREFIX = 'ob_profile_avatar_focus_';
@@ -84,11 +84,11 @@ export async function uploadAvatarToStorage(
   userId: string,
   dataUrl: string
 ): Promise<string | null> {
-  // Usa supabaseAdmin (service role) per bypassare RLS su storage.objects
-  const client = supabaseAdmin ?? supabase;
-  if (!client) return null;
+  // SECURITY: usa solo anon key + RLS. Assicurati che policies su storage.objects permettano upload/read.
+  if (!supabase) return null;
   try {
     const blob = dataUrlToBlob(dataUrl);
+    const client = supabase;
     const path = `${userId}/avatar.jpg`;
 
     const { error } = await client.storage
@@ -117,8 +117,8 @@ export async function uploadAvatarToStorage(
  * Elimina la foto profilo da Supabase Storage.
  */
 export async function deleteAvatarFromStorage(userId: string): Promise<void> {
-  const client = supabaseAdmin ?? supabase;
-  if (!client) return;
+  if (!supabase) return;
+  const client = supabase;
   try {
     await client.storage.from(STORAGE_BUCKET).remove([`${userId}/avatar.jpg`]);
   } catch (err) {

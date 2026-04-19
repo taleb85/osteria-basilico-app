@@ -8,10 +8,9 @@ interface ImportMetaEnv {
   /** Se valorizzata ha priorità su `VITE_SUPABASE_ANON_KEY` nel client. */
   readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string;
   /**
-   * Service role: usata solo da script Node in `scripts/` tramite `.env`.
-   * Non referenziare in `src/`: con prefisso `VITE_` Vite la includerebbe nel bundle se importata nel client.
+   * REMOVED: Service role key non deve essere nel client.
+   * Usa SUPABASE_SERVICE_ROLE_KEY (senza VITE_) solo in script Node.
    */
-  readonly VITE_SUPABASE_SERVICE_ROLE_KEY?: string;
   /** Se "true", utenti loggati possono usare l'app nel browser senza PWA installata (solo build con questo env). */
   readonly VITE_ALLOW_BROWSER_APP?: string;
   /** Se "false", disattiva pull/push Storage config, revisione client e segnale Realtime impostazioni (DB/turni restano attivi). */

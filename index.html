@@ -15,9 +15,8 @@
         document.documentElement.classList.remove('dark');
         try { localStorage.removeItem('userTheme'); localStorage.removeItem('theme'); } catch(e){}
 
-        /* Cache-bust automatico: se la versione salvata è diversa da quella corrente,
-           cancella tutte le cache (CSS/JS/SW) e ricarica per servire i nuovi asset. */
-        var CURRENT_VERSION = '1.1.0-light';
+        /* Cache-bust automatico: versione iniettata da Vite build */
+        var CURRENT_VERSION = window.__APP_CACHE_VERSION__ || '1.1.0-light';
         try {
           var savedVersion = localStorage.getItem('app_cache_version');
           if (savedVersion !== CURRENT_VERSION) {
@@ -32,7 +31,7 @@
               })
             ]).then(function(){
               /* Hard-reload: forza il browser a ri-scaricare index.html e tutti i chunk */
-              location.reload(true);
+              location.reload();
             });
             return;
           }
@@ -74,8 +73,8 @@
 
     <!-- PWA Manifest (iniettato da vite-plugin-pwa) -->
 
-    <!-- Versione app — leggibile in DevTools > Elements; usata per cache-bust automatico -->
-    <meta name="app-version" content="1.1.0-light" />
+    <!-- Versione app — leggibile in DevTools > Elements; generata da Vite build -->
+    <meta name="app-version" content="__APP_VERSION__" />
 
     <!-- Theme FLOW — Light only -->
     <meta name="color-scheme" content="only light" />
@@ -114,9 +113,9 @@
     <meta name="description" content="FLOW — Sistema di gestione turni e presenze. Work in Motion." />
     <meta property="og:title" content="FLOW — Work in Motion" />
     <meta property="og:description" content="Gestione turni e presenze per il tuo team." />
-    <meta property="og:url" content="https://flow-workinmotion-app.vercel.app" />
+    <meta property="og:url" content="https://osteria-basilico-app.vercel.app" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://flow-workinmotion-app.vercel.app/flow-app-icon.png" />
+    <meta property="og:image" content="https://osteria-basilico-app.vercel.app/flow-app-icon.png" />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
     <meta property="og:image:type" content="image/png" />

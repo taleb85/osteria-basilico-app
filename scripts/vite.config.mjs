@@ -1,6 +1,11 @@
 /**
- * Config Vite canonica (dev/build/preview). In `scripts/` per evitare file `.timestamp-*`
- * nella root che in alcuni ambienti danno EPERM. `package.json` punta qui con `--config`.
+ * Config Vite CANONICA (dev/build/preview). In `scripts/` per evitare `.timestamp-*` in root (EPERM).
+ * 
+ * CRITICAL: Questa è l'UNICA config. Se serve modificare PWA manifest, farlo QUI.
+ * `package.json` punta qui con `--config scripts/vite.config.mjs` in tutti gli script.
+ * 
+ * Se lanci `npx vite` senza flag, Vite cercherebbe un config in root che NON esiste più:
+ * fallisce con errore — comportamento intenzionale per prevenire config divergenti.
  */
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -23,9 +28,20 @@ export default defineConfig({
      * Formato: `v<versione>-light` — da aggiornare ad ogni rilascio con breaking CSS change.
      */
     __CACHE_BUST__: JSON.stringify(`v${pkg.version}-light`),
+    /** Inietta versione in window global per uso in inline script cache-bust */
+    'window.__APP_CACHE_VERSION__': JSON.stringify(`${pkg.version}-light`),
   },
   plugins: [
     react(),
+    {
+      name: 'inject-version-meta',
+      transformIndexHtml(html) {
+        return html.replace(
+          '<meta name="app-version" content="__APP_VERSION__" />',
+          `<meta name="app-version" content="${pkg.version}-light" />`
+        );
+      },
+    },
     VitePWA({
       /** In dev niente SW: evita cache / navigate che sembrano “/app non funziona” su 127.0.0.1:5173. */
       devOptions: { enabled: false },

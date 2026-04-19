@@ -16,9 +16,8 @@ const fetchNoCache: typeof fetch = (input, init) =>
  * non usiamo Supabase Auth per il login. Disattivare persistenza/token evita spam di lock
  * GoTrue su localStorage (es. con React Strict Mode) e richieste inutili.
  * 
- * Il client Supabase viene inizializzato al caricamento del modulo.
- * I componenti che lo usano (ad es. useMessages) verificano se è disponibile
- * prima di accedervi.
+ * CRITICAL: Se questo export è `null` (env mancanti), l'app degrada gracefully in prod.
+ * Usa sempre `getSupabaseClient()` da `./supabaseClient.ts` per error handling robusto.
  * 
  * Cache bypass: fetchNoCache assicura che ogni richiesta sia fresca,
  * evitando problemi di stale data su pull-to-refresh e sync multi-dispositivo.
@@ -34,17 +33,8 @@ export const supabase: SupabaseClient | null = supabaseUrl && supabaseKey
     })
   : null;
 
-/** Client con service role key — bypassa RLS. Usato solo nel SuperAdminPanel. */
-const serviceRoleKey = cleanEnv(import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
-export const supabaseAdmin: SupabaseClient | null = supabaseUrl && serviceRoleKey
-  ? createClient(supabaseUrl, serviceRoleKey, {
-      global: { fetch: fetchNoCache },
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-        // Chiave storage separata per evitare il warning "Multiple GoTrueClient instances"
-        storageKey: 'sb-admin-auth-token',
-      },
-    })
-  : null;
+/**
+ * SECURITY: Service role key rimossa dal bundle client.
+ * Se serve admin SDK, usa Vercel Serverless Function con variabile non-VITE_ prefixed.
+ * SuperAdminPanel e operazioni privilegiate devono migrare a endpoint server-side.
+ */

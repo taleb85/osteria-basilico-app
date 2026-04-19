@@ -6,7 +6,11 @@ import { it } from 'date-fns/locale';
 import { getDateLocale } from './utils/translations';
 import SwUpdateOverlay from './components/SwUpdateOverlay';
 import AdminSyncOverlay from './components/AdminSyncOverlay';
-const SuperAdminPanel = lazy(() => import('./components/SuperAdminPanel'));
+/**
+ * SECURITY: SuperAdminPanel disabilitato — richiede service role key.
+ * Migra SuperAdminPanel a app separata o Vercel Serverless Function.
+ */
+// const SuperAdminPanel = lazy(() => import('./components/SuperAdminPanel'));
 const AnimPreview = lazy(() => import('./components/AnimPreview'));
 const LoadingPreview = lazy(() => import('./components/LoadingPreview'));
 const ScreensPreview = lazy(() => import('./components/ScreensPreview'));
@@ -53,6 +57,7 @@ import AdminGate from './components/AdminGate';
 import AdminLayout from './components/AdminLayout';
 import OnboardingSetupModal from './components/OnboardingSetupModal';
 import PermissionRequestModal, { shouldShowPermissionModal } from './components/PermissionRequestModal';
+import { PwaGate } from './components/PwaGate';
 
 const WeeklyShiftsTable = lazy(() => import('./components/WeeklyShiftsTable'));
 const HolidayRequests = lazy(() => import('./components/HolidayRequests'));
@@ -1085,14 +1090,8 @@ function IosSafariInstallBanner() {
   );
 }
 
-// ─── PWA Gate — blocca accesso browser su mobile ──────────────────────────────
-function PwaGate({ children }: { children: React.ReactNode }) {
-  // In development (localhost) bypass the gate to allow Cursor / local preview
-  if (!import.meta.env.DEV && !isPWAStandalone()) {
-    return <PWAInstallRequired />;
-  }
-  return <>{children}</>;
-}
+// Esporta per uso in routing
+export { LoginRoute, ProtectedApp };
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 function AppContent() {
@@ -1145,9 +1144,15 @@ function App() {
 
   return (
     <Routes>
-      {/* Super admin: completamente isolato da AppProvider e TenantContext */}
-      <Route path="/super-admin" element={<Suspense fallback={null}><SuperAdminPanel /></Suspense>} />
-      {/* Redirect automatico dalla root per il dominio super-admin dedicato */}
+      {/* SECURITY: SuperAdminPanel disabilitato — service role key rimossa dal client */}
+      <Route path="/super-admin" element={
+        <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-6 text-center">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">SuperAdmin Disabilitato</h1>
+            <p className="text-slate-400">Migra a Vercel Serverless Function con service role key server-side.</p>
+          </div>
+        </div>
+      } />
       {isSuperAdminDomain && (
         <Route path="/" element={<Navigate to="/super-admin" replace />} />
       )}
