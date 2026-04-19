@@ -81,6 +81,7 @@ import { PinPadModal } from './ui/PinPadModal';
 import { runAutoApprove } from '../utils/autoApprovePunches';
 import { useDrawerUnlock } from '../hooks/useDrawerUnlock';
 import { useDrawerPermissions } from '../hooks/useDrawerPermissions';
+import { TimesheetDrawerHeader } from './timesheets/TimesheetDrawerHeader';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -4723,290 +4724,108 @@ export default function Timesheets() {
           return (
               <div className="flex flex-1 flex-col overflow-hidden sm:overflow-y-auto lg:h-full sm:max-h-[calc(100vh-60px)] md:max-h-[calc(100vh-60px)]">
                 {/* Drawer header — strip colorato in base allo stato */}
-                <div className={`border-l-4 ${border} ${bg} ${ring} shrink-0`}>
-                  <div className="px-4 pt-2.5 pb-2 sm:px-5 sm:pt-3 sm:pb-2.5">
-                    {/* Riga 1: nome + (sm: azioni) + nav/close */}
-                    <div className="flex items-center gap-2">
-                      <h3 className="min-w-0 flex-1 truncate text-[13px] sm:text-base font-bold leading-tight text-slate-900">
-                        {drawerData.employeeName.toUpperCase()}
-                      </h3>
-                      {/* Bottoni azione: visibili su sm+, su mobile nella riga 3 */}
-                      <div className="hidden sm:flex shrink-0 items-center gap-2">
-                      {/* Segna: non ha lavorato */}
-                      {canMarkAbsentTimesheet && (
-                        <button
-                          type="button"
-                          disabled={markAbsentSaving}
-                          onClick={() => {
-                            if (!window.confirm(t.shift_mark_absent_confirm)) return;
-                            void (async () => {
-                              setMarkAbsentSaving(true);
-                              try {
-                                const prevStatus = fullShift?.approval_status ?? s.status;
-                                const prevStart = fullShift?.start_time ?? (s.plannedStart || '');
-                                const prevEnd = fullShift?.end_time ?? (s.plannedEnd || '');
-                                pushTsUndo(`Ripristina turno ${prevStart}–${prevEnd}`, async () => {
-                                  await updateShift(s.id, { approval_status: prevStatus, start_time: prevStart, end_time: prevEnd });
-                                });
-                                await updateShift(s.id, { approval_status: 'absent' });
-                                showSuccess?.(t.shift_marked_absent_toast);
-                                closeTimesheetShiftDrawer();
-                              } catch (e) {
-                                const raw =
-                                  e && typeof e === 'object' && 'message' in e
-                                    ? String((e as { message?: string }).message || '')
-                                    : '';
-                                const low = raw.toLowerCase();
-                                const dbHint =
-                                  low.includes('check') ||
-                                  low.includes('constraint') ||
-                                  low.includes('violates') ||
-                                  low.includes('absent');
-                                showError?.(
-                                  dbHint && (t as Record<string, string>).shift_mark_absent_db_hint
-                                    ? `${(t as Record<string, string>).shift_mark_absent_db_hint} ${raw ? `(${raw})` : ''}`
-                                    : raw || t.save_error
-                                );
-                              } finally {
-                                setMarkAbsentSaving(false);
-                              }
-                            })();
-                          }}
-                          className="flex shrink-0 items-center gap-1 rounded-lg border border-red-700 bg-red-600 px-2 py-1 text-[10px] font-semibold text-white shadow-sm transition-all hover:bg-red-700 hover:scale-105 active:scale-95 disabled:opacity-50"
-                          title={t.shift_mark_absent}
-                        >
-                          {markAbsentSaving ? (
-                            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                          ) : (
-                            <UserX className="w-3.5 h-3.5" />
-                          )}
-                          <span className="hidden sm:inline">{t.shift_mark_absent}</span>
-                        </button>
-                      )}
-                      {/* Bottone Congela / Sblocca */}
-                      {canTimesheetApprove && (
-                        isFrozen ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPinGateModal({ shiftId: s.id, mode: 'unlock_frozen' });
-                              setPinGatePin('');
-                              setPinGateError('');
-                            }}
-                            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-105 active:scale-95"
-                            title="Sblocca turno per revisione"
-                          >
-                            <Unlock className="w-3.5 h-3.5" />
-                            <span>Sblocca</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const displayStart = s.actualStart || s.plannedStart || '';
-                              const displayEnd = s.actualEnd || s.plannedEnd || '';
-                              setApproveWeekSummary({
-                                employeeName: drawerData.employeeName,
-                                shiftIds: [s.id],
-                                previewRows: [{
-                                  dateStr: drawerData.dateStr,
-                                  planned: `${displayStart.slice(0, 5)}–${displayEnd.slice(0, 5)}`,
-                                }],
-                              });
-                            }}
-                            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-accent px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-accent-hover hover:scale-105 active:scale-95"
-                            title={s.punched && s.actualEnd ? 'Congela questo turno' : 'Congela usando orari pianificati'}
-                          >
-                            {s.punched && s.actualEnd ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                            <span>Congela</span>
-                          </button>
-                        )
-                      )}
-                      </div>{/* end hidden sm:flex desktop actions */}
-
-                      {/* Nav + Close — sempre visibili, ridotti su mobile */}
-                      <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-                        {(!drawerReviewQueue || drawerReviewQueue.reviewScope === 'day') && (
-                          <>
-                            {(() => {
-                              if (!drawerData) return null;
-
-                              // ── Aperto da intestazione DATA (queue reviewScope='day') ──
-                              // Frecce SU/GIÙ — navigano tra dipendenti nella stessa data
-                              if (drawerReviewQueue?.reviewScope === 'day') {
-                                const q = drawerReviewQueue;
-                                const canPrev = q.currentIdx > 0;
-                                const canNext = q.currentIdx < q.items.length - 1;
-                                return (
-                                  <>
-                                    <button
-                                      type="button"
-                                      disabled={!canPrev}
-                                      onClick={() => handleDrawerReviewNavigate(-1)}
-                                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
-                                      aria-label={t.prev || 'Su'}
-                                    >
-                                      <ChevronUp className="h-4 w-4 text-slate-700" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      disabled={!canNext}
-                                      onClick={() => handleDrawerReviewNavigate(1)}
-                                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
-                                      aria-label={t.next || 'Giù'}
-                                    >
-                                      <ChevronDown className="h-4 w-4 text-slate-700" />
-                                    </button>
-                                  </>
-                                );
-                              }
-
-                              // ── Aperto da NOME dipendente ──
-                              // Frecce SINISTRA/DESTRA — navigano tra date della settimana
-                              if (drawerOpenSource === 'name') {
-                                const currentDateIdx = weekDays.findIndex((d) => format(d, 'yyyy-MM-dd') === drawerData.dateStr);
-                                const hasPrevDate = weekDays.slice(0, currentDateIdx).some((d) => {
-                                  const dd = timesheetData[drawerData.userId]?.[format(d, 'yyyy-MM-dd')];
-                                  return dd && dd.shifts.length > 0;
-                                });
-                                const hasNextDate = weekDays.slice(currentDateIdx + 1).some((d) => {
-                                  const dd = timesheetData[drawerData.userId]?.[format(d, 'yyyy-MM-dd')];
-                                  return dd && dd.shifts.length > 0;
-                                });
-                                if (!hasPrevDate && !hasNextDate) return null;
-                                return (
-                                  <>
-                                    <button
-                                      type="button"
-                                      disabled={!hasPrevDate}
-                                      onClick={() => handleDrawerContextualNavigate(-1)}
-                                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
-                                      aria-label={t.prev || 'Precedente'}
-                                    >
-                                      <ChevronLeft className="h-4 w-4 text-slate-700" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      disabled={!hasNextDate}
-                                      onClick={() => handleDrawerContextualNavigate(1)}
-                                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
-                                      aria-label={t.next || 'Successivo'}
-                                    >
-                                      <ChevronRight className="h-4 w-4 text-slate-700" />
-                                    </button>
-                                  </>
-                                );
-                              }
-
-                              // ── Aperto da cella TURNO o altro ── nessuna freccia
-                              return null;
-                            })()}
-                          </>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => { if (hasUnsavedPunchChanges) { setShowCloseConfirm(true); } else { closeTimesheetShiftDrawer(); } }}
-                          className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10"
-                          aria-label={t.close}
-                        >
-                          <X className="h-4 w-4 text-slate-600" />
-                        </button>
-                      </div>
-                    </div>{/* end Riga 1 */}
-
-                    {/* Riga 2: metadati — no wrap, scroll orizzontale su mobile */}
-                    <div className="mt-1 flex flex-nowrap items-center gap-x-1.5 overflow-x-auto [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:gap-x-2 sm:gap-y-1">
-                      <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-slate-500">
-                        <Calendar className="h-3 w-3 shrink-0" />
-                        <span className="sm:hidden">{safeFormatDate(drawerData.dateStr, 'EEE d MMM', { locale })}</span>
-                        <span className="hidden sm:inline">{safeFormatDate(drawerData.dateStr, 'EEE d MMM yyyy', { locale })}</span>
-                      </span>
-                      <span className="shrink-0 text-slate-300">·</span>
-                      <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-slate-500">
-                        {drawerOpenSource === 'name' && <UserCheck className="h-3 w-3 shrink-0" />}
-                        {drawerOpenSource === 'turno' && <Clock className="h-3 w-3 shrink-0" />}
-                        {(drawerOpenSource === 'date' || !drawerOpenSource) && <History className="h-3 w-3 shrink-0" />}
-                      </span>
-                      <span className="shrink-0 text-slate-300">·</span>
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${labelCls}`}>{label}</span>
-                      {drawerData.department && (
-                        <span className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold" style={departmentChipStyle(getDeptColor(drawerData.department))}>
-                          {translateDepartmentValue(drawerData.department, effectiveLanguage)}
-                        </span>
-                      )}
-                      {isApproved && <Lock className="h-3 w-3 shrink-0 text-emerald-600" />}
-                      {isEmployeeWeekReviewSheet && drawerReviewQueue && (
-                        <span className="shrink-0 text-[10px] font-semibold text-slate-600">
-                          {formatTrans(t.ts_employee_week_review_progress, { current: String(drawerReviewQueue.currentIdx + 1), total: String(drawerReviewQueue.items.length) })}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Riga 3 (solo mobile): bottoni azione visibili su sm+ nella Riga 1 */}
-                    {(canMarkAbsentTimesheet || canTimesheetApprove) && (
-                      <div className="mt-1.5 flex sm:hidden items-center gap-2 flex-wrap">
-                        {canMarkAbsentTimesheet && (
-                          <button
-                            type="button"
-                            disabled={markAbsentSaving}
-                            onClick={() => {
-                              if (!window.confirm(t.shift_mark_absent_confirm)) return;
-                              void (async () => {
-                                setMarkAbsentSaving(true);
-                                try {
-                                  const prevStatus = fullShift?.approval_status ?? s.status;
-                                  const prevStart = fullShift?.start_time ?? (s.plannedStart || '');
-                                  const prevEnd = fullShift?.end_time ?? (s.plannedEnd || '');
-                                  pushTsUndo(`Ripristina turno ${prevStart}–${prevEnd}`, async () => {
-                                    await updateShift(s.id, { approval_status: prevStatus, start_time: prevStart, end_time: prevEnd });
-                                  });
-                                  await updateShift(s.id, { approval_status: 'absent' });
-                                  showSuccess?.(t.shift_marked_absent_toast);
-                                  closeTimesheetShiftDrawer();
-                                } catch (e) {
-                                  const raw = e && typeof e === 'object' && 'message' in e ? String((e as { message?: string }).message || '') : '';
-                                  showError?.(raw || t.save_error);
-                                } finally {
-                                  setMarkAbsentSaving(false);
-                                }
-                              })();
-                            }}
-                            className="flex shrink-0 items-center gap-1 rounded-lg border border-red-700 bg-red-600 px-2 py-1 text-[10px] font-semibold text-white shadow-sm transition-all hover:bg-red-700 hover:scale-105 active:scale-95 disabled:opacity-50"
-                            title={t.shift_mark_absent}
-                          >
-                            {markAbsentSaving ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <UserX className="w-3.5 h-3.5" />}
-                            <span>{t.shift_mark_absent}</span>
-                          </button>
-                        )}
-                        {canTimesheetApprove && (
-                          isFrozen ? (
-                            <button
-                              type="button"
-                              onClick={() => { setPinGateModal({ shiftId: s.id, mode: 'unlock_frozen' }); setPinGatePin(''); setPinGateError(''); }}
-                              className="flex shrink-0 items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-105 active:scale-95"
-                            >
-                              <Unlock className="w-3.5 h-3.5" />
-                              <span>Sblocca</span>
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const displayStart = s.actualStart || s.plannedStart || '';
-                                const displayEnd = s.actualEnd || s.plannedEnd || '';
-                                setApproveWeekSummary({ employeeName: drawerData.employeeName, shiftIds: [s.id], previewRows: [{ dateStr: drawerData.dateStr, planned: `${displayStart.slice(0, 5)}–${displayEnd.slice(0, 5)}` }] });
-                              }}
-                              className="flex shrink-0 items-center gap-1.5 rounded-xl bg-accent hover:bg-accent-hover px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-105 active:scale-95"
-                            >
-                              {s.punched && s.actualEnd ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                              <span>Congela</span>
-                            </button>
-                          )
-                        )}
-                      </div>
-                    )}
-                  </div>{/* end padding container */}
-                </div>{/* end border-l-4 */}
+                <TimesheetDrawerHeader
+                  employeeName={drawerData.employeeName}
+                  dateStr={drawerData.dateStr}
+                  department={drawerData.department}
+                  effectiveLanguage={effectiveLanguage}
+                  locale={locale}
+                  border={border}
+                  bg={bg}
+                  ring={ring}
+                  label={label}
+                  labelCls={labelCls}
+                  isFrozen={isFrozen}
+                  isApproved={isApproved}
+                  canMarkAbsent={canMarkAbsentTimesheet}
+                  canTimesheetApprove={canTimesheetApprove}
+                  markAbsentSaving={markAbsentSaving}
+                  drawerOpenSource={drawerOpenSource}
+                  drawerReviewQueue={drawerReviewQueue}
+                  navigation={(() => {
+                    if (drawerOpenSource !== 'name') return undefined;
+                    const currentDateIdx = weekDays.findIndex((d) => format(d, 'yyyy-MM-dd') === drawerData.dateStr);
+                    const hasPrevDate = weekDays.slice(0, currentDateIdx).some((d) => {
+                      const dd = timesheetData[drawerData.userId]?.[format(d, 'yyyy-MM-dd')];
+                      return dd && dd.shifts.length > 0;
+                    });
+                    const hasNextDate = weekDays.slice(currentDateIdx + 1).some((d) => {
+                      const dd = timesheetData[drawerData.userId]?.[format(d, 'yyyy-MM-dd')];
+                      return dd && dd.shifts.length > 0;
+                    });
+                    if (!hasPrevDate && !hasNextDate) return undefined;
+                    return {
+                      canPrev: hasPrevDate,
+                      canNext: hasNextDate,
+                      onNavigate: handleDrawerContextualNavigate,
+                    };
+                  })()}
+                  navigationReviewDay={(() => {
+                    if (drawerReviewQueue?.reviewScope !== 'day') return undefined;
+                    const q = drawerReviewQueue;
+                    return {
+                      canPrev: q.currentIdx > 0,
+                      canNext: q.currentIdx < q.items.length - 1,
+                      onNavigate: handleDrawerReviewNavigate,
+                    };
+                  })()}
+                  hasUnsavedChanges={hasUnsavedPunchChanges}
+                  onCloseRequest={closeTimesheetShiftDrawer}
+                  onShowCloseConfirm={() => setShowCloseConfirm(true)}
+                  onMarkAbsent={() => {
+                    if (!window.confirm(t.shift_mark_absent_confirm)) return;
+                    void (async () => {
+                      setMarkAbsentSaving(true);
+                      try {
+                        const prevStatus = fullShift?.approval_status ?? s.status;
+                        const prevStart = fullShift?.start_time ?? (s.plannedStart || '');
+                        const prevEnd = fullShift?.end_time ?? (s.plannedEnd || '');
+                        pushTsUndo(`Ripristina turno ${prevStart}–${prevEnd}`, async () => {
+                          await updateShift(s.id, { approval_status: prevStatus, start_time: prevStart, end_time: prevEnd });
+                        });
+                        await updateShift(s.id, { approval_status: 'absent' });
+                        showSuccess?.(t.shift_marked_absent_toast);
+                        closeTimesheetShiftDrawer();
+                      } catch (e) {
+                        const raw =
+                          e && typeof e === 'object' && 'message' in e
+                            ? String((e as { message?: string }).message || '')
+                            : '';
+                        const low = raw.toLowerCase();
+                        const dbHint =
+                          low.includes('check') ||
+                          low.includes('constraint') ||
+                          low.includes('violates') ||
+                          low.includes('absent');
+                        showError?.(
+                          dbHint && (t as Record<string, string>).shift_mark_absent_db_hint
+                            ? `${(t as Record<string, string>).shift_mark_absent_db_hint} ${raw ? `(${raw})` : ''}`
+                            : raw || t.save_error
+                        );
+                      } finally {
+                        setMarkAbsentSaving(false);
+                      }
+                    })();
+                  }}
+                  onUnlockFrozen={() => {
+                    setPinGateModal({ shiftId: s.id, mode: 'unlock_frozen' });
+                    setPinGatePin('');
+                    setPinGateError('');
+                  }}
+                  onFreezeShift={() => {
+                    const displayStart = s.actualStart || s.plannedStart || '';
+                    const displayEnd = s.actualEnd || s.plannedEnd || '';
+                    setApproveWeekSummary({
+                      employeeName: drawerData.employeeName,
+                      shiftIds: [s.id],
+                      previewRows: [{
+                        dateStr: drawerData.dateStr,
+                        planned: `${displayStart.slice(0, 5)}–${displayEnd.slice(0, 5)}`,
+                      }],
+                    });
+                  }}
+                  t={t}
+                />
 
                 {/* Banner conferma chiusura con modifiche non salvate */}
                 {showCloseConfirm && (
