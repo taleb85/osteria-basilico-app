@@ -1355,11 +1355,14 @@ div.rounded-2xl.border.px-4.py-3\.5,
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 
-/* KPI number - force white color */
+/* KPI number - force white color with multiple selectors */
 .surface-glass .text-2xl,
 .surface-glass p.text-2xl,
 div[class*="surface-glass"] .text-2xl,
-.rounded-2xl p.text-2xl {
+.rounded-2xl p.text-2xl,
+p.text-2xl.text-black,
+.text-2xl.font-bold.text-black,
+.surface-glass .text-black {
   color: #ffffff !important;
   font-size: 1.5rem !important;
   font-weight: 700 !important;
@@ -1388,6 +1391,20 @@ div[class*="surface-glass"] .bg-slate-50,
 div[class*="surface-glass"] .bg-slate-100 {
   background: rgba(255, 255, 255, 0.06) !important;
   color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Force white text on text-slate-900 within cards */
+.surface-glass .text-slate-900,
+.surface-glass p.text-slate-900,
+div[class*="rounded-2xl"] .text-slate-900 {
+  color: #ffffff !important;
+}
+
+/* Force lighter text on text-slate-600 within cards */
+.surface-glass .text-slate-600,
+.surface-glass p.text-slate-600,
+div[class*="rounded-2xl"] .text-slate-600 {
+  color: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* 4. CALENDAR - Ferie page */
