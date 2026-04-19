@@ -673,11 +673,14 @@ body,
     -webkit-backdrop-filter: blur(12px);
   }
 
-  /** Testo gradiente per titoli scheda e data header */
+  /** Testo gradiente per titoli scheda e data header - contrasto alto su sfondo blu */
   .tab-title-gradient {
-    background: linear-gradient(110deg, #3366CC 0%, #001A80 100%);
+    background: linear-gradient(110deg, #ffffff 0%, #e2e8f0 100%);
     -webkit-background-clip: text;
     background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-fill-color: transparent;
+  }
     -webkit-text-fill-color: transparent;
   }
   /** Card a elevazione media — solo lift, senza specular (neutro su sfondi colorati) */
@@ -1074,6 +1077,15 @@ html.no-motion *::after {
 }
 
 /* ── CONTRASTO AUTOMATICO SU SFONDO BLU ─────────────────────────────── */
+
+/* Forza contrasto alto per testi scuri NON dentro card glass o bg-white */
+body .text-slate-500:not(.surface-glass *, .modal-glass-panel *, .shift-card-ultra *, [class*="bg-white"] *, [class*="bg-slate"] *),
+body .text-slate-600:not(.surface-glass *, .modal-glass-panel *, .shift-card-ultra *, [class*="bg-white"] *, [class*="bg-slate"] *),
+body .text-slate-700:not(.surface-glass *, .modal-glass-panel *, .shift-card-ultra *, [class*="bg-white"] *, [class*="bg-slate"] *),
+body .text-slate-800:not(.surface-glass *, .modal-glass-panel *, .shift-card-ultra *, [class*="bg-white"] *, [class*="bg-slate"] *),
+body .text-slate-900:not(.surface-glass *, .modal-glass-panel *, .shift-card-ultra *, [class*="bg-white"] *, [class*="bg-slate"] *) {
+  color: rgb(226 232 240) !important; /* slate-200 per alto contrasto */
+}
 
 /* Utility per forzare contrasto alto su sfondo scuro - usare manualmente */
 .force-text-light {
