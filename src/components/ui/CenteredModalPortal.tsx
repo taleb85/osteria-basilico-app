@@ -1,4 +1,4 @@
-import { type ReactNode, type RefObject, type LegacyRef } from 'react';
+import { type ReactNode, type RefObject, type LegacyRef, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
@@ -19,6 +19,8 @@ type CenteredModalPortalProps = {
   panelWidthClass?: string;
   /** classi extra sul pannello (es. py-1) */
   panelClassName?: string;
+  /** stili inline extra sul pannello */
+  panelStyle?: CSSProperties;
   /** Per `isDatePickerPortalClick`: attributo sull’overlay root. */
   markDatePickerPortal?: boolean;
   /** Sopra bottom bar (z-50), overlay sync header, ecc. */
@@ -41,6 +43,7 @@ export function CenteredModalPortal({
   maxHeightClass = 'max-h-[min(90dvh,720px)]',
   panelWidthClass = 'w-full',
   panelClassName = '',
+  panelStyle,
   markDatePickerPortal = false,
   overlayZClass = 'z-[999999]',
   disableBackdropClose = true,
@@ -77,6 +80,7 @@ export function CenteredModalPortal({
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28, mass: 0.8 }}
             className={`relative z-10 ${panelWidthClass} ${maxWidthClass} ${maxHeightClass} overflow-y-auto overscroll-contain rounded-2xl modal-glass-panel ${panelClassName}`.trim()}
+            style={panelStyle}
             onClick={(e) => e.stopPropagation()}
           >
             {children}

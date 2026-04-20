@@ -403,30 +403,32 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
         onClose={() => setIsQuickSwitchOpen(false)}
         ariaLabel="Cambio rapido utente"
         maxWidthClass="max-w-md"
-        panelClassName="p-0 !bg-white/70 backdrop-blur-2xl border-white/20"
+        panelClassName="p-0"
+        panelStyle={{ background: 'rgba(17,34,64,0.95)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.12)' }}
       >
         <div className="flex flex-col h-full max-h-[80vh]">
-          <div className="p-4 border-b border-black/8 sticky top-0 bg-white/60 backdrop-blur-md z-10 rounded-t-2xl">
+          <div className="p-4 border-b border-white/10 sticky top-0 z-10 rounded-t-2xl" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)' }}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-bold text-gray-800 uppercase tracking-tight">
+              <h3 className="text-base font-semibold text-white uppercase tracking-tight">
                 {tv.quick_switch_title ?? 'Cambio rapido utente'}
               </h3>
               <button
                 onClick={() => setIsQuickSwitchOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-black/6 text-gray-400 hover:text-gray-600 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
               <input
                 type="text"
                 autoFocus
                 value={quickSwitchSearch}
                 onChange={(e) => setQuickSwitchSearch(e.target.value)}
                 placeholder={tv.quick_switch_search_placeholder ?? 'Cerca dipendente...'}
-                className="w-full pl-9 pr-4 py-2 bg-black/5 border border-black/8 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-accent/30 focus:border-accent/30 outline-none"
+                className="w-full pl-9 pr-4 py-2 rounded-xl text-sm focus:ring-2 focus:ring-accent/30 outline-none"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#ffffff' }}
               />
             </div>
           </div>
@@ -444,14 +446,16 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-colors text-left ${
                     currentUser?.id === u.id 
                       ? 'bg-accent/12 text-accent ring-1 ring-accent/20' 
-                      : 'hover:bg-black/5 text-gray-700 hover:text-gray-900'
+                      : 'hover:bg-white/8 text-white/80 hover:text-white'
                   }`}
                 >
                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-sm transition-transform duration-200 ${
                     currentUser?.id === u.id
                       ? 'border border-accent/40 bg-accent/15 text-accent ring-1 ring-accent/30'
-                      : 'border border-black/10 bg-gray-100 text-gray-500'
-                  }`}>
+                      : 'border border-white/15'
+                  }`}
+                  style={currentUser?.id !== u.id ? { background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' } : undefined}
+                  >
                     {uThumb ? (
                       <img
                         src={uThumb}
@@ -478,7 +482,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
               );
             })}
             {filteredUsers.length === 0 && (
-              <div className="p-8 text-center text-gray-400 text-sm">
+              <div className="p-8 text-center text-white/40 text-sm">
                 {tv.quick_switch_no_employee_found ?? 'Nessun dipendente trovato'}
               </div>
             )}
