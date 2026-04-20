@@ -462,14 +462,14 @@ body,
    * variante `--over-content` vetro / più trasparente quando la pagina scrolla sotto la barra.
    */
   .bottom-nav-glass {
-    background: rgba(10, 22, 40, 0.95);
+    background: rgb(11, 53, 115);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid var(--border-color);
+    border-top: none;
     border-left: none;
     border-right: none;
     border-bottom: none;
-    box-shadow: 0 -4px 16px -4px rgba(0, 0, 0, 0.4);
+    box-shadow: rgba(11, 53, 115, 0.4) 0px -4px 16px -4px, rgba(0, 0, 0, 0.15) 0px -2px 8px -2px;
     transition:
       background 0.6s cubic-bezier(0.4, 0, 0.2, 1),
       box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -505,10 +505,10 @@ body,
     z-index: 0;
   }
   .bottom-nav-glass.bottom-nav-glass--over-content {
-    background: rgba(10, 22, 40, 0.95);
+    background: rgb(11, 53, 115);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 -4px 16px -4px rgba(0, 0, 0, 0.4);
+    box-shadow: rgba(11, 53, 115, 0.4) 0px -4px 16px -4px, rgba(0, 0, 0, 0.15) 0px -2px 8px -2px;
   }
   /**
    * Toolbar management — gruppi tipo “segmented control”:
