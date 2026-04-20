@@ -2869,7 +2869,7 @@ export default function Timesheets() {
                     type="button"
                     onClick={() => setAutoApproveBannerDismissed(true)}
                     className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-green-200"
-                    aria-label="Chiudi notifica"
+                    aria-label={t.close}
                     style={{ color: '#166534' }}
                   >
                     <X className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -3608,7 +3608,7 @@ export default function Timesheets() {
                                           setWeekApproveDesktopPos(null);
                                         }}
                                         className="rounded-lg p-1 text-white/50 hover:bg-white/10"
-                                        aria-label="Chiudi"
+                                        aria-label={t.close}
                                       >
                                         <X className="h-4 w-4" />
                                       </button>
@@ -3781,7 +3781,7 @@ export default function Timesheets() {
                                   type="button"
                                   onClick={() => setShowPdfDeptMenu(false)}
                                   className="rounded-lg p-1 text-white/50 transition-colors hover:bg-slate-100 hover:text-white/70"
-                                  aria-label="Chiudi"
+                                  aria-label={t.close}
                                 >
                                   <X className="h-3.5 w-3.5" />
                                 </button>
@@ -3893,7 +3893,7 @@ export default function Timesheets() {
                   <div className="space-y-3">
                     {!userHasShifts ? (
                       <div className="py-4 text-center border-2 border-dashed border-slate-100 rounded-xl">
-                        <p className="text-xs text-white/50 italic">{t.no_shifts_this_week || 'Nessun turno questa settimana'}</p>
+                        <p className="text-xs text-white/50 italic">{t.no_shifts_this_week}</p>
                       </div>
                     ) : (
                       weekDays.map(day => {

@@ -90,7 +90,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50">
                   <BellOff className="h-8 w-8 text-slate-300" />
                 </div>
-                <p className="text-sm font-medium text-white/60">{t.notif_empty_state || 'Nessuna notifica'}</p>
+                <p className="text-sm font-medium text-white/60">{t.notif_empty_state}</p>
               </div>
             ) : (
               <div className="flex flex-col gap-1">

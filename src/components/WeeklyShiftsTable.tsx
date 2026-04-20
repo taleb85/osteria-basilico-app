@@ -3001,12 +3001,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   : `${n} turni copiati dalla settimana precedente`
                               );
                             } else {
-                              showError?.(
-                                (t as Record<string, string>)['bulk_copy_empty'] ?? 'Nessun turno trovato nella settimana precedente'
-                              );
+                              showError?.(t.bulk_copy_empty);
                             }
                           } catch {
-                            showError?.('Errore durante la copia dei turni.');
+                            showError?.(t.save_error_retry);
                           }
                         }}
                         className={`flex w-full items-center gap-2 border-b border-white/10 px-4 py-2 text-left text-sm transition-colors ${bulkCopied ? 'text-emerald-400' : 'text-white/85 hover:bg-white/10'}`}

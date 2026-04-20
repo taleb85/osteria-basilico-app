@@ -84,8 +84,8 @@ export function NotificationDropdown({
           type="button"
           onClick={onClose}
           className="p-0.5 rounded hover:bg-slate-200 transition-colors"
-          title="Chiudi"
-          aria-label="Chiudi notifiche"
+          title={t.close}
+          {...{} } aria-label={t.notif_close_aria}
         >
           <X className="h-4 w-4 text-white/70" />
         </button>

@@ -1131,7 +1131,7 @@ export default function StaffPersonalDashboard({
                 </button>
               )}
               <button type="button" onClick={dismissInstallBanner}
-                className="flex-shrink-0 p-1 rounded-xl text-white/50 hover:text-white/70 hover:bg-slate-100 transition-colors" aria-label="Chiudi">
+                className="flex-shrink-0 p-1 rounded-xl text-white/50 hover:text-white/70 hover:bg-slate-100 transition-colors" aria-label={t.close}>
                 <X className="w-4 h-4" />
               </button>
             </div>

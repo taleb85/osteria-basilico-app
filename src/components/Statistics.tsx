@@ -558,7 +558,7 @@ export default function Statistics() {
                             <CenteredModalPortal open={showDeptMenu} onClose={() => setShowDeptMenu(false)} maxWidthClass="max-w-[280px]" panelClassName="p-1" disableBackdropClose>
                               <div className="flex items-center justify-between px-2 py-1.5 border-b border-white/10 mb-1">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-white/45">{t.department_filter_label}</span>
-                                <button type="button" onClick={() => setShowDeptMenu(false)} className="rounded-lg p-1 text-white/45 transition-colors hover:bg-white/10 hover:text-white/70" aria-label="Chiudi">
+                                <button type="button" onClick={() => setShowDeptMenu(false)} className="rounded-lg p-1 text-white/45 transition-colors hover:bg-white/10 hover:text-white/70" aria-label={t.close}>
                                   <X className="h-3.5 w-3.5" />
                                 </button>
                               </div>

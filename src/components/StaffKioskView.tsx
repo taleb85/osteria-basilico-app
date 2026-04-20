@@ -162,7 +162,7 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
             className="mt-6 w-full bg-gray-900 text-white rounded-2xl py-4 font-bold uppercase tracking-wider hover:bg-black transition-all flex items-center justify-center space-x-2"
           >
             <X className="w-5 h-5" />
-            <span>Chiudi</span>
+            <span>{t.close}</span>
           </button>
         </motion.div>
       </div>
