@@ -14,7 +14,7 @@ type AdminTab = 'profili' | 'regole' | 'impostazioni';
 
 /** `overflow-visible` così il pannello del menu hamburger non viene tagliato dal bordo arrotondato. */
 const adminHeaderCardClass =
-  'w-full rounded-2xl border border-slate-100 bg-white/80 shadow-[0_4px_16px_-4px_rgba(0,26,128,0.10),0_2px_8px_-4px_rgba(15,23,42,0.08)])] overflow-visible supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
+  'w-full rounded-2xl border border-white/12 overflow-visible supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -70,7 +70,7 @@ export default function AdminLayout() {
   }, [currentUser]);
 
   return (
-    <div className="min-h-screen min-h-[100dvh] w-full bg-[#f8fafc] text-[#1a1a1a] font-sans antialiased flex flex-col safe-area-pad overflow-x-clip">
+    <div className="min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased flex flex-col safe-area-pad overflow-x-clip page-depth-bg">
       <header className="sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2">
         <div className={`${adminHeaderCardClass}`}>
           {/* Riga principale: torna + tab inline */}
@@ -79,7 +79,7 @@ export default function AdminLayout() {
             <button
               type="button"
               onClick={() => navigate('/app')}
-              className="flex items-center gap-1.5 min-h-[36px] px-2 -ml-1 rounded-xl text-slate-500 hover:text-accent hover:bg-accent/[0.07] font-medium text-sm transition-colors shrink-0"
+              className="flex items-center gap-1.5 min-h-[36px] px-2 -ml-1 rounded-xl text-white/70 hover:text-white hover:bg-white/10 font-medium text-sm transition-colors shrink-0"
             >
               <ArrowLeft className="w-4 h-4 shrink-0 text-accent/70" />
               <span className="hidden sm:inline">{t.admin_back_to_app}</span>
@@ -92,9 +92,9 @@ export default function AdminLayout() {
                 type="button"
                 onClick={() => selectAdminTab('profili')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                  activeTab === 'profili'
+                    activeTab === 'profili'
                     ? 'bg-accent text-white shadow-sm'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                    : 'text-white/60 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -109,7 +109,7 @@ export default function AdminLayout() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                     activeTab === 'regole'
                       ? 'bg-accent text-white shadow-sm'
-                      : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                      : 'text-white/60 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   <LayoutList className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -125,7 +125,7 @@ export default function AdminLayout() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                     activeTab === 'impostazioni'
                       ? 'bg-accent text-white shadow-sm'
-                      : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                      : 'text-white/60 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   <Settings className="h-3.5 w-3.5 shrink-0" aria-hidden />
