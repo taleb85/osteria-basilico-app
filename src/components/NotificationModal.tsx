@@ -58,7 +58,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
         <button
           type="button"
           className="absolute inset-0 bg-black/40 backdrop-blur-md w-screen h-screen"
-          aria-label={t.close}
+          aria-label="Chiudi"
           onClick={onClose}
         />
 
