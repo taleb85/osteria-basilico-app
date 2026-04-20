@@ -74,12 +74,12 @@ function MaintenancePage() {
       <div className="w-20 h-20 rounded-2xl bg-amber-100 flex items-center justify-center mb-6 shadow-sm">
         <Wrench className="w-10 h-10 text-amber-500" />
       </div>
-      <h1 className="text-2xl font-bold text-slate-800 mb-2">In Manutenzione</h1>
-      <p className="text-slate-500 text-base max-w-xs leading-relaxed mb-1">
+      <h1 className="text-2xl font-bold text-white/90 mb-2">In Manutenzione</h1>
+      <p className="text-white/60 text-base max-w-xs leading-relaxed mb-1">
         L'app è temporaneamente in manutenzione.
       </p>
-      <p className="text-slate-400 text-sm mb-8">Torneremo attivi tra poco. 👨‍🍳</p>
-      <div className="surface-glass-sm px-4 py-2 text-[11px] text-slate-500">
+      <p className="text-white/50 text-sm mb-8">Torneremo attivi tra poco. 👨‍🍳</p>
+      <div className="surface-glass-sm px-4 py-2 text-[11px] text-white/60">
         Per assistenza contatta il responsabile.
       </div>
     </div>
@@ -152,7 +152,7 @@ function KioskRoute() {
   if (featureFlags['kiosk_active'] === false) return null;
 
   return (
-    <div className="min-h-screen w-full flex flex-col safe-area-pad bg-[#f8fafc] font-sans antialiased text-slate-900">
+    <div className="min-h-screen w-full flex flex-col safe-area-pad bg-[#f8fafc] font-sans antialiased text-white">
       <PunchInKiosk onGoToLogin={() => navigate(PATH_PROFILO)} />
     </div>
   );
@@ -1149,7 +1149,7 @@ function App() {
         <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-6 text-center">
           <div>
             <h1 className="text-2xl font-bold mb-2">SuperAdmin Disabilitato</h1>
-            <p className="text-slate-400">Migra a Vercel Serverless Function con service role key server-side.</p>
+            <p className="text-white/50">Migra a Vercel Serverless Function con service role key server-side.</p>
           </div>
         </div>
       } />

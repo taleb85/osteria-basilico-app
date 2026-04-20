@@ -191,8 +191,8 @@ export default function MobileHome({
               boxShadow: '0 8px 32px 0 rgba(11, 53, 115, 0.08)',
             }}
           >
-            <Clock className="w-6 h-6 text-slate-500 shrink-0" strokeWidth={1.5} />
-            <span className="text-4xl shift-time-clean font-medium text-slate-900">
+            <Clock className="w-6 h-6 text-white/60 shrink-0" strokeWidth={1.5} />
+            <span className="text-4xl shift-time-clean font-medium text-white">
               {elapsedLabel}
             </span>
           </div>

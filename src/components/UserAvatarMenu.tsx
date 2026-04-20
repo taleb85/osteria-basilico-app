@@ -142,14 +142,14 @@ export default function UserAvatarMenu({
           onClick={() => setIsOpen(!isOpen)}
           title={titleHint}
           aria-label={`${t.sidebar_profile}: ${titleHint}`}
-          className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 text-slate-700 surface-ghost-interactive hover:text-slate-900 touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+          className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 text-white/80 surface-ghost-interactive hover:text-white touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
         >
           <span className="text-[14px] font-bold leading-none select-none" aria-hidden>
             {profileInitial}
           </span>
           {displayRole ? (
             <span
-              className="w-full text-center text-[8px] font-semibold uppercase leading-tight text-slate-500 truncate select-none"
+              className="w-full text-center text-[8px] font-semibold uppercase leading-tight text-white/60 truncate select-none"
               aria-hidden
             >
               {displayRole}
@@ -168,7 +168,7 @@ export default function UserAvatarMenu({
         >
           <div className="flex flex-col items-end min-w-0 text-right">
             <span
-              className={`font-semibold text-slate-900 uppercase tracking-wide truncate max-w-[200px] ${
+              className={`font-semibold text-white uppercase tracking-wide truncate max-w-[200px] ${
                 dense ? 'text-xs' : 'text-sm'
               }`}
             >
@@ -176,13 +176,13 @@ export default function UserAvatarMenu({
             </span>
             {displayRole ? (
               <span
-                className={`font-medium text-slate-500 truncate max-w-[200px] ${dense ? 'text-[10px]' : 'text-[11px]'}`}
+                className={`font-medium text-white/60 truncate max-w-[200px] ${dense ? 'text-[10px]' : 'text-[11px]'}`}
               >
                 {displayRole}
               </span>
             ) : null}
           </div>
-          <ChevronRight className={`text-slate-400 shrink-0 ${dense ? 'w-4 h-4' : 'w-5 h-5'}`} strokeWidth={2} aria-hidden />
+          <ChevronRight className={`text-white/50 shrink-0 ${dense ? 'w-4 h-4' : 'w-5 h-5'}`} strokeWidth={2} aria-hidden />
         </button>
       ) : (
         <button
@@ -227,11 +227,11 @@ export default function UserAvatarMenu({
                   className="relative z-[9999] mx-4 w-full max-w-sm overflow-visible rounded-2xl modal-glass-panel p-5 font-sans"
                 >
                   <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-                    <h3 className="text-base font-bold text-slate-900">{t.profile_settings}</h3>
+                    <h3 className="text-base font-bold text-white">{t.profile_settings}</h3>
                     <button
                       type="button"
                       onClick={() => setIsOpen(false)}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl text-white/60 hover:text-white/90 hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                       aria-label={t.close}
                     >
                       <span className="text-xl leading-none">×</span>

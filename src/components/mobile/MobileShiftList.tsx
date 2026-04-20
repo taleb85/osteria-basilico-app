@@ -16,9 +16,9 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
         <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-          <Calendar className="w-8 h-8 text-slate-400" />
+          <Calendar className="w-8 h-8 text-white/50" />
         </div>
-        <p className="text-slate-500 font-medium">Nessun turno in programma</p>
+        <p className="text-white/60 font-medium">Nessun turno in programma</p>
       </div>
     );
   }
@@ -36,19 +36,19 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
           >
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
+                <p className="text-xs font-bold text-white/50 uppercase tracking-widest mb-1">
                   {safeFormatDate(shift.date, 'EEEE d MMMM', { locale })}
                 </p>
                 <div className="flex items-center gap-2">
                   <Clock className="w-5 h-5 text-accent" />
-                  <p className="text-2xl font-bold text-slate-900 tabular-nums">
+                  <p className="text-2xl font-bold text-white tabular-nums">
                     {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                   </p>
                 </div>
               </div>
               
               {shift.department && (
-                <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wider border border-slate-200">
+                <span className="px-3 py-1 rounded-full bg-slate-100 text-white/70 text-[10px] font-black uppercase tracking-wider border border-slate-200">
                   {translateDepartmentValue(shift.department, language as any)}
                 </span>
               )}
@@ -59,13 +59,13 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
                 <div className={`w-2 h-2 rounded-full ${
                   isAbsent ? 'bg-red-500' : isDraft ? 'bg-slate-300' : 'bg-brand-500'
                 }`} />
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <span className="text-[11px] font-bold text-white/60 uppercase tracking-wider">
                   {isAbsent ? 'Assente' : isDraft ? 'Bozza' : 'Confermato'}
                 </span>
               </div>
               
               {shift.notes && !shift.notes.startsWith('__OPEN__') && (
-                <p className="text-[11px] text-slate-400 italic truncate max-w-[150px]">
+                <p className="text-[11px] text-white/50 italic truncate max-w-[150px]">
                   {shift.notes}
                 </p>
               )}

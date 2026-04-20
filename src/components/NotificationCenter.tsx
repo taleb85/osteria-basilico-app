@@ -75,12 +75,12 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
       <CenteredModalPortal open={isOpen} onClose={() => setIsOpen(false)}>
         <div className="flex h-full max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-            <h3 className="text-lg font-bold text-slate-900">{t.profile_notifications}</h3>
+            <h3 className="text-lg font-bold text-white">{t.profile_notifications}</h3>
             <button
               onClick={() => setIsOpen(false)}
               className="rounded-full p-2 hover:bg-white/10"
             >
-              <X className="h-5 w-5 text-slate-500" />
+              <X className="h-5 w-5 text-white/60" />
             </button>
           </div>
 
@@ -90,7 +90,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50">
                   <BellOff className="h-8 w-8 text-slate-300" />
                 </div>
-                <p className="text-sm font-medium text-slate-500">{t.notif_empty_state || 'Nessuna notifica'}</p>
+                <p className="text-sm font-medium text-white/60">{t.notif_empty_state || 'Nessuna notifica'}</p>
               </div>
             ) : (
               <div className="flex flex-col gap-1">
@@ -103,9 +103,9 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
                   >
                     <div className="mt-0.5 shrink-0">{getIcon(n.type, n.severity)}</div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-slate-900">{n.title}</p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-slate-600">{n.body}</p>
-                      <p className="mt-2 text-[10px] font-medium uppercase tracking-wider text-slate-400">
+                      <p className="text-sm font-bold text-white">{n.title}</p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-white/70">{n.body}</p>
+                      <p className="mt-2 text-[10px] font-medium uppercase tracking-wider text-white/50">
                         {n.timestamp}
                       </p>
                     </div>

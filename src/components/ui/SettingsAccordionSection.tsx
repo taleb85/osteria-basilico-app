@@ -53,15 +53,15 @@ export function SettingsAccordionSection({
         aria-expanded={open}
       >
         <div className="min-w-0 flex-1">
-          <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-700">{title}</h2>
+          <h2 className="text-[11px] font-semibold uppercase tracking-widest text-white/80">{title}</h2>
           {subtitle ? (
-            <p className="mt-0.5 text-left text-[11px] font-normal normal-case tracking-normal text-slate-400">
+            <p className="mt-0.5 text-left text-[11px] font-normal normal-case tracking-normal text-white/50">
               {subtitle}
             </p>
           ) : null}
         </div>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 shrink-0 text-white/50 transition-transform ${open ? 'rotate-180' : ''}`}
           aria-hidden
         />
       </button>

@@ -92,8 +92,8 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
   };
 
   const inputCls =
-    'w-full px-3 py-2.5 text-sm rounded-2xl bg-white border border-slate-100 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-slate-900 placeholder:text-slate-500 transition-all';
-  const labelCls = 'block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1';
+    'w-full px-3 py-2.5 text-sm rounded-2xl bg-white border border-slate-100 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-white placeholder:text-white/60 transition-all';
+  const labelCls = 'block text-xs font-semibold text-white/70 uppercase tracking-wider mb-1';
 
   if (!isOpen) return null;
 
@@ -143,7 +143,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
         <label className={labelCls}>
           <FileText className="inline h-3 w-3 mr-1" aria-hidden />
           {reasonLbl}{' '}
-          <span className="text-slate-400 normal-case font-normal">{reasonOpt}</span>
+          <span className="text-white/50 normal-case font-normal">{reasonOpt}</span>
         </label>
         <textarea
           value={reason}
@@ -174,14 +174,14 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
             className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-[0_8px_40px_-12px_rgba(0,26,128,0.12)])]"
           >
             <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))]">
-              <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+              <h3 className="text-lg font-bold text-white">{title}</h3>
               <button
                 type="button"
                 onClick={() => {
                   lightHaptic();
                   handleClose();
                 }}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-white/70 transition-colors hover:bg-slate-200"
                 aria-label={t.cancel}
               >
                 <X className="h-5 w-5" />
@@ -200,7 +200,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
                     lightHaptic();
                     handleClose();
                   }}
-                  className="min-h-[56px] rounded-3xl border border-slate-200 text-base font-bold text-slate-700 transition-colors active:scale-[0.99]"
+                  className="min-h-[56px] rounded-3xl border border-slate-200 text-base font-bold text-white/80 transition-colors active:scale-[0.99]"
                 >
                   {t.cancel}
                 </button>
@@ -244,14 +244,14 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
           className="modal-glass-panel w-full max-w-md rounded-3xl p-6 shadow-[0_8px_32px_-8px_rgba(0,26,128,0.12)]"
         >
           <div className="mb-5 flex items-center justify-between">
-            <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+            <h3 className="text-base font-semibold text-white">{title}</h3>
             <button
               type="button"
               onClick={() => {
                 lightHaptic();
                 handleClose();
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-white/70 transition-colors hover:bg-slate-200"
             >
               <X className="h-4 w-4" />
             </button>

@@ -312,7 +312,7 @@ export function MessageWriter({
           rows={4}
           className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40 resize-none"
         />
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-white/50">
           {body.length}/500 {t.messages_chars_count ?? 'caratteri'}
         </p>
       </div>

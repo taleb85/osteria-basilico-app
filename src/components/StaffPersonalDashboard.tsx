@@ -150,10 +150,10 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                   >
                     {/* Day header */}
                     <div className={`px-3 py-3 ${today ? 'bg-white/15' : ''}`}>
-                      <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-black' : 'text-white/70'}`}>
+                      <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-white' : 'text-white/70'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
-                      <p className={`text-base font-semibold ${today ? 'text-black' : 'text-white/90'}`}>
+                      <p className={`text-base font-semibold ${today ? 'text-white' : 'text-white/90'}`}>
                         {format(day, 'd')}
                       </p>
                     </div>
@@ -193,7 +193,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                                   {shift.start_time.slice(0, 5)}–{shift.end_time?.slice(0, 5) ?? '…'}
                                 </p>
                                 {/* Ore totali piccole sotto */}
-                                <p className="text-xs font-medium text-slate-400 mt-0.5">
+                                <p className="text-xs font-medium text-white/50 mt-0.5">
                                   {hoursLabel}
                                 </p>
                               </>
@@ -324,10 +324,10 @@ function StaffDesktopTimesheet({
                   >
                     {/* Day header */}
                     <div className={`px-3 py-3 ${today ? 'bg-white/15' : ''}`}>
-                      <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-black' : 'text-white/70'}`}>
+                      <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-white' : 'text-white/70'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
-                      <p className={`text-base font-semibold ${today ? 'text-black' : 'text-white/90'}`}>
+                      <p className={`text-base font-semibold ${today ? 'text-white' : 'text-white/90'}`}>
                         {format(day, 'd')}
                       </p>
                     </div>
@@ -361,7 +361,7 @@ function StaffDesktopTimesheet({
                                 <p className={`shift-time-ultra shift-time-clean leading-tight ${statusCls}`}>
                                   {shift.start_time.slice(0, 5)}–{shift.end_time?.slice(0, 5) ?? '…'}
                                 </p>
-                                <p className="text-xs font-medium text-slate-400 mt-0.5">
+                                <p className="text-xs font-medium text-white/50 mt-0.5">
                                   {hoursLabel}
                                 </p>
                               </>
@@ -773,14 +773,14 @@ export default function StaffPersonalDashboard({
         <button
           type="button"
           onClick={() => setMobileNavOffset(o => o - 1)}
-          className="flex items-center justify-center h-9 w-9 text-slate-500 hover:bg-slate-50 transition-colors shrink-0 border-r border-slate-100"
+          className="flex items-center justify-center h-9 w-9 text-white/60 hover:bg-slate-50 transition-colors shrink-0 border-r border-slate-100"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
 
         <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0">
-          <Calendar className="h-3 w-3 text-slate-400 shrink-0" />
-          <span className="text-[10px] font-bold text-slate-700 tabular-nums truncate">
+          <Calendar className="h-3 w-3 text-white/50 shrink-0" />
+          <span className="text-[10px] font-bold text-white/80 tabular-nums truncate">
             {mobileNavTab === 'week'
               ? `S.${getISOWeek(mobileRange.start)} · ${format(mobileRange.start, 'd MMM', { locale: mobileLocale })} – ${format(mobileRange.end, 'd MMM', { locale: mobileLocale })}`
               : `${format(mobileRange.start, 'd MMM', { locale: mobileLocale })} – ${format(mobileRange.end, 'd MMM yy', { locale: mobileLocale })}`
@@ -791,7 +791,7 @@ export default function StaffPersonalDashboard({
         <button
           type="button"
           onClick={() => setMobileNavOffset(o => o + 1)}
-          className="flex items-center justify-center h-9 w-9 text-slate-500 hover:bg-slate-50 transition-colors shrink-0 border-l border-slate-100"
+          className="flex items-center justify-center h-9 w-9 text-white/60 hover:bg-slate-50 transition-colors shrink-0 border-l border-slate-100"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -822,24 +822,24 @@ export default function StaffPersonalDashboard({
       {uiW('staff_profile.panel') && (
       <div className="surface-glass">
         <div className="px-5 py-4 border-b border-slate-100">
-          <h3 className="ui-section-title text-slate-600">{(t as { profile_settings?: string }).profile_settings ?? 'Impostazioni profilo'}</h3>
+          <h3 className="ui-section-title text-white/70">{(t as { profile_settings?: string }).profile_settings ?? 'Impostazioni profilo'}</h3>
         </div>
         <div>
           <AdminRow
             label={t.sidebar_profile}
-            action={<span className="text-sm font-semibold text-slate-900 uppercase tracking-wide truncate max-w-[55%] text-right">{displayName}</span>}
+            action={<span className="text-sm font-semibold text-white uppercase tracking-wide truncate max-w-[55%] text-right">{displayName}</span>}
           />
           <AdminRow
             label={(t as { email?: string }).email ?? 'Email'}
-            action={<span className="text-sm text-slate-600 truncate max-w-[55%] text-right">{displayUser?.email ?? '—'}</span>}
+            action={<span className="text-sm text-white/70 truncate max-w-[55%] text-right">{displayUser?.email ?? '—'}</span>}
           />
           <AdminRow
             label={(t as { phone?: string }).phone ?? 'Telefono'}
-            action={<span className="text-sm text-slate-600">{displayUser?.phone ?? '—'}</span>}
+            action={<span className="text-sm text-white/70">{displayUser?.phone ?? '—'}</span>}
           />
           <AdminRow
             label={(t as { department_label?: string }).department_label ?? 'Reparto'}
-            action={<span className="text-sm text-slate-600">{displayDept}</span>}
+            action={<span className="text-sm text-white/70">{displayDept}</span>}
           />
           <AdminRow label={t.profile_notifications} action={<NotificationCenter denseTrigger />} />
           <AdminRow
@@ -869,11 +869,11 @@ export default function StaffPersonalDashboard({
                     setSeedingDemoProfile(false);
                   }
                 }}
-                className="w-full py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-60 transition-colors"
+                className="w-full py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider bg-slate-100 text-white/80 hover:bg-slate-200 disabled:opacity-60 transition-colors"
               >
                 {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
               </button>
-              <p className="text-[10px] text-slate-400 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
+              <p className="text-[10px] text-white/50 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
             </div>
           )}
           <button
@@ -911,16 +911,16 @@ export default function StaffPersonalDashboard({
   // Profilo gestionale solo Admin: nessun turno assegnato (Proprietario = stesso flusso Manager)
   if (isPurelyManagementRole(displayUser.role)) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans antialiased flex flex-col items-center justify-center px-6 safe-area-pad">
+      <div className="min-h-screen bg-[#f8fafc] text-white/90 font-sans antialiased flex flex-col items-center justify-center px-6 safe-area-pad">
         <div className="surface-glass max-w-sm p-8 text-center">
-          <Shield className="w-14 h-14 text-slate-500 mx-auto mb-4" strokeWidth={1.5} />
-          <h2 className="text-lg font-bold text-slate-800 mb-2">Profilo Gestionale</h2>
-          <p className="text-slate-500 text-sm">Nessun turno assegnato</p>
-          <p className="text-slate-500 text-xs mt-3">Questo profilo è riservato alla gestione. Accedi al pannello di controllo per amministrare turni e personale.</p>
+          <Shield className="w-14 h-14 text-white/60 mx-auto mb-4" strokeWidth={1.5} />
+          <h2 className="text-lg font-bold text-white/90 mb-2">Profilo Gestionale</h2>
+          <p className="text-white/60 text-sm">Nessun turno assegnato</p>
+          <p className="text-white/60 text-xs mt-3">Questo profilo è riservato alla gestione. Accedi al pannello di controllo per amministrare turni e personale.</p>
           <button
             type="button"
             onClick={onLogout}
-            className="mt-6 w-full py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition-colors"
+            className="mt-6 w-full py-3 rounded-xl bg-slate-100 text-white/80 font-semibold text-sm hover:bg-slate-200 transition-colors"
           >
             {(t as { header_logout?: string }).header_logout ?? 'Esci'}
           </button>
@@ -938,7 +938,7 @@ export default function StaffPersonalDashboard({
   );
 
   return (
-    <div className="w-full scroll-smooth text-slate-800 font-sans antialiased pb-content">
+    <div className="w-full scroll-smooth text-white/90 font-sans antialiased pb-content">
       {holidaysFocus && (
         <div className="mb-3 flex items-center gap-2">
           <button
@@ -966,8 +966,8 @@ export default function StaffPersonalDashboard({
                   boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
                 }}
               >
-                <p className="text-slate-500 text-[10px] font-medium uppercase tracking-widest mb-1">{t.week_hours}</p>
-                <p className="text-slate-900 text-2xl font-bold tabular-nums">{totalApprovedHours}</p>
+                <p className="text-white/60 text-[10px] font-medium uppercase tracking-widest mb-1">{t.week_hours}</p>
+                <p className="text-white text-2xl font-bold tabular-nums">{totalApprovedHours}</p>
               </div>
               <div className="rounded-2xl px-4 py-3 text-center"
                 style={{ 
@@ -978,8 +978,8 @@ export default function StaffPersonalDashboard({
                   boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
                 }}
               >
-                <p className="text-slate-500 text-[10px] font-medium uppercase tracking-widest mb-1">{t.shifts_week}</p>
-                <p className="text-slate-900 text-2xl font-bold tabular-nums">{upcomingShifts.length + todayShifts.length}</p>
+                <p className="text-white/60 text-[10px] font-medium uppercase tracking-widest mb-1">{t.shifts_week}</p>
+                <p className="text-white text-2xl font-bold tabular-nums">{upcomingShifts.length + todayShifts.length}</p>
               </div>
             </div>
           </div>
@@ -1018,7 +1018,7 @@ export default function StaffPersonalDashboard({
                               className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
                                 active
                                   ? 'bg-[#3366CC] text-white shadow-sm'
-                                  : 'bg-transparent border border-slate-200 text-slate-500 hover:border-[#3366CC]/40 hover:text-[#3366CC]'
+                                  : 'bg-transparent border border-slate-200 text-white/60 hover:border-[#3366CC]/40 hover:text-[#3366CC]'
                               }`}
                             >
                               {label}
@@ -1115,13 +1115,13 @@ export default function StaffPersonalDashboard({
                 {isIos ? <Share className="w-4 h-4 text-white" /> : <Download className="w-4 h-4 text-white" />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 leading-tight">Installa l'app FLOW</p>
+                <p className="text-sm font-semibold text-white/90 leading-tight">Installa l'app FLOW</p>
                 {isIos ? (
-                  <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                  <p className="text-[11px] text-white/60 mt-0.5 leading-snug">
                     Tocca <strong>Condividi</strong> → <strong>Aggiungi a schermata Home</strong>
                   </p>
                 ) : (
-                  <p className="text-[11px] text-slate-500 mt-0.5">Accedi più velocemente ai tuoi turni</p>
+                  <p className="text-[11px] text-white/60 mt-0.5">Accedi più velocemente ai tuoi turni</p>
                 )}
               </div>
               {!isIos && (
@@ -1131,7 +1131,7 @@ export default function StaffPersonalDashboard({
                 </button>
               )}
               <button type="button" onClick={dismissInstallBanner}
-                className="flex-shrink-0 p-1 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" aria-label="Chiudi">
+                className="flex-shrink-0 p-1 rounded-xl text-white/50 hover:text-white/70 hover:bg-slate-100 transition-colors" aria-label="Chiudi">
                 <X className="w-4 h-4" />
               </button>
             </div>

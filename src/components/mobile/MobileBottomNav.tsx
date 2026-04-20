@@ -85,7 +85,7 @@ export default function MobileBottomNav({ activeTab, onNavigate, visibleTabs, la
             className={`flex h-full min-h-[48px] min-w-[48px] flex-col items-center justify-center flex-1 transition-colors duration-200 gap-1 py-2 ${
               isActive
                 ? 'text-accent'
-                : 'text-slate-400'
+                : 'text-white/50'
             }`}
           >
             <Icon

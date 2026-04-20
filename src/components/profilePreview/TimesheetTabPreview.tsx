@@ -48,21 +48,21 @@ export default function TimesheetTabPreview({
       >
         <div className="surface-glass-sm flex items-center gap-3 px-4 py-3 shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-            <ClipboardList className="h-5 w-5 text-slate-500" />
+            <ClipboardList className="h-5 w-5 text-white/60" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-slate-800">{t.timesheet_title}</p>
+              <p className="text-sm font-semibold text-white/90">{t.timesheet_title}</p>
               <div className="flex items-center gap-1">
-                <div className="rounded-lg border border-slate-200 p-1 text-slate-400">
+                <div className="rounded-lg border border-slate-200 p-1 text-white/50">
                   <ChevronLeft className="h-3 w-3" />
                 </div>
-                <div className="rounded-lg border border-slate-200 p-1 text-slate-400">
+                <div className="rounded-lg border border-slate-200 p-1 text-white/50">
                   <ChevronRight className="h-3 w-3" />
                 </div>
               </div>
             </div>
-            <p className="mt-0.5 text-[10px] font-medium text-slate-500">
+            <p className="mt-0.5 text-[10px] font-medium text-white/60">
               {t.stats_preset_current_week}
             </p>
           </div>
@@ -86,8 +86,8 @@ export default function TimesheetTabPreview({
             { v: '12', l: t.home_stat_approved, b: 'border-slate-100' },
           ].map((c) => (
             <div key={c.l} className={`surface-glass-sm p-3 text-center ${c.b} shadow-sm border border-slate-100`} style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
-              <p className="text-xl font-bold text-slate-900">{c.v}</p>
-              <p className="mt-0.5 text-[10px] font-medium text-slate-500">{c.l}</p>
+              <p className="text-xl font-bold text-white">{c.v}</p>
+              <p className="mt-0.5 text-[10px] font-medium text-white/60">{c.l}</p>
             </div>
           ))}
         </div>
@@ -104,15 +104,15 @@ export default function TimesheetTabPreview({
       >
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <div className="surface-glass-sm p-3 shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
-            <p className="text-[10px] font-bold uppercase text-slate-400">{t.stats_approved_hours}</p>
-            <p className="text-xl font-bold text-slate-900">128:30</p>
+            <p className="text-[10px] font-bold uppercase text-white/50">{t.stats_approved_hours}</p>
+            <p className="text-xl font-bold text-white">128:30</p>
           </div>
           <div className="surface-glass-sm p-3 shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
-            <p className="text-[10px] font-bold uppercase text-slate-400">{t.stats_estimated_cost}</p>
-            <p className="text-xl font-bold text-slate-900">—</p>
+            <p className="text-[10px] font-bold uppercase text-white/50">{t.stats_estimated_cost}</p>
+            <p className="text-xl font-bold text-white">—</p>
           </div>
           <div className="surface-glass-sm p-3 shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
-            <p className="text-[10px] font-bold uppercase text-slate-400">{t.pending}</p>
+            <p className="text-[10px] font-bold uppercase text-white/50">{t.pending}</p>
             <p className="text-xl font-bold text-amber-800">3</p>
           </div>
         </div>
@@ -128,13 +128,13 @@ export default function TimesheetTabPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="space-y-2">
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800">
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-white/90">
             <span>{t.mod_stats_hours}</span>
-            <ChevronDown className="h-4 w-4 text-slate-400" />
+            <ChevronDown className="h-4 w-4 text-white/50" />
           </div>
-          <div className="flex items-center justify-between surface-glass-sm px-3 py-2.5 text-sm font-semibold text-slate-800">
+          <div className="flex items-center justify-between surface-glass-sm px-3 py-2.5 text-sm font-semibold text-white/90">
             <span>{t.sidebar_shifts}</span>
-            <ChevronDown className="h-4 w-4 text-slate-400" />
+            <ChevronDown className="h-4 w-4 text-white/50" />
           </div>
         </div>
       </WidgetChrome>
@@ -165,14 +165,14 @@ export default function TimesheetTabPreview({
       >
         <div className="surface-glass-sm overflow-hidden shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
           <div className="grid grid-cols-[minmax(4rem,1fr)_repeat(4,minmax(0,1fr))] gap-px bg-slate-100 text-[9px]">
-            <div className="bg-white px-1 py-2 font-bold text-slate-400">Staff</div>
+            <div className="bg-white px-1 py-2 font-bold text-white/50">Staff</div>
             {['Lun', 'Mar', 'Mer', 'Gio'].map((d) => (
-              <div key={d} className="bg-white py-2 text-center font-bold text-slate-400">
+              <div key={d} className="bg-white py-2 text-center font-bold text-white/50">
                 {d}
               </div>
             ))}
             <div className="contents">
-              <div className="bg-white px-2 py-2 font-semibold text-slate-700">{previewUser.first_name}</div>
+              <div className="bg-white px-2 py-2 font-semibold text-white/80">{previewUser.first_name}</div>
               {dailyHours.map((hours, i) => (
                 <div key={i} className="min-h-[36px] bg-white p-0.5 text-center">
                   {hours || <span className="text-slate-200">—</span>}
@@ -194,11 +194,11 @@ export default function TimesheetTabPreview({
       >
         <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-            <Layout className="h-5 w-5 text-slate-500" />
+            <Layout className="h-5 w-5 text-white/60" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-slate-800">Popup revisione timbratura</p>
-            <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500">
+            <p className="text-sm font-semibold text-white/90">Popup revisione timbratura</p>
+            <p className="mt-0.5 text-[10px] leading-relaxed text-white/60">
               {tv.profile_visibility_generic_widget_demo ?? 'Contenuto dimostrativo: in app qui compariranno i dati reali.'}
             </p>
           </div>
@@ -216,8 +216,8 @@ export default function TimesheetTabPreview({
       >
         <div className="rounded-xl border border-accent/25 bg-accent/5 p-4">
           <p className="text-[10px] font-bold uppercase tracking-widest text-accent-dark/80">{t.timesheet_my_week}</p>
-          <p className="mt-1 text-lg font-bold text-slate-900">32:00</p>
-          <p className="text-xs text-slate-600">{t.shifts_week}</p>
+          <p className="mt-1 text-lg font-bold text-white">32:00</p>
+          <p className="text-xs text-white/70">{t.shifts_week}</p>
         </div>
       </WidgetChrome>
       )}

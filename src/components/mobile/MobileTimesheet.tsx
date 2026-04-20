@@ -63,9 +63,9 @@ export default function MobileTimesheet({
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-white/[0.08]">
-          <Clock className="w-7 h-7 text-slate-400" />
+          <Clock className="w-7 h-7 text-white/50" />
         </div>
-        <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
+        <p className="text-white/50 font-bold uppercase tracking-widest text-[10px]">
           {t.no_shifts_scheduled ?? 'Nessuno storico disponibile'}
         </p>
       </div>
@@ -115,10 +115,10 @@ export default function MobileTimesheet({
                   <Calendar className="w-3.5 h-3.5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-0.5">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-white/50 leading-none mb-0.5">
                     {t.week_label ?? 'Sett.'}
                   </p>
-                  <p className="text-sm font-bold text-slate-800 leading-none">
+                  <p className="text-sm font-bold text-white/90 leading-none">
                     {format(week.start, 'd MMM', { locale })} – {format(week.end, 'd MMM', { locale })}
                   </p>
                 </div>
@@ -170,7 +170,7 @@ export default function MobileTimesheet({
                           <div className="flex items-center justify-between mb-1.5">
                             {/* Ore lavorate */}
                             <p className={`font-black tabular-nums text-xl leading-none ${
-                              isAbsent ? 'text-slate-400' : 'text-slate-800'
+                              isAbsent ? 'text-white/50' : 'text-white/90'
                             }`}>
                               {isAbsent ? '—' : hoursWorked}
                             </p>
@@ -183,12 +183,12 @@ export default function MobileTimesheet({
                           {/* Orario pianificato + tipo */}
                           <div className="flex items-center justify-between">
                             <p className={`text-[10px] font-bold tabular-nums ${
-                              isAbsent ? 'text-slate-400 line-through' : 'text-slate-500'
+                              isAbsent ? 'text-white/50 line-through' : 'text-white/60'
                             }`}>
                               {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
                             {shift.type && (
-                              <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-400">
+                              <p className="text-[9px] font-semibold uppercase tracking-widest text-white/50">
                                 {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
                               </p>
                             )}

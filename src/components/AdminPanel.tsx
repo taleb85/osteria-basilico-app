@@ -206,13 +206,13 @@ export default function AdminPanel() {
               <h2 className="text-2xl font-medium uppercase tracking-tighter">{t.attention}</h2>
             </div>
             <div className="p-8 space-y-6 text-center">
-              <p className="text-slate-600 font-medium">{t.import_warning}</p>
+              <p className="text-white/70 font-medium">{t.import_warning}</p>
               <div className="surface-glass-sm p-4">
-                <p className="text-slate-900 font-sans text-xs break-all text-center">{importFile?.name}</p>
+                <p className="text-white font-sans text-xs break-all text-center">{importFile?.name}</p>
               </div>
               <div className="flex space-x-3 pt-4">
                 <button onClick={handleConfirmImport} className="flex-1 bg-red-600 text-white rounded-2xl py-4 font-medium uppercase tracking-widest text-xs">{t.confirm}</button>
-                <button onClick={handleCancelImport} className="flex-1 bg-slate-200 text-slate-700 rounded-2xl py-4 font-medium uppercase tracking-widest text-xs">{t.cancel}</button>
+                <button onClick={handleCancelImport} className="flex-1 bg-slate-200 text-white/80 rounded-2xl py-4 font-medium uppercase tracking-widest text-xs">{t.cancel}</button>
               </div>
             </div>
           </div>

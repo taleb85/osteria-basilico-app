@@ -94,7 +94,7 @@ export default function RoleFeatureSectionsBlock(props: Props) {
         label={
           <span
             className={
-              enabled ? 'text-slate-800' : 'text-slate-600'
+              enabled ? 'text-white/90' : 'text-white/70'
             }
           >
             {label}
@@ -103,7 +103,7 @@ export default function RoleFeatureSectionsBlock(props: Props) {
         description={lockedOn ? homeHint : undefined}
         badge={
           lockedOn ? (
-            <span className="rounded-lg border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="rounded-lg border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/60">
               {tv.role_template_always_on ?? 'Sempre'}
             </span>
           ) : undefined
@@ -136,10 +136,10 @@ export default function RoleFeatureSectionsBlock(props: Props) {
                   className="flex min-h-[56px] w-full items-center gap-2 px-5 py-3 text-left transition-colors hover:bg-gray-50/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 focus-visible:ring-inset"
                 >
                   <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 shrink-0 text-white/60 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
                     aria-hidden
                   />
-                  <span className="min-w-0 flex-1 font-bold leading-tight text-gray-900">
+                  <span className="min-w-0 flex-1 font-bold leading-tight text-white">
                     {label}
                   </span>
                 </button>

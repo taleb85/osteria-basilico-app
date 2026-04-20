@@ -46,13 +46,13 @@ export default function ProfilePhotoSourceSheet({
         <button
           type="button"
           role="menuitem"
-          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-slate-800 transition-colors hover:bg-slate-50 active:bg-slate-100 touch-manipulation"
+          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-white/90 transition-colors hover:bg-slate-50 active:bg-slate-100 touch-manipulation"
           onClick={() => {
             onPickGallery();
             onClose();
           }}
         >
-          <ImageIcon className="h-3.5 w-3.5 shrink-0 text-slate-600" strokeWidth={2} aria-hidden />
+          <ImageIcon className="h-3.5 w-3.5 shrink-0 text-white/70" strokeWidth={2} aria-hidden />
           <span className="leading-snug">{labels.gallery}</span>
         </button>
       </li>
@@ -60,13 +60,13 @@ export default function ProfilePhotoSourceSheet({
         <button
           type="button"
           role="menuitem"
-          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-slate-800 transition-colors hover:bg-slate-50 active:bg-slate-100 touch-manipulation"
+          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-white/90 transition-colors hover:bg-slate-50 active:bg-slate-100 touch-manipulation"
           onClick={() => {
             onPickCamera();
             onClose();
           }}
         >
-          <Camera className="h-3.5 w-3.5 shrink-0 text-slate-600" strokeWidth={2} aria-hidden />
+          <Camera className="h-3.5 w-3.5 shrink-0 text-white/70" strokeWidth={2} aria-hidden />
           <span className="leading-snug">{labels.camera}</span>
         </button>
       </li>
@@ -74,13 +74,13 @@ export default function ProfilePhotoSourceSheet({
         <button
           type="button"
           role="menuitem"
-          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-slate-800 transition-colors hover:bg-slate-50 active:bg-slate-100 touch-manipulation"
+          className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] font-medium leading-tight text-white/90 transition-colors hover:bg-slate-50 active:bg-slate-100 touch-manipulation"
           onClick={() => {
             onPickFiles();
             onClose();
           }}
         >
-          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-slate-600" strokeWidth={2} aria-hidden />
+          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-white/70" strokeWidth={2} aria-hidden />
           <span className="leading-snug">{labels.files}</span>
         </button>
       </li>

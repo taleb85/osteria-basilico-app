@@ -23,7 +23,7 @@ export function WidgetChrome({
     <div className="relative z-[220]">
       {!isSelectedAdmin && (
         <div className="mb-1 flex items-center justify-end gap-2">
-          <span className="hidden max-w-[55%] truncate text-right text-[9px] font-medium text-slate-400 sm:inline">
+          <span className="hidden max-w-[55%] truncate text-right text-[9px] font-medium text-white/50 sm:inline">
             {previewWidgetLabel(widgetKey)}
           </span>
           <button

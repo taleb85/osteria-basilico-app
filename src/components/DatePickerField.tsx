@@ -156,8 +156,8 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
     ? 'h-9 min-h-9 max-h-9 gap-1.5 rounded-xl px-2.5 text-sm'
     : 'h-[22px] min-h-[22px] max-h-[22px] gap-1 rounded-lg px-2 text-[13px]';
   const iconClass = toolbarH
-    ? 'h-4 w-4 shrink-0 text-slate-400'
-    : 'h-3 w-3 shrink-0 text-slate-400';
+    ? 'h-4 w-4 shrink-0 text-white/50'
+    : 'h-3 w-3 shrink-0 text-white/50';
 
   const panelInner = (
     <>
@@ -185,7 +185,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         {allowClear ? (
           <button
             type="button"
-            className="rounded-2xl px-2.5 py-1.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
+            className="rounded-2xl px-2.5 py-1.5 text-sm font-semibold text-white/60 transition-colors hover:bg-slate-50 hover:text-white/90"
             onClick={() => {
               onChange('');
               setOpen(false);
@@ -219,7 +219,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`inline-flex shrink-0 items-center text-left font-semibold leading-none tabular-nums text-slate-800 transition-colors surface-glass-sm surface-ghost-interactive hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 ${btnSizeClass} ${className}`}
+        className={`inline-flex shrink-0 items-center text-left font-semibold leading-none tabular-nums text-white/90 transition-colors surface-glass-sm surface-ghost-interactive hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 ${btnSizeClass} ${className}`}
       >
         <Calendar className={iconClass} aria-hidden />
         <span className="min-w-0 truncate tabular-nums">{label}</span>

@@ -59,7 +59,7 @@ export default function HolidayRequests() {
       <div className="pb-content w-full app-horizontal-pad font-sans min-h-[40vh] flex items-center justify-center">
         <div className="surface-glass max-w-md px-6 py-8 text-center">
           <Palmtree className="w-10 h-10 text-accent mx-auto mb-3 opacity-90" />
-          <p className="text-slate-700 font-semibold text-sm">{t.staff_requests_feature_off}</p>
+          <p className="text-white/80 font-semibold text-sm">{t.staff_requests_feature_off}</p>
         </div>
       </div>
     );
@@ -208,7 +208,7 @@ export default function HolidayRequests() {
       {uiW('ferie.header') && (
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/60">
             {isAdmin ? `${pendingAll.length} ${t.pending}` : `${myHolidays.length} ${t.request_holiday}`}
           </p>
         </div>
@@ -436,11 +436,11 @@ export default function HolidayRequests() {
           {!isAdmin && uiW('ferie.list') && (
             <div className="surface-glass overflow-hidden">
               <div className="px-5 py-4 border-b border-[#3366CC]/15">
-                <h3 className="text-slate-900 font-semibold text-xl">{t.request_holiday}</h3>
+                <h3 className="text-white font-semibold text-xl">{t.request_holiday}</h3>
               </div>
               <div className="divide-y divide-[#3366CC]/10 max-h-80 overflow-y-auto">
                 {myHolidays.length === 0 ? (
-                  <p className="text-slate-600 text-sm text-center py-10">{t.no_holidays_yet}</p>
+                  <p className="text-white/70 text-sm text-center py-10">{t.no_holidays_yet}</p>
                 ) : myHolidays
                     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                     .map((h) => {
@@ -448,10 +448,10 @@ export default function HolidayRequests() {
                       return (
                         <div key={h.id} className="flex items-center justify-between px-5 py-3.5">
                           <div>
-                            <p className="text-slate-900 text-[12px] font-medium">
+                            <p className="text-white text-[12px] font-medium">
                               {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM', { locale: it })}
                             </p>
-                            <p className="text-slate-600 text-xs mt-0.5 uppercase tracking-wider">
+                            <p className="text-white/70 text-xs mt-0.5 uppercase tracking-wider">
                               {h.type ?? 'Ferie'}
                             </p>
                           </div>
@@ -486,7 +486,7 @@ export default function HolidayRequests() {
           {isAdmin && uiW('ferie.list') && pendingAll.length > 0 && (
             <div className="surface-glass overflow-hidden">
               <div className="px-5 py-4 border-b border-[#3366CC]/15 flex items-center justify-between">
-                <h3 className="text-slate-900 font-semibold text-xl">{t.pending}</h3>
+                <h3 className="text-white font-semibold text-xl">{t.pending}</h3>
                 <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200/80">{pendingAll.length}</span>
               </div>
               <div className="divide-y divide-[#3366CC]/10">
@@ -496,8 +496,8 @@ export default function HolidayRequests() {
                     <div key={h.id} className="flex items-center justify-between px-5 py-3.5">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="min-w-0">
-                          <p className="text-slate-900 text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
-                          <p className="text-slate-600 text-xs">
+                          <p className="text-white text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
+                          <p className="text-white/70 text-xs">
                             {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                             {h.reason && ` · ${h.reason}`}
                           </p>
@@ -546,7 +546,7 @@ export default function HolidayRequests() {
           {isAdmin && uiW('ferie.list') && approvedFuture.length > 0 && (
             <div className="surface-glass p-4 overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-50">
-                <h3 className="text-slate-900 font-semibold text-xl">{t.home_upcoming_holidays}</h3>
+                <h3 className="text-white font-semibold text-xl">{t.home_upcoming_holidays}</h3>
               </div>
               <div className="divide-y divide-[#3366CC]/10 max-h-80 overflow-y-auto">
                 {approvedFuture
@@ -558,8 +558,8 @@ export default function HolidayRequests() {
                         <div className="flex items-center gap-3 min-w-0">
                           <Palmtree className="w-4 h-4 text-accent flex-shrink-0" />
                           <div className="min-w-0">
-                            <p className="text-slate-900 text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
-                            <p className="text-slate-600 text-xs">
+                            <p className="text-white text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
+                            <p className="text-white/70 text-xs">
                               {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                             </p>
                           </div>
@@ -578,7 +578,7 @@ export default function HolidayRequests() {
           {isAdmin && uiW('ferie.list') && rejectedAll.length > 0 && (
             <div className="surface-glass overflow-hidden">
               <div className="px-5 py-4 border-b border-[#3366CC]/15 flex items-center justify-between">
-                <h3 className="text-slate-900 font-semibold text-xl">{t.rejected}</h3>
+                <h3 className="text-white font-semibold text-xl">{t.rejected}</h3>
                 <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold border border-red-200/80">{rejectedAll.length}</span>
               </div>
               <div className="divide-y divide-[#3366CC]/10">
@@ -589,8 +589,8 @@ export default function HolidayRequests() {
                     return (
                       <div key={h.id} className="flex items-center justify-between px-5 py-3.5">
                         <div className="min-w-0">
-                          <p className="text-slate-900 text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
-                          <p className="text-slate-600 text-xs">
+                          <p className="text-white text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
+                          <p className="text-white/70 text-xs">
                             {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                           </p>
                         </div>
@@ -613,7 +613,7 @@ export default function HolidayRequests() {
           {isAdmin && uiW('ferie.list') && pendingAll.length === 0 && approvedFuture.length === 0 && (
             <div className="surface-glass p-12 flex flex-col items-center justify-center text-center">
               <Palmtree className="w-10 h-10 text-accent mb-3 opacity-90" />
-              <p className="text-slate-600 text-sm">{t.no_holidays_yet}</p>
+              <p className="text-white/70 text-sm">{t.no_holidays_yet}</p>
             </div>
           )}
 
@@ -621,7 +621,7 @@ export default function HolidayRequests() {
           {!isAdmin && uiW('ferie.list') && myHolidays.filter(h => h.status === 'approved' && new Date(h.end_date) >= new Date()).length > 0 && (
             <div className="surface-glass overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-100">
-                <h3 className="text-slate-900 font-semibold text-xl">{t.home_upcoming_holidays}</h3>
+                <h3 className="text-white font-semibold text-xl">{t.home_upcoming_holidays}</h3>
               </div>
               <div className="divide-y divide-[#3366CC]/10">
                 {myHolidays
@@ -631,7 +631,7 @@ export default function HolidayRequests() {
                     <div key={h.id} className="flex items-center justify-between px-5 py-3.5">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-accent" />
-                        <span className="text-slate-900 text-[12px] font-medium">
+                        <span className="text-white text-[12px] font-medium">
                           {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                         </span>
                       </div>

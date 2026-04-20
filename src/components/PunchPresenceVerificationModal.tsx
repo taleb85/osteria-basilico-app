@@ -97,20 +97,20 @@ export default function PunchPresenceVerificationModal({
             <button
               type="button"
               onClick={onClose}
-              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200"
+              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-white/70 hover:bg-slate-200"
               aria-label={tv.close ?? 'Chiudi'}
             >
               <X className="h-4 w-4" />
             </button>
             <div className="p-5 pt-6">
-              <h2 id="punch-presence-title" className="pr-10 text-base font-bold text-slate-900">
+              <h2 id="punch-presence-title" className="pr-10 text-base font-bold text-white">
                 {title}
               </h2>
-              <p className="mt-1 text-xs leading-snug text-slate-500">{subtitle}</p>
+              <p className="mt-1 text-xs leading-snug text-white/60">{subtitle}</p>
 
               {mode === 'qr' && (
                 <div className="mt-4">
-                  <div className="mb-2 flex items-center justify-center gap-2 text-xs font-medium text-slate-600">
+                  <div className="mb-2 flex items-center justify-center gap-2 text-xs font-medium text-white/70">
                     <Camera className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                     <span>{t.punch_presence_point_camera}</span>
                   </div>
@@ -136,7 +136,7 @@ export default function PunchPresenceVerificationModal({
                 <button
                   type="button"
                   onClick={handleRetry}
-                  className="mt-4 w-full rounded-xl bg-slate-100 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-200"
+                  className="mt-4 w-full rounded-xl bg-slate-100 py-3 text-sm font-semibold text-white/90 hover:bg-slate-200"
                 >
                   {t.punch_presence_try_again}
                 </button>

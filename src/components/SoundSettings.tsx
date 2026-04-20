@@ -44,7 +44,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
         className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
           isSoundEnabled 
             ? 'bg-accent/10 text-accent' 
-            : 'bg-slate-100 text-slate-400'
+            : 'bg-slate-100 text-white/50'
         }`}
         title={isSoundEnabled ? 'Muta suoni' : 'Attiva suoni'}
       >
@@ -60,10 +60,10 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
           <BellRing size={20} />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight">
+          <h3 className="text-sm font-bold text-white uppercase tracking-tight">
             Notifiche e Feedback
           </h3>
-          <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
+          <p className="text-[10px] font-medium text-white/60 uppercase tracking-wider">
             Personalizza suoni e vibrazioni
           </p>
         </div>
@@ -73,10 +73,10 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
         {/* Toggle Suono */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${isSoundEnabled ? 'bg-brand-50 text-brand-600' : 'bg-slate-50 text-slate-400'}`}>
+            <div className={`p-2 rounded-lg ${isSoundEnabled ? 'bg-brand-50 text-brand-600' : 'bg-slate-50 text-white/50'}`}>
               {isSoundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
             </div>
-            <span className="text-xs font-bold text-slate-700">Suoni Notifica</span>
+            <span className="text-xs font-bold text-white/80">Suoni Notifica</span>
           </div>
           <button
             onClick={handleToggleSound}
@@ -96,7 +96,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
         {isSoundEnabled && (
           <div className="space-y-2">
             <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Volume</span>
+              <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">Volume</span>
               <span className="text-[10px] font-black text-accent">{soundVolume}%</span>
             </div>
             <input
@@ -117,7 +117,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
               <div className="p-2 rounded-lg bg-accent/10 text-accent">
                 <Smartphone size={16} />
               </div>
-              <span className="text-xs font-bold text-slate-700">Feedback Aptico</span>
+              <span className="text-xs font-bold text-white/80">Feedback Aptico</span>
             </div>
             <span className="text-[10px] font-black text-accent uppercase tracking-widest">{hapticIntensity}%</span>
           </div>

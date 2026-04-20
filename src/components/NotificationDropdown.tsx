@@ -71,7 +71,7 @@ export function NotificationDropdown({
       <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 bg-slate-50/50">
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4 text-accent" />
-          <h3 className="text-sm font-bold text-slate-900">
+          <h3 className="text-sm font-bold text-white">
             {t.messages_latest}
           </h3>
           {unreadCount > 0 && (
@@ -87,7 +87,7 @@ export function NotificationDropdown({
           title="Chiudi"
           aria-label="Chiudi notifiche"
         >
-          <X className="h-4 w-4 text-slate-600" />
+          <X className="h-4 w-4 text-white/70" />
         </button>
       </div>
 
@@ -96,10 +96,10 @@ export function NotificationDropdown({
         {recentMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-8 text-center px-4">
             <MessageCircle className="h-8 w-8 text-slate-300" />
-            <p className="text-xs font-medium text-slate-600">
+            <p className="text-xs font-medium text-white/70">
               {t.messages_no_new}
             </p>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-white/60">
               {t.messages_all_read}
             </p>
           </div>
@@ -142,8 +142,8 @@ export function NotificationDropdown({
                     <div className="flex items-center gap-2">
                       <p className={`text-xs font-bold truncate ${
                         isUnread
-                          ? 'text-slate-900'
-                          : 'text-slate-700'
+                          ? 'text-white'
+                          : 'text-white/80'
                       }`}>
                         {msg.subject}
                       </p>
@@ -153,19 +153,19 @@ export function NotificationDropdown({
                     </div>
 
                     {/* Anteprima testo */}
-                    <p className="text-xs text-slate-600 truncate mt-0.5">
+                    <p className="text-xs text-white/70 truncate mt-0.5">
                       {preview}
                     </p>
 
                     {/* Tempo */}
-                    <p className="text-[10px] text-slate-500 mt-1">
+                    <p className="text-[10px] text-white/60 mt-1">
                       {timeAgo}
                     </p>
                   </div>
 
                   {/* Freccia */}
                   <div className="flex-shrink-0 pt-1">
-                    <ChevronRight className="h-4 w-4 text-slate-400" />
+                    <ChevronRight className="h-4 w-4 text-white/50" />
                   </div>
                 </div>
               </button>

@@ -31,7 +31,7 @@ export function MessagesList({
     return (
       <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
         <MessageCircle className="h-6 w-6 text-slate-300" />
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-white/60">
           Nessun messaggio
         </p>
       </div>
@@ -84,29 +84,29 @@ export function MessagesList({
               {/* Contenuto */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-900 truncate">
+                  <span className="text-xs font-semibold text-white truncate">
                     {message.sender_name || 'Sconosciuto'}
                   </span>
                   {isUnread && (
                     <Dot className="h-4 w-4 flex-shrink-0 text-red-500 fill-red-500" />
                   )}
                 </div>
-                <p className="text-xs text-slate-600 truncate">
+                <p className="text-xs text-white/70 truncate">
                   {message.subject}
                 </p>
               </div>
 
               {/* Data */}
-              <div className="flex-shrink-0 text-[10px] text-slate-500">
+              <div className="flex-shrink-0 text-[10px] text-white/60">
                 {format(createdDate, 'd MMM', { locale: it })}
               </div>
 
               {/* Chevron */}
               <div className="flex-shrink-0">
                 {isExpanded ? (
-                  <ChevronUp className="h-4 w-4 text-slate-600" />
+                  <ChevronUp className="h-4 w-4 text-white/70" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-slate-600" />
+                  <ChevronDown className="h-4 w-4 text-white/70" />
                 )}
               </div>
             </button>
@@ -117,18 +117,18 @@ export function MessagesList({
                 {/* Metadati */}
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div>
-                    <p className="font-semibold text-slate-600">
+                    <p className="font-semibold text-white/70">
                       Da:
                     </p>
-                    <p className="text-slate-900">
+                    <p className="text-white">
                       {message.sender_name || 'Sconosciuto'}
                     </p>
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-600">
+                    <p className="font-semibold text-white/70">
                       Data:
                     </p>
-                    <p className="text-slate-900">
+                    <p className="text-white">
                       {format(createdDate, 'd MMM HH:mm', { locale: it })}
                     </p>
                   </div>
@@ -136,10 +136,10 @@ export function MessagesList({
 
                 {/* Corpo messaggio */}
                 <div>
-                  <p className="mb-1 text-xs font-semibold text-slate-600">
+                  <p className="mb-1 text-xs font-semibold text-white/70">
                     Messaggio:
                   </p>
-                  <div className="rounded bg-slate-50 p-2 text-xs leading-relaxed text-slate-900 whitespace-pre-wrap break-words">
+                  <div className="rounded bg-slate-50 p-2 text-xs leading-relaxed text-white whitespace-pre-wrap break-words">
                     {message.body}
                   </div>
                 </div>

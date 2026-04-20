@@ -109,9 +109,9 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
 
                   return (
                     <div key={i} className="flex flex-col items-center gap-1">
-                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-slate-400'}`}>{dayLetters[i]}</span>
+                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-white/50'}`}>{dayLetters[i]}</span>
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold ${
-                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-slate-500'
+                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-white/60'
                       }`}>
                         {format(day, 'd')}
                       </div>
@@ -136,8 +136,8 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                   { label: t.stat_rest_days ?? 'Riposi', value: restDays.toString() },
                 ].map(({ label, value }, i) => (
                   <div key={i} className="flex flex-col items-center gap-0.5">
-                    <span className="text-sm font-black text-slate-800 tabular-nums">{value}</span>
-                    <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">{label}</span>
+                    <span className="text-sm font-black text-white/90 tabular-nums">{value}</span>
+                    <span className="text-[8px] text-white/50 uppercase font-bold tracking-wider">{label}</span>
                   </div>
                 ))}
               </div>
@@ -163,7 +163,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                       const badgeCls = isAbsent
                         ? 'text-red-500 border-red-200 bg-red-50'
                         : isDraft
-                          ? 'text-slate-400 border-slate-200 bg-slate-50'
+                          ? 'text-white/50 border-slate-200 bg-slate-50'
                           : 'text-emerald-600 border-emerald-200 bg-emerald-50';
                       const badgeLabel = isAbsent
                         ? (t.status_absent ?? 'Assente')
@@ -181,11 +181,11 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                           style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') && !isAbsent ? { background: '#ffffff' } : {}}
                         >
                           <div className="flex flex-col gap-0.5">
-                            <p className={`font-black tabular-nums text-base leading-none ${isAbsent ? 'text-slate-300 line-through' : 'text-slate-800'}`}>
+                            <p className={`font-black tabular-nums text-base leading-none ${isAbsent ? 'text-slate-300 line-through' : 'text-white/90'}`}>
                               {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
                             {shift.department && (
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-white/50 mt-0.5">
                                 {translateDepartmentValue(shift.department, language as any)}
                               </p>
                             )}

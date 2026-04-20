@@ -42,13 +42,13 @@ export default function MobileProfileStats({
           ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', boxShadow: 'none' }
           : { background: 'rgba(255,255,255,0.95)', borderColor: 'rgba(241,245,249,0.80)' }}
       >
-        <p className="text-center text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+        <p className="text-center text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">
           {monthHoursLabel}
         </p>
         <p className="mt-2 text-center text-4xl font-bold tabular-nums tracking-tight text-accent-dark">
           {hoursFormatted}
         </p>
-        <p className="mt-1 text-center text-sm text-slate-500">
+        <p className="mt-1 text-center text-sm text-white/60">
           {shiftsInMonth} {shiftsLabel}
         </p>
       </div>
@@ -65,7 +65,7 @@ export default function MobileProfileStats({
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent">
             <FileText className="h-5 w-5" strokeWidth={2} />
           </span>
-          <span className="text-[11px] font-bold uppercase tracking-wide text-slate-700">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-white/80">
             {documentsLabel}
           </span>
         </button>
@@ -80,7 +80,7 @@ export default function MobileProfileStats({
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent">
             <Wallet className="h-5 w-5" strokeWidth={2} />
           </span>
-          <span className="text-[11px] font-bold uppercase tracking-wide text-slate-700">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-white/80">
             {payslipLabel}
           </span>
         </button>

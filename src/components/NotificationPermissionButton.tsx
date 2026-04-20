@@ -29,7 +29,7 @@ export function NotificationPermissionButton({
   // Browser che non supporta push (es. Safari < 16, Firefox su iOS)
   if (!isPushNotificationSupported) {
     return (
-      <div className="flex items-start gap-2 px-3 py-2.5 text-xs font-medium text-slate-500 bg-slate-50 rounded-lg border border-slate-100">
+      <div className="flex items-start gap-2 px-3 py-2.5 text-xs font-medium text-white/60 bg-slate-50 rounded-lg border border-slate-100">
         <Info className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
         <span>{t.notif_push_not_supported}</span>
       </div>
@@ -69,7 +69,7 @@ export function NotificationPermissionButton({
         className={`inline-flex items-center justify-center h-10 w-10 rounded-lg transition-colors disabled:opacity-50 ${
           isSubscribed
             ? 'bg-brand-100 text-brand-700'
-            : 'bg-slate-100 text-slate-700'
+            : 'bg-slate-100 text-white/80'
         }`}
       >
         {isLoading ? (
@@ -92,7 +92,7 @@ export function NotificationPermissionButton({
         className={`flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-semibold rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
           isSubscribed
             ? 'bg-brand-50 text-brand-700 border-brand-200'
-            : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+            : 'bg-slate-100 text-white/80 border-slate-200 hover:bg-slate-200'
         }`}
       >
         {isLoading ? (
@@ -117,7 +117,7 @@ export function NotificationPermissionButton({
               notificationPermission === 'granted' ? 'bg-green-500' : 'bg-amber-400'
             }`}
           />
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
             {notificationPermission === 'granted' ? 'Permesso concesso' : 'Permesso non richiesto'}
           </span>
         </div>
@@ -125,7 +125,7 @@ export function NotificationPermissionButton({
         {/* Iscrizione push */}
         <div className="flex items-center gap-1.5">
           <span className={`h-2 w-2 rounded-full flex-shrink-0 ${isSubscribed ? 'bg-green-500' : 'bg-slate-300'}`} />
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
             {isSubscribed ? 'Iscritto' : 'Non iscritto'}
           </span>
         </div>
@@ -149,7 +149,7 @@ export function NotificationPermissionButton({
 
       {/* Suggerimento iniziale */}
       {notificationPermission === 'default' && !isSubscribed && (
-        <p className="text-[11px] text-slate-500 leading-relaxed">
+        <p className="text-[11px] text-white/60 leading-relaxed">
           {t.notif_push_hint}
         </p>
       )}

@@ -60,7 +60,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
           >
             {tenantName}
           </h1>
-          <p className="text-[9px] text-slate-400 font-semibold uppercase tracking-widest leading-none">
+          <p className="text-[9px] text-white/50 font-semibold uppercase tracking-widest leading-none">
             {t.header_tagline}
           </p>
         </div>
@@ -75,11 +75,11 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
             <button
               type="button"
               onClick={() => setLangOpen((v) => !v)}
-              className="flex min-h-[36px] items-center gap-0.5 surface-glass-sm px-2 py-1 text-xs font-semibold text-slate-600 surface-ghost-interactive"
+              className="flex min-h-[36px] items-center gap-0.5 surface-glass-sm px-2 py-1 text-xs font-semibold text-white/70 surface-ghost-interactive"
             >
               <span>{langFlags[effectiveLanguage]}</span>
               <span className="hidden sm:inline ml-0.5">{langLabels[effectiveLanguage]}</span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
+              <ChevronDown className="w-3 h-3 text-white/50" />
             </button>
             {langOpen && (
               <CenteredModalPortal
@@ -91,7 +91,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
                 maxWidthClass="max-w-xs"
                 panelClassName="py-1"
               >
-                <p className="border-b border-slate-100 px-4 py-3 text-sm font-bold text-slate-900">{t.language}</p>
+                <p className="border-b border-slate-100 px-4 py-3 text-sm font-bold text-white">{t.language}</p>
                 {(['it', 'en', 'es', 'fr'] as const).map((lang) => (
                   <button
                     key={lang}
@@ -103,7 +103,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
                     className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors ${
                       effectiveLanguage === lang
                         ? 'bg-accent/10 font-semibold text-accent'
-                        : 'text-slate-700 hover:bg-slate-50'
+                        : 'text-white/80 hover:bg-slate-50'
                     }`}
                   >
                     <span>{langFlags[lang]}</span>
@@ -120,13 +120,13 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
               type="button"
               onClick={onLogout}
               title={t.header_logout}
-              className="flex min-h-[36px] min-w-[36px] flex-shrink-0 items-center justify-center surface-glass-sm text-slate-600 surface-ghost-interactive md:hidden"
+              className="flex min-h-[36px] min-w-[36px] flex-shrink-0 items-center justify-center surface-glass-sm text-white/70 surface-ghost-interactive md:hidden"
             >
               <LogOut className="w-4 h-4" strokeWidth={2} />
             </button>
           )}
 
-          <span className="hidden sm:block text-slate-400 text-xs font-medium tabular-nums">
+          <span className="hidden sm:block text-white/50 text-xs font-medium tabular-nums">
             {format(now, 'HH:mm', { locale })}
           </span>
         </div>

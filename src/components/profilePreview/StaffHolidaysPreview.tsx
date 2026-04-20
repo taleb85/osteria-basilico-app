@@ -29,8 +29,8 @@ export default function StaffHolidaysPreview({
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">{t.sidebar_holidays}</h2>
-            <p className="text-xs text-slate-500">{t.holiday_management}</p>
+            <h2 className="text-lg font-bold text-white">{t.sidebar_holidays}</h2>
+            <p className="text-xs text-white/60">{t.holiday_management}</p>
           </div>
           <button
             type="button"
@@ -51,14 +51,14 @@ export default function StaffHolidaysPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="surface-glass overflow-hidden">
-          <div className="border-b border-slate-100 px-3 py-2 text-xs font-bold text-slate-600">
+          <div className="border-b border-slate-100 px-3 py-2 text-xs font-bold text-white/70">
             {t.mod_vacation_requests}
           </div>
           <div className="flex items-center gap-3 px-3 py-4">
             <Palmtree className="h-8 w-8 shrink-0 text-accent/50" />
             <div>
-              <p className="text-sm font-semibold text-slate-800">Ferie estive</p>
-              <p className="text-xs text-slate-500">1–7 ago · {t.approved ?? 'Approvata'}</p>
+              <p className="text-sm font-semibold text-white/90">Ferie estive</p>
+              <p className="text-xs text-white/60">1–7 ago · {t.approved ?? 'Approvata'}</p>
             </div>
           </div>
         </div>

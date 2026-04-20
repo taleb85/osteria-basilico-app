@@ -80,8 +80,8 @@ export default function GestioneProfiliPage() {
             <Shield className="w-5 h-5" style={{ color: ACCENT }} />
           </div>
           <div>
-            <h1 className="text-slate-800 text-xl font-bold leading-tight">Gestione Profili</h1>
-            <p className="text-slate-500 text-sm mt-0.5">
+            <h1 className="text-white/90 text-xl font-bold leading-tight">Gestione Profili</h1>
+            <p className="text-white/60 text-sm mt-0.5">
               Personalizza i permessi per ogni singolo dipendente. Le modifiche qui sovrascrivono il template del ruolo.
             </p>
           </div>
@@ -89,7 +89,7 @@ export default function GestioneProfiliPage() {
 
         <div className="surface-glass-sm overflow-hidden">
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
-            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-700">
+            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/80">
               <Users className="w-4 h-4" />
               Dipendenti
             </h2>
@@ -112,17 +112,17 @@ export default function GestioneProfiliPage() {
                       onClick={() => setExpandedUserId(isExpanded ? null : user.id)}
                       className="flex-1 flex items-center gap-3 text-left"
                     >
-                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-600">
+                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-white/70">
                         {user.first_name?.[0]}{user.last_name?.[0]}
                       </div>
                       <div>
-                        <span className="font-semibold text-slate-800 block">
+                        <span className="font-semibold text-white/90 block">
                           {user.first_name} {user.last_name}
                           {user.enabled_features && typeof user.enabled_features === 'object' && Object.keys(user.enabled_features).length > 0 && (
                             <span className="ml-2 inline-block w-1.5 h-1.5 rounded-full bg-amber-400" title="Permessi personalizzati" />
                           )}
                         </span>
-                        <span className="text-xs text-slate-500 uppercase tracking-wider">
+                        <span className="text-xs text-white/60 uppercase tracking-wider">
                           {translateRole(user.role, currentUser?.language)}
                         </span>
                       </div>
@@ -133,21 +133,21 @@ export default function GestioneProfiliPage() {
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); toggleTab(user.id, 'permissions'); }}
-                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'permissions' ? 'bg-white text-accent shadow-sm' : 'text-slate-500'}`}
+                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'permissions' ? 'bg-white text-accent shadow-sm' : 'text-white/60'}`}
                         >
                           Permessi
                         </button>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); toggleTab(user.id, 'visibility'); }}
-                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'visibility' ? 'bg-white text-accent shadow-sm' : 'text-slate-500'}`}
+                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'visibility' ? 'bg-white text-accent shadow-sm' : 'text-white/60'}`}
                         >
                           Cosa vede
                         </button>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); toggleTab(user.id, 'grid'); }}
-                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'grid' ? 'bg-white text-accent shadow-sm' : 'text-slate-500'}`}
+                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'grid' ? 'bg-white text-accent shadow-sm' : 'text-white/60'}`}
                         >
                           Griglia
                         </button>
@@ -157,9 +157,9 @@ export default function GestioneProfiliPage() {
                         className="p-1 hover:bg-slate-200 rounded-full transition-colors"
                       >
                         {isExpanded ? (
-                          <ChevronUp className="w-4 h-4 text-slate-400" />
+                          <ChevronUp className="w-4 h-4 text-white/50" />
                         ) : (
-                          <ChevronDown className="w-4 h-4 text-slate-400" />
+                          <ChevronDown className="w-4 h-4 text-white/50" />
                         )}
                       </button>
                     </div>
@@ -185,14 +185,14 @@ export default function GestioneProfiliPage() {
                                 </div>
                               )}
                               <div className="flex items-center justify-between mt-4">
-                                <p className="text-[11px] text-slate-500">
+                                <p className="text-[11px] text-white/60">
                                   Personalizzazione permessi per <strong>{user.first_name}</strong>
                                 </p>
                                 {hasLocalOverride && (
                                   <div className="flex gap-2">
                                     <button
                                       onClick={() => handleReset(user.id)}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-200 text-slate-600 text-[11px] font-bold hover:bg-slate-300 transition-colors"
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-200 text-white/70 text-[11px] font-bold hover:bg-slate-300 transition-colors"
                                     >
                                       <RotateCcw className="w-3 h-3" /> Annulla
                                     </button>
@@ -233,7 +233,7 @@ export default function GestioneProfiliPage() {
                           ) : currentTab === 'visibility' ? (
                             <div className="mt-4">
                               <div className="flex items-center justify-between mb-3">
-                                <p className="text-[11px] text-slate-500">
+                                <p className="text-[11px] text-white/60">
                                   Anteprima interfaccia per <strong>{user.first_name}</strong>
                                 </p>
                                 <button
@@ -245,7 +245,7 @@ export default function GestioneProfiliPage() {
                               </div>
                               <div className="rounded-xl overflow-hidden border border-slate-200 bg-white">
                                 <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configurazione Visualizzazione</p>
+                                  <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Configurazione Visualizzazione</p>
                                 </div>
                                 <div className="p-4">
                                   <button
@@ -258,8 +258,8 @@ export default function GestioneProfiliPage() {
                                       <Eye className="w-6 h-6 text-accent" />
                                     </div>
                                     <div className="text-center">
-                                      <p className="text-sm font-bold text-slate-800">Apri Anteprima "Cosa vede {user.first_name}"</p>
-                                      <p className="text-xs text-slate-500 mt-1">Configura widget, moduli e visibilità sezioni</p>
+                                      <p className="text-sm font-bold text-white/90">Apri Anteprima "Cosa vede {user.first_name}"</p>
+                                      <p className="text-xs text-white/60 mt-1">Configura widget, moduli e visibilità sezioni</p>
                                     </div>
                                   </button>
                                 </div>
@@ -274,12 +274,12 @@ export default function GestioneProfiliPage() {
                             </div>
                           ) : (
                             <div className="mt-4 space-y-4">
-                              <p className="text-[11px] text-slate-500">
+                              <p className="text-[11px] text-white/60">
                                 Impostazioni visibilità in griglia per <strong>{user.first_name}</strong>
                               </p>
                               <div className="rounded-xl bg-white border border-slate-200 p-4">
                                 <AdminRow
-                                  icon={<Users className="h-4 w-4 text-slate-500" aria-hidden />}
+                                  icon={<Users className="h-4 w-4 text-white/60" aria-hidden />}
                                   label="Visibile in tabellone turni"
                                   description={user.team_schedule_visible !== false ? 'L\'utente compare nel planning settimanale' : 'L\'utente è nascosto dal planning settimanale'}
                                   action={

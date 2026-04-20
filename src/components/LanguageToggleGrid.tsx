@@ -39,7 +39,7 @@ export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, den
           onClick={() => setLanguage(deviceLang)}
           title={`Auto → ${deviceLang.toUpperCase()}`}
           aria-label={`Auto (${deviceLang.toUpperCase()})`}
-          className="flex flex-col items-center justify-center gap-0.5 py-1.5 px-0.5 rounded-lg font-semibold transition-colors min-h-[44px] min-w-0 bg-slate-100 text-slate-600 active:bg-slate-200"
+          className="flex flex-col items-center justify-center gap-0.5 py-1.5 px-0.5 rounded-lg font-semibold transition-colors min-h-[44px] min-w-0 bg-slate-100 text-white/70 active:bg-slate-200"
         >
           <span className="text-[13px] leading-none" aria-hidden>⚙︎</span>
           <span className="text-[9px] leading-tight text-center truncate w-full tracking-tight">AUTO</span>
@@ -52,7 +52,7 @@ export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, den
             title={LABELS[lang]}
             aria-label={LABELS[lang]}
             className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-0.5 rounded-lg font-semibold transition-colors min-h-[44px] min-w-0 ${
-              effectiveLanguage === lang ? 'bg-accent text-white' : 'bg-slate-100 text-slate-600 active:bg-slate-200'
+              effectiveLanguage === lang ? 'bg-accent text-white' : 'bg-slate-100 text-white/70 active:bg-slate-200'
             }`}
           >
             <span className="text-[15px] leading-none" aria-hidden>
@@ -72,7 +72,7 @@ export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, den
         type="button"
         onClick={() => setLanguage(deviceLang)}
         title={`Auto → ${deviceLang.toUpperCase()}`}
-        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-colors min-h-[44px] bg-slate-100 text-slate-600 hover:bg-slate-200"
+        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-colors min-h-[44px] bg-slate-100 text-white/70 hover:bg-slate-200"
       >
         <span className="text-xs font-bold">AUTO</span>
       </button>
@@ -82,7 +82,7 @@ export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, den
           type="button"
           onClick={() => setLanguage(lang)}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-colors min-h-[44px] ${
-            effectiveLanguage === lang ? 'bg-accent text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            effectiveLanguage === lang ? 'bg-accent text-white' : 'bg-slate-100 text-white/70 hover:bg-slate-200'
           }`}
         >
           <span>{FLAGS[lang]}</span>

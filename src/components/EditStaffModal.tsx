@@ -148,13 +148,13 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
         >
           <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
             <div>
-              <h2 className="text-base font-bold tracking-wide text-slate-900 font-sans">
+              <h2 className="text-base font-bold tracking-wide text-white font-sans">
                 {readOnly
                   ? ((t as { settings_delegated_view_title?: string }).settings_delegated_view_title ??
                     t.edit_employee_title)
                   : t.edit_employee_title}
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5 font-sans">
+              <p className="text-xs text-white/60 mt-0.5 font-sans">
                 <span className="font-semibold">{user.first_name}</span>
               </p>
             </div>
@@ -164,7 +164,7 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
               aria-label={t.close}
               className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 transition-colors hover:bg-slate-200"
             >
-              <X className="h-4 w-4 text-slate-600" aria-hidden />
+              <X className="h-4 w-4 text-white/70" aria-hidden />
             </button>
           </div>
 

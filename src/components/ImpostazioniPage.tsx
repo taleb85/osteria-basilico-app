@@ -127,7 +127,7 @@ const FeatureCard = memo(function FeatureCard({
                       <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-white/60">
                         {detailLabel}
                       </p>
-                      <ul className="list-disc space-y-1 pl-3.5 text-[11px] leading-relaxed text-slate-600">
+                      <ul className="list-disc space-y-1 pl-3.5 text-[11px] leading-relaxed text-white/70">
                         {detailLines.map((line, i) => (
                           <li key={i}>{line}</li>
                         ))}
@@ -236,7 +236,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             {t.logout || 'Logout'}
           </button>
         </div>
-        <p className="text-slate-600 text-sm">{t.no_access_settings}</p>
+        <p className="text-white/70 text-sm">{t.no_access_settings}</p>
       </div>
     );
   }
@@ -319,7 +319,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             <Bell className="w-4 h-4 text-accent" />
             {t.admin_notify_team_title}
           </h2>
-          <p className="text-[11px] sm:text-xs text-slate-600 mb-3 leading-relaxed">
+          <p className="text-[11px] sm:text-xs text-white/70 mb-3 leading-relaxed">
             {t.admin_notify_team_desc}
           </p>
           <button
@@ -337,7 +337,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
         <div className="space-y-6">
           {IMPOSTAZIONI_GROUPS.map((group) => (
             <section key={group.titleKey}>
-              <h2 className="ui-section-title mb-2.5 text-slate-400">
+              <h2 className="ui-section-title mb-2.5 text-white/50">
                 {t[group.titleKey]}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{group.slugs.map((slug) => renderCard(slug))}</div>

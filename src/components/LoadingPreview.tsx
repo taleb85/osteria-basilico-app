@@ -126,7 +126,7 @@ function RingIcon({
 function BootScreen() {
   return (
     <div className="flex-1 flex flex-col gap-3">
-      <p className="text-center text-[11px] font-bold uppercase tracking-widest text-neutral-500">
+      <p className="text-center text-[11px] font-bold uppercase tracking-widest text-white/60">
         1 · Caricamento iniziale
       </p>
       <div className="flex flex-col items-center justify-center gap-6 rounded-2xl flex-1" style={{ background: BG, minHeight: 420 }}>
@@ -172,7 +172,7 @@ function SyncScreen() {
 
   return (
     <div className="flex-1 flex flex-col gap-3">
-      <p className="text-center text-[11px] font-bold uppercase tracking-widest text-neutral-500">
+      <p className="text-center text-[11px] font-bold uppercase tracking-widest text-white/60">
         2 · Sincronizzazione globale
       </p>
       <div className="flex flex-col items-center justify-center gap-6 rounded-2xl flex-1" style={{ background: BG, minHeight: 420 }}>
@@ -200,7 +200,7 @@ function SyncScreen() {
 export default function LoadingPreview() {
   return (
     <div className="min-h-screen bg-neutral-200 flex flex-col items-center justify-center gap-8 p-8 font-sans">
-      <h1 className="text-neutral-600 text-lg font-bold tracking-widest uppercase">
+      <h1 className="text-white/70 text-lg font-bold tracking-widest uppercase">
         Anteprima schermate di caricamento
       </h1>
       <div className="flex flex-col sm:flex-row gap-6 w-full max-w-3xl">

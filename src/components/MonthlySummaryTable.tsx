@@ -79,21 +79,21 @@ export default function MonthlySummaryTable() {
       >
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-3xl font-black text-white tracking-tight">
               {t.statistics_nav}
             </h1>
-            <p className="text-slate-500 text-sm uppercase tracking-widest mt-1">
+            <p className="text-white/60 text-sm uppercase tracking-widest mt-1">
               {format(now, 'MMMM yyyy', { locale: getLocale() })}
             </p>
-            <p className="text-slate-600 text-xs mt-2 max-w-xl leading-snug">
-              <span className="font-semibold text-slate-800">
+            <p className="text-white/70 text-xs mt-2 max-w-xl leading-snug">
+              <span className="font-semibold text-white/90">
                 {(t as { stats_payroll_title?: string }).stats_payroll_title ?? 'Pagamento stipendi'}:{' '}
               </span>
               {formatTrans(
                 (t as { stats_payroll_date_line?: string }).stats_payroll_date_line ?? 'Data prevista: {date}',
                 { date: safeFormatDate(payrollPayDate, 'EEEE d MMMM yyyy', { locale: getLocale() }) }
               )}
-              <span className="block mt-1 text-slate-500 font-normal">
+              <span className="block mt-1 text-white/60 font-normal">
                 {(t as { stats_payroll_hint?: string }).stats_payroll_hint}
               </span>
             </p>
@@ -109,23 +109,23 @@ export default function MonthlySummaryTable() {
               <thead className="sticky top-0 z-20">
                 <tr className="bg-slate-100">
                   <th className="sticky left-0 bg-slate-100 px-4 py-3 text-left border-b border-r border-slate-200 z-30 w-[120px] min-w-[120px]">
-                    <span className="text-slate-600 text-xs uppercase tracking-[0.2em] font-bold">
+                    <span className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold">
                       {t.personnel}
                     </span>
                   </th>
                   {weeks.map((week, index) => (
                     <th key={week.toString()} className="px-3 py-3 text-center border-b border-slate-200 snap-start w-[calc((100vw-120px)/3)] min-w-[140px]">
-                      <div className="text-slate-600 text-xs uppercase tracking-wider font-bold">
+                      <div className="text-white/70 text-xs uppercase tracking-wider font-bold">
                         {t.week_label} {index + 1}
                       </div>
-                      <div className="text-slate-900 text-sm font-black mt-0.5">
+                      <div className="text-white text-sm font-black mt-0.5">
                         {format(week, 'd MMM', { locale: getLocale() })}
                       </div>
                     </th>
                   ))}
                   {currentUser && isFeatureEnabled(currentUser, 'view_stats') && (
                     <th className="px-4 py-3 text-center border-b border-l border-slate-200 w-[60px] min-w-[60px]">
-                      <span className="text-slate-600 text-xs uppercase tracking-[0.2em] font-bold">
+                      <span className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold">
                         {t.tot}
                       </span>
                     </th>
@@ -140,7 +140,7 @@ export default function MonthlySummaryTable() {
                     <>
                       <tr key={`${user.id}-header`} className="bg-slate-100">
                         <td className="sticky left-0 bg-slate-100 px-4 py-2 border-r border-slate-200 z-10" colSpan={weeks.length + 2}>
-                          <p className="text-slate-900 font-bold text-sm">
+                          <p className="text-white font-bold text-sm">
                             <span className="uppercase">{user.first_name}</span>
                           </p>
                         </td>
@@ -153,7 +153,7 @@ export default function MonthlySummaryTable() {
                         className={`bg-white ${userIndex < displayUsers.length - 1 ? 'border-b border-slate-200' : ''}`}
                       >
                         <td className="sticky left-0 bg-white px-4 py-3 border-r border-slate-200 z-10">
-                          <p className="text-slate-600 text-xs uppercase tracking-wider">
+                          <p className="text-white/70 text-xs uppercase tracking-wider">
                             {translateRole(user.role, currentUser.language ?? 'it')}
                           </p>
                         </td>
@@ -162,7 +162,7 @@ export default function MonthlySummaryTable() {
                           return (
                             <td key={week.toString()} className="px-4 py-3 text-center border-x border-slate-200 snap-start">
                               <span className={`font-bold text-xs ${
-                                minutes > 0 ? 'text-slate-900' : 'text-slate-500'
+                                minutes > 0 ? 'text-white' : 'text-white/60'
                               }`}>
                                 {minutes > 0 ? formatMinutesToHoursAndMinutes(minutes) : '-'}
                               </span>
@@ -192,19 +192,19 @@ export default function MonthlySummaryTable() {
           className="mt-6 grid grid-cols-2 gap-4 px-4"
         >
           <div className="surface-glass p-5">
-            <p className="text-slate-500 text-xs uppercase tracking-widest font-bold mb-2">
+            <p className="text-white/60 text-xs uppercase tracking-widest font-bold mb-2">
               {t.total_hours}
             </p>
-            <p className="text-slate-900 text-2xl font-black tracking-tighter">
+            <p className="text-white text-2xl font-black tracking-tighter">
               {formatMinutesToHoursAndMinutes(displayUsers.reduce((sum, user) => sum + getTotalMinutes(user.id), 0))}
             </p>
           </div>
 
           <div className="surface-glass p-5">
-            <p className="text-slate-500 text-xs uppercase tracking-widest font-bold mb-2">
+            <p className="text-white/60 text-xs uppercase tracking-widest font-bold mb-2">
               {hasManagementAccess ? t.personnel : t.hours_this_month}
             </p>
-            <p className="text-slate-900 text-3xl font-black tracking-tighter">
+            <p className="text-white text-3xl font-black tracking-tighter">
               {hasManagementAccess
                 ? users.filter((u) => isUserVisibleOnTeamSchedule(u, shifts)).length
                 : formatMinutesToHoursAndMinutes(getTotalMinutes(currentUser.id))

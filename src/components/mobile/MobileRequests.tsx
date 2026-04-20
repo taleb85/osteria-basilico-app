@@ -40,9 +40,9 @@ export default function MobileRequests({ requests, onRequestNew, t = {} }: Mobil
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
         <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-          <Palmtree className="w-8 h-8 text-slate-400" />
+          <Palmtree className="w-8 h-8 text-white/50" />
         </div>
-        <p className="text-slate-500 font-medium uppercase tracking-wider text-xs">{t.no_requests_made ?? 'Nessuna richiesta effettuata'}</p>
+        <p className="text-white/60 font-medium uppercase tracking-wider text-xs">{t.no_requests_made ?? 'Nessuna richiesta effettuata'}</p>
         <button
           onClick={onRequestNew}
           className="mt-6 flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--brand)] text-white font-bold uppercase tracking-wider shadow-lg active:scale-95 transition-all"
@@ -71,11 +71,11 @@ export default function MobileRequests({ requests, onRequestNew, t = {} }: Mobil
             >
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                  <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">
                     {safeFormatDate(req.created_at, 'd MMM yyyy', { locale })}
                   </p>
                   <div className="flex items-center gap-2">
-                    <p className="text-xl font-bold text-slate-900">
+                    <p className="text-xl font-bold text-white">
                       {safeFormatDate(req.start_date, 'd MMM', { locale })} – {safeFormatDate(req.end_date, 'd MMM', { locale })}
                     </p>
                   </div>
@@ -91,7 +91,7 @@ export default function MobileRequests({ requests, onRequestNew, t = {} }: Mobil
 
               {req.reason && (
                 <div className="pt-3 border-t border-slate-50">
-                  <p className="text-xs text-slate-500 leading-relaxed italic">
+                  <p className="text-xs text-white/60 leading-relaxed italic">
                     "{req.reason}"
                   </p>
                 </div>

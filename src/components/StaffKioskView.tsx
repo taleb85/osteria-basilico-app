@@ -91,10 +91,10 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
             >
               <Clock className="w-12 h-12 text-white" strokeWidth={2.5} />
             </motion.div>
-            <h1 className="text-4xl font-black text-gray-900 mb-2">
+            <h1 className="text-4xl font-black text-white mb-2">
               {t.welcome_greeting} <span className="uppercase">{user.first_name}</span>
             </h1>
-            <p className="text-gray-500 text-sm uppercase tracking-widest font-semibold">
+            <p className="text-white/60 text-sm uppercase tracking-widest font-semibold">
               {t.punch_title_kiosk}
             </p>
           </div>
@@ -105,10 +105,10 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
               animate={{ opacity: 1, y: 0 }}
               className="surface-glass p-12 text-center"
             >
-              <p className="text-2xl font-bold text-gray-900 mb-6">
+              <p className="text-2xl font-bold text-white mb-6">
                 {t.no_shift_today}
               </p>
-              <p className="text-gray-500 mb-8">
+              <p className="text-white/60 mb-8">
                 {t.auto_return_seconds}
               </p>
               <button
@@ -132,10 +132,10 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-2xl font-black text-gray-900 mb-2">
+                        <h3 className="text-2xl font-black text-white mb-2">
                           {shift.type === 'lunch' ? t.lunch.toUpperCase() : t.dinner.toUpperCase()}
                         </h3>
-                        <p className="text-gray-600 font-semibold text-lg">
+                        <p className="text-white/70 font-semibold text-lg">
                           {t.expected_time} {shift.start_time} - {shift.end_time}
                         </p>
                       </div>
@@ -144,7 +144,7 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
                         disabled={status.hasPunchIn}
                         className={`px-8 py-4 rounded-2xl font-black uppercase tracking-wider transition-all shadow-lg ${
                           status.hasPunchIn
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            ? 'bg-gray-300 text-white/60 cursor-not-allowed'
                             : 'bg-accent text-white hover:bg-accent-hover hover:-translate-y-0.5 shadow-accent/25'
                         }`}
                       >
@@ -188,10 +188,10 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
               >
                 <CheckCircle className="w-16 h-16 text-white" strokeWidth={2.5} />
               </motion.div>
-              <h2 className="text-3xl font-black text-gray-900 mb-3">
+              <h2 className="text-3xl font-black text-white mb-3">
                 {t.entry_registered}
               </h2>
-              <p className="text-xl text-gray-600 font-semibold mb-2">
+              <p className="text-xl text-white/70 font-semibold mb-2">
                 {t.registered_at} {punchedTime}
               </p>
               {punchedTime !== calculatedTime && (

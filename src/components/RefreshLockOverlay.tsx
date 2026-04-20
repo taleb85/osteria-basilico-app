@@ -141,7 +141,7 @@ export default function RefreshLockOverlay() {
         onClick={handleLinkDevice}
         disabled={busy}
         title={t.sync_lock_link_device_title}
-        className="flex flex-col items-center justify-center gap-0.5 text-slate-400 active:scale-95 transition-transform"
+        className="flex flex-col items-center justify-center gap-0.5 text-white/50 active:scale-95 transition-transform"
       >
         {linkDeviceLoading ? (
           <Loader2 className="w-5 h-5 animate-spin" />

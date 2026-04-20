@@ -124,7 +124,7 @@ export default function PWAInstallRequired() {
       <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-6 text-center">
         <div>
           <h1 className="text-xl font-bold mb-2">Bypass Attivo</h1>
-          <p className="text-slate-400">VITE_ALLOW_BROWSER_APP è true: gate PWA disabilitato.</p>
+          <p className="text-white/50">VITE_ALLOW_BROWSER_APP è true: gate PWA disabilitato.</p>
         </div>
       </div>
     );

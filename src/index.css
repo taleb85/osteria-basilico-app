@@ -1745,3 +1745,8 @@ body .bg-slate-200 { background-color: rgba(255, 255, 255, 0.10) !important; }
     padding-right: max(1.5rem, env(safe-area-inset-right));
   }
 }
+
+/* ── DARK THEME GLOBAL ENFORCEMENT ─────────────────────────────────── */
+body {
+  color: #ffffff;
+}

@@ -56,10 +56,10 @@ export default function StaffOperationalPermissionsEditor({ user, currentUser }:
 
   return (
     <div>
-      <p className="ui-section-title mb-2 text-slate-400">
+      <p className="ui-section-title mb-2 text-white/50">
         {formatTrans(t.settings_operational_perms_heading, { name: user.first_name ?? '' })}
       </p>
-      <p className="text-[11px] text-slate-500 mb-2 leading-snug">{t.settings_operational_perms_editable_hint}</p>
+      <p className="text-[11px] text-white/60 mb-2 leading-snug">{t.settings_operational_perms_editable_hint}</p>
       <div className={PERMISSION_SUMMARY_LIST_CLASS}>
         {rows.map((perm) => {
           const enabled = isUserPermissionEffective(user, perm.key);
@@ -71,7 +71,7 @@ export default function StaffOperationalPermissionsEditor({ user, currentUser }:
               label={
                 <span
                   className={
-                    enabled ? 'text-slate-800' : 'text-slate-500'
+                    enabled ? 'text-white/90' : 'text-white/60'
                   }
                 >
                   {perm.label}
@@ -107,7 +107,7 @@ export default function StaffOperationalPermissionsEditor({ user, currentUser }:
                 ) : (
                   <span
                     className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
-                      enabled ? 'bg-accent text-white shadow-sm' : 'bg-slate-100 text-slate-500'
+                      enabled ? 'bg-accent text-white shadow-sm' : 'bg-slate-100 text-white/60'
                     }`}
                   >
                     {enabled ? t.role_template_yes : t.role_template_no}

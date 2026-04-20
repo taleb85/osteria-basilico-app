@@ -100,7 +100,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
 
           <div className="p-6 space-y-4">
             <div>
-              <label className="text-slate-600 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
+              <label className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
                 Data
               </label>
               <input
@@ -113,7 +113,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-slate-600 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
+                <label className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
                   {t.start}
                 </label>
                 <TimeInputField
@@ -125,7 +125,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
               </div>
 
               <div>
-                <label className="text-slate-600 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
+                <label className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
                   Fine {!tempShifts.end_time && <span className="text-amber-600">(da completare)</span>}
                 </label>
                 <TimeInputField
@@ -149,7 +149,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
                 onClick={handleCopy}
                 className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center hover:bg-slate-200 transition-colors"
               >
-                <Copy className="w-5 h-5 text-slate-700" />
+                <Copy className="w-5 h-5 text-white/80" />
               </button>
               <button
                 onClick={handleDelete}

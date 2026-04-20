@@ -291,11 +291,11 @@ export default function MobileStaffDashboard({
             >
               <div className="mb-4 flex items-start justify-between">
                 <div>
-                  <h3 className="flex items-center gap-2 text-lg font-extrabold text-slate-900 tracking-tight">
+                  <h3 className="flex items-center gap-2 text-lg font-extrabold text-white tracking-tight">
                     <Moon className="h-5 w-5 text-amber-600" />
                     {t.home_modal_close_dinner}
                   </h3>
-                  <p className="mt-0.5 text-sm text-slate-500">
+                  <p className="mt-0.5 text-sm text-white/60">
                     {safeFormatDate(todayStr, 'd MMM', { locale })}
                   </p>
                 </div>
@@ -307,10 +307,10 @@ export default function MobileStaffDashboard({
                   }}
                   className="rounded-xl p-1.5 hover:bg-slate-100"
                 >
-                  <X className="h-4 w-4 text-slate-500" />
+                  <X className="h-4 w-4 text-white/60" />
                 </button>
               </div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-600">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-white/70">
                 {t.home_label_exit_time}
               </label>
               <TimeInputField
@@ -328,7 +328,7 @@ export default function MobileStaffDashboard({
                     setCloseModal(null);
                     setClockOutInput('');
                   }}
-                  className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600"
+                  className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-white/70"
                 >
                   {t.cancel}
                 </button>

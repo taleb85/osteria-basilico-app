@@ -29,11 +29,11 @@ export default function StaffHomePreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-xl font-bold text-white">
             {t.home_greeting.replace('{name}', name)}
           </h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="surface-glass-sm !rounded-full px-3 py-1 text-xs font-semibold text-slate-600 border border-slate-100">
+            <span className="surface-glass-sm !rounded-full px-3 py-1 text-xs font-semibold text-white/70 border border-slate-100">
               24h {t.approved_hours_summary?.toLowerCase() ?? 'approvate'}
             </span>
             <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold text-accent">
@@ -52,8 +52,8 @@ export default function StaffHomePreview({
       >
         <div className="surface-glass flex items-center justify-between p-4 shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">{t.hours_this_month}</p>
-            <p className="text-2xl font-bold text-slate-900">32:00</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/50">{t.hours_this_month}</p>
+            <p className="text-2xl font-bold text-white">32:00</p>
           </div>
           <TrendingUp className="h-8 w-8 text-accent/40" />
         </div>
@@ -84,10 +84,10 @@ export default function StaffHomePreview({
       >
         <div className="surface-glass overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">{t.upcoming_shifts}</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-white/70">{t.upcoming_shifts}</span>
             <ChevronRight className="h-4 w-4 text-slate-300" />
           </div>
-          <div className="divide-y divide-slate-50 px-4 py-2 text-sm text-slate-700">
+          <div className="divide-y divide-slate-50 px-4 py-2 text-sm text-white/80">
             <p className="py-2">Mar 12:00–18:00</p>
             <p className="py-2">Gio 18:00–23:00</p>
           </div>
@@ -111,8 +111,8 @@ export default function StaffHomePreview({
               <Palmtree className="h-5 w-5 text-accent" />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-700">{t.sidebar_holidays}</p>
-              <p className="text-sm text-slate-500">{t.holiday_management}</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-white/80">{t.sidebar_holidays}</p>
+              <p className="text-sm text-white/60">{t.holiday_management}</p>
             </div>
           </div>
           <ChevronRight className="h-5 w-5 text-slate-300" />

@@ -99,10 +99,10 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
         </div>
       </div>
 
-      <h1 className="text-xl font-bold text-slate-800 mb-1 tracking-tight">
+      <h1 className="text-xl font-bold text-white/90 mb-1 tracking-tight">
         Dati aggiornati dall'admin
       </h1>
-      <p className="text-sm text-slate-500 mb-8 max-w-xs leading-relaxed">
+      <p className="text-sm text-white/60 mb-8 max-w-xs leading-relaxed">
         L'amministratore ha modificato le impostazioni. Aggiornamento automatico in corso…
       </p>
 
@@ -140,8 +140,8 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
                 </div>
                 <span className={`text-sm font-medium transition-colors duration-300 ${
                   done
-                    ? 'text-slate-700'
-                    : 'text-slate-400'
+                    ? 'text-white/80'
+                    : 'text-white/50'
                 }`}>
                   {step.label}
                 </span>

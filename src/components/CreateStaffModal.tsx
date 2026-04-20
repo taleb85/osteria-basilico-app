@@ -158,8 +158,8 @@ export default function CreateStaffModal({
         >
           <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
             <div>
-              <h2 className="text-base font-bold tracking-wide text-slate-900 font-sans">{t.create_employee_title}</h2>
-              <p className="mt-0.5 text-xs text-slate-500 font-sans">{t.create_employee_subtitle}</p>
+              <h2 className="text-base font-bold tracking-wide text-white font-sans">{t.create_employee_title}</h2>
+              <p className="mt-0.5 text-xs text-white/60 font-sans">{t.create_employee_subtitle}</p>
             </div>
             <button
               type="button"
@@ -167,7 +167,7 @@ export default function CreateStaffModal({
               aria-label={t.close}
               className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 transition-colors hover:bg-slate-200"
             >
-              <X className="h-4 w-4 text-slate-600" aria-hidden />
+              <X className="h-4 w-4 text-white/70" aria-hidden />
             </button>
           </div>
 

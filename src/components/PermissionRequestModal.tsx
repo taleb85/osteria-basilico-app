@@ -78,11 +78,11 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
       >
         {/* Header */}
         <div className="px-5 pt-6 pb-4 text-center border-b border-slate-100">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Prima di iniziare</p>
-          <h2 className="text-base font-bold text-slate-800 font-sans">
+          <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-1">Prima di iniziare</p>
+          <h2 className="text-base font-bold text-white/90 font-sans">
             Abilita le funzionalità
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-white/60 mt-1">
             Per ricevere avvisi e usare il timbratore con posizione
           </p>
         </div>
@@ -109,13 +109,13 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
                 : <Bell className="h-5 w-5 text-blue-600" />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-800">Notifiche</p>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-sm font-semibold text-white/90">Notifiche</p>
+              <p className="text-xs text-white/60 mt-0.5">
                 {notifGranted ? 'Attivate' : notifDenied ? 'Bloccate — abilita dalle impostazioni' : notifLoading ? 'In attesa…' : 'Turni, messaggi e avvisi in tempo reale'}
               </p>
             </div>
             {!notifGranted && !notifDenied && (
-              <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
+              <ChevronRight className="h-4 w-4 text-white/50 shrink-0" />
             )}
           </button>
 
@@ -139,13 +139,13 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
                 : <MapPin className="h-5 w-5 text-emerald-600" />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-800">Posizione</p>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-sm font-semibold text-white/90">Posizione</p>
+              <p className="text-xs text-white/60 mt-0.5">
                 {locGranted ? 'Consentita' : locDenied ? 'Bloccata — abilita dalle impostazioni' : locationLoading ? 'In attesa…' : 'Necessaria per il timbratore con verifica area'}
               </p>
             </div>
             {!locGranted && !locDenied && (
-              <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
+              <ChevronRight className="h-4 w-4 text-white/50 shrink-0" />
             )}
           </button>
         </div>
@@ -159,7 +159,7 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
           >
             Continua
           </button>
-          <p className="text-center text-[10px] text-slate-400 mt-2">
+          <p className="text-center text-[10px] text-white/50 mt-2">
             Puoi modificare questi permessi in qualsiasi momento dalle impostazioni del dispositivo
           </p>
         </div>

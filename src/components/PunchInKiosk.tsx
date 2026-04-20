@@ -127,7 +127,7 @@ function GiantBrandHeader({ now, locale, children }: { now: Date; locale: Return
         className="flex flex-col items-center w-full"
       >
         <StraightLogo />
-        <p className="text-sm sm:text-base text-slate-600 font-sans font-semibold tracking-tight mt-3">
+        <p className="text-sm sm:text-base text-white/70 font-sans font-semibold tracking-tight mt-3">
           {format(now, 'EEEE d MMMM · HH:mm', { locale })}
         </p>
         {children && <div className="mt-3 flex justify-center">{children}</div>}
@@ -539,7 +539,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
       >
         {employeesWithShifts.length === 0 ? (
           <div className="flex flex-col items-center justify-center">
-            <p className="text-sm font-sans font-semibold text-slate-600">{t.waiting_publication}</p>
+            <p className="text-sm font-sans font-semibold text-white/70">{t.waiting_publication}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-3 w-full max-w-md mx-auto">
@@ -613,7 +613,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                   {/* Riga 1: nome + badge azione */}
                   <div className="flex items-center justify-between gap-2 w-full">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="truncate text-base font-semibold uppercase text-slate-900">
+                      <span className="truncate text-base font-semibold uppercase text-white">
                         {user.first_name.toUpperCase()}
                       </span>
                       {allPunched && (
@@ -647,8 +647,8 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                         : awaitingOut
                           ? 'text-amber-600'
                           : inProgress || ns
-                              ? 'text-slate-700'
-                              : 'text-slate-400';
+                              ? 'text-white/80'
+                              : 'text-white/50';
                       return (
                         <span key={shift.id} className="flex items-center gap-1.5">
                           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
@@ -735,7 +735,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
               onClick={closeOverlay}
-              className="text-sm text-neutral-500 hover:text-neutral-300 transition-colors"
+              className="text-sm text-white/60 hover:text-neutral-300 transition-colors"
             >
               Esci
             </motion.button>
@@ -810,12 +810,12 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                           } ${isSuggested ? 'ring-2 ring-accent/40' : ''}`}
                         >
                           <span
-                            className={`flex-shrink-0 ${done ? 'text-accent' : awaitingOut ? 'text-amber-500' : isDayShift ? 'text-amber-500' : 'text-slate-400'}`}
+                            className={`flex-shrink-0 ${done ? 'text-accent' : awaitingOut ? 'text-amber-500' : isDayShift ? 'text-amber-500' : 'text-white/50'}`}
                           >
                             {isDayShift ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                           </span>
-                          <span className="flex flex-1 items-center gap-2 text-base font-medium text-slate-700">
-                            <Clock className="w-4 h-4 text-slate-400" />
+                          <span className="flex flex-1 items-center gap-2 text-base font-medium text-white/80">
+                            <Clock className="w-4 h-4 text-white/50" />
                             {shift.start_time.slice(0, 5)} — {shift.end_time ? shift.end_time.slice(0, 5) : '--:--'}
                           </span>
                           {done ? (
@@ -848,7 +848,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                         type="button"
                         onClick={() => { setUserWantsShiftList(true); setSelectedShift(null); }}
                         disabled={isLoading}
-                        className="flex flex-col items-center justify-center gap-0.5 text-slate-400 active:scale-95 transition-transform"
+                        className="flex flex-col items-center justify-center gap-0.5 text-white/50 active:scale-95 transition-transform"
                       >
                         <Smartphone className="w-5 h-5 text-[#455a3f]" />
                         <span className="text-[8px] font-black uppercase tracking-tighter leading-none">

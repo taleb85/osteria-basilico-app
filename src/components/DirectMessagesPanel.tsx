@@ -97,11 +97,11 @@ function NewChatPicker({
       <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-100">
         <button
           onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:bg-slate-100 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
-        <h3 className="text-sm font-bold text-slate-900 flex-1">{t.messages_new_conversation ?? 'Nuova conversazione'}</h3>
+        <h3 className="text-sm font-bold text-white flex-1">{t.messages_new_conversation ?? 'Nuova conversazione'}</h3>
       </div>
       <div className="px-4 pt-3 pb-2">
         <input
@@ -109,12 +109,12 @@ function NewChatPicker({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.messages_search_employee ?? 'Cerca dipendente...'}
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#0052FF] transition-colors"
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-white outline-none focus:border-[#0052FF] transition-colors"
         />
       </div>
       <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-2 pb-4 [-webkit-overflow-scrolling:touch]">
         {filtered.length === 0 ? (
-          <p className="text-center text-xs text-slate-400 py-8">{t.quick_switch_no_employee_found ?? 'Nessun dipendente trovato'}</p>
+          <p className="text-center text-xs text-white/50 py-8">{t.quick_switch_no_employee_found ?? 'Nessun dipendente trovato'}</p>
         ) : (
           filtered.map((u) => (
             <button
@@ -124,10 +124,10 @@ function NewChatPicker({
             >
               <UserAvatar user={u} size={38} />
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-900 truncate">
+                <p className="text-sm font-semibold text-white truncate">
                   {u.first_name} {u.last_name ?? ''}
                 </p>
-                <p className="text-[10px] text-slate-400 uppercase tracking-wide">{translateRole(u.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</p>
+                <p className="text-[10px] text-white/50 uppercase tracking-wide">{translateRole(u.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</p>
               </div>
             </button>
           ))
@@ -151,14 +151,14 @@ function ChatBubble({ body, time, isMine }: { body: string; time: string; isMine
       >
         <p
           className={`text-sm leading-snug whitespace-pre-wrap break-words ${
-            isMine ? 'text-white' : 'text-slate-900'
+            isMine ? 'text-white' : 'text-white'
           }`}
         >
           {body}
         </p>
         <p
           className={`text-[10px] mt-1 text-right ${
-            isMine ? 'text-white/65' : 'text-slate-400'
+            isMine ? 'text-white/65' : 'text-white/50'
           }`}
         >
           {time}
@@ -294,7 +294,7 @@ function ChatView({
       {/* Messages */}
       <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-4 py-4 space-y-1 [-webkit-overflow-scrolling:touch]">
         {grouped.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-400">
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-white/50">
             <MessageCircle className="w-10 h-10 opacity-20" />
             <p className="text-xs">Inizia la conversazione</p>
           </div>
@@ -302,7 +302,7 @@ function ChatView({
         {grouped.map(({ label, msgs }) => (
           <div key={label}>
             <div className="flex items-center justify-center my-3">
-              <span className="px-3 py-1 rounded-full bg-slate-100 text-[10px] font-semibold text-slate-400 uppercase tracking-wide">
+              <span className="px-3 py-1 rounded-full bg-slate-100 text-[10px] font-semibold text-white/50 uppercase tracking-wide">
                 {label}
               </span>
             </div>
@@ -336,7 +336,7 @@ function ChatView({
             onKeyDown={handleKeyDown}
             placeholder={t.messages_write_placeholder ?? 'Scrivi un messaggio...'}
             rows={1}
-            className="flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-[#0052FF] transition-colors"
+            className="flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-white outline-none focus:border-[#0052FF] transition-colors"
             style={{ maxHeight: 120, overflowY: 'auto' }}
           />
           <button
@@ -424,8 +424,8 @@ function ConversationList({
             >
               <MessageCircle className="w-8 h-8" style={{ color: BRAND }} />
             </div>
-            <p className="text-sm font-semibold text-slate-900">Nessuna conversazione</p>
-            <p className="text-xs text-slate-400">
+            <p className="text-sm font-semibold text-white">Nessuna conversazione</p>
+            <p className="text-xs text-white/50">
               {currentUserIsManagement
                 ? <>Tocca <span className="font-bold">+</span> per scrivere a un collega</>
                 : 'Puoi scrivere solo ai tuoi responsabili'}
@@ -447,21 +447,21 @@ function ConversationList({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-2">
                       <p
-                        className="text-sm font-bold truncate text-slate-900"
+                        className="text-sm font-bold truncate text-white"
                       >
                         {contact
                           ? `${contact.first_name} ${contact.last_name ?? ''}`.trim()
                           : '—'}
                       </p>
-                      <span className="text-[10px] text-slate-400 shrink-0">
+                      <span className="text-[10px] text-white/50 shrink-0">
                         {formatTime(conv.lastMessage.created_at, intlLocale)}
                       </span>
                     </div>
                     <p
                       className={`text-xs truncate mt-0.5 ${
                         conv.unreadCount > 0
-                          ? 'font-semibold text-slate-900'
-                          : 'text-slate-400'
+                          ? 'font-semibold text-white'
+                          : 'text-white/50'
                       }`}
                     >
                       {isMine ? 'Tu: ' : ''}

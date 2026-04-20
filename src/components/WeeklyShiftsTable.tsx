@@ -4171,12 +4171,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       : dayVariant === 'absent'
                                         ? 'text-rose-950'
                                         : dayVariant === 'planned'
-                                          ? 'text-slate-900'
+                                          ? 'text-white'
                                           : dayVariant === 'punchMissing'
                                             ? 'text-amber-950'
                                             : dayVariant === 'inprogress'
-                                              ? 'text-slate-900'
-                                              : 'text-slate-900';
+                                              ? 'text-white'
+                                              : 'text-white';
                                   const approvalDayNorm = normalizedApprovalStatus(dayShift.approval_status);
                                   const showPublishedBarDay =
                                     !isAbsentCell &&
@@ -4392,12 +4392,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       : eveningVariant === 'absent'
                                         ? 'text-rose-950'
                                         : eveningVariant === 'planned'
-                                          ? 'text-slate-900'
+                                          ? 'text-white'
                                           : eveningVariant === 'punchMissing'
                                             ? 'text-amber-950'
                                             : eveningVariant === 'inprogress'
-                                              ? 'text-slate-900'
-                                              : 'text-slate-900';
+                                              ? 'text-white'
+                                              : 'text-white';
                                   const approvalEvNorm = normalizedApprovalStatus(eveningShift.approval_status);
                                   const showPublishedBarEv =
                                     !isAbsentEv &&

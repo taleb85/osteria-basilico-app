@@ -266,7 +266,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     if (variant === 'embedded') return null;
     return (
       <div className="pb-content pt-6 app-horizontal-pad">
-        <p className="text-sm text-slate-600">{t.role_templates_forbidden_body}</p>
+        <p className="text-sm text-white/70">{t.role_templates_forbidden_body}</p>
       </div>
     );
   }
@@ -347,7 +347,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
           ref={btnRef}
           type="button"
           onClick={handleClick}
-          className={`shrink-0 rounded-full p-0.5 transition-colors ml-1 ${open ? 'text-accent' : 'text-slate-300 hover:text-slate-500'}`}
+          className={`shrink-0 rounded-full p-0.5 transition-colors ml-1 ${open ? 'text-accent' : 'text-slate-300 hover:text-white/60'}`}
           aria-label="Mostra anteprima"
         >
           <Info className="w-3 h-3" />
@@ -365,7 +365,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 99999 }}
                 className="rounded-2xl border border-white/15 bg-[#0d1c38]/95 shadow-xl p-3 w-[280px] font-sans"
               >
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-white/50 mb-2">
                   Anteprima — {previewTitle}
                 </p>
                 <div className="flex gap-2">
@@ -391,7 +391,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
       }`}
     >
       {label && (
-        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+        <div className="text-[9px] font-bold uppercase tracking-wider text-white/50 mb-1">
           {label}
         </div>
       )}
@@ -446,12 +446,12 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     // ── Operazioni Turni ──
     edit_shifts: {
       title: 'Modifica Turni',
-      off: <PreviewCard label="Spento"><div className="font-semibold text-slate-500">09:00 – 17:00</div><div className="text-[8px] opacity-40 mt-0.5">✏️ assente</div></PreviewCard>,
+      off: <PreviewCard label="Spento"><div className="font-semibold text-white/60">09:00 – 17:00</div><div className="text-[8px] opacity-40 mt-0.5">✏️ assente</div></PreviewCard>,
       on:  <PreviewCard label="Attivo" active><div className="font-semibold">09:00 – 17:00</div><div className="rounded bg-accent/20 text-accent text-[8px] text-center py-0.5 font-bold mt-0.5">✏️ Modifica</div></PreviewCard>,
     },
     approve_shifts: {
       title: 'Congelamento Turni',
-      off: <PreviewCard label="Spento"><div className="font-semibold text-slate-500">Turno ✓</div><div className="text-[8px] opacity-40 mt-0.5">🔒 Sola lettura</div></PreviewCard>,
+      off: <PreviewCard label="Spento"><div className="font-semibold text-white/60">Turno ✓</div><div className="text-[8px] opacity-40 mt-0.5">🔒 Sola lettura</div></PreviewCard>,
       on:  <PreviewCard label="Attivo" active><div className="font-semibold">Turno ✓</div><div className="text-[8px] text-green-600 font-semibold mt-0.5">❄️ Congela</div></PreviewCard>,
     },
     export_pdf: {
@@ -556,31 +556,31 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
         style={{ minWidth: 110 }}
       >
         {/* header */}
-        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+        <div className="text-[9px] font-bold uppercase tracking-wider text-white/50 mb-1">
           {planned ? 'Attivo' : 'Spento'}
         </div>
         {/* orario pianificato — sempre visibile */}
-        <div className="flex items-center gap-1 font-semibold text-slate-700">
+        <div className="flex items-center gap-1 font-semibold text-white/80">
           <span className="text-[9px] text-green-500 font-bold">✓</span>
           09:00 – 17:00
         </div>
         {/* dati nascosti quando planned */}
         {!planned && (
           <>
-            <div className="flex items-center gap-1 text-slate-500">
+            <div className="flex items-center gap-1 text-white/60">
               <span className="text-[9px]">⏱</span> 08:31 timb.
             </div>
             <div className="flex items-center gap-1 text-amber-600">
               <span className="text-[9px]">Δ</span> −29m
             </div>
-            <div className="flex items-center gap-1 text-slate-400">
+            <div className="flex items-center gap-1 text-white/50">
               <span className="inline-block w-2 h-2 rounded-sm bg-purple-400/60 text-[7px] text-center leading-[8px]">!</span>
               badge audit
             </div>
           </>
         )}
         {planned && (
-          <div className="text-slate-400 text-[10px] mt-0.5 italic">
+          <div className="text-white/50 text-[10px] mt-0.5 italic">
             delta e timbrature nascosti
           </div>
         )}
@@ -591,7 +591,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
       <div>
         {/* Label + hint */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[13px] text-slate-700">
+          <span className="text-[13px] text-white/80">
             {tv.admin_timesheet_grid_planned_only_label ?? 'Presenze: solo orario pianificato'}
           </span>
           {!anyActive && (
@@ -599,7 +599,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
               ref={btnRef}
               type="button"
               onClick={handleOpen}
-              className={`shrink-0 rounded-full p-0.5 transition-colors ${open ? 'text-accent' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`shrink-0 rounded-full p-0.5 transition-colors ${open ? 'text-accent' : 'text-white/50 hover:text-white/70'}`}
               aria-label="Mostra anteprima"
             >
               <Info className="w-3.5 h-3.5" />
@@ -617,7 +617,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 transition={{ duration: 0.18 }}
                 className="overflow-hidden"
               >
-                <span className="text-[11px] text-slate-400 leading-snug">
+                <span className="text-[11px] text-white/50 leading-snug">
                   {tv.admin_timesheet_grid_planned_only_hint ?? 'Nasconde timbrature, delta e totali grezzi: l\'utente vede solo orari pianificati pubblicati e, per turni congelati, le ore approvate.'}
                 </span>
               </motion.div>
@@ -629,7 +629,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.12 }}
               >
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-white/50">
                   Nasconde timbrature, delta e totali grezzi
                 </span>
               </motion.div>
@@ -659,7 +659,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 99999 }}
                 className="rounded-2xl border border-white/15 bg-[#0d1c38]/95 shadow-xl p-3 w-[280px] font-sans"
               >
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-2">
                   Anteprima cella presenze
                 </p>
                 <div className="flex gap-2">
@@ -681,8 +681,8 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   }) => (
     <div className="flex items-center justify-between px-4 py-3 gap-3">
       <div className="flex-1 min-w-0">
-        <div className="text-[13px] text-slate-700 leading-snug">{label}</div>
-        {sublabel && <div className="text-[11px] text-slate-400 mt-0.5 leading-snug">{sublabel}</div>}
+        <div className="text-[13px] text-white/80 leading-snug">{label}</div>
+        {sublabel && <div className="text-[11px] text-white/50 mt-0.5 leading-snug">{sublabel}</div>}
       </div>
       <button
         type="button"
@@ -700,7 +700,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
   const MobileSectionHeader = ({ title }: { title: string }) => (
     <div className="px-4 py-2 bg-white/5 border-y border-white/10">
-      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{title}</span>
+      <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">{title}</span>
     </div>
   );
 
@@ -721,7 +721,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
               <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-[11px] font-bold" style={{ backgroundColor: color }}>
                 {initials(u)}
               </div>
-              <span className="text-[11px] font-semibold text-slate-700 leading-none">{u.first_name}</span>
+              <span className="text-[11px] font-semibold text-white/80 leading-none">{u.first_name}</span>
               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none" style={{ backgroundColor: color }}>
                 {roleBadgeLabel(u.role, t as Record<string, string>)}
               </span>
@@ -739,7 +739,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             return (
               <MobileRow
                 key={key}
-                label={<>{FEATURE_LABELS_TAB_FIRST[key]}{key === 'home_tab' && <span className="ml-1 text-[10px] text-slate-400"> sempre attiva</span>}</>}
+                label={<>{FEATURE_LABELS_TAB_FIRST[key]}{key === 'home_tab' && <span className="ml-1 text-[10px] text-white/50"> sempre attiva</span>}</>}
                 enabled={(userFeatures[mobileUser.id]?.[key]) === true}
                 locked={locked}
                 onToggle={() => toggleFeature(mobileUser.id, key)}
@@ -842,7 +842,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                         {initials(u)}
                       </div>
                       {/* Nome */}
-                      <span className="text-[11px] font-semibold text-slate-700 leading-tight text-center max-w-[76px] truncate">
+                      <span className="text-[11px] font-semibold text-white/80 leading-tight text-center max-w-[76px] truncate">
                         {u.first_name}
                       </span>
                       {/* Ruolo */}
@@ -866,10 +866,10 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             {ROLE_TEMPLATE_FEATURE_SECTIONS.find((s) => s.id === 'tabs_nav')?.rows.map(({ key }) => (
               <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
                 <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5">
-                  <div className="flex items-center gap-0.5 text-[13px] text-slate-700">
+                  <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {FEATURE_LABELS_TAB_FIRST[key]}
                     {key === 'home_tab' && (
-                      <span className="ml-1 text-[10px] text-slate-400">sempre attiva</span>
+                      <span className="ml-1 text-[10px] text-white/50">sempre attiva</span>
                     )}
                     {PERM_PREVIEWS[key] && (
                       <PermInfoButton
@@ -902,7 +902,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             {ROLE_TEMPLATE_FEATURE_SECTIONS.find((s) => s.id === 'shift_ops')?.rows.map(({ key }) => (
               <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
                 <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5">
-                  <div className="flex items-center gap-0.5 text-[13px] text-slate-700">
+                  <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {FEATURE_LABELS[key]}
                     {PERM_PREVIEWS[key] && (
                       <PermInfoButton
@@ -930,7 +930,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             {ROLE_TEMPLATE_FEATURE_SECTIONS.find((s) => s.id === 'other')?.rows.map(({ key }) => (
               <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
                 <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5">
-                  <div className="flex items-center gap-0.5 text-[13px] text-slate-700">
+                  <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {FEATURE_LABELS[key]}
                     {PERM_PREVIEWS[key] && (
                       <PermInfoButton
@@ -976,7 +976,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             {permRows.map((perm) => (
               <tr key={perm.key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
                 <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5">
-                  <div className="flex items-center gap-0.5 text-[13px] text-slate-700">
+                  <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {perm.label}
                     {PERM_PREVIEWS[perm.key] && (
                       <PermInfoButton
@@ -987,7 +987,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                     )}
                   </div>
                   {perm.description && (
-                    <div className="text-[11px] text-slate-400 leading-snug mt-0.5 max-w-[220px]">
+                    <div className="text-[11px] text-white/50 leading-snug mt-0.5 max-w-[220px]">
                       {perm.description}
                     </div>
                   )}
@@ -1008,7 +1008,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             <SectionHeader title="Visibilità nel Tabellone Turni" icon={<Users className="h-3 w-3" />} />
             <tr className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
               <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5">
-                <div className="flex items-center gap-0.5 text-[13px] text-slate-700">
+                <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                   {t.settings_visible_on_schedule_row}
                   <PermInfoButton
                     previewTitle={PERM_PREVIEWS.team_schedule_visible.title}
@@ -1016,7 +1016,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                     on={PERM_PREVIEWS.team_schedule_visible.on}
                   />
                 </div>
-                <div className="text-[11px] text-slate-400 leading-snug mt-0.5">
+                <div className="text-[11px] text-white/50 leading-snug mt-0.5">
                   Appare nel tabellone turni e nelle presenze di squadra
                 </div>
               </td>
@@ -1040,7 +1040,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 </td>
                 <td colSpan={nonAdminUsers.length} className="px-3 py-2.5">
                   <div className="flex items-center justify-center gap-3">
-                    <span className="text-[11px] text-slate-400">Globale</span>
+                    <span className="text-[11px] text-white/50">Globale</span>
                     <MatrixToggle
                       enabled={mods[key] === true}
                       accent="#6366f1"

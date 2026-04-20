@@ -3380,12 +3380,12 @@ export default function Timesheets() {
                     >
                       {wAp.isApprovedState ? (
                         <Lock
-                          className={`w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0 ${weekApproveDisabled ? 'text-slate-400' : 'text-red-600'}`}
+                          className={`w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0 ${weekApproveDisabled ? 'text-white/50' : 'text-red-600'}`}
                           aria-hidden
                         />
                       ) : (
                         <Unlock
-                          className={`w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0 ${weekApproveDisabled ? 'text-slate-400' : 'text-emerald-600'}`}
+                          className={`w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0 ${weekApproveDisabled ? 'text-white/50' : 'text-emerald-600'}`}
                           aria-hidden
                         />
                       )}
@@ -3701,13 +3701,13 @@ export default function Timesheets() {
                     className="ui-toolbar-chip !inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs items-center gap-1.5 border-slate-200 hover:bg-slate-50 cursor-pointer relative z-[110] max-w-[110px] sm:max-w-none"
                     title="Seleziona reparto per PDF"
                   >
-                    <Filter className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-slate-400" />
-                    <span className="font-bold text-slate-700 truncate">
+                    <Filter className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-white/50" />
+                    <span className="font-bold text-white/80 truncate">
                       {pdfDeptFilter === 'all' 
                         ? <span>Reparti</span>
                         : availableDepts.find(d => d.value === pdfDeptFilter)?.label || pdfDeptFilter}
                     </span>
-                    <ChevronDown className={`h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-slate-400 transition-transform ${showPdfDeptMenu ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-white/50 transition-transform ${showPdfDeptMenu ? 'rotate-180' : ''}`} />
                   </button>
 
                     {/* Dropdown Menu */}
@@ -3749,7 +3749,7 @@ export default function Timesheets() {
                                 className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
                                   pdfDeptFilter === dept.value 
                                     ? 'bg-accent text-white shadow-md' 
-                                    : 'text-slate-600 hover:bg-slate-50'
+                                    : 'text-white/70 hover:bg-slate-50'
                                 }`}
                               >
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
@@ -3774,13 +3774,13 @@ export default function Timesheets() {
                               disableBackdropClose
                             >
                               <div className="flex items-center justify-between px-2 py-1.5 border-b border-slate-100 mb-1">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">
                                   {t.department_filter_label}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => setShowPdfDeptMenu(false)}
-                                  className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                                  className="rounded-lg p-1 text-white/50 transition-colors hover:bg-slate-100 hover:text-white/70"
                                   aria-label="Chiudi"
                                 >
                                   <X className="h-3.5 w-3.5" />
@@ -3792,7 +3792,7 @@ export default function Timesheets() {
                                 className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
                                   pdfDeptFilter === 'all' 
                                     ? 'bg-accent text-white shadow-md' 
-                                    : 'text-slate-600 hover:bg-slate-50'
+                                    : 'text-white/70 hover:bg-slate-50'
                                 }`}
                               >
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
@@ -3813,7 +3813,7 @@ export default function Timesheets() {
                                   className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
                                     pdfDeptFilter === dept.value 
                                       ? 'bg-accent text-white shadow-md' 
-                                      : 'text-slate-600 hover:bg-slate-50'
+                                      : 'text-white/70 hover:bg-slate-50'
                                   }`}
                                 >
                                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
@@ -3879,11 +3879,11 @@ export default function Timesheets() {
                     <div>
                       <h4 className="font-bold text-lg text-white">{user.first_name}</h4>
                       {user.department && (
-                        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{user.department}</p>
+                        <p className="text-[10px] text-white/50 font-medium uppercase tracking-wider">{user.department}</p>
                       )}
                     </div>
                     <div className="text-right">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{t.stats_total}</div>
+                      <div className="text-[10px] font-bold text-white/50 uppercase tracking-tight">{t.stats_total}</div>
                       <div className="text-sm font-bold text-accent">
                         {formatMinutesToHoursAndMinutes(totals?.actualMins || totals?.plannedMins || 0)}
                       </div>
@@ -3893,7 +3893,7 @@ export default function Timesheets() {
                   <div className="space-y-3">
                     {!userHasShifts ? (
                       <div className="py-4 text-center border-2 border-dashed border-slate-100 rounded-xl">
-                        <p className="text-xs text-slate-400 italic">{t.no_shifts_this_week || 'Nessun turno questa settimana'}</p>
+                        <p className="text-xs text-white/50 italic">{t.no_shifts_this_week || 'Nessun turno questa settimana'}</p>
                       </div>
                     ) : (
                       weekDays.map(day => {
@@ -3920,10 +3920,10 @@ export default function Timesheets() {
                             }}
                           >
                             <div className="w-10 shrink-0 text-center">
-                              <div className={`text-[10px] font-bold uppercase ${todayDate ? 'text-accent' : 'text-slate-400'}`}>
+                              <div className={`text-[10px] font-bold uppercase ${todayDate ? 'text-accent' : 'text-white/50'}`}>
                                 {format(day, 'EEE', { locale })}
                               </div>
-                              <div className={`text-xs font-bold ${todayDate ? 'text-accent' : 'text-slate-600'}`}>
+                              <div className={`text-xs font-bold ${todayDate ? 'text-accent' : 'text-white/70'}`}>
                                 {format(day, 'd', { locale })}
                               </div>
                             </div>
@@ -3945,11 +3945,11 @@ export default function Timesheets() {
                                     className={`flex w-full items-center justify-between rounded-lg border-l-4 ${border} ${bg} ${ring} p-2 text-left ${shiftClickBlocked ? 'cursor-default' : 'cursor-pointer transition-transform active:scale-[0.98]'}`}
                                   >
                                     <div className="flex flex-col">
-                                      <span className="text-xs font-bold text-slate-800">
+                                      <span className="text-xs font-bold text-white/90">
                                         {s.plannedStart}–{s.plannedEnd || '?'}
                                       </span>
                                       {s.punched && s.actualStart && (
-                                        <span className="text-[10px] font-medium text-slate-500">
+                                        <span className="text-[10px] font-medium text-white/60">
                                           {s.actualStart}–{s.actualEnd || '...'}
                                         </span>
                                       )}
@@ -4019,7 +4019,7 @@ export default function Timesheets() {
                                   : 'bg-[#e0f7fa]'
                             } ${canReview ? 'cursor-pointer hover:bg-[#b2ebf2] group' : ''}`}
                           >
-                            <div className={todayDate && inP ? 'text-[#3366CC]' : 'text-slate-400'}>
+                            <div className={todayDate && inP ? 'text-[#3366CC]' : 'text-white/50'}>
                               {format(day, 'EEE', { locale })}
                             </div>
                             <div className={`font-bold mt-0.5 text-sm md:text-xs ${todayDate && inP ? 'text-accent' : payrollHighlight ? 'text-white' : 'text-white/70'}`}>
@@ -4137,7 +4137,7 @@ export default function Timesheets() {
                       </th>
                     );
                   })}
-                  <th className="box-border border-l-2 border-l-slate-300 bg-white px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500 md:px-2 md:py-2" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent' } : { background: '#ffffff' }}>
+                  <th className="box-border border-l-2 border-l-white/20 px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-white/60 md:px-2 md:py-2" style={{ background: 'transparent' }}>
                     {t.stats_total}
                   </th>
                 </tr>
@@ -4475,7 +4475,7 @@ export default function Timesheets() {
                               )}
                               {plannedOnlyTimesheetGrid && frozenCol > 0 && (
                                 <div
-                                  className={`font-semibold ${tdMuted ? 'text-slate-500' : 'text-slate-800'}`}
+                                  className={`font-semibold ${tdMuted ? 'text-white/60' : 'text-white/90'}`}
                                   title={t.ts_kpi_frozen_official}
                                 >
                                   {formatMinutesToHoursAndMinutes(frozenCol)}
@@ -4489,11 +4489,11 @@ export default function Timesheets() {
                       );
                     })}
                     <td className="px-3 py-3 text-center bg-slate-50 border-l-[3px] border-l-slate-500 md:px-2 md:py-2">
-                      <div className="text-xs text-slate-500 md:text-[10px]">
+                      <div className="text-xs text-white/60 md:text-[10px]">
                         {formatMinutesToHoursAndMinutes(visibleUsers.reduce((s, u) => s + (userTotals[u.id]?.plannedMins ?? 0), 0))}
                       </div>
                       {showFullTimesheetGrid && (
-                        <div className="text-xs font-bold text-slate-900 md:text-[10px]">
+                        <div className="text-xs font-bold text-white md:text-[10px]">
                           {(() => {
                             const act = visibleUsers.reduce((s, u) => s + (userTotals[u.id]?.actualMins ?? 0), 0);
                             return act > 0 ? formatMinutesToHoursAndMinutes(act) : '';
@@ -4505,7 +4505,7 @@ export default function Timesheets() {
                           const gf = visibleUsers.reduce((s, u) => s + (userTotals[u.id]?.frozenOfficialMins ?? 0), 0);
                           return gf > 0 ? (
                             <div
-                              className="text-xs font-bold text-slate-900 md:text-[10px]"
+                              className="text-xs font-bold text-white md:text-[10px]"
                               title={t.ts_kpi_frozen_official}
                             >
                               {formatMinutesToHoursAndMinutes(gf)}
@@ -4525,7 +4525,7 @@ export default function Timesheets() {
           {/* Box personale per staff */}
           {!canTeamTimesheetOps && currentUser && uiW('timesheet.staff_summary_box') && (
             <div className="mt-4 rounded-2xl border border-slate-100 bg-transparent p-5 shadow-none">
-              <p className="text-xs uppercase tracking-wider text-slate-400 mb-3 font-semibold">
+              <p className="text-xs uppercase tracking-wider text-white/50 mb-3 font-semibold">
                 {t.timesheet_my_week}
               </p>
               {(() => {
@@ -4541,7 +4541,7 @@ export default function Timesheets() {
                       {
                         label: t.ts_kpi_planned,
                         val: formatMinutesToHoursAndMinutes(myTot?.plannedMins ?? 0),
-                        color: 'text-slate-800',
+                        color: 'text-white/90',
                       },
                       {
                         label: t.ts_kpi_punched,
@@ -4549,7 +4549,7 @@ export default function Timesheets() {
                           (myTot?.actualMins ?? 0) > 0
                             ? formatMinutesToHoursAndMinutes(myTot?.actualMins ?? 0)
                             : '–',
-                        color: 'text-slate-800',
+                        color: 'text-white/90',
                       },
                       {
                         label: t.ts_kpi_delta,
@@ -4562,26 +4562,26 @@ export default function Timesheets() {
                         {
                           label: t.ts_kpi_planned,
                           val: formatMinutesToHoursAndMinutes(myTot?.plannedMins ?? 0),
-                          color: 'text-slate-800',
+                          color: 'text-white/90',
                         },
                         {
                           label: t.ts_kpi_frozen_official,
                           val: formatMinutesToHoursAndMinutes(frozenM),
-                          color: 'text-slate-800',
+                          color: 'text-white/90',
                         },
                       ]
                     : [
                         {
                           label: t.ts_kpi_planned,
                           val: formatMinutesToHoursAndMinutes(myTot?.plannedMins ?? 0),
-                          color: 'text-slate-800',
+                          color: 'text-white/90',
                         },
                       ];
                 return (
                   <div className={`grid gap-4 ${gridCols}`}>
                     {kpiItems.map(({ label, val, color }) => (
                       <div key={label}>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">{label}</p>
+                        <p className="text-[10px] text-white/50 uppercase tracking-wide mb-1">{label}</p>
                         <p className={`text-2xl font-bold ${color}`}>{val}</p>
                       </div>
                     ))}
@@ -5585,10 +5585,10 @@ export default function Timesheets() {
                 }
               </div>
               <div>
-                <h3 className={`font-bold text-base ${isDone ? 'text-slate-900' : 'text-slate-900'}`}>
+                <h3 className={`font-bold text-base ${isDone ? 'text-white' : 'text-white'}`}>
                   {isDone ? 'Approvazione Completata' : 'Approvazione Settimanale'}
                 </h3>
-                <p className={`text-sm ${isDone ? 'text-emerald-700' : 'text-slate-500'}`}>
+                <p className={`text-sm ${isDone ? 'text-emerald-700' : 'text-white/60'}`}>
                   {approveWeekSummary.employeeName} · {approveWeekSummary.shiftIds.length} turni
                 </p>
               </div>
@@ -5600,10 +5600,10 @@ export default function Timesheets() {
                 const approved = isDone;
                 return (
                   <div key={i} className={`flex items-center justify-between px-3 py-2.5 transition-colors ${approved ? 'bg-emerald-50/70' : 'bg-[#0052FF]/4'}`}>
-                    <span className={`text-sm font-medium capitalize ${isDone ? 'text-emerald-800' : 'text-slate-700'}`}>
+                    <span className={`text-sm font-medium capitalize ${isDone ? 'text-emerald-800' : 'text-white/80'}`}>
                       {row.employeeLabel ? (
                         <span className="block text-left">
-                          <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                          <span className="block text-[10px] font-semibold uppercase tracking-wide text-white/60">
                             {row.employeeLabel}
                           </span>
                           {safeFormatDate(row.dateStr, 'EEE d MMM', { locale })}
@@ -5613,7 +5613,7 @@ export default function Timesheets() {
                       )}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold tabular-nums text-slate-900">
+                      <span className="text-sm font-bold tabular-nums text-white">
                         {row.planned}
                       </span>
                       {approved && (
@@ -5758,7 +5758,7 @@ export default function Timesheets() {
           const clockOutComplete = /^\d{2}:\d{2}$/.test((clockOutTime || '').trim());
           const showHoursPreview = clockOutComplete && !!shiftObj && !!userObj;
           const previewDelta = previewMins - closingShift.plannedMins;
-          const previewDeltaColor = previewDelta > 5 ? 'text-[#3366CC]' : previewDelta < -5 ? 'text-red-500' : 'text-slate-500';
+          const previewDeltaColor = previewDelta > 5 ? 'text-[#3366CC]' : previewDelta < -5 ? 'text-red-500' : 'text-white/60';
 
           return (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -5769,27 +5769,27 @@ export default function Timesheets() {
                 className="modal-glass-panel w-full max-w-sm rounded-2xl p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <h3 className="font-bold text-white text-base flex items-center gap-2">
                       <LogOut className="w-4 h-4 text-amber-500" />
                       {t.ts_modal_close_shift_title}
                     </h3>
-                    <p className="text-sm text-slate-500 mt-0.5">
+                    <p className="text-sm text-white/60 mt-0.5">
                       {closingShift.employeeName} · {safeFormatDate(closingShift.dateStr, 'd MMM', { locale })}
                     </p>
                   </div>
                   <button type="button" onClick={() => { setClosingShift(null); setClockOutTime(''); }}
                     className="p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
-                    <X className="w-4 h-4 text-slate-500" />
+                    <X className="w-4 h-4 text-white/60" />
                   </button>
                 </div>
 
                 <div className="bg-slate-50 rounded-xl px-3 py-2.5 mb-4 flex items-center justify-between text-sm">
-                  <span className="text-slate-500">{t.ts_modal_entry_registered}</span>
-                  <span className="font-bold text-slate-800">{closingShift.actualStart}</span>
+                  <span className="text-white/60">{t.ts_modal_entry_registered}</span>
+                  <span className="font-bold text-white/90">{closingShift.actualStart}</span>
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">{t.ts_label_exit_time}</label>
+                  <label className="block text-xs font-semibold text-white/70 mb-1.5 uppercase tracking-wide">{t.ts_label_exit_time}</label>
                   <TimeInputField
                     size="hero"
                     value={clockOutTime}
@@ -5798,25 +5798,25 @@ export default function Timesheets() {
                     className="w-full"
                     autoFocus
                   />
-                  <p className="text-[11px] text-slate-400 mt-1 text-center">
+                  <p className="text-[11px] text-white/50 mt-1 text-center">
                     {t.ts_label_planned}: {closingShift.plannedStart}–{closingShift.plannedEnd}
                   </p>
                 </div>
 
                 {showHoursPreview && (
                   <div className="bg-slate-50 rounded-xl p-3 mb-4">
-                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">{t.ts_modal_hours_preview}</p>
+                    <p className="text-[10px] font-semibold text-white/60 uppercase tracking-wide mb-2">{t.ts_modal_hours_preview}</p>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
-                        <p className="text-[10px] text-slate-400">{t.ts_kpi_planned}</p>
-                        <p className="font-bold text-slate-700 text-sm">{fmtHM(closingShift.plannedMins)}</p>
+                        <p className="text-[10px] text-white/50">{t.ts_kpi_planned}</p>
+                        <p className="font-bold text-white/80 text-sm">{fmtHM(closingShift.plannedMins)}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-slate-400">{t.ts_kpi_actual}</p>
-                        <p className="font-bold text-slate-800 text-sm">{fmtHM(previewMins)}</p>
+                        <p className="text-[10px] text-white/50">{t.ts_kpi_actual}</p>
+                        <p className="font-bold text-white/90 text-sm">{fmtHM(previewMins)}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-slate-400">{t.ts_kpi_delta}</p>
+                        <p className="text-[10px] text-white/50">{t.ts_kpi_delta}</p>
                         <p className={`font-bold text-sm ${previewDeltaColor}`}>{previewDelta >= 0 ? '+' : ''}{fmtHM(previewDelta)}</p>
                       </div>
                     </div>
@@ -5825,7 +5825,7 @@ export default function Timesheets() {
 
                 <div className="flex gap-2">
                   <button type="button" onClick={() => { setClosingShift(null); setClockOutTime(''); }}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-white/70 text-sm font-medium hover:bg-slate-50 transition-colors">
                     {t.cancel}
                   </button>
                   <button type="button" disabled={!clockOutTime || closingLoading} onClick={handleConfirmClose}

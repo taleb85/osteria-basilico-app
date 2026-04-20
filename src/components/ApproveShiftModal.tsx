@@ -96,24 +96,24 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t.home_label_planned}</p>
-                <p className="font-bold tabular-nums text-slate-800">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.home_label_planned}</p>
+                <p className="font-bold tabular-nums text-white/90">
                   {pair.plannedStart} → {pair.plannedEnd}
                 </p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-[#001A80]/8 px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t.ts_label_punched}</p>
-                <p className="font-bold tabular-nums text-slate-800">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.ts_label_punched}</p>
+                <p className="font-bold tabular-nums text-white/90">
                   {pair.actualStart ?? '—'} → {pair.actualEnd ?? '—'}
                 </p>
               </div>
             </div>
 
-            <p className="text-[11px] text-slate-500 font-semibold">{t.approve_shift_edit_hint}</p>
+            <p className="text-[11px] text-white/60 font-semibold">{t.approve_shift_edit_hint}</p>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-white/70 text-xs font-bold uppercase tracking-wider mb-2">
                   {t.entry}
                 </label>
                 <TimeInputField
@@ -125,7 +125,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
               </div>
 
               <div>
-                <label className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-white/70 text-xs font-bold uppercase tracking-wider mb-2">
                   {t.exit}
                 </label>
                 <TimeInputField
@@ -144,7 +144,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
 
             {canRevertToPending && (
               <div className="mb-4 rounded-xl border border-slate-200 bg-slate-100 p-4">
-                <p className="mb-3 text-sm font-bold text-slate-800">
+                <p className="mb-3 text-sm font-bold text-white/90">
                   Questo turno è già approvato. Vuoi riportarlo in sospeso?
                 </p>
                 <button
@@ -162,7 +162,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 bg-slate-200 text-slate-800 rounded-xl py-4 font-black uppercase tracking-wider hover:bg-slate-300 transition-all"
+                className="flex-1 bg-slate-200 text-white/90 rounded-xl py-4 font-black uppercase tracking-wider hover:bg-slate-300 transition-all"
               >
                 {isAlreadyApproved ? t.close : t.cancel}
               </button>
