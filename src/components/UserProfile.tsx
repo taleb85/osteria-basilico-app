@@ -41,8 +41,8 @@ export type ProfileFormSelfData = {
 
 /** Form "Il mio profilo": Email, Telefono, Reparto, Lingua. Con `readOnly` i campi sono disabilitati (es. anteprima). */
 const inputClassLight =
-  'w-full px-3 py-2.5 rounded-xl bg-white border border-[#F1F5F9] text-slate-900 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors';
-const labelClassLight = 'block text-xs font-medium text-slate-600 mb-1.5';
+  'w-full px-3 py-2.5 rounded-xl bg-white/8 border border-white/18 text-white text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors placeholder:text-white/35';
+const labelClassLight = 'block text-xs font-medium text-white/65 mb-1.5';
 
 function roleSelectValue(role: UserType['role']): string {
   if (role === 'chef') return 'cook';
@@ -106,10 +106,10 @@ export function ProfileFormSelf({
   const inputClassDisabled =
     inputClass +
     (appearance === 'light'
-      ? ' opacity-70 cursor-not-allowed bg-slate-50'
+      ? ' opacity-60 cursor-not-allowed bg-white/5'
       : ' opacity-70 cursor-not-allowed');
   const labelClass = appearance === 'light' ? labelClassLight : 'block text-xs font-medium text-white/80 mb-1.5';
-  const iconMuted = appearance === 'light' ? 'text-slate-500' : 'text-white/40';
+  const iconMuted = appearance === 'light' ? 'text-white/55' : 'text-white/40';
 
   const canEditName = !readOnly && !nameLocked;
   const canEditRole = !readOnly && !roleLocked;
@@ -243,11 +243,11 @@ export function ProfileFormSelf({
         const scope = getRoleScopeHint(formData.role, tv);
         if (!scope) return null;
         return (
-          <div className="rounded-xl border border-[#F1F5F9] bg-slate-50/70 px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+          <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/45 mb-1">
               {tv.profile_role_scope_label}
             </p>
-            <p className="text-[11px] text-slate-600 leading-snug">{scope}</p>
+            <p className="text-[11px] text-white/70 leading-snug">{scope}</p>
           </div>
         );
       })()}
@@ -368,13 +368,13 @@ export function AdminTimesheetGridPrivacyEditor({ user }: { user: UserType }) {
   };
 
   return (
-    <div className="rounded-xl border border-[#F1F5F9] bg-slate-50/70 px-3 py-3">
+    <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-slate-800">
+          <p className="text-xs font-semibold text-white">
             {tv.admin_timesheet_grid_planned_only_label}
           </p>
-          <p className="mt-1 text-[10px] leading-snug text-slate-500">
+          <p className="mt-1 text-[10px] leading-snug text-white/55">
             {tv.admin_timesheet_grid_planned_only_hint}
           </p>
         </div>
@@ -416,9 +416,9 @@ export type ProfileFormAdminData = {
 };
 
 const inputClass =
-  'w-full px-3 py-2 rounded-xl text-sm bg-white border border-[#F1F5F9] text-slate-800 placeholder:text-slate-400 focus:border-[#001A80] focus:ring-2 focus:ring-[#001A80]/20 focus:outline-none transition-colors font-sans disabled:opacity-60';
+  'w-full px-3 py-2 rounded-xl text-sm bg-white/8 border border-white/18 text-white placeholder:text-white/35 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors font-sans disabled:opacity-60';
 const labelClass =
-  'block text-xs font-semibold text-slate-700 mb-1 font-sans';
+  'block text-xs font-semibold text-white/65 mb-1 font-sans';
 
 /** Form modale "Modifica dipendente" (manager): layout con Reparto sopra Stato account. Tutte le etichette tradotte. */
 export function ProfileFormAdmin({
@@ -494,7 +494,7 @@ export function ProfileFormAdmin({
   return (
     <>
       {readOnly && (
-        <p className="mb-4 rounded-xl border border-[#F1F5F9] bg-slate-50 px-3 py-2 text-[11px] text-slate-600 font-sans">
+        <p className="mb-4 rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-[11px] text-white/70 font-sans">
           {(t as { settings_delegated_readonly_hint?: string }).settings_delegated_readonly_hint ??
             'Solo lettura. Per modifiche contatta un amministratore.'}
         </p>
@@ -512,7 +512,7 @@ export function ProfileFormAdmin({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>
-              <User className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+              <User className="w-3.5 h-3.5 inline mr-1.5 text-white/45" />
               {t.first_name}
             </label>
             <input
@@ -527,7 +527,7 @@ export function ProfileFormAdmin({
           </div>
           <div>
             <label className={labelClass}>
-              <User className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+              <User className="w-3.5 h-3.5 inline mr-1.5 text-white/45" />
               {t.last_name_optional}
             </label>
             <input
@@ -543,7 +543,7 @@ export function ProfileFormAdmin({
 
         <div>
           <label className={labelClass}>
-            <Mail className="w-4 h-4 inline mr-2 text-slate-400" />
+            <Mail className="w-4 h-4 inline mr-2 text-white/45" />
             {t.email}
           </label>
           <input
@@ -559,7 +559,7 @@ export function ProfileFormAdmin({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>
-              <Shield className="w-4 h-4 inline mr-2 text-slate-400" />
+              <Shield className="w-4 h-4 inline mr-2 text-white/45" />
               {t.role}
             </label>
             <select
@@ -591,7 +591,7 @@ export function ProfileFormAdmin({
           </div>
           <div>
             <label className={labelClass}>
-              <Lock className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+              <Lock className="w-3.5 h-3.5 inline mr-1.5 text-white/45" />
               {t.pin_4_digits}
             </label>
             <input
@@ -620,11 +620,11 @@ export function ProfileFormAdmin({
           const scope = getRoleScopeHint(formData.role, tv);
           if (!scope) return null;
           return (
-            <div className="rounded-xl border border-[#F1F5F9] bg-slate-50/70 px-3 py-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+            <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2.5">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/45 mb-1">
                 {tv.profile_role_scope_label}
               </p>
-              <p className="text-[11px] text-slate-600 leading-snug">{scope}</p>
+              <p className="text-[11px] text-white/70 leading-snug">{scope}</p>
             </div>
           );
         })()}
@@ -656,7 +656,7 @@ export function ProfileFormAdmin({
 
         <div>
           <label className={labelClass}>
-            <Euro className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+            <Euro className="w-3.5 h-3.5 inline mr-1.5 text-white/45" />
             {(t as { profile_hourly_rate_label?: string }).profile_hourly_rate_label ?? 'Tariffa oraria (€/h)'}
           </label>
           <input
@@ -671,14 +671,14 @@ export function ProfileFormAdmin({
             placeholder={(t as { profile_hourly_rate_placeholder?: string }).profile_hourly_rate_placeholder ?? 'es. 12,50'}
             disabled={readOnly}
           />
-          <p className="text-[11px] text-slate-500 mt-1 font-sans">
+          <p className="text-[11px] text-white/55 mt-1 font-sans">
             {(t as { profile_hourly_rate_hint?: string }).profile_hourly_rate_hint ?? ''}
           </p>
         </div>
 
         <div>
           <label className={labelClass}>
-            <CheckCircle className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+            <CheckCircle className="w-3.5 h-3.5 inline mr-1.5 text-white/45" />
             {t.account_status}
           </label>
           <select
@@ -700,7 +700,7 @@ export function ProfileFormAdmin({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className={labelClass}>
-              <Calendar className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+              <Calendar className="w-3.5 h-3.5 inline mr-1.5 text-white/45" />
               {tv.profile_employment_start_label}
             </label>
             <input
@@ -715,7 +715,7 @@ export function ProfileFormAdmin({
               aria-required={false}
             />
             {tv.profile_employment_start_hint ? (
-              <p className="text-[11px] text-slate-500 mt-1 font-sans">
+              <p className="text-[11px] text-white/55 mt-1 font-sans">
                 {tv.profile_employment_start_hint}
               </p>
             ) : null}
@@ -723,7 +723,7 @@ export function ProfileFormAdmin({
           {showEmploymentEndField ? (
             <div>
               <label className={labelClass}>
-                <Calendar className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" />
+                <Calendar className="w-3.5 h-3.5 inline mr-1.5 text-white/45" />
                 {tv.profile_employment_end_label}
               </label>
               <input
@@ -738,7 +738,7 @@ export function ProfileFormAdmin({
                 aria-required={false}
               />
               {tv.profile_employment_end_hint ? (
-                <p className="text-[11px] text-slate-500 mt-1 font-sans">
+                <p className="text-[11px] text-white/55 mt-1 font-sans">
                   {tv.profile_employment_end_hint}
                 </p>
               ) : null}
@@ -749,19 +749,19 @@ export function ProfileFormAdmin({
         </div>
 
         {variant === 'edit' && !isPurelyManagementRole(layoutRole) && !readOnly && canUserEdit(currentUser) && (
-          <div className="surface-glass-sm bg-slate-50/45 p-4">
+          <div className="surface-glass-sm bg-white/8 p-4">
             <StaffOperationalPermissionsEditor user={user} currentUser={currentUser} />
           </div>
         )}
 
         {variant === 'edit' && (!readOnly || isManagementRole(currentUser.role)) && (
-          <div className="surface-glass-sm space-y-2 bg-slate-50/40 p-3">
+          <div className="surface-glass-sm space-y-2 bg-white/8 p-3">
             <button
               type="button"
               onClick={() => void handleCopyAccessLink()}
-              className="flex w-full items-center justify-center gap-2 surface-glass-sm py-2.5 text-sm font-semibold text-slate-800 surface-ghost-interactive font-sans"
+              className="flex w-full items-center justify-center gap-2 surface-glass-sm py-2.5 text-sm font-semibold text-white surface-ghost-interactive font-sans"
             >
-              <Copy className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+              <Copy className="h-4 w-4 shrink-0 text-white/55" aria-hidden />
               {tv.admin_employee_access_link_btn ?? 'Copia link accesso'}
             </button>
             <button
@@ -803,16 +803,16 @@ export function ProfileFormAdmin({
                     .catch(() => undefined);
                 }
               }}
-              className="flex w-full items-center justify-center gap-2 surface-glass-sm py-2.5 text-sm font-semibold text-slate-800 surface-ghost-interactive font-sans"
+              className="flex w-full items-center justify-center gap-2 surface-glass-sm py-2.5 text-sm font-semibold text-white surface-ghost-interactive font-sans"
             >
-              <Smartphone className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+              <Smartphone className="h-4 w-4 shrink-0 text-white/55" aria-hidden />
               {te['share_install_btn'] ?? tv['share_install_btn'] ?? 'Condividi accesso + installazione iPhone'}
             </button>
-            <p className="flex gap-1.5 text-[11px] leading-snug text-slate-600 font-sans">
-              <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
+            <p className="flex gap-1.5 text-[11px] leading-snug text-white/70 font-sans">
+              <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/45" aria-hidden />
               <span>{tv.admin_employee_access_link_hint ?? ''}</span>
             </p>
-            <p className="pl-5 text-[11px] font-medium text-slate-800 font-sans">
+            <p className="pl-5 text-[11px] font-medium text-white font-sans">
               {formatTrans(tv.admin_employee_access_link_preview ?? 'Nome al login: {name}', {
                 name: `${formData.first_name} ${formData.last_name ?? ''}`.trim() || '—',
               })}
@@ -827,12 +827,12 @@ export function ProfileFormAdmin({
                 {tv.admin_employee_access_link_pin_incomplete ?? ''}
               </p>
             )}
-            <p className="text-[10px] text-slate-400 font-mono break-all pl-5">{accessLink}</p>
+            <p className="text-[10px] text-white/45 font-mono break-all pl-5">{accessLink}</p>
           </div>
         )}
 
         {!readOnly && (
-          <p className="text-[11px] text-slate-500 mt-2">
+          <p className="text-[11px] text-white/55 mt-2">
             {(t as { permissions_in_settings?: string }).permissions_in_settings ??
               'Funzionalità, moduli e visibilità schede: Impostazioni → Team → Permessi sul dipendente (template ruoli + anteprima).'}
           </p>
@@ -842,7 +842,7 @@ export function ProfileFormAdmin({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 surface-glass-sm px-4 py-2 text-sm font-semibold text-slate-700 surface-ghost-interactive font-sans"
+            className="flex-1 surface-glass-sm px-4 py-2 text-sm font-semibold text-white/80 surface-ghost-interactive font-sans"
           >
             {readOnly ? t.close ?? t.cancel : t.cancel}
           </button>
