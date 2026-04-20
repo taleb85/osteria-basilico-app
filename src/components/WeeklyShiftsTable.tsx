@@ -2326,8 +2326,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     exit={{ opacity: 0, y: 4, scale: 0.95 }}
                     transition={{ duration: 0.1 }}
                     className="hidden lg:block absolute right-0 lg:left-auto top-full z-[9999] mt-1 w-48 rounded-xl p-1 shadow-xl"
-                    style={{ background: 'var(--bg-surface-solid)', border: '1px solid rgba(255,255,255,0.15)' }}
-                    style={{ isolation: 'isolate' }}
+                    style={{ background: 'var(--bg-surface-solid)', border: '1px solid rgba(255,255,255,0.15)', isolation: 'isolate' }}
                   >
                     <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40 border-b border-white/10 mb-1">
                       {t.department_filter_label}
@@ -3276,7 +3275,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             setEditingNameUserId(null);
                           }
                         }}
-                        className="flex-1 min-w-0 px-2 py-1 text-sm font-semibold rounded-xl border border-accent/50 bg-white focus:outline-none focus:ring-1 focus:ring-accent text-white"
+                        className="flex-1 min-w-0 px-2 py-1 text-sm font-semibold rounded-xl border border-accent/50 bg-white/10 focus:outline-none focus:ring-1 focus:ring-accent text-white"
                         autoFocus
                       />
                     ) : (
@@ -3968,7 +3967,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               }
                             }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full min-w-0 px-1.5 py-0.5 text-xs font-bold uppercase leading-tight rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-accent text-slate-900"
+                            className="w-full min-w-0 px-1.5 py-0.5 text-xs font-bold uppercase leading-tight rounded-xl border border-white/20 bg-white/10 focus:outline-none focus:ring-1 focus:ring-accent text-white"
                             autoFocus
                           />
                         ) : (
@@ -4305,9 +4304,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                                       : dayVariant === 'absent'
                                                         ? 'bg-rose-200/90 text-rose-900'
                                                         : dayVariant === 'punchMissing'
-                                                          ? 'bg-amber-200/90 text-amber-950'
+                                                          ? 'bg-amber-500/20 text-amber-200'
                                                           : dayVariant === 'inprogress'
-                                                            ? 'bg-cyan-600/20 text-slate-900'
+                                                            ? 'bg-cyan-600/20 text-cyan-200'
                                                             : 'bg-white/15 text-white/70'
                                                   }`}
                                                 >
@@ -5757,8 +5756,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           {/* Menu */}
           <div
             className="fixed z-[999999] min-w-[172px] rounded-xl border border-white/15 shadow-xl py-1 font-sans text-sm overflow-hidden"
-            style={{ background: '#112240' }}
             style={{
+              background: '#112240',
               left: Math.min(contextMenu.x, window.innerWidth - 192),
               top: Math.min(contextMenu.y, window.innerHeight - 220),
             }}
@@ -6142,14 +6141,14 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
           <div
             className={`flex items-start justify-between gap-3 border-b border-white/15 px-5 pb-4 pt-5 backdrop-blur-md ${
               isOpenShift
-                ? 'bg-amber-50/90'
-                : 'bg-white/90'
+                ? 'bg-amber-500/15'
+                : 'bg-white/8'
             }`}
           >
             <div className="min-w-0">
               <h2
                 className={`font-sans text-base font-bold leading-tight ${
-                  isOpenShift ? 'text-amber-800' : 'text-slate-900'
+                  isOpenShift ? 'text-amber-300' : 'text-white'
                 }`}
               >
                 {isOpenShift ? t.open_shift : t.new_shift}
@@ -6201,7 +6200,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
             </div>
           </div>
 
-          <div className="space-y-4 bg-white/92 px-5 pb-5 pt-1 backdrop-blur-sm">
+          <div className="space-y-4 bg-white/5 px-5 pb-5 pt-1 backdrop-blur-sm">
             {/* ── Data ── */}
             <div>
               <label className={labelClass}>Data</label>

@@ -107,7 +107,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
                 type="date"
                 value={tempShifts.date}
                 onChange={(e) => setTempShifts((s) => ({ ...s, date: e.target.value }))}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-100 border border-slate-200 focus:border-accent outline-none font-bold text-slate-900"
+                className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 focus:border-accent outline-none font-bold text-white [color-scheme:dark]"
               />
             </div>
 

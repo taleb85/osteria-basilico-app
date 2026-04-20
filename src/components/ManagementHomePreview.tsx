@@ -50,7 +50,7 @@ export default function ManagementHomePreview({
   const styleApproved: HomeManagementShiftCardProps['style'] = {
     border: 'border-l-slate-300',
     bg: 'bg-white',
-    badge: 'bg-white text-black border-slate-200',
+    badge: 'bg-white/10 text-white border-white/20',
     dot: 'bg-black',
     label: t.home_status_approved,
   };
