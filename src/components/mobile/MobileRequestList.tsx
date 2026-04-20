@@ -55,7 +55,7 @@ export default function MobileRequestList({ requests, t = {} }: MobileRequestLis
         return (
           <div 
             key={req.id}
-            className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4"
+            className="rounded-3xl p-5 border border-white/10 flex flex-col gap-4" style={{ background: 'rgba(255,255,255,0.08)' }}
           >
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
@@ -78,7 +78,7 @@ export default function MobileRequestList({ requests, t = {} }: MobileRequestLis
             </div>
 
             {req.reason && (
-              <div className="pt-3 border-t border-slate-50">
+              <div className="pt-3 border-t border-white/10">
                 <p className="text-xs text-white/60 leading-relaxed italic">
                   "{req.reason}"
                 </p>

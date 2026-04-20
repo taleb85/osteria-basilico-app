@@ -88,7 +88,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
         return (
           <div key={wIdx} className="mb-4">
             {/* Card griglia settimanale — trasparente, solo bordo */}
-            <div className="rounded-2xl border border-slate-100 bg-white overflow-hidden shadow-sm" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+            <div className="rounded-2xl border border-white/10 overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
               {/* Griglia giorni */}
               <div className="grid grid-cols-7 gap-1 px-2 pt-3 pb-2">
                 {weekDays.map((day, i) => {
@@ -105,7 +105,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                     ? 'bg-[#3366CC]/[0.18] border border-[#3366CC]/[0.30]'
                     : isAbsent
                       ? 'bg-red-500/[0.08] border border-red-500/[0.18]'
-                      : 'border border-slate-50 bg-slate-50/30';
+                      : 'border border-white/10 bg-white/5';
 
                   return (
                     <div key={i} className="flex flex-col items-center gap-1">
@@ -117,7 +117,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                       </div>
                       <div className={`w-full rounded-lg flex flex-col items-center justify-center py-1.5 px-0.5 min-h-[38px] transition-all ${blockCls}`}>
                         {shiftCount > 0 && (
-                          <span className="text-[13px] font-black text-[#3366CC] leading-none drop-shadow-sm">
+                          <span className="text-[13px] font-black text-white leading-none drop-shadow-sm">
                             {shiftCount}
                           </span>
                         )}
@@ -129,7 +129,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
               </div>
 
               {/* Riepilogo settimana */}
-              <div className="border-t border-slate-50 mx-3 mt-0 pt-2.5 pb-3 flex justify-around">
+              <div className="border-t border-white/10 mx-3 mt-0 pt-2.5 pb-3 flex justify-around">
                 {[
                   { label: t.shift_plural ?? 'Turni', value: confirmedShifts.length.toString() },
                   { label: t.stat_hours_total_abbr ?? 'Ore tot', value: hoursLabel },
@@ -163,8 +163,8 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                       const badgeCls = isAbsent
                         ? 'text-red-500 border-red-200 bg-red-50'
                         : isDraft
-                          ? 'text-white/50 border-slate-200 bg-slate-50'
-                          : 'text-emerald-600 border-emerald-200 bg-emerald-50';
+                          ? 'text-white/50 border-white/15 bg-white/8'
+                          : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/15';
                       const badgeLabel = isAbsent
                         ? (t.status_absent ?? 'Assente')
                         : isDraft
@@ -173,15 +173,15 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
 
                       return (
                         <div key={shift.id}
-                          className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm ${
+                          className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border ${
                             isAbsent
-                              ? 'bg-red-50/30 border-red-100'
-                              : 'bg-white border-slate-100'
+                              ? 'border-red-500/30 bg-red-500/10'
+                              : 'border-white/10'
                           }`}
-                          style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') && !isAbsent ? { background: '#ffffff' } : {}}
+                          style={isAbsent ? {} : { background: 'rgba(255,255,255,0.08)' }}
                         >
                           <div className="flex flex-col gap-0.5">
-                            <p className={`font-black tabular-nums text-base leading-none ${isAbsent ? 'text-slate-300 line-through' : 'text-white/90'}`}>
+                            <p className={`font-black tabular-nums text-base leading-none ${isAbsent ? 'text-white/40 line-through' : 'text-white/90'}`}>
                               {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
                             {shift.department && (

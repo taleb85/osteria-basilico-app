@@ -92,7 +92,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
   };
 
   const inputCls =
-    'w-full px-3 py-2.5 text-sm rounded-2xl bg-white border border-slate-100 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-white placeholder:text-white/60 transition-all';
+    'w-full px-3 py-2.5 text-sm rounded-2xl border border-white/15 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-white placeholder:text-white/40 transition-all' as const;
   const labelCls = 'block text-xs font-semibold text-white/70 uppercase tracking-wider mb-1';
 
   if (!isOpen) return null;
@@ -171,9 +171,9 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
             exit={{ opacity: 0, y: 16 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
             onSubmit={handleSubmit}
-            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-[0_8px_40px_-12px_rgba(0,26,128,0.12)])]"
+            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden" style={{ background: 'rgba(10,15,35,0.98)' }}
           >
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))]">
+            <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))]">
               <h3 className="text-lg font-bold text-white">{title}</h3>
               <button
                 type="button"
@@ -181,7 +181,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
                   lightHaptic();
                   handleClose();
                 }}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-white/70 transition-colors hover:bg-slate-200"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white/70 transition-colors hover:bg-white/15"
                 aria-label={t.cancel}
               >
                 <X className="h-5 w-5" />
@@ -192,7 +192,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
               {fields}
             </div>
 
-            <div className="shrink-0 border-t border-slate-100 bg-white/98 px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom,0px))] shadow-[0_-8px_24px_-8px_rgba(0,26,128,0.06)])]">
+            <div className="shrink-0 border-t border-white/10 px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom,0px))]" style={{ background: 'rgba(10,15,35,0.98)' }}>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"

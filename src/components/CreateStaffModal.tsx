@@ -156,7 +156,7 @@ export default function CreateStaffModal({
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="modal-glass-panel w-full max-w-md overflow-hidden rounded-xl"
         >
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/15 px-5 py-4" style={{ background: 'rgba(255,255,255,0.06)' }}>
             <div>
               <h2 className="text-base font-bold tracking-wide text-white font-sans">{t.create_employee_title}</h2>
               <p className="mt-0.5 text-xs text-white/60 font-sans">{t.create_employee_subtitle}</p>
@@ -165,7 +165,7 @@ export default function CreateStaffModal({
               type="button"
               onClick={onClose}
               aria-label={t.close}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 transition-colors hover:bg-slate-200"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/15 bg-white/10 transition-colors hover:bg-white/15"
             >
               <X className="h-4 w-4 text-white/70" aria-hidden />
             </button>

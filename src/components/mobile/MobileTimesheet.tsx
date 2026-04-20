@@ -24,10 +24,9 @@ function getLocale(lang = 'it') {
 }
 
 function getDarkCard() {
-  const dark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
   return {
-    cls: dark ? 'rounded-2xl border border-white/[0.08] overflow-hidden' : 'rounded-2xl border bg-white border-slate-100 shadow-sm overflow-hidden',
-    style: dark ? { background: 'transparent' } as React.CSSProperties : {},
+    cls: 'rounded-2xl border border-white/10 overflow-hidden',
+    style: { background: 'rgba(255,255,255,0.06)' } as React.CSSProperties,
   };
 }
 
@@ -109,7 +108,7 @@ export default function MobileTimesheet({
         return (
           <div key={wIdx} className={cardCls} style={cardStyle}>
             {/* Header settimana */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-[#4361EE]/15 flex items-center justify-center shrink-0">
                   <Calendar className="w-3.5 h-3.5 text-blue-600" />
@@ -159,7 +158,7 @@ export default function MobileTimesheet({
                           className={`rounded-xl px-3 py-2.5 border ${
                             isAbsent
                               ? 'border-red-500/10'
-                              : 'bg-slate-50 border-slate-100'
+                              : 'bg-white/8 border-white/10'
                           }`}
                           style={
                             typeof document !== 'undefined' && document.documentElement.classList.contains('dark')

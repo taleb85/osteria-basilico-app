@@ -129,32 +129,32 @@ export default function GestioneProfiliPage() {
                     </button>
 
                     <div className="flex items-center gap-2">
-                      <div className="flex bg-slate-100 rounded-lg p-0.5 mr-2">
+                      <div className="flex bg-white/10 rounded-lg p-0.5 mr-2">
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); toggleTab(user.id, 'permissions'); }}
-                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'permissions' ? 'bg-white text-accent shadow-sm' : 'text-white/60'}`}
+                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'permissions' ? 'bg-white/20 text-accent shadow-sm' : 'text-white/60'}`}
                         >
                           Permessi
                         </button>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); toggleTab(user.id, 'visibility'); }}
-                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'visibility' ? 'bg-white text-accent shadow-sm' : 'text-white/60'}`}
+                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'visibility' ? 'bg-white/20 text-accent shadow-sm' : 'text-white/60'}`}
                         >
                           Cosa vede
                         </button>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); toggleTab(user.id, 'grid'); }}
-                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'grid' ? 'bg-white text-accent shadow-sm' : 'text-white/60'}`}
+                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'grid' ? 'bg-white/20 text-accent shadow-sm' : 'text-white/60'}`}
                         >
                           Griglia
                         </button>
                       </div>
                       <button
                         onClick={() => setExpandedUserId(isExpanded ? null : user.id)}
-                        className="p-1 hover:bg-slate-200 rounded-full transition-colors"
+                        className="p-1 hover:bg-white/15 rounded-full transition-colors"
                       >
                         {isExpanded ? (
                           <ChevronUp className="w-4 h-4 text-white/50" />
@@ -207,7 +207,7 @@ export default function GestioneProfiliPage() {
                                 )}
                               </div>
 
-                              <div className="rounded-xl bg-white border border-slate-200 p-4">
+                              <div className="rounded-xl border border-white/15 p-4" style={{ background: 'rgba(255,255,255,0.06)' }}>
                                 <RoleFeatureSectionsBlock
                                   mode="toggles"
                                   features={features}
@@ -243,8 +243,8 @@ export default function GestioneProfiliPage() {
                                   Torna ai permessi
                                 </button>
                               </div>
-                              <div className="rounded-xl overflow-hidden border border-slate-200 bg-white">
-                                <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+                              <div className="rounded-xl overflow-hidden border border-white/15" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                                <div className="p-4 border-b border-white/10 bg-white/5">
                                   <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Configurazione Visualizzazione</p>
                                 </div>
                                 <div className="p-4">
@@ -252,7 +252,7 @@ export default function GestioneProfiliPage() {
                                     onClick={() => {
                                       // L'hub si apre perché currentTab === 'visibility' renderizza il componente sotto
                                     }}
-                                    className="w-full py-8 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-slate-200 rounded-xl hover:border-accent/50 hover:bg-accent/[0.02] transition-all group"
+                                    className="w-full py-8 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/20 rounded-xl hover:border-accent/50 hover:bg-accent/[0.05] transition-all group"
                                   >
                                     <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                                       <Eye className="w-6 h-6 text-accent" />
@@ -277,7 +277,7 @@ export default function GestioneProfiliPage() {
                               <p className="text-[11px] text-white/60">
                                 Impostazioni visibilità in griglia per <strong>{user.first_name}</strong>
                               </p>
-                              <div className="rounded-xl bg-white border border-slate-200 p-4">
+                              <div className="rounded-xl border border-white/15 p-4" style={{ background: 'rgba(255,255,255,0.06)' }}>
                                 <AdminRow
                                   icon={<Users className="h-4 w-4 text-white/60" aria-hidden />}
                                   label="Visibile in tabellone turni"
@@ -292,7 +292,7 @@ export default function GestioneProfiliPage() {
                                         await updateUser(user.id, { team_schedule_visible: next });
                                         showSuccess?.(`Visibilità ${next ? 'attivata' : 'disattivata'}`);
                                       }}
-                                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 ${user.team_schedule_visible !== false ? 'bg-accent' : 'bg-slate-200'}`}
+                                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 ${user.team_schedule_visible !== false ? 'bg-accent' : 'bg-white/25'}`}
                                     >
                                       <span
                                         className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${user.team_schedule_visible !== false ? 'translate-x-5' : 'translate-x-1'}`}

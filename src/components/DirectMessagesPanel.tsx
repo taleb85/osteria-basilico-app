@@ -92,9 +92,9 @@ function NewChatPicker({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-20 flex min-h-0 flex-col bg-white rounded-[inherit]"
+      className="absolute inset-0 z-20 flex min-h-0 flex-col rounded-[inherit]" style={{ background: "rgba(10,15,35,0.97)" }}
     >
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
         <button
           onClick={onClose}
           className="flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:bg-slate-100 transition-colors"
@@ -109,7 +109,7 @@ function NewChatPicker({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.messages_search_employee ?? 'Cerca dipendente...'}
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-white outline-none focus:border-[#0052FF] transition-colors"
+          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm text-white outline-none focus:border-[#0052FF] transition-colors"
         />
       </div>
       <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-2 pb-4 [-webkit-overflow-scrolling:touch]">
@@ -267,11 +267,12 @@ function ChatView({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-      className="absolute inset-0 flex min-h-0 flex-col bg-white rounded-[inherit]"
+      className="absolute inset-0 flex min-h-0 flex-col rounded-[inherit]"
+      style={{ background: 'rgba(10,15,35,0.97)' }}
     >
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-3 py-3 shrink-0 border-b border-slate-100"
+        className="flex items-center gap-3 px-3 py-3 shrink-0 border-b border-white/10"
         style={{ background: BRAND }}
       >
         <button
@@ -322,7 +323,7 @@ function ChatView({
       </div>
 
       {/* Input */}
-      <div className="px-3 py-3 border-t border-slate-100 bg-white shrink-0">
+      <div className="px-3 py-3 border-t border-white/10 shrink-0" style={{ background: 'rgba(10,15,35,0.97)' }}>
         <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}
@@ -336,7 +337,7 @@ function ChatView({
             onKeyDown={handleKeyDown}
             placeholder={t.messages_write_placeholder ?? 'Scrivi un messaggio...'}
             rows={1}
-            className="flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-white outline-none focus:border-[#0052FF] transition-colors"
+            className="flex-1 resize-none rounded-2xl border border-white/15 bg-white/8 px-4 py-2.5 text-sm text-white outline-none focus:border-[#0052FF] transition-colors"
             style={{ maxHeight: 120, overflowY: 'auto' }}
           />
           <button
@@ -386,11 +387,12 @@ function ConversationList({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '-100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-      className="absolute inset-0 flex min-h-0 flex-col bg-white rounded-[inherit]"
+      className="absolute inset-0 flex min-h-0 flex-col rounded-[inherit]"
+      style={{ background: 'rgba(10,15,35,0.97)' }}
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 py-4 shrink-0 border-b border-slate-100"
+        className="flex items-center justify-between px-4 py-4 shrink-0 border-b border-white/10"
         style={{ background: BRAND }}
       >
         <h2 className="text-base font-bold text-white tracking-tight">{t.messages_title}</h2>

@@ -74,10 +74,10 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
         transition={{ duration: 0.28, ease: 'easeOut' }}
-        className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border border-white/10" style={{ background: 'rgba(10,15,35,0.97)' }}
       >
         {/* Header */}
-        <div className="px-5 pt-6 pb-4 text-center border-b border-slate-100">
+        <div className="px-5 pt-6 pb-4 text-center border-b border-white/10">
           <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-1">Prima di iniziare</p>
           <h2 className="text-base font-bold text-white/90 font-sans">
             Abilita le funzionalità

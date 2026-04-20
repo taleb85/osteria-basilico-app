@@ -503,7 +503,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="rounded-xl border border-white/15 px-2 py-1 text-xs uppercase tracking-wider text-white/55 transition-colors hover:bg-white/5 hover:text-white/80"
+                  className="rounded-xl border border-white/15 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>
@@ -714,7 +714,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="rounded-xl border border-white/15 px-2 py-1 text-xs uppercase tracking-wider text-white/40 transition-colors hover:bg-white/5 hover:text-white/80"
+                  className="rounded-xl border border-white/15 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>
@@ -1773,7 +1773,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
                       periodRuleMode === 'last_sunday'
                         ? 'border-accent bg-accent/8'
-                        : 'border-white/15 bg-white hover:border-white/20'
+                        : 'border-white/15 bg-white/8 hover:border-white/20'
                     }`}
                   >
                     <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'last_sunday' ? 'text-accent' : 'text-white/70'}`}>
@@ -1794,7 +1794,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
                       periodRuleMode === 'fixed_start'
                         ? 'border-[#001A80] bg-[#001A80]/8'
-                        : 'border-white/15 bg-white hover:border-white/20'
+                        : 'border-white/15 bg-white/8 hover:border-white/20'
                     }`}
                   >
                     <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-[#001A80]' : 'text-white/70'}`}>
@@ -1825,7 +1825,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     allowClear={false}
                     compact
                     aria-label="Primo giorno del periodo"
-                    className="mb-3 w-full !border-white/15 !bg-white"
+                    className="mb-3 w-full !border-white/15 !bg-white/8"
                   />
                   {/* Preview periodo calcolato dalla data scelta */}
                   {(() => {
@@ -1998,7 +1998,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     onChange={(e) => setHolidayEmailDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') saveHolidayEmail(); }}
                     placeholder="es. direzione@azienda.it"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#3366CC]/25 bg-white text-sm text-white placeholder:text-white/40 outline-none transition-all focus:border-[#3366CC] focus:ring-2 focus:ring-[#3366CC]/20 focus:shadow-[0_0_0_3px_rgba(51,102,204,0.10)]"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#3366CC]/25 bg-white/8 text-sm text-white placeholder:text-white/40 outline-none transition-all focus:border-[#3366CC] focus:ring-2 focus:ring-[#3366CC]/20 focus:shadow-[0_0_0_3px_rgba(51,102,204,0.10)]"
                   />
                 </div>
                 <button
@@ -2735,7 +2735,7 @@ function BreakRuleModal({
                     value={breakStart}
                     onChange={setBreakStart}
                     aria-label={t.settings_break_label_start}
-                    className="w-full border-white/15 bg-white"
+                    className="w-full border-white/15 bg-white/8"
                   />
                 </div>
                 <div>
@@ -2744,7 +2744,7 @@ function BreakRuleModal({
                     value={breakEnd}
                     onChange={setBreakEnd}
                     aria-label={t.settings_break_label_end}
-                    className="w-full border-white/15 bg-white"
+                    className="w-full border-white/15 bg-white/8"
                   />
                 </div>
               </div>

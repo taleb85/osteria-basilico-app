@@ -48,10 +48,10 @@ export default function ManagementHomePreview({
   const todayStr = format(now, 'yyyy-MM-dd');
 
   const styleApproved: HomeManagementShiftCardProps['style'] = {
-    border: 'border-l-slate-300',
-    bg: 'bg-white',
+    border: 'border-l-white/30',
+    bg: 'bg-white/8',
     badge: 'bg-white/10 text-white border-white/20',
-    dot: 'bg-black',
+    dot: 'bg-white/60',
     label: t.home_status_approved,
   };
 
@@ -120,8 +120,8 @@ export default function ManagementHomePreview({
             onUiToggle={onUiToggle}
             hiddenBadge={hiddenBadge}
           >
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+            <div className="flex items-center gap-3 rounded-2xl border border-white/15 px-4 py-3" style={{ background: 'rgba(255,255,255,0.08)' }}>
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
                 <Users className="h-4 w-4 text-white/60" />
               </div>
               <div>
@@ -139,7 +139,7 @@ export default function ManagementHomePreview({
           onUiToggle={onUiToggle}
           hiddenBadge={hiddenBadge}
         >
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white/50 px-4 py-3">
+          <div className="rounded-2xl border border-dashed border-white/20 px-4 py-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
             <div className="flex items-start gap-3">
               <Megaphone size={15} className="mt-0.5 shrink-0 text-white/50" />
               <div className="min-w-0 flex-1">
@@ -166,35 +166,35 @@ export default function ManagementHomePreview({
                 value: 0,
                 Icon: Users,
                 iconColor: 'text-[#3366CC]',
-                bg: 'bg-white',
-                border: 'border-slate-100',
+                bg: 'bg-white/8',
+                border: 'border-white/10',
                 iconWell: 'bg-[#3366CC]/10',
               },
               {
                 label: t.home_stat_delays,
                 value: 0,
                 Icon: Clock,
-                iconColor: 'text-red-600',
-                bg: 'bg-white',
-                border: 'border-slate-100',
-                iconWell: 'bg-red-50',
+                iconColor: 'text-red-400',
+                bg: 'bg-white/8',
+                border: 'border-white/10',
+                iconWell: 'bg-red-500/15',
               },
               {
                 label: t.home_stat_missing_out,
                 value: 0,
                 Icon: AlertCircle,
-                iconColor: 'text-orange-600',
-                bg: 'bg-white',
-                border: 'border-slate-100',
-                iconWell: 'bg-orange-50',
+                iconColor: 'text-orange-400',
+                bg: 'bg-white/8',
+                border: 'border-white/10',
+                iconWell: 'bg-orange-500/15',
               },
               {
                 label: t.home_stat_approved,
                 value: 2,
                 Icon: UserCheck,
                 iconColor: 'text-accent',
-                bg: 'bg-white',
-                border: 'border-slate-100',
+                bg: 'bg-white/8',
+                border: 'border-white/10',
                 iconWell: 'bg-accent/10',
               },
             ].map(({ label, value, Icon, iconColor, bg, border, iconWell }) => (
@@ -299,7 +299,7 @@ export default function ManagementHomePreview({
                       <span className="font-medium text-white/60">{label}</span>
                       <span className="font-bold text-white/80">{pct}%</span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div className="h-2 overflow-hidden rounded-full bg-white/15">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}

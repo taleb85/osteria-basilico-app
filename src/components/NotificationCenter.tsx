@@ -73,8 +73,8 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
       </button>
 
       <CenteredModalPortal open={isOpen} onClose={() => setIsOpen(false)}>
-        <div className="flex h-full max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <div className="flex h-full max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/10 shadow-2xl" style={{ background: 'rgba(15,20,40,0.95)', backdropFilter: 'blur(20px)' }}>
+          <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
             <h3 className="text-lg font-bold text-white">{t.profile_notifications}</h3>
             <button
               onClick={() => setIsOpen(false)}
@@ -87,8 +87,8 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
           <div className="flex-1 overflow-y-auto p-2">
             {feed.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50">
-                  <BellOff className="h-8 w-8 text-slate-300" />
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/10">
+                  <BellOff className="h-8 w-8 text-white/30" />
                 </div>
                 <p className="text-sm font-medium text-white/60">{t.notif_empty_state}</p>
               </div>
@@ -98,7 +98,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
                   <div
                     key={n.id}
                     className={`relative flex gap-3 rounded-2xl p-4 transition-colors ${
-                      !seenIds.has(n.id) ? 'bg-accent/[0.06]' : 'hover:bg-slate-50'
+                      !seenIds.has(n.id) ? 'bg-accent/[0.06]' : 'hover:bg-white/8'
                     }`}
                   >
                     <div className="mt-0.5 shrink-0">{getIcon(n.type, n.severity)}</div>
@@ -118,10 +118,10 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
             )}
           </div>
 
-          <div className="border-t border-slate-100 bg-white/5 p-4">
+          <div className="border-t border-white/10 bg-white/5 p-4">
             <button
               onClick={() => setIsOpen(false)}
-              className="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white transition-transform active:scale-95"
+              className="w-full rounded-xl py-3 text-sm font-bold text-white/80 transition-transform active:scale-95 surface-glass-sm surface-ghost-interactive"
             >
               {t.close}
             </button>

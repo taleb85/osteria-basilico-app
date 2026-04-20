@@ -134,7 +134,7 @@ export function MessageWriter({
             <select
               value={selectedRecipientId}
               onChange={(e) => setSelectedRecipientId(e.target.value)}
-              className="mt-1 w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-xs"
+              className="mt-1 w-full rounded border border-amber-400/30 bg-white/8 px-2 py-1.5 text-xs"
             >
               <option value="">{t.messages_recipient_select ?? 'Seleziona utente...'}</option>
               {allUsers
@@ -156,7 +156,7 @@ export function MessageWriter({
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             maxLength={100}
-            className="w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-xs placeholder-amber-400/60"
+            className="w-full rounded border border-amber-400/30 bg-white/8 px-2 py-1.5 text-xs placeholder-amber-400/60"
           />
         </div>
 
@@ -168,7 +168,7 @@ export function MessageWriter({
             onChange={(e) => setBody(e.target.value)}
             maxLength={500}
             rows={3}
-            className="w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-xs placeholder-amber-400/60 resize-none"
+            className="w-full rounded border border-amber-400/30 bg-white/8 px-2 py-1.5 text-xs placeholder-amber-400/60 resize-none"
           />
           <p className="mt-1 text-[10px] text-amber-700/70">
             {body.length}/500
@@ -270,7 +270,7 @@ export function MessageWriter({
           <select
             value={selectedRecipientId}
             onChange={(e) => setSelectedRecipientId(e.target.value)}
-            className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm"
+            className="mt-2 w-full rounded-lg border border-accent/30 bg-white/8 px-3 py-2 text-sm"
           >
             <option value="">{t.messages_recipient_select ?? 'Seleziona utente...'}</option>
             {allUsers
@@ -295,7 +295,7 @@ export function MessageWriter({
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           maxLength={100}
-          className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40"
+          className="mt-2 w-full rounded-lg border border-accent/30 bg-white/8 px-3 py-2 text-sm placeholder-accent/40"
         />
       </div>
 
@@ -310,7 +310,7 @@ export function MessageWriter({
           onChange={(e) => setBody(e.target.value)}
           maxLength={500}
           rows={4}
-          className="mt-2 w-full rounded-lg border border-accent/30 bg-white px-3 py-2 text-sm placeholder-accent/40 resize-none"
+          className="mt-2 w-full rounded-lg border border-accent/30 bg-white/8 px-3 py-2 text-sm placeholder-accent/40 resize-none"
         />
         <p className="mt-1 text-xs text-white/50">
           {body.length}/500 {t.messages_chars_count ?? 'caratteri'}

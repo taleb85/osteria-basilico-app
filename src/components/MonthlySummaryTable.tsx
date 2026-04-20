@@ -150,9 +150,10 @@ export default function MonthlySummaryTable() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: userIndex * 0.05 }}
-                        className={`bg-white ${userIndex < displayUsers.length - 1 ? 'border-b border-slate-200' : ''}`}
+                        className={`${userIndex < displayUsers.length - 1 ? 'border-b border-white/10' : ''}`}
+                        style={{ background: 'rgba(255,255,255,0.05)' }}
                       >
-                        <td className="sticky left-0 bg-white px-4 py-3 border-r border-slate-200 z-10">
+                        <td className="sticky left-0 px-4 py-3 border-r border-white/10 z-10" style={{ background: 'rgba(10,15,35,0.95)' }}>
                           <p className="text-white/70 text-xs uppercase tracking-wider">
                             {translateRole(user.role, currentUser.language ?? 'it')}
                           </p>
@@ -160,7 +161,7 @@ export default function MonthlySummaryTable() {
                         {weeks.map((week) => {
                           const minutes = getWeekMinutes(user.id, week);
                           return (
-                            <td key={week.toString()} className="px-4 py-3 text-center border-x border-slate-200 snap-start">
+                            <td key={week.toString()} className="px-4 py-3 text-center border-x border-white/10 snap-start">
                               <span className={`font-bold text-xs ${
                                 minutes > 0 ? 'text-white' : 'text-white/60'
                               }`}>

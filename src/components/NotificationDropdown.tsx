@@ -65,10 +65,10 @@ export function NotificationDropdown({
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 top-full z-50 mt-2 w-80 max-h-96 rounded-lg border border-slate-200 bg-white shadow-xl"
+      className="absolute right-0 top-full z-50 mt-2 w-80 max-h-96 rounded-lg border border-white/15 shadow-xl" style={{ background: 'rgba(10,15,35,0.95)', backdropFilter: 'blur(20px)' }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 bg-slate-50/50">
+      <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 bg-white/5">
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4 text-accent" />
           <h3 className="text-sm font-bold text-white">
@@ -83,7 +83,7 @@ export function NotificationDropdown({
         <button
           type="button"
           onClick={onClose}
-          className="p-0.5 rounded hover:bg-slate-200 transition-colors"
+          className="p-0.5 rounded hover:bg-white/15 transition-colors"
           title={t.close}
           {...{} } aria-label={t.notif_close_aria}
         >
@@ -92,10 +92,10 @@ export function NotificationDropdown({
       </div>
 
       {/* Lista messaggi */}
-      <div className="divide-y divide-slate-100 overflow-y-auto max-h-80">
+      <div className="divide-y divide-white/8 overflow-y-auto max-h-80">
         {recentMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-8 text-center px-4">
-            <MessageCircle className="h-8 w-8 text-slate-300" />
+            <MessageCircle className="h-8 w-8 text-white/30" />
             <p className="text-xs font-medium text-white/70">
               {t.messages_no_new}
             </p>

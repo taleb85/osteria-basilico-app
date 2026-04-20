@@ -32,7 +32,7 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
         return (
           <div 
             key={shift.id}
-            className={`bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4 ${isAbsent ? 'opacity-60' : ''}`}
+            className={`rounded-3xl p-5 border flex flex-col gap-4 ${isAbsent ? 'opacity-60 border-red-500/20' : 'border-white/10'}`} style={isAbsent ? { background: 'rgba(239,68,68,0.08)' } : { background: 'rgba(255,255,255,0.08)' }}
           >
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
@@ -48,13 +48,13 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
               </div>
               
               {shift.department && (
-                <span className="px-3 py-1 rounded-full bg-slate-100 text-white/70 text-[10px] font-black uppercase tracking-wider border border-slate-200">
+                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-[10px] font-black uppercase tracking-wider border border-white/15">
                   {translateDepartmentValue(shift.department, language as any)}
                 </span>
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+            <div className="flex items-center justify-between pt-2 border-t border-white/10">
               <div className="flex items-center gap-1.5">
                 <div className={`w-2 h-2 rounded-full ${
                   isAbsent ? 'bg-red-500' : isDraft ? 'bg-slate-300' : 'bg-brand-500'

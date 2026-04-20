@@ -32,15 +32,15 @@ export default function MobileStatsCards({
   return (
     <div className="grid grid-cols-2 gap-4">
       {/* CARD SETTIMANA */}
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+      <div className="p-5 rounded-2xl border border-white/10" style={{ background: 'rgba(255,255,255,0.08)' }}>
         <p className="text-xs font-medium text-white/50 uppercase mb-1">
           {labels.week}
         </p>
         <p className="text-xl font-bold text-white mb-3 tabular-nums">
-          {fmtHoursShort(weekWorkedMins)} <span className="text-slate-300 font-normal">/</span>{' '}
+          {fmtHoursShort(weekWorkedMins)} <span className="text-white/30 font-normal">/</span>{' '}
           {fmtHoursShort(weekCapMins)}
         </p>
-        <div className="w-full bg-slate-100 rounded-full h-2">
+        <div className="w-full bg-white/15 rounded-full h-2">
           <div
             className="h-full rounded-full bg-[var(--brand)] transition-[width] duration-700 ease-out"
             style={{ width: `${pct}%` }}
@@ -49,7 +49,7 @@ export default function MobileStatsCards({
       </div>
 
       {/* CARD MESE */}
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+      <div className="p-5 rounded-2xl border border-white/10" style={{ background: 'rgba(255,255,255,0.08)' }}>
         <p className="text-xs font-medium text-white/50 uppercase mb-1">
           {labels.month}
         </p>
