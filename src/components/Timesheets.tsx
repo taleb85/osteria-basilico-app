@@ -2986,8 +2986,8 @@ export default function Timesheets() {
             >
               <div className="mb-3 flex items-center gap-2">
                 <Moon className="h-4 w-4 text-amber-600" />
-                <h3 className="text-sm font-bold text-slate-800">{t.ts_dinner_close_required}</h3>
-                <span className="ml-auto rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
+                <h3 className="text-sm font-bold text-white">{t.ts_dinner_close_required}</h3>
+                <span className="ml-auto rounded-full border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 text-[11px] font-bold text-amber-300">
                   {dinnerShiftsNeedingClose.length}
                 </span>
               </div>
@@ -2995,7 +2995,7 @@ export default function Timesheets() {
                 {dinnerShiftsNeedingClose.map((item) => (
                   <div
                     key={item.shift.id}
-                    className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm"
+                    className="rounded-2xl border border-amber-400/25 bg-amber-500/10 p-4"
                   >
                     {/* Employee header */}
                     <div className="mb-3 flex items-center gap-3">
@@ -4827,8 +4827,8 @@ export default function Timesheets() {
 
                 {/* Banner conferma chiusura con modifiche non salvate */}
                 {showCloseConfirm && (
-                  <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-4 py-3">
-                    <p className="mb-2.5 text-xs font-semibold text-amber-900">
+                  <div className="shrink-0 border-b border-amber-400/30 bg-amber-500/10 px-4 py-3">
+                    <p className="mb-2.5 text-xs font-semibold text-amber-200">
                       Hai modifiche non salvate alle timbrature. Cosa vuoi fare?
                     </p>
                     <div className="flex gap-2">
@@ -5103,7 +5103,7 @@ export default function Timesheets() {
                         <div className="space-y-2 border-t border-amber-400/30 pt-3">
                           {/* ORA ENTRATA */}
                           <div>
-                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-800/70">
+                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300/80">
                               {t.ts_drawer_manual_punch_in}
                             </p>
                             <TimeInputField
@@ -5133,12 +5133,12 @@ export default function Timesheets() {
                               tabIndex={-1}
                               value={manualPunchOutDate}
                               onChange={(e) => setManualPunchOutDate(e.target.value)}
-                              className="w-full rounded-xl border border-amber-200/90 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-transparent focus:ring-2 focus:ring-amber-500"
+                              className="w-full rounded-xl border border-amber-400/40 bg-white/8 px-3 py-2 text-sm text-white outline-none focus:border-transparent focus:ring-2 focus:ring-amber-500 [color-scheme:dark]"
                             />
                           </div>
                           {/* ORA USCITA */}
                           <div>
-                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-800/70">
+                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300/80">
                               {t.ts_drawer_manual_punch_out}
                             </p>
                             <TimeInputField

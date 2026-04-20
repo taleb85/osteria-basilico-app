@@ -408,60 +408,60 @@ export default function HomePage({
       if (punchMissingHome) {
         return {
           border: 'border-l-amber-400',
-          bg: 'bg-amber-50',
-          badge: 'bg-amber-100 text-amber-950 border-amber-400/70',
+          bg: 'bg-amber-500/12',
+          badge: 'bg-amber-500/20 text-amber-200 border-amber-400/50',
           dot: 'bg-amber-400',
           label: t.home_status_not_punched,
         };
       }
       if (publishedHome) {
         return {
-          border: 'border-l-slate-400',
-          bg: 'bg-slate-50',
-          badge: 'bg-slate-100 text-slate-800 border-slate-400',
-          dot: 'bg-slate-400',
+          border: 'border-l-white/30',
+          bg: 'bg-white/6',
+          badge: 'bg-white/10 text-white/70 border-white/20',
+          dot: 'bg-white/40',
           label: t.home_status_not_punched,
         };
       }
       return {
         border: 'border-l-amber-400',
-        bg: 'bg-amber-50',
-        badge: 'bg-amber-100 text-amber-950 border-amber-400/70',
+        bg: 'bg-amber-500/12',
+        badge: 'bg-amber-500/20 text-amber-200 border-amber-400/50',
         dot: 'bg-amber-400',
         label: t.home_status_not_punched,
       };
     }
     if (inTodayKpiWindow && e.punchIn && !e.isLate && !e.hasMissingOut) {
       return {
-        border: 'border-l-slate-400',
-        bg: 'bg-white',
-        badge: 'bg-white text-black border-slate-200',
-        dot: 'bg-black',
+        border: 'border-l-white/40',
+        bg: 'bg-white/8',
+        badge: 'bg-white/12 text-white border-white/20',
+        dot: 'bg-white/70',
         label: t.home_status_in_shift,
       };
     }
     if (e.punchIn && !e.actualEnd) {
       return {
-        border: 'border-l-slate-400',
-        bg: 'bg-white',
-        badge: 'bg-white text-black border-slate-200',
-        dot: 'animate-pulse bg-black',
+        border: 'border-l-white/40',
+        bg: 'bg-white/8',
+        badge: 'bg-white/12 text-white border-white/20',
+        dot: 'animate-pulse bg-white/70',
         label: t.home_status_in_shift,
       };
     }
     if (e.punchIn && e.actualEnd) {
       return {
-        border: 'border-l-slate-300',
-        bg: 'bg-white',
-        badge: 'bg-white text-black border-slate-200',
-        dot: 'bg-black',
+        border: 'border-l-white/30',
+        bg: 'bg-white/6',
+        badge: 'bg-white/10 text-white/80 border-white/20',
+        dot: 'bg-white/50',
         label: t.home_status_complete,
       };
     }
     return {
       border: 'border-l-amber-400',
-      bg: 'bg-amber-50',
-      badge: 'bg-amber-100 text-amber-950 border-amber-400/70',
+      bg: 'bg-amber-500/12',
+      badge: 'bg-amber-500/20 text-amber-200 border-amber-400/50',
       dot: 'bg-amber-400',
       label: t.home_status_not_punched,
     };
@@ -508,7 +508,7 @@ export default function HomePage({
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'bg-amber-50 border-amber-200' : 'border-dashed border-slate-200 bg-slate-50/80'}`}
+              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'bg-amber-500/10 border-amber-400/30' : 'border-dashed border-white/15 bg-white/4'}`}
             >
               <div className="flex items-start gap-3">
                 <Megaphone size={15} className={`mt-0.5 shrink-0 ${boardNote ? 'text-amber-600' : 'text-slate-500'}`} />
@@ -750,7 +750,7 @@ export default function HomePage({
           {uiW('home_mgmt.team_board') && (
           <AnimatePresence>
             <motion.div key="board" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'border-amber-200 bg-amber-50' : 'surface-glass border-dashed border-slate-200/90'}`}>
+              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'border-amber-400/30 bg-amber-500/10' : 'surface-glass border-dashed border-white/15'}`}>
               <div className="flex items-start gap-3">
                 <Megaphone size={15} className={`mt-0.5 shrink-0 ${boardNote ? 'text-amber-600' : 'text-slate-500'}`} />
                 <div className="flex-1 min-w-0">

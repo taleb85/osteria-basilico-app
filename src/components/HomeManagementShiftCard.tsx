@@ -59,16 +59,7 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
           : 'text-amber-200';
 
   return (
-    <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-5 shadow-sm`}
-      style={{ 
-        background: style.bg.includes('white') ? 'var(--bg-surface)' : undefined,
-        backdropFilter: style.bg.includes('white') ? 'blur(16px)' : undefined,
-        WebkitBackdropFilter: style.bg.includes('white') ? 'blur(16px)' : undefined,
-        border: style.bg.includes('white') ? '1px solid var(--border-color)' : undefined,
-        borderLeft: style.bg.includes('white') ? '4px solid rgb(203 213 225)' : undefined,
-        boxShadow: style.bg.includes('white') ? '0 4px 16px -4px rgba(0, 0, 0, 0.3)' : undefined,
-      }}
-    >
+    <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-5`}>
       {/* Header: avatar + name + badge */}
       <div className="flex items-center gap-3 mb-3">
         <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
