@@ -2811,8 +2811,8 @@ export default function Timesheets() {
                   onClick={() => setTsView(v)}
                   className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
                     active
-                      ? 'bg-[#3366CC] text-white shadow-sm'
-                      : 'bg-transparent border border-slate-200 text-slate-500 hover:border-[#3366CC]/40 hover:text-[#3366CC]'
+                      ? 'bg-accent text-white shadow-sm'
+                      : 'bg-transparent border border-white/20 text-white/55 hover:border-accent/40 hover:text-white'
                   }`}
                 >
                   {label}
@@ -2887,44 +2887,44 @@ export default function Timesheets() {
                   label: t.ts_stat_in_shift,
                   value: weekViewStats.inTurno,
                   Icon: Users,
-                  iconColor: 'text-[#3366CC]',
-                  bg: 'bg-white',
-                  border: 'border-[#3366CC]/25',
-                  iconWell: 'bg-[#3366CC]/12',
-                  hoverBg: 'hover:bg-[#3366CC]/[0.06]',
+                  iconColor: 'text-accent',
+                  bg: 'bg-transparent',
+                  border: 'border-accent/25',
+                  iconWell: 'bg-accent/15',
+                  hoverBg: 'hover:bg-white/10',
                   highlightIds: [] as string[],
                 },
                 {
                   label: t.ts_stat_delays_week,
                   value: weekViewStats.ritardi,
                   Icon: Clock,
-                  iconColor: 'text-red-500',
-                  bg: 'bg-white',
+                  iconColor: 'text-red-400',
+                  bg: 'bg-transparent',
                   border: 'border-red-400/25',
-                  iconWell: 'bg-red-500/12',
-                  hoverBg: 'hover:bg-red-50',
+                  iconWell: 'bg-red-500/15',
+                  hoverBg: 'hover:bg-white/10',
                   highlightIds: weekViewStats.ritardiIds,
                 },
                 {
                   label: t.ts_stat_no_punch_week,
                   value: weekViewStats.senzaTimbratura,
                   Icon: AlertCircle,
-                  iconColor: 'text-amber-500',
-                  bg: 'bg-white',
+                  iconColor: 'text-amber-400',
+                  bg: 'bg-transparent',
                   border: 'border-amber-400/25',
-                  iconWell: 'bg-amber-400/12',
-                  hoverBg: 'hover:bg-amber-50',
+                  iconWell: 'bg-amber-400/15',
+                  hoverBg: 'hover:bg-white/10',
                   highlightIds: weekViewStats.senzaTimbratureIds,
                 },
                 {
                   label: t.ts_stat_approved_week,
                   value: weekViewStats.approvati,
                   Icon: UserCheck,
-                  iconColor: 'text-[#3366CC]',
-                  bg: 'bg-white',
-                  border: 'border-[#3366CC]/25',
-                  iconWell: 'bg-[#3366CC]/12',
-                  hoverBg: 'hover:bg-[#3366CC]/[0.06]',
+                  iconColor: 'text-accent',
+                  bg: 'bg-transparent',
+                  border: 'border-accent/25',
+                  iconWell: 'bg-accent/15',
+                  hoverBg: 'hover:bg-white/10',
                   highlightIds: [] as string[],
                 },
               ]).map(({ label, value, Icon, iconColor, bg, border, iconWell, hoverBg, highlightIds }) => {
