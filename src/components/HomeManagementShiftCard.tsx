@@ -59,7 +59,9 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
           : 'text-amber-200';
 
   return (
-    <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-5`}>
+    <div className={`rounded-2xl border-l-4 ${style.border} ${style.bg} p-5`}
+      style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.12), 0 4px 16px -4px rgba(0,0,0,0.35)' }}
+    >
       {/* Header: avatar + name + badge */}
       <div className="flex items-center gap-3 mb-3">
         <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"

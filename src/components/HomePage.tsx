@@ -362,25 +362,25 @@ export default function HomePage({
     if (e.shift.approval_status === 'absent') {
       return {
         border: 'border-l-rose-400',
-        bg: 'bg-rose-50',
-        badge: 'bg-rose-100 text-rose-900 border-rose-400/85',
-        dot: 'bg-rose-500',
+        bg: 'bg-rose-500/12',
+        badge: 'bg-rose-500/20 text-rose-200 border-rose-400/50',
+        dot: 'bg-rose-400',
         label: t.status_absent,
       };
     }
     if (e.isApproved) {
       return {
-        border: 'border-l-slate-300',
-        bg: 'bg-white',
-        badge: 'bg-white text-black border-white/15',
-        dot: 'bg-black',
+        border: 'border-l-emerald-400/70',
+        bg: 'bg-emerald-500/10',
+        badge: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/40',
+        dot: 'bg-emerald-400',
         label: t.home_status_approved,
       };
     }
     if (e.shift.approval_status === 'draft') {
       return {
         border: 'border-l-slate-400',
-        bg: 'bg-white/6',
+        bg: 'bg-white/10',
         badge: 'bg-white/10 text-white/80 border-white/25',
         dot: 'bg-white/45',
         label: t.status_draft,
@@ -389,16 +389,16 @@ export default function HomePage({
     if (e.hasMissingOut || e.isLate) {
       return {
         border: 'border-l-red-500',
-        bg: 'bg-red-50',
-        badge: 'bg-red-100 text-red-800 border-red-300',
-        dot: 'bg-red-500',
+        bg: 'bg-red-500/12',
+        badge: 'bg-red-500/20 text-red-200 border-red-400/50',
+        dot: 'bg-red-400',
         label: t.home_status_anomaly,
       };
     }
     if (e.canApprove) {
       return {
         border: 'border-l-white/30',
-        bg: 'bg-white/6',
+        bg: 'bg-white/10',
         badge: 'bg-white/10 text-white/80 border-white/25',
         dot: 'bg-white/45',
         label: t.home_status_to_approve,
@@ -417,7 +417,7 @@ export default function HomePage({
       if (publishedHome) {
         return {
           border: 'border-l-white/30',
-          bg: 'bg-white/6',
+          bg: 'bg-white/10',
           badge: 'bg-white/10 text-white/70 border-white/20',
           dot: 'bg-white/40',
           label: t.home_status_not_punched,
@@ -434,7 +434,7 @@ export default function HomePage({
     if (inTodayKpiWindow && e.punchIn && !e.isLate && !e.hasMissingOut) {
       return {
         border: 'border-l-white/40',
-        bg: 'bg-white/8',
+        bg: 'bg-white/12',
         badge: 'bg-white/12 text-white border-white/20',
         dot: 'bg-white/70',
         label: t.home_status_in_shift,
@@ -443,7 +443,7 @@ export default function HomePage({
     if (e.punchIn && !e.actualEnd) {
       return {
         border: 'border-l-white/40',
-        bg: 'bg-white/8',
+        bg: 'bg-white/12',
         badge: 'bg-white/12 text-white border-white/20',
         dot: 'animate-pulse bg-white/70',
         label: t.home_status_in_shift,
@@ -452,7 +452,7 @@ export default function HomePage({
     if (e.punchIn && e.actualEnd) {
       return {
         border: 'border-l-white/30',
-        bg: 'bg-white/6',
+        bg: 'bg-white/10',
         badge: 'bg-white/10 text-white/80 border-white/20',
         dot: 'bg-white/50',
         label: t.home_status_complete,
@@ -1121,7 +1121,7 @@ export default function HomePage({
 
                 <div className="flex gap-2">
                   <button type="button" onClick={() => { setCloseModal(null); setClockOutInput(''); }}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-semibold hover:bg-white/8 transition-colors">
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-semibold hover:bg-white/12 transition-colors">
                     {t.cancel}
                   </button>
                   <button type="button" disabled={!clockOutInput || closingLoading} onClick={handleConfirmClose}
