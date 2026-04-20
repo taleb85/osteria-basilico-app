@@ -3456,7 +3456,7 @@ export default function Timesheets() {
                               if (w.isApprovedState) {
                                 return (
                                   <>
-                                    <p className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                    <p className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-white/40">
                                       Ripristina approvazione
                                     </p>
                                     <button
@@ -3464,12 +3464,12 @@ export default function Timesheets() {
                                       onClick={() =>
                                         openSummary(w.weekApproved, w.weekApproved, true, `Tutti (${visibleUsers.length})`)
                                       }
-                                      className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                                      className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold text-white/85 transition-colors hover:bg-white/10"
                                     >
                                       <Users className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
                                       <span className="flex-1">Tutti i dipendenti visibili</span>
                                     </button>
-                                    <div className="my-1 h-px bg-slate-100" />
+                                    <div className="my-1 h-px bg-white/10" />
                                     {w.approvedByUser.map(({ user, name, approvedShifts }) => (
                                       <button
                                         key={user.id}
@@ -3477,9 +3477,9 @@ export default function Timesheets() {
                                         onClick={() =>
                                           openSummary(approvedShifts, approvedShifts, true, name)
                                         }
-                                        className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                                        className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold text-white/85 transition-colors hover:bg-white/10"
                                       >
-                                        <UserCheck className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
+                                        <UserCheck className="h-3.5 w-3.5 shrink-0 text-white/40" aria-hidden />
                                         <span className="flex-1 truncate">{name}</span>
                                       </button>
                                     ))}
@@ -3489,7 +3489,7 @@ export default function Timesheets() {
 
                               return (
                                 <>
-                                  <p className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                  <p className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-white/40">
                                     Approva turni
                                   </p>
                                   <button
@@ -3517,8 +3517,8 @@ export default function Timesheets() {
                                     <Users className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
                                     <span className="flex-1">Settimana intera (tutti)</span>
                                   </button>
-                                  <div className="my-1 h-px bg-slate-100" />
-                                  <p className="px-2 py-0.5 text-[9px] font-semibold text-slate-400">
+                                  <div className="my-1 h-px bg-white/10" />
+                                  <p className="px-2 py-0.5 text-[9px] font-semibold text-white/40">
                                     Per dipendente
                                   </p>
                                   {w.employeesPending.map(({ user, name, pendingShifts, complete }) => (
@@ -3538,7 +3538,7 @@ export default function Timesheets() {
                                           : 'cursor-not-allowed text-white/30 opacity-60'
                                       }`}
                                     >
-                                      <UserCheck className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
+                                      <UserCheck className="h-3.5 w-3.5 shrink-0 text-white/40" aria-hidden />
                                       <span className="flex-1 truncate">{name}</span>
                                     </button>
                                   ))}
@@ -3633,7 +3633,7 @@ export default function Timesheets() {
                                               onClick={() => openSummary(approvedShifts, approvedShifts, true, name)}
                                               className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold text-white/85 hover:bg-white/10"
                                             >
-                                              <UserCheck className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+                                              <UserCheck className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
                                               {name}
                                             </button>
                                           ))}
@@ -3675,7 +3675,7 @@ export default function Timesheets() {
                                                   : 'cursor-not-allowed text-white/30 opacity-60'
                                               }`}
                                             >
-                                              <UserCheck className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+                                              <UserCheck className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
                                               {name}
                                             </button>
                                           ))}
