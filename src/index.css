@@ -696,13 +696,13 @@ body,
     border-bottom: 1px solid rgba(203, 213, 225, 0.70);
     box-shadow: 0 1px 0 rgba(255,255,255,0.75);
   }
-  /** Sfondo pagina con vignettatura radiale (profondità spaziale) */
+  /** Sfondo pagina — trasparente per mostrare il gradiente dark globale */
   .page-depth-bg {
-    background: #e8f0ff;
+    background: transparent;
   }
-  /** Sfondo scheda Panoramica — gradiente radiale stile login */
+  /** Sfondo scheda Panoramica — trasparente per mostrare il gradiente dark globale */
   .page-home-bg {
-    background: #e8f0ff;
+    background: transparent;
   }
   /** Card header FLOW - dark theme, use CSS variable backgrounds */
   .flow-header-card,
