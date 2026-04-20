@@ -105,7 +105,7 @@ export function ShiftHoursCards({
     >
       <div className="mb-6 grid grid-cols-2 gap-6 items-stretch">
         {/* Card Pianificato (GLASSMORPHISM PREMIUM) */}
-        <div className="rounded-2xl overflow-hidden min-h-[130px] px-5 py-5"
+        <div className="rounded-2xl min-h-[130px] px-4 py-4"
           style={{ 
             background: 'var(--bg-surface)',
             backdropFilter: 'blur(16px)',
@@ -114,25 +114,24 @@ export function ShiftHoursCards({
             boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.3)',
           }}
         >
-          <p className="mb-2.5 text-xs font-medium uppercase tracking-wider text-white/50">{t.ts_label_planned}</p>
-          <div className="flex items-start gap-2">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/50">{t.ts_label_planned}</p>
+          <div className="flex items-start gap-1.5">
             {(s.status === 'confirmed' || s.status === 'approved') && (
-              <span className="flex shrink-0 flex-col items-center justify-center gap-1 pr-1">
+              <span className="shrink-0 mt-0.5">
                 {s.status === 'approved' && (
-                  <span className="text-lg text-emerald-400">✓</span>
+                  <span className="text-base text-emerald-400">✓</span>
                 )}
               </span>
             )}
-            <div className="min-w-0 flex-1">
-              <p className="shift-time-ultra shift-time-clean text-white">
+            <div className="min-w-0">
+              <p className="text-[1.15rem] font-bold tabular-nums leading-tight text-white" style={{ letterSpacing: '-0.02em' }}>
                 {s.plannedStart}–{s.plannedEnd}
               </p>
-              <p className="mt-2 text-sm font-medium text-white/65">
+              <p className="mt-1.5 text-sm font-medium text-white/65">
                 {fmtHM(s.plannedMins)}
                 {s.breakMinutes > 0 ? (
                   <span className="opacity-70">
-                    {' '}
-                    (−{fmtBreakDeductionShort(s.breakMinutes)})
+                    {' '}(−{fmtBreakDeductionShort(s.breakMinutes)})
                   </span>
                 ) : null}
               </p>
@@ -142,7 +141,7 @@ export function ShiftHoursCards({
         
         {/* Card Timbrato (GLASSMORPHISM PREMIUM) */}
         <div
-          className={`px-5 py-5 overflow-hidden min-h-[130px] rounded-2xl ${
+          className={`px-4 py-4 min-h-[130px] rounded-2xl ${
             s.punched && s.isCrossDay
               ? 'bg-red-500/10'
               : s.punched
@@ -155,23 +154,20 @@ export function ShiftHoursCards({
             WebkitBackdropFilter: 'blur(16px)',
             border: '1px solid var(--border-color)',
             boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.3)',
-          } : s.isCrossDay ? {
-            border: '1px solid var(--border-color)',
-            boxShadow: '0 2px 8px -2px rgba(0, 0, 0, 0.25)',
           } : {
             border: '1px solid var(--border-color)',
             boxShadow: '0 2px 8px -2px rgba(0, 0, 0, 0.25)',
           }}
         >
-          <div className="flex items-center justify-between mb-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-white/50">{t.ts_label_punched}</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/50">{t.ts_label_punched}</p>
             {(s.punched && !s.actualEnd) || !s.punched ? (
               <span className="flex h-2 w-2 rounded-full bg-white/30 animate-pulse" title={t.data_missing} />
             ) : null}
           </div>
           {s.punched ? (
             <>
-              <p className="shift-time-ultra shift-time-clean text-white">
+              <p className="text-[1.15rem] font-bold tabular-nums leading-tight text-white" style={{ letterSpacing: '-0.02em' }}>
                 {s.actualStart}
                 {s.actualEnd ? `–${s.actualEnd}` : ''}
               </p>
