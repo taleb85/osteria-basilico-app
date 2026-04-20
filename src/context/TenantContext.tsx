@@ -174,7 +174,7 @@ export function applyTenantBrand(_accent: string): void {
   }
 }
 
-function darken(hex: string, amount: number): string {
+function _darken(hex: string, amount: number): string {
   const n = parseInt(hex.replace('#', ''), 16);
   const r = Math.max(0, Math.round(((n >> 16) & 0xff) * (1 - amount)));
   const g = Math.max(0, Math.round(((n >> 8) & 0xff) * (1 - amount)));

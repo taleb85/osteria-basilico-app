@@ -54,7 +54,7 @@ function punchTimeHHMM(ts: string | null | undefined): string | null {
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   } catch { return null; }
 }
-function fmtHM(mins: number): string {
+function _fmtHM(mins: number): string {
   if (!Number.isFinite(mins)) return '—';
   if (mins === 0) return '0h';
   const h = Math.floor(Math.abs(mins) / 60);
@@ -131,7 +131,7 @@ export default function HomePage({
   const handleApproveFromModal = useCallback(
     async (shiftId: string, approvedStart: string, approvedEnd: string) => {
       const shift = shifts.find(s => s.id === shiftId);
-      const user = users.find(u => u.id === shift?.user_id);
+      const _user = users.find(u => u.id === shift?.user_id);
       setApprovingId(shiftId);
       try {
         await approveShift(shiftId, { approvedStart, approvedEnd });
@@ -317,7 +317,6 @@ export default function HomePage({
   // Stats oggi — stessa logica delle card riepilogo Presenze (Timesheets)
   const inTurnoCount = todayAllShifts.filter((s) => {
     if (s.approval_status === 'absent') return false;
-    const u = users.find((x) => x.id === s.user_id);
     const start = timeToMins((s.start_time || '').slice(0, 5));
     const end = timeToMins((s.end_time || '23:59').slice(0, 5));
     return nowMins >= start - 30 && nowMins <= end;
@@ -325,14 +324,12 @@ export default function HomePage({
   const ritardiCount = todayShiftsEnriched.filter((e) => e.isLate).length;
   const senzaTimbraturaCount = todayAllShifts.filter((s) => {
     if (s.approval_status === 'absent') return false;
-    const u = users.find((x) => x.id === s.user_id);
     const isDinner = timeToMins((s.start_time || '').slice(0, 5)) >= 16 * 60;
     const { punchIn } = getPunchForShift(s.id, s.user_id, todayStr, !isDinner);
     return !punchIn;
   }).length;
   const approvatiCount = todayAllShifts.filter((s) => {
     if (s.approval_status !== 'approved') return false;
-    const u = users.find((x) => x.id === s.user_id);
     return true;
   }).length;
 
@@ -839,7 +836,7 @@ export default function HomePage({
                 border: 'border-accent/20',
                 iconWell: 'bg-accent/15',
               },
-            ].map(({ label, value, Icon, iconColor, bg, border, iconWell }) => (
+            ].map(({ label, value, Icon, iconColor, border, iconWell }) => (
               <div key={label} className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 ${border}`}
                 style={{
                   background: 'var(--bg-surface)',

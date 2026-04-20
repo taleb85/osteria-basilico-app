@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef, type CSSProperties } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { User as UserIcon, Lock, Loader2, Eye, EyeOff, Fingerprint } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -34,7 +34,7 @@ interface LoginPageProps {
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const { users, setCurrentUser, setLanguage, setIsSessionElevated, featureFlags } = useApp();
-  const kioskEnabled = featureFlags['kiosk_active'] !== false;
+  const _kioskEnabled = featureFlags['kiosk_active'] !== false;
   const { tenant, loadTenantBySlug } = useTenant();
   const [searchParams] = useSearchParams();
 

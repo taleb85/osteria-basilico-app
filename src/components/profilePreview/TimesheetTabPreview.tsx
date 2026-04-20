@@ -1,11 +1,10 @@
-import { ChevronDown, ChevronLeft, ChevronRight, FileDown, Moon, ClipboardList, MousePointer2, Layout } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Moon, ClipboardList, Layout } from 'lucide-react';
 import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { uiWidgetKeyAppliesToUser } from '../../utils/uiScreenWidgets';
 import { WidgetChrome } from './WidgetChrome';
 import { useApp } from '../../context/appContextCore';
-import { getResolvedStartEndForHours } from '../../utils/shiftResolvedClockTimes';
-import { format, addDays, startOfWeek } from 'date-fns';
+import { addDays, startOfWeek } from 'date-fns';
 
 export default function TimesheetTabPreview({
   previewUser,

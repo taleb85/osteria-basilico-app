@@ -21,7 +21,7 @@ import { format, addDays, parseISO, isValid } from 'date-fns';
 import { database, formatSupabaseError } from '../lib/database';
 import { supabase } from '../lib/supabase';
 import { hasShiftConflictSameDay, computeEffectivePunchIn, calculateShiftMinutesGross } from '../utils/timeCalculations';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import Toast from '../components/Toast';
 import { formatTrans, getTranslations } from '../utils/translations';
 import { countUnreadNotifications } from '../utils/notifications';
@@ -256,7 +256,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Dipende solo da currentUser?.id per non riattivarsi su ogni cambio di proprietà (es. lingua).
   useEffect(() => {
     applyDocumentTheme();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [currentUser?.id]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [holidays, setHolidays] = useState<HolidayRequest[]>([]);

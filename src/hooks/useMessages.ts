@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { database } from '../lib/database';
+// import { database } from '../lib/database'; // unused
 
 export interface Message {
   id: string;
@@ -68,7 +68,7 @@ export function useMessages(userId?: string, isAdmin = false) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [subscription, setSubscription] = useState<RealtimeChannel | null>(null);
+  const [_subscription, _setSubscription] = useState<RealtimeChannel | null>(null);
 
   const loadMessages = useCallback(
     async (uid: string) => {

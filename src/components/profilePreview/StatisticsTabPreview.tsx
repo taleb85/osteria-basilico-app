@@ -1,4 +1,4 @@
-import { BarChart3, ChevronDown, Clock, Filter, FileText } from 'lucide-react';
+import { BarChart3, Filter } from 'lucide-react';
 import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { uiWidgetKeyAppliesToUser } from '../../utils/uiScreenWidgets';

@@ -116,20 +116,8 @@ const DESKTOP_STEPS = [
 export default function PWAInstallRequired() {
   const { effectiveLanguage } = useApp();
   void effectiveLanguage;
-  
-  // SECURITY: check bypass env (se app è configurata per permettere browser)
-  const allowBrowser = import.meta.env.VITE_ALLOW_BROWSER_APP === 'true';
-  if (allowBrowser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-6 text-center">
-        <div>
-          <h1 className="text-xl font-bold mb-2">Bypass Attivo</h1>
-          <p className="text-white/50">VITE_ALLOW_BROWSER_APP è true: gate PWA disabilitato.</p>
-        </div>
-      </div>
-    );
-  }
 
+  // All hooks unconditionally at the top — Rules of Hooks
   const ios = isIOS();
   const android = isAndroid();
   const desktop = isDesktop();
@@ -164,6 +152,19 @@ export default function PWAInstallRequired() {
     }, 2800);
     return () => clearInterval(id);
   }, [ios]);
+
+  // SECURITY: check bypass env — after all hooks
+  const allowBrowser = import.meta.env.VITE_ALLOW_BROWSER_APP === 'true';
+  if (allowBrowser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-6 text-center">
+        <div>
+          <h1 className="text-xl font-bold mb-2">Bypass Attivo</h1>
+          <p className="text-white/50">VITE_ALLOW_BROWSER_APP è true: gate PWA disabilitato.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleInstall = () => {
     if (!deferredPrompt) return;

@@ -151,7 +151,7 @@ export function periodConfigForMonth(refDate: Date): PeriodConfig {
 /** Periodo del mese successivo a quello che inizia con `startDate`. */
 export function nextPeriodConfig(current: PeriodConfig): PeriodConfig {
   const currentEnd = getPeriodEndDate(current); // ultima dom del periodo corrente
-  const nextMonthRef = addDays(currentEnd, 1);  // primo giorno del mese successivo (lunedì)
+  const _nextMonthRef = addDays(currentEnd, 1);  // primo giorno del mese successivo (lunedì)
   return periodConfigForMonth(addDays(currentEnd, 14)); // ref a metà del mese successivo
 }
 

@@ -33,7 +33,7 @@ if ('serviceWorker' in navigator) {
     }
     // Aggiornamento: blocca il reload automatico di workbox e delega a React
     try {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
+       
       Object.defineProperty(window.location, 'reload', { value: () => {}, writable: true, configurable: true });
     } catch { /* alcuni browser non permettono il monkey-patch */ }
     window.dispatchEvent(new CustomEvent('sw-update'));

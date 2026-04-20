@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Check, ShieldCheck } from 'lucide-react';
 
 const STEPS = [
   { label: 'Aggiornamento impostazioni rilevato', doneAt: 0 },

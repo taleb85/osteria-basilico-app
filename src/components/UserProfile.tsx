@@ -6,7 +6,6 @@
  * Persistenza: updateUser -> database.users.update (tabella `users`), campo `department` incluso.
  */
 import { useMemo, useCallback, useState, useRef } from 'react';
-import { motion } from 'framer-motion';
 import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone, Calendar, Smartphone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
@@ -25,7 +24,7 @@ import { getRoleScopeHint } from '../utils/roleScopeHint';
 import { DEFAULT_PHONE_PREFIX, PHONE_PREFIX_OPTIONS } from '../utils/phonePrefix';
 import StaffOperationalPermissionsEditor from './StaffOperationalPermissionsEditor';
 import { OPERATIONAL_STAFF_ROLES_FOR_DELEGATE } from '../utils/operationalStaffRoles';
-const LANGS: Language[] = ['it', 'en', 'es', 'fr'];
+const _LANGS: Language[] = ['it', 'en', 'es', 'fr'];
 
 export type ProfileFormSelfData = {
   first_name: string;
@@ -95,7 +94,7 @@ export function ProfileFormSelf({
   void departmentsRevision;
   const t = getTranslations(effectiveLanguage);
 
-  const applyLanguage = (l: Language) => {
+  const _applyLanguage = (l: Language) => {
     if (readOnly) return;
     setFormData((prev) => ({ ...prev, language: l }));
     setLanguage(l);

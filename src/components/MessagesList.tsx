@@ -23,7 +23,7 @@ export function MessagesList({
   messages,
   onMarkAsRead,
   onDelete,
-  compact = false,
+  compact: _compact = false,
 }: MessagesListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

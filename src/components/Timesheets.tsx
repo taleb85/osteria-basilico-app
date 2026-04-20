@@ -14,9 +14,9 @@ import {
 import { it } from 'date-fns/locale';
 import {
   ChevronRight, ChevronLeft, Check, AlertTriangle, X,
-  Clock, History, FileEdit, ShieldAlert, LogOut, Lock, Unlock,
+  Clock, History, ShieldAlert, LogOut, Lock, Unlock,
   Users, UserCheck, AlertCircle, ArrowRight, Calendar, Moon,
-  ChevronDown, ChevronUp, FileDown, UserX, Trash2, Pencil, CircleEllipsis, Filter, Save, RotateCcw,
+  ChevronDown, FileDown, UserX, Trash2, Filter, Save, RotateCcw,
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -35,7 +35,6 @@ import {
   type BreakRule,
 } from '../utils/breakRules';
 import {
-  isPurelyManagementRole,
   isManagementRole,
   isUserVisibleOnTeamSchedule,
   canOperateTeamSchedule,
@@ -68,14 +67,14 @@ import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase'
 import type { PunchAuditEntry, PunchRecord, PunchRecordSource, Shift, User } from '../types';
 import { getResolvedStartEndForHours, shiftPastPlannedEndWithoutClockIn } from '../utils/shiftResolvedClockTimes';
 import { HorizontalScrollArea, type HorizontalScrollNavState } from './HorizontalScrollArea';
-import DatePickerField from './DatePickerField';
+// import DatePickerField from './DatePickerField'; // unused
 import TimesheetManagementKpiBlock from './TimesheetManagementKpiBlock';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
 import { exportAttendancePdfFromGrid } from '../utils/timesheetPdfFromRange';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
 import { getDeptColor, getDepartments, deptMatchesFilterKey } from '../utils/departments';
-import { translateDepartmentValue } from '../utils/departmentLabels';
+// import { translateDepartmentValue } from '../utils/departmentLabels'; // unused
 import { getTimesheetGridPrivacyMode } from '../utils/timesheetGridPrivacy';
 import { PinPadModal } from './ui/PinPadModal';
 import { runAutoApprove } from '../utils/autoApprovePunches';
@@ -88,7 +87,7 @@ import { ShiftHistoryCard } from './timesheets/ShiftHistoryCard';
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Pill reparto: sfondo colore reparto, testo bianco (scurisce il rgb se troppo chiaro per il contrasto). */
-function departmentChipStyle(hex: string): CSSProperties {
+function _departmentChipStyle(hex: string): CSSProperties {
   const raw = hex.replace('#', '').trim();
   const six = raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw) ? raw : '001A80';
   let r = parseInt(six.slice(0, 2), 16);
@@ -554,7 +553,7 @@ export default function Timesheets() {
   }, [shifts, punchRecords, updateShift, canTimesheetApprove]);
   // ─────────────────────────────────────────────────────────────────────────────
 
-  const handleSavePeriodConfig = () => {
+  const _handleSavePeriodConfig = () => {
     const cfg = { startDate: periodStart, numWeeks: periodNumWeeks };
     persistPeriodConfig(cfg);
     setPeriodConfig(cfg);
@@ -628,7 +627,7 @@ export default function Timesheets() {
     setPeriodNumWeeks(cfg.numWeeks);
     setPeriodSaved(false);
     setWeekIndex(0);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [periodNavOffset]);
 
   type ViewMode = 'day' | 'week' | 'month';
@@ -721,7 +720,7 @@ export default function Timesheets() {
   })();
 
   /** Vista Mese: griglia lun–dom allineata al calcolo paghe (settimane intere sul periodo). */
-  const calendarPaddedDays = useMemo(() => {
+  const _calendarPaddedDays = useMemo(() => {
     const calStart = startOfWeek(periodStartDate, { weekStartsOn: 1 });
     const calEnd = endOfWeek(periodEndDate, { weekStartsOn: 1 });
     return eachDayOfInterval({ start: calStart, end: calEnd });
@@ -1047,7 +1046,7 @@ export default function Timesheets() {
   const weekStr = format(weekStart, 'yyyy-MM-dd');
 
   // Reset filtro KPI quando cambia la settimana visualizzata
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(() => { setStatFilter(null); }, [weekStr]);
 
   const triggerShiftHighlight = (ids: string[], label: string) => {

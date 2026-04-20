@@ -46,10 +46,6 @@ function fmtH(mins: number) {
   return m > 0 ? `${h}h ${String(m).padStart(2, '0')}m` : `${h}h`;
 }
 
-function useDarkMode() {
-  if (typeof document === 'undefined') return false;
-  return document.documentElement.classList.contains('dark');
-}
 
 export default function MobileHome({
   greetingText,

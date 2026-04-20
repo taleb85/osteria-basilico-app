@@ -28,7 +28,7 @@ export default function UserAvatarMenu({
 }: UserAvatarMenuProps) {
   const { currentUser, updateUser, effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
-  const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
+  const _isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const [isOpen, setIsOpen] = useState(false);
   useBodyScrollLock(isOpen);
   const [showPortal, setShowPortal] = useState(false);

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Send, X, Loader2, Users, User } from 'lucide-react';
+import { Send, Loader2, Users, User } from 'lucide-react';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 import { useApp } from '../context/AppContext';
@@ -19,9 +19,9 @@ interface MessageComposerProps {
  */
 export function MessageComposer({
   userId,
-  userName,
+  userName: _userName,
   allUsers,
-  onClose,
+  onClose: _onClose,
   onSuccess,
 }: MessageComposerProps) {
   const { sendMessage } = useMessages(userId);

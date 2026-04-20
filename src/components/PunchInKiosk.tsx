@@ -1,15 +1,12 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Loader2,
   CheckCircle2,
   User,
   Sun,
   Moon,
   Clock,
   Check,
-  Delete,
-  ShieldCheck,
   Smartphone,
   X,
 } from 'lucide-react';
@@ -25,7 +22,6 @@ import { isPurelyManagementRole, canOperateTeamSchedule } from '../utils/permiss
 import { usePunchPresenceVerification } from '../hooks/usePunchPresenceVerification';
 
 import { PinPadModal } from './ui/PinPadModal';
-import FlowLogo from './FlowLogo';
 import { FlowNeonIcon } from './ui/FlowNeonIcon';
 
 /** Terminale /timbratura: UI sempre in inglese (dispositivo condiviso in sala). */

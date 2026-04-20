@@ -34,7 +34,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
   const { users, shifts, currentUser, effectiveLanguage, breakRules, featureFlags, punchRecords } = useApp();
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
-  const [activeWidget, setActiveWidget] = useState<'approved' | 'pending' | null>(null);
+  const [activeWidget, _setActiveWidget] = useState<'approved' | 'pending' | null>(null);
 
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),

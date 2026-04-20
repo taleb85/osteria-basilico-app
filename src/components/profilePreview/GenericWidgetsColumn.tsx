@@ -1,4 +1,4 @@
-import { Bell, Calendar, ClipboardList, Clock, Home, Info, Layout, MousePointer2, ShieldCheck, Users } from 'lucide-react';
+import { Calendar, ClipboardList, Clock, Home, Info, Layout, MousePointer2, ShieldCheck } from 'lucide-react';
 import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { widgetAppliesToUser, type UiScreenWidgetDef } from '../../utils/uiScreenWidgets';

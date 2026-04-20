@@ -21,7 +21,7 @@ export function UnifiedBellButton({
   const { triggerHapticFeedback } = useMultisensorialFeedback();
   const { currentUser } = useApp();
   const isAdmin = currentUser?.role === 'admin';
-  const { messages, unreadCount, markAsRead, markAllAsRead, loadMessages, isLoading, error, sendMessage, deleteMessage } = useMessages(userId, isAdmin);
+  const { messages, unreadCount, markAsRead, markAllAsRead, loadMessages, error, sendMessage, deleteMessage } = useMessages(userId, isAdmin);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);

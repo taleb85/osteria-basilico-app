@@ -46,7 +46,7 @@ function fmtHM(mins: number): string {
 
 /** Esportato per anteprima admin (Cosa vede chi) — stessa UI dei turni in Home gestionale. */
 export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprove, approvingId, t }: HomeManagementShiftCardProps) {
-  const deltaColor =
+  const _deltaColor =
     e.deltaMins > 5 ? 'text-emerald-400' : e.deltaMins < -5 ? 'text-red-400' : 'text-white/50';
   const notPunchedLineCls = style.border.includes('[#00C896]')
     ? 'text-emerald-300'

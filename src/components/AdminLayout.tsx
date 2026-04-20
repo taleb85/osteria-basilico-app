@@ -22,7 +22,7 @@ export default function AdminLayout() {
   const t = getTranslations(effectiveLanguage);
   // Accesso completo: admin puro OPPURE sessione elevata via PIN secondario
   const fullAdminNav = !!(currentUser && (isAdminOnly(currentUser) || isSessionElevated || currentUser.elevated_role));
-  const showAdminNav = fullAdminNav || !!(currentUser && canEditRoleFeatureTemplates(currentUser));
+  const _showAdminNav = fullAdminNav || !!(currentUser && canEditRoleFeatureTemplates(currentUser));
   // Apri direttamente "Impostazioni" se l'utente ha accesso completo
   const [activeTab, setActiveTab] = useState<AdminTab>('profili');
 

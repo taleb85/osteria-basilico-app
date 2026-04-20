@@ -20,7 +20,7 @@ import { getTranslations, getFeatureStrings, formatTrans } from '../utils/transl
 import { isAdminOnly } from '../utils/permissions';
 import { translateRole } from '../utils/roles';
 import { FEATURE_DEFINITIONS } from '../utils/featureFlags';
-import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage';
+// import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage'; // unused
 import { supabase } from '../lib/supabase';
 
 const IMPOSTAZIONI_GROUPS: readonly {
@@ -70,8 +70,8 @@ const FeatureCard = memo(function FeatureCard({
   detailLines,
   detailsExpanded,
   toggleDetailLabel,
-  featureOnLabel,
-  featureOffLabel,
+  _featureOnLabel,
+  _featureOffLabel,
   detailLabel,
   onToggle,
   onToggleDetail,
@@ -160,7 +160,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     isSessionElevated,
   } = useApp();
   const t = getTranslations(effectiveLanguage);
-  const [howOpen, setHowOpen] = useState(false);
+  const [_howOpen, _setHowOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState<Record<string, boolean>>({});
   const [showAdvancedFlags, setShowAdvancedFlags] = useState(false);
   const [teamNotifyLoading, setTeamNotifyLoading] = useState(false);
@@ -218,29 +218,6 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
 
 
 
-  if (!currentUser) return null;
-  const hasFullAccess = isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role;
-  if (!hasFullAccess) {
-    return (
-      <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
-        <div className="surface-glass-sm p-4 rounded-xl mb-6">
-          <h2 className="text-lg font-bold mb-1">{t.settings_current_user || 'Utente attuale'}</h2>
-          <div className="flex items-center gap-3">
-            <span className="font-semibold text-accent">{currentUser.first_name} {currentUser.last_name}</span>
-            <span className="text-xs bg-white/15 rounded px-2 py-0.5 ml-2 text-white/70">{translateRole(currentUser.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</span>
-          </div>
-          <button
-            className="mt-3 px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/20 text-[#fca5a5] font-semibold hover:bg-red-500/30 transition-colors"
-            onClick={logout}
-          >
-            {t.logout || 'Logout'}
-          </button>
-        </div>
-        <p className="text-white/70 text-sm">{t.no_access_settings}</p>
-      </div>
-    );
-  }
-
   const renderCard = useCallback((slug: string) => {
     const def = FEATURE_DEFINITIONS.find((f) => f.slug === slug);
     const enabled = featureFlags[slug] ?? (def?.defaultEnabled ?? true);
@@ -270,6 +247,29 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
       />
     );
   }, [featureFlags, detailOpen, t, setFeatureFlag, showSuccess, toggleDetail]);
+
+  if (!currentUser) return null;
+  const hasFullAccess = isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role;
+  if (!hasFullAccess) {
+    return (
+      <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
+        <div className="surface-glass-sm p-4 rounded-xl mb-6">
+          <h2 className="text-lg font-bold mb-1">{t.settings_current_user || 'Utente attuale'}</h2>
+          <div className="flex items-center gap-3">
+            <span className="font-semibold text-accent">{currentUser.first_name} {currentUser.last_name}</span>
+            <span className="text-xs bg-white/15 rounded px-2 py-0.5 ml-2 text-white/70">{translateRole(currentUser.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</span>
+          </div>
+          <button
+            className="mt-3 px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/20 text-[#fca5a5] font-semibold hover:bg-red-500/30 transition-colors"
+            onClick={logout}
+          >
+            {t.logout || 'Logout'}
+          </button>
+        </div>
+        <p className="text-white/70 text-sm">{t.no_access_settings}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">

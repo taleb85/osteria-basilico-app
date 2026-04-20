@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Users, SlidersHorizontal, Shield, Settings, Info, LogOut, ChevronRight } from 'lucide-react';
+import { Users, Shield, Settings, Info, ChevronRight } from 'lucide-react';
 import ImpostazioniPage from './ImpostazioniPage';
 import GestioneProfiliPage from './GestioneProfiliPage';
-import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage';
+// import { RoleFeatureTemplatesPanel } from './RoleFeatureTemplatesPage'; // unused in this hub
 import { useApp } from '../context/AppContext';
 
 const MENU = [

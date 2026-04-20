@@ -1,13 +1,12 @@
-import { motion } from 'framer-motion';
-import { LogOut, ShieldCheck, Zap, ZapOff } from 'lucide-react';
+import { LogOut, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations } from '../utils/translations';
-import { getRoleScopeHint } from '../utils/roleScopeHint';
+// import { getRoleScopeHint } from '../utils/roleScopeHint'; // unused
 import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
 import { UnifiedBellButton } from './UnifiedBellButton';
 import { useState, useEffect, useRef } from 'react';
-import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
-import { useMessages } from '../hooks/useMessages';
+// import { isUiWidgetVisible } from '../utils/uiScreenWidgets'; // unused
+// import { useMessages } from '../hooks/useMessages'; // unused
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 interface MobileProfileHeaderProps {
   onLogout?: () => void;
@@ -31,21 +30,20 @@ export default function MobileProfileHeader({
   onLogout,
   activeTab = 'home',
   showOnDesktop = false,
-  compact = false,
-  embeddedInAppHeader = false,
-  parentProvidesCardShell = false,
+  compact: _compact = false,
+  embeddedInAppHeader: _embeddedInAppHeader = false,
+  parentProvidesCardShell: _parentProvidesCardShell = false,
   hideHeaderLogout = false,
   hideToolbarAvatar: _hideToolbarAvatar = false,
 }: MobileProfileHeaderProps) {
   const {
     currentUser,
     effectiveLanguage,
-    featureFlags,
     isSessionElevated,
   } = useApp();
 
   // Animazioni on/off — persiste in localStorage
-  const [animationsOn, setAnimationsOn] = useState<boolean>(() => {
+  const [animationsOn, _setAnimationsOn] = useState<boolean>(() => {
     try {
       return localStorage.getItem('flow-animations') !== 'off';
     } catch {
@@ -67,23 +65,14 @@ export default function MobileProfileHeader({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { sendMessage } = useMessages(currentUser?.id);
-  const { triggerHapticFeedback, playNotificationSound } = useMultisensorialFeedback();
+  const { triggerHapticFeedback } = useMultisensorialFeedback();
 
-  const [logoAnim, setLogoAnim] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [barSize, setBarSize] = useState({ w: 0, h: 62 });
-
-  const [isStaffComposerOpen, setIsStaffComposerOpen] = useState(false);
-  const [staffSubject, setStaffSubject] = useState('');
-  const [staffBody, setStaffBody] = useState('');
-  const [isStaffSending, setIsStaffSending] = useState(false);
 
   const t = getTranslations(effectiveLanguage);
-  const tr = t as Record<string, string>;
   if (!currentUser) return null;
 
-  const pageTitle = getAppNavTabTitle(t, activeTab);
+  const _pageTitle = getAppNavTabTitle(t, activeTab);
 
   const shellClass = `w-full ${showOnDesktop ? '' : 'md:hidden'}`;
 

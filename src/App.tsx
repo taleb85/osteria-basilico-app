@@ -23,19 +23,16 @@ import { applyUnauthenticatedDocumentTheme } from './utils/theme';
 import { getTranslations } from './utils/translations';
 import BottomNav from './components/BottomNav';
 import MobileProfileHeader from './components/MobileProfileHeader';
-import HeaderTodayCoworkersCard from './components/HeaderTodayCoworkersCard';
+// import HeaderTodayCoworkersCard from './components/HeaderTodayCoworkersCard'; // unused
 import RefreshLockOverlay from './components/RefreshLockOverlay';
 import PostUnlockRestartOverlay from './components/PostUnlockRestartOverlay';
 import BodyPullToRefresh from './components/BodyPullToRefresh';
 import HomePage from './components/HomePage';
-import PunchInKiosk from './components/PunchInKiosk';
 import LoginPage from './components/LoginPage';
-import PWAInstallRequired from './components/PWAInstallRequired';
-import { isPWAStandalone } from './utils/pwaStandalone';
+// import PWAInstallRequired from './components/PWAInstallRequired'; // unused (rendered by PwaGate)
+// import { isPWAStandalone } from './utils/pwaStandalone'; // unused
 import InviteRedirect from './components/InviteRedirect';
-import StaffPersonalDashboard from './components/StaffPersonalDashboard';
-import ProfileNavTabPanel from './components/ProfileNavTabPanel';
-import { Wrench, RotateCw, Cloud, CloudOff, Lock, Unlock, ShieldCheck, ShieldOff, X, Loader2 } from 'lucide-react';
+import { Wrench, RotateCw, Cloud, CloudOff, Lock, Unlock, ShieldCheck, ShieldOff, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { PinPadModal } from './components/ui/PinPadModal';
 import { findFreezeVerifierByPin, findFreezeVerifierById } from './utils/permissions';
@@ -54,14 +51,19 @@ import { useIsMobileViewport } from './hooks/useIsMobileViewport';
 import { isAdminOnly, isManagementRole } from './utils/permissions';
 import { getTimesheetGridPrivacyMode } from './utils/timesheetGridPrivacy';
 import AdminGate from './components/AdminGate';
-import AdminLayout from './components/AdminLayout';
-import OnboardingSetupModal from './components/OnboardingSetupModal';
-import PermissionRequestModal, { shouldShowPermissionModal } from './components/PermissionRequestModal';
 import { PwaGate } from './components/PwaGate';
+
+const PunchInKiosk = lazy(() => import('./components/PunchInKiosk'));
+const StaffPersonalDashboard = lazy(() => import('./components/StaffPersonalDashboard'));
+const ProfileNavTabPanel = lazy(() => import('./components/ProfileNavTabPanel'));
+const AdminLayout = lazy(() => import('./components/AdminLayout'));
+const OnboardingSetupModal = lazy(() => import('./components/OnboardingSetupModal'));
+const PermissionRequestModal = lazy(() => import('./components/PermissionRequestModal').then(m => ({ default: m.default })));
+const shouldShowPermissionModal = () => import('./components/PermissionRequestModal').then(m => m.shouldShowPermissionModal()).catch(() => false);
 
 const WeeklyShiftsTable = lazy(() => import('./components/WeeklyShiftsTable'));
 const HolidayRequests = lazy(() => import('./components/HolidayRequests'));
-const Statistics = lazy(() => import('./components/Statistics'));
+// const Statistics = lazy(() => import('./components/Statistics')); // unused in App.tsx (rendered via routing in AdminLayout)
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
 const Timesheets = lazy(() => import('./components/Timesheets'));
 const ManagementMobileShifts = lazy(() => import('./components/mobile/ManagementMobileShifts'));
@@ -86,7 +88,8 @@ function MaintenancePage() {
   );
 }
 
-// ─── Kiosk Route ──────────────────────────────────────────────────────────────
+// ─── Kiosk Route (disabilitata — /kiosk reindirizza a /profilo) ──────────────
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function KioskRoute() {
   const navigate = useNavigate();
   const { currentUser, featureFlags } = useApp();
@@ -153,7 +156,7 @@ function KioskRoute() {
 
   return (
     <div className="min-h-screen w-full flex flex-col safe-area-pad bg-[#f8fafc] font-sans antialiased text-white">
-      <PunchInKiosk onGoToLogin={() => navigate(PATH_PROFILO)} />
+      <Suspense fallback={null}><PunchInKiosk onGoToLogin={() => navigate(PATH_PROFILO)} /></Suspense>
     </div>
   );
 }
@@ -267,7 +270,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   }, [currentUser, isManagement, featureFlags, roleTemplatesRevision]);
 
   const noNavTabs = Boolean(currentUser && visibleNavTabs.length === 0);
-  const staffMobileBottomNavActive = !!currentUser && !noNavTabs && isMobileViewport;
 
   const appStickyHeaderRef = useRef<HTMLElement | null>(null);
   useLayoutEffect(() => {
@@ -618,7 +620,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       case 'settings':
         return <SettingsPage />;
       case 'profile':
-        return <ProfileNavTabPanel onLogout={onLogout} onGoToSettings={() => void handleTabChange('settings')} />;
+        return <Suspense fallback={null}><ProfileNavTabPanel onLogout={onLogout} onGoToSettings={() => void handleTabChange('settings')} /></Suspense>;
       default:
         return null;
     }
@@ -638,9 +640,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   }, [currentUser?.role]);
 
   /** `overflow-visible` così popover / menu non vengono tagliati dal bordo arrotondato della card. */
-  const appHeaderMainCardClass = 'w-full rounded-2xl overflow-visible supports-[backdrop-filter]:backdrop-blur-[30px] supports-[backdrop-filter]:backdrop-saturate-[2.4] supports-[backdrop-filter]:brightness-[1.06] shadow-[0_10px_28px_-4px_rgba(0,26,128,0.12),0_4px_12px_-2px_rgba(15,23,42,0.10)]),0_4px_12px_-2px_rgba(0,0,0,0.35)]'
-    + ' bg-white/58';
-  const appHeaderCardClass = 'w-full rounded-2xl border border-slate-100 bg-white/80 shadow-[0_4px_16px_-4px_rgba(0,26,128,0.10),0_2px_8px_-4px_rgba(15,23,42,0.08)] overflow-hidden supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-[1.8]';
 
   return (
     <ProfileLeaveGuardRefContext.Provider value={profileLeaveGuardRef}>
@@ -655,11 +654,11 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     </AnimatePresence>
     {/* Onboarding obbligatorio: blocca l'interfaccia finché email/telefono non sono configurati */}
     {showOnboarding && (
-      <OnboardingSetupModal onComplete={() => setOnboardingDone(true)} />
+      <Suspense fallback={null}><OnboardingSetupModal onComplete={() => setOnboardingDone(true)} /></Suspense>
     )}
     <AnimatePresence>
       {showPermissions && !showOnboarding && (
-        <PermissionRequestModal key="perm-modal" onDone={() => setShowPermissions(false)} />
+        <Suspense fallback={null}><PermissionRequestModal key="perm-modal" onDone={() => setShowPermissions(false)} /></Suspense>
       )}
     </AnimatePresence>
     <div className="min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
@@ -876,12 +875,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
               </motion.div>
             </AnimatePresence>
           ) : currentUser ? (
-            <StaffPersonalDashboard
-              user={currentUser}
-              onLogout={onLogout}
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
-            />
+            <Suspense fallback={null}>
+              <StaffPersonalDashboard
+                user={currentUser}
+                onLogout={onLogout}
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+              />
+            </Suspense>
           ) : null}
         </div>
       </main>
@@ -1042,6 +1043,7 @@ function ProtectedApp() {
 }
 
 // ─── Banner "Aggiungi a Home" per Safari iOS (non-standalone) ─────────────────
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function IosSafariInstallBanner() {
   const [visible, setVisible] = useState(() => {
     // Mostra solo su Safari iOS fuori dalla modalità standalone
@@ -1108,8 +1110,8 @@ function AppContent() {
       <Route path="/login" element={<Navigate to={PATH_PROFILO} replace />} />
       <Route path="/app" element={<ProtectedApp />} />
       <Route path="/app/*" element={<ProtectedApp />} />
-      <Route path="/admin" element={<AdminGate><AdminLayout /></AdminGate>} />
-      <Route path="/admin/*" element={<AdminGate><AdminLayout /></AdminGate>} />
+      <Route path="/admin" element={<AdminGate><Suspense fallback={null}><AdminLayout /></Suspense></AdminGate>} />
+      <Route path="/admin/*" element={<AdminGate><Suspense fallback={null}><AdminLayout /></Suspense></AdminGate>} />
       <Route path="/anim-preview" element={<Suspense fallback={null}><AnimPreview /></Suspense>} />
       <Route path="/loading-preview" element={<Suspense fallback={null}><LoadingPreview /></Suspense>} />
       <Route path="/screens-preview" element={

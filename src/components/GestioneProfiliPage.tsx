@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, ChevronDown, ChevronUp, Shield, Save, RotateCcw, Eye } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -61,7 +61,7 @@ export default function GestioneProfiliPage() {
       await updateUser(userId, { enabled_features: overrides });
       showSuccess?.(tv.save_success ?? 'Modifiche salvate con successo');
       handleReset(userId);
-    } catch (err) {
+    } catch (_err) {
       showError?.(tv.save_error ?? 'Errore durante il salvataggio');
     } finally {
       setSavingId(null);

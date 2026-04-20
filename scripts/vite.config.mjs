@@ -127,15 +127,16 @@ export default defineConfig({
     }),
   ],
   build: {
-    /** Chunk principale ~1.7MB (app + lazy routes); sopra il default 500 kB di Rollup. */
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-framer': ['framer-motion'],
           'vendor-supabase': ['@supabase/supabase-js'],
           'vendor-pdf': ['jspdf'],
+          'vendor-date': ['date-fns'],
+          'vendor-icons': ['lucide-react'],
         },
       },
     },

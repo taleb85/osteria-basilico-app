@@ -131,7 +131,7 @@ export async function seedTenantFromTemplate(
   const weekStart = getWeekStart();
   const weekEnd   = addDays(weekStart, 6);
 
-  let { data: templateShifts, error: shiftsErr } = await supabase
+  const { data: templateShifts, error: shiftsErr } = await supabase
     .from('shifts')
     .select('*')
     .eq('tenant_id', tpl.id)

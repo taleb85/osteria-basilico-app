@@ -26,7 +26,6 @@ import {
   getPeriodDateRange,
   prevPeriodConfig,
   nextPeriodConfig,
-  currentPeriodConfig,
   type PeriodConfig,
 } from '../utils/periodConfig';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
@@ -41,7 +40,7 @@ import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, FileDown, Filter, ChevronDown, ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
-import DatePickerField from './DatePickerField';
+// import DatePickerField from './DatePickerField'; // unused
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { exportAttendancePdfFromGrid } from '../utils/timesheetPdfFromRange';
 import { translateDepartmentValue } from '../utils/departmentLabels';
@@ -51,7 +50,7 @@ function toDateOnly(d: Date): string {
   return format(d, 'yyyy-MM-dd');
 }
 
-function formatStatsChipDate(iso: string, locale: typeof it): string {
+function _formatStatsChipDate(iso: string, locale: typeof it): string {
   const d = parseISO(iso.slice(0, 10));
   return Number.isNaN(d.getTime()) ? '—' : format(d, 'dd/MM/yy', { locale });
 }
@@ -363,7 +362,7 @@ export default function Statistics() {
   const uiW = (key: string) => isUiWidgetVisible(currentUser, key);
   const statsLoc = getDateLocale(effectiveLanguage) ?? it;
   const tv = t as Record<string, string>;
-  const staffSelfId = displayUsers[0]?.id ?? currentUser.id;
+  const _staffSelfId = displayUsers[0]?.id ?? currentUser.id;
   const staffRangeTotalMins = Object.values(minutesByUserByWeek[currentUser.id] ?? {}).reduce((a, b) => a + b, 0);
 
   return (
@@ -374,6 +373,7 @@ export default function Statistics() {
         transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
       >
         {/* ── Toolbar 4-tab (tutti gli utenti) ──────────────────────── */}
+        {/* eslint-disable-next-line no-constant-binary-expression */}
         {true && (
           <>
             <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-1 overflow-x-auto relative z-[1000] mb-5">

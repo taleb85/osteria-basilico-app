@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Palmtree, Clock, CheckCircle, Download, X, Share, ChevronRight, ChevronLeft, LogOut, Shield, Calendar } from 'lucide-react';
+import { Clock, Download, X, Share, ChevronRight, ChevronLeft, LogOut, Shield, Calendar } from 'lucide-react';
 import { database } from '../lib/database';
 import { useApp } from '../context/AppContext';
 import { User as UserType, Shift, HolidayRequest, PunchRecord } from '../types';
@@ -15,27 +15,26 @@ import { getTranslations, getDateLocale } from '../utils/translations';
 import {
   getVisibleStaffTabs,
   getUnifiedNavTabs,
-  isStaffRequestsFeatureEnabled,
   type AppNavTab,
 } from '../utils/enabledModules';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import MobileStaffDashboard from './mobile/MobileStaffDashboard';
-import MobileShifts from './mobile/MobileShifts';
-import MobileTimesheet from './mobile/MobileTimesheet';
+// import MobileShifts from './mobile/MobileShifts'; // rendered via MobileStaffDashboard
+// import MobileTimesheet from './mobile/MobileTimesheet'; // rendered via MobileStaffDashboard
 import ManagementMobileShifts from './mobile/ManagementMobileShifts';
 import ManagementMobileTimesheet from './mobile/ManagementMobileTimesheet';
 import MobileRequests from './mobile/MobileRequests';
 import MobileStatsCards from './mobile/MobileStatsCards';
 import { useIsMobileViewport } from '../hooks/useIsMobileViewport';
-const Timesheets = lazy(() => import('./Timesheets'));
+// const Timesheets = lazy(() => import('./Timesheets')); // unused here
 const HolidayRequests = lazy(() => import('./HolidayRequests'));
 const Statistics = lazy(() => import('./Statistics'));
-const WeeklyShiftsTable = lazy(() => import('./WeeklyShiftsTable'));
+// const WeeklyShiftsTable = lazy(() => import('./WeeklyShiftsTable')); // unused here
 const SettingsPage = lazy(() => import('./SettingsPage'));
 
 import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import { isSameWeek, eachDayOfInterval } from 'date-fns';
-import { safeFormatDate } from '../utils/safeDateFormat';
+// import { safeFormatDate } from '../utils/safeDateFormat'; // unused
 import { isPurelyManagementRole } from '../utils/permissions';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { userRowToSessionUser } from '../utils/staffPermissionDefaults';
@@ -52,9 +51,7 @@ import { StaffPushNotificationPromptBanner } from './StaffPushNotificationPrompt
 function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; language?: import('../types').Language }) {
   const locale = getDateLocale(language) ?? itLocale;
   const t = getTranslations(language);
-  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-
-  const STATUS_CFG = {
+  const _STATUS_CFG = {
     approved:  { label: t.ts_status_approved  ?? 'Approvato',  Icon: CheckCircle2, pill: 'shift-badge-approved' },
     confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle,  pill: 'shift-badge-confirmed' },
     draft:     { label: t.status_draft        ?? 'Bozza',      Icon: AlertCircle,  pill: 'shift-badge-draft' },
@@ -140,7 +137,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
               {weekDays.map((day, dIdx) => {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const dayShifts = (byDay.get(dateStr) ?? []).sort((a: any, b: any) => a.start_time.localeCompare(b.start_time));
-                const isWeekend = dIdx >= 5;
+                const _isWeekend = dIdx >= 5;
                 const today = isToday(day);
 
                 return (
@@ -221,9 +218,9 @@ function StaffDesktopTimesheet({
 }) {
   const locale = getDateLocale(language) ?? itLocale;
   const t = getTranslations(language);
-  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  
 
-  const STATUS_CONFIG = {
+  const _STATUS_CONFIG = {
     approved: { label: t.ts_status_approved ?? 'Approvato', Icon: CheckCircle2, pill: 'shift-badge-approved' },
     confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle, pill: 'shift-badge-confirmed' },
     absent: { label: t.status_absent ?? 'Assente', Icon: XCircle, pill: 'shift-badge-absent' },
@@ -314,7 +311,7 @@ function StaffDesktopTimesheet({
               {weekDays.map((day, dIdx) => {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const dayShifts = (dayMap.get(dateStr) ?? []).sort((a: any, b: any) => a.start_time.localeCompare(b.start_time));
-                const isWeekend = dIdx >= 5;
+                const _isWeekend = dIdx >= 5;
                 const today = isToday(day);
 
                 return (
@@ -585,8 +582,8 @@ export default function StaffPersonalDashboard({
   // ─────────────────────────────────────────────────────────────────────────
 
   const monthKey = format(new Date(), 'yyyy-MM');
-  const confirmedThisMonth = displayUser.monthly_confirmed?.[monthKey];
-  const shiftsListRef = useRef<HTMLDivElement>(null);
+  const _confirmedThisMonth = displayUser.monthly_confirmed?.[monthKey];
+  const _shiftsListRef = useRef<HTMLDivElement>(null);
 
   const [holidaysFocus, setHolidaysFocus] = useState(false);
 
@@ -595,12 +592,12 @@ export default function StaffPersonalDashboard({
   }, [activeTab]);
 
   /** Sempre prima di qualsiasi return anticipato (loading / profilo gestionale) — altrimenti React #310. */
-  const visibleStaffTabs = useMemo(() => {
+  const _visibleStaffTabs = useMemo(() => {
     void roleTemplatesRevision;
     return getVisibleStaffTabs(displayUser, featureFlags);
   }, [displayUser, featureFlags, roleTemplatesRevision]);
 
-  const staffUnifiedTabs = useMemo(() => {
+  const _staffUnifiedTabs = useMemo(() => {
     void roleTemplatesRevision;
     return getUnifiedNavTabs(displayUser, false, featureFlags);
   }, [displayUser, featureFlags, roleTemplatesRevision]);
@@ -646,7 +643,7 @@ export default function StaffPersonalDashboard({
       if (!grouped[s.date]) grouped[s.date] = [];
       grouped[s.date].push(s);
     });
-    const sortedDates = Object.keys(grouped).sort().slice(0, 6);
+    const _sortedDates = Object.keys(grouped).sort().slice(0, 6);
     const todayStr = format(now, 'yyyy-MM-dd');
 
     return (
@@ -688,7 +685,7 @@ export default function StaffPersonalDashboard({
 
   // ── Navigazione periodo mobile (turni + presenze) ──────────────
   type MobileNavTab = 'week' | 'period';
-  const [mobileNavTab, setMobileNavTab] = useState<MobileNavTab>('period');
+  const [mobileNavTab, _setMobileNavTab] = useState<MobileNavTab>('period');
   const [mobileNavOffset, setMobileNavOffset] = useState(0);
 
   const getMobileRange = useCallback((tab: MobileNavTab, offset: number): { start: Date; end: Date } => {

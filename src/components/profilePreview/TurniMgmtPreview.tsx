@@ -1,4 +1,4 @@
-import { Filter, ChevronDown, Calendar, Users, MousePointer2, Layout } from 'lucide-react';
+import { Filter, ChevronDown, Calendar, Users, Layout } from 'lucide-react';
 import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { WidgetChrome } from './WidgetChrome';

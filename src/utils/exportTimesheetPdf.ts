@@ -1,4 +1,4 @@
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import type { Locale } from 'date-fns';
 import { isPurelyManagementRole } from './permissions';
 
@@ -91,8 +91,8 @@ export async function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams)
   
   const BG_CONFIRMED: [number,number,number] = [240, 253, 244]; 
   const BD_CONFIRMED: [number,number,number] = [45, 90, 39];    
-  const BG_PENDING  : [number,number,number] = [255, 251, 235]; 
-  const BD_PENDING  : [number,number,number] = [245, 158, 11];  
+  const _BG_PENDING  : [number,number,number] = [255, 251, 235]; 
+  const _BD_PENDING  : [number,number,number] = [245, 158, 11];  
 
   const grid = () => { doc.setDrawColor(...C_GRID); doc.setLineWidth(0.15); }; 
   const setTxt = (sz: number, style: 'normal'|'bold', rgb: [number,number,number]) => {

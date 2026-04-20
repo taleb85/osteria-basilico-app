@@ -17,7 +17,7 @@ import {
 // import { supabaseAdmin as supabase } from '../lib/supabase';
 const supabase = null as any; // stub per evitare errori TypeScript
 import type { Tenant, TenantSettings, UserRole, UserStatus } from '../types';
-import { HEADER_FONTS } from '../context/TenantContext';
+// import { HEADER_FONTS } from '../context/TenantContext'; // unused
 import { seedTenantFromTemplate } from '../utils/seedTenantFromTemplate';
 
 // ---------------------------------------------------------------------------
@@ -154,7 +154,7 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
 // Constants
 // ---------------------------------------------------------------------------
 
-const ACCENT_PRESETS = [
+const _ACCENT_PRESETS = [
   { label: 'Verde oliva',  value: 'var(--brand)' },
   { label: 'Rosso',        value: '#B91C1C' },
   { label: 'Blu marino',   value: '#1D4ED8' },
@@ -1967,7 +1967,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
   };
 
   const parseDate = (raw: string): string | null => {
-    const p = raw.trim().split(/[\/\-\.]/);
+    const p = raw.trim().split(/[/\-.]/);
     if (p.length !== 3) return null;
     if (p[2].length === 4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
     if (p[0].length === 4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;

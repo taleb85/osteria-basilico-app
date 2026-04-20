@@ -18,14 +18,11 @@ import {
   type SettingsOperationalPermKey,
 } from '../utils/enabledFeatures';
 import {
-  getRoleFeatureTemplatesCache,
-  type RoleFeatureTemplatesOnDisk,
   type RoleTemplateGroup,
 } from '../utils/roleFeatureTemplates';
 import { serializeAdminModulesForDisk } from '../utils/adminModulesGlobal';
 import { getAdminModuleLabel, getTranslations } from '../utils/translations';
 import { buildSettingsPermissionRows, defaultOperationalTemplateBase } from '../utils/settingsPermissionRows';
-import { SETTINGS_OPERATIONAL_PERM_KEYS } from '../utils/settingsPermissionRows';
 import {
   TIMESHEET_GRID_PLANNED_ONLY_KEY,
   getTimesheetGridPrivacyMode,

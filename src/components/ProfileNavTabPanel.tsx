@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Camera, ShieldCheck, ChevronRight, Trash2 } from 'lucide-react';
+import { Camera, ChevronRight, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useProfileLeaveGuardRef } from '../context/ProfileLeaveGuardContext';
@@ -11,7 +11,7 @@ import { NotificationPermissionButton } from './NotificationPermissionButton';
 import { isManagementRole, isAdminOnly } from '../utils/permissions';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { PinPadModal } from './ui/PinPadModal';
-import { hasPinUnlockCredential, authenticatePinUnlockCredential } from '../utils/pinUnlockWebAuthn';
+// import { hasPinUnlockCredential, authenticatePinUnlockCredential } from '../utils/pinUnlockWebAuthn'; // unused
 import { ProfileFormSelf, type ProfileFormSelfData } from './UserProfile';
 import ProfilePhotoSourceSheet from './profile/ProfilePhotoSourceSheet';
 import ProfilePhotoCropperModal from './profile/ProfilePhotoCropperModal';
@@ -279,7 +279,7 @@ export default function ProfileNavTabPanel({
     [formData]
   );
 
-  const isProfileReadOnly = currentUser ? isFeatureEnabled(currentUser, 'profile_readonly') : false;
+  const _isProfileReadOnly = currentUser ? isFeatureEnabled(currentUser, 'profile_readonly') : false;
 
   useEffect(() => {
     const ref = profileLeaveGuardRef;
@@ -307,8 +307,8 @@ export default function ProfileNavTabPanel({
     || currentUser.email?.split('@')[0] || 'Utente';
   const displayName = fullName;
   const profileInitial = (displayName.charAt(0) || '?').toUpperCase();
-  const isMgmt = isManagementRole(currentUser.role);
-  const hasAdminAccess = isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role;
+  const _isMgmt = isManagementRole(currentUser.role);
+  const _hasAdminAccess = isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role;
 
   const changePhoto = tv.profile_tab_change_photo ?? 'Cambia foto';
   const logoutConfirm = tv.profile_logout_confirm ?? "Uscire dall'account?";
@@ -327,7 +327,7 @@ export default function ProfileNavTabPanel({
     hint: tv.profile_photo_crop_hint ?? '',
   };
 
-  const confirmLogout = () => {
+  const _confirmLogout = () => {
     if (window.confirm(logoutConfirm)) onLogout();
   };
 
@@ -348,7 +348,7 @@ export default function ProfileNavTabPanel({
     setTimeout(() => setLangSaved(false), 2000);
   };
 
-  const menuRowBase = 'w-full flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:scale-[0.98] border border-white/15 hover:bg-white/10';
+  const _menuRowBase = 'w-full flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:scale-[0.98] border border-white/15 hover:bg-white/10';
   const chevronCls = 'text-white/60';
   const rowLabelCls = 'text-[13px] font-semibold text-white';
 

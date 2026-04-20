@@ -3,7 +3,7 @@
  * Mostrato una volta sola per dispositivo (flag in localStorage).
  */
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Bell, MapPin, CheckCircle, ChevronRight } from 'lucide-react';
 
 const STORAGE_KEY = 'app:permissions_requested';
@@ -12,10 +12,10 @@ function alreadyAsked(): boolean {
   try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
 }
 function markAsked() {
-  try { localStorage.setItem(STORAGE_KEY, '1'); } catch {}
+  try { localStorage.setItem(STORAGE_KEY, '1'); } catch { /* ignore */ }
 }
 
-function isPermissionNeeded(p: NotificationPermission | PermissionState | undefined) {
+function _isPermissionNeeded(p: NotificationPermission | PermissionState | undefined) {
   return p === 'default' || p === 'prompt' || p === undefined;
 }
 
@@ -43,7 +43,7 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
     try {
       const result = await Notification.requestPermission();
       setNotifStatus(result);
-    } catch {}
+    } catch { /* ignore */ }
     setNotifLoading(false);
   };
 
@@ -179,6 +179,6 @@ export async function shouldShowPermissionModal(): Promise<boolean> {
       const r = await navigator.permissions.query({ name: 'geolocation' });
       locPending = r.state === 'prompt';
     }
-  } catch {}
+  } catch { /* ignore */ }
   return notifPending || locPending;
 }

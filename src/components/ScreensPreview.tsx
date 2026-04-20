@@ -4,7 +4,7 @@
  */
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Download, RefreshCw, Check, Loader2, Fingerprint, LogIn, Smartphone, Monitor, ChevronRight, Lock, ShieldCheck, Delete } from 'lucide-react';
+import { Download, Check, Loader2, Fingerprint, LogIn, Smartphone, Monitor, ChevronRight, Lock, ShieldCheck, Delete } from 'lucide-react';
 import ManagementHomePreview from './ManagementHomePreview';
 import TurniMgmtPreview from './profilePreview/TurniMgmtPreview';
 import TimesheetTabPreview from './profilePreview/TimesheetTabPreview';
@@ -261,7 +261,7 @@ function PwaAndroidMock({ dark }: { dark: boolean }) {
 }
 
 /* ── SW Update ───────────────────────────────────────────────────── */
-function StepList({ steps, doneIdx, dark }: { steps: string[]; doneIdx: number; dark: boolean }) {
+function _StepList({ steps, doneIdx, dark }: { steps: string[]; doneIdx: number; dark: boolean }) {
   return (
     <div className="flex flex-col gap-3 w-full">
       {steps.map((label, i) => {

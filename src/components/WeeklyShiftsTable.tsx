@@ -68,7 +68,7 @@ import { DatePickerInput } from './ui/CalendarDatePicker';
 import { isDatePickerPortalClick } from '../utils/datePickerPortal';
 import { HorizontalScrollArea } from './HorizontalScrollArea';
 
-import EditStaffModal from './EditStaffModal';
+// import EditStaffModal from './EditStaffModal'; // unused
 
 /**
  * ── WEB vs MOBILE (breakpoint sm = 640px) ─────────────────────────────────────
@@ -174,7 +174,7 @@ function toShortTime(t: string): string {
  * Supporta separatori: - – spazio. Digits-only h "1016" → "10:00"-"16:00".
  * Se non c'è end, applica la regola 10→16.
  */
-function parseCellTimeInput(raw: string): { start: string; end: string } | null {
+function _parseCellTimeInput(raw: string): { start: string; end: string } | null {
   const v = raw.trim();
   if (!v) return null;
 
@@ -565,8 +565,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [justSynced, setJustSynced] = useState(false);
   // Drag-to-reorder employee rows
   const [userOrderOverride, setUserOrderOverride] = useState<string[] | null>(null);
-  const [draggingUserIdx, setDraggingUserIdx] = useState<number | null>(null);
-  const [dropUserIdx, setDropUserIdx] = useState<number | null>(null);
+  const [_draggingUserIdx, _setDraggingUserIdx] = useState<number | null>(null);
+  const [_dropUserIdx, _setDropUserIdx] = useState<number | null>(null);
   const [editingNameUserId, setEditingNameUserId] = useState<string | null>(null);
   const [editingNameValue, setEditingNameValue] = useState('');
   const [showEditViewModal, setShowEditViewModal] = useState(false);
@@ -586,7 +586,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     : false;
   const lockedDeptWst = (!isAdminWst && currentUser?.department) ? currentUser.department : null;
   // Riallinea il filtro reparto quando cambia il profilo (deve stare dopo useApp/currentUser)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(() => {
     if (lockedDeptWst) setLocalFilterDepartment(lockedDeptWst);
     else if (isAdminWst && currentUser?.department) setLocalFilterDepartment(currentUser.department);
@@ -3664,7 +3664,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}
           >
             {(() => {
-              const isDarkGrid = true;
+              const _isDarkGrid = true;
               const cellBorder = '1px solid rgba(255,255,255,0.08)';
               const headBorder = '1px solid rgba(255,255,255,0.12)';
               return (
@@ -4153,12 +4153,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   const endFallback = startNormCell === '10:00' ? '16:00' : null;
                                   const endStr = (actualTimes.endTime || endFallback)?.slice(0, 5) || '___';
                                   const { start: dispS, end: dispE } = getResolvedStartEndForHours(dayShift, punchRecords);
-                                  const timeDisplayed = isAbsentCell
+                                  const _timeDisplayed = isAbsentCell
                                     ? t.status_absent
                                     : dayShift.approved_at && dayShift.approved_start_time && dayShift.approved_end_time
                                       ? `${dispS} – ${dispE}`
                                       : `${actualTimes.startTime.slice(0, 5)} – ${endStr}`;
-                                  const timeDisplayedShort = isAbsentCell
+                                  const _timeDisplayedShort = isAbsentCell
                                     ? t.status_absent
                                     : dayShift.approved_at && dayShift.approved_start_time && dayShift.approved_end_time
                                       ? `${toShortTime(dispS)}–${toShortTime(dispE)}`
@@ -4374,12 +4374,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   const actualTimes = getActualShiftTime(eveningShift, punchRecords);
                                   const endEv = actualTimes.endTime ? actualTimes.endTime.slice(0, 5) : '___';
                                   const { start: dispS, end: dispE } = getResolvedStartEndForHours(eveningShift, punchRecords);
-                                  const timeDisplayed = isAbsentEv
+                                  const _timeDisplayed2 = isAbsentEv
                                     ? t.status_absent
                                     : eveningShift.approved_at && eveningShift.approved_start_time && eveningShift.approved_end_time
                                       ? `${dispS} – ${dispE}`
                                       : `${actualTimes.startTime.slice(0, 5)} – ${endEv}`;
-                                  const timeDisplayedShort = isAbsentEv
+                                  const _timeDisplayedShort2 = isAbsentEv
                                     ? t.status_absent
                                     : eveningShift.approved_at && eveningShift.approved_start_time && eveningShift.approved_end_time
                                       ? `${toShortTime(dispS)}–${toShortTime(dispE)}`
@@ -4873,7 +4873,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 if (dayShifts.length === 1) {
                   const shift = dayShifts[0];
                   const u = users.find((usr) => usr.id === shift.user_id);
-                  const drawerRoleShort = scheduleDrawerRoleLabel(u?.role);
+                  const _drawerRoleShort = scheduleDrawerRoleLabel(u?.role);
                   const edits = sidebarEdits[shift.id] ?? {
                     start: (shift.start_time || '').slice(0, 5),
                     end: (shift.end_time || '').slice(0, 5),

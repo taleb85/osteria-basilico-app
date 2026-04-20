@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, Users, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud, RefreshCw, ChevronLeft, ChevronRight, Calendar, Mail, Lock, KeyRound, Copy, CalendarDays, BookTemplate, Link2, Smartphone } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, Wrench, Unlock, Coffee, Palmtree, Monitor, AlertTriangle, ShieldAlert, LayoutGrid, Building2, Zap, ChevronDown, MapPin, UserPlus, UserX, UserCheck, LocateFixed, QrCode, UploadCloud, RefreshCw, Mail, Lock, KeyRound, Copy, CalendarDays, BookTemplate, Link2, Smartphone } from 'lucide-react';
 import { database } from '../lib/database';
 import { PinPadModal } from './ui/PinPadModal';
 import { format, parseISO, addDays } from 'date-fns';
@@ -10,10 +10,7 @@ import {
   getPeriodEndDate,
   getPeriodStartDate,
   dispatchPeriodConfigUpdated,
-  nextPeriodConfig,
-  prevPeriodConfig,
   currentPeriodConfig,
-  periodConfigForMonth,
   periodConfigFromStartDate,
   type PeriodConfig,
 } from '../utils/periodConfig';
@@ -31,7 +28,6 @@ import {
   isPurelyManagementRole,
   isManagementRole,
   isUserVisibleOnTeamSchedule,
-  canEditRoleFeatureTemplates,
   canManageDelegatedStaff,
   isOperationalStaffRole,
 } from '../utils/permissions';
@@ -73,7 +69,7 @@ import { buildSignedPresenceQrPayload } from '../utils/presenceProofVerification
 
 const SETTINGS_TEAM_EXPANDED_KEY = 'osteria_settings_team_expanded';
 
-function readTeamSectionExpanded(): boolean {
+function _readTeamSectionExpanded(): boolean {
   if (typeof window === 'undefined') return true;
   return window.localStorage.getItem(SETTINGS_TEAM_EXPANDED_KEY) !== '0';
 }
@@ -183,7 +179,6 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
     pushSettingsToCloud,
     settingsCloudLastSyncedAt,
     settingsCloudPushBusy,
-    silentRefreshData,
     hardReloadFromDatabase,
     dataSyncInProgress,
     departmentsRevision,
@@ -763,6 +758,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
 
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         {/* Bottone condivisione unico con dropdown — nascosto */}
+                        {/* eslint-disable-next-line no-constant-binary-expression */}
                         {false && canEdit && !isPurelyManagementRole(user.role) && (
                           <div className="relative">
                             <button
@@ -816,7 +812,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                     <button
                                       type="button"
                                       onClick={async () => {
-                                        const accessLink = buildShortInviteLink(user, users);
+                                        const _accessLink = buildShortInviteLink(user, users);
                                         const configUrl = `${window.location.origin}/Installa_FLOW.mobileconfig`;
                                         const nome = `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim();
                                         const pin = (user.pin ?? '').replace(/\D/g, '');
@@ -1231,7 +1227,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           onChange={(e) => setEditDeptLabel(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && editDeptLabel.trim() && editingDeptValue) {
-                              const isBuiltinEdit = builtinValues.has(editingDeptValue);
+                              const _isBuiltinEdit = builtinValues.has(editingDeptValue);
                               setDepts(
                                 updateDepartment(editingDeptValue, {
                                   label: editDeptLabel.trim(),
@@ -1270,7 +1266,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             disabled={!editDeptLabel.trim()}
                             onClick={() => {
                               if (!editingDeptValue || !editDeptLabel.trim()) return;
-                              const isBuiltinEdit = builtinValues.has(editingDeptValue);
+                              const _isBuiltinEdit = builtinValues.has(editingDeptValue);
                               setDepts(
                                 updateDepartment(editingDeptValue, {
                                   label: editDeptLabel.trim(),

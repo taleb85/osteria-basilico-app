@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, useCallback, useEffect, useMemo } from 'react';
-import { Home, Calendar, ClipboardList, Clock, ShieldCheck, Palmtree, User, Search, X, Delete, Fingerprint, Settings } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Home, Calendar, ClipboardList, ShieldCheck, Palmtree, User, Search, X, Fingerprint, Settings } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { getTranslations, formatTrans } from '../utils/translations';
 import type { AppNavTab } from '../utils/enabledModules';
@@ -32,7 +32,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   const { effectiveLanguage, currentUser, users, setCurrentUser, setIsSessionElevated, isSessionElevated, featureFlags, setImpersonating, silentRefreshData } = useApp();
   const { triggerHapticFeedback } = useMultisensorialFeedback();
   /** Contenuto che scorre sotto la nav fissa → vetro trasparente; altrimenti tinta piena FLOW blue. */
-  const [navOverContent, setNavOverContent] = useState(false);
+  const [_navOverContent, _setNavOverContent] = useState(false);
 
   // Stato per il cambio rapido utente
   const [isQuickSwitchOpen, setIsQuickSwitchOpen] = useState(false);
@@ -62,7 +62,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     }, 600);
   }, [currentUser]);
 
-  const handleLongPressEnd = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
+  const handleLongPressEnd = useCallback((_e?: React.MouseEvent | React.TouchEvent) => {
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
@@ -299,12 +299,10 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   onMouseDown={() => handleLongPressStart(id)}
                   onMouseUp={handleLongPressEnd}
                   onMouseLeave={handleLongPressEnd}
-                  onTouchStart={(e) => {
+                  onTouchStart={(_e) => {
                     // Impedisce il menu contestuale di sistema su iOS durante il long press
-                    if (id === 'profile') {
-                      // Non chiamare e.preventDefault() qui altrimenti il click normale non funziona,
-                      // ma il long press su iOS è gestito dal sistema se non si usa -webkit-touch-callout: none
-                    }
+                    // Non chiamare e.preventDefault() qui altrimenti il click normale non funziona,
+                    // ma il long press su iOS è gestito dal sistema se non si usa -webkit-touch-callout: none
                     handleLongPressStart(id);
                   }}
                   onContextMenu={(e) => {

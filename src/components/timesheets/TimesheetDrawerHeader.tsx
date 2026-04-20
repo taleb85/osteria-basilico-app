@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import type { Locale } from 'date-fns';
 import {
   ChevronRight, ChevronLeft, X, Lock, Unlock, UserX,
