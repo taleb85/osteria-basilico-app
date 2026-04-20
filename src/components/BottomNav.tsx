@@ -176,7 +176,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     const notScrollable = docH <= vh + epsilon;
     const atDocumentBottom = scrollBottom >= docH - epsilon;
     const nextOver = !notScrollable && !atDocumentBottom;
-    setNavOverContent((prev) => (prev !== nextOver ? nextOver : prev));
+    _setNavOverContent((prev) => (prev !== nextOver ? nextOver : prev));
   }, []);
 
   /** Altezza barra → `--app-bottom-nav-offset` per toast / overlay sopra la bottom nav. */
