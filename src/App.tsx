@@ -223,6 +223,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     setIsSessionElevated,
   } = useApp();
 
+  const t = getTranslations(effectiveLanguage);
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const isMobileViewport = useIsMobileViewport();
   const staffMobileCompactHeader = !isManagement && isMobileViewport;
