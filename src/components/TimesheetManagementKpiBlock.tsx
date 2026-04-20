@@ -123,15 +123,16 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="surface-glass flex items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all select-none"
+          className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all select-none"
+          style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)' }}
         >
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/20 ring-1 ring-inset ring-accent/40">
             <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
           </div>
           <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-white/55">{t.stats_approved_hours}</p>
-              <p className="text-[10px] leading-snug text-white/45">{t.stats_approved_shifts_count.replace('{n}', String(approvedShifts.length))}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-white/75">{t.stats_approved_hours}</p>
+              <p className="text-[10px] leading-snug text-white/55">{t.stats_approved_shifts_count.replace('{n}', String(approvedShifts.length))}</p>
             </div>
             <p className="text-base font-black tabular-nums leading-none text-white shrink-0">
               {approvedMins > 0 ? formatMinutesToHoursAndMinutes(approvedMins) : '—'}
@@ -144,17 +145,18 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`flex items-center gap-2 rounded-xl border border-slate-200 bg-transparent px-3 py-1.5 shadow-none ${
+            className={`flex items-center gap-2 rounded-xl px-3 py-1.5 ${
               estimatedCostStats.shiftsWithRate === 0 ? 'opacity-75' : ''
             }`}
+            style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)' }}
           >
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-inset ring-accent/25">
               <TrendingUp className="h-3.5 w-3.5 text-accent" />
             </div>
             <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-white/55">{t.stats_estimated_cost}</p>
-                <p className="text-[10px] leading-snug text-white/45">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-white/75">{t.stats_estimated_cost}</p>
+                <p className="text-[10px] leading-snug text-white/55">
                   {estimatedCostStats.shiftsWithRate + estimatedCostStats.shiftsWithoutRate === 0
                     ? (tv.stats_no_approved_for_cost ?? t.stats_no_approved_shifts)
                     : estimatedCostStats.shiftsWithRate === 0
@@ -175,11 +177,11 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className={`surface-glass flex items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all select-none ${
-            pendingCount > 0
-              ? 'border-amber-200'
-              : ''
-          }`}
+          className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all select-none`}
+          style={{
+            background: pendingCount > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.10)',
+            border: pendingCount > 0 ? '1px solid rgba(245,158,11,0.30)' : '1px solid rgba(255,255,255,0.18)',
+          }}
         >
           <div
             className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${
@@ -194,8 +196,8 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           </div>
           <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-white/55">{t.stats_pending_shifts}</p>
-              <p className="text-[10px] leading-snug text-white/45">{t.stats_confirmed_not_approved}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-white/75">{t.stats_pending_shifts}</p>
+              <p className="text-[10px] leading-snug text-white/55">{t.stats_confirmed_not_approved}</p>
             </div>
             <p className={`text-base font-black tabular-nums leading-none shrink-0 ${pendingCount > 0 ? 'text-amber-300' : 'text-white'}`}>
               {pendingCount}

@@ -2947,14 +2947,14 @@ export default function Timesheets() {
                       ? `${border} ring-1 ring-inset ring-accent/30`
                       : `${border} hover:bg-white/10`
                   }`}
-                  style={{ background: isActive ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.06)' }}
+                  style={{ background: isActive ? 'rgba(59,130,246,0.20)' : 'rgba(255,255,255,0.10)' }}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
                     <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xl font-bold text-white leading-none tabular-nums">{value}</p>
-                    <p className="text-[10px] text-white/60 mt-0.5 leading-tight pr-1">{label}</p>
+                    <p className="text-[10px] text-white/75 mt-0.5 leading-tight pr-1">{label}</p>
                   </div>
                   {isActive
                     ? <span className="text-[10px] font-bold text-accent shrink-0">× Filtro</span>
