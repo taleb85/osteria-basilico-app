@@ -372,7 +372,7 @@ export default function HomePage({
       return {
         border: 'border-l-slate-300',
         bg: 'bg-white',
-        badge: 'bg-white text-black border-slate-200',
+        badge: 'bg-white text-black border-white/15',
         dot: 'bg-black',
         label: t.home_status_approved,
       };
@@ -380,9 +380,9 @@ export default function HomePage({
     if (e.shift.approval_status === 'draft') {
       return {
         border: 'border-l-slate-400',
-        bg: 'bg-slate-50',
-        badge: 'bg-slate-100 text-slate-800 border-slate-400',
-        dot: 'bg-slate-400',
+        bg: 'bg-white/6',
+        badge: 'bg-white/10 text-white/80 border-white/25',
+        dot: 'bg-white/45',
         label: t.status_draft,
       };
     }
@@ -397,10 +397,10 @@ export default function HomePage({
     }
     if (e.canApprove) {
       return {
-        border: 'border-l-slate-400',
-        bg: 'bg-slate-50',
-        badge: 'bg-slate-100 text-slate-800 border-slate-400',
-        dot: 'bg-slate-400',
+        border: 'border-l-white/30',
+        bg: 'bg-white/6',
+        badge: 'bg-white/10 text-white/80 border-white/25',
+        dot: 'bg-white/45',
         label: t.home_status_to_approve,
       };
     }
@@ -511,7 +511,7 @@ export default function HomePage({
               className={`rounded-2xl border px-4 py-3 ${boardNote ? 'bg-amber-500/10 border-amber-400/30' : 'border-dashed border-white/15 bg-white/4'}`}
             >
               <div className="flex items-start gap-3">
-                <Megaphone size={15} className={`mt-0.5 shrink-0 ${boardNote ? 'text-amber-600' : 'text-slate-500'}`} />
+                <Megaphone size={15} className={`mt-0.5 shrink-0 ${boardNote ? 'text-amber-600' : 'text-white/55'}`} />
                 <div className="flex-1 min-w-0">
                   {editingBoard ? (
                     <div className="flex flex-col gap-2">
@@ -521,7 +521,7 @@ export default function HomePage({
                         onChange={(e) => setBoardDraft(e.target.value)}
                         placeholder={t.home_board_placeholder}
                         rows={2}
-                        className="w-full text-sm text-slate-800 bg-white border border-amber-300 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
+                        className="w-full text-sm text-white bg-amber-500/10 border border-amber-400/40 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
                       />
                       <div className="flex gap-2">
                         <button
@@ -534,7 +534,7 @@ export default function HomePage({
                         <button
                           type="button"
                           onClick={() => setEditingBoard(false)}
-                          className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200"
+                          className="px-3 py-1.5 rounded-xl bg-white/10 text-white/70 text-xs font-semibold hover:bg-white/15"
                         >
                           {t.cancel}
                         </button>
@@ -549,12 +549,12 @@ export default function HomePage({
                         setBoardDraft('');
                         setEditingBoard(true);
                       }}
-                      className="text-left w-full text-xs text-slate-500 italic hover:text-slate-600 transition-colors"
+                      className="text-left w-full text-xs text-white/55 italic hover:text-white/70 transition-colors"
                     >
                       {t.home_board_empty}
                     </button>
                   ) : (
-                    <p className="text-xs text-slate-500 italic">{t.home_board_empty}</p>
+                    <p className="text-xs text-white/55 italic">{t.home_board_empty}</p>
                   )}
                   {boardNote && !editingBoard && (
                     <p className="text-[10px] text-amber-600 mt-1">
@@ -614,13 +614,13 @@ export default function HomePage({
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         {isDinner ? <Moon className="w-4 h-4 text-amber-600" /> : <Sun className="w-4 h-4 text-amber-500" />}
-                        <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{isDinner ? t.dinner : t.lunch}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wide text-white/55">{isDinner ? t.dinner : t.lunch}</span>
                       </div>
                       <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${punched ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40' : 'bg-amber-500/15 text-amber-200 border-amber-400/50'}`}>
                         {punched ? t.home_punched : t.home_not_punched}
                       </span>
                     </div>
-                    <p className="text-2xl font-bold text-slate-900 tabular-nums">
+                    <p className="text-2xl font-bold text-white tabular-nums">
                       {s.start_time.slice(0, 5)} → {s.end_time?.slice(0, 5) ?? '…'}
                     </p>
                   </div>
@@ -634,11 +634,11 @@ export default function HomePage({
             const next = upcomingShifts.filter((s) => s.date !== todayStr)[0];
             return (
               <div className="surface-glass p-5">
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">{t.home_next_shift}</p>
-                <p className="text-lg font-bold text-slate-800 mb-1">{getDateLabel(next.date)}</p>
+                <p className="text-[11px] font-bold text-white/55 uppercase tracking-wider mb-2">{t.home_next_shift}</p>
+                <p className="text-lg font-bold text-white mb-1">{getDateLabel(next.date)}</p>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-accent" />
-                  <span className="text-xl font-bold text-slate-900 tabular-nums">{next.start_time.slice(0, 5)} → {next.end_time?.slice(0, 5) ?? '…'}</span>
+                  <span className="text-xl font-bold text-white tabular-nums">{next.start_time.slice(0, 5)} → {next.end_time?.slice(0, 5) ?? '…'}</span>
                 </div>
               </div>
             );
@@ -648,26 +648,26 @@ export default function HomePage({
           {uiW('home_compact.shift_list') && (
           <div ref={shiftsListRef} className="surface-glass p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.home_my_shifts}</h3>
+              <h3 className="text-xs font-bold text-white/55 uppercase tracking-wider">{t.home_my_shifts}</h3>
               <button type="button" onClick={() => onNavigateToShifts?.()} className="text-xs font-semibold text-accent flex items-center gap-1 hover:underline">
                 {t.home_see_all} <ChevronRight className="w-3 h-3" />
               </button>
             </div>
             <div className="space-y-0">
               {upcomingShifts.slice(0, 10).length === 0 ? (
-                <p className="text-slate-500 text-sm text-center py-4">{t.no_shifts_scheduled}</p>
+                <p className="text-white/55 text-sm text-center py-4">{t.no_shifts_scheduled}</p>
               ) : (() => {
                 const grouped: Record<string, typeof upcomingShifts> = {};
                 upcomingShifts.slice(0, 10).forEach((s) => { if (!grouped[s.date]) grouped[s.date] = []; grouped[s.date].push(s); });
                 return Object.keys(grouped).sort().slice(0, 7).map((dateStr, idx) => (
                   <motion.div key={dateStr} initial={{ x: -8, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 + idx * 0.04 }}
                     className="flex items-center py-2.5 border-b border-slate-50 last:border-0 gap-3">
-                    <p className="text-slate-500 font-semibold text-xs uppercase tracking-wide w-[72px] flex-shrink-0">
+                    <p className="text-white/55 font-semibold text-xs uppercase tracking-wide w-[72px] flex-shrink-0">
                       {safeFormatDate(dateStr, 'EEE d', { locale })}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {grouped[dateStr].sort((a, b) => a.start_time.localeCompare(b.start_time)).map((s) => (
-                        <span key={s.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${s.approval_status === 'draft' ? 'bg-slate-100 text-slate-600 border-slate-400' : 'bg-brand-50/95 text-brand-900 border-brand-500/80'}`}>
+                        <span key={s.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${s.approval_status === 'draft' ? 'bg-white/10 text-white/70 border-slate-400' : 'bg-accent/15 text-white border-accent/50'}`}>
                           {s.start_time.slice(0, 5)}–{s.end_time?.slice(0, 5) ?? '…'}
                         </span>
                       ))}
@@ -682,12 +682,12 @@ export default function HomePage({
           {/* Ferie approvate */}
           {uiW('home_compact.approved_holidays') && staffRequestsEnabled && myApprovedHolidays.length > 0 && (
             <div className="surface-glass p-5">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <h3 className="text-xs font-bold text-white/55 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <Palmtree className="w-4 h-4 text-accent" /> {t.home_upcoming_holidays}
               </h3>
               {myApprovedHolidays.map((h) => (
                 <div key={h.id} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
-                  <span className="text-slate-600 text-xs font-medium">
+                  <span className="text-white/70 text-xs font-medium">
                     {safeFormatDate(h.start_date, 'd MMM', { locale })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale })}
                   </span>
                   <span className="px-2 py-0.5 rounded-full bg-accent/10 text-accent-dark text-xs font-bold border border-accent/20">{t.home_holiday_approved}</span>
@@ -731,15 +731,15 @@ export default function HomePage({
 
           {/* ── Profilo amministratore (solo Admin) ───────────────────── */}
           {uiW('home_mgmt.admin_banner') && isPurelyManagementRole(currentUser.role) && (
-            <div className="surface-glass flex items-center gap-3 bg-slate-50/40 px-4 py-3">
+            <div className="surface-glass flex items-center gap-3 px-4 py-3">
               <div className="w-9 h-9 rounded-xl bg-slate-200 flex items-center justify-center flex-shrink-0">
-                <Users className="w-4 h-4 text-slate-500" />
+                <Users className="w-4 h-4 text-white/55" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-800">
+                <p className="text-sm font-semibold text-white">
                   {(t as Record<string, string>).home_admin_profile_banner_title}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-white/55">
                   {(t as Record<string, string>).home_admin_profile_banner_body}
                 </p>
               </div>
@@ -752,18 +752,18 @@ export default function HomePage({
             <motion.div key="board" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
               className={`rounded-2xl border px-4 py-3 ${boardNote ? 'border-amber-400/30 bg-amber-500/10' : 'surface-glass border-dashed border-white/15'}`}>
               <div className="flex items-start gap-3">
-                <Megaphone size={15} className={`mt-0.5 shrink-0 ${boardNote ? 'text-amber-600' : 'text-slate-500'}`} />
+                <Megaphone size={15} className={`mt-0.5 shrink-0 ${boardNote ? 'text-amber-600' : 'text-white/55'}`} />
                 <div className="flex-1 min-w-0">
                   {editingBoard ? (
                     <div className="flex flex-col gap-2">
                       <textarea autoFocus value={boardDraft} onChange={(e) => setBoardDraft(e.target.value)}
                         placeholder={t.home_board_placeholder} rows={2}
-                        className="w-full text-sm text-slate-800 bg-white border border-amber-300 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                        className="w-full text-sm text-white bg-amber-500/10 border border-amber-400/40 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400" />
                       <div className="flex gap-2">
                         <button type="button" onClick={handleSaveBoard} className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600">
                           <Check size={12} /> {t.save}
                         </button>
-                        <button type="button" onClick={() => setEditingBoard(false)} className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">
+                        <button type="button" onClick={() => setEditingBoard(false)} className="px-3 py-1.5 rounded-xl bg-white/10 text-white/70 text-xs font-semibold hover:bg-white/15">
                           {t.cancel}
                         </button>
                       </div>
@@ -777,12 +777,12 @@ export default function HomePage({
                         setBoardDraft('');
                         setEditingBoard(true);
                       }}
-                      className="text-left w-full text-xs text-slate-500 italic hover:text-slate-600 transition-colors"
+                      className="text-left w-full text-xs text-white/55 italic hover:text-white/70 transition-colors"
                     >
                       {t.home_board_empty}
                     </button>
                   ) : (
-                    <p className="text-xs text-slate-500 italic">{t.home_board_empty}</p>
+                    <p className="text-xs text-white/55 italic">{t.home_board_empty}</p>
                   )}
                   {boardNote && !editingBoard && (
                     <p className="text-[10px] text-amber-600 mt-1">Da {boardNote.author} · {safeFormatDate(boardNote.updatedAt, 'd MMM HH:mm', { locale: it })}</p>
@@ -883,17 +883,17 @@ export default function HomePage({
                         <p className="font-bold text-white text-sm">{e.user?.first_name ?? '—'}</p>
                         <p className="text-[11px] text-white/55">{e.user?.department ?? e.user?.role ?? ''}</p>
                       </div>
-                      <span className="ml-auto flex items-center gap-1 rounded-full border border-brand-500/80 bg-brand-100 px-2 py-0.5 text-[10px] font-bold text-brand-900">
+                      <span className="ml-auto flex items-center gap-1 rounded-full border border-accent/50 bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-white">
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500" /> {t.home_badge_in_shift}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mb-3">
                       <div className="bg-transparent rounded-xl px-2.5 py-2 text-center border border-white/10">
-                        <p className="text-[9px] text-slate-400 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
+                        <p className="text-[9px] text-white/45 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
                         <p className="text-sm font-bold text-white tabular-nums">{e.scheduledStart}–{e.scheduledEnd}</p>
                       </div>
                       <div className="bg-transparent rounded-xl px-2.5 py-2 text-center border border-white/10">
-                        <p className="text-[9px] text-slate-400 uppercase font-semibold mb-0.5">{t.home_label_entry}</p>
+                        <p className="text-[9px] text-white/45 uppercase font-semibold mb-0.5">{t.home_label_entry}</p>
                         <p className="text-sm font-bold text-white tabular-nums">{e.actualStart ?? '—'}</p>
                       </div>
                     </div>
@@ -946,7 +946,7 @@ export default function HomePage({
           {uiW('home_mgmt.today_shifts') && todayShiftsEnriched.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <div className="flex items-center gap-2 mb-3">
-                <Calendar className="w-4 h-4 text-slate-500" />
+                <Calendar className="w-4 h-4 text-white/55" />
                 <h2 className="text-sm font-bold text-white">{t.home_todays_shifts}</h2>
                 <span className="text-[11px] text-slate-200 ml-1">({todayShiftsEnriched.length})</span>
                 <button type="button" onClick={() => onNavigateToShifts?.()} className="ml-auto text-xs font-semibold text-accent flex items-center gap-0.5 hover:underline">
@@ -979,8 +979,8 @@ export default function HomePage({
             {uiW('home_mgmt.card_presenze') && (
             <div className="surface-glass surface-ghost-interactive cursor-pointer p-5" onClick={() => onNavigateToReports?.()}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-slate-800">{t.home_section_attendance}</h3>
-                <TrendingUp className="w-4 h-4 text-slate-400" />
+                <h3 className="font-bold text-white">{t.home_section_attendance}</h3>
+                <TrendingUp className="w-4 h-4 text-white/45" />
               </div>
               <div className="space-y-3">
                 {[
@@ -989,10 +989,10 @@ export default function HomePage({
                 ].map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="flex justify-between text-xs mb-1.5">
-                      <span className="text-slate-600 font-medium">{label}</span>
-                      <span className="text-slate-800 font-bold tabular-nums">{pct}%</span>
+                      <span className="text-white/70 font-medium">{label}</span>
+                      <span className="text-white font-bold tabular-nums">{pct}%</span>
                     </div>
-                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-2 rounded-full bg-white/10 overflow-hidden">
                       <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ delay: 0.3, duration: 0.7, ease: 'easeOut' }}
                         className={`h-full rounded-full ${color}`} />
                     </div>
@@ -1006,7 +1006,7 @@ export default function HomePage({
             {uiW('home_mgmt.card_ferie') && staffRequestsEnabled && (
             <div className="surface-glass surface-ghost-interactive cursor-pointer p-5" onClick={() => onNavigateToHolidays?.()}>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-slate-800">{t.home_holidays_section}</h3>
+                <h3 className="font-bold text-white">{t.home_holidays_section}</h3>
                 <Palmtree className="w-4 h-4 text-accent" />
               </div>
               {pendingHolidays.length > 0 && (
@@ -1027,7 +1027,7 @@ export default function HomePage({
                     </div>
                   );
                 })}
-                {holidays.length === 0 && <p className="text-slate-500 text-xs text-center py-2 font-medium">{t.home_no_requests}</p>}
+                {holidays.length === 0 && <p className="text-white/55 text-xs text-center py-2 font-medium">{t.home_no_requests}</p>}
               </div>
             </div>
             )}
@@ -1037,18 +1037,18 @@ export default function HomePage({
             <div className="flex flex-col gap-3">
               <div className="surface-glass surface-ghost-interactive cursor-pointer p-4" onClick={() => onNavigateToShifts?.()}>
                 <div className="flex items-center justify-between mb-2">
-                  <TrendingUp className="w-4 h-4 text-slate-400" />
-                  <span className="text-[10px] text-slate-500 font-semibold uppercase">{t.home_kpi_hours_week}</span>
+                  <TrendingUp className="w-4 h-4 text-white/45" />
+                  <span className="text-[10px] text-white/55 font-semibold uppercase">{t.home_kpi_hours_week}</span>
                 </div>
-                <p className="text-2xl font-bold text-slate-900 tabular-nums">{formatMinutesToHoursAndMinutes(weeklyMinutes)}</p>
+                <p className="text-2xl font-bold text-white tabular-nums">{formatMinutesToHoursAndMinutes(weeklyMinutes)}</p>
               </div>
               <div className="surface-glass surface-ghost-interactive cursor-pointer p-4" onClick={() => onNavigateToShifts?.()}>
                 <div className="flex items-center justify-between mb-2">
-                  <Calendar className="w-4 h-4 text-slate-400" />
-                  <span className="text-[10px] text-slate-500 font-semibold uppercase">{t.home_kpi_shifts_week}</span>
+                  <Calendar className="w-4 h-4 text-white/45" />
+                  <span className="text-[10px] text-white/55 font-semibold uppercase">{t.home_kpi_shifts_week}</span>
                 </div>
-                <p className="text-2xl font-bold text-slate-900 tabular-nums">{todayAllShifts.length}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">{t.home_today}</p>
+                <p className="text-2xl font-bold text-white tabular-nums">{todayAllShifts.length}</p>
+                <p className="text-[11px] text-white/55 mt-0.5">{t.home_today}</p>
               </div>
             </div>
             )}
@@ -1071,29 +1071,29 @@ export default function HomePage({
                 transition={{ duration: 0.15 }} className="modal-glass-panel w-full max-w-sm rounded-2xl p-6">
                 <div className="flex items-start justify-between mb-5">
                   <div>
-                    <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                    <h3 className="font-bold text-white text-lg flex items-center gap-2">
                       <Moon className="h-5 w-5 text-amber-600" /> {t.home_modal_close_dinner}
                     </h3>
-                    <p className="text-sm text-slate-500 mt-0.5">{closeModal.employeeName} · {safeFormatDate(closeModal.dateStr, 'd MMM', { locale })}</p>
+                    <p className="text-sm text-white/55 mt-0.5">{closeModal.employeeName} · {safeFormatDate(closeModal.dateStr, 'd MMM', { locale })}</p>
                   </div>
-                  <button type="button" onClick={() => { setCloseModal(null); setClockOutInput(''); }} className="p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
-                    <X className="w-4 h-4 text-slate-500" />
+                  <button type="button" onClick={() => { setCloseModal(null); setClockOutInput(''); }} className="p-1.5 rounded-xl hover:bg-white/10 transition-colors">
+                    <X className="w-4 h-4 text-white/55" />
                   </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <div className="bg-transparent rounded-xl p-3 text-center border border-white/10">
-                    <p className="text-[10px] text-slate-400 uppercase font-semibold mb-1">{t.home_label_planned}</p>
+                    <p className="text-[10px] text-white/45 uppercase font-semibold mb-1">{t.home_label_planned}</p>
                     <p className="font-bold text-white tabular-nums">{closeModal.actualStart} → {closeModal.plannedEnd}</p>
                   </div>
                   <div className="rounded-xl bg-[#001A80]/8 p-3 text-center">
-                    <p className="text-[10px] text-slate-500 uppercase font-semibold mb-1">{t.home_label_entry}</p>
-                    <p className="font-bold text-slate-800 tabular-nums">{closeModal.actualStart}</p>
+                    <p className="text-[10px] text-white/55 uppercase font-semibold mb-1">{t.home_label_entry}</p>
+                    <p className="font-bold text-white tabular-nums">{closeModal.actualStart}</p>
                   </div>
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">{t.home_label_exit_time}</label>
+                  <label className="block text-xs font-bold text-white/70 mb-1.5 uppercase tracking-wide">{t.home_label_exit_time}</label>
                   <TimeInputField
                     size="hero"
                     value={clockOutInput}
@@ -1112,7 +1112,7 @@ export default function HomePage({
                       { label: t.home_modal_duration, val: `${Math.floor(previewMins / 60)}h${previewMins % 60 > 0 ? String(previewMins % 60).padStart(2,'0') : ''}` },
                     ].map(({ label, val }) => (
                       <div key={label}>
-                        <p className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">{label}</p>
+                        <p className="text-[10px] text-white/45 uppercase font-semibold mb-0.5">{label}</p>
                         <p className="font-bold text-white text-sm tabular-nums">{val}</p>
                       </div>
                     ))}
@@ -1121,7 +1121,7 @@ export default function HomePage({
 
                 <div className="flex gap-2">
                   <button type="button" onClick={() => { setCloseModal(null); setClockOutInput(''); }}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-semibold hover:bg-white/8 transition-colors">
                     {t.cancel}
                   </button>
                   <button type="button" disabled={!clockOutInput || closingLoading} onClick={handleConfirmClose}

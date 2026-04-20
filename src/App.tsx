@@ -661,7 +661,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         <PermissionRequestModal key="perm-modal" onDone={() => setShowPermissions(false)} />
       )}
     </AnimatePresence>
-    <div className="min-h-screen min-h-[100dvh] w-full text-[#1a1a1a] font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
+    <div className="min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
       <BodyPullToRefresh
         onRefresh={() => silentRefreshData({ pullRemoteConfig: true })}
         disabled={!!(isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending)}
