@@ -1,0 +1,82 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:5173",
+      "localStorage": [
+        {
+          "name": "osteria_app_features_v2",
+          "value": "{\"maintenance_mode\":false,\"unlock_with_pin\":true,\"auto_breaks\":true,\"staff_requests\":true,\"kiosk_active\":false,\"geofence_punch\":false,\"visibility_management\":true,\"department_creation\":true,\"violation_rules\":true,\"master_control_panel\":true}"
+        },
+        {
+          "name": "osteria_role_feature_templates_v1",
+          "value": "{\"management\":{\"team_view\":true,\"edit_shifts\":false,\"approve_shifts\":false,\"export_pdf\":false,\"view_stats\":false,\"view_estimated_cost\":false,\"desktop_access\":true,\"home_tab\":true,\"ferie_tab\":true,\"admin_tab\":false,\"timesheet_tab\":true,\"team_schedule_visible\":true,\"can_request_holidays\":true,\"can_punch_from_app\":true,\"can_create_shifts\":false,\"can_manage_drafts\":false,\"can_approve_shifts\":false,\"can_view_total_hours\":false,\"can_edit_staff_pins\":false},\"assistant_manager\":{\"team_view\":true,\"edit_shifts\":false,\"approve_shifts\":false,\"export_pdf\":false,\"view_stats\":false,\"view_estimated_cost\":false,\"desktop_access\":true,\"home_tab\":true,\"ferie_tab\":true,\"admin_tab\":false,\"timesheet_tab\":true,\"team_schedule_visible\":true,\"can_request_holidays\":true,\"can_punch_from_app\":true,\"can_create_shifts\":false,\"can_manage_drafts\":false,\"can_approve_shifts\":false,\"can_view_total_hours\":false,\"can_edit_staff_pins\":false},\"staff\":{\"team_view\":false,\"edit_shifts\":false,\"approve_shifts\":false,\"export_pdf\":false,\"view_stats\":false,\"view_estimated_cost\":false,\"desktop_access\":true,\"home_tab\":true,\"ferie_tab\":true,\"admin_tab\":false,\"timesheet_tab\":true,\"team_schedule_visible\":true,\"can_request_holidays\":true,\"can_punch_from_app\":true,\"can_create_shifts\":false,\"can_manage_drafts\":false,\"can_approve_shifts\":false,\"can_view_total_hours\":false,\"can_edit_staff_pins\":false}}"
+        },
+        {
+          "name": "app_cache_version",
+          "value": "1.1.0-light"
+        },
+        {
+          "name": "osteria_last_profile_language",
+          "value": "it"
+        },
+        {
+          "name": "app:permissions_requested",
+          "value": "1"
+        },
+        {
+          "name": "appLanguage",
+          "value": "it"
+        },
+        {
+          "name": "app:hapticIntensity",
+          "value": "100"
+        },
+        {
+          "name": "osteria_admin_sheet_modules_v1",
+          "value": "{\"visibility_management\":true,\"department_creation\":true,\"violation_rules\":true,\"master_control_panel\":true,\"auto_breaks\":true}"
+        },
+        {
+          "name": "flow-animations",
+          "value": "on"
+        },
+        {
+          "name": "app:soundVolume",
+          "value": "50"
+        },
+        {
+          "name": "notif_feed_895ad949-c4ca-4348-90dc-5810702a1b93",
+          "value": "[{\"id\":\"approvals_2026-04-20\",\"type\":\"approval_needed\",\"title\":\"Turni da approvare\",\"body\":\"114 turni in attesa\",\"severity\":\"info\",\"timestamp\":\"2026-04-20\"},{\"id\":\"hol_pending_b6944c35-c92e-4949-b084-1f6dcf951ef0\",\"type\":\"holiday_pending\",\"title\":\"Richiesta ferie\",\"body\":\"DANY · 2026-03-24 – 2026-04-08\",\"severity\":\"warning\",\"timestamp\":\"2026-04-19T14:58:30.191328+00:00\"}]"
+        },
+        {
+          "name": "osteria_work_rules",
+          "value": "{\"maxDailyHours\":9,\"maxDailyHoursEnabled\":false,\"maxWeeklyHours\":48,\"maxWeeklyHoursEnabled\":false,\"minRestHours\":11,\"minRestHoursEnabled\":false,\"lateThresholdMinutes\":10,\"lateThresholdEnabled\":false,\"criticEnabled\":false,\"attentionEnabled\":false,\"overlapEnabled\":false}"
+        },
+        {
+          "name": "app_session",
+          "value": "{\"userId\":\"895ad949-c4ca-4348-90dc-5810702a1b93\",\"email\":\"taleb@osteriabasilico.com\",\"tenantSlug\":\"osteria-basilico\"}"
+        },
+        {
+          "name": "osteria_presence_verification_v1",
+          "value": "{\"requireVerification\":true,\"verificationToken\":\"ob-punch-v1:8828daea-380d-4f1a-9ecb-0bd296da1ab7\"}"
+        },
+        {
+          "name": "app:soundEnabled",
+          "value": "true"
+        },
+        {
+          "name": "osteria_departments",
+          "value": "[]"
+        },
+        {
+          "name": "osteria_department_builtin_overrides",
+          "value": "{\"sala\":{\"label\":\"Sala\",\"color\":\"#2D5A27\",\"hidden\":false},\"kitchen\":{\"label\":\"Cucina\",\"color\":\"#2196F3\"},\"bar\":{\"label\":\"Bar\",\"color\":\"#F44336\",\"hidden\":true},\"sala_bar\":{\"hidden\":true}}"
+        },
+        {
+          "name": "osteria_geofence_config_v1",
+          "value": "{\"lat\":51.51534228527632,\"lng\":-0.2057577132506933,\"radiusM\":5}"
+        }
+      ]
+    }
+  ]
+}

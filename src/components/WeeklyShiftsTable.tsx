@@ -4090,7 +4090,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 type="button"
                                 onClick={() => toggleAvailability(user.id, dayStr)}
                                 title={isUnavailDay ? t.wst_unavailability_remove : t.wst_unavailability_mark}
-                                className={`absolute bottom-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl px-1.5 py-0.5 text-[10px] font-semibold ${isUnavailDay ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-white/10 text-white/50 hover:bg-red-500/15 hover:text-red-500'}`}
+                                className={`absolute bottom-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl px-1.5 py-0.5 text-[10px] font-semibold ${isUnavailDay ? 'bg-red-500/15 text-red-400 hover:bg-red-500/25' : 'bg-white/10 text-white/50 hover:bg-red-500/15 hover:text-red-500'}`}
                               >
                                 {isUnavailDay ? '✕ N/D' : '— N/D'}
                               </button>
