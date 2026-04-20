@@ -738,7 +738,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                 <span className="hidden sm:inline text-sm sm:text-base font-semibold whitespace-nowrap capitalize tabular-nums tab-title-gradient">
                   {format(now, 'EEEE d MMMM · HH:mm', { locale: getDateLocale(effectiveLanguage) ?? it })}
                 </span>
-                <span className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
+                <span className="hidden sm:block h-6 w-px bg-white/15 shrink-0" />
                 {/* Sync — solo desktop */}
                 <button
                   type="button"
@@ -767,7 +767,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                 {/* PIN lock — solo management desktop */}
                 {featureFlags['unlock_with_pin'] !== false && currentUser && isManagement && (
                   <>
-                  <span className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
+                  <span className="hidden sm:block h-6 w-px bg-white/15 shrink-0" />
                   <button
                     type="button"
                     onClick={() => setShowPinMenu(true)}

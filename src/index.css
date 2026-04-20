@@ -406,20 +406,17 @@ body,
   /* ═══════════════════════════════════════════════════════════════
      LIQUID GLASS — materiale vetro ispirato ad Apple Liquid Glass.
      ═══════════════════════════════════════════════════════════════ */
-  /* Liquid Glass */
+  /* Liquid Glass — dark theme */
   .liquid-glass {
     position: relative;
-    background: rgba(255, 255, 255, 0.55);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    -webkit-backdrop-filter: blur(28px) saturate(2.4) brightness(1.06);
-    backdrop-filter: blur(28px) saturate(2.4) brightness(1.06);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    backdrop-filter: blur(12px) saturate(1.4);
     box-shadow:
-      inset 0 2px 0 rgba(255, 255, 255, 0.90),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.06),
-      inset 1px 0 0 rgba(255, 255, 255, 0.45),
-      inset -1px 0 0 rgba(255, 255, 255, 0.45),
-      0 8px 32px -4px rgba(0, 0, 0, 0.13),
-      0 2px 8px -2px rgba(0, 0, 0, 0.08);
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 4px 16px -4px rgba(0, 0, 0, 0.35);
+    transition: background 0.18s ease, border-color 0.18s ease;
   }
   .liquid-glass::before {
     content: '';
@@ -428,39 +425,37 @@ body,
     border-radius: inherit;
     pointer-events: none;
     background: linear-gradient(145deg,
-      rgba(255,255,255,0.50) 0%,
-      rgba(255,255,255,0.14) 28%,
-      rgba(255,255,255,0.00) 55%,
-      rgba(255,255,255,0.06) 100%);
+      rgba(255,255,255,0.08) 0%,
+      rgba(255,255,255,0.00) 100%);
     z-index: 0;
   }
-  /* Varianti colorate + hover */
-  .liquid-glass { transition: background 0.18s ease, border-color 0.18s ease; }
-
   .liquid-glass:hover {
-    background: rgba(0, 82, 255, 0.07);
-    border-color: rgba(0, 82, 255, 0.18);
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.22);
   }
   .liquid-glass-green {
-    border-color: rgba(16, 185, 129, 0.22);
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.30);
   }
   .liquid-glass-green:hover {
-    background: rgba(16, 185, 129, 0.12) !important;
-    border-color: rgba(16, 185, 129, 0.35) !important;
+    background: rgba(16, 185, 129, 0.20) !important;
+    border-color: rgba(16, 185, 129, 0.45) !important;
   }
   .liquid-glass-red {
-    border-color: rgba(239, 68, 68, 0.22);
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.30);
   }
   .liquid-glass-red:hover {
-    background: rgba(239, 68, 68, 0.12) !important;
-    border-color: rgba(239, 68, 68, 0.35) !important;
+    background: rgba(239, 68, 68, 0.20) !important;
+    border-color: rgba(239, 68, 68, 0.45) !important;
   }
   .liquid-glass-amber {
-    border-color: rgba(245, 158, 11, 0.22);
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.30);
   }
   .liquid-glass-amber:hover {
-    background: rgba(245, 158, 11, 0.12) !important;
-    border-color: rgba(245, 158, 11, 0.35) !important;
+    background: rgba(245, 158, 11, 0.20) !important;
+    border-color: rgba(245, 158, 11, 0.45) !important;
   }
   /**
    * Bottom nav — tinta piena brand rgb(45, 90, 39) quando non c’è contenuto sotto;
