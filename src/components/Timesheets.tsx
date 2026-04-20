@@ -4672,7 +4672,7 @@ export default function Timesheets() {
             fullShift ?? null
           );
           const deltaColor =
-            s.deltaMins > 5 ? 'text-[#3366CC]' : s.deltaMins < -5 ? 'text-red-500' : 'text-slate-500';
+            s.deltaMins > 5 ? 'text-accent' : s.deltaMins < -5 ? 'text-red-400' : 'text-white/50';
           const isEmployeeWeekReviewSheet = drawerReviewQueue?.reviewScope === 'employee_week';
 
           const plannedPublishedCard = s.status === 'confirmed' || s.status === 'approved';
@@ -4853,7 +4853,7 @@ export default function Timesheets() {
                       <button
                         type="button"
                         onClick={closeTimesheetShiftDrawer}
-                        className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                        className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/15"
                       >
                         <X className="h-3 w-3 shrink-0" />
                         Chiudi senza salvare
@@ -4861,7 +4861,7 @@ export default function Timesheets() {
                       <button
                         type="button"
                         onClick={() => setShowCloseConfirm(false)}
-                        className="ml-auto flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium text-slate-500 transition-colors hover:bg-slate-100"
+                        className="ml-auto flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium text-white/60 transition-colors hover:bg-white/10"
                       >
                         Annulla
                       </button>
@@ -4872,8 +4872,8 @@ export default function Timesheets() {
                 {/* Corpo popup (scroll) */}
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain min-h-[320px] lg:min-h-0">
                   {s.status === 'absent' && canTeamTimesheetOps && !isFrozen && (
-                    <div className="border-b border-rose-100 bg-rose-50/90 p-5">
-                      <p className="text-sm font-medium text-rose-900">{t.wst_status_sub_absent}</p>
+                    <div className="border-b border-rose-500/30 bg-rose-500/10 p-5">
+                      <p className="text-sm font-medium text-rose-300">{t.wst_status_sub_absent}</p>
                       <button
                         type="button"
                         onClick={() =>
@@ -4887,7 +4887,7 @@ export default function Timesheets() {
                             }
                           })()
                         }
-                        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-300 bg-white py-2.5 text-sm font-bold text-rose-800 transition-colors hover:bg-rose-50"
+                        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 py-2.5 text-sm font-bold text-rose-300 transition-colors hover:bg-rose-500/20"
                       >
                         {t.shift_restore_published_btn}
                       </button>
@@ -4897,7 +4897,7 @@ export default function Timesheets() {
                     className={
                       isEmployeeWeekReviewSheet
                         ? 'grid grid-cols-1 grid-rows-[auto_auto] items-stretch'
-                        : 'grid grid-cols-1 md:grid-cols-2 md:items-stretch md:divide-x md:divide-slate-100'
+                        : 'grid grid-cols-1 md:grid-cols-2 md:items-stretch md:divide-x md:divide-white/10'
                     }
                   >
                   <div className="min-w-0 flex flex-col">
@@ -4949,7 +4949,7 @@ export default function Timesheets() {
                   {/* Timbrature in alto a destra (desktop): form visibile senza scroll nella colonna destra */}
                   {!isAbsentDraw && (
                     <>
-                    <div className="border-b border-slate-100 p-3">
+                    <div className="border-b border-white/10 p-3">
                       {(() => {
                         const punchComplete = s.punched && !s.isCrossDay && !showTimbratureEditForm;
                         const punchCrossDay = s.punched && s.isCrossDay && !showTimbratureEditForm;
@@ -5123,7 +5123,7 @@ export default function Timesheets() {
                           </div>
                           {/* DATA USCITA */}
                           <div>
-                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-800/70">
+                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300/80">
                               {t.ts_drawer_manual_punch_out_date}
                             </p>
                             <input
@@ -5168,7 +5168,7 @@ export default function Timesheets() {
                         !isAbsentDraw &&
                         (s.punched || !!s.punchInId) &&
                         drawerData.dateStr <= todayStr && (
-                          <div className="border-t border-amber-200/80 pt-3">
+                          <div className="border-t border-amber-400/30 pt-3">
                             <button
                               type="button"
                               disabled={manualPunchSaving}
@@ -5190,7 +5190,7 @@ export default function Timesheets() {
                                   }
                                 })();
                               }}
-                              className="flex w-full items-center justify-center gap-2 rounded-xl border border-error bg-white px-3 py-2.5 text-xs font-bold text-error transition-colors hover:bg-error-light disabled:opacity-40"
+                              className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-xs font-bold text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-40"
                             >
                               <Trash2 className="h-3.5 w-3.5 shrink-0" />
                               {t.ts_drawer_delete_punches_btn}
@@ -5205,7 +5205,7 @@ export default function Timesheets() {
 
                     {/* Footer azione — "REGISTRA E PROSSIMO" / "CHIUDI" / "PROSSIMO" a seconda della sorgente */}
                     {!isApproved && canTeamTimesheetOps && !isAbsentDraw && drawerData && (
-                      <div className="mt-auto pt-3 pb-3 px-3 sm:px-5 border-t border-slate-100 bg-white sticky bottom-0 z-10">
+                      <div className="mt-auto pt-3 pb-3 px-3 sm:px-5 border-t border-white/10 bg-[#0d1c38] sticky bottom-0 z-10">
                         {(!drawerReviewQueue || drawerOpenSource) && (() => {
                           const needsSave = showTimbratureEditForm && drawerManualPunchFormExpanded;
 
@@ -5215,7 +5215,7 @@ export default function Timesheets() {
                               <button
                                 type="button"
                                 onClick={closeTimesheetShiftDrawer}
-                                className="w-full rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"
+                                className="w-full rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 bg-white/10 text-white/70 hover:bg-white/15 border border-white/20"
                               >
                                 CHIUDI
                               </button>
@@ -5308,9 +5308,9 @@ export default function Timesheets() {
                               }}
                               className={`w-full rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 ${
                                 isInReviewQueue
-                                  ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                                  ? 'bg-white/10 text-white/40 cursor-not-allowed'
                                   : !punchDataComplete
-                                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                                  ? 'bg-white/8 text-white/30 cursor-not-allowed border border-white/15'
                                   : !hasValidOut
                                   ? 'bg-amber-500 text-white hover:bg-amber-600'
                                   : 'bg-accent text-white hover:bg-accent-hover'
@@ -5366,7 +5366,7 @@ export default function Timesheets() {
                   !isApproved &&
                   (!isAbsentDraw ||
                     (drawerReviewQueue?.reviewScope === 'employee_week' && isAbsentDraw)) && (
-                  <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:gap-2.5 sm:p-3.5">
+                  <div className="flex flex-col gap-2 border-t border-white/10 bg-white/5 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:gap-2.5 sm:p-3.5">
                     {drawerReviewQueue &&
                       (() => {
                         const hasMissingInReview = !s.punchInId;
@@ -5410,7 +5410,7 @@ export default function Timesheets() {
                                       className={
                                         isEmployeeWeekReviewSheet
                                           ? ''
-                                          : 'border-b border-slate-100 pb-2'
+                                          : 'border-b border-white/10 pb-2'
                                       }
                                     >
                                       <div
@@ -5433,7 +5433,7 @@ export default function Timesheets() {
                                                 type="button"
                                                 onClick={() => handleDrawerReviewNavigate(-1)}
                                                 disabled={drawerReviewQueue.currentIdx === 0 || reviewQueueSaving}
-                                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-30"
+                                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-sm font-semibold text-white/70 transition-colors hover:bg-white/15 disabled:opacity-30"
                                               >
                                                 ←
                                               </button>
@@ -5465,10 +5465,10 @@ export default function Timesheets() {
                                                   type="button"
                                                   onClick={() => handleDrawerReviewNavigate(1)}
                                                   disabled={reviewQueueSaving}
-                                                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
-                                                >
-                                                  →
-                                                </button>
+                                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-sm font-semibold text-white/70 transition-colors hover:bg-white/15"
+                                              >
+                                                →
+                                              </button>
                                               )}
                                           </div>
                                         </div>
@@ -5548,7 +5548,7 @@ export default function Timesheets() {
                       </button>
                     )}
                     {!isEmployeeWeekReviewSheet && !canClose && !canMarkAbsentTimesheet && (
-                      <p className="py-0.5 text-center text-[11px] text-slate-400">
+                      <p className="py-0.5 text-center text-[11px] text-white/40">
                         {!s.punched
                           ? t.ts_drawer_not_punched_yet
                           : drawerData.dateStr >= todayStr
