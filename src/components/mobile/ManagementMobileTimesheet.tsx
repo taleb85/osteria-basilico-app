@@ -248,7 +248,7 @@ function MyTimesheetSection({
                         isSelected && !plannedOnly ? 'ring-2 ring-[#3366CC]/60 ring-offset-1' : ''
                       }`}>
                         {shiftCount > 0 && (
-                          <span className="text-[13px] font-black text-[#3366CC] leading-none drop-shadow-sm">
+                          <span className="text-[13px] font-black text-white leading-none drop-shadow-sm">
                             {shiftCount}
                           </span>
                         )}
