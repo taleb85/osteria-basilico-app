@@ -349,8 +349,8 @@ export default function ProfileNavTabPanel({
   };
 
   const menuRowBase = 'w-full flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:scale-[0.98] border border-white/15 hover:bg-white/10';
-  const chevronCls = 'text-white/40';
-  const rowLabelCls = 'text-[13px] font-semibold text-white/85';
+  const chevronCls = 'text-white/60';
+  const rowLabelCls = 'text-[13px] font-semibold text-white';
 
   const deptLabel = currentUser.department ?? '';
   const roleMap: Record<string, string> = {
@@ -486,7 +486,7 @@ export default function ProfileNavTabPanel({
         <div className="flex flex-col gap-2 px-4 pt-4 pb-8">
 
           {/* Impostazioni profilo */}
-          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}>
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.09)' }}>
             <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98] hover:bg-white/10" onClick={() => toggleSection('settings')}>
               <span className={rowLabelCls}>{tv.profile_tab_group_settings ?? 'Impostazioni profilo'}</span>
               <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'settings' ? 'rotate-90' : ''}`} />
@@ -513,7 +513,7 @@ export default function ProfileNavTabPanel({
           </div>
 
           {/* Notifiche */}
-          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}>
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.09)' }}>
             <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98] hover:bg-white/10" onClick={() => toggleSection('notif')}>
               <span className={rowLabelCls}>{tv.profile_notifications ?? 'Notifiche'}</span>
               <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'notif' ? 'rotate-90' : ''}`} />
@@ -530,7 +530,7 @@ export default function ProfileNavTabPanel({
           </div>
 
           {/* Lingua */}
-          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}>
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.09)' }}>
             <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98] hover:bg-white/10" onClick={() => toggleSection('lang')}>
               <span className={rowLabelCls}>{t.language ?? 'Lingua'}</span>
               <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${chevronCls} ${expanded === 'lang' ? 'rotate-90' : ''}`} />
