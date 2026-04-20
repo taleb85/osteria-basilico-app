@@ -170,7 +170,7 @@ export function TimesheetDrawerHeader({
                 type="button"
                 disabled={markAbsentSaving}
                 onClick={onMarkAbsent}
-                className="flex shrink-0 items-center gap-1 rounded-lg border border-red-700 bg-red-600 px-2 py-1 text-[10px] font-semibold text-white shadow-sm transition-all hover:bg-red-700 hover:scale-105 active:scale-95 disabled:opacity-50"
+                className="flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-medium transition-all hover:scale-105 active:scale-95 disabled:opacity-50" style={{ background: "rgba(239,68,68,0.15)", borderColor: "rgba(239,68,68,0.5)", color: "#fca5a5" }}
                 title={t.shift_mark_absent}
               >
                 {markAbsentSaving ? (
@@ -310,7 +310,7 @@ export function TimesheetDrawerHeader({
                 type="button"
                 disabled={markAbsentSaving}
                 onClick={onMarkAbsent}
-                className="flex shrink-0 items-center gap-1 rounded-lg border border-red-700 bg-red-600 px-2 py-1 text-[10px] font-semibold text-white shadow-sm transition-all hover:bg-red-700 hover:scale-105 active:scale-95 disabled:opacity-50"
+                className="flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-medium transition-all hover:scale-105 active:scale-95 disabled:opacity-50" style={{ background: "rgba(239,68,68,0.15)", borderColor: "rgba(239,68,68,0.5)", color: "#fca5a5" }}
                 title={t.shift_mark_absent}
               >
                 {markAbsentSaving ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <UserX className="w-3.5 h-3.5" />}

@@ -1854,11 +1854,15 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 type="button"
                 disabled={!periodDraftDirty || periodSavingCloud}
                 onClick={() => applyPeriod({ startDate: periodDraftStart, numWeeks: periodDraftWeeks }, periodRuleMode)}
-                className={`w-full rounded-xl py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+                className={`w-full rounded-xl py-2.5 text-xs font-bold uppercase tracking-wider transition-all ${
                   !periodDraftDirty || periodSavingCloud
-                    ? 'bg-white/10 text-white/40 cursor-not-allowed'
-                    : 'bg-accent text-white hover:bg-accent-hover'
+                    ? 'cursor-not-allowed'
+                    : 'hover:opacity-90 active:scale-[0.98]'
                 }`}
+                style={!periodDraftDirty || periodSavingCloud
+                  ? { background: 'rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.35)' }
+                  : { background: '#3b82f6', color: '#ffffff', opacity: 1 }
+                }
               >
                 {periodSavingCloud ? 'Sincronizzazione…' : t.ts_save_period}
               </button>

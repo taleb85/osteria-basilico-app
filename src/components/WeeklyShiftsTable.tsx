@@ -2774,12 +2774,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           closeWstToolbarDrawer();
                         }}
                         disabled={periodDraftSaved}
-                        className={`mt-2 w-full rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
-                          periodDraftSaved
-                            ? 'cursor-not-allowed opacity-40'
-                            : 'bg-accent text-white hover:bg-accent-hover'
+                        className={`mt-2 w-full rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                          periodDraftSaved ? 'cursor-not-allowed' : 'hover:opacity-90'
                         }`}
-                        style={periodDraftSaved ? { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.40)' } : {}}
+                        style={periodDraftSaved
+                          ? { background: 'rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.35)' }
+                          : { background: '#3b82f6', color: '#ffffff' }
+                        }
                       >
                         {t.ts_save_period}
                       </button>
