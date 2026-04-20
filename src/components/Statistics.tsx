@@ -384,17 +384,17 @@ export default function Statistics() {
                     <span className="h-9 inline-flex items-center px-3 rounded-2xl bg-accent text-white text-[10px] font-extrabold uppercase tracking-wider shrink-0 shadow-sm">
                       {statsTab === 'current_week' ? (t.ts_period_week ?? 'Settimana') : (t.tab_period ?? 'Periodo')}
                     </span>
-                    <div className="flex items-center bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm" style={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? { background: 'transparent', boxShadow: 'none' } : {}}>
+                    <div className="flex items-center rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.15)' }}>
                       <button
                         type="button"
                         onClick={() => setNavOffset(o => o - 1)}
-                        className="flex items-center justify-center h-9 w-9 text-slate-500 hover:bg-slate-50 transition-colors"
+                        className="flex items-center justify-center h-9 w-9 text-white/50 hover:bg-white/10 transition-colors"
                       >
                         <ChevronLeft className="h-4 w-4" aria-hidden />
                       </button>
                       <div className="flex items-center gap-1.5 px-2">
-                        <Calendar className="h-3 w-3 text-slate-400 shrink-0" aria-hidden />
-                        <span className="text-[10px] font-bold text-slate-700 tabular-nums whitespace-nowrap">
+                        <Calendar className="h-3 w-3 text-white/45 shrink-0" aria-hidden />
+                        <span className="text-[10px] font-bold text-white/80 tabular-nums whitespace-nowrap">
                           {statsTab === 'current_week'
                             ? `S.${getISOWeek(rangeStart)} · ${format(rangeStart, 'd MMM', { locale: statsLoc })} – ${format(rangeEnd, 'd MMM', { locale: statsLoc })}`
                             : `${format(rangeStart, 'd MMM', { locale: statsLoc })} – ${format(rangeEnd, 'd MMM yy', { locale: statsLoc })}`
@@ -404,7 +404,7 @@ export default function Statistics() {
                       <button
                         type="button"
                         onClick={() => setNavOffset(o => o + 1)}
-                        className="flex items-center justify-center h-9 w-9 text-slate-500 hover:bg-slate-50 transition-colors"
+                        className="flex items-center justify-center h-9 w-9 text-white/50 hover:bg-white/10 transition-colors"
                       >
                         <ChevronRight className="h-4 w-4" aria-hidden />
                       </button>
@@ -417,7 +417,7 @@ export default function Statistics() {
                     <button
                       type="button"
                       onClick={() => setNavOffset(o => o - 1)}
-                      className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 disabled:opacity-30"
+                      className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-white/70 hover:bg-white/10 disabled:opacity-30"
                       aria-label={statsTab === 'current_week' ? 'Settimana precedente' : 'Periodo precedente'}
                     >
                       <ChevronLeft className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
@@ -429,7 +429,7 @@ export default function Statistics() {
                       className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
                         statsTab === 'current_week'
                           ? 'bg-accent text-white font-extrabold'
-                          : 'text-slate-600 hover:bg-slate-100'
+                          : 'text-white/70 hover:bg-white/10'
                       }`}
                     >
                       {t.view_week}
@@ -440,7 +440,7 @@ export default function Statistics() {
                       className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
                         statsTab === 'period' && navOffset === 0
                           ? 'bg-accent text-white font-extrabold'
-                          : 'text-slate-600 hover:bg-slate-100'
+                          : 'text-white/70 hover:bg-white/10'
                       }`}
                     >
                       {t.view_month}
@@ -448,7 +448,7 @@ export default function Statistics() {
                     <button
                       type="button"
                       onClick={() => setNavOffset(o => o + 1)}
-                      className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100 disabled:opacity-30"
+                      className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-white/70 hover:bg-white/10 disabled:opacity-30"
                       aria-label={statsTab === 'current_week' ? 'Settimana successiva' : 'Periodo successivo'}
                     >
                       <span>{t.nav_next_abbr ?? 'Pros.'}</span>
@@ -459,18 +459,18 @@ export default function Statistics() {
                     className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-2.5 !h-9 lg:!h-10 !text-[11px] lg:!text-sm"
                     role="status"
                   >
-                    <Calendar className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-slate-500" aria-hidden />
+                    <Calendar className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-white/50" aria-hidden />
                     <span className="min-w-0 truncate tabular-nums">
                       {statsTab === 'current_week' ? (
                         <>
-                          <span className="text-[#001A80] font-extrabold">S.{getISOWeek(rangeStart)}&nbsp;</span>
+                          <span className="text-white/80 font-extrabold">S.{getISOWeek(rangeStart)}&nbsp;</span>
                           {format(rangeStart, 'dd/MM', { locale: statsLoc })}
-                          <span className="text-slate-400"> → {format(rangeEnd, 'dd/MM', { locale: statsLoc })}</span>
+                          <span className="text-white/45"> → {format(rangeEnd, 'dd/MM', { locale: statsLoc })}</span>
                         </>
                       ) : (
                         <>
                           {format(rangeStart, 'dd/MM', { locale: statsLoc })}
-                          <span className="text-slate-400"> → </span>
+                          <span className="text-white/45"> → </span>
                           {format(rangeEnd, 'dd/MM/yy', { locale: statsLoc })}
                         </>
                       )}
@@ -489,7 +489,7 @@ export default function Statistics() {
                       <button
                         type="button"
                         onClick={() => void handleExportStatsPdf()}
-                        className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-slate-600 hover:bg-slate-100"
+                        className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-white/70 hover:bg-white/10"
                         title={t.download_pdf}
                         aria-label={t.download_pdf}
                       >
@@ -505,14 +505,14 @@ export default function Statistics() {
                       type="button"
                       onClick={() => setShowDeptMenu(prev => !prev)}
                       className={`ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 ${
-                        showDeptMenu ? 'bg-accent/8 text-accent' : 'text-slate-600 hover:bg-slate-100'
+                        showDeptMenu ? 'bg-accent/8 text-accent' : 'text-white/70 hover:bg-white/10'
                       } ${deptFilter !== 'all' ? 'font-extrabold' : ''}`}
                     >
                       <Filter className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
                       <span className="max-w-[80px] truncate">
                         {deptFilter === 'all' ? 'Reparti' : translateDepartmentValue(deptFilter, effectiveLanguage)}
                       </span>
-                      <ChevronDown className={`h-3 w-3 lg:h-3.5 lg:w-3.5 text-slate-400 transition-transform ${showDeptMenu ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`h-3 w-3 lg:h-3.5 lg:w-3.5 text-white/45 transition-transform ${showDeptMenu ? 'rotate-180' : ''}`} />
                     </button>
                     </div>
 
@@ -525,24 +525,24 @@ export default function Statistics() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
                             transition={{ duration: 0.1 }}
-                            className="hidden lg:block absolute right-0 top-full z-[9999] mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl"
+                            className="hidden lg:block absolute right-0 top-full z-[9999] mt-1 w-48 rounded-xl p-1 shadow-xl" style={{ background: '#112240', border: '1px solid rgba(255,255,255,0.15)' }}
                             style={{ isolation: 'isolate' }}
                           >
-                            <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1">
+                            <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40 border-b border-white/10 mb-1">
                               {t.department_filter_label}
                             </div>
                             <button type="button" onClick={() => { setDeptFilter('all'); setShowDeptMenu(false); }}
-                              className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}>
+                              className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'}`}>
                               <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                 <Check className={`h-3 w-3 ${deptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
                               </div>
                               <span className="flex-1 truncate">Tutti i reparti</span>
                               {deptFilter === 'all' && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                             </button>
-                            <div className="my-1 h-px bg-slate-100" />
+                            <div className="my-1 h-px bg-white/10" />
                             {departments.map((d) => (
                               <button key={d.value} type="button" onClick={() => { setDeptFilter(d.value); setShowDeptMenu(false); }}
-                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'}`}>
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                   <span className={`h-2.5 w-2.5 rounded-full shadow-sm ${deptFilter === d.value ? 'bg-white' : ''}`}
                                     style={deptFilter !== d.value ? { backgroundColor: d.color ?? getDeptColor(d.value) } : {}} />
@@ -556,24 +556,24 @@ export default function Statistics() {
                           {/* Mobile Modal */}
                           <div className="lg:hidden">
                             <CenteredModalPortal open={showDeptMenu} onClose={() => setShowDeptMenu(false)} maxWidthClass="max-w-[280px]" panelClassName="p-1" disableBackdropClose>
-                              <div className="flex items-center justify-between px-2 py-1.5 border-b border-slate-100 mb-1">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t.department_filter_label}</span>
-                                <button type="button" onClick={() => setShowDeptMenu(false)} className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600" aria-label="Chiudi">
+                              <div className="flex items-center justify-between px-2 py-1.5 border-b border-white/10 mb-1">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-white/45">{t.department_filter_label}</span>
+                                <button type="button" onClick={() => setShowDeptMenu(false)} className="rounded-lg p-1 text-white/45 transition-colors hover:bg-white/10 hover:text-white/70" aria-label="Chiudi">
                                   <X className="h-3.5 w-3.5" />
                                 </button>
                               </div>
                               <button type="button" onClick={() => { setDeptFilter('all'); setShowDeptMenu(false); }}
-                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'}`}>
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                   <Check className={`h-3 w-3 ${deptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
                                 </div>
                                 <span className="flex-1 truncate">Tutti i reparti</span>
                                 {deptFilter === 'all' && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                               </button>
-                              <div className="my-1 h-px bg-slate-100" />
+                              <div className="my-1 h-px bg-white/10" />
                               {departments.map((d) => (
                                 <button key={d.value} type="button" onClick={() => { setDeptFilter(d.value); setShowDeptMenu(false); }}
-                                  className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                  className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'}`}>
                                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                     <span className={`h-2.5 w-2.5 rounded-full shadow-sm ${deptFilter === d.value ? 'bg-white' : ''}`}
                                       style={deptFilter !== d.value ? { backgroundColor: d.color ?? getDeptColor(d.value) } : {}} />
@@ -598,19 +598,19 @@ export default function Statistics() {
         {showManagementStatsChrome && payrollForCalendarMonth && uiW('stats.table') && (
           <div className="mb-4 rounded-2xl px-4 py-3.5 text-sm"
             style={{
-              background: 'rgba(255, 255, 255, 0.90)',
+              background: 'rgba(255,255,255,0.11)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255, 255, 255, 0.4)',
+              border: '1px solid rgba(255,255,255,0.18)',
             }}
           >
-            <p className="font-bold text-slate-900">
+            <p className="font-bold text-white">
               {tv.stats_payroll_title ?? 'Pagamento stipendi'}
             </p>
-            <p className="mt-1 max-w-2xl text-xs leading-snug text-slate-600">
+            <p className="mt-1 max-w-2xl text-xs leading-snug text-white/60">
               {tv.stats_payroll_hint}
             </p>
-            <p className="mt-2 font-semibold text-cyan-700">
+            <p className="mt-2 font-semibold text-cyan-300">
               {formatTrans(tv.stats_payroll_date_line ?? 'Data prevista: {date}', {
                 date: format(payrollForCalendarMonth.payDate, 'EEEE d MMMM yyyy', { locale: statsLoc }),
               })}
@@ -629,7 +629,7 @@ export default function Statistics() {
                 <p className="text-xs font-bold uppercase tracking-widest text-accent">
                   {t.stats_your_hours_in_range}
                 </p>
-                <p className="text-2xl font-bold tabular-nums text-black">
+                <p className="text-2xl font-bold tabular-nums text-white">
                   {staffRangeTotalMins > 0 ? formatMinutesToHoursAndMinutes(staffRangeTotalMins) : '–'}
                 </p>
               </div>
@@ -639,8 +639,8 @@ export default function Statistics() {
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10">
                     <Calendar className="h-5 w-5 text-accent/50" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-800">{t.stats_no_data}</p>
-                  <p className="max-w-xs text-xs leading-relaxed text-slate-500">{t.stats_no_confirmed_shifts_period}</p>
+                  <p className="text-sm font-semibold text-white">{t.stats_no_data}</p>
+                  <p className="max-w-xs text-xs leading-relaxed text-white/50">{t.stats_no_confirmed_shifts_period}</p>
                 </div>
               ) : (
                 weeksInRange.map((w) => {
@@ -655,7 +655,7 @@ export default function Statistics() {
                         <span className="text-[10px] font-bold uppercase tracking-wide text-accent/60">
                           {format(clampedStart, 'dd/MM')} → {format(clampedEnd, 'dd/MM')}
                         </span>
-                        <span className={`text-sm font-extrabold tabular-nums ${weekMins > 0 ? 'text-black' : 'text-accent/25'}`}>
+                        <span className={`text-sm font-extrabold tabular-nums ${weekMins > 0 ? 'text-white' : 'text-accent/25'}`}>
                           {weekMins > 0 ? formatMinutesToHoursAndMinutes(weekMins) : '—'}
                         </span>
                       </div>
@@ -673,7 +673,7 @@ export default function Statistics() {
                                 {format(day, 'dd')}
                               </span>
                               {mins > 0 ? (
-                                <span className="text-[12px] font-bold text-black tabular-nums leading-none">
+                                <span className="text-[12px] font-bold text-white tabular-nums leading-none">
                                   {formatMinutesToHoursAndMinutes(mins)}
                                 </span>
                               ) : (
@@ -695,7 +695,7 @@ export default function Statistics() {
                 <p className="text-xs font-bold uppercase tracking-widest text-accent">
                   {t.stats_your_hours_in_range}
                 </p>
-                <p className="text-2xl font-bold tabular-nums text-black">
+                <p className="text-2xl font-bold tabular-nums text-white">
                   {staffRangeTotalMins > 0 ? formatMinutesToHoursAndMinutes(staffRangeTotalMins) : '–'}
                 </p>
               </div>
@@ -704,8 +704,8 @@ export default function Statistics() {
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10">
                     <Calendar className="h-5 w-5 text-accent/50" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-800">{t.stats_no_data}</p>
-                  <p className="max-w-xs text-xs leading-relaxed text-slate-500">{t.stats_no_confirmed_shifts_period}</p>
+                  <p className="text-sm font-semibold text-white">{t.stats_no_data}</p>
+                  <p className="max-w-xs text-xs leading-relaxed text-white/50">{t.stats_no_confirmed_shifts_period}</p>
                 </div>
               ) : (
                 <div className="border-t border-accent/15">
@@ -717,47 +717,47 @@ export default function Statistics() {
                     return (
                       <div key={`staff-d-${w.key}`} className="border-b border-accent/10 last:border-0">
                         <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
-                            <table className="w-full border-collapse border border-slate-200" style={{ minWidth: `${weekDays.length * 60 + 120}px` }}>
+                            <table className="w-full border-collapse border border-white/12" style={{ minWidth: `${weekDays.length * 60 + 120}px` }}>
                             <thead>
-                              <tr className="bg-slate-100">
-                                <th className="py-2 pl-5 pr-2 text-left text-[9px] font-bold uppercase tracking-wider text-slate-600 border border-slate-200">
+                              <tr className="bg-white/10">
+                                <th className="py-2 pl-5 pr-2 text-left text-[9px] font-bold uppercase tracking-wider text-white/70 border border-white/12">
                                   {w.label}
                                 </th>
                                 {weekDays.map((day) => (
-                                  <th key={format(day, 'yyyy-MM-dd')} className="px-2 py-2 text-center min-w-[60px] border border-slate-200">
-                                    <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-600">
+                                  <th key={format(day, 'yyyy-MM-dd')} className="px-2 py-2 text-center min-w-[60px] border border-white/12">
+                                    <span className="block text-[9px] font-bold uppercase tracking-wider text-white/70">
                                       {format(day, 'EEE', { locale: statsLoc })}
                                     </span>
-                                    <span className="block text-[9px] font-semibold text-slate-400 tabular-nums">
+                                    <span className="block text-[9px] font-semibold text-white/45 tabular-nums">
                                       {format(day, 'dd/MM')}
                                     </span>
                                   </th>
                                 ))}
-                                <th className="py-2 pl-2 pr-5 text-right text-[9px] font-bold uppercase tracking-wider text-slate-600 min-w-[60px] border border-slate-200 bg-slate-200/60">
+                                <th className="py-2 pl-2 pr-5 text-right text-[9px] font-bold uppercase tracking-wider text-white/70 min-w-[60px] border border-white/12 bg-white/10">
                                   Tot.
                                 </th>
                               </tr>
                             </thead>
                             <tbody>
                               <tr>
-                                <td className="py-2 pl-5 pr-2 border border-slate-200 text-[9px] text-slate-400" />
+                                <td className="py-2 pl-5 pr-2 border border-white/12 text-[9px] text-white/45" />
                                 {weekDays.map((day) => {
                                   const dayKey = format(day, 'yyyy-MM-dd');
                                   const mins = minutesByUserByDay[currentUser.id]?.[dayKey] ?? 0;
                                   return (
-                                    <td key={dayKey} className="px-2 py-2.5 text-center tabular-nums border border-slate-200">
+                                    <td key={dayKey} className="px-2 py-2.5 text-center tabular-nums border border-white/12">
                                       {mins > 0 ? (
-                                        <span className="text-[13px] font-bold text-black">
+                                        <span className="text-[13px] font-bold text-white">
                                           {formatMinutesToHoursAndMinutes(mins)}
                                         </span>
                                       ) : (
-                                        <span className="text-[13px] text-slate-300">—</span>
+                                        <span className="text-[13px] text-white/25">—</span>
                                       )}
                                     </td>
                                   );
                                 })}
-                                <td className="py-2.5 pl-2 pr-5 text-right tabular-nums border border-slate-200 bg-slate-50">
-                                  <span className={`text-[13px] font-extrabold ${weekMins > 0 ? 'text-black' : 'text-slate-300'}`}>
+                                <td className="py-2.5 pl-2 pr-5 text-right tabular-nums border border-white/12 bg-white/5">
+                                  <span className={`text-[13px] font-extrabold ${weekMins > 0 ? 'text-white' : 'text-white/25'}`}>
                                     {weekMins > 0 ? formatMinutesToHoursAndMinutes(weekMins) : '—'}
                                   </span>
                                 </td>
@@ -784,7 +784,7 @@ export default function Statistics() {
                   <p className="text-xs font-bold uppercase tracking-widest text-accent">
                     {tv.stats_mgmt_personal_hours_period ?? t.stats_your_hours_in_range}
                   </p>
-                  <p className="text-2xl font-bold tabular-nums text-black">
+                  <p className="text-2xl font-bold tabular-nums text-white">
                     {mgmtPersonalTotalMins > 0 ? formatMinutesToHoursAndMinutes(mgmtPersonalTotalMins) : '–'}
                   </p>
                 </div>
@@ -804,7 +804,7 @@ export default function Statistics() {
                               <span className="text-[9px] font-bold uppercase tracking-wide text-accent/60">
                                 {format(clampedStart, 'dd/MM')} → {format(clampedEnd, 'dd/MM')}
                               </span>
-                              <span className={`text-sm font-extrabold tabular-nums ${weekMins > 0 ? 'text-black' : 'text-accent/25'}`}>
+                              <span className={`text-sm font-extrabold tabular-nums ${weekMins > 0 ? 'text-white' : 'text-accent/25'}`}>
                                 {weekMins > 0 ? formatMinutesToHoursAndMinutes(weekMins) : '—'}
                               </span>
                             </div>
@@ -821,7 +821,7 @@ export default function Statistics() {
                                       {format(day, 'dd')}
                                     </span>
                                     {mins > 0 ? (
-                                      <span className="text-[11px] font-bold text-black tabular-nums leading-none">
+                                      <span className="text-[11px] font-bold text-white tabular-nums leading-none">
                                         {formatMinutesToHoursAndMinutes(mins)}
                                       </span>
                                     ) : (
@@ -872,7 +872,7 @@ export default function Statistics() {
                                     return (
                                       <td key={dayKey} className="py-2.5 px-1 text-center tabular-nums">
                                         {mins > 0 ? (
-                                          <span className="text-[13px] font-bold text-black">
+                                          <span className="text-[13px] font-bold text-white">
                                             {formatMinutesToHoursAndMinutes(mins)}
                                           </span>
                                         ) : (
@@ -882,7 +882,7 @@ export default function Statistics() {
                                     );
                                   })}
                                   <td className="py-2.5 pr-5 text-right tabular-nums">
-                                    <span className={`text-[13px] font-extrabold ${weekMins > 0 ? 'text-black' : 'text-accent/20'}`}>
+                                    <span className={`text-[13px] font-extrabold ${weekMins > 0 ? 'text-white' : 'text-accent/20'}`}>
                                       {weekMins > 0 ? formatMinutesToHoursAndMinutes(weekMins) : '—'}
                                     </span>
                                   </td>
@@ -898,22 +898,22 @@ export default function Statistics() {
               </div>
             )}
             {showManagementStatsChrome && (
-              <div className="surface-glass border-l-4 border-l-[#001A80] border border-[#001A80]/20 bg-[#001A80]/6 p-5 sm:p-6">
-                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#001A80]">
+              <div className="surface-glass border-l-4 border-l-accent border border-white/15 bg-white/7 p-5 sm:p-6">
+                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-white/80">
                   {deptFilter === 'all' ? (tv.stats_team_hours_period ?? t.stats_total) : `TOTALE ${translateDepartmentValue(deptFilter, effectiveLanguage).toUpperCase()}`}
                 </p>
-                <p className="text-3xl font-bold tabular-nums text-[#001A80]">
+                <p className="text-3xl font-bold tabular-nums text-white/80">
                   {formatMinutesToHoursAndMinutes(totalMinutesFiltered)}
                 </p>
               </div>
             )}
             {!hasDataInRange ? (
               <div className="surface-glass flex flex-col items-center gap-3 p-8 text-center sm:p-10">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
-                  <Calendar className="h-6 w-6 text-slate-300" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
+                  <Calendar className="h-6 w-6 text-white/25" />
                 </div>
-                <p className="text-sm font-semibold text-slate-800">{t.stats_no_data}</p>
-                <p className="max-w-xs text-xs text-slate-500">{t.stats_no_confirmed_shifts_period}</p>
+                <p className="text-sm font-semibold text-white">{t.stats_no_data}</p>
+                <p className="max-w-xs text-xs text-white/50">{t.stats_no_confirmed_shifts_period}</p>
               </div>
             ) : (
               weeksInRange.map((w) => {
@@ -926,12 +926,12 @@ export default function Statistics() {
                 const clampedEnd   = w.end   > rangeEnd   ? rangeEnd   : w.end;
                 const weekDays = eachDayOfInterval({ start: clampedStart, end: clampedEnd });
                 return (
-                  <div key={w.key} className="overflow-hidden rounded-2xl border border-[#001A80]/20 bg-gradient-to-br from-[#001A80]/6 via-white to-white" style={{ boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.90), inset 0 -2px 8px rgba(0,0,0,0.04), 0 4px 16px -4px rgba(0,26,128,0.10), 0 1px 3px -1px rgba(0,0,0,0.07)' }}>
+                  <div key={w.key} className="overflow-hidden rounded-2xl" style={{ background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 4px 16px -4px rgba(0,0,0,0.35)' }}>
                     {/* Intestazione settimana */}
-                    <div className="px-4 py-2.5 sm:px-5 border-b border-[#001A80]/15 bg-[#001A80]/80/8 flex items-center justify-between gap-3">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#001A80]">{w.label}</p>
+                    <div className="px-4 py-2.5 sm:px-5 border-b border-white/12 bg-white/5 flex items-center justify-between gap-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/80">{w.label}</p>
                       {showManagementStatsChrome && weekTotal > 0 && (
-                        <span className="tabular-nums text-sm font-extrabold text-[#001A80]">
+                        <span className="tabular-nums text-sm font-extrabold text-white/80">
                           {formatMinutesToHoursAndMinutes(weekTotal)}
                         </span>
                       )}
@@ -944,29 +944,29 @@ export default function Statistics() {
                         <div className="grid flex-1 gap-0" style={{ gridTemplateColumns: `repeat(${weekDays.length}, 1fr)` }}>
                           {weekDays.map((day) => (
                             <div key={format(day, 'yyyy-MM-dd')} className="flex flex-col items-center">
-                              <span className="text-[7px] font-bold uppercase text-[#001A80] leading-none">
+                              <span className="text-[7px] font-bold uppercase text-white/80 leading-none">
                                 {format(day, 'EEE', { locale: statsLoc }).slice(0, 3)}
                               </span>
-                              <span className="text-[7px] text-[#001A80]/45 tabular-nums leading-none mt-0.5">
+                              <span className="text-[7px] text-white/35 tabular-nums leading-none mt-0.5">
                                 {format(day, 'dd')}
                               </span>
                             </div>
                           ))}
                         </div>
-                        <div className="w-[44px] shrink-0 text-right text-[7px] font-bold uppercase text-[#001A80]/45">Tot.</div>
+                        <div className="w-[44px] shrink-0 text-right text-[7px] font-bold uppercase text-white/35">Tot.</div>
                       </div>
                       {/* Righe utenti */}
                       {filteredUsers.map((u, i) => {
                         const userWeekTotal = minutesByUserByWeek[u.id]?.[w.key] ?? 0;
-                        const rowBg = i % 2 === 0 ? 'bg-[#001A80]/5' : '';
+                        const rowBg = i % 2 === 0 ? 'bg-white/5' : '';
                         return (
                           <div key={u.id} className={`flex items-center gap-1 rounded-lg py-1.5 ${rowBg}`}>
                             <div className="w-[72px] shrink-0 pl-1">
-                              <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-700 truncate">
+                              <span className="block text-[10px] font-semibold uppercase tracking-wide text-white/80 truncate">
                                 {(u.first_name ?? '').trim() || '—'}
                               </span>
                               {deptFilter === 'all' && u.department && (
-                                <span className="block text-[8px] font-bold text-slate-400 uppercase leading-none truncate mt-0.5">
+                                <span className="block text-[8px] font-bold text-white/45 uppercase leading-none truncate mt-0.5">
                                   {translateDepartmentValue(u.department, effectiveLanguage)}
                                 </span>
                               )}
@@ -978,18 +978,18 @@ export default function Statistics() {
                                 return (
                                   <div key={dayKey} className="flex items-center justify-center">
                                     {mins > 0 ? (
-                                      <span className="text-[10px] font-bold text-[#001A80] tabular-nums">
+                                      <span className="text-[10px] font-bold text-white/80 tabular-nums">
                                         {formatMinutesToHoursAndMinutes(mins)}
                                       </span>
                                     ) : (
-                                      <span className="text-[10px] text-slate-300">—</span>
+                                      <span className="text-[10px] text-white/25">—</span>
                                     )}
                                   </div>
                                 );
                               })}
                             </div>
                             <div className="w-[44px] shrink-0 text-right pr-1">
-                              <span className={`text-[11px] font-extrabold tabular-nums ${userWeekTotal > 0 ? 'text-[#001A80]' : 'text-slate-300'}`}>
+                              <span className={`text-[11px] font-extrabold tabular-nums ${userWeekTotal > 0 ? 'text-white/80' : 'text-white/25'}`}>
                                 {userWeekTotal > 0 ? formatMinutesToHoursAndMinutes(userWeekTotal) : '—'}
                               </span>
                             </div>
@@ -998,8 +998,8 @@ export default function Statistics() {
                       })}
                       {/* Footer totali giornalieri su mobile */}
                       {showManagementStatsChrome && weekTotal > 0 && (
-                        <div className="flex items-center gap-1 pt-1 border-t border-[#001A80]/15 mt-1 bg-[#001A80]/6 rounded-lg">
-                          <div className="w-[72px] shrink-0 pl-1 text-[9px] font-bold uppercase tracking-wide text-[#001A80]">
+                        <div className="flex items-center gap-1 pt-1 border-t border-white/12 mt-1 bg-white/7 rounded-lg">
+                          <div className="w-[72px] shrink-0 pl-1 text-[9px] font-bold uppercase tracking-wide text-white/80">
                             {t.stats_total}
                           </div>
                           <div className="grid flex-1 gap-0" style={{ gridTemplateColumns: `repeat(${weekDays.length}, 1fr)` }}>
@@ -1012,18 +1012,18 @@ export default function Statistics() {
                               return (
                                 <div key={dayKey} className="flex items-center justify-center">
                                   {dayTotal > 0 ? (
-                                    <span className="text-[10px] font-bold text-[#001A80] tabular-nums">
+                                    <span className="text-[10px] font-bold text-white/80 tabular-nums">
                                       {formatMinutesToHoursAndMinutes(dayTotal)}
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] text-slate-300">—</span>
+                                    <span className="text-[10px] text-white/25">—</span>
                                   )}
                                 </div>
                               );
                             })}
                           </div>
                           <div className="w-[44px] shrink-0 text-right pr-1">
-                            <span className="text-[11px] font-extrabold text-[#001A80] tabular-nums">
+                            <span className="text-[11px] font-extrabold text-white/80 tabular-nums">
                               {formatMinutesToHoursAndMinutes(weekTotal)}
                             </span>
                           </div>
@@ -1041,21 +1041,21 @@ export default function Statistics() {
                           <col style={{ width: '72px' }} />
                         </colgroup>
                         <thead>
-                          <tr className="bg-[#001A80]/6" style={{ boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.70), 0 2px 0 rgba(0,26,128,0.12), 0 3px 0 rgba(255,255,255,0.60)' }}>
-                            <th className="sticky left-0 z-10 bg-[#001A80]/7 backdrop-blur-sm py-2 pl-5 pr-3 text-left text-[9px] font-bold uppercase tracking-wider text-[#001A80] border-r border-[#001A80]/15">
+                          <tr className="bg-white/8" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)' }}>
+                            <th className="sticky left-0 z-10 bg-white/8 backdrop-blur-sm py-2 pl-5 pr-3 text-left text-[9px] font-bold uppercase tracking-wider text-white/80 border-r border-white/12">
                               {tv.department_filter_label ?? 'Nome'}
                             </th>
                             {weekDays.map((day) => (
-                              <th key={format(day, 'yyyy-MM-dd')} className="py-2 px-1 text-center border-r border-[#001A80]/10 last:border-r-0">
-                                <span className="block text-[9px] font-bold uppercase tracking-wider text-[#001A80]">
+                              <th key={format(day, 'yyyy-MM-dd')} className="py-2 px-1 text-center border-r border-white/10 last:border-r-0">
+                                <span className="block text-[9px] font-bold uppercase tracking-wider text-white/80">
                                   {format(day, 'EEE', { locale: statsLoc })}
                                 </span>
-                                <span className="block text-[9px] font-semibold text-[#001A80] tabular-nums">
+                                <span className="block text-[9px] font-semibold text-white/80 tabular-nums">
                                   {format(day, 'dd/MM')}
                                 </span>
                               </th>
                             ))}
-                            <th className="py-2 pr-5 text-right text-[9px] font-bold uppercase tracking-wider text-[#001A80]">
+                            <th className="py-2 pr-5 text-right text-[9px] font-bold uppercase tracking-wider text-white/80">
                               Tot.
                             </th>
                           </tr>
@@ -1063,15 +1063,15 @@ export default function Statistics() {
                         <tbody>
                           {filteredUsers.map((u, i) => {
                             const userWeekTotal = minutesByUserByWeek[u.id]?.[w.key] ?? 0;
-                            const rowBg = i % 2 === 0 ? 'bg-[#001A80]/5' : '';
+                            const rowBg = i % 2 === 0 ? 'bg-white/5' : '';
                             return (
                               <tr key={u.id} className={`${rowBg} depth-row`}>
-                                <td className={`sticky left-0 z-10 backdrop-blur-sm py-2.5 pl-5 pr-3 border-r border-[#001A80]/15 ${i % 2 === 0 ? 'bg-[#001A80]/5' : 'bg-white'}`}>
-                                  <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-800 truncate">
+                                <td className={`sticky left-0 z-10 backdrop-blur-sm py-2.5 pl-5 pr-3 border-r border-white/12 ${i % 2 === 0 ? 'bg-white/5' : 'bg-white/3'}`}>
+                                  <span className="block text-[11px] font-semibold uppercase tracking-wide text-white truncate">
                                     {(u.first_name ?? '').trim() || '—'}
                                   </span>
                                   {deptFilter === 'all' && u.department && (
-                                    <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                                    <span className="block text-[9px] font-bold text-white/45 uppercase tracking-wider truncate">
                                       {translateDepartmentValue(u.department, effectiveLanguage)}
                                     </span>
                                   )}
@@ -1080,19 +1080,19 @@ export default function Statistics() {
                                   const dayKey = format(day, 'yyyy-MM-dd');
                                   const mins = minutesByUserByDay[u.id]?.[dayKey] ?? 0;
                                   return (
-                                    <td key={dayKey} className="py-2.5 px-1 text-center tabular-nums border-r border-[#001A80]/8 last:border-r-0">
+                                    <td key={dayKey} className="py-2.5 px-1 text-center tabular-nums border-r border-white/8 last:border-r-0">
                                       {mins > 0 ? (
-                                        <span className="text-[13px] font-bold text-[#001A80]">
+                                        <span className="text-[13px] font-bold text-white/80">
                                           {formatMinutesToHoursAndMinutes(mins)}
                                         </span>
                                       ) : (
-                                        <span className="text-[13px] font-normal text-slate-300">—</span>
+                                        <span className="text-[13px] font-normal text-white/25">—</span>
                                       )}
                                     </td>
                                   );
                                 })}
                                 <td className="py-2.5 pr-5 text-right tabular-nums">
-                                  <span className={`text-[13px] font-extrabold ${userWeekTotal > 0 ? 'text-[#001A80]' : 'text-slate-300'}`}>
+                                  <span className={`text-[13px] font-extrabold ${userWeekTotal > 0 ? 'text-white/80' : 'text-white/25'}`}>
                                     {userWeekTotal > 0 ? formatMinutesToHoursAndMinutes(userWeekTotal) : '—'}
                                   </span>
                                 </td>
@@ -1102,8 +1102,8 @@ export default function Statistics() {
                         </tbody>
                         {showManagementStatsChrome && (
                           <tfoot>
-                            <tr className="bg-[#001A80]/6" style={{ boxShadow: 'inset 0 2px 0 rgba(0,26,128,0.14), inset 0 3px 0 rgba(255,255,255,0.55), inset 0 -1.5px 5px rgba(0,0,0,0.04)' }}>
-                              <td className="sticky left-0 z-10 bg-[#001A80]/7 py-2.5 pl-5 pr-3 text-[9px] font-bold uppercase tracking-wider text-[#001A80] border-r border-[#001A80]/15">
+                            <tr className="bg-white/8" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)' }}>
+                              <td className="sticky left-0 z-10 bg-white/8 py-2.5 pl-5 pr-3 text-[9px] font-bold uppercase tracking-wider text-white/80 border-r border-white/12">
                                 {t.stats_total}
                               </td>
                               {weekDays.map((day) => {
@@ -1113,19 +1113,19 @@ export default function Statistics() {
                                   0
                                 );
                                 return (
-                                  <td key={dayKey} className="py-2.5 px-1 text-center tabular-nums border-r border-[#001A80]/10 last:border-r-0">
+                                  <td key={dayKey} className="py-2.5 px-1 text-center tabular-nums border-r border-white/10 last:border-r-0">
                                     {dayTotal > 0 ? (
-                                      <span className="text-[13px] font-bold text-[#001A80]">
+                                      <span className="text-[13px] font-bold text-white/80">
                                         {formatMinutesToHoursAndMinutes(dayTotal)}
                                       </span>
                                     ) : (
-                                      <span className="text-[13px] font-normal text-slate-300">—</span>
+                                      <span className="text-[13px] font-normal text-white/25">—</span>
                                     )}
                                   </td>
                                 );
                               })}
                               <td className="py-2.5 pr-5 text-right tabular-nums">
-                                <span className="text-[13px] font-extrabold text-[#001A80]">
+                                <span className="text-[13px] font-extrabold text-white/80">
                                   {weekTotal > 0 ? formatMinutesToHoursAndMinutes(weekTotal) : '—'}
                                 </span>
                               </td>
