@@ -214,3 +214,30 @@ These routes are reachable by any unauthenticated user who knows the URL. They a
 9. **M3** — `npm audit fix` (non-breaking) for the 8 moderate vulns.
 10. **M6** — Add `loading="lazy"` to staff avatar `<img>` tags.
 11. **L7** — Disable `/anim-preview` and `/loading-preview` in production builds.
+
+---
+
+## 🔵 Future Improvements (non urgenti — non applicare ora)
+
+### FUTURE 1 — AppContext splitting (bundle size)
+**Blocco:** `index-*.js` main chunk ~1.1 MB (obiettivo < 600 KB non raggiunto per accoppiamento AppContext).  
+**Piano:**
+- Suddividere in: `AuthContext`, `ShiftsContext`, `PresenceContext`, `UIContext`
+- `React.lazy()` su ogni route principale  
+- Prerequisito: refactor architetturale completo  
+
+### FUTURE 2 — Remaining 44 ESLint errors
+**Stato attuale:** `grep "error" | wc -l` → 44 (target < 50 ✓).  
+**Piano:** sostituire progressivamente `any` con tipi TypeScript propri.  
+**Comando verifica:** `npx eslint . --ext .ts,.tsx 2>&1 | grep "error"`
+
+### FUTURE 3 — PWA vulnerability chain (serialize-javascript)
+**Stato attuale:** 10 vuln (7 moderate, 3 high) — tutte build-time via `vite-plugin-pwa@0.19.8`.  
+**Piano:** monitorare rilascio `vite-plugin-pwa > 0.19.8` che risolva `serialize-javascript`.  
+**Comando verifica mensile:** `npm outdated vite-plugin-pwa`
+
+### FUTURE 4 — Performance monitoring
+**Piano:**
+- Web Vitals tracking (LCP, FID, CLS)
+- Sentry o equivalente per runtime error tracking
+- Bundle size check in CI/CD pipeline (es. `bundlesize` o `size-limit`)
