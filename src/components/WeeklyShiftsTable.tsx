@@ -2556,7 +2556,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 </button>
                 {wstToolbarDrawerSection === 'filters' && (
                   <div className="border-b border-white/10 py-0.5">
-                    <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white/40 border-b border-white/10">
+                    <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white/55 border-b border-white/10">
                       {t.wst_shift_status_header}
                     </div>
                     {[
@@ -2625,7 +2625,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 </button>
                 {wstToolbarDrawerSection === 'legend' && (
                   <div className="border-b border-white/10 py-2">
-                    <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                    <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/55">
                       {t.wst_shift_status_header}
                     </div>
                     {[
@@ -2677,7 +2677,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     ))}
                     {violationChromeEnabled && (
                       <div className="mt-1.5 border-t border-white/10 pt-1.5">
-                        <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                        <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/55">
                           {t.wst_violations_legend}
                         </div>
                         {[
@@ -2720,7 +2720,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 {!isStaff && canShiftOps && (
                   <>
                     <div className="border-b border-white/10 px-3 py-2.5">
-                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-white/55">
                         {(t as { stats_preset_period?: string }).stats_preset_period ?? 'Periodo Presenze'}
                       </p>
                       <DatePickerField
@@ -2785,7 +2785,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         {t.ts_save_period}
                       </button>
                     </div>
-                    <div className="border-b border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                    <div className="border-b border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/55">
                       {t.wst_registry_section}
                     </div>
                     <button
@@ -2799,7 +2799,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       <History className="h-4 w-4 shrink-0 text-white/50" strokeWidth={2.25} />
                       {t.wst_schedule_history_title}
                     </button>
-                    <div className="border-b border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                    <div className="border-b border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/55">
                       {t.wst_view_section}
                     </div>
                     {canUseShiftManagementChrome && (
@@ -2831,7 +2831,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         </span>
                       )}
                     </button>
-                    <div className="border-b border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                    <div className="border-b border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/55">
                       {t.wst_export_section}
                     </div>
                     {currentUser && isFeatureEnabled(currentUser, 'export_pdf') && (
@@ -2860,7 +2860,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 {!isStaff && canManageDrafts && (
                   <>
                     <div className="border-b border-white/10 px-3 py-2.5">
-                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-white/40">Template</p>
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-white/55">Template</p>
                       <div className="flex gap-1.5">
                         <input
                           type="text"
@@ -2912,7 +2912,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         )}
                       </div>
                     </div>
-                    <div className="border-b border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                    <div className="border-b border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/55">
                       {t.wst_planning_section}
                     </div>
                     <button
