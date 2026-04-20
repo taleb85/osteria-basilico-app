@@ -1090,7 +1090,7 @@ html.no-motion *::after {
 
 /* Separatore riga dipendente: 0.5px grigio chiarissimo */
 .shift-separator-ultra {
-  border-bottom: 0.5px solid #f1f5f9; /* slate-100 più chiaro */
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Card glassmorphism premium: dark surface con backdrop-blur 16px */

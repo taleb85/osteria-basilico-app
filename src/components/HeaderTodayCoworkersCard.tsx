@@ -175,14 +175,14 @@ export default function HeaderTodayCoworkersCard() {
     <section className="w-full px-3 py-2 sm:px-4 sm:py-3" aria-label={title}>
       {rows.length === 0 ? (
         <div className="flex items-start gap-1.5 px-1">
-          <Users className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} aria-hidden />
-          <p className="min-w-0 text-[11px] leading-snug text-slate-500">{empty}</p>
+          <Users className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/60" strokeWidth={2} aria-hidden />
+          <p className="min-w-0 text-[11px] leading-snug text-white/60">{empty}</p>
         </div>
       ) : (
         <div className="flex w-full min-w-0 flex-col gap-3">
           <div className="flex items-center justify-between px-1">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-              <span className="text-slate-900 mr-1">
+            <p className="text-[11px] font-bold text-white/60 uppercase tracking-widest">
+              <span className="text-white/60 mr-1">
                 {formatTrans(summaryTpl, { n: String(rows.length) })}
               </span>
               · {title}
@@ -227,7 +227,7 @@ export default function HeaderTodayCoworkersCard() {
                           draggable={false}
                         />
                       ) : (
-                        <span className="text-lg font-bold text-slate-400" aria-hidden>
+                        <span className="text-lg font-bold text-white/60" aria-hidden>
                           {initial}
                         </span>
                       )}
@@ -239,11 +239,11 @@ export default function HeaderTodayCoworkersCard() {
                     )}
                   </div>
                   <div className="min-w-0 w-full px-0.5">
-                    <span className="block truncate text-[9px] font-black uppercase tracking-tight text-slate-900">
+                    <span className="block truncate text-[9px] font-black uppercase tracking-tight text-white/60">
                       {r.name}
                     </span>
                     {timeCaption ? (
-                      <span className="block truncate text-[8px] font-bold tabular-nums text-slate-400 mt-0.5">
+                      <span className="block truncate text-[8px] font-bold tabular-nums text-white/60 mt-0.5">
                         {timeCaption}
                       </span>
                     ) : null}

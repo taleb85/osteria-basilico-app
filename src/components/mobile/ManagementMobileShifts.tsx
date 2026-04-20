@@ -65,7 +65,7 @@ function StatusBadge({ shift, t }: { shift: Shift; t: Record<string, string> }) 
   
   // ULTRA-CLEAN: solo check discreto per approved, niente per confirmed/draft
   if (shift.approval_status === 'approved') {
-    return <span className="text-xs text-black">✓</span>;
+    return <span className="text-xs text-white">✓</span>;
   }
   
   // Draft: niente badge visibile, il grigio del testo è sufficiente
@@ -105,8 +105,8 @@ function MyShiftsSection({
   language: string;
   t: Record<string, string>;
 }) {
-  const isDark = useDarkMode();
-  const cardBg = isDark ? { background: 'transparent' } : { background: '#ffffff' };
+  // Always dark theme
+  const cardBg = { background: 'rgba(255,255,255,0.06)' };
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
   const [closedWeeks, setClosedWeeks] = useState<Set<number>>(new Set());
   const dayLetters = getDayLetters(locale);
@@ -125,8 +125,8 @@ function MyShiftsSection({
   if (myShifts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <Calendar className="w-5 h-5 text-slate-300 mb-2" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <Calendar className="w-5 h-5 text-white/55 mb-2" />
+        <p className="text-[10px] font-bold uppercase tracking-widest text-white/55">
           {t.no_shifts ?? 'Nessun turno'}
         </p>
       </div>
@@ -157,7 +157,7 @@ function MyShiftsSection({
         return (
           <div key={wIdx}>
             <div
-              className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm"
+              className="rounded-2xl border border-white/10 overflow-hidden shadow-sm"
               style={cardBg}
             >
               {/* Griglia 7 giorni */}
@@ -175,7 +175,7 @@ function MyShiftsSection({
                     ? 'bg-[#3366CC]/[0.18] border border-[#3366CC]/[0.30]'
                     : isAbsent
                       ? 'bg-red-500/[0.08] border border-red-500/[0.18]'
-                      : 'border border-slate-50 bg-slate-50/30';
+                      : 'border border-white/8 bg-white/4';
                   return (
                     <div
                       key={i}
@@ -189,11 +189,11 @@ function MyShiftsSection({
                         });
                       }}
                     >
-                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-slate-400'}`}>
+                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-white/55'}`}>
                         {dayLetters[i]}
                       </span>
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-bold ${
-                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-slate-500'
+                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-white/55'
                       }`}>
                         {format(day, 'd')}
                       </div>
@@ -213,21 +213,22 @@ function MyShiftsSection({
               </div>
 
               {/* Stats + pulsante settimana */}
-              <div className="border-t border-slate-50 mx-3 pt-2.5 pb-3 flex items-center justify-around">
+              <div className="border-t border-white/10 mx-3 pt-2.5 pb-3 flex items-center justify-around">
                 {[
                   { label: t.shift_plural ?? 'Turni', value: confirmed.length.toString() },
                   { label: t.stat_hours_total_abbr ?? 'Ore tot', value: minsLabel(totalMins) },
                   { label: t.stat_rest_days ?? 'Riposi', value: restDays.toString() },
                 ].map(({ label, value }, i) => (
                   <div key={i} className="flex flex-col items-center gap-0.5">
-                    <span className="text-sm font-bold text-slate-800 tabular-nums">{value}</span>
-                    <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">{label}</span>
+                    <span className="text-sm font-bold text-white tabular-nums">{value}</span>
+                    <span className="text-[8px] text-white/50 uppercase font-bold tracking-wider">{label}</span>
                   </div>
                 ))}
                 <button
                   type="button"
                   onClick={() => toggleWeek(wIdx)}
-                  className="flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest border-[#3366CC]/40 text-[#3366CC]"
+                  className="flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest border-white/20 text-white/80"
+                  style={{ background: 'rgba(255,255,255,0.1)' }}
                 >
                   <span>{t.ts_period_week ?? 'Settimana'}</span>
                   <svg viewBox="0 0 16 16" fill="none" className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -248,7 +249,7 @@ function MyShiftsSection({
                   const isToday_ = isToday(day);
                   return (
                     <div key={key}>
-                      <p className="text-[10px] font-medium uppercase tracking-wider mb-3 flex items-center gap-2 text-black">
+                      <p className="text-[10px] font-medium uppercase tracking-wider mb-3 flex items-center gap-2 text-white/80">
                         {format(day, 'EEEE d MMMM', { locale })}
                         {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-black" />}
                       </p>
@@ -270,7 +271,7 @@ function MyShiftsSection({
                                 </p>
                               )}
                               {shift.department && !isAbsent && (
-                                <p className="text-[9px] font-medium uppercase tracking-wider text-slate-500">
+                                <p className="text-[9px] font-medium uppercase tracking-wider text-white/55">
                                   {translateDepartmentValue(shift.department, language as never)}
                                 </p>
                               )}
@@ -302,8 +303,8 @@ function TeamShiftsSection({
   language: string;
   t: Record<string, string>;
 }) {
-  const isDark = useDarkMode();
-  const cardBg = isDark ? { background: 'transparent' } : { background: '#ffffff' };
+  // Always dark theme
+  const cardBg = { background: 'rgba(255,255,255,0.06)' };
   const [openDays, setOpenDays] = useState<Record<string, boolean>>({});
 
   const userMap = useMemo(() => {
@@ -339,8 +340,8 @@ function TeamShiftsSection({
   if (daysWithShifts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <Users className="w-5 h-5 text-slate-300 mb-2" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <Users className="w-5 h-5 text-white/55 mb-2" />
+        <p className="text-[10px] font-bold uppercase tracking-widest text-white/55">
           Nessun turno team
         </p>
       </div>
@@ -357,27 +358,27 @@ function TeamShiftsSection({
         const confirmed = dayShifts.filter(s => s.approval_status !== 'absent');
 
         return (
-          <div key={key} className="rounded-xl border border-slate-100 overflow-hidden shadow-sm" style={cardBg}>
+          <div key={key} className="rounded-xl border border-white/10 overflow-hidden shadow-sm" style={cardBg}>
             {/* Header cassetto */}
             <button
               type="button"
               onClick={() => toggle(key)}
-              className="w-full flex items-center justify-between px-3 py-2.5 active:bg-slate-50 transition-colors"
+              className="w-full flex items-center justify-between px-3 py-2.5 active:bg-white/12 transition-colors"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className={`text-[10px] font-black uppercase tracking-widest truncate ${
-                  isToday_ ? 'text-[#3366CC]' : 'text-slate-700'
+                  isToday_ ? 'text-[#3366CC]' : 'text-white/55'
                 }`}>
                   {format(day, 'EEE d MMM', { locale })}
                 </span>
                 {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-[#3366CC] shrink-0 shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[9px] font-black tabular-nums text-slate-400">
+                <span className="text-[9px] font-black tabular-nums text-white/55">
                   {confirmed.length} {t.shift_plural ?? 'turni'}
                 </span>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                  className={`w-3.5 h-3.5 text-white/55 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                   strokeWidth={2.5}
                 />
               </div>
@@ -385,7 +386,7 @@ function TeamShiftsSection({
 
             {/* Corpo cassetto (ULTRA-CLEAN) */}
             {isOpen && (
-              <div className="border-t border-slate-100 px-4 pb-4 pt-3 flex flex-col shift-gap-ultra">
+              <div className="border-t border-white/10 px-4 pb-4 pt-3 flex flex-col shift-gap-ultra">
                 {dayShifts.map(shift => {
                   const isAbsent = shift.approval_status === 'absent';
                   const isDraft = shift.approval_status === 'draft';
@@ -396,7 +397,7 @@ function TeamShiftsSection({
                   return (
                     <div key={shift.id} className="flex items-center justify-between py-3 shift-separator-ultra">
                       <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-                        <p className="shift-name-ultra uppercase tracking-wide truncate text-black">
+                        <p className="shift-name-ultra uppercase tracking-wide truncate">
                           {fullName}
                         </p>
                         {isAbsent ? (
@@ -407,7 +408,7 @@ function TeamShiftsSection({
                           </p>
                         )}
                         {shift.department && !isAbsent && (
-                          <p className="text-[9px] font-medium uppercase tracking-wider text-slate-500">
+                          <p className="text-[9px] font-medium uppercase tracking-wider text-white/55">
                             {translateDepartmentValue(shift.department, language as never)}
                           </p>
                         )}
@@ -480,26 +481,26 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
 
         {/* Frecce + label */}
         <div
-          className="flex items-center border border-slate-300 rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md"
+          className="flex items-center border border-white/10 rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md"
           style={{ background: 'transparent', boxShadow: '0 0 0 1px rgba(0,0,0,0.06)' }}
         >
           <button
             type="button"
             onClick={() => setNavOffset(o => o - 1)}
-            className="flex items-center justify-center h-9 w-9 text-slate-500 hover:bg-slate-50 transition-colors shrink-0 border-r border-slate-100"
+            className="flex items-center justify-center h-9 w-9 text-white/55 hover:bg-white/12 transition-colors shrink-0 border-r border-white/10"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0">
-            <Calendar className="h-3 w-3 text-slate-400 shrink-0" />
-            <span className="text-[10px] font-bold text-slate-700 tabular-nums truncate">
+            <Calendar className="h-3 w-3 text-white/55 shrink-0" />
+            <span className="text-[10px] font-bold text-white/80 tabular-nums truncate">
               {rangeLabel}
             </span>
           </div>
           <button
             type="button"
             onClick={() => setNavOffset(o => o + 1)}
-            className="flex items-center justify-center h-9 w-9 text-slate-500 hover:bg-slate-50 transition-colors shrink-0 border-l border-slate-100"
+            className="flex items-center justify-center h-9 w-9 text-white/55 hover:bg-white/12 transition-colors shrink-0 border-l border-white/10"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -512,7 +513,7 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
         {/* I miei turni */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/55">
               {t.my_shifts_label ?? 'I miei turni'}
             </span>
             {myShifts.length > 0 && (
@@ -532,7 +533,7 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
         {/* Team */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/55">
               Team
             </span>
             {teamShifts.length > 0 && (
