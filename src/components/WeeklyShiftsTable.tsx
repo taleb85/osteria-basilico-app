@@ -4585,14 +4585,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               initial={{ y: 12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.06, duration: 0.22 }}
-              className="pointer-events-auto relative z-10 mt-1 flex w-full max-w-full shrink-0 flex-col overflow-hidden rounded-xl border-2 border-dashed border-amber-400 bg-amber-50/95 backdrop-blur-sm max-h-[min(42vh,320px)] min-h-0 shadow-[0_4px_16px_-4px_rgba(0,26,128,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)]"
+              className="pointer-events-auto relative z-10 mt-1 flex w-full max-w-full shrink-0 flex-col overflow-hidden rounded-xl border-2 border-dashed border-amber-400/60 bg-amber-500/10 backdrop-blur-sm max-h-[min(42vh,320px)] min-h-0 shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)]"
             >
-              <div className="flex h-8 shrink-0 items-center justify-between gap-2 border-b border-amber-200 bg-amber-100 px-2 py-0 sm:px-3">
+              <div className="flex h-8 shrink-0 items-center justify-between gap-2 border-b border-amber-400/20 bg-amber-500/15 px-2 py-0 sm:px-3">
                 <div className="flex min-h-0 min-w-0 items-center gap-1">
                   <button
                     type="button"
                     onClick={toggleOpenShiftsBarCollapsed}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-amber-300/80 bg-amber-50/70 text-amber-800 transition-colors hover:bg-amber-100/80"
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-amber-400/40 bg-amber-500/10 text-amber-300 transition-colors hover:bg-amber-500/20"
                     aria-expanded={!openShiftsBarCollapsed}
                     aria-label={
                       openShiftsBarCollapsed
@@ -4606,11 +4606,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       <ChevronUp className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
                     )}
                   </button>
-                  <span className="flex min-w-0 items-center gap-0.5 text-[10px] font-bold uppercase leading-none text-amber-800">
+                  <span className="flex min-w-0 items-center gap-0.5 text-[10px] font-bold uppercase leading-none text-amber-300">
                     <Plus className="h-2.5 w-2.5 shrink-0 sm:h-3 sm:w-3" aria-hidden />
                     <span className="truncate">{t.open_shifts}</span>
                     {openShiftsBarCollapsed && openVisibleShifts.length > 0 ? (
-                      <span className="shrink-0 tabular-nums text-[9px] font-bold normal-case text-amber-700 sm:text-[10px]">
+                      <span className="shrink-0 tabular-nums text-[9px] font-bold normal-case text-amber-400 sm:text-[10px]">
                         ({openVisibleShifts.length})
                       </span>
                     ) : null}
@@ -4620,7 +4620,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   <button
                     type="button"
                     onClick={() => setCreatingOpenShift({ date: format(weekStart, 'yyyy-MM-dd') })}
-                    className="flex h-6 shrink-0 items-center rounded-md border border-amber-300/90 bg-amber-50/60 px-2 text-[9px] font-semibold leading-none text-amber-800 hover:bg-amber-100/70 hover:text-amber-950 sm:text-[10px]"
+                    className="flex h-6 shrink-0 items-center rounded-md border border-amber-400/40 bg-amber-500/10 px-2 text-[9px] font-semibold leading-none text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 sm:text-[10px]"
                   >
                     + {t.new_open_shift}
                   </button>
