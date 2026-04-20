@@ -56,20 +56,41 @@ button:active,
 }
 
 /* Reset globale — sfondo scuro blu con gradiente, scroll naturale */
-html,
-body,
-#root {
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #050e2e;
+}
+
+body {
   margin: 0 !important;
   padding: 0 !important;
-  height: auto !important;
-  min-height: 100dvh !important;
   width: 100%;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
   overflow-x: hidden;
   overflow-y: auto;
-  background: 
+  background-color: #050e2e;
+  background:
     linear-gradient(180deg, rgba(10, 22, 40, 0.92), rgba(11, 53, 115, 0.88)),
     url('/bg-elegant-blue.png') no-repeat center top fixed;
   background-size: cover;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-primary);
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: transparent;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--text-primary);
