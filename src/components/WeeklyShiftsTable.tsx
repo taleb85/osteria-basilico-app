@@ -2207,9 +2207,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   return (
                     <div
                       ref={wstPeriodPopoverRef}
-                      style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999 }}
+                      style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999, background: 'var(--bg-surface-solid)', border: '1px solid rgba(255,255,255,0.15)' }}
                       className="w-64 rounded-xl overflow-hidden shadow-2xl"
-                    style={{ background: 'var(--bg-surface-solid)', border: '1px solid rgba(255,255,255,0.15)' }}
                     >
                       <div className="flex items-center justify-between border-b border-cyan-600/15 px-3 py-2 bg-cyan-600/5">
                         <button
