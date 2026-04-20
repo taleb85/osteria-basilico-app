@@ -1084,7 +1084,7 @@ function IosSafariInstallBanner() {
           sessionStorage.setItem('ios_install_banner_dismissed', '1');
           setVisible(false);
         }}
-        aria-label={t.close}
+        aria-label="Chiudi"
         className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors"
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg>
