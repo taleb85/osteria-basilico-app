@@ -3844,7 +3844,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     {isSelected ? (
                                       <Check className="shrink-0 w-3 h-3 opacity-90" strokeWidth={3} />
                                     ) : (flatVariant === 'approved' || isShiftPayrollFrozen(shift)) ? (
-                                      <Lock className="shrink-0 w-2.5 h-2.5 opacity-60" strokeWidth={2.5} />
+                                      <Lock className="shrink-0 w-2.5 h-2.5 text-emerald-400" strokeWidth={2.5} />
                                     ) : (
                                       <span className="shrink-0 w-2.5" />
                                     )}
