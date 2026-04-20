@@ -3226,9 +3226,8 @@ export default function Timesheets() {
                       return (
                         <div
                           ref={periodPopoverRef}
-                          style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999 }}
+                          style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999, background: '#112240' }}
                           className="w-64 rounded-xl border border-white/15 shadow-2xl overflow-hidden"
-                          style={{ background: '#112240' }}
                         >
                           {/* Header anno con navigazione */}
                           <div className="flex items-center justify-between border-b border-[#3366CC]/15 px-3 py-2 bg-[#3366CC]/5">
@@ -3412,8 +3411,8 @@ export default function Timesheets() {
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: 4, scale: 0.95 }}
                               className="fixed z-[10050] max-h-[min(70vh,420px)] w-64 overflow-y-auto rounded-xl border border-white/15 p-1 shadow-xl"
-                              style={{ background: '#112240' }}
                               style={{
+                                background: '#112240',
                                 top: weekApproveDesktopPos.top,
                                 left: weekApproveDesktopPos.left,
                                 isolation: 'isolate',
@@ -3722,7 +3721,6 @@ export default function Timesheets() {
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
                             className="hidden lg:block absolute left-0 lg:right-0 lg:left-auto top-full z-[9999] mt-1 w-48 rounded-xl border border-white/15 p-1 shadow-xl"
                             style={{ background: '#112240', isolation: 'isolate' }}
-                            style={{ isolation: 'isolate' }}
                           >
                             <button
                               type="button"
