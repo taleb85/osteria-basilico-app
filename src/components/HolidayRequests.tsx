@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { canApproveShiftActions } from '../utils/permissions';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
-import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday, isBefore, startOfDay } from 'date-fns';
 import { it } from 'date-fns/locale';
 import type { HolidayRequest } from '../types';
 import { safeFormatDate } from '../utils/safeDateFormat';
@@ -313,7 +313,7 @@ export default function HolidayRequests() {
                   <>
                     <div className="surface-glass-sm mb-4 p-4">
                       <p className="text-white font-semibold text-sm">{u?.first_name} {u?.last_name}</p>
-                      <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                      <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.75)' }}>
                         {safeFormatDate(selectedH.start_date, 'd MMM', { locale: it })} – {safeFormatDate(selectedH.end_date, 'd MMM yyyy', { locale: it })}
                       </p>
                       {'reason' in selectedH && selectedH.reason && (
@@ -390,8 +390,9 @@ export default function HolidayRequests() {
                 const holiday = getHolidayForDay(day);
                 const isPending = status === 'pending' && holiday;
                 const today = isToday(day);
+                const isPast = !today && isBefore(day, startOfDay(new Date()));
                 
-                let dayStyle: React.CSSProperties = { color: 'rgba(255, 255, 255, 0.8)' };
+                let dayStyle: React.CSSProperties = { color: isPast ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.85)' };
                 
                 if (status === 'approved') {
                   dayStyle = { background: 'rgba(16, 185, 129, 0.3)', color: '#34d399', fontWeight: 600 };
@@ -412,14 +413,14 @@ export default function HolidayRequests() {
                     style={dayStyle}
                     onMouseEnter={(e) => {
                       if (!status && !today) {
-                        e.currentTarget.style.background = 'rgba(59, 130, 246, 0.3)';
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
                         e.currentTarget.style.color = '#ffffff';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!status && !today) {
                         e.currentTarget.style.background = '';
-                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                        e.currentTarget.style.color = isPast ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.85)';
                       }
                     }}
                   >
@@ -463,7 +464,7 @@ export default function HolidayRequests() {
                                 type="button"
                                 onClick={() => void deleteHolidayRequest(h.id)}
                                 disabled={updatingId === h.id}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-500 transition-colors hover:bg-red-100 disabled:opacity-50"
+                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
                                 title="Elimina richiesta"
                               >
                                 <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -522,7 +523,7 @@ export default function HolidayRequests() {
                           type="button"
                           onClick={() => handleStatusChange(h.id, 'rejected')}
                           disabled={updatingId === h.id}
-                          className="ui-toolbar-outline gap-1 border-slate-200 text-[11px] uppercase tracking-wider hover:border-red-200 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="ui-toolbar-outline gap-1 border-slate-200 text-[11px] uppercase tracking-wider hover:border-red-200 hover:bg-red-500/15 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {updatingId === h.id ? (
                             <span className="w-3 h-3 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
@@ -596,7 +597,7 @@ export default function HolidayRequests() {
                         <button
                           type="button"
                           onClick={() => void deleteHolidayRequest(h.id)}
-                          className="ml-3 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-500 transition-colors hover:bg-red-100"
+                          className="ml-3 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20"
                           title="Elimina richiesta"
                         >
                           <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />

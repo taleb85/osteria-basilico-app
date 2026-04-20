@@ -79,7 +79,7 @@ const FeatureCard = memo(function FeatureCard({
   const Icon = SLUG_ICONS[slug] ?? Zap;
   const hasDetails = detailLines.length > 0;
   return (
-    <div className="surface-glass-sm flex h-full flex-col p-3.5 transition-colors surface-ghost-interactive hover:border-slate-300/90 sm:p-4">
+    <div className="surface-glass-sm flex h-full flex-col p-3.5 transition-colors surface-ghost-interactive hover:border-white/20 sm:p-4">
       <div className="flex items-start gap-3 min-w-0">
         <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
           <Icon className="w-[18px] h-[18px] text-accent" />
@@ -87,8 +87,8 @@ const FeatureCard = memo(function FeatureCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-sm font-semibold leading-tight text-slate-800">{label}</p>
-              <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-snug">{description}</p>
+              <p className="text-sm font-semibold leading-tight text-white/90">{label}</p>
+              <p className="text-[11px] sm:text-xs text-white/60 mt-1 leading-snug">{description}</p>
             </div>
             <button
               type="button"
@@ -96,7 +96,7 @@ const FeatureCard = memo(function FeatureCard({
               aria-checked={enabled}
               aria-label={label}
               onClick={onToggle}
-              className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 ${enabled ? 'bg-accent' : 'bg-slate-200'}`}
+              className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 ${enabled ? 'bg-accent' : 'bg-white/25'}`}
             >
               <span
                 className={`pointer-events-none absolute top-0 left-0 h-5 w-5 rounded-full bg-white toggle-knob shadow transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-0'}`}
@@ -123,8 +123,8 @@ const FeatureCard = memo(function FeatureCard({
                     transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
                     className="overflow-hidden"
                   >
-                    <div className="surface-glass-sm mt-2 bg-slate-50/40 px-2.5 py-2">
-                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <div className="surface-glass-sm mt-2 bg-white/5 px-2.5 py-2">
+                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-white/60">
                         {detailLabel}
                       </p>
                       <ul className="list-disc space-y-1 pl-3.5 text-[11px] leading-relaxed text-slate-600">
@@ -227,10 +227,10 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
           <h2 className="text-lg font-bold mb-1">{t.settings_current_user || 'Utente attuale'}</h2>
           <div className="flex items-center gap-3">
             <span className="font-semibold text-accent">{currentUser.first_name} {currentUser.last_name}</span>
-            <span className="text-xs bg-slate-200 rounded px-2 py-0.5 ml-2">{translateRole(currentUser.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</span>
+            <span className="text-xs bg-white/15 rounded px-2 py-0.5 ml-2 text-white/70">{translateRole(currentUser.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</span>
           </div>
           <button
-            className="mt-3 px-3 py-1.5 rounded bg-red-100 text-red-700 font-semibold hover:bg-red-200"
+            className="mt-3 px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/20 text-[#fca5a5] font-semibold hover:bg-red-500/30 transition-colors"
             onClick={logout}
           >
             {t.logout || 'Logout'}
@@ -285,11 +285,11 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             <h2 className="text-lg font-bold mb-1">{t.settings_current_user || 'Utente attuale'}</h2>
             <div className="flex items-center gap-3">
               <span className="font-semibold text-accent">{currentUser.first_name} {currentUser.last_name}</span>
-              <span className="text-xs bg-slate-200 rounded px-2 py-0.5 ml-2">{translateRole(currentUser.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</span>
+              <span className="text-xs bg-white/15 rounded px-2 py-0.5 ml-2 text-white/70">{translateRole(currentUser.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</span>
             </div>
           </div>
           <button
-            className="px-3 py-1.5 rounded bg-red-100 text-red-700 font-semibold hover:bg-red-200"
+            className="px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/20 text-[#fca5a5] font-semibold hover:bg-red-500/30 transition-colors"
             onClick={logout}
           >
             {t.logout || 'Logout'}
@@ -297,7 +297,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
         </div>
 
         {/* Divider */}
-        <div className="h-0.5 bg-slate-200 rounded my-6" />
+        <div className="h-px bg-white/10 rounded my-6" />
 
         {/* Sezione gestione utenti */}
         {onOpenProfilesTab && (
@@ -349,7 +349,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             <button
               type="button"
               onClick={() => setShowAdvancedFlags((v) => !v)}
-              className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors py-1 mb-1"
+              className="flex items-center gap-2 text-xs font-semibold text-white/50 hover:text-white/80 transition-colors py-1 mb-1"
             >
               <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${showAdvancedFlags ? 'rotate-180' : ''}`} />
               {(t as Record<string, string>)['impostazioni_advanced_section'] ?? 'Impostazioni avanzate'}

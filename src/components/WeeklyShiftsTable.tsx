@@ -1482,8 +1482,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     planned: {
       bg: 'hover:bg-white/15',
       text: 'text-white',
-      selRing: 'ring-slate-500/50',
-      border: 'border-l-[3px] border-l-slate-400 rounded-xl shadow-sm backdrop-blur-sm',
+      selRing: 'ring-blue-500/40',
+      border: 'border-l-[3px] border-l-blue-500/50 rounded-xl shadow-sm backdrop-blur-sm',
     },
     inprogress: {
       bg: 'hover:bg-white/15',
@@ -1507,7 +1507,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       bg: 'hover:bg-white/10',
       text: 'text-white/40',
       selRing: 'ring-slate-400/50',
-      border: 'border-l-[3px] border-l-slate-400 border-dashed rounded-xl shadow-sm backdrop-blur-sm',
+      border: 'border-l-[3px] border-l-white/25 border-dashed rounded-xl shadow-sm backdrop-blur-sm',
     },
   };
 
@@ -3820,7 +3820,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       ? 'border-2 border-amber-500'
                                       : flatVariant === 'inprogress'
                                         ? 'border-2 border-blue-500'
-                                        : 'border-2 border-dashed border-slate-500';
+                                        : 'border-2 border-dashed border-blue-500/40';
                                 const delayMins = !isAbs ? getPunchDelayMinutes(shift, punchRecords) : null;
                                 const isLate = delayMins !== null && delayMins > 5;
                                 const isSelected = selectedShiftIds.includes(shift.id);

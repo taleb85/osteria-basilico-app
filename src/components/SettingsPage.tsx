@@ -952,7 +952,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                   })}
                                 </p>
                                 <div>
-                                  <p className="ui-section-title mb-2 text-white/40">
+                                  <p className="ui-section-title mb-2">
                                     {formatTrans(t.settings_perms_tab_heading, { name: user.first_name ?? '' })}
                                   </p>
                                   <RoleFeatureSectionsBlock
@@ -985,7 +985,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                       }
                                     />
                                   </div>
-                                  <p className="text-[10px] text-white/40 mt-2 leading-snug">
+                                  <p className="text-[10px] text-white/60 mt-2 leading-snug">
                                     Template + pulsante Griglia in riga (override solo visibilità tabellone).
                                   </p>
                                 </div>
@@ -995,7 +995,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             {/* Moduli scheda Impostazioni: globali, solo Admin modifica (Permessi ruoli) */}
                             {isManagementRole(user.role) && (
                               <div>
-                                <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">
+                                <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mb-2">
                                   {formatTrans(t.settings_admin_settings_modules_heading, { name: user.first_name ?? '' })}
                                 </p>
                                 <p className="text-[11px] text-white/55 mb-2">
@@ -1366,12 +1366,12 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       <option value="bar">{t.department_bar}</option>
                     </select>
                   </div>
-                  <p className="text-[11px] text-white/40 leading-snug flex-1 pt-0 sm:pt-5">
+                  <p className="text-[11px] text-white/60 leading-snug flex-1 pt-0 sm:pt-5">
                     {t.settings_dept_permission_group_hint}
                   </p>
                 </div>
               </div>
-              <p className="text-[11px] text-white/40">{t.settings_builtin_depts_hint}</p>
+              <p className="text-[11px] text-white/60">{t.settings_builtin_depts_hint}</p>
             </div>
           </SettingsAccordionSection>
         )}
@@ -1633,7 +1633,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <div className="flex flex-col items-center gap-2 py-8 text-center">
                   <CalendarDays className="h-8 w-8 text-white/30" />
                   <p className="text-[13px] text-white/40">{t.settings_no_templates_saved ?? 'Nessun template salvato.'}</p>
-                  <p className="text-[11px] text-white/40">Salva una settimana dal tabellone turni usando il menu Template.</p>
+                  <p className="text-[11px] text-white/60">Salva una settimana dal tabellone turni usando il menu Template.</p>
                 </div>
               )}
 
@@ -1657,7 +1657,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             {tmpl.count} turno{tmpl.count !== 1 ? 'i' : ''} · {tmpl.days.map(d => DAY_LABELS[d] ?? d).join(', ')}
                           </p>
                           {tmpl.created_at && (
-                            <p className="text-[10px] text-white/40 mt-0.5">
+                            <p className="text-[10px] text-white/60 mt-0.5">
                               {new Date(tmpl.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                             </p>
                           )}
@@ -1749,7 +1749,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   </div>
                 ) : (
                   <div className="rounded-xl border border-white/10 bg-white/50 px-3 py-2.5 flex items-center justify-center">
-                    <p className="text-[10px] text-white/40 text-center leading-snug">
+                    <p className="text-[10px] text-white/60 text-center leading-snug">
                       Nessuna modifica in bozza
                     </p>
                   </div>
@@ -2301,7 +2301,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       <button
                         type="button"
                         onClick={() => setDataToolsLocked(true)}
-                        className="text-[10px] text-white/40 hover:text-white/70 transition-colors"
+                        className="text-[10px] text-white/60 hover:text-white/70 transition-colors"
                       >
                         Blocca di nuovo
                       </button>
@@ -2793,7 +2793,7 @@ function BreakRuleModal({
                     {t.settings_break_paid_btn}
                   </button>
                 </div>
-                <p className="text-[11px] text-white/40 mt-1.5">
+                <p className="text-[11px] text-white/60 mt-1.5">
                   {paid ? t.settings_break_paid_hint : t.settings_break_unpaid_hint}
                 </p>
               </div>
