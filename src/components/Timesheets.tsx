@@ -3128,13 +3128,13 @@ export default function Timesheets() {
                   aria-label={t.ts_period_chip_aria}
                   title={`${format(periodStartDate, 'dd/MM/yy', { locale })} → ${format(periodEndDate, 'dd/MM/yy', { locale })}`}
                 >
-                  <Calendar className="hidden sm:block h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-slate-500" aria-hidden />
+                  <Calendar className="hidden sm:block h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-white/50" aria-hidden />
                   <span className="min-w-0 truncate tabular-nums">
                     {viewMode === 'week'
                       ? <>
                           <span className="text-white font-extrabold">S.{weekIndex + 1}&nbsp;</span>
                           {format(weekStart, 'dd/MM', { locale })}
-                          <span className="text-slate-400 hidden sm:inline"> → {format(lastDay, 'dd/MM/yy', { locale })}</span>
+                          <span className="text-white/50 hidden sm:inline"> → {format(lastDay, 'dd/MM/yy', { locale })}</span>
                         </>
                       : <><span>{format(periodStartDate, 'dd/MM', { locale })}</span><span className="hidden sm:inline"> → {format(periodEndDate, 'dd/MM/yy', { locale })}</span></>}
                   </span>
@@ -3188,24 +3188,24 @@ export default function Timesheets() {
                       setShowPeriodPopover(next);
                     }}
                     className={`ui-toolbar-tab !px-4 lg:!px-5 !text-[11px] lg:!text-sm shrink-0 ${
-                      showPeriodPopover ? 'bg-accent/8 text-accent' : 'text-slate-700 hover:bg-slate-100'
+                      showPeriodPopover ? 'bg-accent/10 text-accent' : 'text-white/80 hover:bg-white/10'
                     } ${!periodSaved ? 'font-extrabold' : ''}`}
                     title="Seleziona periodo"
                   >
-                    <span className="text-[12px] lg:text-sm font-bold tabular-nums capitalize text-slate-800">
+                    <span className="text-[12px] lg:text-sm font-bold tabular-nums capitalize text-white">
                       {format(parseISO(periodStart), 'MMM yy', { locale })}
                     </span>
-                    <span className="h-3 w-px bg-slate-300 shrink-0 mx-1" aria-hidden />
+                    <span className="h-3 w-px bg-white/20 shrink-0 mx-1" aria-hidden />
                     {(() => {
                       const rule = (() => { try { return localStorage.getItem('osteria_period_rule') ?? 'last_sunday'; } catch { return 'last_sunday'; } })();
                       const isFixedStart = rule === 'fixed_start';
                       return (
-                        <span className={`text-[12px] lg:text-sm font-extrabold ${isFixedStart ? 'text-[#001A80]' : (periodNumWeeks === 4 ? 'text-accent' : 'text-[#001A80]')}`}>
+                        <span className={`text-[12px] lg:text-sm font-extrabold ${isFixedStart ? 'text-accent' : (periodNumWeeks === 4 ? 'text-accent' : 'text-cyan-300')}`}>
                           {periodNumWeeks} sett.
                         </span>
                       );
                     })()}
-                    <ChevronDown className={`h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-slate-500 transition-transform ${showPeriodPopover ? 'rotate-180' : ''}`} aria-hidden />
+                    <ChevronDown className={`h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-white/50 transition-transform ${showPeriodPopover ? 'rotate-180' : ''}`} aria-hidden />
                   </button>
                   </div>
 
@@ -3230,21 +3230,21 @@ export default function Timesheets() {
                           className="w-64 rounded-xl border border-white/15 shadow-2xl overflow-hidden"
                         >
                           {/* Header anno con navigazione */}
-                          <div className="flex items-center justify-between border-b border-[#3366CC]/15 px-3 py-2 bg-[#3366CC]/5">
+                          <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 bg-white/5">
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y - 1); }}
-                              className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#3366CC]/12"
+                              className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10"
                             >
                               <ChevronLeft className="h-3.5 w-3.5" />
                             </button>
-                            <span className="text-[11px] font-extrabold text-[#2255BB] tabular-nums">
+                            <span className="text-[11px] font-extrabold text-white tabular-nums">
                               {listYear}
                             </span>
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y + 1); }}
-                              className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#3366CC]/12"
+                              className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10"
                             >
                               <ChevronRight className="h-3.5 w-3.5" />
                             </button>
@@ -3258,32 +3258,32 @@ export default function Timesheets() {
                                 onClick={() => { applyAndSavePeriod(cfg); setShowPeriodPopover(false); }}
                                 className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors ${
                                   isActive
-                                    ? 'bg-[#3366CC]/10'
-                                    : 'hover:bg-[#3366CC]/5'
+                                    ? 'bg-accent/15'
+                                    : 'hover:bg-white/8'
                                 }`}
                               >
                                 <span className={`text-[12px] font-bold capitalize ${
                                   isActive
-                                    ? 'text-[#2255BB]'
+                                    ? 'text-accent'
                                     : isCurrentMonth
-                                      ? 'text-slate-800'
-                                      : 'text-slate-600'
+                                      ? 'text-white'
+                                      : 'text-white/70'
                                 }`}>
                                   {format(s, 'MMMM', { locale })}
                                   {listYear !== nowYear && (
-                                    <span className="ml-1 text-[10px] font-normal text-slate-400">{listYear}</span>
+                                    <span className="ml-1 text-[10px] font-normal text-white/40">{listYear}</span>
                                   )}
                                   {isCurrentMonth && !isActive && (
-                                    <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#3366CC] align-middle" />
+                                    <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-cyan-400 align-middle" />
                                   )}
                                 </span>
                                 <span className={`shrink-0 text-[10px] tabular-nums ${
                                   isActive
-                                    ? 'text-[#2255BB] font-bold'
-                                    : 'text-slate-400'
+                                    ? 'text-accent font-bold'
+                                    : 'text-white/45'
                                 }`}>
                                   {format(s, 'dd/MM', { locale })}–{format(e, 'dd/MM', { locale })}
-                                  <span className={`ml-1 font-extrabold ${cfg.numWeeks === 5 ? 'text-[#001A80]' : ''}`}>
+                                  <span className={`ml-1 font-extrabold ${cfg.numWeeks === 5 ? 'text-cyan-300' : ''}`}>
                                     {cfg.numWeeks}s
                                   </span>
                                 </span>
