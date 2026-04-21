@@ -12,7 +12,7 @@ import { TimeInputField } from '../ui/TimeInputField';
 import { safeFormatDate } from '../../utils/safeDateFormat';
 import MobileHome from './MobileHome';
 import { calculateUserStats } from '../../utils/stats';
-import { lightHaptic, heavyHaptic } from '../../utils/hapticFeedbackCore';
+import { hapticLight as lightHaptic, hapticHeavy as heavyHaptic } from '../../utils/haptics';
 import { useSmartPunchAction } from '../../hooks/useSmartPunchAction';
 
 const Timesheets = lazy(() => import('../Timesheets'));

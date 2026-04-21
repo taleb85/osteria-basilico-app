@@ -1,18 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { audioHapticByType, unlockAudioContext } from '../utils/hapticFeedbackCore';
+import { haptic } from '../utils/haptics';
+import { unlockAudioContext } from '../utils/hapticFeedbackCore';
 
 export type HapticType = 'success' | 'warning' | 'error' | 'click' | 'heavy' | 'medium' | 'light';
 
-// Durate in ms — minimo 20ms per essere percepibili dalla maggior parte dei motori Android
-const VIB_CONFIG: Record<HapticType, number[]> = {
-  light:   [20],
-  click:   [25],
-  medium:  [40],
-  success: [25, 60, 25],
-  warning: [40, 40, 40],
-  heavy:   [70],
-  error:   [50, 40, 50],
-};
 
 /**
  * Hook per gestire feedback multisensoriale:
@@ -50,28 +41,10 @@ export function useMultisensorialFeedback() {
     localStorage.setItem('app:hapticIntensity', String(hapticIntensity));
   }, [hapticIntensity]);
 
-  /**
-   * Feedback aptico.
-   * - iOS: Web Audio sub-bass (attiva Taptic Engine)
-   * - Android/altri: navigator.vibrate
-   */
   const triggerHapticFeedback = useCallback((type: HapticType = 'success') => {
     if (hapticIntensity === 0) return;
-
-    // Android: navigator.vibrate nativo
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try {
-        const factor = hapticIntensity / 100;
-        const base = VIB_CONFIG[type] ?? [20];
-        const scaled = base.map((v, i) => i % 2 === 0 ? Math.max(1, Math.round(v * factor)) : v);
-        navigator.vibrate(scaled);
-        return;
-      } catch { /* fallthrough a Web Audio */ }
-    }
-
-    // iOS PWA: Web Audio click — assicura che AudioContext sia running prima di suonare
     unlockAudioContext();
-    audioHapticByType(type);
+    haptic(type);
   }, [hapticIntensity]);
 
   /**

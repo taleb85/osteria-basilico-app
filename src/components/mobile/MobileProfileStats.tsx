@@ -1,5 +1,5 @@
 import { FileText, Wallet } from 'lucide-react';
-import { lightHaptic } from '../../utils/hapticFeedbackCore';
+import { hapticLight as lightHaptic } from '../../utils/haptics';
 
 const cardShadow =
   'shadow-[0_8px_30px_-12px_rgba(0,26,128,0.12),0_2px_8px_-4px_rgba(15,23,42,0.06)])]';

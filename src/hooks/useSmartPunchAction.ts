@@ -4,7 +4,8 @@ import type { User, Shift, PunchRecord } from '../types';
 import { useApp } from '../context/AppContext';
 import { isUserInRestaurantRange, getCurrentPositionCoords } from '../utils/geo';
 import { readGeofenceEnvConfig } from '../utils/geofencePunch';
-import { lightHaptic, punchInSound, punchOutSound } from '../utils/hapticFeedbackCore';
+import { hapticLight as lightHaptic } from '../utils/haptics';
+import { punchInSound, punchOutSound } from '../utils/hapticFeedbackCore';
 import { getTranslations } from '../utils/translations';
 import type { Language } from '../types';
 

@@ -127,24 +127,7 @@ export function audioHapticByType(type: AudioHapticType): void {
   }
 }
 
-export const lightHaptic = () => {
-  try {
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try { navigator.vibrate(10); return; } catch { /* fallthrough */ }
-    }
-    audioClick(440, 220, 20, 0.15);
-  } catch { /* not supported */ }
-};
-
-/** Vibrazione decisa (100ms): feedback tattile immediato per azioni importanti. */
-export function heavyHaptic(): void {
-  try {
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try { navigator.vibrate(100); } catch { /* ignore */ }
-    }
-    audioHapticByType('heavy');
-  } catch { /* not supported */ }
-}
+export { hapticLight as lightHaptic, hapticHeavy as heavyHaptic } from './haptics';
 
 /** Vibrate + ascending double-beep: usato per clock-in riuscito. */
 export function punchInSound(): void {
