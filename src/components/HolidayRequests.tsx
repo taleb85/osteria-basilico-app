@@ -39,8 +39,8 @@ export default function HolidayRequests() {
   const STATUS_CONFIG = {
     approved: {
       label: t.status_approved,
-      dot: 'bg-[#3366CC]',
-      badge: 'bg-[#3366CC]/15 text-[#2255BB] border border-[#3366CC]/30',
+      dot: 'bg-[#60a5fa]',
+      badge: 'bg-[#60a5fa]/15 text-[#93c5fd] border border-[#60a5fa]/30',
     },
     pending: {
       label: t.pending,
@@ -441,10 +441,10 @@ export default function HolidayRequests() {
           {/* My requests list (staff only) */}
           {!isAdmin && uiW('ferie.list') && (
             <div className="surface-glass overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#3366CC]/15">
+              <div className="px-5 py-4 border-b border-[#60a5fa]/15">
                 <h3 className="text-white font-semibold text-xl">{t.request_holiday}</h3>
               </div>
-              <div className="divide-y divide-[#3366CC]/10 max-h-80 overflow-y-auto">
+              <div className="divide-y divide-[#60a5fa]/10 max-h-80 overflow-y-auto">
                 {myHolidays.length === 0 ? (
                   <p className="text-white/70 text-sm text-center py-10">{t.no_holidays_yet}</p>
                 ) : myHolidays
@@ -491,11 +491,11 @@ export default function HolidayRequests() {
           {/* Pending (manager) */}
           {isAdmin && uiW('ferie.list') && pendingAll.length > 0 && (
             <div className="surface-glass overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#3366CC]/15 flex items-center justify-between">
+              <div className="px-5 py-4 border-b border-[#60a5fa]/15 flex items-center justify-between">
                 <h3 className="text-white font-semibold text-xl">{t.pending}</h3>
                 <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200/80">{pendingAll.length}</span>
               </div>
-              <div className="divide-y divide-[#3366CC]/10">
+              <div className="divide-y divide-[#60a5fa]/10">
                 {pendingAll.map((h) => {
                   const u = users.find((u) => u.id === h.user_id);
                   return (
@@ -554,7 +554,7 @@ export default function HolidayRequests() {
               <div className="px-4 py-3 border-b border-slate-50">
                 <h3 className="text-white font-semibold text-xl">{t.home_upcoming_holidays}</h3>
               </div>
-              <div className="divide-y divide-[#3366CC]/10 max-h-80 overflow-y-auto">
+              <div className="divide-y divide-[#60a5fa]/10 max-h-80 overflow-y-auto">
                 {approvedFuture
                   .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
                   .map((h) => {
@@ -570,7 +570,7 @@ export default function HolidayRequests() {
                             </p>
                           </div>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full bg-[#3366CC]/15 text-[#2255BB] text-xs font-semibold uppercase border border-[#3366CC]/30">
+                        <span className="px-2 py-0.5 rounded-full bg-[#60a5fa]/15 text-[#93c5fd] text-xs font-semibold uppercase border border-[#60a5fa]/30">
                           {t.status_approved}
                         </span>
                       </div>
@@ -583,11 +583,11 @@ export default function HolidayRequests() {
           {/* Rejected (admin) */}
           {isAdmin && uiW('ferie.list') && rejectedAll.length > 0 && (
             <div className="surface-glass overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#3366CC]/15 flex items-center justify-between">
+              <div className="px-5 py-4 border-b border-[#60a5fa]/15 flex items-center justify-between">
                 <h3 className="text-white font-semibold text-xl">{t.rejected}</h3>
                 <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold border border-red-200/80">{rejectedAll.length}</span>
               </div>
-              <div className="divide-y divide-[#3366CC]/10">
+              <div className="divide-y divide-[#60a5fa]/10">
                 {rejectedAll
                   .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                   .map((h) => {
@@ -629,7 +629,7 @@ export default function HolidayRequests() {
               <div className="px-5 py-4 border-b border-slate-100">
                 <h3 className="text-white font-semibold text-xl">{t.home_upcoming_holidays}</h3>
               </div>
-              <div className="divide-y divide-[#3366CC]/10">
+              <div className="divide-y divide-[#60a5fa]/10">
                 {myHolidays
                   .filter(h => h.status === 'approved' && new Date(h.end_date) >= new Date())
                   .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
@@ -641,7 +641,7 @@ export default function HolidayRequests() {
                           {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                         </span>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full bg-[#3366CC]/15 text-[#2255BB] text-xs font-semibold uppercase border border-[#3366CC]/30">{t.status_approved}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-[#60a5fa]/15 text-[#93c5fd] text-xs font-semibold uppercase border border-[#60a5fa]/30">{t.status_approved}</span>
                     </div>
                   ))}
               </div>

@@ -102,16 +102,16 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                   const shiftCount = hasShift && !isAbsent ? dayShifts.length : 0;
 
                   const blockCls = hasShift && !isAbsent
-                    ? 'bg-[#3366CC]/[0.18] border border-[#3366CC]/[0.30]'
+                    ? 'bg-[#60a5fa]/[0.18] border border-[#60a5fa]/[0.30]'
                     : isAbsent
                       ? 'bg-red-500/[0.08] border border-red-500/[0.18]'
                       : 'border border-white/10 bg-white/5';
 
                   return (
                     <div key={i} className="flex flex-col items-center gap-1">
-                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-white/50'}`}>{dayLetters[i]}</span>
+                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#60a5fa]' : 'text-white/50'}`}>{dayLetters[i]}</span>
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold ${
-                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-white/60'
+                        isToday_ ? 'bg-[#60a5fa] text-white shadow-[0_0_12px_rgba(96,165,250,0.4)]' : 'text-white/60'
                       }`}>
                         {format(day, 'd')}
                       </div>
@@ -151,10 +151,10 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                 if (!dayShifts.length) return null;
                 return (
                   <div key={key}>
-                    <p className="text-[10px] font-black uppercase tracking-widest mt-2 mb-1.5 text-[#3366CC] flex items-center gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest mt-2 mb-1.5 text-[#60a5fa] flex items-center gap-2">
                       {format(day, 'EEEE d MMMM', { locale })}
                       {isToday(day) && (
-                        <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />
+                        <span className="h-1 w-1 rounded-full bg-[#60a5fa] shadow-[0_0_4px_rgba(96,165,250,0.8)]" />
                       )}
                     </p>
                     {dayShifts.map(shift => {

@@ -97,7 +97,7 @@ const dayStatusCfg: Record<DayStatus, { block: string; dot?: string }> = {
   worked:   { block: 'bg-emerald-500/[0.15] border border-emerald-500/[0.30]', dot: 'bg-emerald-500' },
   late:     { block: 'bg-amber-500/[0.15] border border-amber-500/[0.30]',   dot: 'bg-amber-400' },
   absent:   { block: 'bg-red-500/[0.08] border border-red-500/[0.18]',       dot: 'bg-red-500' },
-  no_punch: { block: 'bg-[#3366CC]/[0.12] border border-[#3366CC]/[0.25]',  dot: 'bg-[#3366CC]' },
+  no_punch: { block: 'bg-[#60a5fa]/[0.12] border border-[#60a5fa]/[0.25]',  dot: 'bg-[#60a5fa]' },
   empty:    { block: 'border border-white/10 bg-white/4' },
 };
 
@@ -206,7 +206,7 @@ function MyTimesheetSection({
                   const isToday_ = isToday(day);
                   const isSelected = selectedDayKey === key;
                   const blockCls = hasShift && !isAbsent
-                    ? 'bg-[#3366CC]/[0.18] border border-[#3366CC]/[0.30]'
+                    ? 'bg-[#60a5fa]/[0.18] border border-[#60a5fa]/[0.30]'
                     : isAbsent
                       ? 'bg-red-500/[0.08] border border-red-500/[0.18]'
                       : 'border border-white/10 bg-white/4';
@@ -223,16 +223,16 @@ function MyTimesheetSection({
                         });
                       }}
                     >
-                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-white/55'}`}>
+                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#60a5fa]' : 'text-white/55'}`}>
                         {dayLetters[i]}
                       </span>
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-bold ${
-                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-white/55'
+                        isToday_ ? 'bg-[#60a5fa] text-white shadow-[0_0_12px_rgba(96,165,250,0.4)]' : 'text-white/55'
                       }`}>
                         {format(day, 'd')}
                       </div>
                       <div className={`w-full rounded-lg flex flex-col items-center justify-center py-1.5 px-0.5 min-h-[38px] transition-all ${blockCls} ${
-                        isSelected && !plannedOnly ? 'ring-2 ring-[#3366CC]/60 ring-offset-1' : ''
+                        isSelected && !plannedOnly ? 'ring-2 ring-[#60a5fa]/60 ring-offset-1' : ''
                       }`}>
                         {shiftCount > 0 && (
                           <span className="text-[13px] font-black text-white leading-none drop-shadow-sm">
@@ -292,9 +292,9 @@ function MyTimesheetSection({
                   const isToday_ = isToday(day);
                   return (
                     <div key={key}>
-                      <p className="text-[10px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-[#3366CC]">
+                      <p className="text-[10px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-[#60a5fa]">
                         {format(day, 'EEEE d MMMM', { locale })}
-                        {isToday_ && <span className="h-1 w-1 rounded-full bg-[#3366CC] shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
+                        {isToday_ && <span className="h-1 w-1 rounded-full bg-[#60a5fa] shadow-[0_0_4px_rgba(96,165,250,0.8)]" />}
                       </p>
                       {dayShifts.map(shift => {
                         const isAbsent = shift.approval_status === 'absent';
@@ -428,11 +428,11 @@ function TeamTimesheetSection({
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className={`text-[10px] font-black uppercase tracking-widest truncate ${
-                  isToday_ ? 'text-[#3366CC]' : 'text-white/55'
+                  isToday_ ? 'text-[#60a5fa]' : 'text-white/55'
                 }`}>
                   {format(day, 'EEE d MMM', { locale })}
                 </span>
-                {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-[#3366CC] shrink-0 shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
+                {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-[#60a5fa] shrink-0 shadow-[0_0_4px_rgba(96,165,250,0.8)]" />}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-[9px] font-black tabular-nums text-white/55">
@@ -549,7 +549,7 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
 
       {/* Barra navigazione periodo */}
       <div className="flex items-center gap-2 mb-5 px-4">
-        <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#3366CC]/40 text-[#3366CC] text-[9px] font-black uppercase tracking-widest shrink-0">
+        <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#60a5fa]/40 text-[#60a5fa] text-[9px] font-black uppercase tracking-widest shrink-0">
           {t.tab_period ?? 'Periodo'}
         </span>
         <div className="flex items-center border border-white/10 rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md" style={{ background: 'transparent', boxShadow: '0 0 0 1px rgba(0,0,0,0.06)' }}>
@@ -574,7 +574,7 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
         <section>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[10px] font-black uppercase tracking-widest text-white/55">{t.my_attendance_label ?? 'Le mie presenze'}</span>
-            {myShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#3366CC]">({myShifts.length})</span>}
+            {myShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#60a5fa]">({myShifts.length})</span>}
           </div>
           <MyTimesheetSection myShifts={myShifts} myPunches={myPunches} locale={locale} dayLetters={dayLetters} language={language} t={t} plannedOnly={plannedOnly} />
         </section>
@@ -583,7 +583,7 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
         <section>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[10px] font-black uppercase tracking-widest text-white/55">Team</span>
-            {teamShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#3366CC]">({teamShifts.length})</span>}
+            {teamShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#60a5fa]">({teamShifts.length})</span>}
           </div>
           <TeamTimesheetSection teamShifts={teamShifts} allPunches={teamPunches} users={users} locale={locale} language={language} t={t} plannedOnly={plannedOnly} />
         </section>

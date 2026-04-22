@@ -159,7 +159,7 @@ function MyShiftsSection({
                   const shiftCount = hasShift && !isAbsent ? dayShifts.length : 0;
                   const isSelected = selectedDayKey === key;
                   const blockCls = hasShift && !isAbsent
-                    ? 'bg-[#3366CC]/[0.18] border border-[#3366CC]/[0.30]'
+                    ? 'bg-[#60a5fa]/[0.18] border border-[#60a5fa]/[0.30]'
                     : isAbsent
                       ? 'bg-red-500/[0.08] border border-red-500/[0.18]'
                       : 'border border-white/8 bg-white/4';
@@ -176,16 +176,16 @@ function MyShiftsSection({
                         });
                       }}
                     >
-                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#3366CC]' : 'text-white/55'}`}>
+                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#60a5fa]' : 'text-white/55'}`}>
                         {dayLetters[i]}
                       </span>
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-bold ${
-                        isToday_ ? 'bg-[#3366CC] text-white shadow-[0_0_12px_rgba(51,102,204,0.4)]' : 'text-white/55'
+                        isToday_ ? 'bg-[#60a5fa] text-white shadow-[0_0_12px_rgba(96,165,250,0.4)]' : 'text-white/55'
                       }`}>
                         {format(day, 'd')}
                       </div>
                       <div className={`w-full rounded-lg flex flex-col items-center justify-center py-1.5 px-0.5 min-h-[38px] transition-all ${blockCls} ${
-                        isSelected ? 'ring-2 ring-[#3366CC]/60 ring-offset-1' : ''
+                        isSelected ? 'ring-2 ring-[#60a5fa]/60 ring-offset-1' : ''
                       }`}>
                         {shiftCount > 0 && (
                           <span className="text-[13px] font-black text-white leading-none drop-shadow-sm">
@@ -354,11 +354,11 @@ function TeamShiftsSection({
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className={`text-[10px] font-black uppercase tracking-widest truncate ${
-                  isToday_ ? 'text-[#3366CC]' : 'text-white/55'
+                  isToday_ ? 'text-[#60a5fa]' : 'text-white/55'
                 }`}>
                   {format(day, 'EEE d MMM', { locale })}
                 </span>
-                {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-[#3366CC] shrink-0 shadow-[0_0_4px_rgba(51,102,204,0.8)]" />}
+                {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-[#60a5fa] shrink-0 shadow-[0_0_4px_rgba(96,165,250,0.8)]" />}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-[9px] font-black tabular-nums text-white/55">
@@ -460,7 +460,7 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
       <div className="flex items-center gap-2 mb-5 px-4">
         {/* Toggle settimana / periodo */}
         <span
-          className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#3366CC]/40 text-[#3366CC] text-[9px] font-black uppercase tracking-widest shrink-0 cursor-pointer select-none"
+          className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#60a5fa]/40 text-[#60a5fa] text-[9px] font-black uppercase tracking-widest shrink-0 cursor-pointer select-none"
           onClick={() => { setNavMode(m => m === 'week' ? 'period' : 'week'); setNavOffset(0); }}
         >
           {navMode === 'week' ? (t.ts_period_week ?? 'Sett.') : (t.tab_period ?? 'Periodo')}
@@ -504,7 +504,7 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
               {t.my_shifts_label ?? 'I miei turni'}
             </span>
             {myShifts.length > 0 && (
-              <span className="text-[9px] font-black tabular-nums text-[#3366CC]">
+              <span className="text-[9px] font-black tabular-nums text-[#60a5fa]">
                 ({myShifts.length})
               </span>
             )}
@@ -524,7 +524,7 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
               Team
             </span>
             {teamShifts.length > 0 && (
-              <span className="text-[9px] font-black tabular-nums text-[#3366CC]">
+              <span className="text-[9px] font-black tabular-nums text-[#60a5fa]">
                 ({teamShifts.length})
               </span>
             )}
