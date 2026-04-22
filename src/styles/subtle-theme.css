@@ -4,12 +4,17 @@ html {
 }
 
 html, body, #root {
-  background-image: url('/background-wave.jpg') !important;
+  background-image: url('/background-wave.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-attachment: fixed !important;
   background-repeat: no-repeat !important;
   background-color: #1a3a6e !important;
+}
+
+/* Azzera eventuali background-color solidi su #root impostati altrove */
+#root {
+  background-color: transparent !important;
 }
 
 /* ── 2. Card/surface backgrounds +25% più chiari ── */
