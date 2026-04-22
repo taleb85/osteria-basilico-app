@@ -2883,7 +2883,9 @@ export default function Timesheets() {
 
           {/* ── Stats Cards: settimana visualizzata (management) ────────────────── */}
           {uiW('timesheet.stats_today') && canTeamTimesheetOps && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <>
+            <p className="ui-section-title mb-2">{t.tab_statistics ?? 'Statistiche'}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 max-w-4xl">
               {([
                 {
                   label: t.ts_stat_in_shift,
@@ -2958,6 +2960,7 @@ export default function Timesheets() {
                 );
               })}
             </div>
+            </>
           )}
 
           {canTeamTimesheetOps &&
