@@ -1,30 +1,37 @@
-/* ── CHANGE 1: card trasparenti ── */
-:root {
-  --bg-surface:           rgba(255, 255, 255, 0.05);
-  --bg-surface-hover:     rgba(255, 255, 255, 0.10);
-  --bg-surface-solid:     rgba(255, 255, 255, 0.08);
-  --bg-surface-secondary: rgba(255, 255, 255, 0.05);
-  --surface:              rgba(255, 255, 255, 0.05);
-  --surface-card:         rgba(255, 255, 255, 0.08);
-
-  /* ── CHANGE 2: testi più chiari ── */
-  --text-primary:   rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.70);
-  --text-muted:     rgba(255, 255, 255, 0.50);
-  --color-text:           rgba(255, 255, 255, 0.95);
-  --color-text-secondary: rgba(255, 255, 255, 0.70);
-
-  /* accent leggermente più luminoso (+15%) */
-  --accent-blue: #60a5fa;
-  --brand:       #3370FF;
-  --brand-hover: #4480FF;
-  --brand-dark:  #2255DD;
-  --flow-blue:   #3370FF;
-  --flow-primary: #3370FF;
-  --accent:       #3370FF;
+/* ── 1. Background principale +20% più chiaro ── */
+html {
+  background-color: #102548 !important;
 }
 
-/* backdrop-filter sulle superfici opache che diventano trasparenti */
+html, body, #root {
+  background:
+    linear-gradient(180deg, rgba(16, 37, 72, 0.88), rgba(14, 65, 138, 0.82)),
+    url('/bg-elegant-blue.png') no-repeat center top fixed !important;
+  background-size: cover !important;
+}
+
+/* ── 2. Card/surface backgrounds +25% più chiari ── */
+:root {
+  --bg-primary:           #102548;
+  --bg-surface:           rgba(255, 255, 255, 0.13);
+  --bg-surface-hover:     rgba(255, 255, 255, 0.18);
+  --bg-surface-solid:     rgba(255, 255, 255, 0.14);
+  --bg-surface-secondary: rgba(255, 255, 255, 0.10);
+  --surface:              rgba(255, 255, 255, 0.13);
+  --surface-card:         rgba(255, 255, 255, 0.14);
+
+  /* ── 3. Bordi più visibili ── */
+  --border-color: rgba(255, 255, 255, 0.28);
+
+  /* ── 4 & 5. Testi ── */
+  --text-primary:         rgba(255, 255, 255, 0.92);
+  --text-secondary:       rgba(255, 255, 255, 0.68);
+  --text-muted:           rgba(255, 255, 255, 0.50);
+  --color-text:           rgba(255, 255, 255, 0.92);
+  --color-text-secondary: rgba(255, 255, 255, 0.68);
+}
+
+/* backdrop-filter sulle superfici */
 .panel,
 .surface-glass,
 .surface-glass-sm,
@@ -43,22 +50,22 @@
   -webkit-backdrop-filter: blur(16px) !important;
 }
 
-/* card-factorial override (era bg-white hardcoded in @apply) */
+/* card-factorial bg esplicito */
 .card-factorial {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.14) !important;
 }
 
 /* surface-ghost hover */
 .surface-ghost-interactive:hover {
-  background: rgba(255, 255, 255, 0.10) !important;
+  background: rgba(255, 255, 255, 0.18) !important;
 }
 
-/* bg-surface-solid usato da body overrides */
+/* bg-white Tailwind override */
 body .bg-white:not(input):not(textarea):not(select):not([class*="modal"]):not([class*="pin"]):not([class*="kiosk"]) {
-  background-color: rgba(255, 255, 255, 0.08) !important;
+  background-color: rgba(255, 255, 255, 0.14) !important;
 }
 
-/* testi globali */
+/* testo globale */
 body {
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.92);
 }
