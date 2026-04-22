@@ -1,4 +1,4 @@
-import { useRef, useEffect, type ReactNode } from 'react';
+import { useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { getTranslations } from '../utils/translations';
 import type { AppNavTab } from '../utils/enabledModules';
@@ -7,15 +7,13 @@ interface TopTabBarProps {
   activeTab: AppNavTab;
   onTabChange: (tab: AppNavTab) => void;
   visibleTabs: AppNavTab[];
-  rightSlot?: ReactNode;
 }
 
-export default function TopTabBar({ activeTab, onTabChange, visibleTabs, rightSlot }: TopTabBarProps) {
+export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTabBarProps) {
   const { effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
   const activeRef = useRef<HTMLButtonElement | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const tabLabels: Record<AppNavTab, string> = {
     home: tv.home_dashboard_title ?? 'Home',
@@ -40,31 +38,14 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs, rightSl
 
   const tabs = defs.filter((d) => visible.has(d.id));
 
-  // Scroll active tab into view
-  useEffect(() => {
-    if (activeRef.current && scrollRef.current) {
-      const container = scrollRef.current;
-      const el = activeRef.current;
-      const containerLeft = container.getBoundingClientRect().left;
-      const elLeft = el.getBoundingClientRect().left;
-      const elRight = el.getBoundingClientRect().right;
-      const containerRight = container.getBoundingClientRect().right;
-      if (elLeft < containerLeft + 16 || elRight > containerRight - 16) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      }
-    }
-  }, [activeTab]);
-
   return (
     <div
-      ref={scrollRef}
-      className="top-tabbar flex items-center overflow-x-auto scrollbar-none"
+      className="top-tabbar flex items-center scrollbar-none"
       style={{
         borderTop: '1px solid rgba(255,255,255,0.07)',
-        padding: '0 10px',
       }}
     >
-      <div className="flex flex-1 overflow-x-auto scrollbar-none">
+      <div className="flex w-full">
         {tabs.map(({ id, label }) => {
           const isActive = activeTab === id;
           return (
@@ -73,11 +54,14 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs, rightSl
               ref={isActive ? activeRef : null}
               type="button"
               onClick={() => onTabChange(id)}
-              className="top-tab shrink-0 whitespace-nowrap"
+              className="top-tab whitespace-nowrap"
               style={{
-                padding: '11px 16px',
+                flex: '1 1 0',
+                minWidth: 0,
+                padding: '11px 4px',
                 fontSize: 12,
                 fontWeight: 500,
+                textAlign: 'center',
                 color: isActive ? 'white' : 'rgba(255,255,255,0.45)',
                 background: 'none',
                 border: 'none',
@@ -95,11 +79,6 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs, rightSl
           );
         })}
       </div>
-      {rightSlot && (
-        <div className="shrink-0 flex items-center ml-auto">
-          {rightSlot}
-        </div>
-      )}
     </div>
   );
 }

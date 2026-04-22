@@ -1,3 +1,4 @@
+import { type ReactNode } from 'react';
 import { LogOut, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTranslations, getDateLocale } from '../utils/translations';
@@ -26,6 +27,7 @@ interface MobileProfileHeaderProps {
   hideHeaderLogout?: boolean;
   /** Se true, nasconde il pulsante profilo (es. non-admin: profilo solo in bottom bar). */
   hideToolbarAvatar?: boolean;
+  rightExtra?: ReactNode;
 }
 
 export default function MobileProfileHeader({
@@ -37,6 +39,7 @@ export default function MobileProfileHeader({
   parentProvidesCardShell: _parentProvidesCardShell = false,
   hideHeaderLogout = false,
   hideToolbarAvatar: _hideToolbarAvatar = false,
+  rightExtra,
 }: MobileProfileHeaderProps) {
   const {
     currentUser,
@@ -135,7 +138,7 @@ export default function MobileProfileHeader({
         )}
       </div>
 
-      {/* Destra: live dot + data + campanella + logout */}
+      {/* Destra: live dot + data + (slot extra) + campanella + logout */}
       <div className="flex shrink-0 items-center gap-2">
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 6px #22d3ee', flexShrink: 0, display: 'inline-block' }} />
         <span
@@ -144,6 +147,7 @@ export default function MobileProfileHeader({
         >
           {dateLabel}
         </span>
+        {rightExtra}
         <UnifiedBellButton
           userId={currentUser?.id}
           effectiveLanguage={effectiveLanguage}

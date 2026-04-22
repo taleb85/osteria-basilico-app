@@ -719,60 +719,57 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           showOnDesktop
           compact={staffMobileCompactHeader}
           hideToolbarAvatar={false}
+          rightExtra={
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handleHardRefresh}
+                disabled={isRefreshing || dataSyncInProgress}
+                title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Sincronizza dati'}
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[9px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
+                  isRefreshing || dataSyncInProgress
+                    ? 'text-amber-500 liquid-glass-amber'
+                    : isSynced
+                      ? 'text-emerald-500 liquid-glass-green'
+                      : 'text-slate-300'
+                }`}
+              >
+                {isRefreshing || dataSyncInProgress ? (
+                  <RotateCw className="h-3.5 w-3.5 animate-spin" strokeWidth={2.5} />
+                ) : isSynced ? (
+                  <span className="relative inline-flex">
+                    <Cloud className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    <span className="absolute -bottom-0.5 -right-1 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-emerald-500 text-white" style={{ fontSize: 7 }}>✓</span>
+                  </span>
+                ) : (
+                  <CloudOff className="h-3.5 w-3.5" strokeWidth={2.5} />
+                )}
+              </button>
+              {featureFlags['unlock_with_pin'] !== false && currentUser && isManagement && (
+                <button
+                  type="button"
+                  onClick={() => setShowPinMenu(true)}
+                  title={globalPinSessionId ? 'Sessione PIN attiva' : 'Sblocca sessione PIN'}
+                  aria-label={globalPinSessionId ? 'Gestisci sessione PIN' : 'Sblocca sessione PIN'}
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[9px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
+                    globalPinSessionId
+                      ? 'text-emerald-500 liquid-glass-green'
+                      : 'text-red-500 liquid-glass-red'
+                  }`}
+                >
+                  {globalPinSessionId
+                    ? <Unlock className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    : <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />}
+                </button>
+              )}
+            </div>
+          }
         />
         {!noNavTabs && (
           <TopTabBar
             activeTab={activeTab}
             onTabChange={handleTabChange}
             visibleTabs={bottomNavTabs}
-            rightSlot={
-              <div className="shrink-0 flex items-center gap-1 pr-2">
-                <button
-                  type="button"
-                  onClick={handleHardRefresh}
-                  disabled={isRefreshing || dataSyncInProgress}
-                  title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Sincronizza dati'}
-                  className={`flex h-7 w-8 shrink-0 items-center justify-center rounded-lg text-[9px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
-                    isRefreshing || dataSyncInProgress
-                      ? 'text-amber-500 liquid-glass-amber'
-                      : isSynced
-                        ? 'text-emerald-500 liquid-glass-green'
-                        : 'text-slate-300'
-                  }`}
-                >
-                  {isRefreshing || dataSyncInProgress ? (
-                    <RotateCw className="h-3.5 w-3.5 animate-spin" strokeWidth={2.5} />
-                  ) : isSynced ? (
-                    <span className="relative inline-flex">
-                      <Cloud className="h-3.5 w-3.5" strokeWidth={2.5} />
-                      <span className="absolute -bottom-0.5 -right-1 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-emerald-500 text-white" style={{ fontSize: 7 }}>✓</span>
-                    </span>
-                  ) : (
-                    <CloudOff className="h-3.5 w-3.5" strokeWidth={2.5} />
-                  )}
-                </button>
-                {featureFlags['unlock_with_pin'] !== false && currentUser && isManagement && (
-                  <>
-                  <span className="h-4 w-px bg-white/15 shrink-0" />
-                  <button
-                    type="button"
-                    onClick={() => setShowPinMenu(true)}
-                    title={globalPinSessionId ? 'Sessione PIN attiva' : 'Sblocca sessione PIN'}
-                    aria-label={globalPinSessionId ? 'Gestisci sessione PIN' : 'Sblocca sessione PIN'}
-                    className={`flex h-7 w-8 shrink-0 items-center justify-center rounded-lg text-[9px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
-                      globalPinSessionId
-                        ? 'text-emerald-500 liquid-glass-green'
-                        : 'text-red-500 liquid-glass-red'
-                    }`}
-                  >
-                    {globalPinSessionId
-                      ? <Unlock className="h-3.5 w-3.5" strokeWidth={2.5} />
-                      : <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />}
-                  </button>
-                  </>
-                )}
-              </div>
-            }
           />
         )}
       </header>
