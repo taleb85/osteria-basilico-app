@@ -681,7 +681,6 @@ export default function StaffPersonalDashboard({
 
   /** Sub-tab interno scheda Presenze/Ore: presenze oppure statistiche. */
   const [tsStaffView, setTsStaffView] = useState<'presence' | 'stats'>('presence');
-  const showStatsSubTabStaff = featureFlags['view_stats'] !== false;
 
   // ── Navigazione periodo mobile (turni + presenze) ──────────────
   type MobileNavTab = 'week' | 'period';
@@ -999,32 +998,30 @@ export default function StaffPersonalDashboard({
                 {activeTab === 'ferie' && renderHolidays()}
                 {activeTab === 'timesheet' && (
                   <>
-                    {/* ── Sub-tab: Presenze | Statistiche ── */}
-                    {showStatsSubTabStaff && (
-                      <div className="flex items-center gap-1.5 mb-4 px-4">
-                        {(['presence', 'stats'] as const).map((v) => {
-                          const label = v === 'presence' ? (t.tab_attendance ?? 'Presenze') : (t.tab_statistics ?? 'Statistiche');
-                          const active = tsStaffView === v;
-                          return (
-                            <button
-                              key={v}
-                              type="button"
-                              onClick={() => setTsStaffView(v)}
-                              className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
-                                active
-                                  ? 'bg-[#3366CC] text-white shadow-sm'
-                                  : 'bg-transparent border border-slate-200 text-white/60 hover:border-[#3366CC]/40 hover:text-[#3366CC]'
-                              }`}
-                            >
-                              {label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
+                    {/* ── Sub-tab: Presenze | Statistiche — sempre visibile per tutti i profili ── */}
+                    <div className="flex items-center gap-1.5 mb-4 px-4">
+                      {(['presence', 'stats'] as const).map((v) => {
+                        const label = v === 'presence' ? (t.tab_attendance ?? 'Presenze') : (t.tab_statistics ?? 'Statistiche');
+                        const active = tsStaffView === v;
+                        return (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => setTsStaffView(v)}
+                            className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
+                              active
+                                ? 'bg-accent text-white shadow-sm'
+                                : 'bg-white/8 border border-white/20 text-white/60 hover:border-white/35 hover:text-white/90'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
 
                     {/* ── Statistiche ── */}
-                    {tsStaffView === 'stats' && showStatsSubTabStaff && (
+                    {tsStaffView === 'stats' && (
                       <div className="min-h-0 overflow-y-auto overscroll-y-contain scroll-smooth [-webkit-overflow-scrolling:touch] pb-1">
                         <Suspense fallback={tabSpinner}>
                           <Statistics />
