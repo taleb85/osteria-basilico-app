@@ -94,11 +94,48 @@ body {
   border-radius: 12px !important;
 }
 
-.modal-glass-panel,
+/* ── Modal e drawer: glass più visibile ── */
+.modal-glass-panel {
+  background: rgba(8, 20, 60, 0.72) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+
 .drawer-glass-panel {
-  background: rgba(5, 14, 60, 0.65) !important;
+  background: rgba(8, 20, 60, 0.80) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Input bg-slate-100/200 nei modal → dark glass */
+.modal-glass-panel input,
+.modal-glass-panel select,
+.modal-glass-panel textarea,
+.modal-glass-panel .bg-slate-100,
+.modal-glass-panel .bg-slate-200,
+.modal-glass-panel .bg-slate-50,
+.modal-glass-panel [class*="bg-slate-"] {
+  background: rgba(255, 255, 255, 0.09) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: rgba(255, 255, 255, 0.90) !important;
+}
+.modal-glass-panel .bg-slate-100:hover,
+.modal-glass-panel .bg-slate-200:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Dropdown panels */
+[class*="dropdown"],
+[class*="popover"],
+[data-radix-popper-content-wrapper] > div,
+[role="listbox"],
+[role="menu"] {
+  background: rgba(8, 20, 60, 0.92) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 
 .liquid-glass {
@@ -129,9 +166,17 @@ body .bg-slate-50:not(input):not(textarea):not(select),
 body .bg-gray-50:not(input):not(textarea):not(select) {
   background-color: rgba(255, 255, 255, 0.05) !important;
 }
+/* ── bg-slate-* globale → dark glass (esclude sfondo chiaro intenzionale) ── */
 body .bg-slate-100:not(input):not(textarea):not(select),
 body .bg-gray-100:not(input):not(textarea):not(select) {
   background-color: rgba(255, 255, 255, 0.08) !important;
+}
+/* Input con bg-slate-100 (es. EditShiftModal time pickers) */
+input.bg-slate-100, input.bg-slate-200,
+select.bg-slate-100, select.bg-slate-200 {
+  background: rgba(255, 255, 255, 0.09) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #fff !important;
 }
 
 /* ── Badge "timbrato" / confermato → cyan come nel mockup ── */
