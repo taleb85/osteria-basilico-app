@@ -117,7 +117,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
   return (
     <>
       <div
-        className={`grid grid-cols-1 gap-2 mb-3 sm:gap-3 max-w-3xl ${showEstimatedCostWidget ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
+        className={`grid grid-cols-1 gap-2 mb-3 sm:gap-3 w-full ${showEstimatedCostWidget ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
       >
         <motion.div
           initial={{ opacity: 0, y: 10 }}
