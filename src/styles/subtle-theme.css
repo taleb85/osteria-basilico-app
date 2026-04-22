@@ -2,7 +2,7 @@
 html {
   background-color: #060e1a !important;
   background: 
-    linear-gradient(rgba(5, 14, 46, 0.55), rgba(5, 14, 46, 0.55)),
+    linear-gradient(rgba(4, 10, 25, 0.85), rgba(4, 10, 25, 0.85)),
     url('/background-wave.png') no-repeat center top fixed !important;
   background-size: cover !important;
 }
