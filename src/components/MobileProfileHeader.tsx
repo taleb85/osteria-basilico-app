@@ -135,11 +135,12 @@ export default function MobileProfileHeader({
         )}
       </div>
 
-      {/* Destra: data + campanella + logout */}
-      <div className="flex shrink-0 items-center gap-3">
+      {/* Destra: live dot + data + campanella + logout */}
+      <div className="flex shrink-0 items-center gap-2">
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 6px #22d3ee', flexShrink: 0, display: 'inline-block' }} />
         <span
           className="hidden sm:inline text-[12px] font-medium whitespace-nowrap capitalize tabular-nums"
-          style={{ color: 'rgba(255,255,255,0.60)', letterSpacing: '0.01em' }}
+          style={{ color: 'rgba(255,255,255,0.65)', letterSpacing: '0.01em' }}
         >
           {dateLabel}
         </span>
@@ -154,9 +155,10 @@ export default function MobileProfileHeader({
             onClick={() => { triggerHapticFeedback('click'); onLogout?.(); }}
             title={t.header_logout}
             aria-label={t.header_logout}
-            className="flex h-8 w-9 shrink-0 items-center justify-center rounded-lg transition-all duration-200 hover:bg-red-500/20 active:scale-95 touch-manipulation text-red-400 hover:text-red-300"
+            style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s', flexShrink: 0 }}
+            className="text-white/70 hover:bg-white/15 hover:text-white active:scale-95 touch-manipulation"
           >
-            <LogOut className="w-[16px] h-[16px]" strokeWidth={2.5} aria-hidden />
+            <LogOut style={{ width: 14, height: 14 }} strokeWidth={2} aria-hidden />
           </button>
         )}
       </div>

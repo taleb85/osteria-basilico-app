@@ -75,8 +75,8 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs, rightSl
               onClick={() => onTabChange(id)}
               className="top-tab shrink-0 whitespace-nowrap"
               style={{
-                padding: '13px 18px',
-                fontSize: 13,
+                padding: '11px 16px',
+                fontSize: 12,
                 fontWeight: 500,
                 color: isActive ? 'white' : 'rgba(255,255,255,0.45)',
                 background: 'none',
