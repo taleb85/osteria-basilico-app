@@ -28,7 +28,7 @@ export default function TurniMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm flex flex-wrap items-center justify-between gap-2 p-2 shadow-sm" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+        <div className="surface-glass-sm flex flex-wrap items-center justify-between gap-2 p-2 shadow-sm" >
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="rounded-xl border border-accent/30 px-2 py-1 text-xs font-semibold text-accent">{t.today}</span>
             <div className="flex rounded-xl border border-slate-200 p-0.5">
@@ -56,7 +56,7 @@ export default function TurniMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="flex items-center justify-between gap-1 overflow-x-auto-safe rounded-xl border border-slate-100 bg-white px-2 py-2 shadow-sm" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+        <div className="flex items-center justify-between gap-1 overflow-x-auto-safe rounded-xl border border-slate-100 bg-white px-2 py-2 shadow-sm" >
           {days.map((d, i) => (
             <div
               key={d}
@@ -76,7 +76,7 @@ export default function TurniMgmtPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm overflow-hidden shadow-sm" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+        <div className="surface-glass-sm overflow-hidden shadow-sm" >
           <div className="grid grid-cols-[minmax(4rem,1fr)_repeat(7,minmax(0,1fr))] gap-px bg-slate-100 text-[10px]">
             <div className="flex items-center gap-1 bg-white px-2 py-2 font-bold text-white/50">
               <Users className="h-3 w-3" /> Team

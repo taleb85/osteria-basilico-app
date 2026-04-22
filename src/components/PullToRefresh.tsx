@@ -85,7 +85,7 @@ export default function PullToRefresh({ onRefresh, children, className = '', dis
   return (
     <div className={`flex flex-col flex-1 min-h-0 ${className}`}>
       <div
-        className="flex-shrink-0 flex items-center justify-center overflow-hidden transition-[height] duration-200 ease-out bg-[#f8fafc]"
+        className="flex-shrink-0 flex items-center justify-center overflow-hidden transition-[height] duration-200 ease-out bg-[rgba(8,20,60,0.92)]"
         style={{ height: refresherHeight }}
       >
         {showRefresher && (

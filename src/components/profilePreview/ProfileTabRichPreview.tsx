@@ -193,7 +193,7 @@ export default function ProfileTabRichPreview({
             {tv.profile_visibility_mock_hint_realistic ?? tv.profile_visibility_mock_hint ?? ''}
           </p>
         </div>
-        <div className="bg-[#f8fafc] app-horizontal-pad py-4 sm:py-6">
+        <div className="bg-transparent app-horizontal-pad py-4 sm:py-6">
           <div className="mx-auto w-full max-w-6xl space-y-5">
             {blocks}
             <GlobalPopupsPreview 

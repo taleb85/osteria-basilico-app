@@ -28,7 +28,7 @@ export default function StaffHomePreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100" >
           <h2 className="text-xl font-bold text-white">
             {t.home_greeting.replace('{name}', name)}
           </h2>
@@ -50,7 +50,7 @@ export default function StaffHomePreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass flex items-center justify-between p-4 shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+        <div className="surface-glass flex items-center justify-between p-4 shadow-sm border border-slate-100" >
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-widest text-white/50">{t.hours_this_month}</p>
             <p className="text-2xl font-bold text-white">32:00</p>

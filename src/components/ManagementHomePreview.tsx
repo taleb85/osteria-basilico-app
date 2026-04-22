@@ -368,7 +368,7 @@ export default function ManagementHomePreview({
   if (embedded) return body;
 
   return (
-    <div className="w-full max-w-3xl rounded-[1.75rem] border-[3px] border-slate-800 bg-[#f8fafc] p-3 shadow-2xl sm:p-4)]">
+    <div className="w-full max-w-3xl rounded-[1.75rem] border-[3px] border-slate-800 bg-transparent p-3 shadow-2xl sm:p-4)]">
       <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-wider text-white/60">
         {tv.profile_visibility_mock_realistic_label ?? 'Anteprima — Home gestionale (dati dimostrativi)'}
       </p>

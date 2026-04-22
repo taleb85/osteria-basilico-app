@@ -45,7 +45,7 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3 shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3 shadow-sm border border-slate-100" >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
             <ClipboardList className="h-5 w-5 text-white/60" />
           </div>
@@ -84,7 +84,7 @@ export default function TimesheetTabPreview({
             { v: '0', l: t.home_stat_missing_out, b: 'border-slate-100' },
             { v: '12', l: t.home_stat_approved, b: 'border-slate-100' },
           ].map((c) => (
-            <div key={c.l} className={`surface-glass-sm p-3 text-center ${c.b} shadow-sm border border-slate-100`} style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+            <div key={c.l} className={`surface-glass-sm p-3 text-center ${c.b} shadow-sm border border-slate-100`} >
               <p className="text-xl font-bold text-white">{c.v}</p>
               <p className="mt-0.5 text-[10px] font-medium text-white/60">{c.l}</p>
             </div>
@@ -102,15 +102,15 @@ export default function TimesheetTabPreview({
         hiddenBadge={hiddenBadge}
       >
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <div className="surface-glass-sm p-3 shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+          <div className="surface-glass-sm p-3 shadow-sm border border-slate-100" >
             <p className="text-[10px] font-bold uppercase text-white/50">{t.stats_approved_hours}</p>
             <p className="text-xl font-bold text-white">128:30</p>
           </div>
-          <div className="surface-glass-sm p-3 shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+          <div className="surface-glass-sm p-3 shadow-sm border border-slate-100" >
             <p className="text-[10px] font-bold uppercase text-white/50">{t.stats_estimated_cost}</p>
             <p className="text-xl font-bold text-white">—</p>
           </div>
-          <div className="surface-glass-sm p-3 shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+          <div className="surface-glass-sm p-3 shadow-sm border border-slate-100" >
             <p className="text-[10px] font-bold uppercase text-white/50">{t.pending}</p>
             <p className="text-xl font-bold text-amber-800">3</p>
           </div>
@@ -162,7 +162,7 @@ export default function TimesheetTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm overflow-hidden shadow-sm border border-slate-100" style={typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? { background: '#ffffff' } : {}}>
+        <div className="surface-glass-sm overflow-hidden shadow-sm border border-slate-100" >
           <div className="grid grid-cols-[minmax(4rem,1fr)_repeat(4,minmax(0,1fr))] gap-px bg-slate-100 text-[9px]">
             <div className="bg-white px-1 py-2 font-bold text-white/50">Staff</div>
             {['Lun', 'Mar', 'Mer', 'Gio'].map((d) => (

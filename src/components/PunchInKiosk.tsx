@@ -799,10 +799,10 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                           disabled={!isSelectable}
                           className={`w-full px-4 py-3 rounded-xl flex items-center gap-3 text-left transition-all duration-300 border ${
                             done
-                              ? 'bg-slate-50 border-slate-100 cursor-default'
+                              ? 'bg-white/5 border-white/12 cursor-default'
                               : awaitingOut
-                                  ? 'bg-amber-50 border-amber-200 cursor-pointer hover:bg-amber-100'
-                                  : 'bg-white border-slate-200 hover:bg-slate-50 cursor-pointer'
+                                  ? 'bg-amber-500/12 border-amber-500/30 cursor-pointer hover:bg-amber-500/22'
+                                  : 'bg-white/8 border-white/15 hover:bg-white/12 cursor-pointer'
                           } ${isSuggested ? 'ring-2 ring-accent/40' : ''}`}
                         >
                           <span
