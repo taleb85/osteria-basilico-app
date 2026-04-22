@@ -10,7 +10,7 @@ interface TopTabBarProps {
 }
 
 export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTabBarProps) {
-  const { currentUser, effectiveLanguage, featureFlags } = useApp();
+  const { effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
   const activeRef = useRef<HTMLButtonElement | null>(null);
@@ -76,11 +76,10 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTa
             onClick={() => onTabChange(id)}
             className="top-tab shrink-0 whitespace-nowrap"
             style={{
-              padding: '9px 14px',
-              fontSize: 11,
+              padding: '13px 18px',
+              fontSize: 13,
               fontWeight: 500,
               color: isActive ? 'white' : 'rgba(255,255,255,0.45)',
-              borderBottom: isActive ? '2px solid white' : '2px solid transparent',
               background: 'none',
               border: 'none',
               borderBottomWidth: 2,
