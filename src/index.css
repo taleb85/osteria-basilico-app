@@ -1741,7 +1741,7 @@ body .bg-slate-200 { background-color: rgba(255, 255, 255, 0.14) !important; }
 
 /* Gap ampio tra turni singoli all'interno della card */
 .shift-gap-ultra {
-  gap: 1rem; /* 16px */
+  gap: 0.5rem; /* 8px */
 }
 
 /* Spacing tra card settimane (margin-bottom +40%) */
