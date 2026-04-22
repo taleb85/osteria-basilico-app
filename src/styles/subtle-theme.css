@@ -1,12 +1,64 @@
+/* ── CHANGE 1: card trasparenti ── */
 :root {
-  --sp-bg: #0a192f;
-  --sp-bg-card: rgba(13, 34, 64, 0.7);
-  --sp-line: rgba(6, 182, 212, 0.15);
+  --bg-surface:           rgba(255, 255, 255, 0.05);
+  --bg-surface-hover:     rgba(255, 255, 255, 0.10);
+  --bg-surface-solid:     rgba(255, 255, 255, 0.08);
+  --bg-surface-secondary: rgba(255, 255, 255, 0.05);
+  --surface:              rgba(255, 255, 255, 0.05);
+  --surface-card:         rgba(255, 255, 255, 0.08);
+
+  /* ── CHANGE 2: testi più chiari ── */
+  --text-primary:   rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.70);
+  --text-muted:     rgba(255, 255, 255, 0.50);
+  --color-text:           rgba(255, 255, 255, 0.95);
+  --color-text-secondary: rgba(255, 255, 255, 0.70);
+
+  /* accent leggermente più luminoso (+15%) */
+  --accent-blue: #60a5fa;
+  --brand:       #3370FF;
+  --brand-hover: #4480FF;
+  --brand-dark:  #2255DD;
+  --flow-blue:   #3370FF;
+  --flow-primary: #3370FF;
+  --accent:       #3370FF;
 }
 
-html, body, #root {
-  background-color: #0a192f !important;
-  background-image:
-    radial-gradient(ellipse at 85% 85%, rgba(34, 211, 238, 0.06) 0%, transparent 55%),
-    radial-gradient(ellipse at 15% 15%, rgba(91, 124, 249, 0.06) 0%, transparent 55%) !important;
+/* backdrop-filter sulle superfici opache che diventano trasparenti */
+.panel,
+.surface-glass,
+.surface-glass-sm,
+.modal-glass-panel,
+.drawer-glass-panel,
+.card-factorial,
+.shift-card-ultra,
+.liquid-glass {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.modal-glass-panel,
+.drawer-glass-panel {
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+/* card-factorial override (era bg-white hardcoded in @apply) */
+.card-factorial {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* surface-ghost hover */
+.surface-ghost-interactive:hover {
+  background: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* bg-surface-solid usato da body overrides */
+body .bg-white:not(input):not(textarea):not(select):not([class*="modal"]):not([class*="pin"]):not([class*="kiosk"]) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* testi globali */
+body {
+  color: rgba(255, 255, 255, 0.95);
 }

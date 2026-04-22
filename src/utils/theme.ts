@@ -1,9 +1,12 @@
 /**
- * Tema fisso: Smart Pair dark.
+ * Tema fisso: l'app usa esclusivamente il tema chiaro (Blu/Light).
+ * Il supporto dark mode è stato rimosso per alleggerire il bundle CSS
+ * e garantire un'interfaccia immutabile.
  */
 
+/** Rimuove la classe `dark` e blocca il tema chiaro. */
 export function applyDocumentTheme(): void {
-  document.documentElement.classList.remove('light');
+  document.documentElement.classList.remove('dark');
 }
 
 export function persistThemePreference(): void {
@@ -13,8 +16,8 @@ export function persistThemePreference(): void {
   } catch { /* ignore */ }
 }
 
-export function readStoredThemePreference(): 'dark' {
-  return 'dark';
+export function readStoredThemePreference(): 'light' {
+  return 'light';
 }
 
 export function applyUnauthenticatedDocumentTheme(): void {

@@ -11,8 +11,8 @@
     </script>
     <script>
       (function(){
-        /* Tema fisso: Solo Dark — Smart Pair. Rimuove eventuali classi light. */
-        document.documentElement.classList.remove('light');
+        /* Tema fisso: solo Light. Rimuove classe dark e pulisce preferenze precedenti. */
+        document.documentElement.classList.remove('dark');
         try { localStorage.removeItem('userTheme'); localStorage.removeItem('theme'); } catch(e){}
 
         /* Cache-bust automatico: versione iniettata da Vite build */
@@ -76,10 +76,10 @@
     <!-- Versione app — leggibile in DevTools > Elements; generata da Vite build -->
     <meta name="app-version" content="__APP_VERSION__" />
 
-    <!-- Theme FLOW — Smart Pair dark -->
-    <meta name="color-scheme" content="dark" />
+    <!-- Theme FLOW -->
+    <meta name="color-scheme" content="only light" />
     <!-- theme-color scuro: copre Dynamic Island e safe areas con il colore app -->
-    <meta name="theme-color" content="#0a192f" />
+    <meta name="theme-color" content="#050e2e" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <!-- black-translucent → status bar trasparente, app a tutto schermo -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -89,8 +89,6 @@
     <!-- Fonts: preconnect anticipato per ridurre TTFB sui sottodomini Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Outfit — Smart Pair primary font -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <!--
       Inter (font UI principale): non-blocking via preload → onload swap.
       display=swap già nel URL: il testo è leggibile con font di sistema
@@ -108,7 +106,7 @@
       onload="this.rel='stylesheet'">
     <!-- Fallback per browser senza JS (non blocca il rendering nel caso normale) -->
     <noscript>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Inter:wght@400;500;600;700;800&family=Parisienne&family=Great+Vibes&family=Playfair+Display:wght@700;800&family=Montserrat:wght@700;800&display=swap">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Parisienne&family=Great+Vibes&family=Playfair+Display:wght@700;800&family=Montserrat:wght@700;800&display=swap">
     </noscript>
 
     <!-- Meta -->
