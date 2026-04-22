@@ -2,8 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/((?!favicon|icon-|apple-touch|flow-app-icon|manifest|sw\\.js|workbox|assets|Installa_FLOW\\.mobileconfig).*)", "destination": "/index.html" }],
+  "rewrites": [{ "source": "/((?!favicon|icon-|apple-touch|flow-app-icon|manifest|sw\\.js|workbox|assets|background-wave|bg-elegant-blue|Installa_FLOW\\.mobileconfig).*)", "destination": "/index.html" }],
   "headers": [
+    {
+      "source": "/background-wave.png",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/bg-elegant-blue.png",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
     {
       "source": "/Installa_FLOW.mobileconfig",
       "headers": [
