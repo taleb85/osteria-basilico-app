@@ -1,10 +1,12 @@
 import { LogOut, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { getTranslations } from '../utils/translations';
+import { getTranslations, getDateLocale } from '../utils/translations';
 // import { getRoleScopeHint } from '../utils/roleScopeHint'; // unused
 import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
 import { UnifiedBellButton } from './UnifiedBellButton';
 import { useState, useEffect, useRef } from 'react';
+import { format } from 'date-fns';
+import { it as itLocale } from 'date-fns/locale';
 // import { isUiWidgetVisible } from '../utils/uiScreenWidgets'; // unused
 // import { useMessages } from '../hooks/useMessages'; // unused
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
@@ -69,6 +71,14 @@ export default function MobileProfileHeader({
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // Orologio live
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const dateLabel = format(now, 'EEE d MMM · HH:mm', { locale: getDateLocale(effectiveLanguage) ?? itLocale });
+
   const t = getTranslations(effectiveLanguage);
   if (!currentUser) return null;
 
@@ -128,8 +138,14 @@ export default function MobileProfileHeader({
         )}
       </div>
 
-      {/* Destra: campanella + logout */}
-      <div className="flex shrink-0 items-center gap-1.5">
+      {/* Destra: data + campanella + logout */}
+      <div className="flex shrink-0 items-center gap-3">
+        <span
+          className="hidden sm:inline text-[12px] font-medium whitespace-nowrap capitalize tabular-nums"
+          style={{ color: 'rgba(255,255,255,0.60)', letterSpacing: '0.01em' }}
+        >
+          {dateLabel}
+        </span>
         <UnifiedBellButton
           userId={currentUser?.id}
           effectiveLanguage={effectiveLanguage}
