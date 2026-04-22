@@ -956,11 +956,10 @@ export default function StaffPersonalDashboard({
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl px-4 py-3 text-center"
                 style={{ 
-                  background: 'rgba(255, 255, 255, 0.92)',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
-                  border: 'none',
-                  boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
+                  background: 'rgba(255, 255, 255, 0.10)',
+                  backdropFilter: 'blur(14px)',
+                  WebkitBackdropFilter: 'blur(14px)',
+                  border: '1px solid rgba(255,255,255,0.18)',
                 }}
               >
                 <p className="text-white/60 text-[10px] font-medium uppercase tracking-widest mb-1">{t.week_hours}</p>
@@ -968,11 +967,10 @@ export default function StaffPersonalDashboard({
               </div>
               <div className="rounded-2xl px-4 py-3 text-center"
                 style={{ 
-                  background: 'rgba(255, 255, 255, 0.92)',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
-                  border: 'none',
-                  boxShadow: '0 4px 16px 0 rgba(11, 53, 115, 0.06)',
+                  background: 'rgba(255, 255, 255, 0.10)',
+                  backdropFilter: 'blur(14px)',
+                  WebkitBackdropFilter: 'blur(14px)',
+                  border: '1px solid rgba(255,255,255,0.18)',
                 }}
               >
                 <p className="text-white/60 text-[10px] font-medium uppercase tracking-widest mb-1">{t.shifts_week}</p>
