@@ -137,7 +137,7 @@ export function PinPadModal({
 
   const filledCount = pin.length;
 
-  const BG = 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000 72%)';
+  const BG = 'rgba(8, 18, 40, 0.72)';
   const border = '1px solid rgba(255,255,255,0.30)';
   const btnBase = { background: 'transparent', border } as React.CSSProperties;
 
@@ -249,7 +249,7 @@ export function PinPadModal({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.22 }}
       className="fixed inset-0 z-[1000000] flex flex-col items-center justify-center overflow-hidden"
-      style={{ background: BG }}
+      style={{ background: BG, backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
       {/* Card centrata — mobile e desktop */}
@@ -259,7 +259,7 @@ export function PinPadModal({
         exit={{ opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 360, damping: 30, mass: 0.9 }}
         className="flex flex-col w-full max-w-[340px] mx-4 rounded-3xl overflow-hidden"
-        style={{ border: '1px solid rgba(255,255,255,0.20)', boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}
+        style={{ background: 'linear-gradient(160deg, #1a3a6e 0%, #0d1f3c 100%)', border: '1px solid rgba(255,255,255,0.28)', boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(11,53,115,0.5)' }}
         onClick={e => e.stopPropagation()}
       >
         {content}

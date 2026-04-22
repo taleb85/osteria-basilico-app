@@ -546,12 +546,13 @@ export default function HomePage({
                         setBoardDraft('');
                         setEditingBoard(true);
                       }}
-                      className="text-left w-full text-xs text-white/55 italic hover:text-white/70 transition-colors"
+                      className="text-left w-full text-xs italic hover:opacity-80 transition-opacity"
+                      style={{ color: '#ffffff' }}
                     >
                       {t.home_board_empty}
                     </button>
                   ) : (
-                    <p className="text-xs text-white/55 italic">{t.home_board_empty}</p>
+                    <p className="text-xs italic" style={{ color: '#ffffff' }}>{t.home_board_empty}</p>
                   )}
                   {boardNote && !editingBoard && (
                     <p className="text-[10px] text-amber-600 mt-1">
@@ -774,12 +775,13 @@ export default function HomePage({
                         setBoardDraft('');
                         setEditingBoard(true);
                       }}
-                      className="text-left w-full text-xs text-white/55 italic hover:text-white/70 transition-colors"
+                      className="text-left w-full text-xs italic hover:opacity-80 transition-opacity"
+                      style={{ color: '#ffffff' }}
                     >
                       {t.home_board_empty}
                     </button>
                   ) : (
-                    <p className="text-xs text-white/55 italic">{t.home_board_empty}</p>
+                    <p className="text-xs italic" style={{ color: '#ffffff' }}>{t.home_board_empty}</p>
                   )}
                   {boardNote && !editingBoard && (
                     <p className="text-[10px] text-amber-600 mt-1">Da {boardNote.author} · {safeFormatDate(boardNote.updatedAt, 'd MMM HH:mm', { locale: it })}</p>
@@ -798,33 +800,30 @@ export default function HomePage({
 
           {/* ── Stats Bar ─────────────────────────────────────────────────── */}
           {uiW('home_mgmt.stats_bar') && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {[
               {
                 label: t.home_stat_in_shift,
                 value: inTurnoCount,
                 Icon: Users,
-                iconColor: 'text-brand-600',
-                bg: 'bg-transparent',
-                border: 'border-brand-200',
-                iconWell: 'bg-brand-100/80',
+                iconColor: 'text-accent',
+                border: 'border-accent/25',
+                iconWell: 'bg-accent/15',
               },
               {
                 label: t.home_stat_delays,
                 value: ritardiCount,
                 Icon: Clock,
-                iconColor: 'text-red-500',
-                bg: 'bg-transparent',
-                border: 'border-red-200',
-                iconWell: 'bg-red-100/80',
+                iconColor: 'text-red-400',
+                border: 'border-red-400/25',
+                iconWell: 'bg-red-500/15',
               },
               {
                 label: t.home_stat_missing_out,
                 value: senzaTimbraturaCount,
                 Icon: AlertCircle,
-                iconColor: 'text-amber-500',
-                bg: 'bg-transparent',
-                border: 'border-amber-400/45',
+                iconColor: 'text-amber-400',
+                border: 'border-amber-400/25',
                 iconWell: 'bg-amber-400/15',
               },
               {
@@ -832,24 +831,21 @@ export default function HomePage({
                 value: approvatiCount,
                 Icon: UserCheck,
                 iconColor: 'text-accent',
-                bg: 'bg-transparent',
-                border: 'border-accent/20',
+                border: 'border-accent/25',
                 iconWell: 'bg-accent/15',
               },
             ].map(({ label, value, Icon, iconColor, border, iconWell }) => (
-              <div key={label} className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 ${border}`}
-                style={{
-                  background: 'var(--bg-surface)',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
-                }}
+              <div
+                key={label}
+                className={`group w-full rounded-xl border px-3 py-2.5 flex items-center gap-2.5 text-left ${border}`}
+                style={{ background: 'rgba(255,255,255,0.10)' }}
               >
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${border} ${iconWell}`}>
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
                   <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-white leading-none">{value}</p>
-                  <p className="text-[11px] text-slate-200 mt-0.5 leading-tight">{label}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-2xl font-bold text-white leading-none tabular-nums">{value}</p>
+                  <p className="text-[11px] text-white/75 mt-1 leading-tight">{label}</p>
                 </div>
               </div>
             ))}

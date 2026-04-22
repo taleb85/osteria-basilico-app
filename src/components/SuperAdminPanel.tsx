@@ -1182,7 +1182,7 @@ function NewAdminCredentialsModal({ creds, onClose }: { creds: NewAdminCredentia
             <ShieldCheck className="w-5 h-5 text-emerald-600" />
           </div>
           <div>
-            <p className="font-bold text-slate-900 text-sm">Admin creato automaticamente</p>
+            <p className="font-bold text-white text-sm">Admin creato automaticamente</p>
             <p className="text-xs text-slate-500">Salva queste credenziali in un posto sicuro</p>
           </div>
         </div>
@@ -1404,7 +1404,7 @@ function SuperAdminPanelInner() {
 
   return (
     // light mode panel
-    <div className="min-h-screen min-h-dvh font-sans text-slate-900 bg-[#f8fafc]"
+    <div className="min-h-screen min-h-dvh font-sans text-white bg-[#f8fafc]"
       style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {/* Modal credenziali admin create automaticamente */}
@@ -1427,7 +1427,7 @@ function SuperAdminPanelInner() {
               draggable={false}
             />
             <div className="min-w-0">
-              <h1 className="text-base font-bold text-slate-900 leading-tight truncate">Super Admin</h1>
+              <h1 className="text-base font-bold text-white leading-tight truncate">Super Admin</h1>
               <p className="text-[11px] text-[#2255BB] leading-tight hidden sm:block">Gestione sedi</p>
             </div>
           </div>
@@ -1539,7 +1539,7 @@ function SuperAdminPanelInner() {
                           {/* Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-slate-900 text-sm">{t.name}</span>
+                              <span className="font-bold text-white text-sm">{t.name}</span>
                               {!t.is_active && <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200">Inattiva</span>}
                             </div>
 

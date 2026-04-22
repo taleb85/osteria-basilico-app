@@ -375,7 +375,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       transition={{ duration: 0.2 }}
       onClick={() => { if (!showForm) setShowForm(true); }}
       className="fixed inset-0 w-full flex flex-col items-center justify-center p-6 safe-area-pad font-sans antialiased text-neutral-100 overflow-hidden"
-      style={{ background: 'radial-gradient(circle at 50% 25%, rgba(180,210,255,0.20) 0%, transparent 22%), radial-gradient(ellipse at 50% 50%, #1a3785 0%, #0e1e60 18%, #050e2e 38%, #010618 62%, #000 100%)' }}
+      style={{ background: 'linear-gradient(180deg, rgba(13,31,60,0.88), rgba(11,53,115,0.82)), url(/bg-elegant-blue.png) no-repeat center top / cover', backgroundColor: '#0d1f3c' }}
     >
       {/* F watermark di sfondo */}
       <div

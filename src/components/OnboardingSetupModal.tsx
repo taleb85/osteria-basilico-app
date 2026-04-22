@@ -189,10 +189,10 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               <div className="w-16 h-16 rounded-full bg-[#001A80]/10 flex items-center justify-center">
                 <CheckCircle className="w-8 h-8 text-[#001A80]" strokeWidth={2} />
               </div>
-              <p className="text-lg font-bold text-slate-900">
+              <p className="text-lg font-bold text-white">
                 {lang === 'it' ? 'Profilo configurato!' : lang === 'es' ? '¡Perfil configurado!' : lang === 'fr' ? 'Profil configuré !' : 'Profile set up!'}
               </p>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-white/60">
                 {lang === 'it' ? 'Accesso in corso…' : 'Loading…'}
               </p>
             </motion.div>
@@ -200,7 +200,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
             <div className="space-y-5">
               {/* EMAIL */}
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                <label className="block text-xs font-semibold text-white/60 uppercase tracking-wide mb-1.5">
                   <Mail className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#001A80]" />
                   {lang === 'it' ? 'Email personale' : lang === 'es' ? 'Email personal' : lang === 'fr' ? 'Email personnelle' : 'Personal email'}
                 </label>
@@ -214,8 +214,8 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                   onBlur={() => setTouched((p) => ({ ...p, email: true }))}
                   onKeyDown={handleKeyDown}
                   placeholder={lang === 'it' ? 'Inserisci la tua email…' : 'Enter your email…'}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-[#001A80]/30 focus:border-[#001A80] ${
-                    emailError ? 'border-red-400 bg-red-50/50' : 'border-slate-200'
+                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-white/10 text-white placeholder:text-white/40 focus:ring-2 focus:ring-accent/30 focus:border-accent ${
+                    emailError ? 'border-red-400 bg-red-50/50' : 'border-white/20'
                   }`}
                 />
                 {emailError && (
@@ -228,7 +228,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
 
               {/* TELEFONO */}
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                <label className="block text-xs font-semibold text-white/60 uppercase tracking-wide mb-1.5">
                   <Phone className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#001A80]" />
                   {lang === 'it' ? 'Numero di telefono' : lang === 'es' ? 'Número de teléfono' : lang === 'fr' ? 'Numéro de téléphone' : 'Phone number'}
                 </label>
@@ -241,8 +241,8 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                   onBlur={() => setTouched((p) => ({ ...p, phone: true }))}
                   onKeyDown={handleKeyDown}
                   placeholder={lang === 'it' ? 'Es. +39 333 1234567' : lang === 'es' ? 'Ej. +34 600 000000' : '+1 555 000 0000'}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-[#001A80]/30 focus:border-[#001A80] ${
-                    phoneError ? 'border-red-400 bg-red-50/50' : 'border-slate-200'
+                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-white/10 text-white placeholder:text-white/40 focus:ring-2 focus:ring-accent/30 focus:border-accent ${
+                    phoneError ? 'border-red-400 bg-red-50/50' : 'border-white/20'
                   }`}
                 />
                 {phoneError && (
@@ -254,11 +254,11 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               </div>
 
               {/* DIVIDER */}
-              <div className="border-t border-slate-100" />
+              <div className="border-t border-white/10" />
 
               {/* NUOVO PIN */}
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                <label className="block text-xs font-semibold text-white/60 uppercase tracking-wide mb-1.5">
                   <Lock className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#001A80]" />
                   {lang === 'it' ? 'Nuovo PIN (4 cifre)' : lang === 'es' ? 'Nuevo PIN (4 dígitos)' : lang === 'fr' ? 'Nouveau PIN (4 chiffres)' : 'New PIN (4 digits)'}
                 </label>
@@ -271,7 +271,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                           ? 'border-[#001A80] bg-[#001A80]/8 text-[#001A80]'
                           : pinError
                           ? 'border-red-300 bg-red-50/50'
-                          : 'border-slate-200 bg-slate-50'
+                          : 'border-white/20 bg-white/10'
                       }`}
                     >
                       {pinDigits.length > i ? '●' : ''}
@@ -309,8 +309,8 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                         !k
                           ? 'pointer-events-none opacity-0'
                           : k === '⌫'
-                          ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          : 'bg-slate-100 text-slate-900 hover:bg-[#001A80]/10 hover:text-[#001A80]'
+                          ? 'bg-white/10 text-white/70 hover:bg-white/20'
+                          : 'bg-white/10 text-white hover:bg-accent/20 hover:text-accent'
                       }`}
                     >
                       {k}
@@ -327,8 +327,8 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
 
               {/* CONFERMA PIN */}
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-                  <Lock className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-slate-400" />
+                <label className="block text-xs font-semibold text-white/60 uppercase tracking-wide mb-1.5">
+                  <Lock className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-white/45" />
                   {lang === 'it' ? 'Conferma PIN' : lang === 'es' ? 'Confirmar PIN' : lang === 'fr' ? 'Confirmer le PIN' : 'Confirm PIN'}
                 </label>
                 <div className="flex gap-2.5 justify-center">
@@ -342,7 +342,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                             : 'border-red-400 bg-red-50/50 text-red-500'
                           : confirmPinError
                           ? 'border-red-300 bg-red-50/50'
-                          : 'border-slate-200 bg-slate-50'
+                          : 'border-white/20 bg-white/10'
                       }`}
                     >
                       {confirmPin.length > i ? '●' : ''}
@@ -368,8 +368,8 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                         !k
                           ? 'pointer-events-none opacity-0'
                           : k === '⌫'
-                          ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          : 'bg-slate-100 text-slate-900 hover:bg-[#00C896]/10 hover:text-[#00C896]'
+                          ? 'bg-white/10 text-white/70 hover:bg-white/20'
+                          : 'bg-white/10 text-white hover:bg-[#00C896]/20 hover:text-[#00C896]'
                       }`}
                     >
                       {k}
@@ -416,7 +416,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               </button>
 
               {/* Note privacy */}
-              <p className="text-center text-[10px] text-slate-400 leading-relaxed">
+              <p className="text-center text-[10px] text-white/45 leading-relaxed">
                 {lang === 'it'
                   ? 'I tuoi dati sono cifrati e utilizzati solo per identificarti nell\'app.'
                   : lang === 'es'

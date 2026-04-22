@@ -154,20 +154,20 @@ export function TimeInputField({
       ? 'min-h-[56px] gap-1 rounded-xl border px-2 py-2 text-3xl'
       : size === 'lg'
         ? 'min-h-[52px] gap-1 rounded-xl border px-1.5 py-2 text-xl'
-        : 'min-h-[44px] gap-0.5 rounded-xl border-2 px-1 text-sm font-semibold';
+        : 'min-h-[44px] gap-0.5 rounded-xl px-1 text-sm font-semibold';
   const inner =
     'min-w-0 flex-1 bg-transparent text-center font-bold tabular-nums text-white outline-none placeholder:text-white/30 focus:outline-none cursor-pointer';
 
   const borderTone =
     size === 'hero'
-      ? 'border-white/20 focus-within:border-transparent focus-within:ring-2 focus-within:ring-accent'
+      ? 'border-white/35 focus-within:border-transparent focus-within:ring-2 focus-within:ring-accent'
       : size === 'lg'
-        ? 'border-white/20 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30'
-        : 'border-white/20 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/25';
+        ? 'border-white/35 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30'
+        : 'focus-within:ring-2 focus-within:ring-accent/40';
 
   return (
     <div
-      className={`flex max-w-full min-w-0 touch-manipulation items-center justify-center bg-white/10 shadow-sm transition-colors ${boxSize} ${borderTone} ${disabled ? 'opacity-60' : 'cursor-text'} ${className}`.trim()}
+      className={`flex max-w-full min-w-0 touch-manipulation items-center justify-center bg-white/15 transition-colors ${boxSize} ${borderTone} ${disabled ? 'opacity-60' : 'cursor-text'} ${className}`.trim()}
       style={style}
       onBlur={(e) => {
         // Fires only when focus leaves the entire component (not moving between hour/minute)
@@ -212,6 +212,7 @@ export function TimeInputField({
         onFocus={(e) => e.target.select()}
         onKeyDown={handleHourKeyDown}
         className={`${inner} pl-2 pr-0.5`}
+        style={{ background: 'transparent' }}
       />
       <span className="select-none text-white/40" aria-hidden>
         :
@@ -231,6 +232,7 @@ export function TimeInputField({
         onFocus={(e) => e.target.select()}
         onKeyDown={handleMinuteKeyDown}
         className={`${inner} pl-0.5 pr-2`}
+        style={{ background: 'transparent' }}
       />
     </div>
   );

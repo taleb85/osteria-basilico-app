@@ -1480,34 +1480,34 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
   const VARIANT_CLASSES: Record<ShiftColorVariant, { bg: string; text: string; selRing: string; border?: string; borderBottom?: string }> = {
     planned: {
-      bg: 'hover:bg-white/15',
+      bg: 'bg-blue-500/[0.22] hover:bg-blue-500/[0.30]',
       text: 'text-white',
       selRing: 'ring-blue-500/40',
-      border: 'border-l-[3px] border-l-blue-500/50 rounded-xl shadow-sm backdrop-blur-sm',
+      border: 'border-l-[3px] border-l-blue-500/70 rounded-xl shadow-sm backdrop-blur-sm',
     },
     inprogress: {
-      bg: 'hover:bg-white/15',
+      bg: 'bg-cyan-500/[0.22] hover:bg-cyan-500/[0.30]',
       text: 'text-white',
       selRing: 'ring-cyan-500/55',
-      border: 'border-l-[3px] border-l-cyan-500 rounded-xl shadow-sm backdrop-blur-sm',
+      border: 'border-l-[3px] border-l-cyan-400 rounded-xl shadow-sm backdrop-blur-sm',
     },
     approved: {
-      bg: 'hover:bg-white/20',
+      bg: 'bg-emerald-500/[0.25] hover:bg-emerald-500/[0.35]',
       text: 'text-white',
       selRing: 'ring-cyan-600/60',
-      border: 'border-l-[3px] border-l-cyan-600 rounded-xl shadow-sm backdrop-blur-sm',
+      border: 'border-l-[3px] border-l-emerald-400 rounded-xl shadow-sm backdrop-blur-sm',
     },
     punchMissing: {
-      bg: 'hover:bg-white/15',
-      text: 'text-amber-300',
+      bg: 'bg-amber-500/[0.20] hover:bg-amber-500/[0.28]',
+      text: 'text-amber-200',
       selRing: 'ring-amber-500/60',
-      border: 'border-l-[3px] border-l-amber-500 rounded-xl shadow-sm backdrop-blur-sm',
+      border: 'border-l-[3px] border-l-amber-400 rounded-xl shadow-sm backdrop-blur-sm',
     },
     absent: {
-      bg: 'hover:bg-white/10',
-      text: 'text-white/40',
+      bg: 'bg-rose-500/[0.20] hover:bg-rose-500/[0.28]',
+      text: 'text-white/60',
       selRing: 'ring-slate-400/50',
-      border: 'border-l-[3px] border-l-white/25 border-dashed rounded-xl shadow-sm backdrop-blur-sm',
+      border: 'border-l-[3px] border-l-rose-400/60 border-dashed rounded-xl shadow-sm backdrop-blur-sm',
     },
   };
 
@@ -2053,11 +2053,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       {wTurniToolbar && (
       <>
       {/* Toolbar: navigazione + pubblica + ☰ */}
-      <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-1 overflow-x-auto relative z-[1000] mb-2">
+      <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto relative z-[1000] mb-2">
         {/* ── Sinistra: navigazione periodo / vista ── */}
-        <div className="ui-toolbar-row-tight min-w-0 shrink-0 !gap-1">
+        <div className="ui-toolbar-row-tight min-w-0 shrink-0 !gap-2">
           {/* Wrapper compatto: nav + chip data sempre vicini */}
-          <div className="flex shrink-0 flex-nowrap items-center gap-1.5">
+          <div className="flex shrink-0 flex-nowrap items-center gap-2">
           {/* Gruppo unificato: ◀ Prec. | Settimana | Mese | ▶ Pros. */}
           <div className="ui-toolbar-group">
             {/* ◀ Prec. — settimana in week mode, periodo in month mode */}
@@ -2068,7 +2068,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 else setPeriodPanOffsetWeeks(p => p - displayPeriodConfig.numWeeks);
               }}
               disabled={viewMode === 'week' && weekIndex <= 0}
-              className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 disabled:opacity-30"
+              className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 disabled:opacity-30"
               style={{ color: 'rgba(255,255,255,0.80)' }}
               aria-label={viewMode === 'week' ? 'Settimana precedente' : 'Periodo precedente'}
             >
@@ -2080,7 +2080,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             <button
               type="button"
               onClick={() => { setViewMode('week'); setPeriodPanOffsetWeeks(0); setWeekIndex(weekIndexForDateInPeriod(periodConfig)); }}
-              className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${viewMode === 'week' ? 'bg-accent text-white font-extrabold' : 'hover:bg-white/10'}`}
+              className={`ui-toolbar-tab !px-2.5 !text-xs shrink-0 ${viewMode === 'week' ? 'bg-accent text-white font-extrabold' : 'hover:bg-white/10'}`}
               style={viewMode !== 'week' ? { color: 'rgba(255,255,255,0.80)' } : {}}
             >
               {t.view_week}
@@ -2090,7 +2090,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             <button
               type="button"
               onClick={() => { setViewMode('month'); setPeriodPanOffsetWeeks(0); }}
-              className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${viewMode === 'month' && periodPanOffsetWeeks === 0 ? 'bg-accent text-white font-extrabold' : 'hover:bg-white/10'}`}
+              className={`ui-toolbar-tab !px-2.5 !text-xs shrink-0 ${viewMode === 'month' && periodPanOffsetWeeks === 0 ? 'bg-accent text-white font-extrabold' : 'hover:bg-white/10'}`}
               style={!(viewMode === 'month' && periodPanOffsetWeeks === 0) ? { color: 'rgba(255,255,255,0.80)' } : {}}
             >
               {t.view_month}
@@ -2104,7 +2104,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 else setPeriodPanOffsetWeeks(p => p + displayPeriodConfig.numWeeks);
               }}
               disabled={viewMode === 'week' && weekIndex >= maxWeekIndex}
-              className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 disabled:opacity-30"
+              className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 disabled:opacity-30"
               style={{ color: 'rgba(255,255,255,0.80)' }}
               aria-label={viewMode === 'week' ? 'Settimana successiva' : 'Periodo successivo'}
             >
@@ -2115,8 +2115,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           {viewMode === 'month' && (
             <>
               <span
-                className="hidden sm:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,16rem)] items-center truncate rounded-lg px-2 lg:px-2.5 text-[11px] lg:text-sm font-semibold tabular-nums shrink-0"
-                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)' }}
+                className="hidden sm:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,16rem)] items-center truncate rounded-lg px-3 text-xs lg:text-sm font-semibold tabular-nums shrink-0"
+                style={{ background: 'rgba(255,255,255,0.13)', border: '1px solid rgba(255,255,255,0.22)', color: 'rgba(255,255,255,0.90)' }}
                 title={`${format(monthViewPeriodStart, 'd MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })} → ${format(monthViewPeriodEnd, 'd MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })}`}
               >
                 {format(monthViewPeriodStart, 'd MMM', { locale: getDateLocale(effectiveLanguage) ?? it })} –{' '}
@@ -2136,13 +2136,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           )}
           {viewMode !== 'month' && (
             <div
-              className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-2.5 !h-9 lg:!h-10 !text-[11px] lg:!text-sm"
+              className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-3 !h-9 lg:!h-10 !text-xs lg:!text-sm"
               role="status"
               title={`${format(weekStart, 'dd/MM/yy', { locale: getDateLocale(effectiveLanguage) ?? it })} → ${format(addDays(weekStart, (viewMode === '2weeks' ? 13 : viewMode === 'day' ? 0 : 6)), 'dd/MM/yy', { locale: getDateLocale(effectiveLanguage) ?? it })}`}
             >
               <Calendar className="hidden sm:block h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-white/50" aria-hidden />
               <span className="min-w-0 truncate tabular-nums">
-                <span className="text-cyan-300 font-extrabold">S.{weekIndex + 1}&nbsp;</span>
+                <span className="text-white font-extrabold">S.{weekIndex + 1}&nbsp;</span>
                 {format(weekStart, 'dd/MM', { locale: getDateLocale(effectiveLanguage) ?? it })}
                 <span className="text-white/40 hidden sm:inline">
                   {' → '}{format(addDays(weekStart, (viewMode === '2weeks' ? 13 : viewMode === 'day' ? 0 : 6)), 'dd/MM/yy', { locale: getDateLocale(effectiveLanguage) ?? it })}
@@ -2439,7 +2439,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 await top.fn();
               }}
               className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold shadow-sm transition-all"
-              style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.85)' }}
+              style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.24)', color: 'rgba(255,255,255,0.90)' }}
               title={undoStack[0]?.label ?? 'Annulla ultima azione'}
             >
               <RotateCcw className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
@@ -2746,7 +2746,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               ? 'bg-accent text-white'
                               : ''
                           }`}
-                          style={periodDraftNumWeeks !== 4 ? { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)' } : {}}
+                          style={periodDraftNumWeeks !== 4 ? { background: 'rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.85)' } : {}}
                         >
                           {t.ts_preset_4weeks}
                         </button>
@@ -2762,7 +2762,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               ? 'bg-accent text-white'
                               : ''
                           }`}
-                          style={periodDraftNumWeeks !== 5 ? { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)' } : {}}
+                          style={periodDraftNumWeeks !== 5 ? { background: 'rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.85)' } : {}}
                         >
                           {t.ts_preset_5weeks}
                         </button>
@@ -2778,7 +2778,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           periodDraftSaved ? 'cursor-not-allowed' : 'hover:opacity-90'
                         }`}
                         style={periodDraftSaved
-                          ? { background: 'rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.35)' }
+                          ? { background: 'rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.35)' }
                           : { background: '#3b82f6', color: '#ffffff' }
                         }
                       >
@@ -2871,7 +2871,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           }}
                           placeholder={t.template_name_placeholder}
                           className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-accent"
-                          style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)', color: '#ffffff' }}
+                          style={{ background: 'rgba(255,255,255,0.13)', border: '1px solid rgba(255,255,255,0.24)', color: '#ffffff' }}
                         />
                         <button
                           type="button"
@@ -3665,8 +3665,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           >
             {(() => {
               const _isDarkGrid = true;
-              const cellBorder = '1px solid rgba(255,255,255,0.08)';
-              const headBorder = '1px solid rgba(255,255,255,0.12)';
+              const cellBorder = '1px solid rgba(255,255,255,0.18)';
+              const headBorder = '1px solid rgba(255,255,255,0.22)';
               return (
             <table className="w-full border-collapse table-fixed">
               <colgroup>
@@ -4144,7 +4144,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                               ? 'border-b-2 border-[#0052FF]/50'
                                               : 'border-b-2 border-slate-400'
                                     : 'border-b-2 border-slate-400'
-                                } relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? (dragCopyMode ? 'bg-accent/10 border-2 border-accent' : 'bg-amber-100 border-2 border-amber-400') : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-white/10' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
+                                } relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? (dragCopyMode ? 'bg-accent/10 border-2 border-accent' : 'bg-amber-100 border-2 border-amber-400') : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border border-white/[0.12]'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-white/[0.08]' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
                               >
                                 {dayShift ? (() => {
                                   const isAbsentCell = isShiftAbsentRecord(dayShift);
@@ -4367,7 +4367,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 onDragLeave={() => setDropTargetKey(null)}
                                 onDrop={(e) => { e.preventDefault(); if (draggedShiftId) { if (e.shiftKey || dragCopyMode) { handleDropShiftCopy(draggedShiftId, user.id, dayStr); } else { handleDropShift(draggedShiftId, user.id, dayStr); } setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); } }}
                                 title={eveningShift && needsCambioWarning(eveningShift) ? t.no_change_at_16 : undefined}
-                                className={`flex flex-col relative select-none focus:outline-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_1` ? (dragCopyMode ? 'bg-accent/10 border-2 border-accent' : 'bg-amber-100 border-2 border-amber-400') : eveningShift ? getCellStyle(eveningShift, selectedShiftIds.includes(eveningShift.id) || isInDragRect(1), selectedShiftIds.length > 0, eveningVariant) : isInDragRect(1) ? 'bg-accent/10 border-2 border-accent' : 'border-transparent'} ${eveningShift ? 'shift-card-hover-group' : ''} ${!eveningShift && canManageThisUser ? 'cursor-pointer hover:bg-white/10' : !eveningShift ? 'cursor-default' : eveningShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
+                                className={`flex flex-col relative select-none focus:outline-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_1` ? (dragCopyMode ? 'bg-accent/10 border-2 border-accent' : 'bg-amber-100 border-2 border-amber-400') : eveningShift ? getCellStyle(eveningShift, selectedShiftIds.includes(eveningShift.id) || isInDragRect(1), selectedShiftIds.length > 0, eveningVariant) : isInDragRect(1) ? 'bg-accent/10 border-2 border-accent' : 'border border-white/[0.12]'} ${eveningShift ? 'shift-card-hover-group' : ''} ${!eveningShift && canManageThisUser ? 'cursor-pointer hover:bg-white/[0.08]' : !eveningShift ? 'cursor-default' : eveningShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
                               >
                                 {eveningShift ? (() => {
                                   const isAbsentEv = isShiftAbsentRecord(eveningShift);
@@ -5756,7 +5756,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           <div
             className="fixed z-[999999] min-w-[172px] rounded-xl border border-white/15 shadow-xl py-1 font-sans text-sm overflow-hidden"
             style={{
-              background: '#112240',
+              background: '#152848',
               left: Math.min(contextMenu.x, window.innerWidth - 192),
               top: Math.min(contextMenu.y, window.innerHeight - 220),
             }}
@@ -6094,9 +6094,9 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
   };
 
   const inputClass =
-    'w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 font-sans text-sm font-semibold text-white shadow-sm transition-colors placeholder:text-white/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25';
+    'w-full rounded-xl border border-white/35 bg-white/15 px-3 py-2.5 font-sans text-sm font-semibold text-white shadow-sm transition-colors placeholder:text-white/55 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25';
   const labelClass =
-    'mb-1 block font-sans text-xs font-semibold uppercase tracking-wide text-white/50';
+    'mb-1.5 block font-sans text-[11px] font-bold uppercase tracking-wider text-white/85';
 
   return (
     <AnimatePresence>
@@ -6152,10 +6152,10 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               >
                 {isOpenShift ? t.open_shift : t.new_shift}
               </h2>
-              <p className="mt-0.5 font-sans text-xs text-white/40">
+              <p className="mt-0.5 font-sans text-xs" style={{ color: 'rgba(255,255,255,0.65)' }}>
                 {!isOpenShift && user && (
                   <>
-                    <span className="font-semibold text-white/70">{user.first_name}</span> ·{' '}
+                    <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.90)' }}>{user.first_name}</span> ·{' '}
                   </>
                 )}
                 {safeFormatDate(selectedDate, 'EEEE d MMM', { locale: getDateLocale(effectiveLanguage) ?? it })}
@@ -6163,7 +6163,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
             </div>
             <div className="flex flex-shrink-0 items-center gap-2">
               <div
-                className="flex flex-col items-end gap-0.5 rounded-xl bg-white/10 px-2.5 py-1 text-white/70"
+                className="flex flex-col items-end gap-0.5 rounded-xl bg-white/15 px-2.5 py-1 text-white"
                 title={
                   breakMins > 0 && deductBreak
                     ? `−${breakMins} min ${t.ts_break_deduction}`
@@ -6180,11 +6180,11 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                   </span>
                 </div>
                 {deductBreak && breakMins > 0 ? (
-                  <span className="text-[9px] font-bold text-white/50 leading-none tabular-nums">
+                  <span className="text-[9px] font-bold leading-none tabular-nums" style={{ color: 'rgba(255,255,255,0.80)' }}>
                     −{breakMins}′ {t.ts_break_deduction}
                   </span>
                 ) : !deductBreak ? (
-                  <span className="text-[9px] font-bold text-amber-700 leading-none max-w-[7rem] text-right">
+                  <span className="text-[9px] font-bold text-amber-300 leading-none max-w-[7rem] text-right">
                     {t.wst_create_shift_no_deduct_badge}
                   </span>
                 ) : null}
@@ -6194,12 +6194,12 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                 onClick={onClose}
                 className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-white/15"
               >
-                <X className="h-4 w-4 text-white/50" />
+                <X className="h-4 w-4 text-white/80" />
               </button>
             </div>
           </div>
 
-          <div className="space-y-4 bg-white/5 px-5 pb-5 pt-1 backdrop-blur-sm">
+          <div className="space-y-4 px-5 pb-5 pt-4" style={{ background: 'rgba(255,255,255,0.04)' }}>
             {/* ── Data ── */}
             <div>
               <label className={labelClass}>Data</label>
@@ -6248,7 +6248,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               if (presets.length === 0) return null;
               return (
                 <div>
-                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/40">
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/65">
                     {currentSlot === 'lunch' ? '☀️ Preset pranzo' : '🌙 Preset cena'}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -6263,9 +6263,9 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                           animate={isActive ? { scale: [1, 1.08, 1] } : { scale: 1 }}
                           transition={{ duration: 0.18, ease: 'easeOut' }}
                           className={`rounded-lg px-2.5 py-1 text-[12px] font-bold tabular-nums transition-colors ${
-                            isActive
+                              isActive
                               ? 'bg-accent text-white shadow-sm'
-                              : 'bg-white/10 text-white/70 hover:bg-white/15'
+                              : 'bg-white/15 text-white hover:bg-white/20'
                           }`}
                         >
                           {start}–{end}
@@ -6282,7 +6282,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               <button
                 type="button"
                 onClick={() => setShowAdvanced((v) => !v)}
-                className="flex w-full items-center gap-1.5 text-xs font-semibold text-white/40 hover:text-white/70 transition-colors py-1"
+                className="flex w-full items-center gap-1.5 text-xs font-semibold text-white transition-colors py-1"
               >
                 <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
                 Avanzate
@@ -6305,15 +6305,15 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                       <div className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${deductBreak ? 'translate-x-4' : 'translate-x-0'}`} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className={`text-xs font-semibold ${deductBreak ? 'text-accent' : 'text-white'}`}>{t.deduct_break_label}</p>
-                      <p className="mt-0.5 text-[11px] leading-snug text-white/50">
+                      <p className="text-xs font-semibold" style={{ color: deductBreak ? '#93c5fd' : '#ffffff', textTransform: 'none', letterSpacing: 'normal' }}>{t.deduct_break_label}</p>
+                      <p className="mt-0.5 text-[11px] leading-snug" style={{ color: deductBreak ? 'rgba(255,255,255,0.80)' : 'rgba(255,255,255,0.70)', textTransform: 'none', letterSpacing: 'normal' }}>
                         {deductBreak ? t.wst_drawer_break_deducted_readout : t.wst_create_shift_no_deduct_badge}
                       </p>
                     </div>
                   </label>
 
                   <div>
-                    <label className={labelClass}>{t.notes_label} <span className="font-normal normal-case tracking-normal text-white/40">{t.notes_optional_paren}</span></label>
+                    <label className={labelClass}>{t.notes_label} <span className="font-normal normal-case tracking-normal" style={{ color: 'rgba(255,255,255,0.60)' }}>{t.notes_optional_paren}</span></label>
                     <input
                       type="text"
                       value={publicNote}
@@ -6335,8 +6335,8 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                       <div className="toggle-knob absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold leading-tight text-white/85">Avvisa il dipendente</p>
-                      <p className="text-xs text-white/40 mt-0.5">{t.shift_visible_after_publish}</p>
+                      <p className="text-sm font-semibold leading-tight" style={{ color: '#ffffff', textTransform: 'none', letterSpacing: 'normal' }}>Avvisa il dipendente</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.72)', textTransform: 'none', letterSpacing: 'normal' }}>{t.shift_visible_after_publish}</p>
                     </div>
                   </label>
                 </div>
@@ -6356,7 +6356,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl bg-white/10 px-4 py-3 font-sans text-sm font-bold text-white/85 transition-colors hover:bg-white/15"
+                className="rounded-xl bg-white/10 px-4 py-3 font-sans text-sm font-bold text-white transition-colors hover:bg-white/15"
               >
                 {t.cancel}
               </button>

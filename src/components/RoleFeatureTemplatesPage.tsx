@@ -704,7 +704,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const renderMobileView = () => (
     <div className="sm:hidden surface-glass-sm overflow-hidden rounded-2xl">
       {/* User chips */}
-      <div className="overflow-x-auto flex gap-2 px-3 py-3 border-b border-slate-100">
+      <div className="overflow-x-auto flex gap-2 px-3 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.14)' }}>
         {nonAdminUsers.map(u => {
           const isSelected = (mobileSelectedUserId ?? nonAdminUsers[0]?.id) === u.id;
           const color = roleColor(u.role);
@@ -728,7 +728,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
       </div>
 
       {mobileUser && (
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
           {/* Schede e Navigazione */}
           <MobileSectionHeader title="Schede e Navigazione" />
           {ROLE_TEMPLATE_FEATURE_SECTIONS.find(s => s.id === 'tabs_nav')?.rows.map(({ key }) => {
@@ -818,9 +818,9 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
           {/* Intestazione colonne: dipendenti */}
           <thead>
-            <tr className="border-b border-slate-200">
+            <tr className="border-b" style={{ borderColor: 'rgba(255,255,255,0.18)' }}>
               <th
-                className="sticky left-0 z-10 bg-[#0a1628] px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-white/50"
+                className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-white/50"
                 style={{ minWidth: 180 }}
               >
                 Permesso
@@ -856,13 +856,13 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
 
             {/* ── Schede & Navigazione ── */}
             <SectionHeader title="Schede e Navigazione" />
             {ROLE_TEMPLATE_FEATURE_SECTIONS.find((s) => s.id === 'tabs_nav')?.rows.map(({ key }) => (
               <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
-                <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5">
+                <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5">
                   <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {FEATURE_LABELS_TAB_FIRST[key]}
                     {key === 'home_tab' && (
@@ -898,7 +898,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             <SectionHeader title="Operazioni Turni" />
             {ROLE_TEMPLATE_FEATURE_SECTIONS.find((s) => s.id === 'shift_ops')?.rows.map(({ key }) => (
               <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
-                <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5">
+                <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5">
                   <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {FEATURE_LABELS[key]}
                     {PERM_PREVIEWS[key] && (
@@ -926,7 +926,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             <SectionHeader title="Altro" />
             {ROLE_TEMPLATE_FEATURE_SECTIONS.find((s) => s.id === 'other')?.rows.map(({ key }) => (
               <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
-                <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5">
+                <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5">
                   <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {FEATURE_LABELS[key]}
                     {PERM_PREVIEWS[key] && (
@@ -951,7 +951,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             ))}
             {/* Presenze: solo orario pianificato (privacy griglia) */}
             <tr className="transition-colors">
-              <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5">
+              <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5">
                 <TimesheetPrivacyPreviewCell
                   t={t as Record<string, string>}
                   anyActive={Object.values(userPlannedOnly).some(Boolean)}
@@ -972,7 +972,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             <SectionHeader title="Permessi Operativi" />
             {permRows.map((perm) => (
               <tr key={perm.key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
-                <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5">
+                <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5">
                   <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {perm.label}
                     {PERM_PREVIEWS[perm.key] && (
@@ -1004,7 +1004,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             {/* ── Visibilità Tabellone ── */}
             <SectionHeader title="Visibilità nel Tabellone Turni" icon={<Users className="h-3 w-3" />} />
             <tr className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
-              <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5">
+              <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5">
                 <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                   {t.settings_visible_on_schedule_row}
                   <PermInfoButton
@@ -1032,7 +1032,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             <SectionHeader title="Moduli Scheda Admin (globale)" />
             {ADMIN_MODULE_KEYS.map((key) => (
               <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
-                <td className="sticky left-0 z-10 bg-[#0a1628] px-4 py-2.5 text-[13px] text-white/85">
+                <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5 text-[13px] text-white/85">
                   {getAdminModuleLabel(key, t as Record<string, string>)}
                 </td>
                 <td colSpan={nonAdminUsers.length} className="px-3 py-2.5">

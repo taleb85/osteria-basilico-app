@@ -88,7 +88,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
     <div
       ref={containerRef}
       className="w-full rounded-2xl border border-white/15 p-4 select-none shadow-2xl"
-      style={{ background: '#112240' }}
+      style={{ background: '#152848' }}
     >
       {/* ── Header ── */}
       <div className="flex items-center justify-between mb-3">
@@ -104,7 +104,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </button>
             {showMonthPicker && (
-              <div className="absolute top-full left-0 z-20 mt-1.5 w-44 rounded-xl border border-white/15 shadow-lg p-1.5 grid grid-cols-3 gap-0.5" style={{ background: '#112240' }}>
+              <div className="absolute top-full left-0 z-20 mt-1.5 w-44 rounded-xl border border-white/15 shadow-lg p-1.5 grid grid-cols-3 gap-0.5" style={{ background: '#152848' }}>
                 {MONTHS_IT.map((m, i) => (
                   <button
                     key={i}
@@ -134,7 +134,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </button>
             {showYearPicker && (
-              <div className="absolute top-full left-0 z-20 mt-1.5 w-20 rounded-xl border border-white/15 shadow-lg p-1.5 flex flex-col gap-0.5 max-h-48 overflow-y-auto" style={{ background: '#112240' }}>
+              <div className="absolute top-full left-0 z-20 mt-1.5 w-20 rounded-xl border border-white/15 shadow-lg p-1.5 flex flex-col gap-0.5 max-h-48 overflow-y-auto" style={{ background: '#152848' }}>
                 {years.map(y => (
                   <button
                     key={y}
@@ -273,7 +273,7 @@ export function DatePickerInput({ value, onChange, inputClassName, minDate, maxD
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className={`flex w-full items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 ${inputClassName ?? ''}`}
+        className={`flex w-full items-center gap-2 rounded-xl border border-white/35 bg-white/15 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 ${inputClassName ?? ''}`}
       >
         <CalendarDays className="h-4 w-4 shrink-0 text-white/50" />
         <span className="flex-1 text-left">{displayValue || <span className="text-white/35 font-normal">Seleziona data</span>}</span>

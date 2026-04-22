@@ -1066,6 +1066,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             title={t.settings_role_permissions_title ?? 'Permessi per Ruolo'}
             subtitle={t.settings_role_permissions_subtitle ?? 'Configura le funzionalità accessibili per Manager, Capo e Staff'}
             defaultOpen={false}
+            accentBorder="rgba(245,158,11,0.5)"
           >
             <RoleFeatureTemplatesPanel variant="embedded" />
           </SettingsAccordionSection>

@@ -1082,9 +1082,9 @@ export default function Timesheets() {
 
   /** Griglia presenze: larghezze fisse (px) — nome | ogni giorno | colonna totale. */
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  const timesheetGridDayColPx = viewMode === 'month' ? (isMobile ? 110 : 135) : 120;
-  const timesheetGridNameColPx = 80;
-  const timesheetGridTotalColPx = 60;
+  const timesheetGridDayColPx = viewMode === 'month' ? (isMobile ? 120 : 148) : 132;
+  const timesheetGridNameColPx = 90;
+  const timesheetGridTotalColPx = 76;
   const timesheetGridMinWidthPx =
     timesheetGridNameColPx + weekDays.length * timesheetGridDayColPx + timesheetGridTotalColPx;
 
@@ -2808,11 +2808,14 @@ export default function Timesheets() {
                   key={v}
                   type="button"
                   onClick={() => setTsView(v)}
-                  className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
+                  className={`h-9 px-5 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all ${
                     active
-                      ? 'bg-accent text-white shadow-sm'
-                      : 'bg-transparent border border-white/20 text-white/55 hover:border-accent/40 hover:text-white'
+                      ? 'shadow-lg'
+                      : 'bg-white/8 border border-white/20 hover:bg-white/15 hover:border-white/35'
                   }`}
+                  style={active
+                    ? { background: 'linear-gradient(135deg, #1a56db 0%, #0b3573 100%)', boxShadow: '0 2px 12px rgba(26,86,219,0.45)', color: '#ffffff' }
+                    : { color: '#ffffff' }}
                 >
                   {label}
                 </button>
@@ -2880,17 +2883,15 @@ export default function Timesheets() {
 
           {/* ── Stats Cards: settimana visualizzata (management) ────────────────── */}
           {uiW('timesheet.stats_today') && canTeamTimesheetOps && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               {([
                 {
                   label: t.ts_stat_in_shift,
                   value: weekViewStats.inTurno,
                   Icon: Users,
                   iconColor: 'text-accent',
-                  bg: 'bg-transparent',
                   border: 'border-accent/25',
                   iconWell: 'bg-accent/15',
-                  hoverBg: 'hover:bg-white/10',
                   highlightIds: [] as string[],
                 },
                 {
@@ -2898,10 +2899,8 @@ export default function Timesheets() {
                   value: weekViewStats.ritardi,
                   Icon: Clock,
                   iconColor: 'text-red-400',
-                  bg: 'bg-transparent',
                   border: 'border-red-400/25',
                   iconWell: 'bg-red-500/15',
-                  hoverBg: 'hover:bg-white/10',
                   highlightIds: weekViewStats.ritardiIds,
                 },
                 {
@@ -2909,10 +2908,8 @@ export default function Timesheets() {
                   value: weekViewStats.senzaTimbratura,
                   Icon: AlertCircle,
                   iconColor: 'text-amber-400',
-                  bg: 'bg-transparent',
                   border: 'border-amber-400/25',
                   iconWell: 'bg-amber-400/15',
-                  hoverBg: 'hover:bg-white/10',
                   highlightIds: weekViewStats.senzaTimbratureIds,
                 },
                 {
@@ -2920,13 +2917,11 @@ export default function Timesheets() {
                   value: weekViewStats.approvati,
                   Icon: UserCheck,
                   iconColor: 'text-accent',
-                  bg: 'bg-transparent',
                   border: 'border-accent/25',
                   iconWell: 'bg-accent/15',
-                  hoverBg: 'hover:bg-white/10',
                   highlightIds: [] as string[],
                 },
-              ]).map(({ label, value, Icon, iconColor, bg, border, iconWell, hoverBg, highlightIds }) => {
+              ]).map(({ label, value, Icon, iconColor, border, iconWell, highlightIds }) => {
                 const isActive = statFilter?.label === label;
                 return (
                 <button
@@ -2941,19 +2936,19 @@ export default function Timesheets() {
                     }
                     handleStatCardClick();
                   }}
-                  className={`group w-full rounded-xl border px-2.5 py-2 shadow-none flex items-center gap-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 ${
+                  className={`group w-full rounded-xl border px-3 py-2.5 shadow-none flex items-center gap-2.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 ${
                     isActive
                       ? `${border} ring-1 ring-inset ring-accent/30`
-                      : `${border} hover:bg-white/10`
+                      : `${border} hover:bg-white/15`
                   }`}
                   style={{ background: isActive ? 'rgba(59,130,246,0.20)' : 'rgba(255,255,255,0.10)' }}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
-                    <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
+                    <Icon className={`h-4.5 w-4.5 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xl font-bold text-white leading-none tabular-nums">{value}</p>
-                    <p className="text-[10px] text-white/75 mt-0.5 leading-tight pr-1">{label}</p>
+                    <p className="text-2xl font-bold text-white leading-none tabular-nums">{value}</p>
+                    <p className="text-[11px] text-white/75 mt-1 leading-tight pr-1">{label}</p>
                   </div>
                   {isActive
                     ? <span className="text-[10px] font-bold text-accent shrink-0">× Filtro</span>
@@ -3050,12 +3045,12 @@ export default function Timesheets() {
 
           {/* ── Toolbar presenze: sopra la griglia ── */}
           {uiW('timesheet.header') && (
-          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-1 overflow-x-auto sticky top-0 z-[1000] backdrop-blur-md" style={{ background: 'rgba(10, 22, 40, 0.92)' }}>
-            <div className="flex min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-1.5 overflow-visible relative z-[1001]">
-              <div className="ui-toolbar-row-tight min-w-0 shrink-0 md:gap-1.5">
+          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto sticky top-0 z-[1000]">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-2 overflow-visible relative z-[1001]">
+              <div className="ui-toolbar-row-tight min-w-0 shrink-0 md:gap-2">
 
                 {/* Wrapper compatto: nav + chip data sempre vicini */}
-                <div className="flex shrink-0 flex-nowrap items-center gap-1.5">
+                <div className="flex shrink-0 flex-nowrap items-center gap-2">
                 {/* Gruppo unificato: ◀ Prec. | Settimana | Mese | ▶ Pros. */}
                 <div className="ui-toolbar-group">
                   {/* ◀ Prec. — settimana in week mode, periodo in month mode */}
@@ -3066,7 +3061,7 @@ export default function Timesheets() {
                       else setPeriodNavOffset(o => o - 1);
                     }}
                     disabled={viewMode === 'week' && !timesheetMainGridWeekNav?.canPrev}
-                    className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 disabled:opacity-30"
+                    className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 disabled:opacity-30"
                     style={{ color: 'rgba(255,255,255,0.80)' }}
                     aria-label={viewMode === 'week' ? 'Settimana precedente' : 'Periodo precedente'}
                   >
@@ -3078,7 +3073,7 @@ export default function Timesheets() {
                   <button
                     type="button"
                     onClick={() => { setViewMode('week'); goToToday(); }}
-                    className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
+                    className={`ui-toolbar-tab !px-2.5 !text-xs shrink-0 ${
                       viewMode === 'week'
                         ? 'bg-accent text-white font-extrabold'
                         : 'hover:bg-white/10'
@@ -3092,7 +3087,7 @@ export default function Timesheets() {
                   <button
                     type="button"
                     onClick={() => { setViewMode('month'); setPeriodNavOffset(0); applyPeriodFromStorage(); }}
-                    className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
+                    className={`ui-toolbar-tab !px-2.5 !text-xs shrink-0 ${
                       viewMode === 'month' && periodNavOffset === 0
                         ? 'bg-accent text-white font-extrabold'
                         : 'hover:bg-white/10'
@@ -3111,7 +3106,7 @@ export default function Timesheets() {
                       else setPeriodNavOffset(o => o + 1);
                     }}
                     disabled={viewMode === 'week' && !timesheetMainGridWeekNav?.canNext}
-                    className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 disabled:opacity-30"
+                    className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 disabled:opacity-30"
                     style={{ color: 'rgba(255,255,255,0.80)' }}
                     aria-label={viewMode === 'week' ? 'Settimana successiva' : 'Periodo successivo'}
                   >
@@ -3122,7 +3117,7 @@ export default function Timesheets() {
 
                 {/* Chip data corrente */}
                 <div
-                  className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-2.5 !h-9 lg:!h-10 !text-[11px] lg:!text-sm"
+                  className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-3 !h-9 lg:!h-10 !text-xs lg:!text-sm"
                   role="status"
                   aria-label={t.ts_period_chip_aria}
                   title={`${format(periodStartDate, 'dd/MM/yy', { locale })} → ${format(periodEndDate, 'dd/MM/yy', { locale })}`}
@@ -3149,7 +3144,7 @@ export default function Timesheets() {
                   aria-label={
                     isShowingTodayWeek ? t.ts_toolbar_current_week_already : t.ts_toolbar_today_hint
                   }
-                  className={`hidden md:inline-flex ui-toolbar-chip !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs shrink-0 items-center gap-1 hover:bg-white/10 ${
+                  className={`hidden md:inline-flex ui-toolbar-chip !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2.5 !text-xs shrink-0 items-center gap-1 hover:bg-white/10 ${
                     isShowingTodayWeek
                       ? 'cursor-default opacity-50'
                       : 'cursor-pointer'
@@ -3225,7 +3220,7 @@ export default function Timesheets() {
                       return (
                         <div
                           ref={periodPopoverRef}
-                          style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999, background: '#112240' }}
+                          style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999, background: '#152848' }}
                           className="w-64 rounded-xl border border-white/15 shadow-2xl overflow-hidden"
                         >
                           {/* Header anno con navigazione */}
@@ -3411,7 +3406,7 @@ export default function Timesheets() {
                               exit={{ opacity: 0, y: 4, scale: 0.95 }}
                               className="fixed z-[10050] max-h-[min(70vh,420px)] w-64 overflow-y-auto rounded-xl border border-white/15 p-1 shadow-xl"
                               style={{
-                                background: '#112240',
+                                background: '#152848',
                                 top: weekApproveDesktopPos.top,
                                 left: weekApproveDesktopPos.left,
                                 isolation: 'isolate',
@@ -3697,7 +3692,7 @@ export default function Timesheets() {
                       e.stopPropagation(); 
                       setShowPdfDeptMenu(prev => !prev); 
                     }}
-                    className="ui-toolbar-chip !inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs items-center gap-1.5 border-slate-200 hover:bg-slate-50 cursor-pointer relative z-[110] max-w-[110px] sm:max-w-none"
+                    className="ui-toolbar-chip !inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs items-center gap-1.5 cursor-pointer relative z-[110] max-w-[110px] sm:max-w-none"
                     title="Seleziona reparto per PDF"
                   >
                     <Filter className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-white/50" />
@@ -3719,7 +3714,7 @@ export default function Timesheets() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
                             className="hidden lg:block absolute left-0 lg:right-0 lg:left-auto top-full z-[9999] mt-1 w-48 rounded-xl border border-white/15 p-1 shadow-xl"
-                            style={{ background: '#112240', isolation: 'isolate' }}
+                            style={{ background: '#152848', isolation: 'isolate' }}
                           >
                             <button
                               type="button"
@@ -3737,7 +3732,7 @@ export default function Timesheets() {
                               {pdfDeptFilter === 'all' && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                             </button>
 
-                            <div className="my-1 h-px bg-slate-100" />
+                            <div className="my-1 h-px" style={{ background: 'rgba(255,255,255,0.12)' }} />
 
                             {availableDepts
                               .map((dept) => (
@@ -3748,7 +3743,7 @@ export default function Timesheets() {
                                 className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
                                   pdfDeptFilter === dept.value 
                                     ? 'bg-accent text-white shadow-md' 
-                                    : 'text-white/70 hover:bg-slate-50'
+                                    : 'text-white/70 hover:bg-white/10'
                                 }`}
                               >
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
@@ -3772,14 +3767,14 @@ export default function Timesheets() {
                               panelClassName="p-1"
                               disableBackdropClose
                             >
-                              <div className="flex items-center justify-between px-2 py-1.5 border-b border-slate-100 mb-1">
+                              <div className="flex items-center justify-between px-2 py-1.5 mb-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.14)' }}>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">
                                   {t.department_filter_label}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => setShowPdfDeptMenu(false)}
-                                  className="rounded-lg p-1 text-white/50 transition-colors hover:bg-slate-100 hover:text-white/70"
+                                  className="rounded-lg p-1 text-white/50 transition-colors hover:bg-white/10 hover:text-white/70"
                                   aria-label={t.close}
                                 >
                                   <X className="h-3.5 w-3.5" />
@@ -3791,7 +3786,7 @@ export default function Timesheets() {
                                 className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
                                   pdfDeptFilter === 'all' 
                                     ? 'bg-accent text-white shadow-md' 
-                                    : 'text-white/70 hover:bg-slate-50'
+                                    : 'text-white/70 hover:bg-white/10'
                                 }`}
                               >
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
@@ -3801,7 +3796,7 @@ export default function Timesheets() {
                                 {pdfDeptFilter === 'all' && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                               </button>
 
-                              <div className="my-1 h-px bg-slate-100" />
+                              <div className="my-1 h-px" style={{ background: 'rgba(255,255,255,0.12)' }} />
 
                               {availableDepts
                                 .map((dept) => (
@@ -3812,7 +3807,7 @@ export default function Timesheets() {
                                   className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${
                                     pdfDeptFilter === dept.value 
                                       ? 'bg-accent text-white shadow-md' 
-                                      : 'text-white/70 hover:bg-slate-50'
+                                      : 'text-white/70 hover:bg-white/10'
                                   }`}
                                 >
                                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
@@ -3832,30 +3827,6 @@ export default function Timesheets() {
                     </AnimatePresence>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-1">
-                  <div className="h-4 w-px bg-slate-200 mx-0.5" />
-
-                  <button
-                    type="button"
-                    onClick={() => void handleExportTimesheetPdf('WEEK')}
-                    className="ui-toolbar-chip hover:bg-slate-50 inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs"
-                    title={t.ts_export_week_pdf || "Export Current Week PDF"}
-                    aria-label={t.ts_export_week_pdf || "Export Current Week PDF"}
-                  >
-                    <FileDown className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" aria-hidden />
-                    <span>{t.ts_week_pdf || "Week PDF"}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleExportTimesheetPdf('PERIOD')}
-                    className="ui-toolbar-chip hover:bg-slate-50 inline-flex border-accent/30 text-accent !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs"
-                    title={t.ts_export_period_pdf || "Export Full Period PDF"}
-                    aria-label={t.ts_export_period_pdf || "Export Full Period PDF"}
-                  >
-                    <FileDown className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" aria-hidden />
-                    <span>{t.ts_period_pdf || "Period PDF"}</span>
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -5824,7 +5795,7 @@ export default function Timesheets() {
 
                 <div className="flex gap-2">
                   <button type="button" onClick={() => { setClosingShift(null); setClockOutTime(''); }}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-white/70 text-sm font-medium hover:bg-slate-50 transition-colors">
+                    className="flex-1 px-4 py-2.5 rounded-xl text-white/70 text-sm font-medium transition-colors hover:bg-white/10" style={{ border: '1px solid rgba(255,255,255,0.22)' }}>
                     {t.cancel}
                   </button>
                   <button type="button" disabled={!clockOutTime || closingLoading} onClick={handleConfirmClose}

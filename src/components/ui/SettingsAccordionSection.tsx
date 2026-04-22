@@ -21,6 +21,7 @@ export function SettingsAccordionSection({
   defaultOpen = false,
   children,
   className = 'mb-6',
+  accentBorder,
 }: {
   storageKey: string;
   title: string;
@@ -28,6 +29,7 @@ export function SettingsAccordionSection({
   defaultOpen?: boolean;
   children: React.ReactNode;
   className?: string;
+  accentBorder?: string;
 }) {
   const [open, setOpen] = useState(() => readAccordionExpanded(storageKey, defaultOpen));
 
@@ -48,20 +50,26 @@ export function SettingsAccordionSection({
       <button
         type="button"
         onClick={toggle}
-        className="-ml-1 mb-3 flex w-full items-center justify-between gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-all hover:bg-white/80"
-        style={{ boxShadow: open ? 'inset 0 1px 0 rgba(255,255,255,0.80), inset 0 -1px 4px rgba(0,0,0,0.03)' : 'none' }}
+        className="-ml-1 mb-3 flex w-full items-center justify-between gap-2 rounded-xl py-2 pl-3 pr-3 text-left transition-all"
+        style={{
+          background: 'rgba(255,255,255,0.10)',
+          border: `1px solid ${accentBorder ?? 'rgba(255,255,255,0.18)'}`,
+        }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.14)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.10)'; }}
         aria-expanded={open}
       >
         <div className="min-w-0 flex-1">
-          <h2 className="text-[11px] font-semibold uppercase tracking-widest text-white/80">{title}</h2>
+          <h2 style={{ color: '#ffffff', fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{title}</h2>
           {subtitle ? (
-            <p className="mt-0.5 text-left text-[11px] font-normal normal-case tracking-normal text-white/50">
+            <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.8rem', marginTop: '0.125rem', fontWeight: 400, letterSpacing: 'normal', textTransform: 'none' }}>
               {subtitle}
             </p>
           ) : null}
         </div>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-white/50 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+          style={{ color: 'rgba(255,255,255,0.6)' }}
           aria-hidden
         />
       </button>

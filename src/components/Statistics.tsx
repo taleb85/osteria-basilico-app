@@ -376,9 +376,9 @@ export default function Statistics() {
         {/* eslint-disable-next-line no-constant-binary-expression */}
         {true && (
           <>
-            <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-1 overflow-x-auto relative z-[1000] mb-5">
-              <div className="flex min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-1.5 overflow-visible relative z-[1001]">
-                <div className="ui-toolbar-row-tight min-w-0 shrink-0 md:gap-1.5">
+            <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto relative z-[1000] mb-5">
+              <div className="flex min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-2 overflow-visible relative z-[1001]">
+                <div className="ui-toolbar-row-tight min-w-0 shrink-0 md:gap-2">
                   {/* ── MOBILE: stile semplificato (PERIODO pill + ← date →) ── */}
                   <div className="flex sm:hidden shrink-0 flex-nowrap items-center gap-2">
                     <span className="h-9 inline-flex items-center px-3 rounded-2xl bg-accent text-white text-[10px] font-extrabold uppercase tracking-wider shrink-0 shadow-sm">
@@ -412,12 +412,13 @@ export default function Statistics() {
                   </div>
 
                   {/* ── DESKTOP: toolbar originale ── */}
-                  <div className="hidden sm:flex shrink-0 flex-nowrap items-center gap-1.5">
+                  <div className="hidden sm:flex shrink-0 flex-nowrap items-center gap-2">
                   <div className="ui-toolbar-group">
                     <button
                       type="button"
                       onClick={() => setNavOffset(o => o - 1)}
-                      className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-white/70 hover:bg-white/10 disabled:opacity-30"
+                      className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 hover:bg-white/10 disabled:opacity-30"
+                      style={{ color: 'rgba(255,255,255,0.80)' }}
                       aria-label={statsTab === 'current_week' ? 'Settimana precedente' : 'Periodo precedente'}
                     >
                       <ChevronLeft className="h-3.5 w-3.5 lg:h-4 lg:w-4" aria-hidden />
@@ -426,29 +427,32 @@ export default function Statistics() {
                     <button
                       type="button"
                       onClick={() => { setStatsTab('current_week'); setNavOffset(0); }}
-                      className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
+                      className={`ui-toolbar-tab !px-2.5 !text-xs shrink-0 ${
                         statsTab === 'current_week'
                           ? 'bg-accent text-white font-extrabold'
-                          : 'text-white/70 hover:bg-white/10'
+                          : 'hover:bg-white/10'
                       }`}
+                      style={statsTab !== 'current_week' ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     >
                       {t.view_week}
                     </button>
                     <button
                       type="button"
                       onClick={() => { setStatsTab('period'); setNavOffset(0); }}
-                      className={`ui-toolbar-tab !px-2.5 !text-[10px] lg:!text-xs shrink-0 ${
+                      className={`ui-toolbar-tab !px-2.5 !text-xs shrink-0 ${
                         statsTab === 'period' && navOffset === 0
                           ? 'bg-accent text-white font-extrabold'
-                          : 'text-white/70 hover:bg-white/10'
+                          : 'hover:bg-white/10'
                       }`}
+                      style={!(statsTab === 'period' && navOffset === 0) ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     >
                       {t.view_month}
                     </button>
                     <button
                       type="button"
                       onClick={() => setNavOffset(o => o + 1)}
-                      className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-white/70 hover:bg-white/10 disabled:opacity-30"
+                      className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 hover:bg-white/10 disabled:opacity-30"
+                      style={{ color: 'rgba(255,255,255,0.80)' }}
                       aria-label={statsTab === 'current_week' ? 'Settimana successiva' : 'Periodo successivo'}
                     >
                       <span>{t.nav_next_abbr ?? 'Pros.'}</span>
@@ -456,14 +460,14 @@ export default function Statistics() {
                     </button>
                   </div>
                   <div
-                    className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-2.5 !h-9 lg:!h-10 !text-[11px] lg:!text-sm"
+                    className="ui-toolbar-chip shrink-0 max-w-full min-w-0 cursor-default select-none font-bold !px-3 !h-9 lg:!h-10 !text-xs lg:!text-sm"
                     role="status"
                   >
                     <Calendar className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0 text-white/50" aria-hidden />
                     <span className="min-w-0 truncate tabular-nums">
                       {statsTab === 'current_week' ? (
                         <>
-                          <span className="text-white/80 font-extrabold">S.{getISOWeek(rangeStart)}&nbsp;</span>
+                          <span className="text-white font-extrabold">S.{getISOWeek(rangeStart)}&nbsp;</span>
                           {format(rangeStart, 'dd/MM', { locale: statsLoc })}
                           <span className="text-white/45"> → {format(rangeEnd, 'dd/MM', { locale: statsLoc })}</span>
                         </>
@@ -489,7 +493,8 @@ export default function Statistics() {
                       <button
                         type="button"
                         onClick={() => void handleExportStatsPdf()}
-                        className="ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 text-white/70 hover:bg-white/10"
+                        className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 hover:bg-white/10"
+                        style={{ color: 'rgba(255,255,255,0.80)' }}
                         title={t.download_pdf}
                         aria-label={t.download_pdf}
                       >
@@ -504,9 +509,10 @@ export default function Statistics() {
                     <button
                       type="button"
                       onClick={() => setShowDeptMenu(prev => !prev)}
-                      className={`ui-toolbar-tab !px-2 !text-[10px] lg:!px-2.5 lg:!text-xs shrink-0 ${
-                        showDeptMenu ? 'bg-accent/8 text-accent' : 'text-white/70 hover:bg-white/10'
+                      className={`ui-toolbar-tab !px-2.5 !text-xs shrink-0 ${
+                        showDeptMenu ? 'bg-accent/8 text-accent' : 'hover:bg-white/10'
                       } ${deptFilter !== 'all' ? 'font-extrabold' : ''}`}
+                      style={!showDeptMenu ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     >
                       <Filter className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
                       <span className="max-w-[80px] truncate">
@@ -526,7 +532,7 @@ export default function Statistics() {
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
                             transition={{ duration: 0.1 }}
                             className="hidden lg:block absolute right-0 top-full z-[9999] mt-1 w-48 rounded-xl p-1 shadow-xl"
-                            style={{ background: '#112240', border: '1px solid rgba(255,255,255,0.15)', isolation: 'isolate' }}
+                            style={{ background: '#152848', border: '1px solid rgba(255,255,255,0.15)', isolation: 'isolate' }}
                           >
                             <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/60 border-b border-white/10 mb-1">
                               {t.department_filter_label}

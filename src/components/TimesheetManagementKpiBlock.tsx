@@ -117,21 +117,21 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
   return (
     <>
       <div
-        className={`grid grid-cols-1 gap-1.5 mb-2 sm:gap-2 ${showEstimatedCostWidget ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
+        className={`grid grid-cols-1 gap-2 mb-3 sm:gap-3 ${showEstimatedCostWidget ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
       >
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all select-none"
+          className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-left transition-all select-none"
           style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)' }}
         >
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/20 ring-1 ring-inset ring-accent/40">
-            <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/20 ring-1 ring-inset ring-accent/40">
+            <CheckCircle2 className="h-4 w-4 text-accent" />
           </div>
           <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-white/75">{t.stats_approved_hours}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-white/75">{t.stats_approved_hours}</p>
               <p className="text-[10px] leading-snug text-white/55">{t.stats_approved_shifts_count.replace('{n}', String(approvedShifts.length))}</p>
             </div>
             <p className="text-base font-black tabular-nums leading-none text-white shrink-0">
@@ -145,13 +145,13 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`flex items-center gap-2 rounded-xl px-3 py-1.5 ${
+            className={`flex items-center gap-3 rounded-xl px-4 py-2.5 ${
               estimatedCostStats.shiftsWithRate === 0 ? 'opacity-75' : ''
             }`}
             style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)' }}
           >
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-inset ring-accent/25">
-              <TrendingUp className="h-3.5 w-3.5 text-accent" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-inset ring-accent/25">
+              <TrendingUp className="h-4 w-4 text-accent" />
             </div>
             <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
               <div className="min-w-0">
@@ -177,26 +177,26 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-left transition-all select-none`}
+          className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-left transition-all select-none`}
           style={{
             background: pendingCount > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.10)',
             border: pendingCount > 0 ? '1px solid rgba(245,158,11,0.30)' : '1px solid rgba(255,255,255,0.18)',
           }}
         >
           <div
-            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${
               pendingCount > 0
                 ? 'bg-amber-500/15 ring-amber-400/40'
                 : 'bg-white/8 ring-white/20'
             }`}
           >
             <AlertCircle
-              className={`h-3.5 w-3.5 ${pendingCount > 0 ? 'text-amber-400' : 'text-white/40'}`}
+              className={`h-4 w-4 ${pendingCount > 0 ? 'text-amber-400' : 'text-white/40'}`}
             />
           </div>
           <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-white/75">{t.stats_pending_shifts}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-white/75">{t.stats_pending_shifts}</p>
               <p className="text-[10px] leading-snug text-white/55">{t.stats_confirmed_not_approved}</p>
             </div>
             <p className={`text-base font-black tabular-nums leading-none shrink-0 ${pendingCount > 0 ? 'text-amber-300' : 'text-white'}`}>

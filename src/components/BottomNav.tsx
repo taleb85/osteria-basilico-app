@@ -361,9 +361,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                     />
                   )}
                   {id === 'profile' && (
-                    <span className={`hidden lg:block text-xs font-semibold truncate max-w-[80px] transition-[color,opacity] duration-200 ${
-                      isActive ? 'text-white opacity-100' : 'text-white/75'
-                    }`}>
+                    <span className="hidden lg:block text-xs font-semibold truncate max-w-[80px] transition-[color,opacity] duration-200" style={{ color: '#ffffff' }}>
                       {profileDisplayName}
                     </span>
                   )}

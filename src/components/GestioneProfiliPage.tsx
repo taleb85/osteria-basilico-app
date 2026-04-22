@@ -88,14 +88,14 @@ export default function GestioneProfiliPage() {
         </div>
 
         <div className="surface-glass-sm overflow-hidden">
-          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+          <div className="border-b px-4 py-3" style={{ borderColor: 'rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.10)' }}>
             <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/80">
               <Users className="w-4 h-4" />
               Dipendenti
             </h2>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
             {displayUsers.map((user) => {
               const isExpanded = expandedUserId === user.id;
               const currentTab = activeTab[user.id] || 'permissions';
@@ -106,13 +106,13 @@ export default function GestioneProfiliPage() {
 
               return (
                 <div key={user.id} className="">
-                  <div className="flex items-center justify-between px-4 py-4 hover:bg-slate-50/80 transition-colors">
+                  <div className="flex items-center justify-between px-4 py-4 transition-colors" style={{ cursor: 'default' }} onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.07)'; }} onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = ''; }}>
                     <button
                       type="button"
                       onClick={() => setExpandedUserId(isExpanded ? null : user.id)}
                       className="flex-1 flex items-center gap-3 text-left"
                     >
-                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-white/70">
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white/70" style={{ background: 'rgba(255,255,255,0.15)' }}>
                         {user.first_name?.[0]}{user.last_name?.[0]}
                       </div>
                       <div>
@@ -174,12 +174,12 @@ export default function GestioneProfiliPage() {
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-4 pb-6 pt-0 bg-slate-50/50 border-t border-slate-100 space-y-4">
+                        <div className="px-4 pb-6 pt-0 space-y-4" style={{ background: 'rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.12)' }}>
                           {currentTab === 'permissions' ? (
                             <>
                               {user.role === 'admin' && (
-                                <div className="mt-4 p-4 rounded-xl border border-amber-200 bg-amber-50 mb-4">
-                                  <p className="text-xs text-amber-800">
+                                <div className="mt-4 p-4 rounded-xl mb-4" style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.40)' }}>
+                                  <p className="text-xs" style={{ color: 'rgba(251,191,36,0.95)' }}>
                                     <strong>Amministratore:</strong> Gli amministratori hanno sempre accesso completo a tutte le funzionalità. I loro permessi non possono essere limitati individualmente.
                                   </p>
                                 </div>
@@ -192,7 +192,7 @@ export default function GestioneProfiliPage() {
                                   <div className="flex gap-2">
                                     <button
                                       onClick={() => handleReset(user.id)}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-200 text-white/70 text-[11px] font-bold hover:bg-slate-300 transition-colors"
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white/70 text-[11px] font-bold transition-colors" style={{ background: 'rgba(255,255,255,0.14)' }}
                                     >
                                       <RotateCcw className="w-3 h-3" /> Annulla
                                     </button>
