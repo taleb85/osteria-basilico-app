@@ -713,15 +713,13 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           borderBottom: '1px solid rgba(255,255,255,0.10)',
         }}
       >
-        {activeTab !== 'profile' && (
-          <MobileProfileHeader
-            onLogout={onLogout}
-            activeTab={activeTab}
-            showOnDesktop
-            compact={staffMobileCompactHeader}
-            hideToolbarAvatar={false}
-          />
-        )}
+        <MobileProfileHeader
+          onLogout={onLogout}
+          activeTab={activeTab}
+          showOnDesktop
+          compact={staffMobileCompactHeader}
+          hideToolbarAvatar={false}
+        />
         {!noNavTabs && (
           <TopTabBar
             activeTab={activeTab}
