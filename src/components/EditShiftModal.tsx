@@ -120,19 +120,19 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
                   value={tempShifts.start_time}
                   onChange={(next) => setTempShifts((s) => ({ ...s, start_time: next }))}
                   aria-label={t.start}
-                  className="w-full rounded-2xl border-slate-200 bg-slate-100 px-2"
+                  className="w-full rounded-2xl border-white/20 bg-white/10 px-2"
                 />
               </div>
 
               <div>
                 <label className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
-                  Fine {!tempShifts.end_time && <span className="text-amber-600">(da completare)</span>}
+                  Fine {!tempShifts.end_time && <span className="text-amber-400">(da completare)</span>}
                 </label>
                 <TimeInputField
                   value={tempShifts.end_time}
                   onChange={(next) => setTempShifts((s) => ({ ...s, end_time: next }))}
                   aria-label={t.end}
-                  className="w-full rounded-2xl border-slate-200 bg-slate-100 px-2"
+                  className="w-full rounded-2xl border-white/20 bg-white/10 px-2"
                 />
               </div>
             </div>
@@ -147,7 +147,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
               </button>
               <button
                 onClick={handleCopy}
-                className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center hover:bg-slate-200 transition-colors"
+                className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center hover:bg-white/15 transition-colors"
               >
                 <Copy className="w-5 h-5 text-white/80" />
               </button>

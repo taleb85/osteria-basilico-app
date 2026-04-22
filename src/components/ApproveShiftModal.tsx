@@ -87,21 +87,21 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
           </div>
 
           <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-6">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-              <p className="text-yellow-800 text-sm font-bold mb-2">{t.check_and_edit_times}</p>
-              <p className="text-yellow-700 text-xs">
+            <div className="bg-amber-500/15 border border-amber-500/30 rounded-xl p-4">
+              <p className="text-amber-300 text-sm font-bold mb-2">{t.check_and_edit_times}</p>
+              <p className="text-amber-300/75 text-xs">
                 {t.times_based_on_punches}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.home_label_planned}</p>
                 <p className="font-bold tabular-nums text-white/90">
                   {pair.plannedStart} → {pair.plannedEnd}
                 </p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-[#001A80]/8 px-3 py-2">
+              <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.ts_label_punched}</p>
                 <p className="font-bold tabular-nums text-white/90">
                   {pair.actualStart ?? '—'} → {pair.actualEnd ?? '—'}
@@ -120,7 +120,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
                   value={startTime}
                   onChange={setStartTime}
                   aria-label={t.entry}
-                  className="w-full border-slate-200 bg-slate-100 px-2"
+                  className="w-full border-white/20 bg-white/10 px-2"
                 />
               </div>
 
@@ -132,18 +132,18 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
                   value={endTime}
                   onChange={setEndTime}
                   aria-label={t.exit}
-                  className="w-full border-slate-200 bg-slate-100 px-2"
+                  className="w-full border-white/20 bg-white/10 px-2"
                 />
               </div>
             </div>
 
             <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 flex items-center justify-between">
-              <span className="text-[#1a1a1a] text-sm font-bold">{t.total_hours_label}</span>
+              <span className="text-white/80 text-sm font-bold">{t.total_hours_label}</span>
               <span className="text-accent text-2xl font-black">{formattedTime}</span>
             </div>
 
             {canRevertToPending && (
-              <div className="mb-4 rounded-xl border border-slate-200 bg-slate-100 p-4">
+              <div className="mb-4 rounded-xl border border-white/15 bg-white/8 p-4">
                 <p className="mb-3 text-sm font-bold text-white/90">
                   Questo turno è già approvato. Vuoi riportarlo in sospeso?
                 </p>

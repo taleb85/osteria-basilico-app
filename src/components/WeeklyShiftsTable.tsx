@@ -2043,7 +2043,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         <div className="mb-3">
           <button
             onClick={() => setLocalFilterUserId(null)}
-            className="ui-toolbar-chip border-amber-400 bg-amber-50 font-bold text-amber-700 hover:bg-amber-100"
+            className="ui-toolbar-chip border-amber-400/60 bg-amber-500/15 font-bold text-amber-300 hover:bg-amber-500/25"
           >
             <X className="w-3 h-3" />
             {t.filter_active_click_to_clear}
@@ -4043,7 +4043,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           return (
                             <td
                               key={dayStr}
-                              className="px-0 py-0 min-w-0 snap-start bg-amber-50/60 border-r border-slate-300"
+                              className="px-0 py-0 min-w-0 snap-start bg-amber-500/10 border-r border-white/15"
                               style={{ width: `calc(100% / ${allWeekDays.length})` }}
                             >
                               <motion.div
@@ -4071,7 +4071,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   : isToday(day)
                                     ? 'bg-accent/5'
                                     : isUnavailDay
-                                      ? 'bg-red-50/70'
+                                      ? 'bg-red-500/20'
                                       : 'bg-white'
                             }`}
                             style={{ width: `calc(100% / ${allWeekDays.length})` }}
@@ -4301,7 +4301,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                                     dayVariant === 'approved'
                                                       ? 'bg-white/20 text-white/90'
                                                       : dayVariant === 'absent'
-                                                        ? 'bg-rose-200/90 text-rose-900'
+                                                        ? 'bg-rose-500/25 text-rose-300'
                                                         : dayVariant === 'punchMissing'
                                                           ? 'bg-amber-500/20 text-amber-200'
                                                           : dayVariant === 'inprogress'
@@ -4717,7 +4717,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                             <button
                                               type="button"
                                               onClick={() => handleRejectOpenShift(s.id)}
-                                              className="flex flex-1 items-center justify-center rounded-xl bg-red-100 px-1 py-0.5 text-[9px] font-bold leading-none text-red-700 transition-colors hover:bg-red-200"
+                                              className="flex flex-1 items-center justify-center rounded-xl bg-red-500/20 px-1 py-0.5 text-[9px] font-bold leading-none text-red-300 transition-colors hover:bg-red-500/30"
                                               title={tv.open_shift_reject_label ?? t.open_shift_reject_label}
                                             >
                                               <UserX className="h-2.5 w-2.5" />
@@ -4985,7 +4985,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             </span>
                           )}
                           {isAbsent && (
-                            <span className="flex items-center gap-1 text-[11px] font-bold text-rose-800 bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-full">
+                            <span className="flex items-center gap-1 text-[11px] font-bold text-rose-300 bg-rose-500/20 border border-rose-500/30 px-2.5 py-1 rounded-full">
                               <UserX className="w-3 h-3" /> {t.status_absent}
                             </span>
                           )}
@@ -4993,9 +4993,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         </div>
 
                         {isAbsent && (
-                          <div className="rounded-xl border border-rose-200/90 bg-rose-50/90 px-3 py-2.5">
-                            <p className="text-xs font-medium text-rose-900">{t.wst_status_sub_absent}</p>
-                            <p className="mt-2 text-[11px] font-medium text-rose-800/90">{t.wst_absent_manage_in_timesheets}</p>
+                          <div className="rounded-xl border border-rose-500/30 bg-rose-500/15 px-3 py-2.5">
+                            <p className="text-xs font-medium text-rose-300">{t.wst_status_sub_absent}</p>
+                            <p className="mt-2 text-[11px] font-medium text-rose-300/80">{t.wst_absent_manage_in_timesheets}</p>
                           </div>
                         )}
 
