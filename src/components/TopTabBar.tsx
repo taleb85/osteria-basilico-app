@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, type ReactNode } from 'react';
 import { useApp } from '../context/AppContext';
 import { getTranslations } from '../utils/translations';
 import type { AppNavTab } from '../utils/enabledModules';
@@ -7,9 +7,10 @@ interface TopTabBarProps {
   activeTab: AppNavTab;
   onTabChange: (tab: AppNavTab) => void;
   visibleTabs: AppNavTab[];
+  rightSlot?: ReactNode;
 }
 
-export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTabBarProps) {
+export default function TopTabBar({ activeTab, onTabChange, visibleTabs, rightSlot }: TopTabBarProps) {
   const { effectiveLanguage } = useApp();
   const t = getTranslations(effectiveLanguage);
   const tv = t as Record<string, string>;
@@ -57,41 +58,48 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTa
   return (
     <div
       ref={scrollRef}
-      className="top-tabbar flex overflow-x-auto scrollbar-none"
+      className="top-tabbar flex items-center overflow-x-auto scrollbar-none"
       style={{
         borderTop: '1px solid rgba(255,255,255,0.07)',
         padding: '0 10px',
       }}
     >
-      {tabs.map(({ id, label }) => {
-        const isActive = activeTab === id;
-        return (
-          <button
-            key={id}
-            ref={isActive ? activeRef : null}
-            type="button"
-            onClick={() => onTabChange(id)}
-            className="top-tab shrink-0 whitespace-nowrap"
-            style={{
-              padding: '13px 18px',
-              fontSize: 13,
-              fontWeight: 500,
-              color: isActive ? 'white' : 'rgba(255,255,255,0.45)',
-              background: 'none',
-              border: 'none',
-              borderBottomWidth: 2,
-              borderBottomStyle: 'solid',
-              borderBottomColor: isActive ? 'white' : 'transparent',
-              cursor: 'pointer',
-              letterSpacing: '0.3px',
-              outline: 'none',
-              transition: 'color 0.15s, border-color 0.15s',
-            }}
-          >
-            {label}
-          </button>
-        );
-      })}
+      <div className="flex flex-1 overflow-x-auto scrollbar-none">
+        {tabs.map(({ id, label }) => {
+          const isActive = activeTab === id;
+          return (
+            <button
+              key={id}
+              ref={isActive ? activeRef : null}
+              type="button"
+              onClick={() => onTabChange(id)}
+              className="top-tab shrink-0 whitespace-nowrap"
+              style={{
+                padding: '13px 18px',
+                fontSize: 13,
+                fontWeight: 500,
+                color: isActive ? 'white' : 'rgba(255,255,255,0.45)',
+                background: 'none',
+                border: 'none',
+                borderBottomWidth: 2,
+                borderBottomStyle: 'solid',
+                borderBottomColor: isActive ? 'white' : 'transparent',
+                cursor: 'pointer',
+                letterSpacing: '0.3px',
+                outline: 'none',
+                transition: 'color 0.15s, border-color 0.15s',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+      {rightSlot && (
+        <div className="shrink-0 flex items-center ml-auto">
+          {rightSlot}
+        </div>
+      )}
     </div>
   );
 }
