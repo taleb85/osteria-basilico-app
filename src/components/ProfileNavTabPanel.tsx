@@ -461,7 +461,7 @@ export default function ProfileNavTabPanel({
             <h2 className="text-base font-bold tracking-tight" style={{ color: '#ffffff' }}>
               {displayName}
             </h2>
-            <p className="text-[11px]" style={{ color: '#94a3b8' }}>
+            <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.55)' }}>
               {roleDisplay}{deptLabel && deptLabel !== roleDisplay ? ` · ${deptLabel}` : ''}
             </p>
           </div>
@@ -472,7 +472,7 @@ export default function ProfileNavTabPanel({
               <span
                 key={i}
                 className="text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
-                style={{ background: 'transparent', border: '1px solid #CBD5E1', color: '#94a3b8' }}
+                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.20)', color: 'rgba(255,255,255,0.65)' }}
               >
                 {label}
               </span>
@@ -576,7 +576,7 @@ export default function ProfileNavTabPanel({
                         ? { background: '#10b981', color: '#fff' }
                         : hasLangChanges
                           ? { background: '#0052FF', color: '#fff' }
-                          : { background: '#f1f5f9', color: '#94a3b8', border: '1px solid #e2e8f0' }}
+                          : { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.40)', border: '1px solid rgba(255,255,255,0.12)' }}
                     >
                       {langSaved ? '✓ Salvato' : langSaving ? 'Salvataggio…' : 'Salva'}
                     </button>
