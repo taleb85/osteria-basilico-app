@@ -111,12 +111,9 @@ export default function MobileProfileHeader({
           }}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.currentTarget.click(); }}
         >
-          <img
-            src="/icon-flow-final.png"
-            alt="FLOW"
-            draggable={false}
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-          />
+          <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}>
+            <path d="M3 12l4-4 4 4 4-4 4 4" />
+          </svg>
         </div>
         <div className="flex flex-col leading-none select-none">
           <span
