@@ -1,0 +1,12 @@
+:root {
+  --sp-bg: #0a192f;
+  --sp-bg-card: rgba(13, 34, 64, 0.7);
+  --sp-line: rgba(6, 182, 212, 0.15);
+}
+
+html, body, #root {
+  background-color: #0a192f !important;
+  background-image:
+    radial-gradient(ellipse at 85% 85%, rgba(34, 211, 238, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse at 15% 15%, rgba(91, 124, 249, 0.06) 0%, transparent 55%) !important;
+}
