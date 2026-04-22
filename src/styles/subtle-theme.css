@@ -70,6 +70,12 @@ body {
   padding-top: 0 !important;
 }
 
+/* ── Bordi slate-* → bianco semi-trasparente in dark theme ── */
+.border-slate-100, .border-slate-200, .border-slate-50,
+.divide-slate-100 > * + *, .divide-slate-200 > * + * {
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
 /* ── scrollbar nascosta per la tab bar ── */
 .scrollbar-none {
   scrollbar-width: none;

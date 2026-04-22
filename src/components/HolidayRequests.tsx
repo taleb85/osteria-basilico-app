@@ -198,7 +198,7 @@ export default function HolidayRequests() {
   const labelStyle = { color: 'rgba(255,255,255,0.60)' } as React.CSSProperties;
 
   return (
-    <div className="pb-content pt-4 px-4 w-full max-w-full font-sans">
+    <div className="pb-content pt-2 w-full max-w-full font-sans">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -206,10 +206,16 @@ export default function HolidayRequests() {
       >
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       {uiW('ferie.header') && (
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-white/60">
-            {isAdmin ? `${pendingAll.length} ${t.pending}` : `${myHolidays.length} ${t.request_holiday}`}
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          {isAdmin && pendingAll.length > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full text-[11px] font-bold"
+              style={{ background: 'rgba(245,158,11,0.25)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.35)' }}>
+              {pendingAll.length}
+            </span>
+          )}
+          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.55)' }}>
+            {isAdmin ? t.pending : `${myHolidays.length} ${t.request_holiday}`}
           </p>
         </div>
         <button
@@ -367,7 +373,7 @@ export default function HolidayRequests() {
         {/* Left: calendar */}
         <div className="md:col-span-1 space-y-4">
           {uiW('ferie.calendar') && (
-          <div className="surface-glass p-4" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+          <div className="surface-glass p-4" style={{ background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.14)' }}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-xl" style={{ color: '#ffffff' }}>
                 {format(now, 'MMMM yyyy', { locale: it })}
