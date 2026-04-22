@@ -137,31 +137,41 @@ export default function MobileProfileHeader({
         )}
       </div>
 
-      {/* Destra: live dot + data + (slot extra) + campanella + logout */}
-      <div className="flex shrink-0 items-center gap-2">
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 6px #22d3ee', flexShrink: 0, display: 'inline-block' }} />
+      {/* Destra: live dot + data | separatore | azioni (extra + campanella + logout) */}
+      <div className="flex shrink-0 items-center gap-1.5">
+        {/* Status: live dot + data */}
+        <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 5px #22d3ee', flexShrink: 0, display: 'inline-block' }} />
         <span
-          className="hidden sm:inline text-[12px] font-medium whitespace-nowrap capitalize tabular-nums"
-          style={{ color: 'rgba(255,255,255,0.65)', letterSpacing: '0.01em' }}
+          className="hidden sm:inline text-[11px] font-medium whitespace-nowrap capitalize tabular-nums"
+          style={{ color: 'rgba(255,255,255,0.60)', letterSpacing: '0.01em' }}
         >
           {dateLabel}
         </span>
+
+        {/* Separatore verticale */}
+        <span className="w-px h-4 bg-white/15 shrink-0 mx-0.5" />
+
+        {/* Slot azioni (sync + PIN dall'esterno) */}
         {rightExtra}
+
+        {/* Campanella */}
         <UnifiedBellButton
           userId={currentUser?.id}
           effectiveLanguage={effectiveLanguage}
           onMessageClick={(messageId) => { void messageId; }}
         />
+
+        {/* Logout */}
         {onLogout && !hideHeaderLogout && (
           <button
             type="button"
             onClick={() => { triggerHapticFeedback('click'); onLogout?.(); }}
             title={t.header_logout}
             aria-label={t.header_logout}
-            style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s', flexShrink: 0 }}
+            style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s', flexShrink: 0 }}
             className="text-white/70 hover:bg-white/15 hover:text-white active:scale-95 touch-manipulation"
           >
-            <LogOut style={{ width: 14, height: 14 }} strokeWidth={2} aria-hidden />
+            <LogOut style={{ width: 13, height: 13 }} strokeWidth={2} aria-hidden />
           </button>
         )}
       </div>
