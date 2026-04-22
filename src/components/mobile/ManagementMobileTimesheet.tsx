@@ -1,9 +1,10 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 
 import {
   format, startOfWeek, endOfWeek, isSameWeek,
   eachDayOfInterval, isToday, parseISO,
   addWeeks, startOfDay, endOfDay, isWithinInterval, getISOWeek,
+  startOfMonth, endOfMonth,
 } from 'date-fns';
 import { it, es, enUS } from 'date-fns/locale';
 import { Clock, ChevronLeft, ChevronRight, ChevronDown, Users } from 'lucide-react';
@@ -14,6 +15,9 @@ import {
   loadPeriodConfig, getPeriodDateRange,
   prevPeriodConfig, nextPeriodConfig, type PeriodConfig,
 } from '../../utils/periodConfig';
+import MobileStatsCards from './MobileStatsCards';
+
+const Statistics = lazy(() => import('../Statistics'));
 
 interface Props {
   shifts: Shift[];
@@ -506,6 +510,7 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
 
   const [navMode, setNavMode] = useState<NavMode>('period');
   const [navOffset, setNavOffset] = useState(0);
+  const [tsView, setTsView] = useState<'presence' | 'stats'>('presence');
 
   const getRange = useCallback((mode: NavMode, offset: number): { start: Date; end: Date } => {
     const today = new Date();
@@ -544,8 +549,80 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
   const teamShifts = useMemo(() => filteredShifts.filter(s => s.user_id !== currentUserId), [filteredShifts, currentUserId]);
   const teamPunches = useMemo(() => filteredPunches.filter(p => p.user_id !== currentUserId), [filteredPunches, currentUserId]);
 
+  // ── Statistiche personali (per MobileStatsCards) ──────────────────────────
+  const statsData = useMemo(() => {
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const weekEnd   = endOfWeek(now,   { weekStartsOn: 1 });
+    const monthStart = startOfMonth(now);
+    const monthEnd   = endOfMonth(now);
+    const worked = new Set(['approved', 'confirmed']);
+    let weekMins = 0, monthMins = 0;
+    const monthDays = new Set<string>();
+    for (const s of shifts.filter(s => s.user_id === currentUserId)) {
+      if (!worked.has(s.approval_status ?? '')) continue;
+      const d = parseISO(s.date);
+      const sm = s.start_time ? parseInt(s.start_time.split(':')[0]) * 60 + parseInt(s.start_time.split(':')[1]) : 0;
+      const em = s.end_time   ? parseInt(s.end_time.split(':')[0])   * 60 + parseInt(s.end_time.split(':')[1])   : 0;
+      const mins = Math.max(0, em - sm);
+      if (isWithinInterval(d, { start: weekStart,  end: weekEnd  })) weekMins  += mins;
+      if (isWithinInterval(d, { start: monthStart, end: monthEnd })) { monthMins += mins; monthDays.add(s.date); }
+    }
+    return { weekMins, monthMins, monthDaysWorked: monthDays.size };
+  }, [shifts, currentUserId]);
+
   return (
     <div className="flex flex-col pb-content pt-1">
+
+      {/* ── Sub-tab: Presenze | Statistiche ── */}
+      <div className="flex items-center gap-1.5 mb-4 px-4">
+        {(['presence', 'stats'] as const).map((v) => {
+          const label = v === 'presence' ? (t.tab_attendance ?? 'Presenze') : (t.tab_statistics ?? 'Statistiche');
+          const active = tsView === v;
+          return (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setTsView(v)}
+              className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
+                active
+                  ? 'bg-accent text-white shadow-sm'
+                  : 'bg-white/8 border border-white/20 text-white/60 hover:border-white/35 hover:text-white/90'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Statistiche view ── */}
+      {tsView === 'stats' && (
+        <div className="min-h-0 overflow-y-auto pb-1">
+          <Suspense fallback={null}>
+            <Statistics />
+          </Suspense>
+        </div>
+      )}
+
+      {/* ── Presenze view ── */}
+      {tsView === 'presence' && (
+        <>
+          {/* Stats cards SEMANA / MES */}
+          <div className="px-4 mb-4">
+            <MobileStatsCards
+              weekWorkedMins={statsData.weekMins}
+              weekCapMins={40 * 60}
+              monthWorkedMins={statsData.monthMins}
+              monthDaysWorked={statsData.monthDaysWorked}
+              labels={{
+                title: t.tab_statistics ?? 'Statistiche',
+                week: t.ts_period_week ?? 'Settimana',
+                month: t.ts_period_month ?? 'Mese',
+                daysWorked: (t as Record<string,string>).mobile_dash_days_worked ?? 'Giorni lavorati',
+              }}
+            />
+          </div>
 
       {/* Barra navigazione periodo */}
       <div className="flex items-center gap-2 mb-5 px-4">
@@ -589,6 +666,8 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
         </section>
 
       </div>
+        </>
+      )}
     </div>
   );
 }
