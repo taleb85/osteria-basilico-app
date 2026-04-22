@@ -379,10 +379,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       style={{
         backgroundColor: '#0a2a6e',
         backgroundImage: 'linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%), url(/background-wave.png)',
-        backgroundAttachment: 'fixed',
+        backgroundAttachment: 'scroll',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center center',
-        backgroundSize: '100% auto',
+        backgroundSize: 'cover',
       }}
     >
       {/* F watermark di sfondo */}
