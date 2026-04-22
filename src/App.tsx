@@ -701,23 +701,23 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       <header
         ref={appStickyHeaderRef}
         className={`fixed left-0 right-0 z-[10040] shrink-0 transition-[visibility,opacity,top] duration-150 ${
-          activeTab === 'profile' ? 'hidden' : ''
-        } ${
           overlayOpen ? 'invisible opacity-0 pointer-events-none' : ''
         } ${
           isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''
         }`}
         style={{ background: 'transparent', top: impersonatingAs ? 40 : 0 }}
       >
-        <div className="app-horizontal-pad pb-2">
-          <MobileProfileHeader
-            onLogout={onLogout}
-            activeTab={activeTab}
-            showOnDesktop
-            compact={staffMobileCompactHeader}
-            hideToolbarAvatar={false}
-          />
-        </div>
+        {activeTab !== 'profile' && (
+          <div className="app-horizontal-pad pb-2">
+            <MobileProfileHeader
+              onLogout={onLogout}
+              activeTab={activeTab}
+              showOnDesktop
+              compact={staffMobileCompactHeader}
+              hideToolbarAvatar={false}
+            />
+          </div>
+        )}
         {!noNavTabs && (
           <TopTabBar
             activeTab={activeTab}
@@ -729,9 +729,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
       <main
         className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
-        style={activeTab === 'profile'
-          ? { paddingTop: 'max(6px, env(safe-area-inset-top, 0px))' }
-          : { paddingTop: 'var(--app-sticky-header-offset, 80px)' }}
+        style={{ paddingTop: 'var(--app-sticky-header-offset, 80px)' }}
       >
         <div className="w-full flex-1 app-main-top-pad app-horizontal-pad">
           {activeTab !== 'profile' && (
