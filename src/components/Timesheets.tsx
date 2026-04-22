@@ -2659,22 +2659,22 @@ export default function Timesheets() {
       const frozen = !!s.approved_at;
       return {
         border: 'border-l-rose-500',
-        bg: 'bg-rose-500/15',
-        ring: 'ring-1 ring-rose-500/30',
+        bg: 'bg-rose-500/28',
+        ring: 'ring-1 ring-rose-500/50',
         dot: 'bg-rose-500',
         label: frozen ? t.wst_grid_shift_frozen_short : t.status_absent,
-        labelCls: 'text-rose-300 bg-rose-500/20',
+        labelCls: 'text-rose-300 bg-rose-500/30',
       };
     }
     // Approvato / congelato contabilità
     if (s.status === 'approved' && shiftRowPayrollFrozen(s)) {
       return {
         border: 'border-l-emerald-500',
-        bg: 'bg-emerald-500/15',
-        ring: 'ring-1 ring-emerald-500/30',
+        bg: 'bg-emerald-500/28',
+        ring: 'ring-1 ring-emerald-500/50',
         dot: 'bg-emerald-500',
         label: t.wst_grid_shift_frozen_short,
-        labelCls: 'text-emerald-300 bg-emerald-500/20',
+        labelCls: 'text-emerald-300 bg-emerald-500/30',
       };
     }
     // Bozza
@@ -2685,40 +2685,40 @@ export default function Timesheets() {
         ring: ring0,
         dot: 'bg-slate-400',
         label: t.ts_status_draft,
-        labelCls: 'text-white/50 bg-white/8',
+        labelCls: 'text-white/60 bg-white/15',
       };
     }
     // Ritardo / OUT mancante
     if (s.hasMissingOut || s.isLate) {
       return {
         border: 'border-l-red-500',
-        bg: 'bg-red-500/15',
-        ring: 'ring-1 ring-red-500/30',
+        bg: 'bg-red-500/28',
+        ring: 'ring-1 ring-red-500/50',
         dot: 'bg-red-500',
         label: s.hasMissingOut ? t.ts_status_missing_out : t.ts_status_late,
-        labelCls: 'text-red-300 bg-red-500/20',
+        labelCls: 'text-red-300 bg-red-500/30',
       };
     }
     // Modifiche manuali
     if (punchAuditCount > 0) {
       return {
         border: 'border-l-orange-500',
-        bg: 'bg-orange-500/12',
+        bg: 'bg-orange-500/25',
         ring: ring0,
         dot: 'bg-orange-500',
         label: t.ts_status_modified,
-        labelCls: 'text-orange-300 bg-orange-500/20',
+        labelCls: 'text-orange-300 bg-orange-500/30',
       };
     }
     // Non timbrato dopo fine turno
     if (!s.punched && punchMissingOnBoard) {
       return {
         border: 'border-l-amber-500',
-        bg: 'bg-amber-500/12',
-        ring: 'ring-1 ring-amber-500/30',
+        bg: 'bg-amber-500/25',
+        ring: 'ring-1 ring-amber-500/50',
         dot: 'bg-amber-500',
         label: t.ts_status_unpunched,
-        labelCls: 'text-amber-300 bg-amber-500/20',
+        labelCls: 'text-amber-300 bg-amber-500/30',
       };
     }
     // Pubblicato senza timbratura
@@ -2735,22 +2735,22 @@ export default function Timesheets() {
     if (!s.punched) {
       return {
         border: 'border-l-amber-400',
-        bg: 'bg-amber-500/10',
-        ring: 'ring-1 ring-amber-500/25',
+        bg: 'bg-amber-500/22',
+        ring: 'ring-1 ring-amber-500/45',
         dot: 'bg-amber-500',
         label: t.ts_status_unpunched,
-        labelCls: 'text-amber-300 bg-amber-500/20',
+        labelCls: 'text-amber-300 bg-amber-500/30',
       };
     }
     // In turno ora
     if (inTodayKpiWindow) {
       return {
         border: 'border-l-blue-500',
-        bg: 'bg-blue-500/18',
-        ring: 'ring-1 ring-blue-500/35',
+        bg: 'bg-blue-500/30',
+        ring: 'ring-1 ring-blue-500/50',
         dot: 'bg-blue-500',
         label: t.ts_status_in_shift,
-        labelCls: 'text-blue-300 bg-blue-500/20',
+        labelCls: 'text-blue-300 bg-blue-500/30',
       };
     }
     if (s.punched && !s.actualEnd) {
@@ -2760,18 +2760,18 @@ export default function Timesheets() {
         ring: ring0,
         dot: 'bg-blue-400',
         label: t.ts_status_in_shift,
-        labelCls: 'text-blue-300 bg-blue-500/20',
+        labelCls: 'text-blue-300 bg-blue-500/30',
       };
     }
     // Timbrato e completato — verde
     if (s.punched && s.actualEnd) {
       return {
         border: 'border-l-emerald-500',
-        bg: 'bg-emerald-500/15',
-        ring: 'ring-1 ring-emerald-500/30',
+        bg: 'bg-emerald-500/28',
+        ring: 'ring-1 ring-emerald-500/50',
         dot: 'bg-emerald-500',
         label: t.ts_status_to_approve,
-        labelCls: 'text-emerald-300 bg-emerald-500/20',
+        labelCls: 'text-emerald-300 bg-emerald-500/30',
       };
     }
     return {
@@ -2780,7 +2780,7 @@ export default function Timesheets() {
       ring: ring0,
       dot: 'bg-slate-400',
       label: t.ts_status_unpunched,
-      labelCls: 'text-white/50 bg-white/8',
+      labelCls: 'text-white/60 bg-white/15',
     };
   };
 
