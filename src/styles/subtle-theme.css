@@ -44,13 +44,12 @@ body {
 
 /* ── Topbar / header ── */
 .flow-glass-header,
-header,
+.flow-brand-header,
 [class*="topbar"],
 [class*="AppHeader"] {
   background: rgba(5, 14, 46, 0.85) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.10) !important;
 }
 
 /* ── Tab bar (MobileProfileHeader internal tabs) ── */
@@ -63,12 +62,23 @@ header,
   border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
 }
 
-/* ── Bottom nav ── */
+/* ── Bottom nav glass (nascosta — rimpiazzata dalla TopTabBar) ── */
 .bottom-nav-glass {
-  background: rgba(5, 14, 46, 0.92) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.10) !important;
+  display: none !important;
+}
+
+/* ── Rimuovi padding inferiore riservato alla bottom nav ── */
+.pb-content {
+  padding-bottom: 1.5rem !important;
+}
+
+/* ── scrollbar nascosta per la tab bar ── */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 /* ── Card surfaces ── */

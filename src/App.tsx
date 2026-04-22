@@ -21,7 +21,7 @@ import { ProfileLeaveGuardRefContext, type ProfileLeaveGuard } from './context/P
 import { LayoutPresetProvider } from './context/LayoutPresetContext';
 import { applyUnauthenticatedDocumentTheme } from './utils/theme';
 import { getTranslations } from './utils/translations';
-import BottomNav from './components/BottomNav';
+import TopTabBar from './components/TopTabBar';
 import MobileProfileHeader from './components/MobileProfileHeader';
 // import HeaderTodayCoworkersCard from './components/HeaderTodayCoworkersCard'; // unused
 import RefreshLockOverlay from './components/RefreshLockOverlay';
@@ -700,7 +700,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       {/* ── Header fisso — sempre visibile, fuori dal flusso scroll ── */}
       <header
         ref={appStickyHeaderRef}
-        className={`fixed left-0 right-0 z-[10040] shrink-0 app-horizontal-pad pb-2 transition-[visibility,opacity,top] duration-150 ${
+        className={`fixed left-0 right-0 z-[10040] shrink-0 transition-[visibility,opacity,top] duration-150 ${
           activeTab === 'profile' ? 'hidden' : ''
         } ${
           overlayOpen ? 'invisible opacity-0 pointer-events-none' : ''
@@ -709,13 +709,22 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         }`}
         style={{ background: 'transparent', top: impersonatingAs ? 40 : 0 }}
       >
-        <MobileProfileHeader
-          onLogout={onLogout}
-          activeTab={activeTab}
-          showOnDesktop
-          compact={staffMobileCompactHeader}
-          hideToolbarAvatar={false}
-        />
+        <div className="app-horizontal-pad pb-2">
+          <MobileProfileHeader
+            onLogout={onLogout}
+            activeTab={activeTab}
+            showOnDesktop
+            compact={staffMobileCompactHeader}
+            hideToolbarAvatar={false}
+          />
+        </div>
+        {!noNavTabs && (
+          <TopTabBar
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            visibleTabs={bottomNavTabs}
+          />
+        )}
       </header>
 
       <main
@@ -925,15 +934,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         )}
       </AnimatePresence>
 
-      {!noNavTabs && (
-        <div className={postUnlockReloadPending ? 'pointer-events-none' : undefined}>
-          <BottomNav
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            visibleTabs={bottomNavTabs}
-          />
-        </div>
-      )}
     </div>
     </ProfileLeaveGuardRefContext.Provider>
   );
