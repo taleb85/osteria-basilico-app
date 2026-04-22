@@ -22,7 +22,7 @@ body {
   --bg-primary:            #0a2a6e;
   --bg-surface:            rgba(15, 35, 90, 0.55);
   --bg-surface-hover:      rgba(15, 35, 90, 0.68);
-  --bg-surface-solid:      rgba(15, 35, 90, 0.62);
+  --bg-surface-solid:      rgba(10, 25, 75, 0.92);
   --bg-surface-secondary:  rgba(15, 35, 90, 0.45);
   --surface:               rgba(15, 35, 90, 0.55);
   --surface-card:          rgba(15, 35, 90, 0.62);
