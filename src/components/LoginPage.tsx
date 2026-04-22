@@ -423,8 +423,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </button>
           <motion.p
             className="mt-8 text-[11px] font-semibold tracking-[0.25em] uppercase select-none pointer-events-none"
-            style={{ color: 'rgba(255,255,255,0.35)' }}
-            animate={{ opacity: [0.35, 0.75, 0.35] }}
+            style={{ color: 'rgba(255,255,255,0.75)' }}
+            animate={{ opacity: [0.65, 1, 0.65] }}
             transition={{ duration: 2.2, ease: 'easeInOut', repeat: Infinity }}
           >
             Tap to start
