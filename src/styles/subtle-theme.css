@@ -1,18 +1,22 @@
 /* ── Background: onda blu brillante ── */
 html {
+  min-height: 100%;
   background-color: #0a2a6e !important;
   background: 
     linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
-    url('/background-wave.png') no-repeat center center fixed !important;
+    url('/background-wave.png') no-repeat center center !important;
   background-size: cover !important;
+  background-attachment: scroll !important;
 }
 
 body {
+  min-height: 100dvh;
   background: transparent !important;
   background-color: transparent !important;
 }
 
 #root {
+  min-height: 100dvh;
   background: transparent !important;
   background-color: transparent !important;
 }
