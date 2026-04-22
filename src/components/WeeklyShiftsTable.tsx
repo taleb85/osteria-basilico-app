@@ -4072,7 +4072,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     ? 'bg-accent/5'
                                     : isUnavailDay
                                       ? 'bg-red-500/20'
-                                      : 'bg-white'
+                                      : 'bg-white/5'
                             }`}
                             style={{ width: `calc(100% / ${allWeekDays.length})` }}
                           >
@@ -5073,7 +5073,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             ? 'border-2 border-l-4 border-cyan-600/25 border-l-[#0052FF] bg-cyan-600/8'
                             : hasIn
                             ? 'border-2 border-l-4 border-amber-300/80 border-l-review bg-amber-500/10'
-                            : 'border-2 border-l-4 border-white/15 border-l-slate-300 bg-white/8';
+                            : 'border-2 border-l-4 border-white/15 border-l-white/30 bg-white/8';
                           const labelCls = hasIn && hasOut
                             ? 'text-cyan-300'
                             : hasIn
@@ -5123,7 +5123,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             ? delta! >= 0
                               ? 'border-2 border-l-4 border-cyan-600/25 border-l-[#0052FF] bg-cyan-600/8'
                               : 'border-2 border-l-4 border-amber-300/80 border-l-review bg-amber-500/10'
-                            : 'border-2 border-l-4 border-white/15 border-l-slate-300 bg-white/8';
+                            : 'border-2 border-l-4 border-white/15 border-l-white/30 bg-white/8';
                           const hoursLabelCls = actualNetMins != null && plannedNetMins != null
                             ? delta! >= 0 ? 'text-cyan-300' : 'text-amber-400'
                             : 'text-white/40';

@@ -3847,7 +3847,7 @@ export default function Timesheets() {
               });
 
               return (
-                <div key={user.id} className="surface-glass rounded-2xl p-4 shadow-sm border border-slate-200 overflow-hidden">
+                <div key={user.id} className="surface-glass rounded-2xl p-4 shadow-sm border border-white/15 overflow-hidden">
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h4 className="font-bold text-lg text-white">{user.first_name}</h4>
@@ -4461,7 +4461,7 @@ export default function Timesheets() {
                         </td>
                       );
                     })}
-                    <td className="px-3 py-3 text-center bg-slate-50 border-l-[3px] border-l-slate-500 md:px-2 md:py-2">
+                    <td className="px-3 py-3 text-center bg-white/5 border-l-[3px] border-l-white/30 md:px-2 md:py-2">
                       <div className="text-xs text-white/60 md:text-[10px]">
                         {formatMinutesToHoursAndMinutes(visibleUsers.reduce((s, u) => s + (userTotals[u.id]?.plannedMins ?? 0), 0))}
                       </div>
@@ -5751,12 +5751,12 @@ export default function Timesheets() {
                     </p>
                   </div>
                   <button type="button" onClick={() => { setClosingShift(null); setClockOutTime(''); }}
-                    className="p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                    className="p-1.5 rounded-xl hover:bg-white/10 transition-colors">
                     <X className="w-4 h-4 text-white/60" />
                   </button>
                 </div>
 
-                <div className="bg-slate-50 rounded-xl px-3 py-2.5 mb-4 flex items-center justify-between text-sm">
+                <div className="bg-white/8 rounded-xl px-3 py-2.5 mb-4 flex items-center justify-between text-sm">
                   <span className="text-white/60">{t.ts_modal_entry_registered}</span>
                   <span className="font-bold text-white/90">{closingShift.actualStart}</span>
                 </div>
@@ -5777,7 +5777,7 @@ export default function Timesheets() {
                 </div>
 
                 {showHoursPreview && (
-                  <div className="bg-slate-50 rounded-xl p-3 mb-4">
+                  <div className="bg-white/8 rounded-xl p-3 mb-4">
                     <p className="text-[10px] font-semibold text-white/60 uppercase tracking-wide mb-2">{t.ts_modal_hours_preview}</p>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
