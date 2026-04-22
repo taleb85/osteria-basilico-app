@@ -55,9 +55,9 @@ button:active,
   color: #ffffff !important;
 }
 
-/* Reset globale — sfondo scuro blu con gradiente, scroll naturale */
+/* Reset globale — sfondo onda blu */
 html {
-  background-color: #0d1f3c; /* copre safe areas (Dynamic Island / home indicator) */
+  background-color: #060e1a; /* base scurissima (#060e1a = mockup) */
 }
 
 html,
@@ -70,9 +70,9 @@ body,
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  background: 
-    linear-gradient(180deg, rgba(13, 31, 60, 0.88), rgba(11, 53, 115, 0.82)),
-    url('/bg-elegant-blue.png') no-repeat center top fixed;
+  background:
+    linear-gradient(rgba(5, 14, 46, 0.55), rgba(5, 14, 46, 0.55)),
+    url('/background-wave.png') no-repeat center top fixed;
   background-size: cover;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -146,15 +146,15 @@ body,
     --slate-neutral: #475569; /* Grigio ardesia per stati neutri */
     
     /* ═══ DARK THEME GLOBAL TOKENS ═══ */
-    --bg-primary: #0d1f3c;
-    --bg-surface: rgba(255, 255, 255, 0.14);
-    --bg-surface-hover: rgba(255, 255, 255, 0.18);
-    --bg-surface-solid: #152848;
-    --bg-surface-secondary: rgba(255, 255, 255, 0.11);
-    --border-color: rgba(255, 255, 255, 0.22);
+    --bg-primary: #060e1a;
+    --bg-surface: rgba(255, 255, 255, 0.07);
+    --bg-surface-hover: rgba(255, 255, 255, 0.12);
+    --bg-surface-solid: rgba(255, 255, 255, 0.08);
+    --bg-surface-secondary: rgba(255, 255, 255, 0.06);
+    --border-color: rgba(255, 255, 255, 0.12);
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.65);
-    --text-muted: rgba(255, 255, 255, 0.35);
+    --text-muted: rgba(255, 255, 255, 0.45);
     --accent-blue: #3b82f6;
     --accent-green: #10b981;
     --accent-red: #ef4444;

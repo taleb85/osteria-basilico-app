@@ -1,34 +1,34 @@
 /* ── Background: onda + overlay scuro come nel mockup ── */
 html {
   background-color: #060e1a !important;
-}
-
-html, body, #root {
-  background-image:
+  background: 
     linear-gradient(rgba(5, 14, 46, 0.55), rgba(5, 14, 46, 0.55)),
-    url('/background-wave.png') !important;
+    url('/background-wave.png') no-repeat center top fixed !important;
   background-size: cover !important;
-  background-position: center !important;
-  background-attachment: fixed !important;
-  background-color: #060e1a !important;
 }
 
-/* #root trasparente così non copre il bg di html */
-#root {
+body {
+  background: transparent !important;
   background-color: transparent !important;
-  background-image: none !important;
 }
 
-/* ── Variabili CSS aggiornate ── */
+#root {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* ── Variabili CSS aggiornate — devono venire DOPO index.css ── */
 :root {
-  --bg-primary:           #060e1a;
-  --bg-surface:           rgba(255, 255, 255, 0.07);
-  --bg-surface-hover:     rgba(255, 255, 255, 0.12);
-  --bg-surface-solid:     rgba(255, 255, 255, 0.08);
-  --bg-surface-secondary: rgba(255, 255, 255, 0.06);
-  --surface:              rgba(255, 255, 255, 0.07);
-  --surface-card:         rgba(255, 255, 255, 0.08);
-  --border-color:         rgba(255, 255, 255, 0.12);
+  --bg-primary:            #060e1a;
+  --bg-surface:            rgba(255, 255, 255, 0.07);
+  --bg-surface-hover:      rgba(255, 255, 255, 0.12);
+  --bg-surface-solid:      rgba(255, 255, 255, 0.08);
+  --bg-surface-secondary:  rgba(255, 255, 255, 0.06);
+  --surface:               rgba(255, 255, 255, 0.07);
+  --surface-card:          rgba(255, 255, 255, 0.08);
+  --border-color:          rgba(255, 255, 255, 0.12);
+  /* forza body background trasparente */
+  --app-bg:                transparent;
 
   --text-primary:         rgba(255, 255, 255, 0.95);
   --text-secondary:       rgba(255, 255, 255, 0.65);
@@ -250,4 +250,24 @@ td, th {
 /* ── Testo globale ── */
 body {
   color: rgba(255, 255, 255, 0.92);
+}
+
+/* ── Override diretto: blocca i background solidi di index.css ── */
+/* index.css applica background: var(--bg-surface-solid) (#152848) su queste classi */
+.surface-glass,
+.surface-glass-sm,
+.shift-card-ultra,
+.panel,
+.card-factorial,
+[class*="surface-"] {
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Blocca body/html con background solidso impostati dentro @layer base */
+html {
+  background-color: #060e1a !important;
+}
+body {
+  background-color: transparent !important;
+  background-image: none !important;
 }
