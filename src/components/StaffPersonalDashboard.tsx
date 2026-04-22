@@ -908,7 +908,7 @@ export default function StaffPersonalDashboard({
   // Profilo gestionale solo Admin: nessun turno assegnato (Proprietario = stesso flusso Manager)
   if (isPurelyManagementRole(displayUser.role)) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] text-white/90 font-sans antialiased flex flex-col items-center justify-center px-6 safe-area-pad">
+      <div className="min-h-screen text-white/90 font-sans antialiased flex flex-col items-center justify-center px-6 safe-area-pad" style={{ background: 'transparent' }}>
         <div className="surface-glass max-w-sm p-8 text-center">
           <Shield className="w-14 h-14 text-white/60 mx-auto mb-4" strokeWidth={1.5} />
           <h2 className="text-lg font-bold text-white/90 mb-2">Profilo Gestionale</h2>

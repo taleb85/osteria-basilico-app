@@ -111,7 +111,7 @@ export default function MobileTimesheet({
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-[#4361EE]/15 flex items-center justify-center shrink-0">
-                  <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                  <Calendar className="w-3.5 h-3.5 text-[#60a5fa]" />
                 </div>
                 <div>
                   <p className="text-[8px] font-black uppercase tracking-widest text-white/50 leading-none mb-0.5">
@@ -123,18 +123,18 @@ export default function MobileTimesheet({
                 </div>
               </div>
               {totalMins > 0 && (
-                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/10 text-blue-700 border border-[#4361EE]/15">
+                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/15 text-[#93c5fd] border border-[#4361EE]/25">
                   {totalLabel}
                 </span>
               )}
             </div>
 
             {/* Giorni */}
-            <div className="flex flex-col divide-y divide-slate-50">
+            <div className="flex flex-col divide-y divide-white/10">
               {days.map((day) => (
                 <div key={day.date} className="px-4 py-3 flex flex-col gap-2">
                   {/* Label giorno */}
-                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[#60a5fa]">
                     {safeFormatDate(day.date, 'EEEE d MMMM', { locale })}
                   </p>
 

@@ -38,7 +38,7 @@ export default function MobileRequestList({ requests, t = {} }: MobileRequestLis
   if (requests.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+        <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mb-4">
           <Palmtree className="w-8 h-8 text-white/50" />
         </div>
         <p className="text-white/60 font-medium">{t.no_requests_made ?? 'Nessuna richiesta effettuata'}</p>

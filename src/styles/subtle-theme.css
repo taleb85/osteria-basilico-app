@@ -71,8 +71,8 @@ body {
 }
 
 /* ── Bordi slate-* → bianco semi-trasparente in dark theme ── */
-.border-slate-100, .border-slate-200, .border-slate-50,
-.divide-slate-100 > * + *, .divide-slate-200 > * + * {
+.border-slate-50, .border-slate-100, .border-slate-200, .border-slate-300, .border-slate-400,
+.divide-slate-50 > * + *, .divide-slate-100 > * + *, .divide-slate-200 > * + * {
   border-color: rgba(255, 255, 255, 0.14) !important;
 }
 
@@ -176,6 +176,14 @@ body .bg-gray-50:not(input):not(textarea):not(select) {
 body .bg-slate-100:not(input):not(textarea):not(select),
 body .bg-gray-100:not(input):not(textarea):not(select) {
   background-color: rgba(255, 255, 255, 0.11) !important;
+}
+body .bg-slate-200:not(input):not(textarea):not(select),
+body .bg-gray-200:not(input):not(textarea):not(select) {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+}
+body .bg-slate-300:not(input):not(textarea):not(select),
+body .bg-gray-300:not(input):not(textarea):not(select) {
+  background-color: rgba(255, 255, 255, 0.20) !important;
 }
 /* Input con bg-slate-100 (es. EditShiftModal time pickers) */
 input.bg-slate-100, input.bg-slate-200,
