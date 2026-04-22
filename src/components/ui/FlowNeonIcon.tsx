@@ -7,9 +7,9 @@ export interface FlowNeonIconProps {
   idPrefix?: string;
 }
 
-const C0 = '#0033CC';  // blu navy — top-left icona
-const C1 = '#0055FF';  // blu vivace — centro icona
-const C2 = '#00DDFF';  // cyan brillante — bottom-right icona
+const C0 = '#0f2a4a';  // deep navy — top-left icona
+const C1 = '#22d3ee';  // cyan vivace — centro icona
+const C2 = '#5b7cf9';  // indigo — bottom-right icona
 
 export function FlowNeonIcon({
   size = 112,

@@ -29,24 +29,24 @@ export default {
         },
         // Arancione revisione — per approvazioni e modifiche
         review: {
-          DEFAULT: '#D97706',
-          hover:   '#B45309',
-          light:   '#FEF3C7',
+          DEFAULT: '#f99c00',
+          hover:   '#e08900',
+          light:   'rgba(249, 156, 0, 0.15)',
         },
         // Rosso errore — per eliminazioni e azioni critiche
         error: {
-          DEFAULT: '#DC2626',
-          hover:   '#991B1B',
-          light:   '#FEE2E2',
+          DEFAULT: '#fb2c36',
+          hover:   '#e0222c',
+          light:   'rgba(251, 44, 54, 0.15)',
         },
         surface: {
-          DEFAULT: '#f8fafc',
-          card: '#ffffff',
+          DEFAULT: '#0f2a4a',
+          card: '#0d2240',
         },
         ink: {
-          DEFAULT: '#1a1a1a',
-          secondary: '#475569',
-          muted: '#64748b',
+          DEFAULT: 'rgba(236, 254, 255, 0.95)',
+          secondary: 'rgba(207, 250, 254, 0.7)',
+          muted: 'rgba(207, 250, 254, 0.45)',
         },
       },
       fontSize: {
@@ -71,7 +71,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif', '"Apple Color Emoji"', '"Segoe UI Emoji"'],
+        sans: ['Outfit', 'Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif', '"Apple Color Emoji"', '"Segoe UI Emoji"'],
         serif: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
       },
     },

@@ -23,16 +23,32 @@ export default function FlowLogo({
 
   return (
     <div className={`flex items-center gap-2.5 leading-none select-none ${className}`}>
-      {/* Icona PNG ufficiale FLOW */}
+      {/* Icona PNG ufficiale FLOW — Smart Pair container */}
       {showIcon && (
-        <img
-          src="/icon-flow-final.png"
-          alt="FLOW"
-          width={size}
-          height={size}
-          draggable={false}
-          style={{ width: size, height: size, borderRadius: size * 0.22, flexShrink: 0, objectFit: 'cover' }}
-        />
+        <div
+          style={{
+            background: '#0f2a4a',
+            border: '1px solid rgba(34, 211, 238, 0.3)',
+            boxShadow: '0 0 20px rgba(34, 211, 238, 0.15)',
+            borderRadius: size * 0.22,
+            width: size,
+            height: size,
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+          }}
+        >
+          <img
+            src="/icon-flow-final.png"
+            alt="FLOW"
+            width={size - 4}
+            height={size - 4}
+            draggable={false}
+            style={{ width: size - 4, height: size - 4, borderRadius: (size - 4) * 0.18, objectFit: 'cover' }}
+          />
+        </div>
       )}
 
       {/* Wordmark + subtitle opzionali */}
@@ -40,14 +56,14 @@ export default function FlowLogo({
         <div className="flex flex-col leading-none">
           <span
             style={{
-              fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+              fontFamily: '\'Outfit\', \'Inter\', system-ui, -apple-system, sans-serif',
               fontSize: size * 0.72,
-              fontWeight: 800,
+              fontWeight: 600,
               letterSpacing: '-0.045em',
               lineHeight: 1,
               ...(isWhite
                 ? { color: '#FFFFFF' }
-                  : { color: '#0052FF' }),
+                : { color: '#22d3ee' }),
             }}
           >
             FLOW
@@ -55,7 +71,7 @@ export default function FlowLogo({
           {subtitle && (
             <span
               style={{
-                fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+                fontFamily: '\'Outfit\', \'Inter\', system-ui, -apple-system, sans-serif',
                 fontSize: size * 0.22,
                 fontWeight: 600,
                 letterSpacing: '0.18em',
@@ -63,7 +79,7 @@ export default function FlowLogo({
                 marginTop: size * 0.07,
                 ...(isWhite
                   ? { color: 'rgba(255,255,255,0.55)' }
-                  : { color: '#64748b' }),
+                  : { color: 'rgba(34, 211, 238, 0.6)' }),
               }}
             >
               {subtitle}
