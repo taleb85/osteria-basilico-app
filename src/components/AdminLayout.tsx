@@ -7,9 +7,6 @@ import { getTranslations } from '../utils/translations';
 import SettingsPage from './SettingsPage';
 import ImpostazioniPage from './ImpostazioniPage';
 
-import BottomNav from './BottomNav';
-import { getBottomNavTabsForMainApp } from '../utils/enabledModules';
-
 type AdminTab = 'profili' | 'regole' | 'impostazioni';
 
 /** `overflow-visible` così il pannello del menu hamburger non viene tagliato dal bordo arrotondato. */
@@ -23,7 +20,6 @@ export default function AdminLayout() {
   // Accesso completo: admin puro OPPURE sessione elevata via PIN secondario
   const fullAdminNav = !!(currentUser && (isAdminOnly(currentUser) || isSessionElevated || currentUser.elevated_role));
   const _showAdminNav = fullAdminNav || !!(currentUser && canEditRoleFeatureTemplates(currentUser));
-  // Apri direttamente "Impostazioni" se l'utente ha accesso completo
   const [activeTab, setActiveTab] = useState<AdminTab>('profili');
 
   const handleTabChange = useCallback((tab: AdminTab) => {
@@ -63,11 +59,6 @@ export default function AdminLayout() {
       setActiveTab('profili');
     }
   }, [fullAdminNav, activeTab]);
-
-  const bottomNavTabs = useMemo(() => {
-    if (!currentUser) return ['home'];
-    return getBottomNavTabsForMainApp(currentUser, true, null);
-  }, [currentUser]);
 
   return (
     <div className="min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased flex flex-col safe-area-pad overflow-x-clip page-depth-bg">
@@ -137,7 +128,7 @@ export default function AdminLayout() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-24">
+      <main className="flex-1 overflow-y-auto pb-6">
         {/* Gestione Profili */}
         <div className={activeTab === 'profili' ? 'block' : 'hidden'} aria-hidden={activeTab !== 'profili'}>
           <SettingsPage view="profili" />
@@ -151,14 +142,6 @@ export default function AdminLayout() {
           <ImpostazioniPage onOpenProfilesTab={() => handleTabChange('profili')} />
         </div>
       </main>
-
-      <BottomNav
-        activeTab="settings"
-        onTabChange={(tab) => {
-          if (tab !== 'settings') navigate('/app');
-        }}
-        visibleTabs={bottomNavTabs as any}
-      />
     </div>
   );
 }
