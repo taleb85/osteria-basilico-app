@@ -4,7 +4,7 @@ html {
   background: 
     linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
     url('/background-wave.png') no-repeat center center fixed !important;
-  background-size: cover !important;
+  background-size: 100% auto !important;
 }
 
 body {

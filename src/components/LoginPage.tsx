@@ -382,7 +382,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         backgroundAttachment: 'fixed',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center center',
-        backgroundSize: 'cover',
+        backgroundSize: '100% auto',
       }}
     >
       {/* F watermark di sfondo */}
