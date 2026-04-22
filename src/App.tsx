@@ -738,12 +738,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         <div className="w-full flex-1 app-main-top-pad app-horizontal-pad">
           {activeTab !== 'profile' && (
             <div className="flex flex-col gap-3 mb-5">
-            <div className="flex items-center justify-between gap-3">
-              <p
-                className="text-sm sm:text-base font-extrabold tracking-widest leading-tight truncate uppercase pl-4 tab-title-gradient"
-              >
-                {getAppNavTabTitle(getTranslations(effectiveLanguage), activeTab)}
-              </p>
+            <div className="flex items-center justify-end gap-3">
               <div className="shrink-0 flex items-center gap-1">
                 {/* Data — solo desktop */}
                 <span className="hidden sm:inline text-sm sm:text-base font-semibold whitespace-nowrap capitalize tabular-nums tab-title-gradient">
