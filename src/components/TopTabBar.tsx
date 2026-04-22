@@ -59,10 +59,7 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTa
       ref={scrollRef}
       className="top-tabbar flex overflow-x-auto scrollbar-none"
       style={{
-        background: 'rgba(5, 14, 46, 0.75)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        borderTop: '1px solid rgba(255,255,255,0.07)',
         padding: '0 10px',
       }}
     >

@@ -697,7 +697,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
-      {/* ── Header fisso — sempre visibile, fuori dal flusso scroll ── */}
+      {/* ── Header fisso unificato: topbar + tabbar ── */}
       <header
         ref={appStickyHeaderRef}
         className={`fixed left-0 right-0 z-[10040] shrink-0 transition-[visibility,opacity,top] duration-150 ${
@@ -705,18 +705,22 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         } ${
           isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''
         }`}
-        style={{ background: 'transparent', top: impersonatingAs ? 40 : 0 }}
+        style={{
+          top: impersonatingAs ? 40 : 0,
+          background: 'rgba(5, 14, 46, 0.88)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255,255,255,0.10)',
+        }}
       >
         {activeTab !== 'profile' && (
-          <div className="app-horizontal-pad pb-2">
-            <MobileProfileHeader
-              onLogout={onLogout}
-              activeTab={activeTab}
-              showOnDesktop
-              compact={staffMobileCompactHeader}
-              hideToolbarAvatar={false}
-            />
-          </div>
+          <MobileProfileHeader
+            onLogout={onLogout}
+            activeTab={activeTab}
+            showOnDesktop
+            compact={staffMobileCompactHeader}
+            hideToolbarAvatar={false}
+          />
         )}
         {!noNavTabs && (
           <TopTabBar

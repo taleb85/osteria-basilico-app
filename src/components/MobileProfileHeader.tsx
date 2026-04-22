@@ -77,13 +77,10 @@ export default function MobileProfileHeader({
   const shellClass = `w-full ${showOnDesktop ? '' : 'md:hidden'}`;
 
   const body = (
-    <div className="relative" style={{ paddingTop: 'env(safe-area-inset-top, 0px)', marginTop: 6 }} ref={wrapperRef}>
+    <div className="relative" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }} ref={wrapperRef}>
     <div
-      className="flow-brand-header rounded-2xl overflow-hidden px-3 py-2 flex items-center justify-between gap-3"
-      style={{
-        background: '#0B3573',
-        boxShadow: '0 4px 16px -4px rgba(11, 53, 115, 0.40), 0 2px 8px -2px rgba(0, 0, 0, 0.15)',
-      }}
+      className="flow-brand-header px-4 flex items-center justify-between gap-3"
+      style={{ height: 50 }}
     >
       {/* Sinistra: icona F + testo */}
       <div
@@ -92,7 +89,7 @@ export default function MobileProfileHeader({
         <div
           role="button"
           tabIndex={0}
-          style={{ width: 42, height: 42, flexShrink: 0, borderRadius: 8, overflow: 'hidden', cursor: 'pointer' }}
+          style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, overflow: 'hidden', cursor: 'pointer', background: 'rgba(26,86,219,0.4)', border: '1px solid rgba(59,130,246,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => {
             if ('caches' in window) {
               caches.keys().then(names => Promise.all(names.map(n => caches.delete(n)))).finally(() => {
@@ -113,12 +110,12 @@ export default function MobileProfileHeader({
         </div>
         <div className="flex flex-col leading-none select-none">
           <span
-            style={{ color: '#ffffff', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 20, fontWeight: 200, letterSpacing: '0.08em', lineHeight: 1 }}
+            style={{ color: '#ffffff', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 15, fontWeight: 700, letterSpacing: '0.08em', lineHeight: 1 }}
           >
             FLOW
           </span>
           <span
-            style={{ color: 'rgba(255,255,255,0.7)', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 9, fontWeight: 500, letterSpacing: '0.20em', textTransform: 'uppercase', marginTop: 4, lineHeight: 1 }}
+            style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 8, fontWeight: 500, letterSpacing: '0.20em', textTransform: 'uppercase', marginTop: 3, lineHeight: 1 }}
           >
             Work in Motion
           </span>
@@ -131,7 +128,7 @@ export default function MobileProfileHeader({
         )}
       </div>
 
-      {/* Destra: tema + campanella + refresh (desktop) + logout */}
+      {/* Destra: campanella + logout */}
       <div className="flex shrink-0 items-center gap-1.5">
         <UnifiedBellButton
           userId={currentUser?.id}
@@ -144,9 +141,9 @@ export default function MobileProfileHeader({
             onClick={() => { triggerHapticFeedback('click'); onLogout?.(); }}
             title={t.header_logout}
             aria-label={t.header_logout}
-            className="flex h-9 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200 hover:bg-red-500/20 active:scale-95 touch-manipulation text-red-400 hover:text-red-300"
+            className="flex h-8 w-9 shrink-0 items-center justify-center rounded-lg transition-all duration-200 hover:bg-red-500/20 active:scale-95 touch-manipulation text-red-400 hover:text-red-300"
           >
-            <LogOut className="w-[18px] h-[18px]" strokeWidth={2.5} aria-hidden />
+            <LogOut className="w-[16px] h-[16px]" strokeWidth={2.5} aria-hidden />
           </button>
         )}
       </div>

@@ -43,13 +43,10 @@ body {
 }
 
 /* ── Topbar / header ── */
-.flow-glass-header,
-.flow-brand-header,
-[class*="topbar"],
-[class*="AppHeader"] {
-  background: rgba(5, 14, 46, 0.85) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
+.flow-brand-header {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
 }
 
 /* ── Tab bar (MobileProfileHeader internal tabs) ── */
