@@ -537,7 +537,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         <p className="text-[10px] uppercase tracking-wider text-white/55">
                           {translateRole(user.role, currentUser.language)}
                           {!isActiveRow && (
-                            <span className="ml-1.5 font-semibold text-amber-700">
+                            <span className="ml-1.5 font-semibold text-amber-400">
                               ·{' '}
                               {user.status === 'suspended'
                                 ? t.status_suspended
@@ -575,7 +575,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           <button
                             type="button"
                             onClick={() => handleDelegateSuspend(user)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-red-700 transition-colors hover:bg-red-100"
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/15 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-red-400 transition-colors hover:bg-red-500/150/25"
                           >
                             <UserX className="h-3.5 w-3.5 shrink-0" aria-hidden />
                             {t.settings_delegated_suspend}
@@ -608,7 +608,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               <button
                                 type="button"
                                 onClick={() => setDeleteConfirmUserId(user.id)}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/15 text-red-400 transition-colors hover:bg-red-500/150/25"
                                 title={t.settings_delete_user_title}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -668,7 +668,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               className={`mb-4 rounded-xl border p-4 ${
                 importStatus.type === 'success'
                   ? 'border-accent/40 bg-accent/10 text-accent'
-                  : 'border-red-200 bg-red-50 text-red-700'
+                  : 'border-red-500/30 bg-red-500/15 text-red-400'
               }`}
             >
               {importStatus.message}
@@ -895,7 +895,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                 <button
                                   type="button"
                                   onClick={() => setDeleteConfirmUserId(user.id)}
-                                  className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-50 text-red-500 transition-colors hover:bg-red-100"
+                                  className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-500/15 text-red-400 transition-colors hover:bg-red-500/150/25"
                                   title={t.settings_delete_user_title}
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
@@ -1434,7 +1434,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               {/* Attenzione */}
               <div className="surface-glass-sm depth-card flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/15">
                     <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
                   </span>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-white">{t.wst_violation_attention}</h3>
@@ -1483,8 +1483,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               {/* Sovrapposizione */}
               <div className="surface-glass-sm depth-card flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-100 bg-red-50 shadow-[0_0_6px_rgba(239,68,68,0.3)]">
-                    <span className="h-2.5 w-2.5 rounded-full bg-red-300" />
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/15 shadow-[0_0_6px_rgba(239,68,68,0.3)]">
+                    <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
                   </span>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-white">{t.wst_violation_overlap}</h3>
                 </div>
@@ -1537,8 +1537,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                        <Coffee className="w-4 h-4 text-amber-600" />
+                      <span className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                        <Coffee className="w-4 h-4 text-amber-400" />
                       </span>
                       <h3
                         className={`flex-1 truncate text-xs font-bold uppercase tracking-wider ${isEnabled ? 'text-white' : 'text-white/40'}`}
@@ -1576,7 +1576,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         <button type="button" onClick={() => setEditingBreakRule(rule)} className="p-1.5 rounded-xl hover:bg-white/10 text-white/40 hover:text-white/80 transition-colors">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" onClick={() => handleDeleteBreakRule(rule.id)} className="p-1.5 rounded-xl hover:bg-red-50 text-white/40 hover:text-red-500 transition-colors">
+                        <button type="button" onClick={() => handleDeleteBreakRule(rule.id)} className="p-1.5 rounded-xl hover:bg-red-500/15 text-white/40 hover:text-red-500 transition-colors">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1663,7 +1663,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           type="button"
                           onClick={() => handleDeleteShiftTemplate(tmpl.name)}
                           disabled={isDeletingThis}
-                          className="flex-shrink-0 p-1.5 rounded-md text-white/40 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
+                          className="flex-shrink-0 p-1.5 rounded-md text-white/40 hover:text-red-500 hover:bg-red-500/15 transition-colors disabled:opacity-40"
                           title={`Elimina template "${tmpl.name}"`}
                         >
                           {isDeletingThis
@@ -2022,7 +2022,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   <button
                     type="button"
                     onClick={() => { setHolidayEmailDraft(''); setHolidayEmail(''); try { localStorage.removeItem(HOLIDAY_EMAIL_KEY); } catch { /* */ } }}
-                    className="ml-2 flex-shrink-0 p-1 rounded-lg text-white/40 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    className="ml-2 flex-shrink-0 p-1 rounded-lg text-white/40 hover:text-red-500 hover:bg-red-500/15 transition-colors"
                     title="Rimuovi email"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -2066,8 +2066,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     className={`relative flex flex-col gap-3 rounded-2xl border p-4 transition-all duration-200 ${
                       isMaintenance
                         ? enabled
-                          ? 'border-red-300 bg-red-50 shadow-[0_0_0_3px_rgba(239,68,68,0.12)])]'
-                          : 'border-amber-200 bg-amber-50/60'
+                          ? 'border-red-500/40 bg-red-500/15 shadow-[0_0_0_3px_rgba(239,68,68,0.15)]'
+                          : 'border-amber-500/30 bg-amber-500/10'
                         : 'surface-glass shadow-none'
                     }`}
                   >
@@ -2079,8 +2079,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl ${
                             isMaintenance
                               ? enabled
-                                ? 'bg-red-100 text-red-600'
-                                : 'bg-amber-100 text-amber-600'
+                                ? 'bg-red-500/20 text-red-400'
+                                : 'bg-amber-500/15 text-amber-400'
                               : enabled
                                 ? 'bg-accent/10 text-accent'
                                 : 'bg-white/10 text-white/40'
@@ -2093,8 +2093,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             className={`text-sm font-semibold leading-tight ${
                               isMaintenance
                                 ? enabled
-                                  ? 'text-red-700'
-                                  : 'text-amber-700'
+                                  ? 'text-red-400'
+                                  : 'text-amber-400'
                                 : enabled
                                   ? 'text-white'
                                   : 'text-white/40'
@@ -2693,7 +2693,7 @@ function BreakRuleModal({
         className="modal-glass-panel max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl font-sans"
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10/90 bg-white/80 px-5 pt-5 pb-4 backdrop-blur-md">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[rgba(8,20,60,0.80)] px-5 pt-5 pb-4 backdrop-blur-md">
           <h2 className="text-base font-bold text-white">
             {isEdit ? t.settings_break_modal_edit_title : t.settings_break_modal_new_title}
           </h2>
