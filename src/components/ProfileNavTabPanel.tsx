@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, ChevronRight, Trash2 } from 'lucide-react';
+import { Camera, ChevronRight, Trash2, Settings2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useProfileLeaveGuardRef } from '../context/ProfileLeaveGuardContext';
@@ -308,7 +308,7 @@ export default function ProfileNavTabPanel({
   const displayName = fullName;
   const profileInitial = (displayName.charAt(0) || '?').toUpperCase();
   const _isMgmt = isManagementRole(currentUser.role);
-  const _hasAdminAccess = isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role;
+  const hasAdminAccess = isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role;
 
   const changePhoto = tv.profile_tab_change_photo ?? 'Cambia foto';
   const logoutConfirm = tv.profile_logout_confirm ?? "Uscire dall'account?";
@@ -586,6 +586,34 @@ export default function ProfileNavTabPanel({
             </AnimatePresence>
           </div>
 
+          {/* Pannello Admin — visibile solo per ruoli autorizzati */}
+          {(hasAdminAccess || _isMgmt) && (
+            <button
+              type="button"
+              onClick={() => setShowMgmtPinPad(true)}
+              className="w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 transition-all active:scale-[0.98]"
+              style={{
+                background: 'rgba(99, 102, 241, 0.15)',
+                border: '1px solid rgba(99, 102, 241, 0.35)',
+              }}
+            >
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(99, 102, 241, 0.30)' }}
+              >
+                <Settings2 className="w-4 h-4" style={{ color: '#a5b4fc' }} />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.92)' }}>
+                  Pannello Impostazioni
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: 'rgba(165, 180, 252, 0.75)' }}>
+                  Area gestionale riservata
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(165, 180, 252, 0.60)' }} />
+            </button>
+          )}
 
         </div>
       </motion.div>
