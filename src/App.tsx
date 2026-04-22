@@ -23,6 +23,7 @@ import { applyUnauthenticatedDocumentTheme } from './utils/theme';
 import { getTranslations } from './utils/translations';
 import TopTabBar from './components/TopTabBar';
 import MobileProfileHeader from './components/MobileProfileHeader';
+import FlowWaveIcon from './components/ui/FlowWaveIcon';
 // import HeaderTodayCoworkersCard from './components/HeaderTodayCoworkersCard'; // unused
 import RefreshLockOverlay from './components/RefreshLockOverlay';
 import PostUnlockRestartOverlay from './components/PostUnlockRestartOverlay';
@@ -881,20 +882,19 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         return (
           <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18' }}>
             <div className="flex flex-col items-center gap-6">
-              <motion.img
-                src="/icon-flow-final.png"
-                alt="FLOW"
-                draggable={false}
+              <motion.div
                 animate={{
-                  filter: [
-                    'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
-                    'drop-shadow(0 0 56px rgba(0,82,255,1.00)) drop-shadow(0 0 24px rgba(0,180,255,0.80))',
-                    'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
+                  boxShadow: [
+                    '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
+                    '0 0 56px rgba(0,82,255,1.00), 0 0 24px rgba(34,211,238,0.80)',
+                    '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
                   ],
                 }}
                 transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
-                style={{ width: 120, height: 120, objectFit: 'contain' }}
-              />
+                style={{ borderRadius: 32 }}
+              >
+                <FlowWaveIcon size={120} radius={32} />
+              </motion.div>
               <div className="flex flex-col items-center gap-1 min-h-[40px]">
                 <p className="text-white/70 text-xs font-semibold uppercase tracking-widest">
                   {getTranslations(effectiveLanguage).sync_total_in_progress}
@@ -987,27 +987,26 @@ function ProtectedApp() {
         className="fixed inset-0 flex items-center justify-center font-sans"
         style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18' }}
       >
-        <motion.img
-          src="/icon-flow-final.png"
-          alt="FLOW"
-          draggable={false}
+        <motion.div
           initial={{ scale: 0.82, opacity: 0 }}
           animate={{
             scale: 1,
             opacity: 1,
-            filter: [
-              'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
-              'drop-shadow(0 0 56px rgba(0,82,255,1.00)) drop-shadow(0 0 24px rgba(0,180,255,0.80))',
-              'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
+            boxShadow: [
+              '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
+              '0 0 56px rgba(0,82,255,1.00), 0 0 24px rgba(34,211,238,0.80)',
+              '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
             ],
           }}
           transition={{
-            scale:   { duration: 0.6, ease: [0.34, 1.2, 0.64, 1] },
-            opacity: { duration: 0.5, ease: 'easeOut' },
-            filter:  { duration: 2.4, ease: 'easeInOut', repeat: Infinity, delay: 0.5 },
+            scale:     { duration: 0.6, ease: [0.34, 1.2, 0.64, 1] },
+            opacity:   { duration: 0.5, ease: 'easeOut' },
+            boxShadow: { duration: 2.4, ease: 'easeInOut', repeat: Infinity, delay: 0.5 },
           }}
-          style={{ width: 140, height: 140, objectFit: 'contain' }}
-        />
+          style={{ borderRadius: 38 }}
+        >
+          <FlowWaveIcon size={140} radius={38} />
+        </motion.div>
       </motion.div>
     );
   }

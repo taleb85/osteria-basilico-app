@@ -18,6 +18,7 @@ import {
   pinMatchesStored,
 } from '../utils/loginIdentifier';
 import { useTenant } from '../context/TenantContext';
+import FlowWaveIcon from './ui/FlowWaveIcon';
 import {
   supportsPinUnlockWebAuthn,
   registerPinUnlockCredential,
@@ -408,18 +409,17 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             onClick={() => setShowForm(true)}
             className="focus:outline-none cursor-pointer"
           >
-            <motion.img
-              src="/icon-flow-final.png"
-              alt="FLOW"
-              draggable={false}
-              style={{ width: 112, height: 112, objectFit: 'contain' }}
-              animate={{ filter: [
-                'drop-shadow(0 0 18px rgba(0,82,255,0.55)) drop-shadow(0 0 6px rgba(0,180,255,0.35))',
-                'drop-shadow(0 0 32px rgba(0,82,255,0.85)) drop-shadow(0 0 14px rgba(0,180,255,0.55))',
-                'drop-shadow(0 0 18px rgba(0,82,255,0.55)) drop-shadow(0 0 6px rgba(0,180,255,0.35))',
+            <motion.div
+              animate={{ boxShadow: [
+                '0 0 18px rgba(0,82,255,0.55), 0 0 6px rgba(34,211,238,0.35)',
+                '0 0 36px rgba(0,82,255,0.90), 0 0 14px rgba(34,211,238,0.60)',
+                '0 0 18px rgba(0,82,255,0.55), 0 0 6px rgba(34,211,238,0.35)',
               ]}}
               transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
-            />
+              style={{ borderRadius: 28 }}
+            >
+              <FlowWaveIcon size={112} radius={28} />
+            </motion.div>
           </button>
           <motion.p
             className="mt-8 text-[11px] font-semibold tracking-[0.25em] uppercase select-none pointer-events-none"
@@ -446,18 +446,17 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         >
           {/* Logo + brand */}
           <div className="flex flex-col items-center mb-8">
-            <motion.img
-              src="/icon-flow-final.png"
-              alt="FLOW"
-              draggable={false}
-              style={{ width: 96, height: 96, objectFit: 'contain' }}
-              animate={{ filter: [
-                'drop-shadow(0 0 14px rgba(0,82,255,0.50)) drop-shadow(0 0 5px rgba(0,180,255,0.30))',
-                'drop-shadow(0 0 26px rgba(0,82,255,0.80)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
-                'drop-shadow(0 0 14px rgba(0,82,255,0.50)) drop-shadow(0 0 5px rgba(0,180,255,0.30))',
+            <motion.div
+              animate={{ boxShadow: [
+                '0 0 14px rgba(0,82,255,0.50), 0 0 5px rgba(34,211,238,0.30)',
+                '0 0 28px rgba(0,82,255,0.80), 0 0 12px rgba(34,211,238,0.50)',
+                '0 0 14px rgba(0,82,255,0.50), 0 0 5px rgba(34,211,238,0.30)',
               ]}}
               transition={{ duration: 2.2, ease: 'easeInOut', repeat: Infinity }}
-            />
+              style={{ borderRadius: 26 }}
+            >
+              <FlowWaveIcon size={96} radius={26} />
+            </motion.div>
           </div>
 
           {/* Form fields */}

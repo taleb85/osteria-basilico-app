@@ -3,6 +3,7 @@ import { Download, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { isIOS, isAndroid, isDesktop } from '../utils/pwaStandalone';
 import { useApp } from '../context/appContextCore';
+import FlowWaveIcon from './ui/FlowWaveIcon';
 
 const BG = 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18';
 const ACCENT = '#0052FF';
@@ -188,27 +189,26 @@ export default function PWAInstallRequired() {
       <div className="max-w-sm w-full flex flex-col items-center gap-0">
 
         {/* Logo */}
-        <motion.img
-          src="/icon-flow-final.png"
-          alt="FLOW"
-          draggable={false}
+        <motion.div
           initial={{ opacity: 0, scale: 0.85 }}
           animate={{
             opacity: 1,
             scale: 1,
-            filter: [
-              'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
-              'drop-shadow(0 0 56px rgba(0,82,255,1.00)) drop-shadow(0 0 24px rgba(0,180,255,0.80))',
-              'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
+            boxShadow: [
+              '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
+              '0 0 56px rgba(0,82,255,1.00), 0 0 24px rgba(34,211,238,0.80)',
+              '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
             ],
           }}
           transition={{
-            opacity: { duration: 0.5, ease: 'easeOut' },
-            scale:   { duration: 0.5, ease: [0.34, 1.2, 0.64, 1] },
-            filter:  { duration: 2.4, ease: 'easeInOut', repeat: Infinity, delay: 0.5 },
+            opacity:   { duration: 0.5, ease: 'easeOut' },
+            scale:     { duration: 0.5, ease: [0.34, 1.2, 0.64, 1] },
+            boxShadow: { duration: 2.4, ease: 'easeInOut', repeat: Infinity, delay: 0.5 },
           }}
-          style={{ width: 110, height: 110, objectFit: 'contain', marginBottom: 16 }}
-        />
+          style={{ borderRadius: 30, marginBottom: 16 }}
+        >
+          <FlowWaveIcon size={110} radius={30} />
+        </motion.div>
 
         {/* Titolo */}
         <motion.h1

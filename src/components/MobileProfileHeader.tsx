@@ -1,3 +1,4 @@
+import FlowWaveIcon from './ui/FlowWaveIcon';
 import { type ReactNode } from 'react';
 import { LogOut, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -102,7 +103,7 @@ export default function MobileProfileHeader({
         <div
           role="button"
           tabIndex={0}
-          style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, overflow: 'hidden', cursor: 'pointer', background: 'rgba(26,86,219,0.4)', border: '1px solid rgba(59,130,246,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ width: 30, height: 30, flexShrink: 0, cursor: 'pointer' }}
           onClick={() => {
             if ('caches' in window) {
               caches.keys().then(names => Promise.all(names.map(n => caches.delete(n)))).finally(() => {
@@ -114,9 +115,7 @@ export default function MobileProfileHeader({
           }}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.currentTarget.click(); }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}>
-            <path d="M3 12l4-4 4 4 4-4 4 4" />
-          </svg>
+          <FlowWaveIcon size={30} />
         </div>
         <div className="flex flex-col leading-none select-none">
           <span

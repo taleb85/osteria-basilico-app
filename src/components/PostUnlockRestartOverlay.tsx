@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
 import type { Language } from '../types';
 import { getTranslations } from '../utils/translations';
+import FlowWaveIcon from './ui/FlowWaveIcon';
 
 /** Tempo minimo messaggio visibile prima del reload (ms). */
 const RELOAD_DELAY_MS = 3200;
@@ -88,20 +89,19 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
       aria-label={tv.post_unlock_restart_title ?? 'Aggiornamento'}
     >
       {/* Icona */}
-      <motion.img
-        src="/icon-flow-final.png"
-        alt="FLOW"
-        draggable={false}
+      <motion.div
         animate={{
-          filter: [
-            'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
-            'drop-shadow(0 0 56px rgba(0,82,255,1.00)) drop-shadow(0 0 24px rgba(0,180,255,0.80))',
-            'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
+          boxShadow: [
+            '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
+            '0 0 56px rgba(0,82,255,1.00), 0 0 24px rgba(34,211,238,0.80)',
+            '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
           ],
         }}
         transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
-        style={{ width: 120, height: 120, objectFit: 'contain', marginBottom: 24 }}
-      />
+        style={{ borderRadius: 32, marginBottom: 24 }}
+      >
+        <FlowWaveIcon size={120} radius={32} />
+      </motion.div>
 
       <div className="flex flex-col items-center gap-1 mb-5 min-h-[40px]">
         <p className="text-white/60 text-xs font-semibold uppercase tracking-widest">Riavvio in corso</p>
