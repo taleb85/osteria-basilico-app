@@ -2,7 +2,7 @@
 html {
   background-color: #0a2a6e !important;
   background: 
-    linear-gradient(160deg, rgba(5, 14, 60, 0.22) 0%, rgba(5, 14, 60, 0.48) 100%),
+    linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
     url('/background-wave.png') no-repeat center center fixed !important;
   background-size: cover !important;
 }
@@ -20,21 +20,21 @@ body {
 /* ── Variabili CSS aggiornate — devono venire DOPO index.css ── */
 :root {
   --bg-primary:            #0a2a6e;
-  --bg-surface:            rgba(5, 14, 60, 0.45);
-  --bg-surface-hover:      rgba(5, 14, 60, 0.58);
-  --bg-surface-solid:      rgba(5, 14, 60, 0.52);
-  --bg-surface-secondary:  rgba(5, 14, 60, 0.38);
-  --surface:               rgba(5, 14, 60, 0.45);
-  --surface-card:          rgba(5, 14, 60, 0.52);
-  --border-color:          rgba(255, 255, 255, 0.20);
+  --bg-surface:            rgba(15, 35, 90, 0.55);
+  --bg-surface-hover:      rgba(15, 35, 90, 0.68);
+  --bg-surface-solid:      rgba(15, 35, 90, 0.62);
+  --bg-surface-secondary:  rgba(15, 35, 90, 0.45);
+  --surface:               rgba(15, 35, 90, 0.55);
+  --surface-card:          rgba(15, 35, 90, 0.62);
+  --border-color:          rgba(255, 255, 255, 0.24);
   /* forza body background trasparente */
   --app-bg:                transparent;
 
-  --text-primary:         rgba(255, 255, 255, 0.95);
-  --text-secondary:       rgba(255, 255, 255, 0.65);
-  --text-muted:           rgba(255, 255, 255, 0.45);
-  --color-text:           rgba(255, 255, 255, 0.95);
-  --color-text-secondary: rgba(255, 255, 255, 0.65);
+  --text-primary:         rgba(255, 255, 255, 0.97);
+  --text-secondary:       rgba(255, 255, 255, 0.72);
+  --text-muted:           rgba(255, 255, 255, 0.50);
+  --color-text:           rgba(255, 255, 255, 0.97);
+  --color-text-secondary: rgba(255, 255, 255, 0.72);
 
   --brand:       #3b82f6;
   --brand-hover: #2563eb;
@@ -73,7 +73,7 @@ body {
 /* ── Bordi slate-* → bianco semi-trasparente in dark theme ── */
 .border-slate-100, .border-slate-200, .border-slate-50,
 .divide-slate-100 > * + *, .divide-slate-200 > * + * {
-  border-color: rgba(255, 255, 255, 0.10) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
 }
 
 /* ── scrollbar nascosta per la tab bar ── */
@@ -93,10 +93,10 @@ body {
 .card-factorial,
 .modal-glass-panel,
 .drawer-glass-panel {
-  background: rgba(5, 14, 60, 0.48) !important;
-  backdrop-filter: blur(14px) !important;
-  -webkit-backdrop-filter: blur(14px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: rgba(15, 35, 90, 0.62) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
   border-radius: 12px !important;
 }
 
@@ -145,10 +145,10 @@ body {
 }
 
 .liquid-glass {
-  background: rgba(5, 14, 60, 0.45) !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
-  backdrop-filter: blur(14px) !important;
-  -webkit-backdrop-filter: blur(14px) !important;
+  background: rgba(15, 35, 90, 0.55) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
 
 .surface-ghost,
@@ -166,16 +166,16 @@ body {
 
 /* ── Tailwind bg-white → glass card ── */
 body .bg-white:not(input):not(textarea):not(select):not([class*="modal"]):not([class*="pin"]):not([class*="kiosk"]) {
-  background-color: rgba(255, 255, 255, 0.07) !important;
+  background-color: rgba(255, 255, 255, 0.10) !important;
 }
 body .bg-slate-50:not(input):not(textarea):not(select),
 body .bg-gray-50:not(input):not(textarea):not(select) {
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  background-color: rgba(255, 255, 255, 0.07) !important;
 }
 /* ── bg-slate-* globale → dark glass (esclude sfondo chiaro intenzionale) ── */
 body .bg-slate-100:not(input):not(textarea):not(select),
 body .bg-gray-100:not(input):not(textarea):not(select) {
-  background-color: rgba(255, 255, 255, 0.08) !important;
+  background-color: rgba(255, 255, 255, 0.11) !important;
 }
 /* Input con bg-slate-100 (es. EditShiftModal time pickers) */
 input.bg-slate-100, input.bg-slate-200,
@@ -250,7 +250,7 @@ select:focus {
   font-size: 10px !important;
   text-transform: uppercase !important;
   letter-spacing: 2px !important;
-  color: rgba(255, 255, 255, 0.50) !important;
+  color: rgba(255, 255, 255, 0.60) !important;
   font-weight: 600 !important;
 }
 
@@ -319,7 +319,7 @@ body {
 .panel,
 .card-factorial,
 [class*="surface-"] {
-  background: rgba(255, 255, 255, 0.07) !important;
+  background: rgba(255, 255, 255, 0.10) !important;
 }
 
 /* Blocca body/html con background solidso impostati dentro @layer base */
