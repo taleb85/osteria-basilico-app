@@ -1,13 +1,15 @@
-/* ── 1. Background principale +20% più chiaro ── */
+/* ── 1. Background principale — onda blu ── */
 html {
-  background-color: #102548 !important;
+  background-color: #1a3a6e !important;
 }
 
 html, body, #root {
-  background:
-    linear-gradient(180deg, rgba(16, 37, 72, 0.88), rgba(14, 65, 138, 0.82)),
-    url('/bg-elegant-blue.png') no-repeat center top fixed !important;
+  background-image: url('/background-wave.jpg') !important;
   background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
+  background-color: #1a3a6e !important;
 }
 
 /* ── 2. Card/surface backgrounds +25% più chiari ── */
