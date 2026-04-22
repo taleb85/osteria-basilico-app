@@ -1,9 +1,9 @@
-/* ── Background: onda + overlay scuro come nel mockup ── */
+/* ── Background: onda blu brillante ── */
 html {
-  background-color: #060e1a !important;
+  background-color: #0a2a6e !important;
   background: 
-    linear-gradient(rgba(4, 10, 25, 0.85), rgba(4, 10, 25, 0.85)),
-    url('/background-wave.png') no-repeat center top fixed !important;
+    linear-gradient(160deg, rgba(5, 14, 60, 0.22) 0%, rgba(5, 14, 60, 0.48) 100%),
+    url('/background-wave.png') no-repeat center center fixed !important;
   background-size: cover !important;
 }
 
@@ -19,14 +19,14 @@ body {
 
 /* ── Variabili CSS aggiornate — devono venire DOPO index.css ── */
 :root {
-  --bg-primary:            #060e1a;
-  --bg-surface:            rgba(255, 255, 255, 0.07);
-  --bg-surface-hover:      rgba(255, 255, 255, 0.12);
-  --bg-surface-solid:      rgba(255, 255, 255, 0.08);
-  --bg-surface-secondary:  rgba(255, 255, 255, 0.06);
-  --surface:               rgba(255, 255, 255, 0.07);
-  --surface-card:          rgba(255, 255, 255, 0.08);
-  --border-color:          rgba(255, 255, 255, 0.12);
+  --bg-primary:            #0a2a6e;
+  --bg-surface:            rgba(5, 14, 60, 0.45);
+  --bg-surface-hover:      rgba(5, 14, 60, 0.58);
+  --bg-surface-solid:      rgba(5, 14, 60, 0.52);
+  --bg-surface-secondary:  rgba(5, 14, 60, 0.38);
+  --surface:               rgba(5, 14, 60, 0.45);
+  --surface-card:          rgba(5, 14, 60, 0.52);
+  --border-color:          rgba(255, 255, 255, 0.20);
   /* forza body background trasparente */
   --app-bg:                transparent;
 
@@ -79,38 +79,38 @@ header,
 .card-factorial,
 .modal-glass-panel,
 .drawer-glass-panel {
-  background: rgba(255, 255, 255, 0.07) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  background: rgba(5, 14, 60, 0.48) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
   border-radius: 12px !important;
 }
 
 .modal-glass-panel,
 .drawer-glass-panel {
-  background: rgba(255, 255, 255, 0.10) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
+  background: rgba(5, 14, 60, 0.65) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
 }
 
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  background: rgba(5, 14, 60, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
 }
 
 .surface-ghost,
 .surface-ghost-sm {
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
 }
 
 .surface-ghost-interactive:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(5, 14, 60, 0.55) !important;
 }
 
 .card-factorial {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(5, 14, 60, 0.52) !important;
 }
 
 /* ── Tailwind bg-white → glass card ── */

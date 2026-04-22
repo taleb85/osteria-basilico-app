@@ -55,9 +55,9 @@ button:active,
   color: #ffffff !important;
 }
 
-/* Reset globale — sfondo onda blu */
+/* Reset globale — sfondo onda blu brillante */
 html {
-  background-color: #060e1a; /* base scurissima (#060e1a = mockup) */
+  background-color: #0a2a6e; /* fallback navy */
 }
 
 html,
@@ -71,8 +71,8 @@ body,
   overflow-x: hidden;
   overflow-y: auto;
   background:
-    linear-gradient(rgba(4, 10, 25, 0.85), rgba(4, 10, 25, 0.85)),
-    url('/background-wave.png') no-repeat center top fixed;
+    linear-gradient(160deg, rgba(5, 14, 60, 0.22) 0%, rgba(5, 14, 60, 0.48) 100%),
+    url('/background-wave.png') no-repeat center center fixed;
   background-size: cover;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -146,15 +146,15 @@ body,
     --slate-neutral: #475569; /* Grigio ardesia per stati neutri */
     
     /* ═══ DARK THEME GLOBAL TOKENS ═══ */
-    --bg-primary: #060e1a;
-    --bg-surface: rgba(255, 255, 255, 0.07);
-    --bg-surface-hover: rgba(255, 255, 255, 0.12);
-    --bg-surface-solid: rgba(255, 255, 255, 0.08);
-    --bg-surface-secondary: rgba(255, 255, 255, 0.06);
-    --border-color: rgba(255, 255, 255, 0.12);
+    --bg-primary: #0a2a6e;
+    --bg-surface: rgba(5, 14, 60, 0.45);
+    --bg-surface-hover: rgba(5, 14, 60, 0.58);
+    --bg-surface-solid: rgba(5, 14, 60, 0.52);
+    --bg-surface-secondary: rgba(5, 14, 60, 0.38);
+    --border-color: rgba(255, 255, 255, 0.20);
     --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.65);
-    --text-muted: rgba(255, 255, 255, 0.45);
+    --text-secondary: rgba(255, 255, 255, 0.75);
+    --text-muted: rgba(255, 255, 255, 0.50);
     --accent-blue: #3b82f6;
     --accent-green: #10b981;
     --accent-red: #ef4444;
