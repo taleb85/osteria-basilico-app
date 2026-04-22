@@ -2651,8 +2651,8 @@ export default function Timesheets() {
     const publishedOnBoard = s.status === 'confirmed' || s.status === 'approved';
 
     // sfondo dark glass — il colore di stato è il bordo sinistro + tinta sottile
-    const white = 'bg-white/8';
-    const ring0 = 'ring-1 ring-white/15';
+    const white = 'bg-white/20';
+    const ring0 = 'ring-1 ring-white/25';
 
     // Assenza — bordo rosso
     if (s.status === 'absent') {
