@@ -231,7 +231,7 @@ export default function MobileHome({
               type="button"
               disabled={punchBusy}
               onClick={onStart}
-              className="w-full h-14 bg-[#0B3573] hover:bg-[#0a2f5f] text-white rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-[#0B3573]/15 transition-all active:scale-95 disabled:opacity-60"
+              className="w-full h-14 bg-[#0052FF] hover:bg-blue-500 text-white rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-blue-900/30 transition-all active:scale-95 disabled:opacity-60"
             >
               <Play className="w-5 h-5 fill-current" />
               <span className="text-base font-bold uppercase tracking-wider">

@@ -96,17 +96,17 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
             disabled={notifGranted || notifDenied || notifLoading}
             className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all active:scale-[0.98] border
               ${notifGranted
-                ? 'bg-emerald-50 border-emerald-200'
+                ? 'bg-emerald-500/20 border-emerald-500/40'
                 : notifDenied
-                ? 'bg-slate-50 border-slate-200 opacity-50 cursor-not-allowed'
-                : 'bg-slate-50 border-slate-200 hover:bg-blue-50 hover:border-blue-200 cursor-pointer'
+                ? 'bg-white/5 border-white/10 opacity-50 cursor-not-allowed'
+                : 'bg-white/8 border-white/15 hover:bg-white/12 hover:border-white/25 cursor-pointer'
               }`}
           >
             <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl
-              ${notifGranted ? 'bg-emerald-100' : 'bg-blue-100'}`}>
+              ${notifGranted ? 'bg-emerald-500/25' : 'bg-blue-500/20'}`}>
               {notifGranted
-                ? <CheckCircle className="h-5 w-5 text-emerald-600" />
-                : <Bell className="h-5 w-5 text-blue-600" />}
+                ? <CheckCircle className="h-5 w-5 text-emerald-400" />
+                : <Bell className="h-5 w-5 text-blue-400" />}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white/90">Notifiche</p>
@@ -126,17 +126,17 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
             disabled={locGranted || locDenied || locationLoading}
             className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all active:scale-[0.98] border
               ${locGranted
-                ? 'bg-emerald-50 border-emerald-200'
+                ? 'bg-emerald-500/20 border-emerald-500/40'
                 : locDenied
-                ? 'bg-slate-50 border-slate-200 opacity-50 cursor-not-allowed'
-                : 'bg-slate-50 border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer'
+                ? 'bg-white/5 border-white/10 opacity-50 cursor-not-allowed'
+                : 'bg-white/8 border-white/15 hover:bg-white/12 hover:border-white/25 cursor-pointer'
               }`}
           >
             <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl
-              ${locGranted ? 'bg-emerald-100' : 'bg-emerald-100'}`}>
+              ${locGranted ? 'bg-emerald-500/25' : 'bg-emerald-500/20'}`}>
               {locGranted
-                ? <CheckCircle className="h-5 w-5 text-emerald-600" />
-                : <MapPin className="h-5 w-5 text-emerald-600" />}
+                ? <CheckCircle className="h-5 w-5 text-emerald-400" />
+                : <MapPin className="h-5 w-5 text-emerald-400" />}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white/90">Posizione</p>

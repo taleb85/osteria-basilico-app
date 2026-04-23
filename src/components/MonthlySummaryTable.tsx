@@ -153,7 +153,7 @@ export default function MonthlySummaryTable() {
                         className={`${userIndex < displayUsers.length - 1 ? 'border-b border-white/10' : ''}`}
                         style={{ background: 'rgba(255,255,255,0.05)' }}
                       >
-                        <td className="sticky left-0 px-4 py-3 border-r border-white/10 z-10" style={{ background: 'rgba(10,15,35,0.95)' }}>
+                        <td className="sticky left-0 px-4 py-3 border-r border-white/10 z-10" style={{ background: 'rgba(8,18,52,0.88)', backdropFilter: 'blur(12px)' }}>
                           <p className="text-white/70 text-xs uppercase tracking-wider">
                             {translateRole(user.role, currentUser.language ?? 'it')}
                           </p>

@@ -92,12 +92,12 @@ function NewChatPicker({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-20 flex min-h-0 flex-col rounded-[inherit]" style={{ background: "rgba(10,15,35,0.97)" }}
+      className="absolute inset-0 z-20 flex min-h-0 flex-col rounded-[inherit]" style={{ background: "transparent" }}
     >
       <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
         <button
           onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:bg-slate-100 transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:bg-white/10 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -120,7 +120,7 @@ function NewChatPicker({
             <button
               key={u.id}
               onClick={() => onSelect(u)}
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/8 transition-colors text-left"
             >
               <UserAvatar user={u} size={38} />
               <div className="min-w-0">
@@ -145,7 +145,7 @@ function ChatBubble({ body, time, isMine }: { body: string; time: string; isMine
         className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm ${
           isMine
             ? 'rounded-br-[4px]'
-            : 'bg-slate-100 rounded-bl-[4px]'
+            : 'bg-white/15 rounded-bl-[4px]'
         }`}
         style={isMine ? { background: BRAND, borderBottomRightRadius: 4 } : undefined}
       >
@@ -268,7 +268,7 @@ function ChatView({
       exit={{ x: '100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 28, stiffness: 320 }}
       className="absolute inset-0 flex min-h-0 flex-col rounded-[inherit]"
-      style={{ background: 'rgba(10,15,35,0.97)' }}
+      style={{ background: 'transparent' }}
     >
       {/* Header */}
       <div
@@ -303,7 +303,7 @@ function ChatView({
         {grouped.map(({ label, msgs }) => (
           <div key={label}>
             <div className="flex items-center justify-center my-3">
-              <span className="px-3 py-1 rounded-full bg-slate-100 text-[10px] font-semibold text-white/50 uppercase tracking-wide">
+              <span className="px-3 py-1 rounded-full bg-white/10 text-[10px] font-semibold text-white/50 uppercase tracking-wide">
                 {label}
               </span>
             </div>
@@ -323,7 +323,7 @@ function ChatView({
       </div>
 
       {/* Input */}
-      <div className="px-3 py-3 border-t border-white/10 shrink-0" style={{ background: 'rgba(10,15,35,0.97)' }}>
+      <div className="px-3 py-3 border-t border-white/10 shrink-0" style={{ background: 'rgba(8,18,52,0.60)' }}>
         <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}
@@ -388,7 +388,7 @@ function ConversationList({
       exit={{ x: '-100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 28, stiffness: 320 }}
       className="absolute inset-0 flex min-h-0 flex-col rounded-[inherit]"
-      style={{ background: 'rgba(10,15,35,0.97)' }}
+      style={{ background: 'transparent' }}
     >
       {/* Header */}
       <div
@@ -443,7 +443,7 @@ function ConversationList({
                 <button
                   key={conv.contactId}
                   onClick={() => onSelect(conv.contactId)}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/8 transition-colors text-left"
                 >
                   <UserAvatar user={contact} size={44} />
                   <div className="flex-1 min-w-0">
