@@ -46,7 +46,7 @@ export default defineConfig({
       /** In dev niente SW: evita cache / navigate che sembrano “/app non funziona” su 127.0.0.1:5173. */
       devOptions: { enabled: false },
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'flow-app-icon.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon-1024.png', 'flow-app-icon.png', 'icon-152.png', 'icon-167.png'],
       manifest: {
         name: 'FLOW',
         short_name: 'FLOW',
@@ -59,12 +59,15 @@ export default defineConfig({
         orientation: 'portrait',
         scope: '/',
         icons: [
-          { src: '/flow-app-icon.png', sizes: '1024x1024', type: 'image/png', purpose: 'any' },
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/icon-192.png',       sizes: '192x192',   type: 'image/png', purpose: 'any' },
+          { src: '/icon-192.png',       sizes: '192x192',   type: 'image/png', purpose: 'maskable' },
+          { src: '/icon-512.png',       sizes: '512x512',   type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png',       sizes: '512x512',   type: 'image/png', purpose: 'maskable' },
+          { src: '/icon-1024.png',      sizes: '1024x1024', type: 'image/png', purpose: 'any' },
+          { src: '/icon-1024.png',      sizes: '1024x1024', type: 'image/png', purpose: 'maskable' },
           { src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
+          { src: '/icon-152.png',       sizes: '152x152',   type: 'image/png', purpose: 'any' },
+          { src: '/icon-167.png',       sizes: '167x167',   type: 'image/png', purpose: 'any' },
         ],
         shortcuts: [
           {
