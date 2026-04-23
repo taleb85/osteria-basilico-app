@@ -198,7 +198,7 @@ export default function HolidayRequests() {
   const labelStyle = { color: 'rgba(255,255,255,0.60)' } as React.CSSProperties;
 
   return (
-    <div className="pb-content pt-2 w-full max-w-full font-sans">
+    <div className="pb-content pt-2 w-full max-w-full font-sans min-h-[calc(100dvh-140px)]">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -368,7 +368,7 @@ export default function HolidayRequests() {
       </AnimatePresence>
 
       {/* ── Layout ────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 md:items-start">
 
         {/* Left: calendar */}
         <div className="md:col-span-1 space-y-4">

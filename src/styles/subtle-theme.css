@@ -9,6 +9,13 @@ html {
   background-attachment: scroll !important;
 }
 
+/* Desktop: fixed funziona correttamente, evita la banda grigia allo scroll */
+@media (min-width: 768px) {
+  html {
+    background-attachment: fixed !important;
+  }
+}
+
 body {
   min-height: 100dvh;
   background: transparent !important;

@@ -366,7 +366,7 @@ export default function ProfileNavTabPanel({
   const roleDisplay = roleMap[currentUser.role ?? ''] ?? (currentUser.role ?? '');
 
   return (
-    <div className="w-full max-w-lg mx-auto pb-content font-sans">
+    <div className="w-full max-w-lg mx-auto pb-content font-sans min-h-[calc(100dvh-140px)]">
       {/* Photo crop modal */}
       {cropObjectUrl ? (
         <ProfilePhotoCropperModal

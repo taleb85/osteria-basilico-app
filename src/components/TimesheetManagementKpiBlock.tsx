@@ -132,7 +132,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-white/75">{t.stats_approved_hours}</p>
-              <p className="text-[10px] leading-snug text-white/55">{t.stats_approved_shifts_count.replace('{n}', String(approvedShifts.length))}</p>
+              <p className="text-xs leading-snug text-white/55">{t.stats_approved_shifts_count.replace('{n}', String(approvedShifts.length))}</p>
             </div>
             <p className="text-base font-black tabular-nums leading-none text-white shrink-0">
               {approvedMins > 0 ? formatMinutesToHoursAndMinutes(approvedMins) : '—'}
@@ -155,8 +155,8 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
             </div>
             <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-white/75">{t.stats_estimated_cost}</p>
-                <p className="text-[10px] leading-snug text-white/55">
+                <p className="text-xs font-semibold uppercase tracking-wide text-white/75">{t.stats_estimated_cost}</p>
+                <p className="text-xs leading-snug text-white/55">
                   {estimatedCostStats.shiftsWithRate + estimatedCostStats.shiftsWithoutRate === 0
                     ? (tv.stats_no_approved_for_cost ?? t.stats_no_approved_shifts)
                     : estimatedCostStats.shiftsWithRate === 0
@@ -197,7 +197,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-white/75">{t.stats_pending_shifts}</p>
-              <p className="text-[10px] leading-snug text-white/55">{t.stats_confirmed_not_approved}</p>
+              <p className="text-xs leading-snug text-white/55">{t.stats_confirmed_not_approved}</p>
             </div>
             <p className={`text-base font-black tabular-nums leading-none shrink-0 ${pendingCount > 0 ? 'text-amber-300' : 'text-white'}`}>
               {pendingCount}
