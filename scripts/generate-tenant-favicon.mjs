@@ -27,8 +27,8 @@ const publicDir = join(__dirname, '..', 'public');
 
 const src = join(publicDir, 'icon-flow-final.png');
 
-// Colore di sfondo icona FLOW (blu scuro del gradiente)
-const bg = { r: 6, g: 20, b: 90 };
+// Colore di sfondo icona FLOW (navy scuro nuovo tema)
+const bg = { r: 10, g: 31, b: 92 };
 
 async function generateIcon(size, path) {
   await sharp(src)
