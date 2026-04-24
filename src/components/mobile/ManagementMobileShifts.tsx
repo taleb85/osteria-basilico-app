@@ -509,7 +509,7 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
         {/* Frecce + label */}
         <div
           className="flex items-center border border-white/40 rounded-2xl overflow-hidden flex-1"
-          style={{ background: 'rgba(255,255,255,0.18)' }}
+          style={{ background: 'transparent' }}
         >
           <button
             type="button"
