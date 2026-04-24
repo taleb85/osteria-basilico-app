@@ -65,23 +65,38 @@ body,
 #root {
   margin: 0 !important;
   padding: 0 !important;
-  height: auto !important;
-  min-height: 100dvh !important;
   width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-  background:
-    linear-gradient(160deg, rgba(5, 14, 60, 0.22) 0%, rgba(5, 14, 60, 0.48) 100%),
-    url('/background-wave.png') no-repeat center center fixed;
-  background-size: cover;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--text-primary);
 }
+
+html {
+  height: 100%;
+  background-color: #0a2a6e;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100dvh;
+  background-color: #0a2a6e;
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* iOS: blocca bounce area bianca */
+  overscroll-behavior-y: none;
+}
+
+#root {
+  min-height: 100dvh;
+  background: transparent;
+  overflow-x: hidden;
+}
 /* iOS rubber-band touch scroll */
 @media (pointer: coarse) {
-  html, body, #root {
+  html, body {
     -webkit-overflow-scrolling: touch;
+    background-color: #0a2a6e;
+    overscroll-behavior-y: none;
   }
 }
 
