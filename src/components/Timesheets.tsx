@@ -3946,12 +3946,12 @@ export default function Timesheets() {
           {/* ── Mirror header sticky — compare quando il thead originale esce dalla vista ── */}
           {timesheetHeaderSticky && (
             <div
-              className="hidden md:block sticky z-[200] rounded-xl overflow-hidden border-[2px] border-[#3366CC] shadow-[0_0_8px_2px_rgba(51,102,204,0.6),0_0_24px_6px_rgba(51,102,204,0.35),0_0_48px_12px_rgba(51,102,204,0.15)]),0_0_24px_6px_rgba(51,102,204,0.5),0_0_56px_16px_rgba(51,102,204,0.25)]"
+              className="hidden md:block sticky z-[200] rounded-xl overflow-hidden border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
               style={{ top: 'var(--app-sticky-header-offset)' }}
             >
               <div ref={timesheetHeaderScrollRef} className="overflow-x-hidden">
                 <table
-                  className="w-full table-fixed border-collapse [&_th]:border-slate-400"
+                  className="w-full table-fixed border-collapse [&_th]:border-white/15"
                   style={{ minWidth: timesheetGridMinWidthPx }}
                 >
                   <colgroup>
@@ -3962,8 +3962,8 @@ export default function Timesheets() {
                     <col style={{ width: timesheetGridTotalColPx }} />
                   </colgroup>
                   <thead>
-                    <tr className="border-b-2 border-[#3366CC]/40 bg-[#e0f7fa]">
-                      <th className="sticky left-0 z-10 box-border bg-[#e0f7fa] py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-[#2255BB] border-r-2 border-r-[#3366CC]/40 md:py-2.5 md:pl-3 md:pr-2 shadow-[2px_0_5px_-2px_rgba(51,102,204,0.2)]">
+                    <tr className="border-b border-white/15" style={{ background: 'rgba(17,34,64,0.97)' }}>
+                      <th className="sticky left-0 z-10 box-border py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/70 border-r border-r-white/15 md:py-2.5 md:pl-3 md:pr-2" style={{ background: 'rgba(17,34,64,0.97)', backdropFilter: 'blur(12px)' }}>
                         {t.employee}
                       </th>
                       {weekDays.map((day, dayIdx) => {
@@ -3983,23 +3983,18 @@ export default function Timesheets() {
                           <th key={dStr}
                             onClick={canReview ? () => handleOpenDayReview(dStr) : undefined}
                             className={`box-border px-2 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1.5 ${
-                              weekEndCol ? 'border-r-[3px] border-r-[#3366CC]/40' : 'border-r-2 border-r-[#3366CC]/15'
-                            } ${
-                              payrollHighlight
-                                ? 'bg-[#b2ebf2]'
-                                : todayDate
-                                  ? 'bg-[#bbdefb]'
-                                  : 'bg-[#e0f7fa]'
-                            } ${canReview ? 'cursor-pointer hover:bg-[#b2ebf2] group' : ''}`}
+                              weekEndCol ? 'border-r-2 border-r-white/20' : 'border-r border-r-white/10'
+                            } ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''}`}
+                            style={{ background: payrollHighlight ? 'rgba(51,102,204,0.20)' : todayDate ? 'rgba(51,102,204,0.15)' : 'rgba(17,34,64,0.97)' }}
                           >
-                            <div className={todayDate && inP ? 'text-[#3366CC]' : 'text-white/50'}>
+                            <div className={todayDate && inP ? 'text-accent' : 'text-white/50'}>
                               {format(day, 'EEE', { locale })}
                             </div>
-                            <div className={`font-bold mt-0.5 text-sm md:text-xs ${todayDate && inP ? 'text-accent' : payrollHighlight ? 'text-white' : 'text-white/70'}`}>
+                            <div className={`font-bold mt-0.5 text-sm md:text-xs ${todayDate && inP ? 'text-white' : payrollHighlight ? 'text-emerald-300' : 'text-white/80'}`}>
                               {format(day, 'd MMM', { locale })}
                             </div>
                             {payrollHighlight && (
-                              <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-[#007A5E]">
+                              <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-400">
                                 {tv.ts_payroll_day_abbr ?? 'Paga'}
                               </div>
                             )}
@@ -4011,7 +4006,7 @@ export default function Timesheets() {
                           </th>
                         );
                       })}
-                      <th className="box-border border-l-[3px] border-l-[#3366CC] bg-[#e0f7fa] px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-[#2255BB] md:px-2 md:py-2">
+                      <th className="box-border border-l border-l-white/15 px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-white/70 md:px-2 md:py-2" style={{ background: 'rgba(17,34,64,0.97)' }}>
                         {t.stats_total}
                       </th>
                     </tr>
@@ -4032,7 +4027,7 @@ export default function Timesheets() {
               scrollSyncRef={timesheetBodyScrollRef}
             >
             <table
-              className="w-full table-fixed border-collapse [&_th]:border-slate-300 [&_td]:border-slate-300"
+              className="w-full table-fixed border-collapse [&_th]:border-white/10 [&_td]:border-white/10"
               style={{ minWidth: timesheetGridMinWidthPx }}
             >
               <colgroup>
@@ -4043,7 +4038,7 @@ export default function Timesheets() {
                 <col style={{ width: timesheetGridTotalColPx }} />
               </colgroup>
               <thead ref={timesheetTheadRef}>
-                <tr className="border-b border-slate-300">
+                <tr className="border-b border-white/15">
                   <th className="sticky left-0 z-10 box-border py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/50 border-r border-r-white/15 md:py-1.5 md:pl-3 md:pr-2" style={{ background: 'rgba(17,34,64,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'none' }}>
                     {t.employee}
                   </th>
