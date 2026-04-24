@@ -514,20 +514,20 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
           <button
             type="button"
             onClick={() => setNavOffset(o => o - 1)}
-            className="flex items-center justify-center h-9 w-9 text-white/80 hover:bg-white/15 transition-colors shrink-0 border-r border-white/20"
+            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-r border-white/20"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0">
-            <Calendar className="h-3 w-3 text-white/70 shrink-0" />
-            <span className="text-[10px] font-bold text-white/90 tabular-nums truncate">
+            <Calendar className="h-3 w-3 text-white shrink-0" />
+            <span className="text-[10px] font-bold text-white tabular-nums truncate">
               {rangeLabel}
             </span>
           </div>
           <button
             type="button"
             onClick={() => setNavOffset(o => o + 1)}
-            className="flex items-center justify-center h-9 w-9 text-white/80 hover:bg-white/15 transition-colors shrink-0 border-l border-white/20"
+            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-l border-white/20"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
