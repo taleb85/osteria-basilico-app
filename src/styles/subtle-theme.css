@@ -346,11 +346,13 @@ body {
   background: rgba(255, 255, 255, 0.10) !important;
 }
 
-/* Blocca body/html con background solidso impostati dentro @layer base */
-html {
-  background-color: #060e1a !important;
-}
-body {
-  background-color: transparent !important;
-  background-image: none !important;
+/* ── Force all page-level containers transparent so the html wave shows ── */
+main,
+main > div,
+[class*="page-"],
+[class*="Page"] > div,
+[class*="screen-"],
+[class*="Screen"] > div {
+  background: transparent;
+  background-color: transparent;
 }

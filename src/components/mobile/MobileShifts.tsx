@@ -161,7 +161,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                       const isAbsent = shift.approval_status === 'absent';
                       const isDraft  = shift.approval_status === 'draft';
                       const badgeCls = isAbsent
-                        ? 'text-red-500 border-red-200 bg-red-50'
+                        ? 'text-red-400 border-red-500/30 bg-red-500/15'
                         : isDraft
                           ? 'text-white/50 border-white/15 bg-white/8'
                           : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/15';

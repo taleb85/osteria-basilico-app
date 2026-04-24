@@ -16,23 +16,23 @@ export default function MobileRequests({ requests, onRequestNew, t = {} }: Mobil
     approved: {
       label: t.holiday_status_approved ?? 'Approvata',
       icon: CheckCircle2,
-      color: 'text-brand-500',
-      bg: 'bg-brand-50',
-      border: 'border-brand-100',
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-500/15',
+      border: 'border-emerald-500/30',
     },
     pending: {
       label: t.holiday_status_pending ?? 'In attesa',
       icon: AlertCircle,
-      color: 'text-amber-500',
-      bg: 'bg-amber-50',
-      border: 'border-amber-100',
+      color: 'text-amber-400',
+      bg: 'bg-amber-500/15',
+      border: 'border-amber-500/30',
     },
     rejected: {
       label: t.holiday_status_rejected ?? 'Rifiutata',
       icon: XCircle,
-      color: 'text-red-500',
-      bg: 'bg-red-50',
-      border: 'border-red-100',
+      color: 'text-red-400',
+      bg: 'bg-red-500/15',
+      border: 'border-red-500/30',
     },
   } as const;
 
