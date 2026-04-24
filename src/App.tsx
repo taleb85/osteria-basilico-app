@@ -269,6 +269,31 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     return getBottomNavTabsForMainApp(currentUser, isManagement, featureFlags);
   }, [currentUser, isManagement, featureFlags, roleTemplatesRevision]);
 
+  // ── Blocca bounce/rubber-band iOS su #root (Safari ignora overscroll-behavior) ──
+  useEffect(() => {
+    const root = document.getElementById('root');
+    if (!root) return;
+    let lastY = 0;
+    const onTouchStart = (e: TouchEvent) => {
+      lastY = e.touches[0].clientY;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const y = e.touches[0].clientY;
+      const atTop = root.scrollTop <= 0;
+      const atBottom = root.scrollTop + root.clientHeight >= root.scrollHeight - 1;
+      if ((atTop && y > lastY) || (atBottom && y < lastY)) {
+        e.preventDefault();
+      }
+      lastY = y;
+    };
+    root.addEventListener('touchstart', onTouchStart, { passive: true });
+    root.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => {
+      root.removeEventListener('touchstart', onTouchStart);
+      root.removeEventListener('touchmove', onTouchMove);
+    };
+  }, []);
+
   const noNavTabs = Boolean(currentUser && visibleNavTabs.length === 0);
 
   const appStickyHeaderRef = useRef<HTMLElement | null>(null);
