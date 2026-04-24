@@ -21,7 +21,7 @@ body {
   overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none !important;
-  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  padding-bottom: env(safe-area-inset-bottom, 34px) !important;
 }
 
 /* Sfondo fisso tramite pseudo-elemento: funziona su iOS senza banding */

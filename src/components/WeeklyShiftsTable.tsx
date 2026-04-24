@@ -559,6 +559,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     return () => observer.disconnect();
   }, [weekIndex, viewMode, displayPeriodConfig.startDate, displayPeriodConfig.numWeeks, periodPanOffsetWeeks, stickyDateBarInScrollPane]);
 
+  const flatMirrorHeaderRef = useRef<HTMLDivElement>(null);
+  const flatMirrorHeaderH = useRef(64);
+
   // ── Sticky header flat table: IntersectionObserver ──────────────────────
   useEffect(() => {
     const el = flatTheadRef.current;
@@ -571,6 +574,19 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     return () => observer.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Compensazione scroll sincrona: evita il salto visivo quando il mirror header appare/scompare
+  useLayoutEffect(() => {
+    const root = document.getElementById('root');
+    if (!root) return;
+    if (flatHeaderSticky) {
+      const h = flatMirrorHeaderRef.current?.offsetHeight ?? 64;
+      flatMirrorHeaderH.current = h;
+      root.scrollTop += h;
+    } else {
+      root.scrollTop -= flatMirrorHeaderH.current;
+    }
+  }, [flatHeaderSticky]);
 
   // Sincronizza scroll orizzontale: corpo → mirror header
   useEffect(() => {
@@ -3692,6 +3708,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           {/* Sticky mirror header — visibile quando il thead originale esce dalla vista */}
           {flatHeaderSticky && (
             <div
+              ref={flatMirrorHeaderRef}
               className="sticky z-[200] rounded-xl overflow-hidden border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)] mb-1"
               style={{ top: 'var(--app-sticky-header-offset)', background: '#0d1e4a' }}
             >

@@ -790,6 +790,8 @@ export default function Timesheets() {
   const timesheetHeaderScrollRef = useRef<HTMLDivElement | null>(null);
   const timesheetTheadRef = useRef<HTMLTableSectionElement | null>(null);
   const [timesheetHeaderSticky, setTimesheetHeaderSticky] = useState(false);
+  const timesheetMirrorHeaderRef = useRef<HTMLDivElement>(null);
+  const timesheetMirrorHeaderH = useRef(64);
 
   // Mostra il mirror header quando il thead originale esce dalla viewport
   useEffect(() => {
@@ -802,6 +804,19 @@ export default function Timesheets() {
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
+
+  // Compensazione scroll sincrona: evita il salto visivo quando il mirror header appare/scompare
+  useLayoutEffect(() => {
+    const root = document.getElementById('root');
+    if (!root) return;
+    if (timesheetHeaderSticky) {
+      const h = timesheetMirrorHeaderRef.current?.offsetHeight ?? 64;
+      timesheetMirrorHeaderH.current = h;
+      root.scrollTop += h;
+    } else {
+      root.scrollTop -= timesheetMirrorHeaderH.current;
+    }
+  }, [timesheetHeaderSticky]);
 
   // Sincronizza scroll orizzontale: corpo → header mirror
   useEffect(() => {
@@ -3946,6 +3961,7 @@ export default function Timesheets() {
           {/* ── Mirror header sticky — compare quando il thead originale esce dalla vista ── */}
           {timesheetHeaderSticky && (
             <div
+              ref={timesheetMirrorHeaderRef}
               className="hidden md:block sticky z-[200] rounded-xl overflow-hidden border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
               style={{ top: 'var(--app-sticky-header-offset)', background: '#0d1e4a' }}
             >
