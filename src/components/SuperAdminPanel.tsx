@@ -13,9 +13,7 @@ import {
   MapPin, Clock, Languages, Layers, ExternalLink, Users,
   UserPlus, Trash2, ChevronRight, Eye, EyeOff, ShieldCheck, Delete, LogOut,
 } from 'lucide-react';
-// SECURITY: supabaseAdmin rimosso — questo componente è disabilitato
-// import { supabaseAdmin as supabase } from '../lib/supabase';
-const supabase = null as any; // stub per evitare errori TypeScript
+import { supabase } from '../lib/supabase';
 import type { Tenant, TenantSettings, UserRole, UserStatus } from '../types';
 // import { HEADER_FONTS } from '../context/TenantContext'; // unused
 import { seedTenantFromTemplate } from '../utils/seedTenantFromTemplate';

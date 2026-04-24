@@ -7,10 +7,9 @@ import { getDateLocale } from './utils/translations';
 import SwUpdateOverlay from './components/SwUpdateOverlay';
 import AdminSyncOverlay from './components/AdminSyncOverlay';
 /**
- * SECURITY: SuperAdminPanel disabilitato — richiede service role key.
- * Migra SuperAdminPanel a app separata o Vercel Serverless Function.
+ * SuperAdminPanel — accessibile solo sul dominio super-admin, protetto da PIN.
  */
-// const SuperAdminPanel = lazy(() => import('./components/SuperAdminPanel'));
+const SuperAdminPanel = lazy(() => import('./components/SuperAdminPanel'));
 const AnimPreview = lazy(() => import('./components/AnimPreview'));
 const LoadingPreview = lazy(() => import('./components/LoadingPreview'));
 const ScreensPreview = lazy(() => import('./components/ScreensPreview'));
@@ -1127,14 +1126,18 @@ function App() {
 
   return (
     <Routes>
-      {/* SECURITY: SuperAdminPanel disabilitato — service role key rimossa dal client */}
+      {/* SuperAdminPanel — attivo solo sul dominio super-admin, protetto da PIN */}
       <Route path="/super-admin" element={
-        <div className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
-          <div className="rounded-2xl border border-white/15 p-8 max-w-sm" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
-            <h1 className="text-2xl font-bold mb-2">SuperAdmin</h1>
-            <p className="text-white/50 text-sm">Accesso non disponibile da questa sessione.</p>
-          </div>
-        </div>
+        isSuperAdminDomain
+          ? <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white/50 text-sm">Caricamento…</div>}>
+              <SuperAdminPanel />
+            </Suspense>
+          : <div className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
+              <div className="rounded-2xl border border-white/15 p-8 max-w-sm" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
+                <h1 className="text-2xl font-bold mb-2">SuperAdmin</h1>
+                <p className="text-white/50 text-sm">Accedi da flow-workinmotion-super-admin.vercel.app</p>
+              </div>
+            </div>
       } />
       {isSuperAdminDomain && (
         <Route path="/" element={<Navigate to="/super-admin" replace />} />
