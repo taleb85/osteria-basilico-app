@@ -1129,10 +1129,10 @@ function App() {
     <Routes>
       {/* SECURITY: SuperAdminPanel disabilitato — service role key rimossa dal client */}
       <Route path="/super-admin" element={
-        <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-6 text-center">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">SuperAdmin Disabilitato</h1>
-            <p className="text-white/50">Migra a Vercel Serverless Function con service role key server-side.</p>
+        <div className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
+          <div className="rounded-2xl border border-white/15 p-8 max-w-sm" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
+            <h1 className="text-2xl font-bold mb-2">SuperAdmin</h1>
+            <p className="text-white/50 text-sm">Accesso non disponibile da questa sessione.</p>
           </div>
         </div>
       } />
