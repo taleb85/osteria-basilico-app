@@ -3947,7 +3947,7 @@ export default function Timesheets() {
           {timesheetHeaderSticky && (
             <div
               className="hidden md:block sticky z-[200] rounded-xl overflow-hidden border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
-              style={{ top: 'var(--app-sticky-header-offset)' }}
+              style={{ top: 'var(--app-sticky-header-offset)', background: '#0d1e4a' }}
             >
               <div ref={timesheetHeaderScrollRef} className="overflow-x-hidden">
                 <table
@@ -3962,8 +3962,8 @@ export default function Timesheets() {
                     <col style={{ width: timesheetGridTotalColPx }} />
                   </colgroup>
                   <thead>
-                    <tr className="border-b border-white/15" style={{ background: 'rgba(17,34,64,0.97)' }}>
-                      <th className="sticky left-0 z-10 box-border py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/70 border-r border-r-white/15 md:py-2.5 md:pl-3 md:pr-2" style={{ background: 'rgba(17,34,64,0.97)', backdropFilter: 'blur(12px)' }}>
+                    <tr className="border-b border-white/20" style={{ background: '#0d1e4a' }}>
+                      <th className="sticky left-0 z-10 box-border py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white border-r border-r-white/20 md:py-2.5 md:pl-3 md:pr-2" style={{ background: '#0d1e4a' }}>
                         {t.employee}
                       </th>
                       {weekDays.map((day, dayIdx) => {
@@ -3985,12 +3985,12 @@ export default function Timesheets() {
                             className={`box-border px-2 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1.5 ${
                               weekEndCol ? 'border-r-2 border-r-white/20' : 'border-r border-r-white/10'
                             } ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''}`}
-                            style={{ background: payrollHighlight ? 'rgba(51,102,204,0.20)' : todayDate ? 'rgba(51,102,204,0.15)' : 'rgba(17,34,64,0.97)' }}
+                            style={{ background: payrollHighlight ? 'rgba(51,102,204,0.35)' : todayDate ? 'rgba(51,102,204,0.25)' : '#0d1e4a' }}
                           >
-                            <div className={todayDate && inP ? 'text-accent' : 'text-white/50'}>
+                            <div className={todayDate && inP ? 'text-cyan-300' : 'text-white/70'}>
                               {format(day, 'EEE', { locale })}
                             </div>
-                            <div className={`font-bold mt-0.5 text-sm md:text-xs ${todayDate && inP ? 'text-white' : payrollHighlight ? 'text-emerald-300' : 'text-white/80'}`}>
+                            <div className={`font-bold mt-0.5 text-sm md:text-xs ${todayDate && inP ? 'text-white' : payrollHighlight ? 'text-emerald-200' : 'text-white'}`}>
                               {format(day, 'd MMM', { locale })}
                             </div>
                             {payrollHighlight && (
@@ -4006,7 +4006,7 @@ export default function Timesheets() {
                           </th>
                         );
                       })}
-                      <th className="box-border border-l border-l-white/15 px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-white/70 md:px-2 md:py-2" style={{ background: 'rgba(17,34,64,0.97)' }}>
+                      <th className="box-border border-l border-l-white/20 px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-white md:px-2 md:py-2" style={{ background: '#0d1e4a' }}>
                         {t.stats_total}
                       </th>
                     </tr>
