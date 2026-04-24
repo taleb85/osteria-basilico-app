@@ -22,7 +22,7 @@ import { seedTenantFromTemplate } from '../utils/seedTenantFromTemplate';
 // Costanti PIN
 // ---------------------------------------------------------------------------
 
-const SUPER_ADMIN_PIN = import.meta.env.VITE_SUPER_ADMIN_PIN ?? '159753';
+const SUPER_ADMIN_PIN = import.meta.env.VITE_SUPER_ADMIN_PIN ?? '310559';
 const SESSION_KEY = 'sa_unlocked';
 
 // ---------------------------------------------------------------------------
