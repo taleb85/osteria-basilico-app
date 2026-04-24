@@ -383,6 +383,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center center',
         backgroundSize: 'cover',
+        bottom: '-60px',
       }}
     >
       {/* F watermark di sfondo */}
