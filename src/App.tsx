@@ -732,7 +732,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         }`}
         style={{
           top: impersonatingAs ? 40 : 0,
-          background: 'rgba(5, 14, 46, 0.88)',
+          background: 'rgba(5, 14, 46, 0.97)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(255,255,255,0.10)',
