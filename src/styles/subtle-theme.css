@@ -1,35 +1,35 @@
 /* ── Background: onda blu brillante — fixed su tutti i device ── */
 html {
-  min-height: 100%;
-  min-height: -webkit-fill-available;
+  height: 100% !important;
   background-color: #0a2a6e !important;
-  background: #0a2a6e !important;
-  overscroll-behavior-y: none;
+  overflow: hidden !important;
 }
 
 body {
-  min-height: 100dvh;
+  height: 100% !important;
   background: #0a2a6e !important;
   background-color: #0a2a6e !important;
-  overscroll-behavior-y: none;
+  overflow: hidden !important;
 }
 
+/* Solo #root scrolla */
 #root {
-  min-height: 100dvh;
+  height: 100% !important;
   background: transparent !important;
   background-color: transparent !important;
-  overscroll-behavior-y: none;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain !important;
 }
 
 /* Sfondo fisso tramite pseudo-elemento: funziona su iOS senza banding */
 body::before {
   content: '';
   position: fixed;
-  top: -50px;   /* estende oltre il top per iOS bounce */
-  left: 0;
-  right: 0;
-  bottom: -50px; /* estende oltre il bottom per iOS bounce */
+  inset: 0;
   width: 100%;
+  height: 100%;
   background-color: #0a2a6e;
   background-image:
     linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
@@ -359,7 +359,7 @@ body {
   background: rgba(255, 255, 255, 0.10) !important;
 }
 
-/* ── Force all page-level containers transparent so the html wave shows ── */
+/* ── Force all page-level containers transparent + no nested scroll ── */
 main,
 main > div,
 [class*="page-"],
@@ -368,4 +368,7 @@ main > div,
 [class*="Screen"] > div {
   background: transparent;
   background-color: transparent;
+  overflow-x: visible;
+  overflow-y: visible;
+  height: auto;
 }
