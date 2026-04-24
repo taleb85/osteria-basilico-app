@@ -671,7 +671,7 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
         <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#60a5fa]/40 text-[#60a5fa] text-[9px] font-black uppercase tracking-widest shrink-0">
           {t.tab_period ?? 'Periodo'}
         </span>
-        <div className="flex items-center border border-white/25 rounded-2xl overflow-hidden flex-1" style={{ background: 'rgba(255,255,255,0.10)' }}>
+        <div className="flex items-center border border-white/40 rounded-2xl overflow-hidden flex-1" style={{ background: 'rgba(255,255,255,0.18)' }}>
           <button type="button" onClick={() => setNavOffset(o => o - 1)}
             className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-r border-white/20">
             <ChevronLeft className="h-4 w-4" />
