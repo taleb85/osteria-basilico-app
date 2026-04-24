@@ -290,25 +290,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     };
   }, []);
 
-  const appBottomTabBarRef = useRef<HTMLElement | null>(null);
-  useLayoutEffect(() => {
-    const el = appBottomTabBarRef.current;
-    if (!el) return;
-    const setOffset = () => {
-      const h = Math.ceil(el.getBoundingClientRect().height);
-      document.documentElement.style.setProperty('--app-bottom-tabbar-height', `${h}px`);
-    };
-    setOffset();
-    const ro = new ResizeObserver(setOffset);
-    ro.observe(el);
-    window.addEventListener('resize', setOffset);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', setOffset);
-      document.documentElement.style.removeProperty('--app-bottom-tabbar-height');
-    };
-  }, []);
-
   const [activeTab, setActiveTab] = useState<AppNavTab>('home');
 
   // Forza background trasparente per la griglia presenze in dark mode
