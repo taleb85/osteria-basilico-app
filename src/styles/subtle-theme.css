@@ -21,20 +21,15 @@ body {
   overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain !important;
-  will-change: scroll-position;
 }
 
 /* Sfondo fisso tramite pseudo-elemento: funziona su iOS senza banding */
 body::before {
   content: '';
   position: fixed;
-  /* Esteso oltre la viewport per coprire safe-area-inset-bottom su iPhone */
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: calc(-1 * env(safe-area-inset-bottom, 34px));
+  inset: 0;
   width: 100%;
-  height: calc(100% + env(safe-area-inset-bottom, 34px));
+  height: 100%;
   background-color: #0a2a6e;
   background-image:
     linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
