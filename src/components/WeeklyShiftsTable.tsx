@@ -569,7 +569,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [isWideShiftViewport]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sincronizza scroll orizzontale: corpo → mirror header
   useEffect(() => {
