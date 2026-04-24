@@ -41,9 +41,6 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTa
   return (
     <div
       className="top-tabbar flex items-center scrollbar-none"
-      style={{
-        borderTop: '1px solid rgba(255,255,255,0.07)',
-      }}
     >
       <div className="flex w-full">
         {tabs.map(({ id, label }) => {
