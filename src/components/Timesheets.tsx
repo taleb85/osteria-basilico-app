@@ -3962,7 +3962,7 @@ export default function Timesheets() {
           {timesheetHeaderSticky && (
             <div
               ref={timesheetMirrorHeaderRef}
-              className="hidden md:block sticky z-[200] rounded-xl overflow-hidden border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
+              className="hidden md:block sticky z-[200] rounded-b-xl overflow-hidden border-x border-b border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
               style={{ top: 'var(--app-sticky-header-offset)', background: '#0d1e4a' }}
             >
               <div ref={timesheetHeaderScrollRef} className="overflow-x-hidden">
