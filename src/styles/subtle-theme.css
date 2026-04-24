@@ -1,19 +1,8 @@
-/* ── Background: onda blu brillante ── */
+/* ── Background: onda blu brillante — fixed su tutti i device ── */
 html {
   min-height: 100%;
   background-color: #0a2a6e !important;
-  background: 
-    linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
-    url('/background-wave.png') no-repeat center center !important;
-  background-size: cover !important;
-  background-attachment: scroll !important;
-}
-
-/* Desktop: fixed funziona correttamente, evita la banda grigia allo scroll */
-@media (min-width: 768px) {
-  html {
-    background-attachment: fixed !important;
-  }
+  background: #0a2a6e !important;
 }
 
 body {
@@ -26,6 +15,24 @@ body {
   min-height: 100dvh;
   background: transparent !important;
   background-color: transparent !important;
+}
+
+/* Sfondo fisso tramite pseudo-elemento: funziona su iOS senza banding */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0a2a6e;
+  background-image:
+    linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
+    url('/background-wave.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* ── Variabili CSS aggiornate — devono venire DOPO index.css ── */
