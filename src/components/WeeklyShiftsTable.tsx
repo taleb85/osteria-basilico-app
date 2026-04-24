@@ -455,6 +455,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [dateBarStuck, setDateBarStuck] = useState(false);
   const footerTotalsScrollRef = useRef<HTMLDivElement | null>(null);
   const cardScrollRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // ── Sticky mirror header per la flat desktop table ──────────────────────
+  const flatTheadRef = useRef<HTMLTableSectionElement | null>(null);
+  const flatHeaderScrollRef = useRef<HTMLDivElement | null>(null);
+  const flatBodyScrollRef = useRef<HTMLDivElement | null>(null);
+  const [flatHeaderSticky, setFlatHeaderSticky] = useState(false);
   const syncScrollFromProgrammatic = useRef(false);
   // Touch interceptor: swipe on nome/gap → scorri tutti i card insieme
   const outerSwipeRef = useRef<{ x: number; y: number; lastX: number; dir: 'h' | 'v' | null } | null>(null);
@@ -552,6 +558,28 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [weekIndex, viewMode, displayPeriodConfig.startDate, displayPeriodConfig.numWeeks, periodPanOffsetWeeks, stickyDateBarInScrollPane]);
+
+  // ── Sticky header flat table: IntersectionObserver ──────────────────────
+  useEffect(() => {
+    const el = flatTheadRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFlatHeaderSticky(!entry.isIntersecting),
+      { threshold: 0, rootMargin: '-60px 0px 0px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isWideShiftViewport]);
+
+  // Sincronizza scroll orizzontale: corpo → mirror header
+  useEffect(() => {
+    const body = flatBodyScrollRef.current;
+    const header = flatHeaderScrollRef.current;
+    if (!body || !header) return;
+    const sync = () => { header.scrollLeft = body.scrollLeft; };
+    body.addEventListener('scroll', sync, { passive: true });
+    return () => body.removeEventListener('scroll', sync);
+  });
 
   // GestioneTurni: click-to-filter by employee
   const [localFilterUserId, setLocalFilterUserId] = useState<string | null>(null);
@@ -3659,7 +3687,50 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           </HorizontalScrollArea>
         ) : isWideShiftViewport ? (
           /* ── DESKTOP: flat unified table ─────────────────────────── */
+          <>
+          {/* Sticky mirror header — visibile quando il thead originale esce dalla vista */}
+          {flatHeaderSticky && (
+            <div
+              className="sticky z-[200] rounded-xl overflow-hidden border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)] mb-1"
+              style={{ top: 'var(--app-sticky-header-offset)', background: '#0d1e4a' }}
+            >
+              <div ref={flatHeaderScrollRef} className="overflow-x-hidden">
+                <table className="w-full border-collapse table-fixed">
+                  <colgroup>
+                    <col style={{ width: '160px' }} />
+                    {allWeekDays.map((_, ci) => <col key={ci} />)}
+                  </colgroup>
+                  <thead>
+                    <tr style={{ background: '#0d1e4a' }}>
+                      <th className="text-left px-4 py-3 text-[9px] font-black uppercase tracking-widest text-white border-r border-white/20"
+                        style={{ background: '#0d1e4a' }}>
+                        Staff
+                      </th>
+                      {allWeekDays.map((day, di) => {
+                        const isTodayDH = isToday(day);
+                        return (
+                          <th key={di} className="text-center px-2 py-2"
+                            style={{
+                              background: isTodayDH ? 'rgba(51,102,204,0.25)' : '#0d1e4a',
+                              borderRight: di < allWeekDays.length - 1 ? '1px solid rgba(255,255,255,0.12)' : undefined,
+                            }}>
+                            <div className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-cyan-300' : 'text-white/50'}`}>
+                              {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it })}
+                            </div>
+                            <div className={`text-[13px] font-black tabular-nums ${isTodayDH ? 'text-white' : 'text-white'}`}>
+                              {format(day, 'd/MM')}
+                            </div>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+            </div>
+          )}
           <div
+            ref={flatBodyScrollRef}
             className="overflow-hidden rounded-2xl"
             style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}
           >
@@ -3673,7 +3744,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 <col style={{ width: '160px' }} />
                 {allWeekDays.map((_, ci) => <col key={ci} />)}
               </colgroup>
-              <thead>
+              <thead ref={flatTheadRef}>
                 <tr>
                   <th
                     className="text-left px-4 py-4 text-[9px] font-black uppercase tracking-widest"
@@ -3923,6 +3994,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               );
             })()}
           </div>
+          </>
         ) : (
               activeUsers.map((user, userIdx) => {
                 const canManageThisUser = canEditInApp && !isPurelyManagementRole(user.role);
