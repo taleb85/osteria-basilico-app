@@ -1,6 +1,7 @@
 import { Play, LogOut, ChevronRight, Clock, RotateCcw } from 'lucide-react';
 import HeaderTodayCoworkersCard from '../HeaderTodayCoworkersCard';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
+import { startOfWeek, addDays, format, isToday } from 'date-fns';
 
 export interface MobileHomeProps {
   onRefresh?: () => Promise<void> | void;
@@ -37,6 +38,9 @@ export interface MobileHomeProps {
   onNavigateToTimesheet?: () => void;
   todayWorkShifts: any[];
   detailLabel?: string;
+  /** Full list of user shifts — used to build the weekly preview */
+  myShifts?: any[];
+  locale?: Locale;
 }
 
 function fmtH(mins: number) {
@@ -46,6 +50,7 @@ function fmtH(mins: number) {
   return m > 0 ? `${h}h ${String(m).padStart(2, '0')}m` : `${h}h`;
 }
 
+const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
 export default function MobileHome({
   greetingText,
@@ -63,7 +68,6 @@ export default function MobileHome({
   shiftTimeHint,
   todayShiftLabel,
   inProgressLabel,
-  nextShiftLabel,
   savingLabel,
   startLabel,
   endLabel,
@@ -76,8 +80,8 @@ export default function MobileHome({
   onRefresh,
   todayWorkShifts,
   detailLabel = 'Detail',
+  myShifts = [],
 }: MobileHomeProps) {
-  
 
   const { pullDistance, isRefreshing, isTriggered, indicatorOpacity, indicatorRotation } =
     usePullToRefresh({ onRefresh: onRefresh ?? (() => {}), disabled: !onRefresh });
@@ -93,9 +97,20 @@ export default function MobileHome({
     ? Math.min(100, Math.round((weeklyMinutes / weekCapMinutes) * 100))
     : 0;
 
+  // ── Weekly preview data ────────────────────────────────────────────────
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  const shiftsForDay = (day: Date) => {
+    const dateStr = format(day, 'yyyy-MM-dd');
+    return myShifts.filter(
+      (s) => s.date === dateStr && !s.notes?.startsWith('__OPEN__') && s.approval_status !== 'draft'
+    );
+  };
+
   return (
     <div
-      className="flex flex-col gap-3 px-4 py-4 pb-12 relative shift-mobile-safe"
+      className="flex flex-col gap-3 px-4 py-3 pb-12 relative shift-mobile-safe"
       style={{ transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : undefined, transition: pullDistance === 0 ? 'transform 0.25s ease-out' : undefined }}
     >
       {/* Pull-to-refresh indicator */}
@@ -140,69 +155,60 @@ export default function MobileHome({
         </p>
       </div>
 
-      {/* ── Il tuo turno oggi (ULTRA-CLEAN) ──────────────────────────────── */}
-      <section className="shift-card-ultra px-6 py-6 mt-5">
-        <div className="flex items-start justify-between mb-5">
-          <div>
-            <p className="text-[10px] font-medium uppercase tracking-wider text-white/60 mb-2">
-              {todayShiftLabel}
-            </p>
-            {shiftRange ? (
-              <p className="text-5xl font-medium shift-time-clean text-white leading-tight tracking-tight">
-                {shiftRange}
-              </p>
-            ) : (
-              <p className="text-base font-medium text-white/60">
-                {noShiftsHint}
-              </p>
-            )}
-            {shiftTimeHint && (
-              <p className="text-xs font-medium text-white/60 mt-2">
-                {shiftTimeHint}
-              </p>
-            )}
-          </div>
-
-          {/* Badge stato (ULTRA-CLEAN) */}
+      {/* ── Il tuo turno oggi ──────────────────────────────────────────── */}
+      <section className="shift-card-ultra px-4 py-4">
+        {/* Header row: label + stato badge */}
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
+            {todayShiftLabel}
+          </p>
           {inProgress ? (
-            <span className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-medium text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span className="flex items-center gap-1.5 text-[10px] font-medium text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               {inProgressLabel}
-            </span>
-          ) : todayWorkShiftsCount > 0 ? (
-            <span className="px-3 py-1.5 text-[10px] font-medium text-white/60">
-              {nextShiftLabel}
             </span>
           ) : null}
         </div>
 
-        {/* Tempo trascorso (ULTRA-CLEAN: solo testo pulito) */}
+        {/* Shift time — reduced from text-5xl to text-3xl */}
+        {shiftRange ? (
+          <p className="text-3xl font-semibold shift-time-clean text-white leading-tight tracking-tight mb-3">
+            {shiftRange}
+          </p>
+        ) : (
+          <p className="text-base font-medium text-white/50 mb-3">
+            {noShiftsHint}
+          </p>
+        )}
+
+        {/* Hint orario in corso */}
+        {shiftTimeHint && (
+          <p className="text-xs font-medium text-white/50 -mt-2 mb-3">
+            {shiftTimeHint}
+          </p>
+        )}
+
+        {/* Elapsed timer */}
         {inProgress && elapsedLabel && (
-          <div className="flex items-center gap-3 mb-5 px-4 py-4 rounded-xl"
-            style={{ 
-              background: 'rgba(255, 255, 255, 0.92)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              border: 'none',
-              boxShadow: '0 8px 32px 0 rgba(11, 53, 115, 0.08)',
-            }}
+          <div className="flex items-center gap-2 mb-3 px-3 py-2.5 rounded-xl"
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
           >
-            <Clock className="w-6 h-6 text-white/60 shrink-0" strokeWidth={1.5} />
-            <span className="text-4xl shift-time-clean font-medium text-white">
+            <Clock className="w-4 h-4 text-white/50 shrink-0" strokeWidth={1.5} />
+            <span className="text-2xl shift-time-clean font-medium text-white tabular-nums">
               {elapsedLabel}
             </span>
           </div>
         )}
 
-        {/* Lista turni del giorno (ULTRA-CLEAN) */}
+        {/* Extra shifts today (if more than 1) */}
         {!inProgress && todayWorkShifts.length > 1 && (
-          <div className="flex flex-col shift-gap-ultra mb-5">
+          <div className="flex flex-col gap-1.5 mb-3">
             {todayWorkShifts.slice(1).map((s) => (
-              <div key={s.id} className="flex items-center justify-between py-3 shift-separator-ultra">
-                <span className="text-xl font-medium shift-time-clean text-white">
+              <div key={s.id} className="flex items-center justify-between py-2 border-t border-white/8">
+                <span className="text-base font-medium shift-time-clean text-white">
                   {s.start_time.slice(0, 5)} – {s.end_time?.slice(0, 5) ?? '…'}
                 </span>
-                <span className="text-xs font-medium uppercase tracking-wider text-white/60">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">
                   {s.type === 'lunch' ? 'Pranzo' : 'Cena'}
                 </span>
               </div>
@@ -210,17 +216,17 @@ export default function MobileHome({
           </div>
         )}
 
-        {/* Bottoni punch */}
+        {/* Punch buttons */}
         {inProgress ? (
           canEnd && (
             <button
               type="button"
               disabled={punchBusy}
               onClick={onEnd}
-              className="w-full h-14 bg-red-600 hover:bg-red-700 text-white rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-red-600/20 transition-all active:scale-95 disabled:opacity-60"
+              className="w-full h-11 bg-red-600 hover:bg-red-700 text-white rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-red-600/20 transition-all active:scale-95 disabled:opacity-60"
             >
-              <LogOut className="w-5 h-5" />
-              <span className="text-base font-bold uppercase tracking-wider">
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm font-bold uppercase tracking-wider">
                 {punchBusy ? savingLabel : endLabel}
               </span>
             </button>
@@ -231,16 +237,16 @@ export default function MobileHome({
               type="button"
               disabled={punchBusy}
               onClick={onStart}
-              className="w-full h-14 bg-[#0052FF] hover:bg-blue-500 text-white rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-blue-900/30 transition-all active:scale-95 disabled:opacity-60"
+              className="w-full h-11 bg-[#0052FF] hover:bg-blue-500 text-white rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30 transition-all active:scale-95 disabled:opacity-60"
             >
-              <Play className="w-5 h-5 fill-current" />
-              <span className="text-base font-bold uppercase tracking-wider">
+              <Play className="w-4 h-4 fill-current" />
+              <span className="text-sm font-bold uppercase tracking-wider">
                 {punchBusy ? savingLabel : startLabel}
               </span>
             </button>
           ) : (
             todayWorkShiftsCount > 0 && (
-              <p className="text-center text-[10px] font-bold uppercase tracking-widest text-white/60 py-3">
+              <p className="text-center text-[10px] font-bold uppercase tracking-widest text-white/50 py-2">
                 {tapStartHint}
               </p>
             )
@@ -248,16 +254,56 @@ export default function MobileHome({
         )}
       </section>
 
+      {/* ── Questa settimana ──────────────────────────────────────────────── */}
+      <div className={`${cardCls} px-4 py-3`} style={cardStyle}>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">
+          Questa settimana
+        </p>
+        <div className="flex flex-col divide-y divide-white/[0.07]">
+          {weekDays.map((day, idx) => {
+            const dayShifts = shiftsForDay(day);
+            const today = isToday(day);
+            const dayNum = format(day, 'd');
+            const label = `${DAY_LABELS[idx]} ${dayNum}`;
+
+            return (
+              <div
+                key={idx}
+                className={`flex items-center justify-between py-1.5 ${today ? 'bg-white/5 -mx-1 px-1 rounded-lg' : ''}`}
+              >
+                <span className={`text-xs font-semibold ${today ? 'text-accent' : 'text-white/55'}`}>
+                  {label}
+                </span>
+                {dayShifts.length > 0 ? (
+                  <div className="flex flex-col items-end gap-0.5">
+                    {dayShifts.map((s, i) => (
+                      <span
+                        key={i}
+                        className={`text-xs font-semibold tabular-nums ${today ? 'text-white' : 'text-white/70'}`}
+                      >
+                        {s.start_time.slice(0, 5)}–{s.end_time?.slice(0, 5) ?? '?'}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-xs text-white/25 font-medium">—</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* ── I miei numeri ───────────────────────────────────────────── */}
       <section>
         <div className="flex items-center justify-between px-1 mb-2">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-white/60">
+          <h2 className="text-[10px] font-bold uppercase tracking-widest text-white/50">
             {statsLabels.title}
           </h2>
           {onNavigateToTimesheet && (
             <button
               onClick={onNavigateToTimesheet}
-              className="text-[10px] font-bold text-blue-600 flex items-center gap-0.5 hover:opacity-80 transition-opacity"
+              className="text-[10px] font-bold text-blue-400 flex items-center gap-0.5 hover:opacity-80 transition-opacity"
             >
               {detailLabel} <ChevronRight className="w-3 h-3" />
             </button>
@@ -267,7 +313,7 @@ export default function MobileHome({
         <div className="grid grid-cols-2 gap-3">
           {/* Ore settimana */}
           <div className={`${cardCls} px-4 py-3`} style={cardStyle}>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-white/60 mb-1">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-white/50 mb-1">
               {statsLabels.week}
             </p>
             <p className="text-xl font-black text-white tabular-nums leading-none mb-2">
@@ -279,20 +325,20 @@ export default function MobileHome({
                 style={{ width: `${weekPct}%` }}
               />
             </div>
-            <p className="text-[8px] text-white/60 mt-1 tabular-nums">
+            <p className="text-[8px] text-white/50 mt-1 tabular-nums">
               / {fmtH(weekCapMinutes)}
             </p>
           </div>
 
           {/* Ore mese */}
           <div className={`${cardCls} px-4 py-3`} style={cardStyle}>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-white/60 mb-1">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-white/50 mb-1">
               {statsLabels.month}
             </p>
             <p className="text-xl font-black text-white tabular-nums leading-none mb-1">
               {fmtH(monthlyMinutes)}
             </p>
-            <p className="text-[10px] text-white/60 tabular-nums">
+            <p className="text-[10px] text-white/50 tabular-nums">
               {monthDaysWorked} {statsLabels.daysWorked}
             </p>
           </div>
@@ -301,7 +347,7 @@ export default function MobileHome({
 
       {/* ── Colleghi in turno oggi ───────────────────────────────────── */}
       <div className="rounded-2xl overflow-hidden border border-white/10"
-        style={{ 
+        style={{
           background: 'rgba(255,255,255,0.08)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',

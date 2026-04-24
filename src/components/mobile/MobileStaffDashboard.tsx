@@ -214,6 +214,7 @@ export default function MobileStaffDashboard({
             onRefresh={onRefresh}
             todayWorkShifts={todayWorkShifts}
             detailLabel={t.detail_link}
+            myShifts={myShifts}
           />
         );
       case 'turni':
