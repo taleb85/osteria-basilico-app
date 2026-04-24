@@ -92,15 +92,20 @@ function MyShiftsSection({
   language: string;
   t: Record<string, string>;
 }) {
-  // Always dark theme
   const cardBg = { background: 'rgba(255,255,255,0.06)' };
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
-  const [closedWeeks, setClosedWeeks] = useState<Set<number>>(new Set());
+  // Track which non-current weeks the user has manually expanded
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
   const dayLetters = getDayLetters(locale);
   const weeks = useMemo(() => groupByWeeks(myShifts), [myShifts]);
 
+  const currentWeekIdx = useMemo(
+    () => weeks.findIndex(w => isSameWeek(new Date(), w.start, { weekStartsOn: 1 })),
+    [weeks],
+  );
+
   function toggleWeek(wIdx: number) {
-    setClosedWeeks(prev => {
+    setExpandedWeeks(prev => {
       const next = new Set(prev);
       if (next.has(wIdx)) next.delete(wIdx);
       else next.add(wIdx);
@@ -139,7 +144,42 @@ function MyShiftsSection({
           !(byDay[format(d, 'yyyy-MM-dd')] ?? []).some(s => s.approval_status !== 'absent')
         ).length;
         const isDayInThisWeek = selectedDayKey !== null && weekDays.some(d => format(d, 'yyyy-MM-dd') === selectedDayKey);
-        const isOpen = !closedWeeks.has(wIdx);
+        const isCurrentWeek = wIdx === currentWeekIdx;
+        // Current week: expanded by default (unless user collapsed it)
+        // Other weeks: collapsed by default (unless user expanded them)
+        const isOpen = isCurrentWeek ? !expandedWeeks.has(wIdx) : expandedWeeks.has(wIdx);
+
+        // Compact row for non-current weeks when collapsed
+        if (!isCurrentWeek && !isOpen) {
+          const weekLabel = `${format(week.start, 'd MMM', { locale })} – ${format(week.end, 'd MMM', { locale })}`;
+          return (
+            <button
+              key={wIdx}
+              type="button"
+              onClick={() => toggleWeek(wIdx)}
+              className="w-full flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3 text-left transition-all hover:border-white/20"
+              style={cardBg}
+            >
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">
+                  {weekLabel}
+                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-semibold text-white/70 tabular-nums">
+                    {confirmed.length} {t.shift_plural ?? 'turni'}
+                  </span>
+                  <span className="text-[10px] text-white/40">·</span>
+                  <span className="text-xs font-semibold text-white/70 tabular-nums">
+                    {minsLabel(totalMins)}
+                  </span>
+                </div>
+              </div>
+              <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4 text-white/35 shrink-0 rotate-0" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3,6 8,11 13,6" />
+              </svg>
+            </button>
+          );
+        }
 
         return (
           <div key={wIdx}>
@@ -217,7 +257,7 @@ function MyShiftsSection({
                   className="flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest border-white/20 text-white/80"
                   style={{ background: 'rgba(255,255,255,0.1)' }}
                 >
-                  <span>{t.ts_period_week ?? 'Settimana'}</span>
+                  <span>{isOpen ? (t.collapse ?? 'Comprimi') : (t.ts_period_week ?? 'Espandi')}</span>
                   <svg viewBox="0 0 16 16" fill="none" className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="3,6 8,11 13,6" />
                   </svg>
