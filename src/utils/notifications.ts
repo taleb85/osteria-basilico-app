@@ -217,8 +217,9 @@ export function generateNotifications(
         openShifts.length === 1
           ? t.notif_open_shifts_one
           : formatTrans(t.notif_open_shifts_many, { n: openShifts.length });
+      // ID stabile basato sul conteggio: si rinnova solo quando il numero cambia
       notifications.push({
-        id: `open_shifts_${today}`,
+        id: `open_shifts_n${openShifts.length}`,
         type: 'open_shift',
         title: t.notif_open_shifts_title,
         body,
@@ -239,8 +240,9 @@ export function generateNotifications(
         needApproval.length === 1
           ? t.notif_approval_one
           : formatTrans(t.notif_approval_many, { n: needApproval.length });
+      // ID stabile basato sul conteggio: si rinnova solo quando il numero cambia
       notifications.push({
-        id: `approvals_${today}`,
+        id: `approvals_n${needApproval.length}`,
         type: 'approval_needed',
         title: t.notif_approval_title,
         body,
