@@ -84,7 +84,7 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
       {/* Logo / icona */}
       <div className="mb-8 flex flex-col items-center gap-3 relative">
         <img
-          src="/icon-192.png"
+          src="/icon-192.png?v=3"
           alt="FLOW"
           width={84}
           height={84}
@@ -1417,7 +1417,7 @@ function SuperAdminPanelInner() {
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2.5 min-w-0">
             <img
-              src="/icon-192.png"
+              src="/icon-192.png?v=3"
               alt="FLOW"
               width={36}
               height={36}
