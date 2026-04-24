@@ -47,6 +47,12 @@ button:active,
   --app-bg:   #f4f7fa;
   --card-bg:  #ffffff;
   --text-main: #1a1a1a;
+
+  /* Safe area helpers */
+  --safe-area-top:    env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left:   env(safe-area-inset-left, 0px);
+  --safe-area-right:  env(safe-area-inset-right, 0px);
 }
 
 /* Header brand — rimane blu in entrambi i temi, testo sempre bianco */
@@ -64,11 +70,18 @@ html,
 body,
 #root {
   margin: 0 !important;
-  padding: 0 !important;
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
   width: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--text-primary);
+}
+
+/* body padding-bottom gestito separatamente per safe-area */
+html, #root {
+  padding-bottom: 0 !important;
 }
 
 html {
