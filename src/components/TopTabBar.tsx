@@ -39,12 +39,7 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTa
   const tabs = defs.filter((d) => visible.has(d.id));
 
   return (
-    <div
-      className="top-tabbar flex items-center scrollbar-none"
-      style={{
-        borderTop: '1px solid rgba(255,255,255,0.07)',
-      }}
-    >
+    <div className="top-tabbar flex items-center scrollbar-none">
       <div className="flex w-full">
         {tabs.map(({ id, label }) => {
           const isActive = activeTab === id;
@@ -65,9 +60,9 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTa
                 color: isActive ? 'white' : 'rgba(255,255,255,0.45)',
                 background: 'none',
                 border: 'none',
-                borderBottomWidth: 2,
-                borderBottomStyle: 'solid',
-                borderBottomColor: isActive ? 'white' : 'transparent',
+                borderTopWidth: 2,
+                borderTopStyle: 'solid',
+                borderTopColor: isActive ? 'white' : 'transparent',
                 cursor: 'pointer',
                 letterSpacing: '0.3px',
                 outline: 'none',
