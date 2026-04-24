@@ -716,7 +716,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
-      {/* ── Header fisso: solo topbar ── */}
+      {/* ── Header fisso unificato: topbar + tabbar ── */}
       <header
         ref={appStickyHeaderRef}
         className={`fixed left-0 right-0 z-[10040] shrink-0 transition-[visibility,opacity,top] duration-150 ${
@@ -784,39 +784,18 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
             </div>
           }
         />
-      </header>
-
-      {/* ── Bottom tab bar ── */}
-      {!noNavTabs && (
-        <nav
-          ref={appBottomTabBarRef}
-          className={`fixed left-0 right-0 bottom-0 z-[10040] transition-[visibility,opacity] duration-150 ${
-            overlayOpen ? 'invisible opacity-0 pointer-events-none' : ''
-          } ${
-            isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''
-          }`}
-          style={{
-            background: 'rgba(5, 14, 46, 0.92)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderTop: '1px solid rgba(255,255,255,0.10)',
-            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          }}
-        >
+        {!noNavTabs && (
           <TopTabBar
             activeTab={activeTab}
             onTabChange={handleTabChange}
             visibleTabs={bottomNavTabs}
           />
-        </nav>
-      )}
+        )}
+      </header>
 
       <main
         className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
-        style={{
-          paddingTop: 'var(--app-sticky-header-offset, 52px)',
-          paddingBottom: noNavTabs ? 0 : 'var(--app-bottom-tabbar-height, 60px)',
-        }}
+        style={{ paddingTop: 'var(--app-sticky-header-offset, 80px)' }}
       >
         <div className="w-full flex-1 app-horizontal-pad pt-3">
           {/* PIN portals */}
