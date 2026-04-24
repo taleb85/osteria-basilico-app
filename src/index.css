@@ -91,7 +91,7 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none;
 }
 
 /* iOS coarse pointer */
@@ -407,7 +407,7 @@ body {
     background: var(--bg-surface-solid);
     border: 1px solid var(--border-color);
     /* Impedisce il rimbalzo verso la pagina quando si scorre al limite della modale */
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: none;
   }
 
   /**
@@ -419,7 +419,7 @@ body {
     background: var(--bg-surface-solid);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: none;
   }
 
 
