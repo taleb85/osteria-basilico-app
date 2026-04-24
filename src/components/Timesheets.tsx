@@ -3946,8 +3946,14 @@ export default function Timesheets() {
           {/* ── Mirror header sticky — compare quando il thead originale esce dalla vista ── */}
           {timesheetHeaderSticky && (
             <div
-              className="hidden md:block sticky z-[200] rounded-xl overflow-hidden border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
-              style={{ top: 'var(--app-sticky-header-offset)', background: '#0d1e4a' }}
+              className="hidden md:block z-[200] rounded-xl overflow-hidden border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
+              style={{
+                position: 'fixed',
+                top: 'var(--app-sticky-header-offset)',
+                left: 'var(--layout-app-px, 1.5rem)',
+                right: 'var(--layout-app-px, 1.5rem)',
+                background: '#0d1e4a',
+              }}
             >
               <div ref={timesheetHeaderScrollRef} className="overflow-x-hidden">
                 <table
