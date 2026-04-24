@@ -5,7 +5,7 @@ import { isIOS, isAndroid, isDesktop } from '../utils/pwaStandalone';
 import { useApp } from '../context/appContextCore';
 import FlowWaveIcon from './ui/FlowWaveIcon';
 
-const BG = 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18';
+const BG = 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.18) 0%, transparent 60%)';
 const ACCENT = '#0052FF';
 
 /* ─── Icona Condividi Safari ─── */
@@ -43,18 +43,18 @@ function StepRow({
       className="flex items-center gap-3 rounded-2xl px-4 py-3.5 transition-all"
       style={{
         background: active
-          ? 'rgba(0,82,255,0.18)'
-          : 'rgba(255,255,255,0.06)',
+          ? 'rgba(0,82,255,0.22)'
+          : 'rgba(255,255,255,0.10)',
         border: active
-          ? '1px solid rgba(0,82,255,0.45)'
-          : '1px solid rgba(255,255,255,0.10)',
+          ? '1px solid rgba(0,82,255,0.50)'
+          : '1px solid rgba(255,255,255,0.15)',
       }}
     >
       {/* Status dot */}
       <div
         className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
         style={{
-          background: done ? '#22c55e' : active ? ACCENT : 'rgba(255,255,255,0.10)',
+          background: done ? '#22c55e' : active ? ACCENT : 'rgba(59,130,246,0.30)',
         }}
       >
         {done
@@ -66,7 +66,7 @@ function StepRow({
       {/* Testo */}
       <div className="min-w-0 flex-1">
         <p className="text-white font-semibold text-sm leading-tight">{title}</p>
-        {desc && <p className="text-white/45 text-xs leading-relaxed mt-0.5">{desc}</p>}
+        {desc && <p className="text-white/65 text-xs leading-relaxed mt-0.5">{desc}</p>}
       </div>
     </motion.div>
   );
@@ -158,7 +158,7 @@ export default function PWAInstallRequired() {
   const allowBrowser = import.meta.env.VITE_ALLOW_BROWSER_APP === 'true';
   if (allowBrowser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-6 text-center">
+      <div className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
         <div>
           <h1 className="text-xl font-bold mb-2">Bypass Attivo</h1>
           <p className="text-white/50">VITE_ALLOW_BROWSER_APP è true: gate PWA disabilitato.</p>

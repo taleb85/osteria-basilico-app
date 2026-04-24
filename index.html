@@ -16,7 +16,7 @@
         try { localStorage.removeItem('userTheme'); localStorage.removeItem('theme'); } catch(e){}
 
         /* Cache-bust automatico: versione iniettata da Vite build */
-        var CURRENT_VERSION = window.__APP_CACHE_VERSION__ || '1.2.0';
+        var CURRENT_VERSION = window.__APP_CACHE_VERSION__ || '1.2.1';
         try {
           var savedVersion = localStorage.getItem('app_cache_version');
           if (savedVersion !== CURRENT_VERSION) {
@@ -62,19 +62,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=0" />
 
     <!-- Favicon -->
-    <link rel="icon" href="/favicon.ico?v=%VITE_TENANT_SLUG%-v6" sizes="any" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=%VITE_TENANT_SLUG%-v6" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=%VITE_TENANT_SLUG%-v6" />
-    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png?v=%VITE_TENANT_SLUG%-v6" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=%VITE_TENANT_SLUG%-v6" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=%VITE_TENANT_SLUG%-v6" />
+    <link rel="icon" href="/favicon.ico?v=%VITE_TENANT_SLUG%-v7" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=%VITE_TENANT_SLUG%-v7" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=%VITE_TENANT_SLUG%-v7" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png?v=%VITE_TENANT_SLUG%-v7" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=%VITE_TENANT_SLUG%-v7" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=%VITE_TENANT_SLUG%-v7" />
 
     <!-- Apple Touch Icon (Safari / iOS — precomposed ha priorità massima) -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=%VITE_TENANT_SLUG%-v6" />
-    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon.png?v=%VITE_TENANT_SLUG%-v6" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/icon-152.png?v=%VITE_TENANT_SLUG%-v6" />
-    <link rel="apple-touch-icon" sizes="167x167" href="/icon-167.png?v=%VITE_TENANT_SLUG%-v6" />
-    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png?v=%VITE_TENANT_SLUG%-v6" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=%VITE_TENANT_SLUG%-v7" />
+    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon.png?v=%VITE_TENANT_SLUG%-v7" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon-152.png?v=%VITE_TENANT_SLUG%-v7" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icon-167.png?v=%VITE_TENANT_SLUG%-v7" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png?v=%VITE_TENANT_SLUG%-v7" />
 
     <!-- PWA Manifest (iniettato da vite-plugin-pwa) -->
 
