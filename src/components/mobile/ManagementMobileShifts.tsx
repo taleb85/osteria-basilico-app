@@ -518,9 +518,9 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0">
-            <Calendar className="h-3 w-3 text-white shrink-0" />
-            <span className="text-[10px] font-bold text-white tabular-nums truncate">
+          <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0" style={{ color: '#ffffff' }}>
+            <Calendar className="h-3 w-3 shrink-0" />
+            <span className="text-[10px] font-bold tabular-nums truncate">
               {rangeLabel}
             </span>
           </div>
