@@ -61,9 +61,9 @@ button:active,
   color: #ffffff !important;
 }
 
-/* Reset globale — sfondo onda blu brillante */
+/* Reset globale — sfondo onda direttamente su html per coprire safe area */
 html {
-  background-color: #0d1f3c; /* deve corrispondere alla safe area */
+  background-color: #0d1f3c;
 }
 
 html,
@@ -94,17 +94,15 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background-color: #0d1f3c;
+  background: transparent;
   overflow: hidden;
-  /* safe area: il background del body riempie l'area home indicator */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* UNICO scroll container */
 #root {
   height: 100%;
   min-height: 100dvh;
-  background-color: #0d1f3c;
+  background: transparent;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
