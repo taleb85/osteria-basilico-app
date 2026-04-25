@@ -1,12 +1,16 @@
 /* ── Background: onda blu brillante — fixed su tutti i device ── */
 html {
   height: 100% !important;
+  min-height: -webkit-fill-available !important;
   background-color: #0d1f3c !important;
   overflow: hidden !important;
 }
 
 body {
-  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 100% !important;
+  min-height: -webkit-fill-available !important;
   background: #0d1f3c !important;
   background-color: #0d1f3c !important;
   overflow: hidden !important;
@@ -16,25 +20,27 @@ body {
 
 /* Solo #root scrolla */
 #root {
-  height: 100% !important;
-  background: transparent !important;
+  min-height: 100vh !important;
+  min-height: -webkit-fill-available !important;
+  min-height: 100dvh !important;
   background-color: #0d1f3c !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none !important;
   padding-bottom: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-/* Sfondo fisso tramite pseudo-elemento: funziona su iOS senza banding */
+/* Sfondo fisso: onda blu brillante — esteso -200px per coprire safe area iPhone */
 body::before {
   content: '';
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  bottom: -100px; /* estende ben oltre il safe area per coprire l'home indicator */
-  width: 100%;
+  bottom: -200px; /* estende 200px oltre viewport — copre safe area con sicurezza */
   background-color: #0d1f3c;
   background-image:
     linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
