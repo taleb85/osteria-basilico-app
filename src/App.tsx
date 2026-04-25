@@ -1155,7 +1155,7 @@ function App() {
           : <div className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
               <div className="rounded-2xl border border-white/15 p-8 max-w-sm" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
                 <h1 className="text-2xl font-bold mb-2">SuperAdmin</h1>
-                <p className="text-white/50 text-sm">Accedi da flow-workinmotion-super-admin.vercel.app</p>
+                <p className="text-white/50 text-sm">Se il Super Admin è su un host dedicato, apri l’indirizzo configurato in produzione (stesso build o sottodominio in Cloudflare)</p>
               </div>
             </div>
       } />

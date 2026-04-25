@@ -1,4 +1,4 @@
-# Connessione Git + Vercel (checklist)
+# Connessione Git + Cloudflare Pages (checklist)
 
 Passi da fare **una volta** sul tuo computer o dopo aver creato il repository remoto.
 
@@ -43,46 +43,20 @@ git remote set-url origin https://github.com/TUO_UTENTE/TUO_REPO.git
 git push -u origin main
 ```
 
-## 3. Vercel collegato al repo
+## 3. Cloudflare Pages collegato al repo
 
-### 3.0 Collegare GitHub all’account Vercel (obbligatorio una volta)
+1. [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → collega **Git** (autorizza GitHub/GitLab) oppure carica a mano con [Wrangler](https://developers.cloudflare.com/workers/wrangler/).
+2. Scegli il repository, branch di build (es. `main` o `feature/multi-tenant` per anteprime), e imposta:
+   - **Build command:** `npm run build`
+   - **Build output directory:** `dist`
+3. In **Settings** → **Environment variables** (per il contesto *Build*), aggiungi le stesse `VITE_*` che usi in produzione, come in [DEPLOY.md](../DEPLOY.md).
+4. Deploy manuale da terminale: `npx wrangler login` (una volta), poi `npm run deploy` dalla root del repo.
 
-Se `vercel git connect` risponde con *«You need to add a Login Connection to your GitHub account first»*:
-
-1. Vai su [Vercel Dashboard](https://vercel.com/dashboard) → **Account Settings** (o impostazioni del team) → sezione **Login Connections** / integrazioni GitHub.
-2. Collega **GitHub** e autorizza Vercel ad accedere ai repository (come da [documentazione Vercel sulle connessioni](https://vercel.com/docs/accounts/create-an-account#login-methods-and-connections)).
-
-Senza questo passo, Vercel non può importare né collegare il repo.
-
-### 3.1 Collegare il progetto al repository
-
-**Da dashboard (consigliato se il progetto esiste già):**
-
-1. Apri il progetto (es. **osteria-basilico-app**) → **Settings** → **Git**.
-2. **Connect Git Repository** → scegli il repo (es. `TUO_UTENTE/osteria-basilico-app`).
-3. Conferma branch di produzione (**main**) e deploy.
-
-**Da terminale** (dopo il passo 3.0, dalla root del progetto collegata con `vercel link`):
-
-```bash
-npx vercel git connect https://github.com/TUO_UTENTE/TUO_REPO.git
-```
-
-### 3.2 Build e variabili
-
-1. **Build Command:** `npm run build`  
-   **Output Directory:** `dist`  
-   (di solito coincide con `vercel.json`.)
-2. **Environment Variables** (Production, e Preview se serve):
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY` (o `VITE_SUPABASE_PUBLISHABLE_KEY` se usi quella nel progetto)
-   - opzionale: `VITE_GEMINI_API_KEY`
-
-Se importi come **nuovo** progetto da **Add New → Project**, Vercel crea il collegamento Git in un solo flusso (dopo aver autorizzato GitHub).
+*Nota: il vecchio flusso Vercel non è più usato; resta questa guida sotto lo stesso nome file per i link esistenti.*
 
 ## 4. Supabase URL di produzione
 
-In Supabase → **Authentication** → **URL Configuration**, imposta **Site URL** e **Redirect URLs** con l’URL Vercel (o dominio custom). Dettagli in [DEPLOY.md](../DEPLOY.md).
+In Supabase → **Authentication** → **URL Configuration**, imposta **Site URL** e **Redirect URLs** sull’URL **Cloudflare Pages** (o dominio custom), es. `https://flow-workinmotion.pages.dev`. Dettagli in [DEPLOY.md](../DEPLOY.md).
 
 ## 5. CI su GitHub
 

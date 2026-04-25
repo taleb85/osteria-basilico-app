@@ -464,7 +464,7 @@ export function ProfileFormAdmin({
     variant === 'edit' && (user.status === 'suspended' || user.status === 'inactive');
   const invitePinComplete = formData.pin.replace(/\D/g, '').length === 4;
 
-  // Link breve leggibile: flow-workinmotion-app.vercel.app/i/alexis
+  // Link breve leggibile: /i/<slug-utente> sull’origine in produzione (VITE_PUBLIC_APP_ORIGIN, default Pages)
   // Option B: InviteRedirect risolve lo slug globalmente, trova il tenant e codifica
   // il tenantSlug nel token → redirige a /profilo?t=<token-con-tenantSlug>.
   // Non serve includere il tenantSlug nel link breve: è InviteRedirect a gestirlo.

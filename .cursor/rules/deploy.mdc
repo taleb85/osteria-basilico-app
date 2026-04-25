@@ -8,7 +8,6 @@ alwaysApply: true
 **Regola vincolante per l’assistente AI:** dopo aver modificato il codice **non** eseguire in automatico:
 
 - `npx wrangler`, `wrangler pages deploy`, `npm run deploy`
-- (opzionale) `npx vercel`, `vercel deploy`, `npm run deploy:vercel`
 - `npm run build` (salvo richiesta esplicita di verificare la build)
 
 **Quando agire**
@@ -17,8 +16,8 @@ alwaysApply: true
 |--------|--------|
 | Solo edit ai file | Sempre (default) |
 | `npm run build` | Se l’utente chiede di verificare la compilazione |
-| Deploy produzione | Solo se l’utente lo chiede esplicitamente (es. «fai il deploy») → di solito `npm run deploy` (Cloudflare Pages) oppure `npm run deploy:vercel` se serve Vercel |
+| Deploy produzione | Solo se l’utente lo chiede esplicitamente (es. «fai il deploy») → di solito `npm run deploy` (Cloudflare Pages) |
 
-**Nota:** se il repo è collegato a **Cloudflare Pages** o **Vercel** con deploy al push su Git, quello è indipendente da Cursor: qui si intende **non lanciare** comandi deploy/build a fine task senza che l’utente lo chieda.
+**Nota:** se il repo è collegato a **Cloudflare Pages** con deploy al push su Git, quello è indipendente da Cursor: qui si intende **non lanciare** comandi deploy/build a fine task senza che l’utente lo chieda.
 
 Se altre regole dicono «deploy sempre», **prevale questo file**.

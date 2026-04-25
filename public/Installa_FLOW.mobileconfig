@@ -32,7 +32,7 @@ iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAIAAAB7GkOtAAAACXBIWXMAAAsTAAALEwEAmpwYAAAgAElE
 			<key>Precomposed</key>
 			<true/>
 			<key>URL</key>
-			<string>https://flow-workinmotion-app.vercel.app</string>
+			<string>https://flow-workinmotion.pages.dev</string>
 		</dict>
 	</array>
 	<key>PayloadDisplayName</key>

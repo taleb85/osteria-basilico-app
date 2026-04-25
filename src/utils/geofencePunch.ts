@@ -14,7 +14,7 @@ export type GeofenceConfig = {
   radiusM: number;
 };
 
-/** Legge config da .env / Vercel. Ritorna null se lat/lng non sono numeri validi. */
+/** Legge config da .env o variabili di build. Ritorna null se lat/lng non sono numeri validi. */
 export function readGeofenceEnvConfig(): GeofenceConfig | null {
   const lat = Number.parseFloat(String(import.meta.env.VITE_RESTAURANT_LAT ?? ''));
   const lng = Number.parseFloat(String(import.meta.env.VITE_RESTAURANT_LNG ?? ''));

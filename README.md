@@ -2,7 +2,7 @@
 
 Applicazione web (React, Vite, Supabase) per turni, ferie, presenze e gestione staff.
 
-**Repository:** [github.com/taleb85/osteria-basilico-app](https://github.com/taleb85/osteria-basilico-app) · **Produzione:** [osteria-basilico-app.vercel.app](https://osteria-basilico-app.vercel.app)
+**Repository:** [github.com/taleb85/osteria-basilico-app](https://github.com/taleb85/osteria-basilico-app) · **Produzione (default):** [flow-workinmotion.pages.dev](https://flow-workinmotion.pages.dev) — hosting **Cloudflare Pages** (vedi [DEPLOY.md](./DEPLOY.md), override con `VITE_PUBLIC_APP_ORIGIN`).
 
 ## Prerequisiti
 
@@ -22,11 +22,9 @@ npm run dev
 
 - Build: `npm run build` → output in `dist`
 - Anteprima locale: `npm run preview`
-- Pubblicazione su Vercel e checklist: **[DEPLOY.md](./DEPLOY.md)**
+- Pubblicazione: **[DEPLOY.md](./DEPLOY.md)** (Cloudflare Pages, `npm run deploy`)
 
-## Repository Git e Vercel
-
-Istruzioni passo-passo (identità Git, `remote`, push, variabili Vercel, Supabase): **[docs/CONNESSIONE_GIT_VERCEL.md](./docs/CONNESSIONE_GIT_VERCEL.md)**.
+## Repository Git
 
 Sintesi se il remoto non è ancora collegato (dopo aver creato il repo vuoto su GitHub):
 
@@ -34,7 +32,7 @@ Sintesi se il remoto non è ancora collegato (dopo aver creato il repo vuoto su 
 bash scripts/git-remote-push.sh https://github.com/TUO_UTENTE/TUO_REPO.git
 ```
 
-Su Vercel: importa lo stesso repository; **Build Command** `npm run build`, **Output Directory** `dist`. Su ogni push su `main`, la **CI** su GitHub esegue typecheck, lint e build (vedi `.github/workflows/ci.yml`).
+In **Cloudflare Pages**: collega lo stesso repository; **Build Command** `npm run build`, **Output Directory** `dist`. Su ogni push, la **CI** su GitHub esegue typecheck, lint e build (vedi `.github/workflows/ci.yml`).
 
 ## Altri comandi
 
@@ -42,6 +40,6 @@ Su Vercel: importa lo stesso repository; **Build Command** `npm run build`, **Ou
 |--------|-----|
 | `npm run typecheck` | Controllo TypeScript |
 | `npm run lint` | ESLint |
-| `npm run deploy` | Build + deploy produzione Vercel (richiede CLI / progetto collegato) |
+| `npm run deploy` | Build + deploy produzione su Cloudflare Pages (richiede `wrangler` / login) |
 
-Documentazione aggiuntiva: cartella `docs/` e file markdown in root (sicurezza, RLS, mail, ecc.). Riepilogo: **[docs/STATO_PROGETTO.md](./docs/STATO_PROGETTO.md)**. Checklist completa Vercel + Supabase + test browser: **[docs/CHECKLIST_VERIFICA_COMPLETA.md](./docs/CHECKLIST_VERIFICA_COMPLETA.md)**.
+Documentazione aggiuntiva: cartella `docs/` e file markdown in root. Riepilogo: **[docs/STATO_PROGETTO.md](./docs/STATO_PROGETTO.md)**. Checklist operativa: **[docs/CHECKLIST_VERIFICA_COMPLETA.md](./docs/CHECKLIST_VERIFICA_COMPLETA.md)**.

@@ -35,6 +35,6 @@ export const supabase: SupabaseClient | null = supabaseUrl && supabaseKey
 
 /**
  * SECURITY: Service role key rimossa dal bundle client.
- * Se serve admin SDK, usa Vercel Serverless Function con variabile non-VITE_ prefixed.
+ * Se serve admin SDK, usa un endpoint server-side (Worker, Function, API) con variabile non VITE_.
  * SuperAdminPanel e operazioni privilegiate devono migrare a endpoint server-side.
  */

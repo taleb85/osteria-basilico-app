@@ -1,2 +1,2 @@
-# SPA fallback (Cloudflare Pages / host statici generici; su Vercel si usa vercel.json)
+# SPA fallback (Cloudflare Pages e host statici generici)
 /*    /index.html   200

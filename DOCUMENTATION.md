@@ -2,7 +2,7 @@
 
 > App di gestione del personale per Osteria Basilico.  
 > Stack: **Vite 5 + React 18 + React Router 7 + Supabase + Tailwind CSS + PWA (vite-plugin-pwa)**  
-> Deploy: **Vercel** (SPA con SSR disabilitato, `vercel.json` routing catch-all)
+> Deploy: **Cloudflare Pages** (SPA, routing client-side, `public/_redirects` + asset statici)
 
 ---
 
@@ -79,7 +79,8 @@ BrowserRouter
 | `scripts/vite.config.mjs` | Config Vite ufficiale per build/dev |
 | `tailwind.config.js` | Estensioni tema Tailwind |
 | `tsconfig.app.json` | TypeScript per il codice app |
-| `vercel.json` | Riscrittura URL per SPA |
+| `public/_redirects` | SPA fallback (Pages / host statici) |
+| `src/config/publicAppUrl.ts` | Origine canoniche produzione (Cloudflare) |
 | `public/manifest.json` | Manifest PWA |
 | `src/config/appPaths.ts` | Costanti path app (`PATH_PROFILO`, ecc.) |
 | `src/constants/appSession.ts` | Chiave sessionStorage sessione utente |

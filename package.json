@@ -15,8 +15,6 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "deploy": "npm run build && npx wrangler pages deploy dist --project-name=flow-workinmotion",
-    "deploy:vercel": "npm run build && npx vercel --prod --yes",
-    "deploy:all": "npm run build && npx wrangler pages deploy dist --project-name=flow-workinmotion && npx vercel --prod --yes",
     "reset:production": "node scripts/reset-production.js",
     "clean:shifts": "node scripts/clean-shifts.js",
     "db:migrate-permissions": "node --dns-result-order=ipv4first scripts/run-migration-users-permissions.js",

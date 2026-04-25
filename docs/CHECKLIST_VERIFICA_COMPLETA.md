@@ -2,23 +2,23 @@
 
 Usala **in ordine**. Non incollare mai in chat **chiavi, token o `.env`**: se serve aiuto, manda solo **esito** (ok / errore), **nomi** delle variabili presenti, o screenshot con valori oscurati.
 
-**URL di riferimento produzione:** `https://osteria-basilico-app.vercel.app`  
+**URL di riferimento produzione:** `https://flow-workinmotion.pages.dev` (o `VITE_PUBLIC_APP_ORIGIN` al build)  
 **Repo:** [taleb85/osteria-basilico-app](https://github.com/taleb85/osteria-basilico-app)
 
 ---
 
-## A — Vercel (progetto collegato a GitHub)
+## A — Cloudflare Pages (progetto collegato a Git)
 
-1. **Project → Settings → Git**  
-   - [ ] Repository corretto (`osteria-basilico-app`).  
-   - [ ] Branch produzione: `main`.
+1. **Progetto Pages →** collega il repository  
+   - [ ] Repository corretto (`osteria-basilico-app` o come lo hai chiamato).  
+   - [ ] Branch di build: `main` (o il branch usato in produzione).
 
-2. **Settings → General → Build & Development**  
-   - [ ] Build Command: `npm run build`  
-   - [ ] Output Directory: `dist`  
-   - [ ] Framework / override coerenti con `vercel.json` (se presente).
+2. **Build settings**  
+   - [ ] Build command: `npm run build`  
+   - [ ] Build output directory: `dist`  
+   - [ ] Stesse voci che in [DEPLOY.md](../DEPLOY.md).
 
-3. **Settings → Environment Variables** (almeno **Production**)
+3. **Settings → Environment variables** (per il *build*, almeno **Production**)
 
    Obbligatorie per il frontend (Vite le legge in **build**):
 
@@ -36,25 +36,25 @@ Usala **in ordine**. Non incollare mai in chat **chiavi, token o `.env`**: se se
    | `VITE_RESTAURANT_LAT` / `VITE_RESTAURANT_LNG` / `VITE_GEOFENCE_RADIUS_M` | Geofence senza config su Storage |
    | `VITE_APP_CONFIG_STORAGE_ENABLED` | Se disabiliti lettura config da Storage |
 
-   **Non** impostare su Vercel (build client) la **service role** come variabile `VITE_*`: è pericolosa se finisse nel bundle. Per script locali vedi `.env.example`.
+   **Non** impostare la **service role** come variabile `VITE_*` nel build client. Per script locali vedi `.env.example`.
 
 4. **Deployments**  
-   - [ ] Ultimo deploy **Ready** su `main`.  
-   - [ ] Nessun errore di build recente (log deploy).
+   - [ ] Ultimo deploy **success** sull’ultimo commit del branch.  
+   - [ ] Nessun errore di build recente (log).
 
-5. **Domains** (se usi dominio proprio)  
-   - [ ] DNS e certificato OK in dashboard Vercel.
+5. **Custom domains** (se usi dominio proprio)  
+   - [ ] DNS e certificato OK in dashboard Cloudflare.
 
 ---
 
 ## B — Supabase (stesso progetto puntato da `VITE_SUPABASE_URL`)
 
 1. **Authentication → URL Configuration**  
-   - [ ] **Site URL** = `https://osteria-basilico-app.vercel.app` (o il tuo dominio custom ufficiale).  
-   - [ ] **Redirect URLs** includono quell’URL (es. `https://osteria-basilico-app.vercel.app/**` se usi flussi che lo richiedono).
+   - [ ] **Site URL** = l’URL Cloudflare o dominio custom ufficiale (es. `https://flow-workinmotion.pages.dev`).  
+   - [ ] **Redirect URLs** includono quell’origine (e wildcard se serve, es. `https://tuo.dominio/**`).
 
 2. **Project Settings → API**  
-   - [ ] La **anon public** key in Vercel corrisponde a **questo** progetto (controllo umano: confronto in dashboard, non in chat).
+   - [ ] La **anon public** key usata nel build (Pages) corrisponde a **questo** progetto (controllo umano: confronto in dashboard, non in chat).
 
 3. **Database → Migrations / SQL**  
    - [ ] Tutte le migrazioni in `supabase/migrations/` applicate su questo DB (o equivalente).  
@@ -74,7 +74,7 @@ Usala **in ordine**. Non incollare mai in chat **chiavi, token o `.env`**: se se
    - [ ] Migrazioni applicate in ordine: `20260317220000_storage_app_config_bucket.sql` poi **`20260317230000_storage_app_config_anon_policies.sql`** (necessaria per client con sola **anon key**).  
    - [ ] MIME: consenti `application/json` sul bucket o nessun filtro troppo stretto (altrimenti upload 400).  
    - [ ] Dettagli e troubleshooting: [docs/SUPABASE_STORAGE_APP_CONFIG.md](./SUPABASE_STORAGE_APP_CONFIG.md).  
-   - [ ] Per disattivare del tutto i GET verso Storage: `VITE_APP_CONFIG_STORAGE_ENABLED=false` in `.env` / Vercel (vedi `.env.example`).
+   - [ ] Per disattivare del tutto i GET verso Storage: `VITE_APP_CONFIG_STORAGE_ENABLED=false` in `.env` o nelle variabili di build Pages (vedi `.env.example`).
 
 6. **Realtime (aggiornamenti tra dispositivi senza refresh)**  
    L’app si iscrive in codice a queste tabelle (`src/lib/database.ts` → `postgres_changes`):  
@@ -89,7 +89,7 @@ Usala **in ordine**. Non incollare mai in chat **chiavi, token o `.env`**: se se
 
 ## C — App live (browser, dati reali o di test)
 
-Apri `https://osteria-basilico-app.vercel.app` (o dominio custom).
+Apri l’URL di produzione su Pages (o dominio custom).
 
 1. **Caricamento**  
    - [ ] Pagina principale senza schermata bianca.  
@@ -121,7 +121,7 @@ Apri `https://osteria-basilico-app.vercel.app` (o dominio custom).
 
 ## Cosa puoi incollare all’assistente (senza segreti)
 
-- Elenco: «Su Vercel Production ho: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` → sì/no».  
+- Elenco: «Su Cloudflare Pages (build) ho: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` → sì/no».  
 - «Site URL Supabase è impostato su …» (solo dominio pubblico, ok).  
 - Messaggio di errore **testuale** dal browser o da Network (senza header `Authorization`).  
 - Screenshot con valori oscurati.
@@ -131,7 +131,7 @@ Apri `https://osteria-basilico-app.vercel.app` (o dominio custom).
 ## Riferimenti nel repo
 
 - Deploy e checklist generale: [DEPLOY.md](../DEPLOY.md)  
-- Git + Vercel: [CONNESSIONE_GIT_VERCEL.md](./CONNESSIONE_GIT_VERCEL.md)  
+- Git + Cloudflare Pages: [CONNESSIONE_GIT_VERCEL.md](./CONNESSIONE_GIT_VERCEL.md) (nome file storico)  
 - Stato sintetico: [STATO_PROGETTO.md](./STATO_PROGETTO.md)  
 - Variabili esempio: [`.env.example`](../.env.example)  
 - Storage bucket `app-config`: [SUPABASE_STORAGE_APP_CONFIG.md](./SUPABASE_STORAGE_APP_CONFIG.md)  

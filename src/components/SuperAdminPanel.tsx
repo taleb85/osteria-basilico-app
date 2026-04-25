@@ -17,6 +17,7 @@ import { supabase } from '../lib/supabase';
 import type { Tenant, TenantSettings, UserRole, UserStatus } from '../types';
 // import { HEADER_FONTS } from '../context/TenantContext'; // unused
 import { seedTenantFromTemplate } from '../utils/seedTenantFromTemplate';
+import { PUBLIC_APP_ORIGIN } from '../config/publicAppUrl';
 
 // ---------------------------------------------------------------------------
 // Costanti PIN
@@ -1552,16 +1553,16 @@ function SuperAdminPanelInner() {
                             {/* URL sito */}
                             <div className="flex items-center gap-1 mt-0.5">
                               <a
-                                href={`https://${t.slug}.vercel.app`}
+                                href={PUBLIC_APP_ORIGIN}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-1 text-xs text-[#2255BB] hover:underline font-medium min-w-0"
                               >
                                 <ExternalLink className="w-3 h-3 shrink-0" />
-                                <span className="truncate">{t.slug}.vercel.app</span>
+                                <span className="truncate">{new URL(PUBLIC_APP_ORIGIN).host}</span>
                               </a>
                               <button
-                                onClick={() => navigator.clipboard.writeText(`https://${t.slug}.vercel.app`).then(() => showToast('URL copiato!'))}
+                                onClick={() => navigator.clipboard.writeText(PUBLIC_APP_ORIGIN).then(() => showToast('URL copiato!'))}
                                 className="text-slate-300 hover:text-[#2255BB] transition p-0.5 shrink-0"
                                 title="Copia URL"
                               >

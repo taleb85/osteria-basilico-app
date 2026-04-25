@@ -3,7 +3,7 @@
  * Sorgente: icon-flow-final.png (1024px, bordi arrotondati inclusi).
  * Il flatten rimuove trasparenza per compatibilità iOS/Android.
  *
- * Imposta SKIP_ICON_GEN=1 per saltare la generazione (es. su Vercel
+ * Imposta SKIP_ICON_GEN=1 per saltare la generazione (es. su Cloudflare Pages / CI
  * dove sharp potrebbe non compilare il binding nativo correttamente).
  *
  * NOTA: sharp viene importato dinamicamente DOPO il check SKIP_ICON_GEN.
