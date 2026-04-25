@@ -68,7 +68,7 @@ export function useMessages(userId?: string, isAdmin = false) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [_subscription, _setSubscription] = useState<RealtimeChannel | null>(null);
+  const [, setSubscription] = useState<RealtimeChannel | null>(null);
 
   const loadMessages = useCallback(
     async (uid: string) => {
