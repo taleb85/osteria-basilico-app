@@ -4,7 +4,7 @@ html {
   min-height: 100dvh !important;
   min-height: -webkit-fill-available !important;
   overflow: hidden !important;
-  background-color: #0d1f3c !important;
+  background-color: #1a355d !important;
 }
 
 body {
@@ -23,7 +23,7 @@ body {
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  bottom: -12px !important;
+  bottom: calc(-20px - env(safe-area-inset-bottom, 0px)) !important;
   z-index: 0 !important;
   pointer-events: none !important;
   background-color: #1a355d !important;
