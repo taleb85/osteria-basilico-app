@@ -64,7 +64,8 @@ const FLOW_BRAND_COLOR = '#001A80';
  * Sfondo shell PWA (meta theme-color, manifest, safe area iOS) — deve combaciare con `html`/`body` in `index.css`.
  * Se è diverso da `FLOW_BRAND_COLOR`, sotto l’iPhone compare una striscia scura sotto l’app.
  */
-const FLOW_PWA_SURFACE_COLOR = '#0d1f3c';
+/** Accoppiato al body::before (index.css) per ridurre striscia sotto l’indicatore home in PWA iOS. */
+const FLOW_PWA_SURFACE_COLOR = '#1a3868';
 
 /**
  * Variante brand per dark mode: blu più chiaro per garantire contrasto su sfondo scuro.
