@@ -11,7 +11,6 @@ body {
   height: 100% !important;
   background-color: #0d1f3c !important;
   overflow: hidden !important;
-  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
 }
 
 /* Solo #root scrolla — trasparente per far vedere il wave */

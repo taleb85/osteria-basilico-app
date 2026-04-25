@@ -819,7 +819,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
       <main
         className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
-        style={{ paddingTop: 'var(--app-sticky-header-offset, 80px)', paddingBottom: 'env(safe-area-inset-bottom, 34px)' }}
+        style={{ paddingTop: 'var(--app-sticky-header-offset, 80px)' }}
       >
         <div className="w-full flex-1 app-horizontal-pad pt-3">
           {/* PIN portals */}

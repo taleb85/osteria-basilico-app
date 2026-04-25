@@ -96,7 +96,6 @@ body {
   height: 100%;
   background-color: #0d1f3c;
   overflow: hidden;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* UNICO scroll container — trasparente */
