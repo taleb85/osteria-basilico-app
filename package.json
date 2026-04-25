@@ -14,7 +14,7 @@
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "deploy": "npm run build && npx wrangler pages deploy dist --project-name=flow-workinmotion",
+    "deploy": "npm run build && npx wrangler pages deploy dist --project-name=flow-workinmotion --branch=main",
     "reset:production": "node scripts/reset-production.js",
     "clean:shifts": "node scripts/clean-shifts.js",
     "db:migrate-permissions": "node --dns-result-order=ipv4first scripts/run-migration-users-permissions.js",
