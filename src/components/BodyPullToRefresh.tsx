@@ -8,13 +8,23 @@ const RESISTANCE = 0.4;
 /** Soglia minima pull (px) prima di preventDefault sul touchmove (browser). */
 const PULL_PREVENT_DEFAULT_PX = 10;
 
-function isWindowAtScrollTop(threshold = 10): boolean {
-  const y = Math.max(
+/**
+ * L’app scrolla su `#root` (html/body con overflow hidden). `window.scrollY` resta 0
+ * e altrimenti il pull-to-refresh crede di essere sempre in cima e blocca lo scroll.
+ */
+function getAppScrollY(): number {
+  const r = document.getElementById('root');
+  const t = r?.scrollTop ?? 0;
+  return Math.max(
+    t,
     window.scrollY,
     document.documentElement?.scrollTop ?? 0,
     document.body?.scrollTop ?? 0
   );
-  return y <= threshold;
+}
+
+function isAppAtScrollTop(threshold = 10): boolean {
+  return getAppScrollY() <= threshold;
 }
 
 interface BodyPullToRefreshProps {
@@ -45,18 +55,13 @@ export default function BodyPullToRefresh({ onRefresh, disabled }: BodyPullToRef
     (PullToRefresh as { setPassiveMode?: (passive: boolean) => void }).setPassiveMode?.(false);
 
     const ptr = PullToRefresh.init({
-      mainElement: 'body',
-      triggerElement: 'body',
+      mainElement: '#root',
+      triggerElement: '#root',
       distThreshold: 60,
       distMax: 80,
       shouldPullToRefresh: () => {
-        if (window.scrollY < 0) return true; /* iOS: overscroll in cima */
-        const y = Math.max(
-          window.scrollY,
-          document.documentElement?.scrollTop ?? 0,
-          document.body?.scrollTop ?? 0
-        );
-        return y <= 10;
+        if (getAppScrollY() < 0) return true; /* iOS: overscroll in cima */
+        return getAppScrollY() <= 10;
       },
       onRefresh: () => {
         if (disabledRef.current) return Promise.resolve();
@@ -82,13 +87,13 @@ export default function BodyPullToRefresh({ onRefresh, disabled }: BodyPullToRef
 
     const handleTouchStart = (e: TouchEvent) => {
       if (disabled || e.touches.length === 0) return;
-      if (!isWindowAtScrollTop(5)) return;
+      if (!isAppAtScrollTop(5)) return;
       startY.current = e.touches[0].clientY;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       if (disabled || e.touches.length === 0) return;
-      if (!isWindowAtScrollTop(5)) return;
+      if (!isAppAtScrollTop(5)) return;
       const currentY = e.touches[0].clientY;
       const diff = currentY - startY.current;
       if (diff > PULL_PREVENT_DEFAULT_PX && e.cancelable) {

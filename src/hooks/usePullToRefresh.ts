@@ -29,6 +29,8 @@ export function usePullToRefresh({ onRefresh, containerRef, disabled = false }: 
 
   const getScrollTop = useCallback(() => {
     if (containerRef?.current) return containerRef.current.scrollTop;
+    const r = document.getElementById('root');
+    if (r) return r.scrollTop;
     return window.scrollY;
   }, [containerRef]);
 

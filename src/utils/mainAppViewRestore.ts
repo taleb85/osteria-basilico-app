@@ -43,9 +43,20 @@ export function clearMainViewState(userId: string): void {
   }
 }
 
-/** Applica lo scroll finestra (compat Safari / layout documento). */
+/** Scroll verticale effettivo: l’app usa `#root` come unico container (body/html fissi). */
+export function getAppRootScrollY(): number {
+  const r = document.getElementById('root');
+  if (r) return r.scrollTop;
+  return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+}
+
+/** Applica lo scroll: prima `#root` (PWA), poi finestra (fallback). */
 export function applyWindowScrollY(y: number): void {
   const top = Math.max(0, y);
+  const r = document.getElementById('root');
+  if (r) {
+    r.scrollTop = top;
+  }
   window.scrollTo(0, top);
   document.documentElement.scrollTop = top;
   document.body.scrollTop = top;

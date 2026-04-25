@@ -168,9 +168,10 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
 
   const updateNavOverlapMode = useCallback(() => {
     if (typeof window === 'undefined') return;
-    const scrollY = window.scrollY;
+    const root = document.getElementById('root');
+    const scrollY = root?.scrollTop ?? window.scrollY;
     const vh = window.visualViewport?.height ?? window.innerHeight;
-    const docH = document.documentElement.scrollHeight;
+    const docH = root?.scrollHeight ?? document.documentElement.scrollHeight;
     const epsilon = 16;
     const scrollBottom = scrollY + vh;
     const notScrollable = docH <= vh + epsilon;
@@ -204,11 +205,15 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   useEffect(() => {
     updateNavOverlapMode();
     const onScroll = () => updateNavOverlapMode();
+    const root = document.getElementById('root');
+    root?.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('scroll', onScroll, { passive: true });
     window.visualViewport?.addEventListener('resize', updateNavOverlapMode);
+    const roTarget = root ?? document.documentElement;
     const docRo = new ResizeObserver(() => updateNavOverlapMode());
-    docRo.observe(document.documentElement);
+    docRo.observe(roTarget);
     return () => {
+      root?.removeEventListener('scroll', onScroll);
       window.removeEventListener('scroll', onScroll);
       window.visualViewport?.removeEventListener('resize', updateNavOverlapMode);
       docRo.disconnect();

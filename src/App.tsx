@@ -46,6 +46,7 @@ import {
   writeMainViewState,
   clearMainViewState,
   applyWindowScrollY,
+  getAppRootScrollY,
 } from './utils/mainAppViewRestore';
 import { useIsMobileViewport } from './hooks/useIsMobileViewport';
 import { isAdminOnly, isManagementRole } from './utils/permissions';
@@ -472,7 +473,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     const save = () => {
       writeMainViewState(currentUser.id, {
         activeTab,
-        scrollY: window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0,
+        scrollY: getAppRootScrollY(),
       });
     };
     const onVis = () => {
@@ -496,7 +497,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     }
     writeMainViewState(currentUser.id, {
       activeTab,
-      scrollY: window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0,
+      scrollY: getAppRootScrollY(),
     });
   }, [currentUser?.id, activeTab]);
 
@@ -794,10 +795,10 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <main
-        className={`flex-1 flex flex-col w-full min-h-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
+        className={`w-full flex flex-col shrink-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
         style={{ paddingTop: 'var(--app-sticky-header-offset, 80px)' }}
       >
-        <div className="w-full flex-1 app-horizontal-pad pt-3">
+        <div className="w-full app-horizontal-pad pt-3">
           {/* PIN portals */}
           {createPortal(
             <AnimatePresence>
