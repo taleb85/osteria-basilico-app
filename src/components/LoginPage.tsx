@@ -377,7 +377,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       onClick={() => { if (!showForm) setShowForm(true); }}
       className="fixed inset-0 w-full flex flex-col items-center justify-center p-6 safe-area-pad font-sans antialiased text-neutral-100 overflow-hidden"
       style={{
-        backgroundColor: '#0a2a6e',
+        backgroundColor: '#0d1f3c',
         backgroundImage: 'linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%), url(/background-wave.png)',
         backgroundAttachment: 'scroll',
         backgroundRepeat: 'no-repeat',

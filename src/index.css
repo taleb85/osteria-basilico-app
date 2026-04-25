@@ -63,7 +63,7 @@ button:active,
 
 /* Reset globale — sfondo onda blu brillante */
 html {
-  background-color: #0a2a6e; /* fallback navy */
+  background-color: #0d1f3c; /* deve corrispondere alla safe area */
 }
 
 html,
@@ -86,14 +86,20 @@ html, #root {
 
 html {
   height: 100%;
-  background-color: #0a2a6e;
+  background-color: #0d1f3c;
   overflow: hidden; /* html non scrolla mai */
 }
 
 body {
   height: 100%;
-  background-color: #0a2a6e;
+  background-color: #0d1f3c;
   overflow: hidden; /* body non scrolla mai */
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body {
+    background-color: #0d1f3c;
+  }
 }
 
 /* UNICO scroll container: solo #root scrolla */
