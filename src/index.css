@@ -114,10 +114,10 @@ body {
   overscroll-behavior-y: none;
 }
 
-/* iOS coarse pointer */
+/* iOS / touch: stesso blu dello sfondo app — #0a2a6e creava striscia visibile in basso */
 @media (pointer: coarse) {
   html, body {
-    background-color: #0a2a6e;
+    background-color: #0d1f3c;
   }
 }
 

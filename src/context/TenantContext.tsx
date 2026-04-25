@@ -61,6 +61,12 @@ function hexToHsl(hex: string): [number, number, number] {
 const FLOW_BRAND_COLOR = '#001A80';
 
 /**
+ * Sfondo shell PWA (meta theme-color, manifest, safe area iOS) — deve combaciare con `html`/`body` in `index.css`.
+ * Se è diverso da `FLOW_BRAND_COLOR`, sotto l’iPhone compare una striscia scura sotto l’app.
+ */
+const FLOW_PWA_SURFACE_COLOR = '#0d1f3c';
+
+/**
  * Variante brand per dark mode: blu più chiaro per garantire contrasto su sfondo scuro.
  * Usata da text-accent, border-accent, bg-accent/* (tinte).
  * I pulsanti bg-accent solidi rimangono #0052FF grazie all'override !important nel CSS.
@@ -379,8 +385,8 @@ function _applyPWAManifest(
     start_url: `${origin}/profilo`,
     scope: `${origin}/`,
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#001A80',
+    background_color: FLOW_PWA_SURFACE_COLOR,
+    theme_color: FLOW_PWA_SURFACE_COLOR,
     orientation: 'any',
     icons: [
       { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
@@ -408,7 +414,7 @@ function _applyPWAManifest(
     link.href = blobUrl;
 
     const themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    if (themeMeta) themeMeta.content = FLOW_BRAND_COLOR; // sempre FLOW blue — ignora colore DB tenant
+    if (themeMeta) themeMeta.content = FLOW_PWA_SURFACE_COLOR;
   } catch {
     // Silent fail in SSR/test
   }
@@ -482,9 +488,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     if (appleTitleMeta) appleTitleMeta.content = 'FLOW';
     const descMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     if (descMeta) descMeta.content = 'FLOW — Sistema di gestione turni e presenze. Work in Motion.';
-    // Barra superiore PWA (theme-color) → sempre FLOW blue
+    // theme-color = stesso blu dello sfondo (non #001A80) → niente striscia in basso su iOS
     document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach(m => {
-      m.content = FLOW_BRAND_COLOR;
+      m.content = FLOW_PWA_SURFACE_COLOR;
     });
     // Favicon → sempre icona FLOW PNG (ignora logo del tenant per il brand globale)
     updateFavicon('/icon-192.png');
