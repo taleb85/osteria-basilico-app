@@ -137,7 +137,7 @@ export default function BodyPullToRefresh({ onRefresh, disabled }: BodyPullToRef
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[90] flex items-center justify-center bg-[rgba(8,20,60,0.92)] transition-[height] duration-200 ease-out safe-area-pad"
+      className="fixed top-0 left-0 right-0 z-[90] flex items-center justify-center bg-[rgba(13,31,60,0.92)] transition-[height] duration-200 ease-out safe-area-pad"
       style={{ height: refresherHeight }}
       aria-hidden
     >

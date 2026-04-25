@@ -15,7 +15,7 @@ export class RootErrorBoundary extends Component<{ children: ReactNode }, { erro
   render() {
     if (this.state.error) {
       return (
-        <div className="min-h-screen bg-[rgba(8,20,60,0.98)] p-6 text-white/90 font-sans">
+        <div className="min-h-screen bg-[rgba(13,31,60,0.98)] p-6 text-white/90 font-sans">
           <h1 className="text-lg font-semibold mb-2">Errore di avvio</h1>
           <p className="text-sm text-white/70 mb-4">
             Ricarica la pagina. Se l’app era installata come PWA, apri una volta con{' '}

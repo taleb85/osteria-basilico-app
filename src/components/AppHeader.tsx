@@ -43,7 +43,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
   if (!currentUser) return null;
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-white/10 bg-[rgba(8,20,60,0.85)] backdrop-blur-md safe-area-pad pt-0">
+    <header className="sticky top-0 z-30 w-full border-b border-white/10 bg-[rgba(13,31,60,0.85)] backdrop-blur-md safe-area-pad pt-0">
       <div className="w-full px-3 sm:px-6 py-1.5 sm:py-2.5 flex items-center justify-between gap-2">
         {/* Logo — nascosto su desktop (gestito dalla Sidebar) */}
         <h1

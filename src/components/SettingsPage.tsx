@@ -2693,7 +2693,7 @@ function BreakRuleModal({
         className="modal-glass-panel max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl font-sans"
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[rgba(8,20,60,0.80)] px-5 pt-5 pb-4 backdrop-blur-md">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[rgba(13,31,60,0.80)] px-5 pt-5 pb-4 backdrop-blur-md">
           <h2 className="text-base font-bold text-white">
             {isEdit ? t.settings_break_modal_edit_title : t.settings_break_modal_new_title}
           </h2>
