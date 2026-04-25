@@ -126,7 +126,7 @@ export default function MobileProfileHeader({
           <span
             style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 8, fontWeight: 500, letterSpacing: '0.20em', textTransform: 'uppercase', marginTop: 3, lineHeight: 1 }}
           >
-            Work in Motion <span style={{ color: 'rgba(255,255,255,0.25)', marginLeft: 2 }}>v2.0</span>
+            Work in Motion <span style={{ color: 'rgba(255,255,255,0.25)', marginLeft: 2 }}>v2.0.1</span>
           </span>
         </div>
         {isSessionElevated && (
