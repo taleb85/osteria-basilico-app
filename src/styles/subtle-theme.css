@@ -2,6 +2,7 @@
 html {
   height: 100% !important;
   background-color: #0d1f3c !important;
+  overflow: hidden !important;
 }
 
 body {
@@ -9,11 +10,19 @@ body {
   padding: 0 !important;
   height: 100% !important;
   background-color: #0d1f3c !important;
+  overflow: hidden !important;
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
 }
 
+/* Solo #root scrolla */
 #root {
+  height: 100% !important;
   min-height: 100dvh !important;
   background-color: #0d1f3c !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none !important;
 }
 
 /* Sfondo fisso: onda blu brillante — esteso -200px per coprire safe area iPhone */
