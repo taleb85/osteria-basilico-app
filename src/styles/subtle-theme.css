@@ -1,26 +1,20 @@
 /* ── Background: onda blu brillante — fixed su tutti i device ── */
-/* html porta il wave background — copre tutta la safe area senza pseudo-elementi */
 html {
   height: 100% !important;
   overflow: hidden !important;
   background-color: #0d1f3c !important;
-  background-image:
-    linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
-    url('/background-wave.png') !important;
-  background-repeat: no-repeat !important;
-  background-position: center center !important;
-  background-size: cover !important;
 }
 
 body {
   margin: 0 !important;
   padding: 0 !important;
   height: 100% !important;
-  background: transparent !important;
+  background-color: #0d1f3c !important;
   overflow: hidden !important;
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
 }
 
-/* Solo #root scrolla */
+/* Solo #root scrolla — trasparente per far vedere il wave */
 #root {
   height: 100% !important;
   min-height: 100dvh !important;
@@ -29,6 +23,22 @@ body {
   overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none !important;
+}
+
+/* Wave background fisso */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-color: #0d1f3c;
+  background-image:
+    linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
+    url('/background-wave.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* ── Variabili CSS aggiornate — devono venire DOPO index.css ── */
