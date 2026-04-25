@@ -18,7 +18,7 @@ body {
 #root {
   height: 100% !important;
   background: transparent !important;
-  background-color: transparent !important;
+  background-color: #0d1f3c !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
@@ -33,7 +33,7 @@ body::before {
   top: 0;
   left: 0;
   right: 0;
-  bottom: -60px; /* estende oltre il safe area per coprire l'home indicator */
+  bottom: -100px; /* estende ben oltre il safe area per coprire l'home indicator */
   width: 100%;
   background-color: #0d1f3c;
   background-image:
