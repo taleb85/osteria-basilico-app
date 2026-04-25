@@ -86,33 +86,19 @@ html, #root {
 
 html {
   height: 100%;
-  min-height: -webkit-fill-available;
   background-color: #0d1f3c;
-  overflow: hidden; /* html non scrolla mai */
 }
 
 body {
   margin: 0;
   padding: 0;
-  min-height: 100%;
-  min-height: -webkit-fill-available;
+  height: 100%;
   background-color: #0d1f3c;
-  overflow: hidden; /* body non scrolla mai */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* UNICO scroll container: solo #root scrolla */
 #root {
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
   min-height: 100dvh;
   background-color: #0d1f3c;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: none;
-  display: flex;
-  flex-direction: column;
 }
 
 /* iOS coarse pointer */
