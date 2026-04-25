@@ -375,7 +375,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
       onClick={() => { if (!showForm) setShowForm(true); }}
-      className="fixed inset-0 w-full flex flex-col items-center justify-center p-6 safe-area-pad font-sans antialiased text-neutral-100 overflow-hidden"
+      className="fixed inset-0 z-20 w-full flex flex-col items-center justify-center p-6 safe-area-pad font-sans antialiased text-neutral-100 overflow-hidden"
       style={{
         backgroundColor: '#0d1f3c',
         backgroundImage: 'linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%), url(/background-wave.png)',
@@ -402,7 +402,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             opacity: 0.055,
             filter: 'saturate(0) brightness(0) blur(6px)',
           }}
-          className=")_brightness(10)_blur(6px)]"
         />
       </div>
 
@@ -410,13 +409,21 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         <>
         {/* Schermata iniziale — identica al boot screen AppProvider */}
         {!showForm && (
-        <div className="relative flex flex-col items-center select-none">
+        <div
+          className="relative flex flex-col items-center select-none"
+          onPointerDown={() => { if (!showForm) setShowForm(true); }}
+        >
           <button
             type="button"
             aria-label="Apri form di accesso"
             onClick={() => setShowForm(true)}
-            className="focus:outline-none cursor-pointer"
+            onPointerDown={() => { if (!showForm) setShowForm(true); }}
+            className="focus:outline-none cursor-pointer touch-manipulation [-webkit-tap-highlight-color:transparent]"
           >
+            {/*
+              pointer-events-none sui figli: iOS a volte non sintetizza il click se il target è div/SVG/motion sotto al button
+            */}
+            <span className="pointer-events-none inline-flex" aria-hidden>
             <motion.div
               animate={{ boxShadow: [
                 '0 0 18px rgba(0,82,255,0.55), 0 0 6px rgba(34,211,238,0.35)',
@@ -428,6 +435,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             >
               <FlowWaveIcon size={112} radius={28} />
             </motion.div>
+            </span>
           </button>
           <motion.p
             className="mt-8 text-[11px] font-semibold tracking-[0.25em] uppercase select-none pointer-events-none"
