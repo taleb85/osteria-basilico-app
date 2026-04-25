@@ -14,6 +14,7 @@ const AnimPreview = lazy(() => import('./components/AnimPreview'));
 const LoadingPreview = lazy(() => import('./components/LoadingPreview'));
 const ScreensPreview = lazy(() => import('./components/ScreensPreview'));
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
 import { ProfileLeaveGuardRefContext, type ProfileLeaveGuard } from './context/ProfileLeaveGuardContext';
@@ -1134,6 +1135,24 @@ function App() {
 
   // Overlay aggiornamento SW: mostrato quando viene rilevato un nuovo deploy
   const [swUpdating, setSwUpdating] = useState(false);
+
+  const { updateServiceWorker } = useRegisterSW({
+    immediate: true,
+    onNeedRefresh() {
+      void updateServiceWorker(true);
+    },
+    onOfflineReady() {},
+    onRegisteredSW(_swUrl, registration) {
+      if (!registration) return;
+      const tick = () => {
+        if (registration.installing || !navigator.onLine) return;
+        void registration.update();
+      };
+      const fast = window.setInterval(tick, 60 * 1000);
+      window.setTimeout(() => window.clearInterval(fast), 15 * 60 * 1000);
+      window.setInterval(tick, 5 * 60 * 1000);
+    },
+  });
 
   useEffect(() => {
     const onSwUpdate = () => setSwUpdating(true);

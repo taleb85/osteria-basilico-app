@@ -136,6 +136,8 @@ export default defineConfig(({ command }) => {
          */
         skipWaiting: true,
         clientsClaim: true,
+        /** Rimuove entry precache obsoletti dopo un deploy (nuova revisione SW). */
+        cleanupOutdatedCaches: true,
         /** Background Sync: evento `sync` → postMessage alle finestre (`src/utils/backgroundSync.ts`). */
         importScripts: ['pwa-background-sync.js', 'pwa-push-notifications.js'],
         // Precache: icone/manifest + index.html (obbligatorio se navigateFallback punta a index.html,

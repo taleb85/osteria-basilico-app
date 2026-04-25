@@ -35,3 +35,19 @@ declare module 'virtual:pwa-register' {
     onRegisteredSW?: (swScriptUrl: string, registration: ServiceWorkerRegistration | undefined) => void;
   }): (reloadPage?: boolean) => Promise<void>;
 }
+
+declare module 'virtual:pwa-register/react' {
+  type RegisterSWOptions = {
+    immediate?: boolean;
+    onNeedRefresh?: () => void;
+    onOfflineReady?: () => void;
+    onRegistered?: (registration: ServiceWorkerRegistration | undefined) => void;
+    onRegisteredSW?: (swUrl: string, registration: ServiceWorkerRegistration | undefined) => void;
+    onRegisterError?: (error: unknown) => void;
+  };
+  export function useRegisterSW(options?: RegisterSWOptions): {
+    needRefresh: [boolean, import('react').Dispatch<import('react').SetStateAction<boolean>>];
+    offlineReady: [boolean, import('react').Dispatch<import('react').SetStateAction<boolean>>];
+    updateServiceWorker: (reloadPage?: boolean) => Promise<void>;
+  };
+}

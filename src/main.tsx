@@ -13,7 +13,6 @@ try {
 } catch { /* storage non disponibile */ }
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { registerSW } from 'virtual:pwa-register';
 import App from './App.tsx';
 import { RootErrorBoundary } from './components/RootErrorBoundary';
 import { TenantProvider } from './context/TenantContext';
@@ -40,22 +39,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// autoUpdate: workbox-window ricarica su `activated` se c'e' un aggiornamento.
-// `onNeedRefresh` vale solo con registerType: 'prompt', qui non viene chiamato.
-registerSW({
-  immediate: true,
-  onRegisteredSW(_swUrl, registration) {
-    if (!registration) return;
-    const tick = () => {
-      if (registration.installing || !navigator.onLine) return;
-      void registration.update();
-    };
-    // Primi minuti dopo apertura: deploy frequenti (staff al telefono)
-    const fast = window.setInterval(tick, 60 * 1000);
-    window.setTimeout(() => window.clearInterval(fast), 15 * 60 * 1000);
-    window.setInterval(tick, 5 * 60 * 1000);
-  },
-});
+// Registrazione SW: `useRegisterSW` in `App.tsx` (un solo posto) + stessi controlli periodici lì.
 
 function requestServiceWorkerUpdate() {
   void navigator.serviceWorker?.ready.then((r) => r.update());
