@@ -61,10 +61,10 @@ function hexToHsl(hex: string): [number, number, number] {
 const FLOW_BRAND_COLOR = '#001A80';
 
 /**
- * Sfondo shell PWA (meta theme-color, manifest, safe area iOS) — deve combaciare con `html`/`body` in `index.css`.
- * Se è diverso da `FLOW_BRAND_COLOR`, sotto l’iPhone compare una striscia scura sotto l’app.
+ * Shell PWA: tono allineato al blu in basso (gradient) per avvicinare `theme-color` e ridurre striscia iOS;
+ * l’indicatore home a volte tinge l’orecchio con theme-color, non con il body.
  */
-const FLOW_PWA_SURFACE_COLOR = '#0d1f3c';
+const FLOW_PWA_SURFACE_COLOR = '#1a355d';
 
 /**
  * Variante brand per dark mode: blu più chiaro per garantire contrasto su sfondo scuro.

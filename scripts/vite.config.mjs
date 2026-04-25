@@ -54,8 +54,8 @@ export default defineConfig({
         start_url: '/profilo',
         lang: 'it',
         display: 'standalone',
-        background_color: '#0d1f3c',
-        theme_color: '#0d1f3c',
+        background_color: '#1a355d',
+        theme_color: '#1a355d',
         orientation: 'portrait',
         scope: '/',
         icons: [

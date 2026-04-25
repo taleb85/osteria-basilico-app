@@ -98,10 +98,15 @@ html {
  */
 .flow-pwa-backdrop {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* Bleed: su iOS la banda sotto l’indicatore a volte riusa il nudo background-color; estendere di qualche px aiuta. */
+  bottom: -12px;
   z-index: 0;
   pointer-events: none;
-  background-color: #0d1f3c;
+  /* Più simile al tono in basso del gradiente, così risparmia una frattura sotto l’orecchio d’iOS. */
+  background-color: #1a355d;
   background-image:
     linear-gradient(
       180deg,
