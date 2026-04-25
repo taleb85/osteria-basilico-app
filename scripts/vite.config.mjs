@@ -36,10 +36,13 @@ export default defineConfig({
     {
       name: 'inject-version-meta',
       transformIndexHtml(html) {
-        return html.replace(
-          '<meta name="app-version" content="__APP_VERSION__" />',
-          `<meta name="app-version" content="${pkg.version}-light" />`
-        );
+        const cacheLabel = `${pkg.version}-light`;
+        return html
+          .replace(
+            '<meta name="app-version" content="__APP_VERSION__" />',
+            `<meta name="app-version" content="${cacheLabel}" />`
+          )
+          .replaceAll('__INJECTED_CACHE_VERSION__', cacheLabel);
       },
     },
     VitePWA({
