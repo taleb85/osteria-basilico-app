@@ -47,6 +47,43 @@
       })();
     </script>
     <script>
+      /* Se l'index in cache (PWA) è vecchio ma /app-version.txt sul server no: allinea cache e reload */
+      (function () {
+        if (!('fetch' in window)) return;
+        function run() {
+          fetch('/app-version.txt', { cache: 'no-store' })
+            .then(function (r) { if (!r.ok) return null; return r.text(); })
+            .then(function (net) {
+              if (!net) return;
+              var v = (net + '').trim();
+              var s = null;
+              try { s = localStorage.getItem('app_cache_version'); } catch (e) {}
+              if (s && v && v !== s) {
+                try { localStorage.setItem('app_cache_version', v); } catch (e) {}
+                Promise.all([
+                  (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
+                    ? navigator.serviceWorker.getRegistrations().then(function (regs) {
+                        return Promise.all(regs.map(function (r) { return r.unregister(); }));
+                      })
+                    : Promise.resolve(),
+                  (window.caches && window.caches.keys)
+                    ? window.caches.keys().then(function (keys) {
+                        return Promise.all(keys.map(function (k) { return window.caches.delete(k); }));
+                      })
+                    : Promise.resolve()
+                ]).then(function () { window.location.reload(); });
+              }
+            })
+            .catch(function () { /* rete o fallimento: ignora */ });
+        }
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          setTimeout(run, 0);
+        } else {
+          document.addEventListener('DOMContentLoaded', function () { setTimeout(run, 0); });
+        }
+      })();
+    </script>
+    <script>
       /* Forza reload quando il nuovo service worker prende controllo — fix iOS PWA stuck on old version */
       (function () {
         if (!('serviceWorker' in navigator)) return;

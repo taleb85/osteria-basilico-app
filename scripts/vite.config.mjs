@@ -45,6 +45,18 @@ export default defineConfig({
           .replaceAll('__INJECTED_CACHE_VERSION__', cacheLabel);
       },
     },
+    {
+      name: 'emit-app-version',
+      apply: 'build',
+      /** File letto a runtime: confronto con localStorage se l’index è servito da cache (PWA) */
+      generateBundle() {
+        this.emitFile({
+          type: 'asset',
+          fileName: 'app-version.txt',
+          source: `${pkg.version}-light`,
+        });
+      },
+    },
     VitePWA({
       /** In dev niente SW: evita cache / navigate che sembrano “/app non funziona” su 127.0.0.1:5173. */
       devOptions: { enabled: false },
@@ -113,11 +125,15 @@ export default defineConfig({
         ],
 
         /**
-         * Non usare NetworkFirst su `mode: navigate`: offline la richiesta documento per `/profilo` (ecc.)
-         * non ha voce in cache dedicata → fallimento prima del navigateFallback → ERR_INTERNET_DISCONNECTED.
-         * Il fallback SPA (index.html precachato) gestisce tutte le rotte; aggiornamenti shell = nuovo SW.
+         * /app-version.txt: sempre rete, mai cache SW (allinea deploy anche con index in precache).
+         * (navigate: offline → ancora index precachato, vedi sotto e navigateFallback)
          */
         runtimeCaching: [
+          {
+            urlPattern: /\/app-version\.txt(?:\?.*)?$/i,
+            handler: 'NetworkOnly',
+            method: 'GET',
+          },
           {
             // Google Fonts → CacheFirst: raramente cambiano
             urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
