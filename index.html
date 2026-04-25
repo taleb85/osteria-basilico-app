@@ -51,16 +51,17 @@
       (function () {
         if (!('fetch' in window)) return;
         function run() {
-          fetch('/app-version.txt', { cache: 'no-store' })
+          var bust = 't=' + Date.now();
+          fetch('/app-version.txt?' + bust, { cache: 'no-store' })
             .then(function (r) { if (!r.ok) return null; return r.text(); })
             .then(function (net) {
               if (!net) return;
               var v = (net + '').trim();
-              /* No HTML/SPA-fallback: se risposta non sembra "x.y.z-suffix", ignora (es. errori/proxy) */
-              if (v.length > 64 || v.indexOf('<') >= 0 || v.indexOf('\n') >= 0) return;
+              /* No HTML/SPA-fallback: se risposta non sembra "x.y.z-…+build", ignora (es. errori/proxy) */
+              if (v.length > 120 || v.indexOf('<') >= 0 || v.indexOf('\n') >= 0) return;
               var s = null;
               try { s = localStorage.getItem('app_cache_version'); } catch (e) {}
-              if (s && v && v !== s) {
+              if (v && v !== s) {
                 try { localStorage.setItem('app_cache_version', v); } catch (e) {}
                 Promise.all([
                   (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)

@@ -19,17 +19,24 @@ const projectRoot = join(__dirname, '..');
 const pkg = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf-8'));
 
 // https://vitejs.dev/config/
-export default defineConfig({
+/**
+ * Ogni `vite build` cambia l’etichetta anche se `package.json` no: altrimenti PWA/Workbox
+ * non vede “nuova versione” (app-version + localStorage restano "1.2.0-light" identici al deploy).
+ */
+export default defineConfig(({ command }) => {
+  const cacheVersionLabel =
+    command === 'build' ? `${pkg.version}-light+${Date.now()}` : `${pkg.version}-light`;
+
+  return {
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     /**
      * Cache-bust string incorporata nel bundle JS: cambia il content-hash di ogni chunk,
      * garantendo che i browser scarichino i nuovi asset (es. CSS senza dark mode).
-     * Formato: `v<versione>-light` — da aggiornare ad ogni rilascio con breaking CSS change.
      */
-    __CACHE_BUST__: JSON.stringify(`v${pkg.version}-light`),
+    __CACHE_BUST__: JSON.stringify(`v${cacheVersionLabel}`),
     /** Inietta versione in window global per uso in inline script cache-bust */
-    'window.__APP_CACHE_VERSION__': JSON.stringify(`${pkg.version}-light`),
+    'window.__APP_CACHE_VERSION__': JSON.stringify(cacheVersionLabel),
   },
   plugins: [
     /**
@@ -41,7 +48,7 @@ export default defineConfig({
       name: 'app-version-dev',
       apply: 'serve',
       configureServer(server) {
-        const body = `${pkg.version}-light`;
+        const body = cacheVersionLabel;
         server.middlewares.use((req, res, next) => {
           const p = (req.url || '').split('?')[0];
           if (p === '/app-version.txt' || p === '/app-version.txt/') {
@@ -59,13 +66,12 @@ export default defineConfig({
     {
       name: 'inject-version-meta',
       transformIndexHtml(html) {
-        const cacheLabel = `${pkg.version}-light`;
         return html
           .replace(
             '<meta name="app-version" content="__APP_VERSION__" />',
-            `<meta name="app-version" content="${cacheLabel}" />`
+            `<meta name="app-version" content="${pkg.version}" />`
           )
-          .replaceAll('__INJECTED_CACHE_VERSION__', cacheLabel);
+          .replaceAll('__INJECTED_CACHE_VERSION__', cacheVersionLabel);
       },
     },
     {
@@ -76,7 +82,7 @@ export default defineConfig({
         this.emitFile({
           type: 'asset',
           fileName: 'app-version.txt',
-          source: `${pkg.version}-light`,
+          source: cacheVersionLabel,
         });
       },
     },
@@ -195,4 +201,5 @@ export default defineConfig({
     port: 5173,
     strictPort: false,
   },
+  };
 });
