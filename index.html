@@ -16,7 +16,7 @@
         try { localStorage.removeItem('userTheme'); localStorage.removeItem('theme'); } catch(e){}
 
         /* Cache-bust automatico: versione iniettata da Vite build */
-        var CURRENT_VERSION = window.__APP_CACHE_VERSION__ || '2.0.3';
+        var CURRENT_VERSION = window.__APP_CACHE_VERSION__ || '2.0.4';
         try {
           var savedVersion = localStorage.getItem('app_cache_version');
           if (savedVersion !== CURRENT_VERSION) {
