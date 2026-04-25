@@ -40,19 +40,11 @@ button:active,
   box-shadow: none;
 }
 
-/* Variabile safe-area-top — usata da header e contenitore */
 :root {
-  --sat: env(safe-area-inset-top, 0px);
   color-scheme: only light;
   --app-bg:   #f4f7fa;
   --card-bg:  #ffffff;
   --text-main: #1a1a1a;
-
-  /* Safe area helpers */
-  --safe-area-top:    env(safe-area-inset-top, 0px);
-  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-area-left:   env(safe-area-inset-left, 0px);
-  --safe-area-right:  env(safe-area-inset-right, 0px);
 }
 
 /* Header brand — rimane blu in entrambi i temi, testo sempre bianco */
@@ -61,119 +53,42 @@ button:active,
   color: #ffffff !important;
 }
 
-/* Reset globale — stesso tono del theme-color / manifest (#0d1f3c) — safe area iOS */
+/*
+ * Shell semplice (stile v1.9): onda + gradiente su html, body trasparente, scroll su #root.
+ * Niente layer fixed .flow-pwa-backdrop, niente overflow su html (evita fratture iOS con la barra).
+ */
 html {
-  background: #0d1f3c;
+  min-height: 100%;
   background-color: #0d1f3c;
+  background-image:
+    linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.4) 100%),
+    url('/background-wave.png');
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, cover;
 }
 
 html,
 body,
 #root {
   margin: 0 !important;
-  padding-top: 0 !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+  padding: 0 !important;
   width: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--text-primary);
 }
 
-/* body padding-bottom gestito separatamente per safe-area */
-html, #root {
-  padding-bottom: 0 !important;
-}
-
-html {
-  height: 100%;
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
-  background: #0d1f3c;
-  background-color: #0d1f3c;
-  overflow: hidden;
-}
-
-/**
- * Sfondo su layer fixed copre l’intero layout viewport (inclusa area indicatore iOS) —
- * lo sfondo solo su `body` spesso lascia una fascia più scura in basso in PWA.
- */
-.flow-pwa-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  /* Bleed + safe-area: la striscia iOS riusa il background di html se il layer non arriva in basso */
-  bottom: calc(-20px - env(safe-area-inset-bottom, 0px));
-  z-index: 0;
-  pointer-events: none;
-  /* Più simile al tono in basso del gradiente, così risparmia una frattura sotto l’orecchio d’iOS. */
-  background: #0d1f3c;
-  background-color: #0d1f3c;
-  background-image:
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0) 62%,
-      rgba(20, 55, 108, 0.45) 84%,
-      rgba(32, 78, 142, 0.52) 100%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0) 40%,
-      rgba(28, 68, 128, 0.3) 72%,
-      rgba(40, 88, 152, 0.38) 100%
-    ),
-    linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
-    url('/background-wave.png');
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
-  background-position: center, center, center, center 85%;
-  background-size: cover, cover, cover, cover;
-}
-
 body {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
-  height: 100%;
-  overflow: hidden;
-  position: relative;
-  background: #0d1f3c;
-  background-color: #0d1f3c;
+  background: transparent;
 }
 
-/* UNICO scroll container — sopra il backdrop fixed */
 #root {
-  position: relative;
-  z-index: 1;
-  height: 100%;
   min-height: 100dvh;
-  min-height: -webkit-fill-available;
-  background: #0d1f3c;
-  background-color: #0d1f3c;
+  min-height: 100%;
+  background: transparent;
   overflow-y: auto;
   overflow-x: hidden;
-  overscroll-behavior-y: none;
-}
-
-/* iOS / touch: allineato a theme-color / .flow-pwa-backdrop */
-@media (pointer: coarse) {
-  html, body {
-    background: #0d1f3c;
-    background-color: #0d1f3c;
-  }
-}
-
-/* PWA installata: il sotto-indicatore usa spesso solo il colore di html */
-@media (display-mode: standalone) {
-  html,
-  body {
-    background: #0d1f3c;
-    background-color: #0d1f3c;
-  }
 }
 
 
@@ -285,12 +200,8 @@ body {
    */
 
   html {
-    background: var(--bg-primary);
     min-height: 100%;
-    min-height: -webkit-fill-available;
     transition: background-color 0.3s ease;
-    overflow-y: auto;
-    overscroll-behavior-x: none;
   }
 
   /* ── Scrollbar: nascosta su tutti i dispositivi ─────────────────────────── */
@@ -310,24 +221,18 @@ body {
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: var(--bg-primary);
+    background: transparent;
     color: var(--text-primary);
     width: 100%;
     transition: background-color 0.3s ease, color 0.3s ease;
     min-height: 100vh;
-    min-height: -webkit-fill-available;
-    overflow-y: auto;
-    padding-left: env(safe-area-inset-left, 0);
-    padding-right: env(safe-area-inset-right, 0);
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    overscroll-behavior-x: none;
+    min-height: 100dvh;
   }
 
   /** Tutta l’app React: stessa stack Inter del tema Tailwind (`font-sans`). */
   #root {
     @apply min-h-0 font-sans antialiased;
     color: var(--text-primary);
-    overscroll-behavior-x: none;
   }
 }
 

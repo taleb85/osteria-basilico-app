@@ -1164,7 +1164,6 @@ function App() {
   if (swUpdating) return <SwUpdateOverlay />;
 
   return (
-    <>
     <Routes>
       {/* SuperAdminPanel — attivo solo sul dominio super-admin, protetto da PIN */}
       <Route path="/super-admin" element={
@@ -1194,24 +1193,6 @@ function App() {
         }
       />
     </Routes>
-    {/*
-      iOS PWA: forza il colore sotto l’indicatore home (a volte iOS tinge con il tono header / layer sbagliato).
-      Solo altezza safe-area, non copre i tap sulla bottom nav.
-    */}
-    <div
-      aria-hidden
-      className="pointer-events-none"
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 'env(safe-area-inset-bottom, 0px)',
-        background: '#0d1f3c',
-        zIndex: 9999,
-      }}
-    />
-    </>
   );
 }
 
