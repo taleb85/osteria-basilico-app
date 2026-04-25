@@ -1411,8 +1411,7 @@ function SuperAdminPanelInner() {
 
       {/* Sticky header */}
       <header className="sticky top-0 z-30 backdrop-blur-md border-b border-white/10"
-        style={{ background: 'rgba(8, 18, 52, 0.82)' }}
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        style={{ background: 'rgba(8, 18, 52, 0.82)', paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2.5 min-w-0">
