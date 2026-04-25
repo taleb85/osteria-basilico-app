@@ -5189,7 +5189,7 @@ export default function Timesheets() {
 
                     {/* Footer azione — "REGISTRA E PROSSIMO" / "CHIUDI" / "PROSSIMO" a seconda della sorgente */}
                     {!isApproved && canTeamTimesheetOps && !isAbsentDraw && drawerData && (
-                      <div className="mt-auto pt-3 pb-3 px-3 sm:px-5 border-t border-white/10 bg-[#0d1c38] sticky bottom-0 z-10">
+                      <div className="mt-auto pt-3 pb-3 px-3 sm:px-5 border-t border-white/10 bg-[#0d1f3c] sticky bottom-0 z-10">
                         {(!drawerReviewQueue || drawerOpenSource) && (() => {
                           const needsSave = showTimbratureEditForm && drawerManualPunchFormExpanded;
 

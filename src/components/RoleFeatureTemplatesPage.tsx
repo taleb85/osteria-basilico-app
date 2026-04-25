@@ -360,7 +360,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.12 }}
                 style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 99999 }}
-                className="rounded-2xl border border-white/15 bg-[#0d1c38]/95 shadow-xl p-3 w-[280px] font-sans"
+                className="rounded-2xl border border-white/15 bg-[#0d1f3c]/95 shadow-xl p-3 w-[280px] font-sans"
               >
                 <p className="text-[9px] font-bold uppercase tracking-wider text-white/50 mb-2">
                   Anteprima — {previewTitle}
@@ -654,7 +654,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 exit={{ opacity: 0, y: 4, scale: 0.97 }}
                 transition={{ duration: 0.15 }}
                 style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 99999 }}
-                className="rounded-2xl border border-white/15 bg-[#0d1c38]/95 shadow-xl p-3 w-[280px] font-sans"
+                className="rounded-2xl border border-white/15 bg-[#0d1f3c]/95 shadow-xl p-3 w-[280px] font-sans"
               >
                 <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-2">
                   Anteprima cella presenze
