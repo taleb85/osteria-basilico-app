@@ -101,20 +101,27 @@ body {
   height: 100%;
   overflow: hidden;
   background-color: #0d1f3c;
-  /* Strato in basso: alza la luminosità sotto l’area home / parte scura del wave, senza sbiancare il centro */
+  /* Strati: (1) velatura solo sul terzo basso vh — riduce striscia scura; (2-3) come prima; (4) onda, ancorata in basso per chiarore vicino all’indicatore home */
   background-image:
     linear-gradient(
       180deg,
       rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0) 48%,
-      rgba(28, 68, 128, 0.38) 78%,
-      rgba(36, 82, 145, 0.42) 100%
+      rgba(0, 0, 0, 0) 62%,
+      rgba(20, 55, 108, 0.45) 84%,
+      rgba(32, 78, 142, 0.52) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0) 40%,
+      rgba(28, 68, 128, 0.3) 72%,
+      rgba(40, 88, 152, 0.38) 100%
     ),
     linear-gradient(160deg, rgba(5, 14, 60, 0.18) 0%, rgba(5, 14, 60, 0.40) 100%),
     url('/background-wave.png');
-  background-repeat: no-repeat, no-repeat, no-repeat;
-  background-position: center, center, center;
-  background-size: cover, cover, cover;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+  background-position: center, center, center, center 85%;
+  background-size: cover, cover, cover, cover;
 }
 
 /* UNICO scroll container — altezza fissata al viewport; altrimenti `height: auto` annulla lo scroll */
