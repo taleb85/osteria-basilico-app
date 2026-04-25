@@ -4,7 +4,8 @@ html {
   min-height: 100dvh !important;
   min-height: -webkit-fill-available !important;
   overflow: hidden !important;
-  background-color: #1a355d !important;
+  background: #0d1f3c !important;
+  background-color: #0d1f3c !important;
 }
 
 body {
@@ -15,7 +16,8 @@ body {
   height: 100% !important;
   position: relative !important;
   overflow: hidden !important;
-  background: transparent !important;
+  background: #0d1f3c !important;
+  background-color: #0d1f3c !important;
 }
 
 .flow-pwa-backdrop {
@@ -26,7 +28,8 @@ body {
   bottom: calc(-20px - env(safe-area-inset-bottom, 0px)) !important;
   z-index: 0 !important;
   pointer-events: none !important;
-  background-color: #1a355d !important;
+  background: #0d1f3c !important;
+  background-color: #0d1f3c !important;
   background-image:
     linear-gradient(
       180deg,
@@ -56,7 +59,8 @@ body {
   height: 100% !important;
   min-height: 100dvh !important;
   min-height: -webkit-fill-available !important;
-  background: transparent !important;
+  background: #0d1f3c !important;
+  background-color: #0d1f3c !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   overscroll-behavior-y: none !important;
@@ -64,7 +68,7 @@ body {
 
 /* ── Variabili CSS aggiornate — devono venire DOPO index.css ── */
 :root {
-  --bg-primary:            #0a2a6e;
+  --bg-primary:            #0d1f3c;
   --bg-surface:            rgba(15, 35, 90, 0.55);
   --bg-surface-hover:      rgba(15, 35, 90, 0.68);
   --bg-surface-solid:      rgba(10, 25, 75, 0.92);

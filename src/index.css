@@ -61,9 +61,10 @@ button:active,
   color: #ffffff !important;
 }
 
-/* Reset globale — stesso tono del theme-color / backdrop (#1a355d) così iOS non mostra una fascia più scura sotto l’indicatore */
+/* Reset globale — stesso tono del theme-color / manifest (#0d1f3c) — safe area iOS */
 html {
-  background-color: #1a355d;
+  background: #0d1f3c;
+  background-color: #0d1f3c;
 }
 
 html,
@@ -88,7 +89,8 @@ html {
   height: 100%;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
-  background-color: #1a355d;
+  background: #0d1f3c;
+  background-color: #0d1f3c;
   overflow: hidden;
 }
 
@@ -106,7 +108,8 @@ html {
   z-index: 0;
   pointer-events: none;
   /* Più simile al tono in basso del gradiente, così risparmia una frattura sotto l’orecchio d’iOS. */
-  background-color: #1a355d;
+  background: #0d1f3c;
+  background-color: #0d1f3c;
   background-image:
     linear-gradient(
       180deg,
@@ -138,7 +141,8 @@ body {
   height: 100%;
   overflow: hidden;
   position: relative;
-  background: transparent;
+  background: #0d1f3c;
+  background-color: #0d1f3c;
 }
 
 /* UNICO scroll container — sopra il backdrop fixed */
@@ -148,7 +152,8 @@ body {
   height: 100%;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
-  background: transparent;
+  background: #0d1f3c;
+  background-color: #0d1f3c;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior-y: none;
@@ -157,7 +162,8 @@ body {
 /* iOS / touch: allineato a theme-color / .flow-pwa-backdrop */
 @media (pointer: coarse) {
   html, body {
-    background-color: #1a355d;
+    background: #0d1f3c;
+    background-color: #0d1f3c;
   }
 }
 
@@ -165,7 +171,8 @@ body {
 @media (display-mode: standalone) {
   html,
   body {
-    background-color: #1a355d;
+    background: #0d1f3c;
+    background-color: #0d1f3c;
   }
 }
 
@@ -230,7 +237,7 @@ body {
     --slate-neutral: #475569; /* Grigio ardesia per stati neutri */
     
     /* ═══ DARK THEME GLOBAL TOKENS ═══ */
-    --bg-primary: #0a2a6e;
+    --bg-primary: #0d1f3c;
     --bg-surface: rgba(5, 14, 60, 0.45);
     --bg-surface-hover: rgba(5, 14, 60, 0.58);
     --bg-surface-solid: rgba(5, 14, 60, 0.52);
