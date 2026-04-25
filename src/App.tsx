@@ -255,6 +255,24 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     return () => obs.disconnect();
   }, []);
 
+  // ── Clear PWA badge on app open + visibility change ──────────────────────
+  useEffect(() => {
+    const clearBadge = () => {
+      if ('clearAppBadge' in navigator) {
+        (navigator as Navigator & { clearAppBadge: () => Promise<void> })
+          .clearAppBadge().catch(() => {});
+      }
+      // Also tell SW to clear its badge
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage('CLEAR_BADGE');
+      }
+    };
+    clearBadge();
+    const onVisibility = () => { if (!document.hidden) clearBadge(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
   const location = useLocation();
 
   const visibleNavTabs = useMemo((): AppNavTab[] => {

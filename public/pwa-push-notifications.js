@@ -105,9 +105,9 @@
         })
     );
 
-    // Pulisci il badge
-    if (navigator.clearAppBadge) {
-      navigator.clearAppBadge().catch(function () {});
+    // Pulisci il badge (SW context: usa self.registration, non navigator)
+    if (self.registration.clearBadge) {
+      self.registration.clearBadge().catch(function () {});
     }
   });
 
@@ -116,5 +116,20 @@
    */
   self.addEventListener('notificationclose', function (event) {
     console.log('[Push] Notifica chiusa:', event.notification.tag);
+    // Pulisci anche alla chiusura della notifica
+    if (self.registration.clearBadge) {
+      self.registration.clearBadge().catch(function () {});
+    }
+  });
+
+  /**
+   * Messaggio dall'app per pulire il badge.
+   */
+  self.addEventListener('message', function (event) {
+    if (event.data === 'CLEAR_BADGE') {
+      if (self.registration.clearBadge) {
+        self.registration.clearBadge().catch(function () {});
+      }
+    }
   });
 })();
