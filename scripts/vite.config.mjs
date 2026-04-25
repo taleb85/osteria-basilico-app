@@ -32,6 +32,29 @@ export default defineConfig({
     'window.__APP_CACHE_VERSION__': JSON.stringify(`${pkg.version}-light`),
   },
   plugins: [
+    /**
+     * In dev, senza file fisico, Vite cade nello “SPA fallback” e /app-version.txt risponde 200 con
+     * l’intero index.html: lo script di confronto versione pensa sia una nuova build e entra in loop
+     * di reload. Intercettare PRIMA e servire testo pieno, come in produzione.
+     */
+    {
+      name: 'app-version-dev',
+      apply: 'serve',
+      configureServer(server) {
+        const body = `${pkg.version}-light`;
+        server.middlewares.use((req, res, next) => {
+          const p = (req.url || '').split('?')[0];
+          if (p === '/app-version.txt' || p === '/app-version.txt/') {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-store, max-age=0');
+            res.end(body);
+            return;
+          }
+          next();
+        });
+      },
+    },
     react(),
     {
       name: 'inject-version-meta',
