@@ -92,16 +92,16 @@ html {
   overflow: hidden;
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
-  height: 100%;
-  overflow: hidden;
+/**
+ * Sfondo su layer fixed copre l’intero layout viewport (inclusa area indicatore iOS) —
+ * lo sfondo solo su `body` spesso lascia una fascia più scura in basso in PWA.
+ */
+.flow-pwa-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
   background-color: #0d1f3c;
-  /* Strati: (1) velatura solo sul terzo basso vh — riduce striscia scura; (2-3) come prima; (4) onda, ancorata in basso per chiarore vicino all’indicatore home */
   background-image:
     linear-gradient(
       180deg,
@@ -124,8 +124,22 @@ body {
   background-size: cover, cover, cover, cover;
 }
 
-/* UNICO scroll container — altezza fissata al viewport; altrimenti `height: auto` annulla lo scroll */
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  background: transparent;
+}
+
+/* UNICO scroll container — sopra il backdrop fixed */
 #root {
+  position: relative;
+  z-index: 1;
   height: 100%;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
