@@ -19,7 +19,7 @@ L’app usa **Supabase** per dati e auth. In produzione servono:
 
 \* Serve **una** tra `VITE_SUPABASE_ANON_KEY` e `VITE_SUPABASE_PUBLISHABLE_KEY` (in `src/lib/supabase.ts` la publishable ha priorità se entrambe fossero impostate).
 
-- **Non** mettere mai la **service role** nel bundle frontend: non aggiungerla come `VITE_*` su Vercel. Per script in `scripts/` vedi `.env.example` (ideale: variabile **senza** prefisso `VITE_` solo in locale).
+- **Non** mettere mai la **service role** nel bundle frontend: non aggiungerla come `VITE_*` in dashboard hosting (Vercel, **Cloudflare Pages** → *Settings* → *Environment variables*, …). Per script in `scripts/` vedi `.env.example` (ideale: variabile **senza** prefisso `VITE_` solo in locale).
 - Il file `.env` **non** va committato: usalo solo in locale. In hosting imposti le variabili dalla dashboard.
 
 ### 1.2 Supabase in produzione
@@ -57,9 +57,9 @@ Apri l’URL indicato (es. `http://localhost:4173`) e prova login, turni, ferie,
 
 ## 2. Pubblicare online (hosting)
 
-L’app è una **SPA** (Vite + React). Output: cartella **`dist`**. Config ufficiale: **`vercel.json`** (rewrite SPA, cache su `/assets/*`, no-cache su `index.html`).
+L’app è una **SPA** (Vite + React). Output: cartella **`dist`**. Per **Vercel** c’è **`vercel.json`** (rewrite SPA, cache su `/assets/*`, no-cache su `index.html`). Su **Cloudflare Pages** vanno le stesse rewrites via `public/_redirects` in `dist`.
 
-### Opzione A – Vercel (hosting attuale)
+### Opzione A – Vercel (secondario / alias)
 
 1. Account su [vercel.com](https://vercel.com) → **Add New** → **Project** → importa il repo Git.
 2. Vercel rileva **Vite**; conferma:
@@ -74,7 +74,7 @@ L’app è una **SPA** (Vite + React). Output: cartella **`dist`**. Config uffic
 **Deploy da CLI** (dopo `npm i -g vercel` o `npx vercel` e login):
 
 ```bash
-npm run deploy
+npm run deploy:vercel
 ```
 
 Equivalente a: `npm run build && npx vercel --prod --yes`  
@@ -82,22 +82,30 @@ La prima volta: `npx vercel link` per collegare la cartella al progetto.
 
 #### Netlify (deprecato)
 
-Il progetto **osteria-basilico** su Netlify è stato **eliminato** (hosting solo Vercel). Se in futuro avessi un altro sito Netlify da rimuovere: [app.netlify.com](https://app.netlify.com) → sito → **Site configuration** → **Delete site**.
+Il progetto **osteria-basilico** su Netlify è stato **eliminato** (hosting: Vercel e/o **Cloudflare Pages**). Se in futuro avessi un altro sito Netlify da rimuovere: [app.netlify.com](https://app.netlify.com) → sito → **Site configuration** → **Delete site**.
 
 #### Supabase — URL di produzione (da fare una volta in dashboard)
 
-L’app in produzione è su **`https://osteria-basilico-app.vercel.app`** (alias Vercel). In **Supabase Dashboard** → **Authentication** → **URL Configuration**:
+In **Supabase Dashboard** → **Authentication** → **URL Configuration** usa l’URL pubblico reale (es. **`https://flow-workinmotion-app.vercel.app`**, **`https://feature-multi-tenant.flow-workinmotion.pages.dev`**, o un dominio custom):
 
-- **Site URL**: `https://osteria-basilico-app.vercel.app` (o il tuo dominio custom)
-- **Redirect URLs**: includi la stessa URL e eventuali path wildcard se usi flussi OAuth/email (es. `https://osteria-basilico-app.vercel.app/**`)
+- **Site URL**: l’URL principale che usano gli utenti
+- **Redirect URLs**: includi la stessa origine e eventuali path wildcard se usi flussi OAuth/email (es. `https://tuodominio/**`)
 
 *(La CLI `supabase` non è collegata qui; senza `supabase login` va aggiornato a mano.)*
 
 ---
 
-### Opzione B – Cloudflare Pages (alternativa statica)
+### Opzione B – Cloudflare Pages (hosting predefinito in questo repo)
 
 Stessi comandi di build; in `dist` è incluso `public/_redirects` per le route SPA. Vedi [dash.cloudflare.com](https://dash.cloudflare.com) → Workers & Pages.
+
+**Deploy da CLI** (dopo `npx wrangler login` almeno una volta):
+
+```bash
+npm run deploy
+```
+
+Equivalente a: `npm run build && npx wrangler pages deploy dist --project-name=flow-workinmotion`
 
 ---
 
@@ -111,8 +119,8 @@ Stessi comandi di build; in `dist` è incluso `public/_redirects` per le route S
 ## 3. Dopo il deploy
 
 1. **Test completo** sull’URL di produzione: login con PIN, turni, modifica orari, pubblicazione, ferie, report, sync.
-2. **Link condiviso**: invia il link (es. `https://tuoprogetto.vercel.app` o dominio personalizzato) ai dipendenti.
-3. **HTTPS**: Vercel lo fornisce di default; con dominio proprio configura il certificato in Project → Domains.
+2. **Link condiviso**: invia il link (es. `*.vercel.app`, `*.pages.dev` o dominio personalizzato) ai dipendenti.
+3. **HTTPS**: Vercel e Cloudflare lo forniscono di default; con dominio proprio configura il certificato nella dashboard del provider.
 4. **Backup**: Supabase fa backup; verifica in Supabase Dashboard le impostazioni di backup del progetto.
 
 ---
@@ -126,20 +134,20 @@ Stessi comandi di build; in `dist` è incluso `public/_redirects` per le route S
 | Anteprima build | `npm run preview` |
 | Controllo tipi | `npm run typecheck` |
 | Lint | `npm run lint` |
-| Deploy produzione (Vercel) | `npm run deploy` |
-| Deploy Cloudflare Pages (alternativa) | `npm run build` → `npx wrangler pages deploy dist --project-name=...` |
+| Deploy produzione (Cloudflare) | `npm run deploy` |
+| Deploy Vercel (opzionale) | `npm run deploy:vercel` |
 
 ---
 
 ## 5. Checklist finale
 
-- [ ] Repository Git con `main` e remoto (GitHub/GitLab) collegato a Vercel se usi deploy da push
+- [ ] Repository Git con `main` e remoto (GitHub/GitLab) collegato a **Cloudflare Pages** o Vercel se usi deploy da push
 - [ ] Progetto Supabase creato e migrazioni eseguite
 - [ ] **Realtime:** le cinque tabelle in §1.2 presenti in `supabase_realtime`
-- [ ] Variabili `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` **oppure** `VITE_SUPABASE_PUBLISHABLE_KEY` in produzione (Vercel → Environment Variables)
+- [ ] Variabili `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` **oppure** `VITE_SUPABASE_PUBLISHABLE_KEY` in produzione (Cloudflare Pages / Vercel → variabili d’ambiente)
 - [ ] `npm run build` eseguito senza errori
 - [ ] `npm run preview` testato con le stesse variabili
-- [ ] Deploy su Vercel (o altro host) con variabili d’ambiente
+- [ ] Deploy su **Cloudflare Pages** (o Vercel) con variabili d’ambiente
 - [ ] Test su URL di produzione (login, turni, ferie, report)
 - [ ] Checklist estesa operativa: [docs/CHECKLIST_VERIFICA_COMPLETA.md](docs/CHECKLIST_VERIFICA_COMPLETA.md)
 - [ ] (Opzionale) Dominio personalizzato e HTTPS
