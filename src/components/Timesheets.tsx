@@ -2365,9 +2365,24 @@ export default function Timesheets() {
       setDeductBreakSaving(true);
       try {
         if (on) {
+          const sh = shifts.find((x) => x.id === shiftId);
+          const u = sh ? users.find((x) => x.id === sh.user_id) : undefined;
+          const st = (sh?.start_time || '').slice(0, 5);
+          const en = (sh?.end_time || '').slice(0, 5);
+          const gross = st && en ? calculateShiftMinutesGross(st, en) : 0;
+          const mins =
+            sh && u != null
+              ? getBreakMinutesForShift(
+                  { ...sh, is_auto_break: true, break_minutes: 0 },
+                  gross,
+                  u,
+                  breakRules,
+                  breakComputeOpts
+                )
+              : DEFAULT_AUTO_BREAK_MINUTES;
           await updateShift(shiftId, {
             is_auto_break: true,
-            break_minutes: DEFAULT_AUTO_BREAK_MINUTES,
+            break_minutes: Math.max(0, mins),
           });
         } else {
           await updateShift(shiftId, { is_auto_break: false, break_minutes: 0 });
@@ -2379,7 +2394,7 @@ export default function Timesheets() {
         setDeductBreakSaving(false);
       }
     },
-    [updateShift, showSuccess, showError, t]
+    [updateShift, showSuccess, showError, t, shifts, users, breakRules, breakComputeOpts]
   );
 
   // ── Day Review ───────────────────────────────────────────────────────────
@@ -4641,7 +4656,12 @@ export default function Timesheets() {
                   userForBreakReadout,
                   breakRules,
                   breakComputeOpts,
-                  { fromShift: t.ts_deduct_break_from_shift, auto: t.ts_deduct_break_auto }
+                  {
+                    fromShift: t.ts_deduct_break_from_shift,
+                    auto: t.ts_deduct_break_auto,
+                    lunch: t.ts_deduct_break_lunch,
+                    dinner: t.ts_deduct_break_dinner,
+                  }
                 )
               : undefined;
           const hasAdminBreakRules = !!(
@@ -4660,10 +4680,19 @@ export default function Timesheets() {
             !hasManualNonAutoBreak &&
             grossPlannedForBreakReadout >= AUTO_BREAK_THRESHOLD_MINUTES
           );
+          const implicitAutoBreakTitles = new Set([
+            t.ts_deduct_break_auto,
+            t.ts_deduct_break_lunch,
+            t.ts_deduct_break_dinner,
+          ]);
           const deductBreakLineItems =
             showAutoBreakSubToggle && deductBreakLineItemsAll
-              ? deductBreakLineItemsAll.filter((it) => it.title !== t.ts_deduct_break_auto)
+              ? deductBreakLineItemsAll.filter((it) => !implicitAutoBreakTitles.has(it.title))
               : deductBreakLineItemsAll;
+          const autoBreakSubLineItems =
+            showAutoBreakSubToggle && deductBreakLineItemsAll
+              ? deductBreakLineItemsAll.filter((it) => implicitAutoBreakTitles.has(it.title))
+              : undefined;
           const autoSubChecked = !!(
             fullShift &&
             showAutoBreakSubToggle &&
@@ -4973,6 +5002,7 @@ export default function Timesheets() {
                     onAutoBreakChange={handleDrawerAutoBreakChange}
                     showAutoBreakSubToggle={showAutoBreakSubToggle}
                     autoSubChecked={autoSubChecked}
+                    autoBreakSubLineItems={autoBreakSubLineItems}
                     defaultAutoBreakMinutes={DEFAULT_AUTO_BREAK_MINUTES}
                     fmtHM={fmtHM}
                     fmtBreakDeductionShort={fmtBreakDeductionShort}

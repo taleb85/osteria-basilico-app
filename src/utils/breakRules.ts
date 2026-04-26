@@ -1,5 +1,5 @@
 import { getDay, parseISO, isWithinInterval } from 'date-fns';
-import { calculateShiftMinutesGross } from './timeCalculations';
+import { calculateShiftMinutesGross, getBreakLabels } from './timeCalculations';
 import { departmentMatchesBreakRuleDepartments } from './departments';
 
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -241,8 +241,10 @@ export type BreakMinutesComputeOptions = {
  * (anche 0 se nessuna finestra admin copre il turno, es. turno 18:00 con pause 11:30–12 e 17:00–17:30).
  * Non si applicano `break_minutes` sul turno né il fallback automatico ≥6h (evita −30′ indebiti).
  *
- * **Senza regole attive:** `break_minutes` sul turno, altrimenti fallback 30 min se durata lorda ≥6h
- * (solo se `autoBreaksFeatureEnabled !== false`).
+ * **Senza regole attive:** `break_minutes` sul turno; altrimenti, con durata ≥6h e fasce pasto
+ * coperte (11:30–12:00 e/o 17:00–17:30, vedi `getBreakLabels`) si detrae **30 min per fascia**;
+ * se nessuna fascia è coperta ma la durata è ≥6h, resta 30 min di fallback; tutto disattivabile con
+ * `is_auto_break: false` (solo se `autoBreaksFeatureEnabled !== false`).
  */
 export function getBreakMinutesForShift(
   shift: {
@@ -289,13 +291,17 @@ export function getBreakMinutesForShift(
   if (startStr && endStr && toMinutes(endStr) <= toMinutes(startStr)) {
     return 0;
   }
-  if (grossMinutes >= AUTO_BREAK_THRESHOLD_MINUTES) {
-    if (shift.is_auto_break === false) {
-      return 0;
-    }
-    return DEFAULT_AUTO_BREAK_MINUTES;
+  if (grossMinutes < AUTO_BREAK_THRESHOLD_MINUTES) {
+    return 0;
   }
-  return 0;
+  if (shift.is_auto_break === false) {
+    return 0;
+  }
+  const mealCount = getBreakLabels(startStr, endStr).length;
+  if (mealCount > 0) {
+    return mealCount * DEFAULT_AUTO_BREAK_MINUTES;
+  }
+  return DEFAULT_AUTO_BREAK_MINUTES;
 }
 
 /** Calcola i minuti netti di un turno: (End - Start) - break. */
@@ -341,7 +347,7 @@ export function getBreakDeductionDisplayItems(
   user: { department?: string | null; role: string } | null | undefined,
   rules: BreakRule[] | null | undefined,
   options: BreakMinutesComputeOptions | undefined,
-  i18n: { fromShift: string; auto: string }
+  i18n: { fromShift: string; auto: string; lunch: string; dinner: string }
 ): BreakDeductionLine[] {
   if (shift.deduct_break === false) return [];
   const active = getActiveBreakRules(rules);
@@ -368,6 +374,13 @@ export function getBreakDeductionDisplayItems(
   ) {
     if (shift.is_auto_break === false) {
       return [];
+    }
+    const mealKeys = getBreakLabels(startStr, endStr);
+    if (mealKeys.length > 0) {
+      return mealKeys.map((k) => ({
+        title: k === 'lunch' ? i18n.lunch : i18n.dinner,
+        minutes: DEFAULT_AUTO_BREAK_MINUTES,
+      }));
     }
     return [{ title: i18n.auto, minutes: total }];
   }

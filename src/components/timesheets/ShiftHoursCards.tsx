@@ -61,7 +61,9 @@ interface ShiftHoursCardsProps {
   showAutoBreakSubToggle?: boolean;
   autoSubChecked?: boolean;
   onAutoBreakChange?: (shiftId: string, on: boolean) => void;
-  /** Minuti mostrati come −Xm sul secondo interruttore (di solito 30) */
+  /** Righe sotto l’interruttore: pranzo/cena/unica (≥6h) */
+  autoBreakSubLineItems?: { title: string; minutes: number }[];
+  /** Minuti se non ci sono righe (fallback) */
   defaultAutoBreakMinutes?: number;
   
   /** Funzione helper: formatta minuti → "Xh Ym" */
@@ -103,6 +105,7 @@ export function ShiftHoursCards({
   showAutoBreakSubToggle = false,
   autoSubChecked = false,
   onAutoBreakChange,
+  autoBreakSubLineItems,
   defaultAutoBreakMinutes = 30,
   fmtHM,
   fmtBreakDeductionShort,
@@ -350,14 +353,30 @@ export function ShiftHoursCards({
               />
             </div>
             <div className="min-w-0 flex-1">
-              <p
-                className={`flex flex-wrap items-baseline gap-x-1.5 text-xs font-semibold ${
-                  autoSubChecked ? 'text-white' : 'text-white/70'
-                }`}
-              >
-                <span>{t.ts_deduct_break_auto}</span>
-                <span className="tabular-nums">−{fmtBreakDeductionShort(defaultAutoBreakMinutes)}</span>
-              </p>
+              {autoBreakSubLineItems && autoBreakSubLineItems.length > 0 ? (
+                <ul className="list-none space-y-1">
+                  {autoBreakSubLineItems.map((it) => (
+                    <li
+                      key={`${it.title}-${it.minutes}`}
+                      className={`flex flex-wrap items-baseline justify-between gap-x-2 text-xs font-semibold tabular-nums ${
+                        autoSubChecked ? 'text-white' : 'text-white/70'
+                      }`}
+                    >
+                      <span className="min-w-0 font-semibold text-left">{it.title}</span>
+                      <span>−{fmtBreakDeductionShort(it.minutes)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p
+                  className={`flex flex-wrap items-baseline gap-x-1.5 text-xs font-semibold ${
+                    autoSubChecked ? 'text-white' : 'text-white/70'
+                  }`}
+                >
+                  <span>{t.ts_deduct_break_auto}</span>
+                  <span className="tabular-nums">−{fmtBreakDeductionShort(defaultAutoBreakMinutes)}</span>
+                </p>
+              )}
               <p className="mt-0.5 text-[11px] leading-snug text-white/50">
                 {tv.wst_drawer_auto_break_hint}
               </p>
