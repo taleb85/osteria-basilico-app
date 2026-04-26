@@ -45,6 +45,8 @@ button:active,
   --app-bg:   #f4f7fa;
   --card-bg:  #ffffff;
   --text-main: #1a1a1a;
+  /* Stessa tonalità di .flow-brand-header / .top-tabbar */
+  --surface-header-slab: rgba(4, 12, 42, 0.94);
 }
 
 /* Header brand — rimane blu in entrambi i temi, testo sempre bianco */
@@ -55,14 +57,14 @@ button:active,
 
 /* Striscia brand (50px) più scura — subtle-theme non è nel bundle; stile qui */
 body .flow-brand-header {
-  background: rgba(4, 12, 42, 0.94) !important;
+  background: var(--surface-header-slab) !important;
   box-shadow: none !important;
   border-radius: 0 !important;
 }
 
 /* Riga tab TopTabBar (sotto la brand) — stessa famiglia cromatica */
 body .top-tabbar {
-  background: rgba(4, 12, 42, 0.94) !important;
+  background: var(--surface-header-slab) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: none !important;
 }
@@ -381,6 +383,15 @@ body {
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border-color);
     box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.3);
+  }
+  /** Vetro con fill allineato alla striscia header (bacheca home, ecc.) */
+  .surface-header-slab {
+    @apply rounded-2xl text-slate-50 transition-colors duration-200;
+    background: var(--surface-header-slab);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.35);
   }
   .surface-glass-sm {
     @apply rounded-xl text-slate-50 transition-colors duration-200;
@@ -1777,6 +1788,11 @@ body {
   .surface-glass,
   [class*='surface-glass'] {
     background: rgba(50, 90, 170, 0.45) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .surface-header-slab {
+    background: var(--surface-header-slab) !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }

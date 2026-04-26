@@ -748,7 +748,7 @@ export default function HomePage({
           {uiW('home_mgmt.team_board') && (
           <AnimatePresence>
             <motion.div key="board" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'border-amber-400/30 bg-amber-500/10' : 'surface-glass border-dashed border-white/15'}`}>
+              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'border-amber-400/30 bg-amber-500/10' : 'surface-header-slab border-dashed border-white/15'}`}>
               <div className="flex items-start gap-3">
                 <Megaphone size={15} className={`mt-0.5 shrink-0 ${boardNote ? 'text-amber-600' : 'text-white/55'}`} />
                 <div className="flex-1 min-w-0">
