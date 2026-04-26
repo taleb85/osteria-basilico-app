@@ -1488,12 +1488,9 @@ export default function Timesheets() {
       (s) => visibleUserIds.has(s.user_id) && s.date >= weekStr && s.date < weekEnd
     );
     if (weekShiftsAll.length === 0) return null;
-    const weekShiftsToApprove = weekShiftsAll.filter(
-      (s) => normalizedApprovalStatus(s.approval_status) !== 'approved'
-    );
-    const weekApproved = weekShiftsAll.filter(
-      (s) => normalizedApprovalStatus(s.approval_status) === 'approved'
-    );
+    /** Turni ancora da sigillare in contabilità (inclusi absent senza `approved_at`). I congelati sono `approved` o `absent`+`approved_at`. */
+    const weekShiftsToApprove = weekShiftsAll.filter((s) => !isShiftPayrollFrozen(s));
+    const weekApproved = weekShiftsAll.filter((s) => isShiftPayrollFrozen(s));
     const hasDataToApprove = weekShiftsToApprove.length > 0;
     const hasApproved = weekApproved.length > 0;
     if (!hasDataToApprove && !hasApproved) return null;
