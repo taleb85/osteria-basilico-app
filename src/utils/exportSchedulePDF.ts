@@ -413,8 +413,7 @@ export async function exportSchedulePDF(
   }
 
   // ── Save ──────────────────────────────────────────────────────────────────
-  const fileName = weekChunks.length > 1
-    ? `schedule_${format(weekDays[0], 'yyyy-MM-dd')}_to_${format(weekDays[weekDays.length - 1], 'yyyy-MM-dd')}.pdf`
-    : `schedule_${format(weekStart, 'yyyy-MM-dd')}.pdf`;
+  /** Solo data della settimana (inizio periodo): es. `2026-03-30.pdf` */
+  const fileName = `${format(weekStart, 'yyyy-MM-dd')}.pdf`;
   doc.save(fileName);
 }
