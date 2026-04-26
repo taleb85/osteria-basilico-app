@@ -66,7 +66,7 @@ export function MessagesList({
               }}
               className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-colors ${
                 isExpanded ? 'rounded-t-lg' : 'rounded-lg'
-              } hover:bg-slate-100/50`}
+              } hover:bg-slate-100/50 active:bg-slate-100/80`}
             >
               {/* Icona tipo messaggio */}
               <div className="flex-shrink-0">
@@ -84,15 +84,13 @@ export function MessagesList({
               {/* Contenuto */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-white truncate">
-                    {message.sender_name || 'Sconosciuto'}
+                  <span className="text-xs font-semibold text-white truncate" title={message.sender_name || 'Sconosciuto'}>{message.sender_name || 'Sconosciuto'}
                   </span>
                   {isUnread && (
                     <Dot className="h-4 w-4 flex-shrink-0 text-red-500 fill-red-500" />
                   )}
                 </div>
-                <p className="text-xs text-white/70 truncate">
-                  {message.subject}
+                <p className="text-xs text-white/70 truncate" title={message.subject}>{message.subject}
                 </p>
               </div>
 
@@ -150,7 +148,7 @@ export function MessagesList({
                     <button
                       type="button"
                       onClick={() => onMarkAsRead(message.id)}
-                      className="flex-1 rounded bg-accent/10 px-2 py-1 text-xs font-semibold text-accent hover:bg-accent/20 transition-colors"
+                      className="flex-1 rounded bg-accent/10 px-2 py-1 text-xs font-semibold text-accent hover:bg-accent/20 transition-colors active:bg-accent/80"
                     >
                       Marca come letto
                     </button>
@@ -159,7 +157,7 @@ export function MessagesList({
                     <button
                       type="button"
                       onClick={() => onDelete(message.id)}
-                      className="flex-shrink-0 p-1.5 rounded hover:bg-red-100 transition-colors"
+                      className="flex-shrink-0 p-1.5 rounded hover:bg-red-100 transition-colors active:bg-red-100/80"
                       title="Elimina messaggio"
                     >
                       <Trash2 className="h-4 w-4 text-red-600" />

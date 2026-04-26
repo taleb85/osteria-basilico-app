@@ -35,7 +35,7 @@ export default function SettingsTabPreview({
                 {(previewUser.first_name?.[0] ?? '?').toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-base font-bold text-white">{name}</p>
+                <p className="truncate text-base font-bold text-white" title={name}>{name}</p>
                 <p className="text-xs text-white/60">{previewUser.email ?? 'email@…'}</p>
               </div>
             </div>

@@ -713,6 +713,7 @@ export function ProfileFormAdmin({
               disabled={readOnly}
               required={false}
               aria-required={false}
+              placeholder="GG/MM/AAAA"
             />
             {tv.profile_employment_start_hint ? (
               <p className="text-[11px] text-white/55 mt-1 font-sans">
@@ -736,6 +737,7 @@ export function ProfileFormAdmin({
                 disabled={readOnly}
                 required={false}
                 aria-required={false}
+                placeholder="GG/MM/AAAA"
               />
               {tv.profile_employment_end_hint ? (
                 <p className="text-[11px] text-white/55 mt-1 font-sans">
@@ -850,7 +852,7 @@ export function ProfileFormAdmin({
             <button
               type="submit"
               disabled={isSaving || Boolean(activePinConflictMessage)}
-              className="flex-1 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50 font-sans"
+              className="flex-1 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50 font-sans active:bg-accent-hover/80"
             >
               {isSaving ? t.saving : variant === 'create' ? t.create_employee_submit : t.save_changes}
             </button>

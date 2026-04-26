@@ -62,7 +62,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
       <button
         type="button"
         onClick={handleOpen}
-        className={`relative flex items-center justify-center transition-all h-full w-full text-white/60 hover:text-white`}
+        className={`relative flex items-center justify-center transition-all h-full w-full text-white/60 hover:text-white active:text-white`}
         title={t.profile_notifications}
       >
         <Bell className={`${denseTrigger ? 'h-4 w-4' : 'h-5 w-5'} ${unreadCount > 0 ? 'animate-ring text-red-500' : ''}`} />
@@ -79,7 +79,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
             <h3 className="text-lg font-bold text-white">{t.profile_notifications}</h3>
             <button
               onClick={() => setIsOpen(false)}
-              className="rounded-full p-2 hover:bg-white/10"
+              className="rounded-full p-2 hover:bg-white/10 active:bg-white/80"
             >
               <X className="h-5 w-5 text-white/60" />
             </button>
@@ -100,7 +100,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
                     key={n.id}
                     className={`relative flex gap-3 rounded-2xl p-4 transition-colors ${
                       !seenIds.has(n.id) ? 'bg-accent/[0.06]' : 'hover:bg-white/8'
-                    }`}
+                    } active:bg-white/8'/80`}
                   >
                     <div className="mt-0.5 shrink-0">{getIcon(n.type, n.severity)}</div>
                     <div className="min-w-0 flex-1">

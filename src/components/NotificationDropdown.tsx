@@ -84,7 +84,7 @@ export function NotificationDropdown({
         <button
           type="button"
           onClick={onClose}
-          className="p-0.5 rounded hover:bg-white/15 transition-colors"
+          className="p-0.5 rounded hover:bg-white/15 transition-colors active:bg-white/80"
           title={t.close}
           {...{} } aria-label={t.notif_close_aria}
         >
@@ -121,7 +121,7 @@ export function NotificationDropdown({
                 onClick={() => handleMessageClick(msg)}
                 className={`w-full px-4 py-3 text-left transition-colors hover:bg-slate-50 ${
                   isUnread ? 'bg-accent/5' : ''
-                }`}
+                } active:bg-slate-50/80`}
               >
                 <div className="flex gap-3">
                   {/* Icona */}
@@ -145,8 +145,7 @@ export function NotificationDropdown({
                         isUnread
                           ? 'text-white'
                           : 'text-white/80'
-                      }`}>
-                        {msg.subject}
+                      }`} title={msg.subject}>{msg.subject}
                       </p>
                       {isUnread && (
                         <div className="h-2 w-2 rounded-full bg-accent flex-shrink-0" />
@@ -154,8 +153,7 @@ export function NotificationDropdown({
                     </div>
 
                     {/* Anteprima testo */}
-                    <p className="text-xs text-white/70 truncate mt-0.5">
-                      {preview}
+                    <p className="text-xs text-white/70 truncate mt-0.5" title={preview}>{preview}
                     </p>
 
                     {/* Tempo */}
@@ -186,7 +184,7 @@ export function NotificationDropdown({
                 "[NotificationDropdown] Navigazione alla sezione messaggi del profilo non ancora implementata (nessuna rotta / query dedicata).",
               );
             }}
-            className="w-full text-center text-xs font-semibold text-accent hover:text-accent-hover transition-colors py-1"
+            className="w-full text-center text-xs font-semibold text-accent hover:text-accent-hover transition-colors py-1 active:text-accent-hover"
           >
             Visualizza Tutti →
           </button>

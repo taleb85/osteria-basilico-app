@@ -58,7 +58,7 @@ export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, den
             <span className="text-[15px] leading-none" aria-hidden>
               {FLAGS[lang]}
             </span>
-            <span className="text-[11px] leading-tight text-center truncate w-full tracking-tight">{LABELS_SHORT[lang]}</span>
+            <span className="text-[11px] leading-tight text-center truncate w-full tracking-tight" title={LABELS_SHORT[lang]}>{LABELS_SHORT[lang]}</span>
           </button>
         ))}
       </div>
@@ -72,7 +72,7 @@ export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, den
         type="button"
         onClick={() => setLanguage(deviceLang)}
         title={`Auto → ${deviceLang.toUpperCase()}`}
-        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-colors min-h-[44px] bg-slate-100 text-white/70 hover:bg-slate-200"
+        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-colors min-h-[44px] bg-slate-100 text-white/70 hover:bg-slate-200 active:bg-slate-200/80"
       >
         <span className="text-xs font-bold">AUTO</span>
       </button>
@@ -83,7 +83,7 @@ export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, den
           onClick={() => setLanguage(lang)}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-colors min-h-[44px] ${
             effectiveLanguage === lang ? 'bg-accent text-white' : 'bg-slate-100 text-white/70 hover:bg-slate-200'
-          }`}
+          } active:bg-slate-200'/80`}
         >
           <span>{FLAGS[lang]}</span>
           <span className="text-xs">{LABELS[lang]}</span>

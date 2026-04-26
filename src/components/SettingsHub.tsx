@@ -31,7 +31,7 @@ export default function SettingsHub() {
         {filteredMenu.map((item) => (
           <button
             key={item.key}
-            className={`flex items-center gap-2 px-4 py-3 md:w-full md:justify-start justify-center border-b md:border-b-0 md:border-r-0 border-white/10 text-sm font-semibold transition-colors ${selected === item.key ? 'bg-accent/10 text-accent' : 'hover:bg-white/8 text-white/80'}`}
+            className={`flex items-center gap-2 px-4 py-3 md:w-full md:justify-start justify-center border-b md:border-b-0 md:border-r-0 border-white/10 text-sm font-semibold transition-colors ${selected === item.key ? 'bg-accent/10 text-accent' : 'hover:bg-white/8 text-white/80'} active:bg-white/8/80`}
             onClick={() => setSelected(item.key)}
           >
             {item.icon}

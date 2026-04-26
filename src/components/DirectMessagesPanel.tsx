@@ -98,7 +98,7 @@ function NewChatPicker({
       <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
         <button
           onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:bg-white/10 transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:bg-white/10 transition-colors active:bg-white/80"
         >
           <X className="w-4 h-4" />
         </button>
@@ -121,12 +121,11 @@ function NewChatPicker({
             <button
               key={u.id}
               onClick={() => onSelect(u)}
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/8 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/8 transition-colors text-left active:bg-white/8/80"
             >
               <UserAvatar user={u} size={38} />
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-white truncate">
-                  {u.first_name} {u.last_name ?? ''}
+                <p className="text-sm font-semibold text-white truncate" title={u.first_name}>{u.first_name} {u.last_name ?? ''}
                 </p>
                 <p className="text-[11px] text-white/50 uppercase tracking-wide">{translateRole(u.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</p>
               </div>
@@ -278,13 +277,16 @@ function ChatView({
       >
         <button
           onClick={onBack}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-white/80 hover:bg-white/15 transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-white/80 hover:bg-white/15 transition-colors active:bg-white/80"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <UserAvatar user={contact} size={34} />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-white truncate leading-tight">
+          <p
+            className="text-sm font-bold text-white truncate leading-tight"
+            title={contact ? `${contact.first_name} ${contact.last_name ?? ''}`.trim() : '—'}
+          >
             {contact ? `${contact.first_name} ${contact.last_name ?? ''}`.trim() : '—'}
           </p>
           <p className="text-[11px] text-white/60 uppercase tracking-wide leading-none mt-0.5">
@@ -400,7 +402,7 @@ function ConversationList({
         <div className="flex items-center gap-1">
           <button
             onClick={onNewChat}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors active:bg-white/80"
             title={t.messages_new_chat}
           >
             <Plus className="w-4 h-4 text-white" />
@@ -408,7 +410,7 @@ function ConversationList({
           {onClose && (
             <button
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors active:bg-white/80"
               title={t.close}
             >
               <X className="w-4 h-4 text-white" />
@@ -444,7 +446,7 @@ function ConversationList({
                 <button
                   key={conv.contactId}
                   onClick={() => onSelect(conv.contactId)}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/8 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/8 transition-colors text-left active:bg-white/8/80"
                 >
                   <UserAvatar user={contact} size={44} />
                   <div className="flex-1 min-w-0">
@@ -466,6 +468,7 @@ function ConversationList({
                           ? 'font-semibold text-white'
                           : 'text-white/50'
                       }`}
+                      title={`${isMine ? 'Tu: ' : ''}${preview}`}
                     >
                       {isMine ? 'Tu: ' : ''}
                       {preview}

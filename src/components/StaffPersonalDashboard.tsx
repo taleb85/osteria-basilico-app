@@ -770,7 +770,7 @@ export default function StaffPersonalDashboard({
         <button
           type="button"
           onClick={() => setMobileNavOffset(o => o - 1)}
-          className="flex items-center justify-center h-9 w-9 text-white/60 hover:bg-slate-50 transition-colors shrink-0 border-r border-slate-100"
+          className="flex items-center justify-center h-9 w-9 text-white/60 hover:bg-slate-50 transition-colors shrink-0 border-r border-slate-100 active:bg-slate-50/80"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -788,7 +788,7 @@ export default function StaffPersonalDashboard({
         <button
           type="button"
           onClick={() => setMobileNavOffset(o => o + 1)}
-          className="flex items-center justify-center h-9 w-9 text-white/60 hover:bg-slate-50 transition-colors shrink-0 border-l border-slate-100"
+          className="flex items-center justify-center h-9 w-9 text-white/60 hover:bg-slate-50 transition-colors shrink-0 border-l border-slate-100 active:bg-slate-50/80"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -824,11 +824,11 @@ export default function StaffPersonalDashboard({
         <div>
           <AdminRow
             label={t.sidebar_profile}
-            action={<span className="text-sm font-semibold text-white uppercase tracking-wide truncate max-w-[55%] text-right">{displayName}</span>}
+            action={<span className="text-sm font-semibold text-white uppercase tracking-wide truncate max-w-[55%] text-right" title={displayName}>{displayName}</span>}
           />
           <AdminRow
             label={(t as { email?: string }).email ?? 'Email'}
-            action={<span className="text-sm text-white/70 truncate max-w-[55%] text-right">{displayUser?.email ?? '—'}</span>}
+            action={<span className="text-sm text-white/70 truncate max-w-[55%] text-right" title={displayUser?.email ?? '—'}>{displayUser?.email ?? '—'}</span>}
           />
           <AdminRow
             label={(t as { phone?: string }).phone ?? 'Telefono'}
@@ -866,7 +866,7 @@ export default function StaffPersonalDashboard({
                     setSeedingDemoProfile(false);
                   }
                 }}
-                className="w-full py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider bg-slate-100 text-white/80 hover:bg-slate-200 disabled:opacity-60 transition-colors"
+                className="w-full py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider bg-slate-100 text-white/80 hover:bg-slate-200 disabled:opacity-60 transition-colors active:bg-slate-200/80"
               >
                 {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
               </button>
@@ -876,7 +876,7 @@ export default function StaffPersonalDashboard({
           <button
             type="button"
             onClick={onLogout}
-            className="w-full flex items-center justify-between border-t border-slate-100 px-5 py-4 text-left hover:bg-red-50 transition-colors min-h-[52px] text-red-600 font-medium"
+            className="w-full flex items-center justify-between border-t border-slate-100 px-5 py-4 text-left hover:bg-red-50 transition-colors min-h-[52px] text-red-600 font-medium active:bg-red-50/80"
           >
             <span className="text-sm">{(t as { header_logout?: string }).header_logout ?? 'Esci'}</span>
             <LogOut className="w-5 h-5" strokeWidth={2} />
@@ -917,7 +917,7 @@ export default function StaffPersonalDashboard({
           <button
             type="button"
             onClick={onLogout}
-            className="mt-6 w-full py-3 rounded-xl bg-slate-100 text-white/80 font-semibold text-sm hover:bg-slate-200 transition-colors"
+            className="mt-6 w-full py-3 rounded-xl bg-slate-100 text-white/80 font-semibold text-sm hover:bg-slate-200 transition-colors active:bg-slate-200/80"
           >
             {(t as { header_logout?: string }).header_logout ?? 'Esci'}
           </button>
@@ -942,12 +942,12 @@ export default function StaffPersonalDashboard({
           <button
             type="button"
             onClick={() => setHolidaysFocus(false)}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent min-h-[44px] px-2 -ml-2 rounded-xl hover:bg-accent/10 touch-target"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent min-h-[44px] px-2 -ml-2 rounded-xl hover:bg-accent/10 touch-target active:bg-accent/80"
           >
             <ChevronLeft className="w-5 h-5" aria-hidden />
             {(t as { back?: string }).back ?? 'Indietro'}
           </button>
-          <span className="text-xs font-bold text-white/80 uppercase tracking-widest truncate">{t.sidebar_holidays}</span>
+          <span className="text-xs font-bold text-white/80 uppercase tracking-widest truncate" title={t.sidebar_holidays}>{t.sidebar_holidays}</span>
         </div>
       )}
 
@@ -1014,7 +1014,7 @@ export default function StaffPersonalDashboard({
                               active
                                 ? 'bg-accent text-white shadow-sm'
                                 : 'bg-white/8 border border-white/20 text-white/60 hover:border-white/35 hover:text-white/90'
-                            }`}
+                            } active:text-white/90'`}
                           >
                             {label}
                           </button>
@@ -1121,12 +1121,12 @@ export default function StaffPersonalDashboard({
               </div>
               {!isIos && (
                 <button type="button" onClick={handleInstall}
-                  className="flex-shrink-0 px-3 py-1.5 rounded-xl bg-accent text-white text-xs font-semibold hover:bg-accent-hover transition-colors">
+                  className="flex-shrink-0 px-3 py-1.5 rounded-xl bg-accent text-white text-xs font-semibold hover:bg-accent-hover transition-colors active:bg-accent-hover/80">
                   Installa
                 </button>
               )}
               <button type="button" onClick={dismissInstallBanner}
-                className="flex-shrink-0 p-1 rounded-xl text-white/50 hover:text-white/70 hover:bg-slate-100 transition-colors" aria-label={t.close}>
+                className="flex-shrink-0 p-1 rounded-xl text-white/50 hover:text-white/70 hover:bg-slate-100 transition-colors active:text-white/70" aria-label={t.close}>
                 <X className="w-4 h-4" />
               </button>
             </div>

@@ -157,8 +157,7 @@ export function TimesheetDrawerHeader({
       <div className="px-4 pt-2.5 pb-2 sm:px-5 sm:pt-3 sm:pb-2.5">
         {/* Riga 1: nome + (sm: azioni) + nav/close */}
         <div className="flex items-center gap-2">
-          <h3 className="min-w-0 flex-1 truncate text-[13px] sm:text-base font-bold leading-tight text-white">
-            {employeeName.toUpperCase()}
+          <h3 className="min-w-0 flex-1 truncate text-[13px] sm:text-base font-bold leading-tight text-white" title={employeeName.toUpperCase()}>{employeeName.toUpperCase()}
           </h3>
           
           {/* Bottoni azione: visibili su sm+, su mobile nella riga 3 */}
@@ -219,7 +218,7 @@ export function TimesheetDrawerHeader({
                       type="button"
                       disabled={!navigationReviewDay.canPrev}
                       onClick={() => navigationReviewDay.onNavigate(-1)}
-                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
+                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30 active:bg-accent/80"
                       aria-label={t.nav_up || t.prev}
                     >
                       <ChevronUp className="h-4 w-4 text-white/70" />
@@ -228,7 +227,7 @@ export function TimesheetDrawerHeader({
                       type="button"
                       disabled={!navigationReviewDay.canNext}
                       onClick={() => navigationReviewDay.onNavigate(1)}
-                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
+                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30 active:bg-accent/80"
                       aria-label={t.nav_down || t.next}
                     >
                       <ChevronDown className="h-4 w-4 text-white/70" />
@@ -243,7 +242,7 @@ export function TimesheetDrawerHeader({
                       type="button"
                       disabled={!navigation.canPrev}
                       onClick={() => navigation.onNavigate(-1)}
-                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
+                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30 active:bg-accent/80"
                       aria-label={t.nav_prev || t.prev}
                     >
                       <ChevronLeft className="h-4 w-4 text-white/70" />
@@ -252,7 +251,7 @@ export function TimesheetDrawerHeader({
                       type="button"
                       disabled={!navigation.canNext}
                       onClick={() => navigation.onNavigate(1)}
-                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30"
+                      className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 disabled:opacity-30 active:bg-accent/80"
                       aria-label={t.nav_next || t.next}
                     >
                       <ChevronRight className="h-4 w-4 text-white/70" />
@@ -265,7 +264,7 @@ export function TimesheetDrawerHeader({
             <button
               type="button"
               onClick={handleClose}
-              className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10"
+              className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl p-0 transition-colors hover:bg-accent/10 active:bg-accent/80"
               aria-label={t.close}
             >
               <X className="h-4 w-4 text-white/70" />

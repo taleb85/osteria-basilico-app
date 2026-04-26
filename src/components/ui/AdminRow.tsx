@@ -22,13 +22,18 @@ export default function AdminRow({
 }: AdminRowProps) {
   return (
     <div
-      className={`flex min-h-[56px] items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 transition-colors last:border-b-0 hover:bg-gray-50/50 ${className}`}
+      className={`flex min-h-[56px] items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 transition-colors last:border-b-0 hover:bg-gray-50/50 ${className} active:bg-gray-50/80`}
     >
       <div className="flex min-w-0 flex-1 items-center gap-3 pr-2">
         {icon != null ? <span className="shrink-0 text-white/60 [&_svg]:block">{icon}</span> : null}
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <span className="truncate text-sm font-bold leading-tight text-white">{label}</span>
+            <span
+              className="truncate text-sm font-bold leading-tight text-white"
+              title={typeof label === 'string' ? label : undefined}
+            >
+              {label}
+            </span>
             {badge}
           </div>
           {description != null && description !== '' ? (

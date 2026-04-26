@@ -367,8 +367,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                     />
                   )}
                   {id === 'profile' && (
-                    <span className="hidden lg:block text-xs font-semibold truncate max-w-[80px] transition-[color,opacity] duration-200" style={{ color: '#ffffff' }}>
-                      {profileDisplayName}
+                    <span className="hidden lg:block text-xs font-semibold truncate max-w-[80px] transition-[color,opacity] duration-200" style={{ color: '#ffffff' }} title={profileDisplayName}>{profileDisplayName}
                     </span>
                   )}
                 </button>
@@ -418,7 +417,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
               </h3>
               <button
                 onClick={() => setIsQuickSwitchOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors active:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -451,7 +450,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                     currentUser?.id === u.id 
                       ? 'bg-accent/12 text-accent ring-1 ring-accent/20' 
                       : 'hover:bg-white/8 text-white/80 hover:text-white'
-                  }`}
+                  } active:text-white'`}
                 >
                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-sm transition-transform duration-200 ${
                     currentUser?.id === u.id
@@ -475,7 +474,10 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold truncate">
+                    <p
+                      className="text-sm font-semibold truncate"
+                      title={`${u.first_name} ${u.last_name ?? ''}`.trim()}
+                    >
                       {u.first_name} {u.last_name}
                     </p>
                   </div>

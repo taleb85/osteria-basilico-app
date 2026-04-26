@@ -452,7 +452,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
                     inputMode="numeric"
                     className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 pr-9 text-base font-mono text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                   />
-                  <button type="button" onClick={() => setShowPin((p) => !p)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-accent transition">
+                  <button type="button" onClick={() => setShowPin((p) => !p)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-accent transition active:text-accent">
                     {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
@@ -499,26 +499,24 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
               </span>
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white/90 truncate">
-                  {u.first_name} {u.last_name}
+                <p className="text-sm font-semibold text-white/90 truncate" title={u.first_name}>{u.first_name} {u.last_name}
                   {u.status !== 'active' && <span className="ml-1.5 text-[11px] font-bold text-red-400">(sospeso)</span>}
                 </p>
-                <p className="text-[11px] text-white/40 truncate">
-                  {ROLE_LABELS[u.role]}{u.department ? ` · ${u.department}` : ''}
+                <p className="text-[11px] text-white/40 truncate" title={ROLE_LABELS[u.role]}>{ROLE_LABELS[u.role]}{u.department ? ` · ${u.department}` : ''}
                 </p>
               </div>
               {/* Azioni */}
               <div className="flex items-center gap-1 shrink-0">
                 <button onClick={() => toggleStatus(u)} title={u.status === 'active' ? 'Sospendi' : 'Riattiva'}
-                  className={`p-1.5 rounded-lg transition ${u.status === 'active' ? 'text-brand-500 hover:bg-brand-50' : 'text-white/40 hover:bg-white/10'}`}>
+                  className={`p-1.5 rounded-lg transition ${u.status === 'active' ? 'text-brand-500 hover:bg-brand-50' : 'text-white/40 hover:bg-white/10'} active:bg-brand-50'/80`}>
                   {u.status === 'active' ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
                 </button>
                 <button onClick={() => openEdit(u)} title="Modifica"
-                  className="p-1.5 rounded-lg text-white/40 hover:text-accent hover:bg-accent/10 transition">
+                  className="p-1.5 rounded-lg text-white/40 hover:text-accent hover:bg-accent/10 transition active:text-accent">
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
                 <button onClick={() => handleDelete(u.id)} title="Elimina" disabled={deleting === u.id}
-                  className="p-1.5 rounded-lg text-white/40 hover:text-red-500 hover:bg-red-50 transition disabled:opacity-40">
+                  className="p-1.5 rounded-lg text-white/40 hover:text-red-500 hover:bg-red-50 transition disabled:opacity-40 active:text-red-500">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -554,7 +552,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
                 <button
                   type="button"
                   onClick={() => setConfirmClearDemo(false)}
-                  className="flex-1 rounded-xl py-1.5 text-xs font-semibold bg-white/8 text-white/50 hover:bg-white/12 transition"
+                  className="flex-1 rounded-xl py-1.5 text-xs font-semibold bg-white/8 text-white/50 hover:bg-white/12 transition active:bg-white/80"
                 >
                   Annulla
                 </button>
@@ -562,7 +560,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
                   type="button"
                   onClick={handleClearDemo}
                   disabled={clearingDemo}
-                  className="flex-1 rounded-xl py-1.5 text-xs font-bold bg-amber-600 text-white hover:bg-amber-500 transition disabled:opacity-50"
+                  className="flex-1 rounded-xl py-1.5 text-xs font-bold bg-amber-600 text-white hover:bg-amber-500 transition disabled:opacity-50 active:bg-amber-500/80"
                 >
                   {clearingDemo ? 'Rimozione…' : 'Sì, rimuovi'}
                 </button>
@@ -730,7 +728,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
               tab === t.id
                 ? 'text-accent border-b-2 border-accent bg-white/8'
                 : 'text-white/55 hover:text-white/80'
-            }`}
+            } active:text-white/80'`}
           >
             {t.icon}{t.label}
           </button>
@@ -853,6 +851,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                       type="number" step="0.000001"
                       value={settings.geofence.lat}
                       onChange={(e) => set('geofence', { ...settings.geofence!, lat: parseFloat(e.target.value) || 0 })}
+                      placeholder="0"
                       className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                     />
                   </div>
@@ -862,6 +861,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                       type="number" step="0.000001"
                       value={settings.geofence.lng}
                       onChange={(e) => set('geofence', { ...settings.geofence!, lng: parseFloat(e.target.value) || 0 })}
+                      placeholder="0"
                       className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                     />
                   </div>
@@ -872,6 +872,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                     type="number" min={10} max={5000}
                     value={settings.geofence.radiusM}
                     onChange={(e) => set('geofence', { ...settings.geofence!, radiusM: parseInt(e.target.value) || 100 })}
+                    placeholder="0"
                     className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                   />
                 </div>
@@ -928,7 +929,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
             type="button"
             onClick={handleSave}
             disabled={saving || tab === 'staff'}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white hover:bg-accent-hover transition disabled:opacity-40"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white hover:bg-accent-hover transition disabled:opacity-40 active:bg-accent-hover/80"
           >
             <Check className="w-4 h-4" />
             {saving ? 'Salvataggio…' : tab === 'staff' ? 'Salvataggio inline per dipendente' : 'Salva impostazioni sede'}
@@ -993,6 +994,7 @@ function NumberInput({ value, min, max, onChange, suffix }: {
         type="number" min={min} max={max}
         value={value}
         onChange={(e) => onChange(Math.max(min, Math.min(max, parseInt(e.target.value) || min)))}
+        placeholder="0"
         className="w-16 rounded-lg border border-white/15 bg-white/8 px-2 py-1 text-base text-center text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
       />
       <span className="text-xs text-white/40">{suffix}</span>
@@ -1071,7 +1073,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
             pattern="[a-z0-9\-]+"
             className="flex-1 rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base font-mono text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
           />
-          <button type="button" onClick={() => { setSlugManual(false); setSlug(slugify(name)); }} className="text-xs text-accent hover:underline shrink-0">Auto</button>
+          <button type="button" onClick={() => { setSlugManual(false); setSlug(slugify(name)); }} className="text-xs text-accent hover:underline shrink-0 active:brightness-95">Auto</button>
         </div>
         <p className="text-[11px] text-white/40">Sarà il sottodominio: <span className="font-mono">{slug || '…'}.tuodominio.com</span></p>
       </div>
@@ -1106,12 +1108,12 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
         <button
           type="submit"
           disabled={saving || !name.trim() || !slug.trim()}
-          className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white hover:bg-accent-hover transition disabled:opacity-40"
+          className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white hover:bg-accent-hover transition disabled:opacity-40 active:bg-accent-hover/80"
         >
           <Check className="w-4 h-4" />
           {saving ? 'Salvataggio…' : 'Salva'}
         </button>
-        <button type="button" onClick={onCancel} className="rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold text-white/80 hover:bg-white/14 transition">
+        <button type="button" onClick={onCancel} className="rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold text-white/80 hover:bg-white/14 transition active:bg-white/80">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -1464,7 +1466,7 @@ function SuperAdminPanelInner() {
           <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 flex gap-2 items-start">
             <X className="w-4 h-4 shrink-0 mt-0.5" />
             <span className="flex-1">{error}</span>
-            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 shrink-0 p-1"><X className="w-3.5 h-3.5" /></button>
+            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 shrink-0 p-1 active:text-red-600"><X className="w-3.5 h-3.5" /></button>
           </div>
         )}
 
@@ -1541,8 +1543,8 @@ function SuperAdminPanelInner() {
                             {/* Slug */}
                             <div className="flex items-center gap-1 mt-1">
                               <Globe className="w-3 h-3 text-white/40 shrink-0" />
-                              <span className="text-xs font-mono text-white/40 truncate">{t.slug}</span>
-                              <button onClick={() => copySlug(t.slug)} className="text-slate-300 hover:text-[#2255BB] transition p-0.5 shrink-0" title="Copia slug">
+                              <span className="text-xs font-mono text-white/40 truncate" title={t.slug}>{t.slug}</span>
+                              <button onClick={() => copySlug(t.slug)} className="text-slate-300 hover:text-[#2255BB] transition p-0.5 shrink-0 active:text-[#2255BB]" title="Copia slug">
                                 <Copy className="w-3 h-3" />
                               </button>
                             </div>
@@ -1553,14 +1555,14 @@ function SuperAdminPanelInner() {
                                 href={PUBLIC_APP_ORIGIN}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-xs text-[#2255BB] hover:underline font-medium min-w-0"
+                                className="flex items-center gap-1 text-xs text-[#2255BB] hover:underline font-medium min-w-0 active:brightness-95"
                               >
                                 <ExternalLink className="w-3 h-3 shrink-0" />
                                 <span className="truncate">{new URL(PUBLIC_APP_ORIGIN).host}</span>
                               </a>
                               <button
                                 onClick={() => navigator.clipboard.writeText(PUBLIC_APP_ORIGIN).then(() => showToast('URL copiato!'))}
-                                className="text-slate-300 hover:text-[#2255BB] transition p-0.5 shrink-0"
+                                className="text-slate-300 hover:text-[#2255BB] transition p-0.5 shrink-0 active:text-[#2255BB]"
                                 title="Copia URL"
                               >
                                 <Copy className="w-3 h-3" />
@@ -1628,14 +1630,14 @@ function SuperAdminPanelInner() {
                                 <div className="flex gap-2 pt-1">
                                   <button
                                     onClick={() => setConfirmDeleteId(null)}
-                                    className="flex-1 rounded-xl py-2 text-xs font-semibold bg-white/10 text-white/55 hover:bg-white/14 transition"
+                                    className="flex-1 rounded-xl py-2 text-xs font-semibold bg-white/10 text-white/55 hover:bg-white/14 transition active:bg-white/80"
                                   >
                                     Annulla
                                   </button>
                                   <button
                                     onClick={() => handleDeleteTenant(t)}
                                     disabled={deleting}
-                                    className="flex-1 rounded-xl py-2 text-xs font-bold bg-red-600 text-white hover:bg-red-500 transition disabled:opacity-50"
+                                    className="flex-1 rounded-xl py-2 text-xs font-bold bg-red-600 text-white hover:bg-red-500 transition disabled:opacity-50 active:bg-red-500/80"
                                   >
                                     {deleting ? 'Eliminazione…' : 'Sì, elimina sede'}
                                   </button>
@@ -2139,7 +2141,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
             CSV con turni passati. I nomi non riconosciuti vengono ignorati. Stesso slot (sede, data, orari, tipo) non viene duplicato se è già in tabella.
           </p>
         </div>
-        <button onClick={onClose} className="text-white/40 hover:text-white/80 transition p-1"><X className="w-4 h-4" /></button>
+        <button onClick={onClose} className="text-white/40 hover:text-white/80 transition p-1 active:text-white/80"><X className="w-4 h-4" /></button>
       </div>
 
       <div className="space-y-1">
@@ -2152,12 +2154,12 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
 
       <div className="grid grid-cols-2 gap-2">
         <button onClick={downloadTemplate}
-          className="flex items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/8 py-2.5 text-xs font-semibold text-white/55 hover:bg-white/10 hover:text-white/90 transition">
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/8 py-2.5 text-xs font-semibold text-white/55 hover:bg-white/10 hover:text-white/90 transition active:text-white/90">
           <ChevronRight className="w-3.5 h-3.5 -rotate-90" />
           Scarica template CSV
         </button>
         <button onClick={() => fileRef.current?.click()}
-          className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-400/40 bg-amber-100 py-2.5 text-xs font-bold text-amber-700 hover:bg-amber-200 transition">
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-400/40 bg-amber-100 py-2.5 text-xs font-bold text-amber-700 hover:bg-amber-200 transition active:bg-amber-200/80">
           <ChevronRight className="w-3.5 h-3.5 rotate-90" />
           {fileName ? fileName.slice(0, 22) + (fileName.length > 22 ? '…' : '') : 'Carica CSV'}
         </button>
@@ -2272,7 +2274,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
           <button
             onClick={() => void loadHistory(selectedTenantId)}
             disabled={historyLoading}
-            className="text-[11px] text-white/40 hover:text-white/80 transition font-semibold"
+            className="text-[11px] text-white/40 hover:text-white/80 transition font-semibold active:text-white/80"
           >
             {historyLoading ? 'Caricamento…' : '↺ Aggiorna'}
           </button>
@@ -2308,13 +2310,13 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
                     <button
                       onClick={() => void deleteImportBatch(batch.adminNote)}
                       disabled={deletingBatch === batch.adminNote}
-                      className="rounded-lg bg-red-500 hover:bg-red-600 px-2 py-1 text-[11px] font-bold text-white transition disabled:opacity-50"
+                      className="rounded-lg bg-red-500 hover:bg-red-600 px-2 py-1 text-[11px] font-bold text-white transition disabled:opacity-50 active:bg-red-600/80"
                     >
                       {deletingBatch === batch.adminNote ? '…' : 'Sì, elimina'}
                     </button>
                     <button
                       onClick={() => setConfirmDelete(null)}
-                      className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/70 hover:bg-white/5 transition"
+                      className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/70 hover:bg-white/5 transition active:bg-white/5/80"
                     >
                       Annulla
                     </button>
@@ -2322,7 +2324,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
                 ) : (
                   <button
                     onClick={() => setConfirmDelete(batch.adminNote)}
-                    className="shrink-0 flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-[11px] font-semibold text-red-500 hover:bg-red-50 hover:border-red-300 transition"
+                    className="shrink-0 flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-[11px] font-semibold text-red-500 hover:bg-red-50 hover:border-red-300 transition active:bg-red-50/80"
                   >
                     <Trash2 className="w-3 h-3" />
                     Elimina

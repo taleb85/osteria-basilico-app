@@ -526,14 +526,14 @@ export default function HomePage({
                         <button
                           type="button"
                           onClick={handleSaveBoard}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600"
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 active:bg-amber-600/80"
                         >
                           <Check size={12} /> {t.save}
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditingBoard(false)}
-                          className="px-3 py-1.5 rounded-xl bg-white/10 text-white/70 text-xs font-semibold hover:bg-white/15"
+                          className="px-3 py-1.5 rounded-xl bg-white/10 text-white/70 text-xs font-semibold hover:bg-white/15 active:bg-white/80"
                         >
                           {t.cancel}
                         </button>
@@ -548,7 +548,7 @@ export default function HomePage({
                         setBoardDraft('');
                         setEditingBoard(true);
                       }}
-                      className="text-left w-full text-xs italic hover:opacity-80 transition-opacity"
+                      className="text-left w-full text-xs italic hover:opacity-80 transition-opacity active:opacity-70"
                       style={{ color: '#ffffff' }}
                     >
                       {t.home_board_empty}
@@ -570,7 +570,7 @@ export default function HomePage({
                         setBoardDraft(boardNote?.text ?? '');
                         setEditingBoard(true);
                       }}
-                      className="p-1.5 rounded-xl hover:bg-amber-100 text-amber-600"
+                      className="p-1.5 rounded-xl hover:bg-amber-100 text-amber-600 active:bg-amber-100/80"
                     >
                       <Pencil size={13} />
                     </button>
@@ -581,7 +581,7 @@ export default function HomePage({
                           clearBoardNote();
                           setBoardNoteState(null);
                         }}
-                        className="p-1.5 rounded-xl hover:bg-red-50 text-red-400"
+                        className="p-1.5 rounded-xl hover:bg-red-50 text-red-400 active:bg-red-50/80"
                       >
                         <X size={13} />
                       </button>
@@ -649,7 +649,7 @@ export default function HomePage({
           <div ref={shiftsListRef} className="surface-glass p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs font-bold text-white/55 uppercase tracking-wider">{t.home_my_shifts}</h3>
-              <button type="button" onClick={() => onNavigateToShifts?.()} className="text-xs font-semibold text-accent flex items-center gap-1 hover:underline">
+              <button type="button" onClick={() => onNavigateToShifts?.()} className="text-xs font-semibold text-accent flex items-center gap-1 hover:underline active:brightness-95">
                 {t.home_see_all} <ChevronRight className="w-3 h-3" />
               </button>
             </div>
@@ -761,10 +761,10 @@ export default function HomePage({
                         placeholder={t.home_board_placeholder} rows={2}
                         className="w-full text-base text-white bg-amber-500/10 border border-amber-400/40 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400" />
                       <div className="flex gap-2">
-                        <button type="button" onClick={handleSaveBoard} className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600">
+                        <button type="button" onClick={handleSaveBoard} className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 active:bg-amber-600/80">
                           <Check size={12} /> {t.save}
                         </button>
-                        <button type="button" onClick={() => setEditingBoard(false)} className="px-3 py-1.5 rounded-xl bg-white/10 text-white/70 text-xs font-semibold hover:bg-white/15">
+                        <button type="button" onClick={() => setEditingBoard(false)} className="px-3 py-1.5 rounded-xl bg-white/10 text-white/70 text-xs font-semibold hover:bg-white/15 active:bg-white/80">
                           {t.cancel}
                         </button>
                       </div>
@@ -778,7 +778,7 @@ export default function HomePage({
                         setBoardDraft('');
                         setEditingBoard(true);
                       }}
-                      className="text-left w-full text-xs italic hover:opacity-80 transition-opacity"
+                      className="text-left w-full text-xs italic hover:opacity-80 transition-opacity active:opacity-70"
                       style={{ color: '#ffffff' }}
                     >
                       {t.home_board_empty}
@@ -792,8 +792,8 @@ export default function HomePage({
                 </div>
                 {canEditTeamBoard && !editingBoard && (
                   <div className="flex items-center gap-1 shrink-0">
-                    <button type="button" onClick={() => { setBoardDraft(boardNote?.text ?? ''); setEditingBoard(true); }} className="p-1.5 rounded-xl hover:bg-amber-100 text-amber-600"><Pencil size={13} /></button>
-                    {boardNote && <button type="button" onClick={() => { clearBoardNote(); setBoardNoteState(null); }} className="p-1.5 rounded-xl hover:bg-red-50 text-red-400"><X size={13} /></button>}
+                    <button type="button" onClick={() => { setBoardDraft(boardNote?.text ?? ''); setEditingBoard(true); }} className="p-1.5 rounded-xl hover:bg-amber-100 text-amber-600 active:bg-amber-100/80"><Pencil size={13} /></button>
+                    {boardNote && <button type="button" onClick={() => { clearBoardNote(); setBoardNoteState(null); }} className="p-1.5 rounded-xl hover:bg-red-50 text-red-400 active:bg-red-50/80"><X size={13} /></button>}
                   </div>
                 )}
               </div>
@@ -900,7 +900,7 @@ export default function HomePage({
                         setClockOutInput(e.scheduledEnd);
                         setCloseModal({ shiftId: e.shift.id, punchInId: e.punchIn.id, dateStr: todayStr, plannedEnd: e.scheduledEnd, employeeName: e.user?.first_name ?? '—', actualStart: e.actualStart ?? e.scheduledStart });
                       }}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-bold transition-colors shadow-sm"
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-bold transition-colors shadow-sm active:bg-accent-hover/80"
                     >
                       <LogOutIcon className="w-4 h-4" /> {t.home_btn_close_shift}
                     </button>
@@ -945,7 +945,7 @@ export default function HomePage({
                 <Calendar className="w-4 h-4 text-white/55" />
                 <h2 className="text-sm font-bold text-white">{t.home_todays_shifts}</h2>
                 <span className="text-[11px] text-slate-200 ml-1">({todayShiftsEnriched.length})</span>
-                <button type="button" onClick={() => onNavigateToShifts?.()} className="ml-auto text-xs font-semibold text-accent flex items-center gap-0.5 hover:underline">
+                <button type="button" onClick={() => onNavigateToShifts?.()} className="ml-auto text-xs font-semibold text-accent flex items-center gap-0.5 hover:underline active:brightness-95">
                   {t.home_see_all_shifts} <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
@@ -1016,7 +1016,7 @@ export default function HomePage({
                   const u = users.find((x) => x.id === h.user_id);
                   return (
                     <div key={h.id} className="flex items-center justify-between py-1 border-b border-white/8 last:border-0">
-                      <span className="text-white/70 text-xs font-medium truncate flex-1">{u?.first_name ?? '?'}</span>
+                      <span className="text-white/70 text-xs font-medium truncate flex-1" title={u?.first_name ?? '?'}>{u?.first_name ?? '?'}</span>
                       <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ml-2 ${h.status === 'approved' ? 'bg-accent/15 text-accent border-accent/30' : h.status === 'pending' ? 'bg-amber-500/15 text-amber-300 border-amber-400/30' : 'bg-red-500/15 text-red-300 border-red-400/30'}`}>
                         {h.status === 'approved' ? t.home_holiday_approved : h.status === 'pending' ? t.home_holiday_pending : t.home_holiday_rejected}
                       </span>
@@ -1072,7 +1072,7 @@ export default function HomePage({
                     </h3>
                     <p className="text-sm text-white/55 mt-0.5">{closeModal.employeeName} · {safeFormatDate(closeModal.dateStr, 'd MMM', { locale })}</p>
                   </div>
-                  <button type="button" onClick={() => { setCloseModal(null); setClockOutInput(''); }} className="p-1.5 rounded-xl hover:bg-white/10 transition-colors">
+                  <button type="button" onClick={() => { setCloseModal(null); setClockOutInput(''); }} className="p-1.5 rounded-xl hover:bg-white/10 transition-colors active:bg-white/80">
                     <X className="w-4 h-4 text-white/55" />
                   </button>
                 </div>
@@ -1117,11 +1117,11 @@ export default function HomePage({
 
                 <div className="flex gap-2">
                   <button type="button" onClick={() => { setCloseModal(null); setClockOutInput(''); }}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-semibold hover:bg-white/12 transition-colors">
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-semibold hover:bg-white/12 transition-colors active:bg-white/80">
                     {t.cancel}
                   </button>
                   <button type="button" disabled={!clockOutInput || closingLoading} onClick={handleConfirmClose}
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 transition-colors">
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 transition-colors active:bg-accent-hover/80">
                     {closingLoading ? t.saving : <><LogOutIcon className="w-4 h-4" />{t.home_btn_register}</>}
                   </button>
                 </div>

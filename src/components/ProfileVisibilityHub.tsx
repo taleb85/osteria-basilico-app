@@ -95,7 +95,7 @@ function NavPreviewBar({
           const label = (
             <>
               <Icon className={`${iconSz} opacity-95`} strokeWidth={1.5} aria-hidden />
-              <span className={`font-semibold leading-tight text-center truncate w-full ${labelSz}`}>{labels[id]}</span>
+              <span className={`font-semibold leading-tight text-center truncate w-full ${labelSz}`} title={labels[id]}>{labels[id]}</span>
             </>
           );
           if (interactive) {
@@ -104,7 +104,7 @@ function NavPreviewBar({
                 key={id}
                 type="button"
                 onClick={() => onSelectTab!(id)}
-                className={`${cls} keep-white-glass cursor-pointer hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white`}
+                className={`${cls} keep-white-glass cursor-pointer hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white active:bg-white/80`}
                 aria-pressed={selected}
                 aria-label={labels[id]}
               >
@@ -449,7 +449,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                   roleFilter === k
                     ? 'rounded-full border border-accent bg-accent text-white'
                     : 'surface-glass-sm !rounded-full text-white/70 surface-ghost-interactive hover:border-slate-300'
-                }`}
+                } active:brightness-95`}
               >
                 {k === 'all'
                   ? tv.profile_visibility_filter_all ?? 'Tutti'
@@ -484,7 +484,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                     onClick={() => setSelectedId(u.id)}
                     className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors ${
                       active ? 'bg-accent/8' : 'hover:bg-slate-50'
-                    }`}
+                    } active:bg-slate-50'/80`}
                   >
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-white/70">
                       {(u.first_name?.[0] ?? '?').toUpperCase()}
@@ -539,7 +539,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
             <button
               type="button"
               onClick={closePreview}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-white/80 transition-colors hover:bg-slate-100"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-white/80 transition-colors hover:bg-slate-100 active:bg-slate-100/80"
               aria-label={tv.profile_visibility_close_preview ?? 'Chiudi anteprima'}
             >
               <X className="h-5 w-5 text-white/90" strokeWidth={2} />
@@ -619,7 +619,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                   <button
                     type="button"
                     onClick={handleSmartRestore}
-                    className="inline-flex items-center gap-2 surface-glass-sm px-3 py-2 text-xs font-semibold text-white/70 surface-ghost-interactive hover:text-white"
+                    className="inline-flex items-center gap-2 surface-glass-sm px-3 py-2 text-xs font-semibold text-white/70 surface-ghost-interactive hover:text-white active:text-white"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     {hasUnsavedChanges
@@ -632,7 +632,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                       type="button"
                       onClick={handleDeleteUser}
                       disabled={isDeleting}
-                      className="inline-flex items-center gap-2 surface-glass-sm px-3 py-2 text-xs font-semibold text-red-600 surface-ghost-interactive hover:bg-red-50"
+                      className="inline-flex items-center gap-2 surface-glass-sm px-3 py-2 text-xs font-semibold text-red-600 surface-ghost-interactive hover:bg-red-50 active:bg-red-50/80"
                     >
                       {isDeleting ? (
                         <RotateCcw className="w-3.5 h-3.5 animate-spin" />

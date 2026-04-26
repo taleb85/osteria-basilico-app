@@ -308,7 +308,7 @@ export default function MobileStaffDashboard({
                     setCloseModal(null);
                     setClockOutInput('');
                   }}
-                  className="rounded-xl p-1.5 hover:bg-slate-100"
+                  className="rounded-xl p-1.5 hover:bg-slate-100 active:bg-slate-100/80"
                 >
                   <X className="h-4 w-4 text-white/60" />
                 </button>

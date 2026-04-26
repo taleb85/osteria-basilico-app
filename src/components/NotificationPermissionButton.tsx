@@ -90,7 +90,7 @@ export function NotificationPermissionButton({
           isSubscribed
             ? 'bg-brand-50 text-brand-700 border-brand-200'
             : 'bg-slate-100 text-white/80 border-slate-200 hover:bg-slate-200'
-        }`}
+        } active:bg-slate-200'/80`}
       >
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />

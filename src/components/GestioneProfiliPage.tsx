@@ -155,7 +155,7 @@ export default function GestioneProfiliPage() {
                       </div>
                       <button
                         onClick={() => setExpandedUserId(isExpanded ? null : user.id)}
-                        className="p-1 hover:bg-white/15 rounded-full transition-colors"
+                        className="p-1 hover:bg-white/15 rounded-full transition-colors active:bg-white/80"
                       >
                         {isExpanded ? (
                           <ChevronUp className="w-4 h-4 text-white/50" />
@@ -200,7 +200,7 @@ export default function GestioneProfiliPage() {
                                     <button
                                       onClick={() => handleSave(user.id)}
                                       disabled={isSaving}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-white text-[11px] font-bold hover:bg-accent-hover transition-colors disabled:opacity-50"
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-white text-[11px] font-bold hover:bg-accent-hover transition-colors disabled:opacity-50 active:bg-accent-hover/80"
                                     >
                                       <Save className="w-3 h-3" /> {isSaving ? 'Salvataggio...' : 'Salva Modifiche'}
                                     </button>
@@ -224,7 +224,7 @@ export default function GestioneProfiliPage() {
                                   <button
                                     onClick={() => handleSave(user.id)}
                                     disabled={isSaving}
-                                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-accent text-white text-sm font-bold hover:bg-accent-hover transition-colors shadow-md disabled:opacity-50"
+                                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-accent text-white text-sm font-bold hover:bg-accent-hover transition-colors shadow-md disabled:opacity-50 active:bg-accent-hover/80"
                                   >
                                     <Save className="w-4 h-4" /> {isSaving ? 'Salvataggio...' : 'Salva Modifiche'}
                                   </button>
@@ -239,7 +239,7 @@ export default function GestioneProfiliPage() {
                                 </p>
                                 <button
                                   onClick={() => toggleTab(user.id, 'permissions')}
-                                  className="text-[11px] font-bold text-accent uppercase hover:underline"
+                                  className="text-[11px] font-bold text-accent uppercase hover:underline active:brightness-95"
                                 >
                                   Torna ai permessi
                                 </button>
@@ -253,9 +253,9 @@ export default function GestioneProfiliPage() {
                                     onClick={() => {
                                       // L'hub si apre perché currentTab === 'visibility' renderizza il componente sotto
                                     }}
-                                    className="w-full py-8 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/20 rounded-xl hover:border-accent/50 hover:bg-accent/[0.05] transition-all group"
+                                    className="w-full py-8 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/20 rounded-xl hover:border-accent/50 hover:bg-accent/[0.05] transition-all group active:bg-accent//80"
                                   >
-                                    <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center group-hover:scale-110 transition-transform active:scale-[0.98]">
                                       <Eye className="w-6 h-6 text-accent" />
                                     </div>
                                     <div className="text-center">

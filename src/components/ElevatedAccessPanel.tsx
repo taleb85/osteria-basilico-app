@@ -59,8 +59,7 @@ export default function ElevatedAccessPanel() {
             <div className="flex items-center gap-2 min-w-0">
               <ShieldCheck className={`h-4 w-4 shrink-0 ${enabled ? 'text-accent' : 'text-white/30'}`} />
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-white truncate">
-                  {u.first_name} {u.last_name ?? ''}
+                <p className="text-sm font-semibold text-white truncate" title={u.first_name}>{u.first_name} {u.last_name ?? ''}
                 </p>
                 <p className="text-[11px] text-white/60 uppercase tracking-wide">
                   {translateRole(u.role, effectiveLanguage)}

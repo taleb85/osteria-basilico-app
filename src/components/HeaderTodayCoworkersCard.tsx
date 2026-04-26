@@ -240,12 +240,10 @@ export default function HeaderTodayCoworkersCard() {
                     )}
                   </div>
                   <div className="min-w-0 w-full px-0.5">
-                    <span className="block truncate text-[11px] font-black uppercase tracking-tight text-white/60">
-                      {r.name}
+                    <span className="block truncate text-[11px] font-black uppercase tracking-tight text-white/60" title={r.name}>{r.name}
                     </span>
                     {timeCaption ? (
-                      <span className="block truncate text-[11px] font-bold tabular-nums text-white/60 mt-0.5">
-                        {timeCaption}
+                      <span className="block truncate text-[11px] font-bold tabular-nums text-white/60 mt-0.5" title={timeCaption}>{timeCaption}
                       </span>
                     ) : null}
                   </div>

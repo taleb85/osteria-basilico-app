@@ -81,7 +81,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center"
+              className="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center active:bg-white/80"
             >
               <X className="w-5 h-5 text-white" />
             </button>
@@ -151,7 +151,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
                 <button
                   type="button"
                   onClick={handleRevert}
-                  className="flex w-full items-center justify-center space-x-2 rounded-xl bg-slate-700 py-3 font-black uppercase tracking-wider text-white transition-all hover:bg-slate-600"
+                  className="flex w-full items-center justify-center space-x-2 rounded-xl bg-slate-700 py-3 font-black uppercase tracking-wider text-white transition-all hover:bg-slate-600 active:bg-slate-600/80"
                 >
                   <RotateCcw className="w-5 h-5" />
                   <span>Riporta in Sospeso</span>
@@ -163,7 +163,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 bg-slate-200 text-white/90 rounded-xl py-4 font-black uppercase tracking-wider hover:bg-slate-300 transition-all"
+                className="flex-1 bg-slate-200 text-white/90 rounded-xl py-4 font-black uppercase tracking-wider hover:bg-slate-300 transition-all active:bg-slate-300/80"
               >
                 {isAlreadyApproved ? t.close : t.cancel}
               </button>
@@ -171,7 +171,7 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
                 <button
                   type="button"
                   onClick={handleApprove}
-                  className="flex-1 bg-accent text-white rounded-xl py-4 font-black uppercase tracking-wider hover:bg-accent-hover transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 bg-accent text-white rounded-xl py-4 font-black uppercase tracking-wider hover:bg-accent-hover transition-all flex items-center justify-center space-x-2 active:bg-accent-hover/80"
                 >
                   <Check className="w-5 h-5" />
                   <span>{t.approve}</span>

@@ -186,7 +186,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         {allowClear ? (
           <button
             type="button"
-            className="rounded-2xl px-2.5 py-1.5 text-sm font-semibold text-white/60 transition-colors hover:bg-slate-50 hover:text-white/90"
+            className="rounded-2xl px-2.5 py-1.5 text-sm font-semibold text-white/60 transition-colors hover:bg-slate-50 hover:text-white/90 active:text-white/90"
             onClick={() => {
               onChange('');
               setOpen(false);
@@ -197,7 +197,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         ) : null}
         <button
           type="button"
-          className="rounded-2xl bg-accent px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-hover"
+          className="rounded-2xl bg-accent px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-hover active:bg-accent-hover/80"
           onClick={() => {
             onChange(format(new Date(), 'yyyy-MM-dd'));
             setOpen(false);
@@ -220,10 +220,10 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`inline-flex shrink-0 items-center text-left font-semibold leading-none tabular-nums text-white/90 transition-colors surface-glass-sm surface-ghost-interactive hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 ${btnSizeClass} ${className}`}
+        className={`inline-flex shrink-0 items-center text-left font-semibold leading-none tabular-nums text-white/90 transition-colors surface-glass-sm surface-ghost-interactive hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 ${btnSizeClass} ${className} active:brightness-95`}
       >
         <Calendar className={iconClass} aria-hidden />
-        <span className="min-w-0 truncate tabular-nums">{label}</span>
+        <span className="min-w-0 truncate tabular-nums" title={label}>{label}</span>
         <ChevronDown className={`ml-0.5 ${iconClass}`} aria-hidden />
       </button>
       {open && !disabled && (

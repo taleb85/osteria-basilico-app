@@ -122,6 +122,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
             }}
             required
             className={inputCls}
+            placeholder="GG/MM/AAAA"
           />
         </div>
         <div>
@@ -136,6 +137,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
             required
             min={startDate}
             className={inputCls}
+            placeholder="GG/MM/AAAA"
           />
         </div>
       </div>
@@ -182,7 +184,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
                   lightHaptic();
                   handleClose();
                 }}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white/70 transition-colors hover:bg-white/15"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white/70 transition-colors hover:bg-white/15 active:bg-white/80"
                 aria-label={t.cancel}
               >
                 <X className="h-5 w-5" />
@@ -252,7 +254,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
                 lightHaptic();
                 handleClose();
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-white/70 transition-colors hover:bg-slate-200"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-white/70 transition-colors hover:bg-slate-200 active:bg-slate-200/80"
             >
               <X className="h-4 w-4" />
             </button>
@@ -263,7 +265,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
           <button
             type="submit"
             disabled={isSubmitting || !startDate || !endDate}
-            className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-accent text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-accent text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50 active:bg-accent-hover/80"
           >
             {isSubmitting ? (
               <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

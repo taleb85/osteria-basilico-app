@@ -251,7 +251,7 @@ export default function HolidayRequests() {
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-white font-semibold text-base">{t.new_request}</h3>
                 <button type="button" onClick={() => setShowForm(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/10"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/10 active:bg-white/80"
                   style={{ color: 'rgba(255,255,255,0.60)' }}>
                   <X className="h-4 w-4" />
                 </button>
@@ -261,11 +261,11 @@ export default function HolidayRequests() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className={labelCls} style={labelStyle}>{t.holiday_start_date ?? 'Data inizio'}</label>
-                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required className={inputCls} style={inputStyle} />
+                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required className={inputCls} style={inputStyle} placeholder="GG/MM/AAAA" />
                   </div>
                   <div>
                     <label className={labelCls} style={labelStyle}>{t.holiday_end_date ?? 'Data fine'}</label>
-                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required min={startDate} className={inputCls} style={inputStyle} />
+                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required min={startDate} className={inputCls} style={inputStyle} placeholder="GG/MM/AAAA" />
                   </div>
                 </div>
 
@@ -280,7 +280,7 @@ export default function HolidayRequests() {
                   />
                 </div>
 
-                <button type="submit" className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-accent text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent-hover">
+                <button type="submit" className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-accent text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent-hover active:bg-accent-hover/80">
                   <Check className="w-3.5 h-3.5" strokeWidth={3} />
                   {t.request_holiday}
                 </button>
@@ -310,7 +310,7 @@ export default function HolidayRequests() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-white font-semibold">{t.pending}</h3>
                 <button type="button" onClick={() => setSelectedH(null)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/10"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/10 active:bg-white/80"
                   style={{ color: 'rgba(255,255,255,0.60)' }}>
                   <X className="h-4 w-4" />
                 </button>
@@ -333,7 +333,7 @@ export default function HolidayRequests() {
                         type="button"
                         onClick={() => handleStatusChange(selectedH.id, 'approved')}
                         disabled={updatingId === selectedH.id}
-                        className="flex h-10 items-center justify-center gap-1.5 rounded-lg bg-accent text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+                        className="flex h-10 items-center justify-center gap-1.5 rounded-lg bg-accent text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60 active:bg-accent-hover/80"
                       >
                         {updatingId === selectedH.id ? (
                           <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -417,7 +417,7 @@ export default function HolidayRequests() {
                     key={day.toString()}
                     onClick={() => isPending && isAdmin && setSelectedH(holiday)}
                     className={`min-h-[44px] min-w-[44px] aspect-square rounded-xl flex items-center justify-center text-xs font-semibold transition-all select-none touch-target
-                      ${isPending && isAdmin ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+                      ${isPending && isAdmin ? 'cursor-pointer hover:opacity-80' : 'cursor-default'} active:opacity-70`}
                     style={dayStyle}
                     onMouseEnter={(e) => {
                       if (!status && !today) {
@@ -472,7 +472,7 @@ export default function HolidayRequests() {
                                 type="button"
                                 onClick={() => void deleteHolidayRequest(h.id)}
                                 disabled={updatingId === h.id}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50 active:bg-red-500/80"
                                 title="Elimina richiesta"
                               >
                                 <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -504,7 +504,7 @@ export default function HolidayRequests() {
                     <div key={h.id} className="flex items-center justify-between px-5 py-3.5">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="min-w-0">
-                          <p className="text-white text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
+                          <p className="text-white text-sm font-semibold truncate" title={u?.first_name}>{u?.first_name} {u?.last_name}</p>
                           <p className="text-white/70 text-xs">
                             {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                             {h.reason && ` · ${h.reason}`}
@@ -531,7 +531,7 @@ export default function HolidayRequests() {
                           type="button"
                           onClick={() => handleStatusChange(h.id, 'rejected')}
                           disabled={updatingId === h.id}
-                          className="ui-toolbar-outline gap-1 border-slate-200 text-[11px] uppercase tracking-wider hover:border-red-200 hover:bg-red-500/15 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="ui-toolbar-outline gap-1 border-slate-200 text-[11px] uppercase tracking-wider hover:border-red-200 hover:bg-red-500/15 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-60 active:text-red-400"
                         >
                           {updatingId === h.id ? (
                             <span className="w-3 h-3 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
@@ -566,7 +566,7 @@ export default function HolidayRequests() {
                         <div className="flex items-center gap-3 min-w-0">
                           <Palmtree className="w-4 h-4 text-accent flex-shrink-0" />
                           <div className="min-w-0">
-                            <p className="text-white text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
+                            <p className="text-white text-sm font-semibold truncate" title={u?.first_name}>{u?.first_name} {u?.last_name}</p>
                             <p className="text-white/70 text-xs">
                               {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                             </p>
@@ -597,7 +597,7 @@ export default function HolidayRequests() {
                     return (
                       <div key={h.id} className="flex items-center justify-between px-5 py-3.5">
                         <div className="min-w-0">
-                          <p className="text-white text-sm font-semibold truncate">{u?.first_name} {u?.last_name}</p>
+                          <p className="text-white text-sm font-semibold truncate" title={u?.first_name}>{u?.first_name} {u?.last_name}</p>
                           <p className="text-white/70 text-xs">
                             {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                           </p>
@@ -605,7 +605,7 @@ export default function HolidayRequests() {
                         <button
                           type="button"
                           onClick={() => void deleteHolidayRequest(h.id)}
-                          className="ml-3 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20"
+                          className="ml-3 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20 active:bg-red-500/80"
                           title="Elimina richiesta"
                         >
                           <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />

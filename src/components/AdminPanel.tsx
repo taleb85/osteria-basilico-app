@@ -114,11 +114,11 @@ export default function AdminPanel() {
         <div className={`grid gap-4 mb-8 ${adminOnly ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1'}`}>
           {adminOnly && (
             <>
-              <button onClick={handleImportClick} className="bg-black/15 backdrop-blur-xl rounded-[24px] p-5 border-2 border-white/30 hover:bg-black/25 transition-all">
+              <button onClick={handleImportClick} className="bg-black/15 backdrop-blur-xl rounded-[24px] p-5 border-2 border-white/30 hover:bg-black/25 transition-all active:bg-black/80">
                 <Upload className="w-6 h-6 text-white mx-auto mb-2" />
                 <span className="text-white text-[11px] font-medium uppercase tracking-widest block font-sans">{t.restore}</span>
               </button>
-              <button onClick={handleExportJSON} className="bg-black/15 backdrop-blur-xl rounded-[24px] p-5 border-2 border-white/30 hover:bg-black/25 transition-all">
+              <button onClick={handleExportJSON} className="bg-black/15 backdrop-blur-xl rounded-[24px] p-5 border-2 border-white/30 hover:bg-black/25 transition-all active:bg-black/80">
                 <Download className="w-6 h-6 text-white mx-auto mb-2" />
                 <span className="text-white text-[11px] font-medium uppercase tracking-widest block font-sans">{t.backup_json}</span>
               </button>
@@ -132,7 +132,7 @@ export default function AdminPanel() {
               <button
                 type="button"
                 onClick={() => setShowCreateStaff(true)}
-                className="keep-white-glass inline-flex items-center gap-2 rounded-2xl border-2 border-white/35 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/15 transition-colors font-sans"
+                className="keep-white-glass inline-flex items-center gap-2 rounded-2xl border-2 border-white/35 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/15 transition-colors font-sans active:bg-white/80"
               >
                 <UserPlus className="w-4 h-4" aria-hidden />
                 {t.admin_add_employee}
@@ -142,7 +142,7 @@ export default function AdminPanel() {
             {canSeeSuspended && (
               <button
                 onClick={() => setShowSuspended(!showSuspended)}
-                className="text-xs font-medium text-white/80 hover:text-white uppercase tracking-wider font-sans"
+                className="text-xs font-medium text-white/80 hover:text-white uppercase tracking-wider font-sans active:text-white"
               >
                 {showSuspended ? t.hide_suspended : t.show_suspended}
               </button>
@@ -154,11 +154,11 @@ export default function AdminPanel() {
               .filter((u) => (u.status === 'active' || (showSuspended && canSeeSuspended && (u.status === 'suspended' || u.status === 'inactive'))) && (u.role !== 'admin' || adminOnly))
               .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
               .map((user, index) => (
-                <div key={user.id} className={`p-5 flex items-center justify-between hover:bg-black/25 transition-colors ${user.status === 'suspended' ? 'opacity-50 grayscale' : ''}`}>
+                <div key={user.id} className={`p-5 flex items-center justify-between hover:bg-black/25 transition-colors ${user.status === 'suspended' ? 'opacity-50 grayscale' : ''} active:bg-black/80`}>
                   <div className="flex items-center space-x-5 flex-1">
                     <div className="flex flex-col space-y-1">
-                      <button onClick={() => reorderUsers(user.id, 'up')} disabled={index === 0} className="w-7 h-7 rounded-xl bg-black/15 backdrop-blur-xl border border-white/30 flex items-center justify-center hover:bg-black/25 disabled:opacity-20 transition-all"><ChevronUp className="w-4 h-4 text-white" /></button>
-                      <button onClick={() => reorderUsers(user.id, 'down')} disabled={index === users.length - 1} className="w-7 h-7 rounded-xl bg-black/15 backdrop-blur-xl border border-white/30 flex items-center justify-center hover:bg-black/25 disabled:opacity-20 transition-all"><ChevronDown className="w-4 h-4 text-white" /></button>
+                      <button onClick={() => reorderUsers(user.id, 'up')} disabled={index === 0} className="w-7 h-7 rounded-xl bg-black/15 backdrop-blur-xl border border-white/30 flex items-center justify-center hover:bg-black/25 disabled:opacity-20 transition-all active:bg-black/80"><ChevronUp className="w-4 h-4 text-white" /></button>
+                      <button onClick={() => reorderUsers(user.id, 'down')} disabled={index === users.length - 1} className="w-7 h-7 rounded-xl bg-black/15 backdrop-blur-xl border border-white/30 flex items-center justify-center hover:bg-black/25 disabled:opacity-20 transition-all active:bg-black/80"><ChevronDown className="w-4 h-4 text-white" /></button>
                     </div>
 
                     <div>
@@ -172,14 +172,14 @@ export default function AdminPanel() {
                   <div className="flex items-center space-x-3">
                     {canEdit && (
                       <>
-                        <button onClick={() => handleToggleStatus(user)} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-black/15 backdrop-blur-sm border-2 border-white/30 hover:bg-black/25 ${user.status === 'suspended' ? 'text-accent-light' : 'text-red-300'}`}>
+                        <button onClick={() => handleToggleStatus(user)} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-black/15 backdrop-blur-sm border-2 border-white/30 hover:bg-black/25 ${user.status === 'suspended' ? 'text-accent-light' : 'text-red-300'} active:bg-black/80`}>
                           {user.status === 'suspended' ? <UserCheck className="w-5 h-5" /> : <UserX className="w-5 h-5" />}
                         </button>
-                        <button onClick={() => setEditingUser(user)} className="w-10 h-10 rounded-xl bg-black/15 backdrop-blur-xl border border-white/30 flex items-center justify-center hover:bg-black/25 text-white transition-all">
+                        <button onClick={() => setEditingUser(user)} className="w-10 h-10 rounded-xl bg-black/15 backdrop-blur-xl border border-white/30 flex items-center justify-center hover:bg-black/25 text-white transition-all active:bg-black/80">
                           <Edit2 className="w-4 h-4" />
                         </button>
                         {adminOnly && (
-                          <button onClick={() => handleDeleteUser(user.id)} className="w-10 h-10 rounded-xl bg-black/15 backdrop-blur-xl border border-white/30 flex items-center justify-center hover:bg-red-500/30 text-white transition-all">
+                          <button onClick={() => handleDeleteUser(user.id)} className="w-10 h-10 rounded-xl bg-black/15 backdrop-blur-xl border border-white/30 flex items-center justify-center hover:bg-red-500/30 text-white transition-all active:bg-red-500/80">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         )}

@@ -157,7 +157,7 @@ function MyShiftsSection({
               key={wIdx}
               type="button"
               onClick={() => toggleWeek(wIdx)}
-              className="w-full flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3 text-left transition-all hover:border-white/20"
+              className="w-full flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3 text-left transition-all hover:border-white/20 active:brightness-95"
               style={cardBg}
             >
               <div className="flex flex-col gap-0.5">
@@ -419,8 +419,7 @@ function TeamShiftsSection({
                   return (
                     <div key={shift.id} className="flex items-center justify-between py-3 shift-separator-ultra">
                       <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-                        <p className="shift-name-ultra uppercase tracking-wide truncate">
-                          {fullName}
+                        <p className="shift-name-ultra uppercase tracking-wide truncate" title={fullName}>{fullName}
                         </p>
                         {isAbsent ? (
                           <p className="shift-status-off">OFF</p>
@@ -509,20 +508,19 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
           <button
             type="button"
             onClick={() => setNavOffset(o => o - 1)}
-            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-r border-white/20"
+            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-r border-white/20 active:bg-white/80"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0" style={{ color: '#ffffff' }}>
             <Calendar className="h-3 w-3 shrink-0" />
-            <span className="text-[11px] font-bold tabular-nums truncate">
-              {rangeLabel}
+            <span className="text-[11px] font-bold tabular-nums truncate" title={rangeLabel}>{rangeLabel}
             </span>
           </div>
           <button
             type="button"
             onClick={() => setNavOffset(o => o + 1)}
-            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-l border-white/20"
+            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-l border-white/20 active:bg-white/80"
           >
             <ChevronRight className="h-4 w-4" />
           </button>

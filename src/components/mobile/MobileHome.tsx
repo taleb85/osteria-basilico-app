@@ -303,7 +303,7 @@ export default function MobileHome({
           {onNavigateToTimesheet && (
             <button
               onClick={onNavigateToTimesheet}
-              className="text-[11px] font-bold text-blue-400 flex items-center gap-0.5 hover:opacity-80 transition-opacity"
+              className="text-[11px] font-bold text-blue-400 flex items-center gap-0.5 hover:opacity-80 transition-opacity active:opacity-70"
             >
               {detailLabel} <ChevronRight className="w-3 h-3" />
             </button>

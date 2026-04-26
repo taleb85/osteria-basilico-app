@@ -813,7 +813,7 @@ function DesktopShell({ dark, active, children }: { dark: boolean; active: strin
                 item.id === active
                   ? (dark ? 'bg-[#4361EE]/25 text-[#93c5fd] border border-[#4361EE]/30' : 'bg-blue-600 text-white')
                   : (dark ? 'text-white/50 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-50')
-              }`}>
+              } active:bg-white/5'/80`}>
               <div className={`w-4 h-4 rounded ${item.id === active ? '' : (dark ? 'bg-white/20' : 'bg-slate-200')}`} />
               {item.label}
             </div>
@@ -1489,7 +1489,7 @@ export default function ScreensPreview() {
               whileHover={{ scale: 1.04, y: -2 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => handleOpen(t.id)}
-              className="flex flex-col gap-1 cursor-pointer focus:outline-none rounded-2xl p-1.5 transition-all hover:bg-white/5"
+              className="flex flex-col gap-1 cursor-pointer focus:outline-none rounded-2xl p-1.5 transition-all hover:bg-white/5 active:bg-white/5/80"
             >
               <p className="text-center text-[9px] font-bold uppercase tracking-widest text-white/30 mb-0.5">{t.label}</p>
               <div className="flex gap-1 justify-center">
@@ -1515,7 +1515,7 @@ export default function ScreensPreview() {
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleOpen('full-app-preview')}
-            className="flex flex-col gap-2 cursor-pointer focus:outline-none rounded-2xl p-4 transition-all bg-accent/10 border border-accent/20 hover:bg-accent/20"
+            className="flex flex-col gap-2 cursor-pointer focus:outline-none rounded-2xl p-4 transition-all bg-accent/10 border border-accent/20 hover:bg-accent/20 active:bg-accent/80"
           >
             <p className="text-center text-xs font-black uppercase tracking-[0.3em] text-accent">✨ Anteprima Completa App ✨</p>
             <p className="text-center text-[10px] text-accent/60 uppercase tracking-widest">Componenti reali dell'app</p>
@@ -1525,7 +1525,7 @@ export default function ScreensPreview() {
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleOpen('mockup-cards')}
-            className="flex flex-col gap-2 cursor-pointer focus:outline-none rounded-2xl p-4 transition-all bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20"
+            className="flex flex-col gap-2 cursor-pointer focus:outline-none rounded-2xl p-4 transition-all bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 active:bg-emerald-500/80"
           >
             <p className="text-center text-xs font-black uppercase tracking-[0.3em] text-emerald-500">🎨 Mockup delle Schede 🎨</p>
             <p className="text-center text-[10px] text-emerald-500/60 uppercase tracking-widest">Design statico e mockup grafici</p>
@@ -1542,7 +1542,7 @@ export default function ScreensPreview() {
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => handleOpen(t.id as ScreenId)}
-                className="flex flex-col gap-2 cursor-pointer focus:outline-none rounded-2xl p-2 transition-all hover:bg-white/5"
+                className="flex flex-col gap-2 cursor-pointer focus:outline-none rounded-2xl p-2 transition-all hover:bg-white/5 active:bg-white/5/80"
               >
                 <p className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1">{t.label}</p>
                 <div className="flex gap-1 justify-center">
@@ -1574,7 +1574,7 @@ export default function ScreensPreview() {
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleOpen(tabId)}
-                  className="flex flex-col gap-1 cursor-pointer focus:outline-none rounded-2xl p-1 hover:bg-white/5 transition-all"
+                  className="flex flex-col gap-1 cursor-pointer focus:outline-none rounded-2xl p-1 hover:bg-white/5 transition-all active:bg-white/5/80"
                 >
                   <p className="text-center text-[9px] font-semibold uppercase tracking-widest text-white/25">📱 Mobile</p>
                   <MockFrame label="" scale={0.26}>
@@ -1586,7 +1586,7 @@ export default function ScreensPreview() {
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleOpen(deskId)}
-                  className="flex flex-col gap-1 cursor-pointer focus:outline-none rounded-2xl p-1 hover:bg-white/5 transition-all"
+                  className="flex flex-col gap-1 cursor-pointer focus:outline-none rounded-2xl p-1 hover:bg-white/5 transition-all active:bg-white/5/80"
                 >
                   <p className="text-center text-[9px] font-semibold uppercase tracking-widest text-white/25">🖥 Desktop</p>
                   <DesktopMockFrame label="" scale={0.155}>
@@ -1623,13 +1623,13 @@ export default function ScreensPreview() {
               <div className="flex rounded-full overflow-hidden border border-white/15 text-xs font-semibold">
                 <button
                   onClick={() => setIsDark(true)}
-                  className={`px-3 py-1 transition-all ${isDark ? 'bg-neutral-700 text-white' : 'text-white/40 hover:text-white/60'}`}
+                  className={`px-3 py-1 transition-all ${isDark ? 'bg-neutral-700 text-white' : 'text-white/40 hover:text-white/60'} active:text-white/60'}`}
                 >
                   Dark
                 </button>
                 <button
                   onClick={() => setIsDark(false)}
-                  className={`px-3 py-1 transition-all ${!isDark ? 'bg-white text-slate-800' : 'text-white/40 hover:text-white/60'}`}
+                  className={`px-3 py-1 transition-all ${!isDark ? 'bg-white text-slate-800' : 'text-white/40 hover:text-white/60'} active:text-white/60'}`}
                 >
                   Light
                 </button>
@@ -1653,13 +1653,13 @@ export default function ScreensPreview() {
                   const idx = TABS.findIndex(t => t.id === open);
                   handleOpen(TABS[(idx - 1 + TABS.length) % TABS.length].id);
                 }}
-                className="px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white/60 hover:bg-white/20 transition-all"
+                className="px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white/60 hover:bg-white/20 transition-all active:bg-white/80"
               >
                 ← Precedente
               </button>
               <button
                 onClick={() => setOpen(null)}
-                className="px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white/60 hover:bg-white/20 transition-all"
+                className="px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white/60 hover:bg-white/20 transition-all active:bg-white/80"
               >
                 ✕ Chiudi
               </button>
@@ -1668,7 +1668,7 @@ export default function ScreensPreview() {
                   const idx = TABS.findIndex(t => t.id === open);
                   handleOpen(TABS[(idx + 1) % TABS.length].id);
                 }}
-                className="px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white/60 hover:bg-white/20 transition-all"
+                className="px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white/60 hover:bg-white/20 transition-all active:bg-white/80"
               >
                 Successiva →
               </button>

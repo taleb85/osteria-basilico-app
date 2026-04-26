@@ -80,7 +80,7 @@ const FeatureCard = memo(function FeatureCard({
   const Icon = SLUG_ICONS[slug] ?? Zap;
   const hasDetails = detailLines.length > 0;
   return (
-    <div className="surface-glass-sm flex h-full flex-col p-3.5 transition-colors surface-ghost-interactive hover:border-white/20 sm:p-4">
+    <div className="surface-glass-sm flex h-full flex-col p-3.5 transition-colors surface-ghost-interactive hover:border-white/20 sm:p-4 active:brightness-95">
       <div className="flex items-start gap-3 min-w-0">
         <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
           <Icon className="w-[18px] h-[18px] text-accent" />
@@ -110,7 +110,7 @@ const FeatureCard = memo(function FeatureCard({
                 type="button"
                 aria-expanded={detailsExpanded}
                 onClick={onToggleDetail}
-                className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-accent hover:text-accent/80"
+                className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-accent hover:text-accent/80 active:text-accent/80"
               >
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${detailsExpanded ? 'rotate-180' : ''}`} />
                 {toggleDetailLabel}
@@ -260,7 +260,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             <span className="text-xs bg-white/15 rounded px-2 py-0.5 ml-2 text-white/70">{translateRole(currentUser.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</span>
           </div>
           <button
-            className="mt-3 px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/20 text-[#fca5a5] font-semibold hover:bg-red-500/30 transition-colors"
+            className="mt-3 px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/20 text-[#fca5a5] font-semibold hover:bg-red-500/30 transition-colors active:bg-red-500/80"
             onClick={logout}
           >
             {t.logout || 'Logout'}
@@ -289,7 +289,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             </div>
           </div>
           <button
-            className="px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/20 text-[#fca5a5] font-semibold hover:bg-red-500/30 transition-colors"
+            className="px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/20 text-[#fca5a5] font-semibold hover:bg-red-500/30 transition-colors active:bg-red-500/80"
             onClick={logout}
           >
             {t.logout || 'Logout'}
@@ -306,7 +306,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             <button
               type="button"
               onClick={onOpenProfilesTab}
-              className="inline-flex items-center gap-1.5 self-start rounded-lg border border-accent/25 bg-accent/[0.07] px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/12 transition-colors"
+              className="inline-flex items-center gap-1.5 self-start rounded-lg border border-accent/25 bg-accent/[0.07] px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/12 transition-colors active:bg-accent/80"
             >
               <Users className="w-3.5 h-3.5 opacity-80" />
               {t.impostazioni_open_profiles}
@@ -349,7 +349,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
             <button
               type="button"
               onClick={() => setShowAdvancedFlags((v) => !v)}
-              className="flex items-center gap-2 text-xs font-semibold text-white/50 hover:text-white/80 transition-colors py-1 mb-1"
+              className="flex items-center gap-2 text-xs font-semibold text-white/50 hover:text-white/80 transition-colors py-1 mb-1 active:text-white/80"
             >
               <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${showAdvancedFlags ? 'rotate-180' : ''}`} />
               {(t as Record<string, string>)['impostazioni_advanced_section'] ?? 'Impostazioni avanzate'}

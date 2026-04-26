@@ -389,7 +389,7 @@ export default function Statistics() {
                       <button
                         type="button"
                         onClick={() => setNavOffset(o => o - 1)}
-                        className="flex items-center justify-center h-9 w-9 text-white/50 hover:bg-white/10 transition-colors"
+                        className="flex items-center justify-center h-9 w-9 text-white/50 hover:bg-white/10 transition-colors active:bg-white/80"
                       >
                         <ChevronLeft className="h-4 w-4" aria-hidden />
                       </button>
@@ -405,7 +405,7 @@ export default function Statistics() {
                       <button
                         type="button"
                         onClick={() => setNavOffset(o => o + 1)}
-                        className="flex items-center justify-center h-9 w-9 text-white/50 hover:bg-white/10 transition-colors"
+                        className="flex items-center justify-center h-9 w-9 text-white/50 hover:bg-white/10 transition-colors active:bg-white/80"
                       >
                         <ChevronRight className="h-4 w-4" aria-hidden />
                       </button>
@@ -418,7 +418,7 @@ export default function Statistics() {
                     <button
                       type="button"
                       onClick={() => setNavOffset(o => o - 1)}
-                      className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 hover:bg-white/10 disabled:opacity-30"
+                      className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 hover:bg-white/10 disabled:opacity-30 active:bg-white/80"
                       style={{ color: 'rgba(255,255,255,0.80)' }}
                       aria-label={statsTab === 'current_week' ? 'Settimana precedente' : 'Periodo precedente'}
                     >
@@ -432,7 +432,7 @@ export default function Statistics() {
                         statsTab === 'current_week'
                           ? 'bg-accent text-white font-extrabold'
                           : 'hover:bg-white/10'
-                      }`}
+                      } active:bg-white/10'/80`}
                       style={statsTab !== 'current_week' ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     >
                       {t.view_week}
@@ -444,7 +444,7 @@ export default function Statistics() {
                         statsTab === 'period' && navOffset === 0
                           ? 'bg-accent text-white font-extrabold'
                           : 'hover:bg-white/10'
-                      }`}
+                      } active:bg-white/10'/80`}
                       style={!(statsTab === 'period' && navOffset === 0) ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     >
                       {t.view_month}
@@ -452,7 +452,7 @@ export default function Statistics() {
                     <button
                       type="button"
                       onClick={() => setNavOffset(o => o + 1)}
-                      className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 hover:bg-white/10 disabled:opacity-30"
+                      className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 hover:bg-white/10 disabled:opacity-30 active:bg-white/80"
                       style={{ color: 'rgba(255,255,255,0.80)' }}
                       aria-label={statsTab === 'current_week' ? 'Settimana successiva' : 'Periodo successivo'}
                     >
@@ -494,7 +494,7 @@ export default function Statistics() {
                       <button
                         type="button"
                         onClick={() => void handleExportStatsPdf()}
-                        className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 hover:bg-white/10"
+                        className="ui-toolbar-tab !px-2.5 !text-xs shrink-0 hover:bg-white/10 active:bg-white/80"
                         style={{ color: 'rgba(255,255,255,0.80)' }}
                         title={t.download_pdf}
                         aria-label={t.download_pdf}
@@ -512,7 +512,7 @@ export default function Statistics() {
                       onClick={() => setShowDeptMenu(prev => !prev)}
                       className={`ui-toolbar-tab !px-2.5 !text-xs shrink-0 ${
                         showDeptMenu ? 'bg-accent/8 text-accent' : 'hover:bg-white/10'
-                      } ${deptFilter !== 'all' ? 'font-extrabold' : ''}`}
+                      } ${deptFilter !== 'all' ? 'font-extrabold' : ''} active:bg-white/10'/80`}
                       style={!showDeptMenu ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     >
                       <Filter className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
@@ -539,7 +539,7 @@ export default function Statistics() {
                               {t.department_filter_label}
                             </div>
                             <button type="button" onClick={() => { setDeptFilter('all'); setShowDeptMenu(false); }}
-                              className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'}`}>
+                              className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/10'}/80`}>
                               <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                 <Check className={`h-3 w-3 ${deptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
                               </div>
@@ -549,12 +549,12 @@ export default function Statistics() {
                             <div className="my-1 h-px bg-white/10" />
                             {departments.map((d) => (
                               <button key={d.value} type="button" onClick={() => { setDeptFilter(d.value); setShowDeptMenu(false); }}
-                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'}`}>
+                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/10'}/80`}>
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                   <span className={`h-2.5 w-2.5 rounded-full shadow-sm ${deptFilter === d.value ? 'bg-white' : ''}`}
                                     style={deptFilter !== d.value ? { backgroundColor: d.color ?? getDeptColor(d.value) } : {}} />
                                 </div>
-                                <span className="flex-1 truncate">{translateDepartmentValue(d.value, effectiveLanguage)}</span>
+                                <span className="flex-1 truncate" title={translateDepartmentValue(d.value, effectiveLanguage)}>{translateDepartmentValue(d.value, effectiveLanguage)}</span>
                                 {deptFilter === d.value && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                               </button>
                             ))}
@@ -565,12 +565,12 @@ export default function Statistics() {
                             <CenteredModalPortal open={showDeptMenu} onClose={() => setShowDeptMenu(false)} maxWidthClass="max-w-[280px]" panelClassName="p-1" disableBackdropClose>
                               <div className="flex items-center justify-between px-2 py-1.5 border-b border-white/10 mb-1">
                                 <span className="text-xs font-bold uppercase tracking-wider text-white/45">{t.department_filter_label}</span>
-                                <button type="button" onClick={() => setShowDeptMenu(false)} className="rounded-lg p-1 text-white/45 transition-colors hover:bg-white/10 hover:text-white/70" aria-label={t.close}>
+                                <button type="button" onClick={() => setShowDeptMenu(false)} className="rounded-lg p-1 text-white/45 transition-colors hover:bg-white/10 hover:text-white/70 active:text-white/70" aria-label={t.close}>
                                   <X className="h-3.5 w-3.5" />
                                 </button>
                               </div>
                               <button type="button" onClick={() => { setDeptFilter('all'); setShowDeptMenu(false); }}
-                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'}`}>
+                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/10'}/80`}>
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                   <Check className={`h-3 w-3 ${deptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
                                 </div>
@@ -580,12 +580,12 @@ export default function Statistics() {
                               <div className="my-1 h-px bg-white/10" />
                               {departments.map((d) => (
                                 <button key={d.value} type="button" onClick={() => { setDeptFilter(d.value); setShowDeptMenu(false); }}
-                                  className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'}`}>
+                                  className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/10'}/80`}>
                                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                     <span className={`h-2.5 w-2.5 rounded-full shadow-sm ${deptFilter === d.value ? 'bg-white' : ''}`}
                                       style={deptFilter !== d.value ? { backgroundColor: d.color ?? getDeptColor(d.value) } : {}} />
                                   </div>
-                                  <span className="flex-1 truncate">{translateDepartmentValue(d.value, effectiveLanguage)}</span>
+                                  <span className="flex-1 truncate" title={translateDepartmentValue(d.value, effectiveLanguage)}>{translateDepartmentValue(d.value, effectiveLanguage)}</span>
                                   {deptFilter === d.value && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                                 </button>
                               ))}
@@ -973,8 +973,7 @@ export default function Statistics() {
                                 {(u.first_name ?? '').trim() || '—'}
                               </span>
                               {deptFilter === 'all' && u.department && (
-                                <span className="block text-[11px] font-bold text-white/45 uppercase leading-none truncate mt-0.5">
-                                  {translateDepartmentValue(u.department, effectiveLanguage)}
+                                <span className="block text-[11px] font-bold text-white/45 uppercase leading-none truncate mt-0.5" title={translateDepartmentValue(u.department, effectiveLanguage)}>{translateDepartmentValue(u.department, effectiveLanguage)}
                                 </span>
                               )}
                             </div>
@@ -1078,8 +1077,7 @@ export default function Statistics() {
                                     {(u.first_name ?? '').trim() || '—'}
                                   </span>
                                   {deptFilter === 'all' && u.department && (
-                                    <span className="block text-[11px] font-bold text-white/45 uppercase tracking-wider truncate">
-                                      {translateDepartmentValue(u.department, effectiveLanguage)}
+                                    <span className="block text-[11px] font-bold text-white/45 uppercase tracking-wider truncate" title={translateDepartmentValue(u.department, effectiveLanguage)}>{translateDepartmentValue(u.department, effectiveLanguage)}
                                     </span>
                                   )}
                                 </td>

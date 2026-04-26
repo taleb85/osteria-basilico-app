@@ -143,7 +143,7 @@ export default function UserAvatarMenu({
           onClick={() => setIsOpen(!isOpen)}
           title={titleHint}
           aria-label={`${t.sidebar_profile}: ${titleHint}`}
-          className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 text-white/80 surface-ghost-interactive hover:text-white touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+          className="relative flex h-9 w-9 sm:h-10 sm:w-10 flex-col items-center justify-center gap-0.5 surface-glass-sm px-1.5 text-white/80 surface-ghost-interactive hover:text-white touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-accent/25 active:text-white"
         >
           <span className="text-[14px] font-bold leading-none select-none" aria-hidden>
             {profileInitial}
@@ -152,8 +152,7 @@ export default function UserAvatarMenu({
             <span
               className="w-full text-center text-[11px] font-semibold uppercase leading-tight text-white/60 truncate select-none"
               aria-hidden
-            >
-              {displayRole}
+             title={displayRole}>{displayRole}
             </span>
           ) : null}
         </button>
@@ -172,14 +171,12 @@ export default function UserAvatarMenu({
               className={`font-semibold text-white uppercase tracking-wide truncate max-w-[200px] ${
                 dense ? 'text-xs' : 'text-sm'
               }`}
-            >
-              {displayName}
+             title={displayName}>{displayName}
             </span>
             {displayRole ? (
               <span
                 className={`font-medium text-white/60 truncate max-w-[200px] ${dense ? 'text-[11px]' : 'text-[11px]'}`}
-              >
-                {displayRole}
+               title={displayRole}>{displayRole}
               </span>
             ) : null}
           </div>
@@ -193,11 +190,9 @@ export default function UserAvatarMenu({
           className="flex items-center gap-1.5 sm:gap-2 min-w-0 rounded-xl border border-accent/30 bg-accent hover:bg-accent-hover active:scale-[0.98] transition-all outline-none focus:outline-none focus:ring-2 focus:ring-accent/30 focus:ring-offset-2 min-h-[44px] touch-manipulation pl-3 pr-3"
         >
           <div className="flex flex-col items-start min-w-0 overflow-hidden text-left">
-            <span className="text-xs font-semibold text-white truncate w-full uppercase tracking-wide leading-tight">
-              {displayName}
+            <span className="text-xs font-semibold text-white truncate w-full uppercase tracking-wide leading-tight" title={displayName}>{displayName}
             </span>
-            <span className="text-xs text-white/90 truncate w-full uppercase tracking-widest leading-tight hidden sm:block">
-              {displayRole}
+            <span className="text-xs text-white/90 truncate w-full uppercase tracking-widest leading-tight hidden sm:block" title={displayRole}>{displayRole}
             </span>
           </div>
         </button>
@@ -232,7 +227,7 @@ export default function UserAvatarMenu({
                     <button
                       type="button"
                       onClick={() => setIsOpen(false)}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl text-white/60 hover:text-white/90 hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl text-white/60 hover:text-white/90 hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/30 active:text-white/90"
                       aria-label={t.close}
                     >
                       <span className="text-xl leading-none">×</span>

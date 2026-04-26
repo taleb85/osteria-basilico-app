@@ -98,7 +98,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
             <button
               type="button"
               onClick={() => { setShowMonthPicker(v => !v); setShowYearPicker(false); }}
-              className="flex items-center gap-0.5 text-[15px] font-bold text-white hover:text-accent transition-colors"
+              className="flex items-center gap-0.5 text-[15px] font-bold text-white hover:text-accent transition-colors active:text-accent"
             >
               {MONTHS_IT[viewMonth].toLowerCase()}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
@@ -114,7 +114,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
                       i === viewMonth
                         ? 'bg-accent text-white'
                         : 'text-white/70 hover:bg-white/10'
-                    }`}
+                    } active:bg-white/10'/80`}
                   >
                     {m.slice(0, 3).toLowerCase()}
                   </button>
@@ -128,7 +128,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
             <button
               type="button"
               onClick={() => { setShowYearPicker(v => !v); setShowMonthPicker(false); }}
-              className="flex items-center gap-0.5 text-[15px] font-bold text-white hover:text-accent transition-colors"
+              className="flex items-center gap-0.5 text-[15px] font-bold text-white hover:text-accent transition-colors active:text-accent"
             >
               {viewYear}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
@@ -144,7 +144,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
                       y === viewYear
                         ? 'bg-accent text-white'
                         : 'text-white/70 hover:bg-white/10'
-                    }`}
+                    } active:bg-white/10'/80`}
                   >
                     {y}
                   </button>
@@ -159,14 +159,14 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
           <button
             type="button"
             onClick={() => setViewDate(subMonths(viewDate, 1))}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/15 text-accent hover:bg-white/10 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/15 text-accent hover:bg-white/10 transition-colors active:bg-white/80"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             type="button"
             onClick={() => setViewDate(addMonths(viewDate, 1))}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/15 text-accent hover:bg-white/10 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/15 text-accent hover:bg-white/10 transition-colors active:bg-white/80"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -205,7 +205,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
                         : isCurrentMonth
                         ? 'text-white hover:bg-white/12'
                         : 'text-white/30 hover:bg-white/8'
-              }`}
+              } active:bg-white/12'/80`}
             >
               {format(day, 'd')}
             </button>

@@ -610,8 +610,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                   {/* Riga 1: nome + badge azione */}
                   <div className="flex items-center justify-between gap-2 w-full">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="truncate text-base font-semibold uppercase text-white">
-                        {user.first_name.toUpperCase()}
+                      <span className="truncate text-base font-semibold uppercase text-white" title={user.first_name.toUpperCase()}>{user.first_name.toUpperCase()}
                       </span>
                       {allPunched && (
                         <Check className="w-4 h-4 flex-shrink-0 text-accent" strokeWidth={2.5} />
@@ -733,7 +732,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
               onClick={closeOverlay}
-              className="text-sm text-white/60 hover:text-neutral-300 transition-colors"
+              className="text-sm text-white/60 hover:text-neutral-300 transition-colors active:text-neutral-300"
             >
               Esci
             </motion.button>
@@ -766,7 +765,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                 <button
                   onClick={closeOverlay}
                   disabled={isLoading}
-                  className="p-2 rounded-xl text-neutral-400 hover:bg-white/10 transition-colors"
+                  className="p-2 rounded-xl text-neutral-400 hover:bg-white/10 transition-colors active:bg-white/80"
                   aria-label={t.cancel}
                 >
                   <X className="w-5 h-5" />
@@ -805,7 +804,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                               : awaitingOut
                                   ? 'bg-amber-500/12 border-amber-500/30 cursor-pointer hover:bg-amber-500/22'
                                   : 'bg-white/8 border-white/15 hover:bg-white/12 cursor-pointer'
-                          } ${isSuggested ? 'ring-2 ring-accent/40' : ''}`}
+                          } ${isSuggested ? 'ring-2 ring-accent/40' : ''} active:bg-amber-500/22'/80`}
                         >
                           <span
                             className={`flex-shrink-0 ${done ? 'text-accent' : awaitingOut ? 'text-amber-500' : isDayShift ? 'text-amber-500' : 'text-white/50'}`}

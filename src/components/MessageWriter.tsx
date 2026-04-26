@@ -106,7 +106,7 @@ export function MessageWriter({
                 messageType === 'broadcast'
                   ? 'bg-amber-300 text-amber-900'
                   : 'bg-white/70 text-amber-700 hover:bg-white'
-              }`}
+              } active:bg-white'/80`}
             >
               <Users className="h-3 w-3" />
               {t.messages_recipient_all ?? 'Tutti'}
@@ -118,7 +118,7 @@ export function MessageWriter({
                 messageType === 'private'
                   ? 'bg-amber-300 text-amber-900'
                   : 'bg-white/70 text-amber-700 hover:bg-white'
-              }`}
+              } active:bg-white'/80`}
             >
               <User className="h-3 w-3" />
               {t.messages_recipient_private ?? 'Privato'}
@@ -197,7 +197,7 @@ export function MessageWriter({
             type="button"
             onClick={handleSend}
             disabled={isSending}
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-2 py-1.5 text-xs font-bold text-white transition-colors hover:bg-amber-700 disabled:opacity-60"
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-2 py-1.5 text-xs font-bold text-white transition-colors hover:bg-amber-700 disabled:opacity-60 active:bg-amber-700/80"
           >
             {isSending ? (
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -210,7 +210,7 @@ export function MessageWriter({
             <button
               type="button"
               onClick={onCancel}
-              className="rounded-lg border border-amber-300 px-2 py-1.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50"
+              className="rounded-lg border border-amber-300 px-2 py-1.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50 active:bg-amber-50/80"
             >
               {t.cancel ?? 'Annulla'}
             </button>
@@ -336,7 +336,7 @@ export function MessageWriter({
           type="button"
           onClick={handleSend}
           disabled={isSending}
-          className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-accent-hover disabled:opacity-60"
+          className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-accent-hover disabled:opacity-60 active:bg-accent-hover/80"
         >
           {isSending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -349,7 +349,7 @@ export function MessageWriter({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-accent/30 px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/10"
+            className="rounded-lg border border-accent/30 px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/10 active:bg-accent/80"
           >
             {t.cancel ?? 'Annulla'}
           </button>

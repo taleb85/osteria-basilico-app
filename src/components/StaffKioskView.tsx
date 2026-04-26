@@ -114,7 +114,7 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
               </p>
               <button
                 onClick={onClose}
-                className="bg-gray-900 text-white rounded-2xl px-8 py-4 font-bold uppercase tracking-wider hover:bg-black transition-all"
+                className="bg-gray-900 text-white rounded-2xl px-8 py-4 font-bold uppercase tracking-wider hover:bg-black transition-all active:bg-black/80"
               >
                 {t.logout}
               </button>
@@ -147,7 +147,7 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
                           status.hasPunchIn
                             ? 'bg-gray-300 text-white/60 cursor-not-allowed'
                             : 'bg-accent text-white hover:bg-accent-hover hover:-translate-y-0.5 shadow-accent/25'
-                        }`}
+                        } active:bg-accent-hover/80`}
                       >
                         {status.hasPunchIn ? t.entry_ok : t.entry_btn}
                       </button>
@@ -160,7 +160,7 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
 
           <button
             onClick={onClose}
-            className="mt-6 w-full bg-gray-900 text-white rounded-2xl py-4 font-bold uppercase tracking-wider hover:bg-black transition-all flex items-center justify-center space-x-2"
+            className="mt-6 w-full bg-gray-900 text-white rounded-2xl py-4 font-bold uppercase tracking-wider hover:bg-black transition-all flex items-center justify-center space-x-2 active:bg-black/80"
           >
             <X className="w-5 h-5" />
             <span>{t.close}</span>

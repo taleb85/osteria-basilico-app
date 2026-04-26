@@ -71,7 +71,7 @@ export default function AdminLayout() {
             <button
               type="button"
               onClick={() => navigate('/app')}
-              className="flex items-center gap-1.5 min-h-[36px] px-2 -ml-1 rounded-xl text-white/70 hover:text-white hover:bg-white/10 font-medium text-sm transition-colors shrink-0"
+              className="flex items-center gap-1.5 min-h-[36px] px-2 -ml-1 rounded-xl text-white/70 hover:text-white hover:bg-white/10 font-medium text-sm transition-colors shrink-0 active:text-white"
             >
               <ArrowLeft className="w-4 h-4 shrink-0 text-accent/70" />
               <span className="hidden sm:inline">{t.admin_back_to_app}</span>
@@ -87,7 +87,7 @@ export default function AdminLayout() {
                     activeTab === 'profili'
                     ? 'bg-accent text-white shadow-sm'
                     : 'text-white/60 hover:bg-white/10 hover:text-white'
-                }`}
+                } active:text-white'`}
               >
                 <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 {t.admin_tab_profiles}
@@ -102,7 +102,7 @@ export default function AdminLayout() {
                     activeTab === 'regole'
                       ? 'bg-accent text-white shadow-sm'
                       : 'text-white/60 hover:bg-white/10 hover:text-white'
-                  }`}
+                  } active:text-white'`}
                 >
                   <LayoutList className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   {t.admin_tab_rules}
@@ -118,7 +118,7 @@ export default function AdminLayout() {
                     activeTab === 'impostazioni'
                       ? 'bg-accent text-white shadow-sm'
                       : 'text-white/60 hover:bg-white/10 hover:text-white'
-                  }`}
+                  } active:text-white'`}
                 >
                   <Settings className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   {t.settings_title}

@@ -347,7 +347,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
           ref={btnRef}
           type="button"
           onClick={handleClick}
-          className={`shrink-0 rounded-full p-0.5 transition-colors ml-1 ${open ? 'text-accent' : 'text-slate-300 hover:text-white/60'}`}
+          className={`shrink-0 rounded-full p-0.5 transition-colors ml-1 ${open ? 'text-accent' : 'text-slate-300 hover:text-white/60'} active:text-white/60'}`}
           aria-label="Mostra anteprima"
         >
           <Info className="w-3 h-3" />
@@ -407,7 +407,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
           tab.key === highlight ? 'bg-white/15 text-accent font-bold shadow-sm' : 'text-white/50'
         }`}>
           <span>{tab.icon}</span>
-          <span className="truncate max-w-[28px] text-center">{tab.label}</span>
+          <span className="truncate max-w-[28px] text-center" title={tab.label}>{tab.label}</span>
         </div>
       ))}
     </div>
@@ -599,7 +599,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
               ref={btnRef}
               type="button"
               onClick={handleOpen}
-              className={`shrink-0 rounded-full p-0.5 transition-colors ${open ? 'text-accent' : 'text-white/50 hover:text-white/70'}`}
+              className={`shrink-0 rounded-full p-0.5 transition-colors ${open ? 'text-accent' : 'text-white/50 hover:text-white/70'} active:text-white/70'}`}
               aria-label="Mostra anteprima"
             >
               <Info className="w-3.5 h-3.5" />
@@ -639,7 +639,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             <button
               type="button"
               onClick={() => setHintExpanded(v => !v)}
-              className="text-[10px] font-semibold text-accent/70 hover:text-accent transition-colors mt-0.5 leading-none"
+              className="text-[10px] font-semibold text-accent/70 hover:text-accent transition-colors mt-0.5 leading-none active:text-accent"
             >
               {hintExpanded ? '↑ meno' : '↓ di più'}
             </button>
@@ -841,8 +841,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                         {initials(u)}
                       </div>
                       {/* Nome */}
-                      <span className="text-[11px] font-semibold text-white/80 leading-tight text-center max-w-[76px] truncate">
-                        {u.first_name}
+                      <span className="text-[11px] font-semibold text-white/80 leading-tight text-center max-w-[76px] truncate" title={u.first_name}>{u.first_name}
                       </span>
                       {/* Ruolo */}
                       <span
@@ -863,7 +862,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             {/* ── Schede & Navigazione ── */}
             <SectionHeader title="Schede e Navigazione" />
             {ROLE_TEMPLATE_FEATURE_SECTIONS.find((s) => s.id === 'tabs_nav')?.rows.map(({ key }) => (
-              <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
+              <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors active:bg-white/8/80">
                 <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5">
                   <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {FEATURE_LABELS_TAB_FIRST[key]}
@@ -898,7 +897,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             {/* ── Operazioni Turni ── */}
             <SectionHeader title="Operazioni Turni" />
             {ROLE_TEMPLATE_FEATURE_SECTIONS.find((s) => s.id === 'shift_ops')?.rows.map(({ key }) => (
-              <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
+              <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors active:bg-white/8/80">
                 <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5">
                   <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {FEATURE_LABELS[key]}
@@ -925,7 +924,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             {/* ── Altro ── costo stimato, profilo su browser, presenze privacy ── */}
             <SectionHeader title="Altro" />
             {ROLE_TEMPLATE_FEATURE_SECTIONS.find((s) => s.id === 'other')?.rows.map(({ key }) => (
-              <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
+              <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors active:bg-white/8/80">
                 <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5">
                   <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {FEATURE_LABELS[key]}
@@ -969,7 +968,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             {/* ── Permessi Operativi ── */}
             <SectionHeader title="Permessi Operativi" />
             {permRows.map((perm) => (
-              <tr key={perm.key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
+              <tr key={perm.key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors active:bg-white/8/80">
                 <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5">
                   <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                     {perm.label}
@@ -1000,7 +999,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
             {/* ── Visibilità Tabellone ── */}
             <SectionHeader title="Visibilità nel Tabellone Turni" icon={<Users className="h-3 w-3" />} />
-            <tr className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
+            <tr className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors active:bg-white/8/80">
               <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5">
                 <div className="flex items-center gap-0.5 text-[13px] text-white/80">
                   {t.settings_visible_on_schedule_row}
@@ -1027,7 +1026,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             {/* ── Moduli Scheda Admin (globale) ── */}
             <SectionHeader title="Moduli Scheda Admin (globale)" />
             {ADMIN_MODULE_KEYS.map((key) => (
-              <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors">
+              <tr key={key} className="odd:bg-transparent even:bg-white/[0.04] hover:bg-white/8 transition-colors active:bg-white/8/80">
                 <td className="sticky left-0 z-10 bg-[#0d1f3c] px-4 py-2.5 text-[13px] text-white/85">
                   {getAdminModuleLabel(key, t as Record<string, string>)}
                 </td>
@@ -1054,7 +1053,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             type="button"
             onClick={resetMods}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:bg-white/8 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:bg-white/8 transition-colors disabled:opacity-50 active:bg-white/8/80"
           >
             <RotateCcw className="w-3 h-3" />
             Reset moduli
@@ -1063,7 +1062,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
             type="button"
             onClick={() => void handleResetAll()}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/40 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-red-400 hover:bg-red-500/15 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/40 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-red-400 hover:bg-red-500/15 transition-colors disabled:opacity-50 active:bg-red-500/80"
           >
             <RotateCcw className="w-3 h-3" />
             Azzera tutto

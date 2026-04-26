@@ -81,12 +81,10 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
       <div className="flex justify-between items-center gap-2">
         {/* Sinistra */}
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-semibold truncate" style={{ color: 'white' }}>
-            {e.user?.first_name ?? '—'}
+          <p className="text-[13px] font-semibold truncate" style={{ color: 'white' }} title={e.user?.first_name ?? '—'}>{e.user?.first_name ?? '—'}
           </p>
           {subLine && (
-            <p className="text-[11px] truncate mt-0.5" style={{ color: 'rgba(255,255,255,0.50)' }}>
-              {subLine}
+            <p className="text-[11px] truncate mt-0.5" style={{ color: 'rgba(255,255,255,0.50)' }} title={subLine}>{subLine}
             </p>
           )}
         </div>
@@ -139,7 +137,7 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-amber-500/80 hover:bg-amber-500 text-white text-[11px] font-bold transition-colors"
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-amber-500/80 hover:bg-amber-500 text-white text-[11px] font-bold transition-colors active:bg-amber-500/80"
             >
               <LogOutIcon className="w-3 h-3" /> {t.home_btn_close_shift}
             </button>
@@ -149,7 +147,7 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
               type="button"
               onClick={onApprove}
               disabled={approvingId === e.shift.id}
-              className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-accent/80 hover:bg-accent text-white text-[11px] font-bold transition-colors disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-accent/80 hover:bg-accent text-white text-[11px] font-bold transition-colors disabled:opacity-50 active:bg-accent/80"
             >
               <Check className="w-3 h-3" />
               {approvingId === e.shift.id ? '...' : t.home_btn_approve}

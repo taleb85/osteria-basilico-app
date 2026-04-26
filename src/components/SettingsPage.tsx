@@ -143,7 +143,7 @@ function DepartmentColorPicker({
                     selected
                       ? 'ring-2 ring-offset-2 ring-accent ring-offset-slate-100 shadow-md'
                       : 'ring-2 ring-slate-400/90 ring-offset-1 ring-offset-white shadow-[inset_0_0_0_1px_rgba(15,23,42,0.12)]'
-                  }`}
+                  } active:scale-[0.98]`}
                   style={{ backgroundColor: hex }}
                 />
               );
@@ -499,14 +499,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="rounded-xl border border-white/15 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                  className="rounded-xl border border-white/15 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateStaff(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
                 >
                   <UserPlus className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   {t.admin_add_employee}
@@ -532,8 +532,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       className={`flex flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-4 ${!isActiveRow ? 'opacity-70' : ''}`}
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold uppercase text-white">
-                          {user.first_name} {user.last_name ?? ''}
+                        <p className="truncate text-sm font-semibold uppercase text-white" title={user.first_name}>{user.first_name} {user.last_name ?? ''}
                         </p>
                         <p className="text-[11px] uppercase tracking-wider text-white/55">
                           {translateRole(user.role, currentUser.language)}
@@ -560,7 +559,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               showError?.((t as { copy_failed?: string }).copy_failed ?? 'Copia non riuscita.');
                             }
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
                         >
                           <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
                           Link accesso
@@ -568,7 +567,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         <button
                           type="button"
                           onClick={() => setEditingUser(user)}
-                          className="rounded-lg border border-white/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5"
+                          className="rounded-lg border border-white/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
                         >
                           {t.settings_delegated_view_profile}
                         </button>
@@ -576,7 +575,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           <button
                             type="button"
                             onClick={() => handleDelegateSuspend(user)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-red-400 transition-colors hover:bg-red-500/150/25"
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-red-400 transition-colors hover:bg-red-500/150/25 active:bg-red-500/150/80"
                           >
                             <UserX className="h-3.5 w-3.5 shrink-0" aria-hidden />
                             {t.settings_delegated_suspend}
@@ -588,7 +587,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                 <button
                                   type="button"
                                   onClick={() => setDeleteConfirmUserId(null)}
-                                  className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/55 hover:bg-white/10"
+                                  className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/55 hover:bg-white/10 active:bg-white/80"
                                 >
                                   {t.cancel ?? 'Annulla'}
                                 </button>
@@ -600,7 +599,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                     await deleteUser(user.id);
                                     showSuccess?.(t.settings_delete_user_success);
                                   }}
-                                  className="rounded-lg bg-red-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-red-700"
+                                  className="rounded-lg bg-red-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-red-700 active:bg-red-700/80"
                                 >
                                   {t.settings_delete_user_title ?? 'Elimina'}
                                 </button>
@@ -609,7 +608,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               <button
                                 type="button"
                                 onClick={() => setDeleteConfirmUserId(user.id)}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/15 text-red-400 transition-colors hover:bg-red-500/150/25"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/15 text-red-400 transition-colors hover:bg-red-500/150/25 active:bg-red-500/150/80"
                                 title={t.settings_delete_user_title}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -618,7 +617,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             <button
                               type="button"
                               onClick={() => handleDelegateReactivate(user)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-accent/35 bg-accent/10 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-accent transition-colors hover:bg-accent/15"
+                              className="inline-flex items-center gap-1 rounded-lg border border-accent/35 bg-accent/10 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-accent transition-colors hover:bg-accent/15 active:bg-accent/80"
                             >
                               <UserCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
                               {t.settings_delegated_reactivate}
@@ -684,7 +683,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             <button
               type="button"
               onClick={toggleTeamSectionExpanded}
-              className="-ml-1 flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-white/8"
+              className="-ml-1 flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-white/8 active:bg-white/8/80"
               aria-expanded={teamSectionExpanded}
             >
               <ChevronDown
@@ -700,7 +699,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowCreateStaff(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
                 >
                   <UserPlus className="w-3.5 h-3.5" aria-hidden />
                   {t.admin_add_employee}
@@ -710,7 +709,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="rounded-xl border border-white/15 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                  className="rounded-xl border border-white/15 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>
@@ -744,8 +743,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         onClick={() => canEdit && setEditingUser(user)}
                         className={`flex-1 min-w-0 text-left ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
                       >
-                        <span className="block truncate text-sm font-semibold uppercase text-white">
-                          {user.first_name ?? ''} {user.last_name ?? ''}
+                        <span className="block truncate text-sm font-semibold uppercase text-white" title={user.first_name ?? ''}>{user.first_name ?? ''} {user.last_name ?? ''}
                         </span>
                         <span className="text-white/55 text-[11px] uppercase tracking-wider">
                           {translateRole(user.role, currentUser.language)}
@@ -769,7 +767,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                 e.stopPropagation();
                                 setShareMenuUserId(shareMenuUserId === user.id ? null : user.id);
                               }}
-                              className={`p-1.5 rounded-md border transition-all ${shareMenuUserId === user.id ? 'text-accent border-accent/30 bg-accent/5' : 'text-white/40 border-white/15 hover:text-accent hover:border-accent/30 hover:bg-accent/5'}`}
+                              className={`p-1.5 rounded-md border transition-all ${shareMenuUserId === user.id ? 'text-accent border-accent/30 bg-accent/5' : 'text-white/40 border-white/15 hover:text-accent hover:border-accent/30 hover:bg-accent/5'} active:text-accent`}
                             >
                               <Link2 className="w-3.5 h-3.5" />
                             </button>
@@ -803,7 +801,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                         }
                                         setShareMenuUserId(null);
                                       }}
-                                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[12px] font-medium text-white/80 hover:bg-white/5 transition-colors"
+                                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[12px] font-medium text-white/80 hover:bg-white/5 transition-colors active:bg-white/5/80"
                                     >
                                       <Link2 className="w-3.5 h-3.5 shrink-0 text-white/40" />
                                       Copia link accesso
@@ -839,7 +837,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                         }
                                         setShareMenuUserId(null);
                                       }}
-                                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[12px] font-medium text-white/80 hover:bg-white/5 transition-colors"
+                                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[12px] font-medium text-white/80 hover:bg-white/5 transition-colors active:bg-white/5/80"
                                     >
                                       <Smartphone className="w-3.5 h-3.5 shrink-0 text-white/40" />
                                       Condividi installazione iPhone
@@ -859,7 +857,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               setExpandedVisibilityUserId(expandedVisibilityUserId === user.id ? null : user.id);
                               setExpandedPermsUserId(null);
                             }}
-                            className={`px-2 py-1 text-[11px] font-bold uppercase rounded-md transition-all border ${expandedVisibilityUserId === user.id ? 'bg-white/15 text-accent border-accent/30 shadow-sm' : 'text-white/55 border-transparent hover:text-white/80'}`}
+                            className={`px-2 py-1 text-[11px] font-bold uppercase rounded-md transition-all border ${expandedVisibilityUserId === user.id ? 'bg-white/15 text-accent border-accent/30 shadow-sm' : 'text-white/55 border-transparent hover:text-white/80'} active:text-white/80'}`}
                           >
                             {t.what_sees}
                           </button>
@@ -875,7 +873,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                   <button
                                     type="button"
                                     onClick={() => setDeleteConfirmUserId(null)}
-                                    className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/55 hover:bg-white/10"
+                                    className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/55 hover:bg-white/10 active:bg-white/80"
                                   >
                                     {t.cancel ?? 'Annulla'}
                                   </button>
@@ -887,7 +885,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                       await deleteUser(user.id);
                                       showSuccess?.(t.settings_delete_user_success);
                                     }}
-                                    className="rounded-lg bg-red-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-red-700"
+                                    className="rounded-lg bg-red-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-red-700 active:bg-red-700/80"
                                   >
                                     {t.settings_delete_user_title ?? 'Elimina'}
                                   </button>
@@ -896,7 +894,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                 <button
                                   type="button"
                                   onClick={() => setDeleteConfirmUserId(user.id)}
-                                  className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-500/15 text-red-400 transition-colors hover:bg-red-500/150/25"
+                                  className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-500/15 text-red-400 transition-colors hover:bg-red-500/150/25 active:bg-red-500/150/80"
                                   title={t.settings_delete_user_title}
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
@@ -1103,8 +1101,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       }`}
                       style={{ backgroundColor: badgeColor }}
                     >
-                      <span className="truncate max-w-[10rem]">
-                        {translateDepartmentValue(d.value, effectiveLanguage)}
+                      <span className="truncate max-w-[10rem]" title={translateDepartmentValue(d.value, effectiveLanguage)}>{translateDepartmentValue(d.value, effectiveLanguage)}
                       </span>
                       {!isBuiltin && d.permissionCategory && (
                         <span
@@ -1144,7 +1141,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           setEditDeptColor(d.color ?? 'var(--brand)');
                           setEditDeptPermissionCategory(d.permissionCategory ?? '');
                         }}
-                        className="text-white/75 hover:text-white transition-colors shrink-0"
+                        className="text-white/75 hover:text-white transition-colors shrink-0 active:text-white"
                       >
                         <Pencil className="w-3 h-3" />
                       </button>
@@ -1159,7 +1156,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           setReassignMap(initMap);
                           setDeletingDept(d);
                         }}
-                        className="text-white/70 hover:text-white transition-colors shrink-0"
+                        className="text-white/70 hover:text-white transition-colors shrink-0 active:text-white"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1188,7 +1185,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           setHiddenBuiltins(getHiddenBuiltinValues());
                           void notifyDepartmentsChanged();
                         }}
-                        className="flex items-center gap-1.5 rounded-xl border border-dashed border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/55 transition-colors hover:border-accent/50 hover:text-accent"
+                        className="flex items-center gap-1.5 rounded-xl border border-dashed border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/55 transition-colors hover:border-accent/50 hover:text-accent active:text-accent"
                       >
                         <span
                           className="h-2.5 w-2.5 shrink-0 rounded-full"
@@ -1227,6 +1224,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           type="text"
                           value={editDeptLabel}
                           onChange={(e) => setEditDeptLabel(e.target.value)}
+                          placeholder={t.settings_dept_label_placeholder}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && editDeptLabel.trim() && editingDeptValue) {
                               const _isBuiltinEdit = builtinValues.has(editingDeptValue);
@@ -1280,7 +1278,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               setEditingDeptValue(null);
                               void notifyDepartmentsChanged();
                             }}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-3 py-2 text-xs font-semibold text-white hover:bg-accent-hover transition-colors disabled:opacity-40"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-3 py-2 text-xs font-semibold text-white hover:bg-accent-hover transition-colors disabled:opacity-40 active:bg-accent-hover/80"
                           >
                             <Check className="w-3.5 h-3.5" />
                             {t.save}
@@ -1342,7 +1340,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         void notifyDepartmentsChanged();
                       }
                     }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-accent text-white text-xs font-semibold hover:bg-accent-hover transition-colors disabled:opacity-40"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-accent text-white text-xs font-semibold hover:bg-accent-hover transition-colors disabled:opacity-40 active:bg-accent-hover/80"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     {t.settings_add_dept}
@@ -1414,6 +1412,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         max={14}
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
+                        placeholder="0"
                         className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
@@ -1425,6 +1424,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         max={24}
                         value={workRules.minRestHours}
                         onChange={(e) => updateWorkRule('minRestHours', Math.max(6, Math.min(24, +e.target.value || 11)))}
+                        placeholder="0"
                         className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
@@ -1463,6 +1463,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         max={14}
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
+                        placeholder="0"
                         className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
@@ -1474,6 +1475,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         max={60}
                         value={workRules.maxWeeklyHours}
                         onChange={(e) => updateWorkRule('maxWeeklyHours', Math.max(20, Math.min(60, +e.target.value || 48)))}
+                        placeholder="0"
                         className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
@@ -1543,8 +1545,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       </span>
                       <h3
                         className={`flex-1 truncate text-xs font-bold uppercase tracking-wider ${isEnabled ? 'text-white' : 'text-white/40'}`}
-                      >
-                        {rule.title}
+                       title={rule.title}>{rule.title}
                       </h3>
                     </div>
                     <p className="text-[11px] text-white/55 leading-snug">
@@ -1574,10 +1575,10 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         >
                           <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${isEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
-                        <button type="button" onClick={() => setEditingBreakRule(rule)} className="p-1.5 rounded-xl hover:bg-white/10 text-white/40 hover:text-white/80 transition-colors">
+                        <button type="button" onClick={() => setEditingBreakRule(rule)} className="p-1.5 rounded-xl hover:bg-white/10 text-white/40 hover:text-white/80 transition-colors active:text-white/80">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" onClick={() => handleDeleteBreakRule(rule.id)} className="p-1.5 rounded-xl hover:bg-red-500/15 text-white/40 hover:text-red-500 transition-colors">
+                        <button type="button" onClick={() => handleDeleteBreakRule(rule.id)} className="p-1.5 rounded-xl hover:bg-red-500/15 text-white/40 hover:text-red-500 transition-colors active:text-red-500">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1588,7 +1589,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               <button
                 type="button"
                 onClick={() => setCreatingBreakRule(true)}
-                className="surface-glass surface-ghost-interactive flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/15/90 p-4 text-white/55 transition-colors hover:border-accent hover:bg-accent/5 hover:text-accent"
+                className="surface-glass surface-ghost-interactive flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/15/90 p-4 text-white/55 transition-colors hover:border-accent hover:bg-accent/5 hover:text-accent active:text-accent"
               >
                 <Plus className="w-6 h-6" />
                 <span className="text-xs font-semibold">{t.settings_break_new_rule}</span>
@@ -1650,7 +1651,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           <BookTemplate className="h-4 w-4 text-blue-500" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-semibold text-white truncate">{tmpl.name}</p>
+                          <p className="text-[13px] font-semibold text-white truncate" title={tmpl.name}>{tmpl.name}</p>
                           <p className="text-[11px] text-white/55 mt-0.5">
                             {tmpl.count} turno{tmpl.count !== 1 ? 'i' : ''} · {tmpl.days.map(d => DAY_LABELS[d] ?? d).join(', ')}
                           </p>
@@ -1664,7 +1665,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           type="button"
                           onClick={() => handleDeleteShiftTemplate(tmpl.name)}
                           disabled={isDeletingThis}
-                          className="flex-shrink-0 p-1.5 rounded-md text-white/40 hover:text-red-500 hover:bg-red-500/15 transition-colors disabled:opacity-40"
+                          className="flex-shrink-0 p-1.5 rounded-md text-white/40 hover:text-red-500 hover:bg-red-500/15 transition-colors disabled:opacity-40 active:text-red-500"
                           title={`Elimina template "${tmpl.name}"`}
                         >
                           {isDeletingThis
@@ -1772,7 +1773,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       periodRuleMode === 'last_sunday'
                         ? 'border-accent bg-accent/8'
                         : 'border-white/15 bg-white/8 hover:border-white/20'
-                    }`}
+                    } active:brightness-95`}
                   >
                     <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'last_sunday' ? 'text-accent' : 'text-white/70'}`}>
                       Ultima domenica
@@ -1793,7 +1794,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       periodRuleMode === 'fixed_start'
                         ? 'border-brand-deep bg-brand-deep/8'
                         : 'border-white/15 bg-white/8 hover:border-white/20'
-                    }`}
+                    } active:brightness-95`}
                   >
                     <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-brand-deep' : 'text-white/70'}`}>
                       Primo giorno
@@ -1954,7 +1955,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       setPresenceQrBusy(false);
                     }
                   }}
-                  className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl bg-accent px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-accent-hover disabled:opacity-60"
+                  className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl bg-accent px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-accent-hover disabled:opacity-60 active:bg-accent-hover/80"
                 >
                   <QrCode className="h-4 w-4 shrink-0 text-white" aria-hidden />
                   {presenceQrBusy ? t.ui_ellipsis : t.settings_presence_generate_qr}
@@ -2018,12 +2019,12 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <div className="flex items-center justify-between rounded-xl border border-brand-mid/20 bg-brand-mid/5 px-3 py-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <Check className="h-3.5 w-3.5 flex-shrink-0 text-[#2255BB]" />
-                    <span className="text-xs font-medium text-[#2255BB] truncate">{holidayEmail}</span>
+                    <span className="text-xs font-medium text-[#2255BB] truncate" title={holidayEmail}>{holidayEmail}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => { setHolidayEmailDraft(''); setHolidayEmail(''); try { localStorage.removeItem(HOLIDAY_EMAIL_KEY); } catch { /* */ } }}
-                    className="ml-2 flex-shrink-0 p-1 rounded-lg text-white/40 hover:text-red-500 hover:bg-red-500/15 transition-colors"
+                    className="ml-2 flex-shrink-0 p-1 rounded-lg text-white/40 hover:text-red-500 hover:bg-red-500/15 transition-colors active:text-red-500"
                     title="Rimuovi email"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -2258,7 +2259,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       setGeoSaving(false);
                     }
                   }}
-                  className="min-h-[40px] rounded-xl bg-accent px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-accent-hover disabled:opacity-60"
+                  className="min-h-[40px] rounded-xl bg-accent px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-accent-hover disabled:opacity-60 active:bg-accent-hover/80"
                 >
                   {geoSaving ? t.ui_ellipsis : t.settings_geofence_save}
                 </button>
@@ -2303,7 +2304,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       <button
                         type="button"
                         onClick={() => setDataToolsLocked(true)}
-                        className="text-[11px] text-white/60 hover:text-white/70 transition-colors"
+                        className="text-[11px] text-white/60 hover:text-white/70 transition-colors active:text-white/70"
                       >
                         Blocca di nuovo
                       </button>
@@ -2402,7 +2403,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 type="button"
                 disabled={pullSyncBusy || pushSyncBusy || dataSyncInProgress}
                 onClick={() => void handlePullSync()}
-                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-accent/40 bg-white/80 px-4 text-xs font-bold uppercase tracking-wider text-accent hover:bg-accent/10 disabled:opacity-60 transition-colors"
+                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-accent/40 bg-white/80 px-4 text-xs font-bold uppercase tracking-wider text-accent hover:bg-accent/10 disabled:opacity-60 transition-colors active:bg-accent/80"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${pullSyncBusy ? 'animate-spin' : ''}`} />
                 {pullSyncBusy ? t.ui_ellipsis : 'Sincronizza'}
@@ -2411,7 +2412,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 type="button"
                 disabled={pushSyncBusy || settingsCloudPushBusy || pullSyncBusy || dataSyncInProgress}
                 onClick={() => void handlePushSync()}
-                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl bg-accent px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-accent-dark disabled:opacity-60 shadow-sm shadow-accent/30 transition-colors"
+                className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl bg-accent px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-accent-dark disabled:opacity-60 shadow-sm shadow-accent/30 transition-colors active:bg-accent-dark/80"
               >
                 <UploadCloud className={`h-3.5 w-3.5 ${pushSyncBusy ? 'animate-spin' : ''}`} />
                 {pushSyncBusy ? t.ui_ellipsis : t.settings_cloud_save_all_devices}
@@ -2501,8 +2502,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-[11px] font-bold text-accent">
                             {initials}
                           </div>
-                          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-white/80">
-                            {u.first_name} {u.last_name}
+                          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-white/80" title={u.first_name}>{u.first_name} {u.last_name}
                           </span>
                           <select
                             value={reassignMap[u.id] ?? ''}
@@ -2532,7 +2532,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 type="button"
                 disabled={isDeleting}
                 onClick={() => setDeletingDept(null)}
-                className="flex-1 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold text-white/80 transition-colors hover:bg-white/15 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold text-white/80 transition-colors hover:bg-white/15 disabled:opacity-50 active:bg-white/80"
               >
                 Annulla
               </button>
@@ -2557,7 +2557,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     setIsDeleting(false);
                   }
                 }}
-                className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-red-600 disabled:opacity-50 active:bg-red-600/80"
               >
                 {isDeleting ? 'Eliminazione…' : 'Conferma eliminazione'}
               </button>
@@ -2576,7 +2576,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               <button
                 type="button"
                 onClick={handleConfirmImport}
-                className="flex-1 rounded-xl bg-accent py-2.5 text-xs font-semibold uppercase text-white hover:bg-accent-hover"
+                className="flex-1 rounded-xl bg-accent py-2.5 text-xs font-semibold uppercase text-white hover:bg-accent-hover active:bg-accent-hover/80"
               >
                 {t.confirm}
               </button>
@@ -2586,7 +2586,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   setShowImportConfirm(false);
                   setImportFile(null);
                 }}
-                className="flex-1 rounded-xl bg-white/10 py-2.5 text-xs font-semibold uppercase text-white/70 hover:bg-white/15"
+                className="flex-1 rounded-xl bg-white/10 py-2.5 text-xs font-semibold uppercase text-white/70 hover:bg-white/15 active:bg-white/80"
               >
                 {t.cancel}
               </button>
@@ -2701,7 +2701,7 @@ function BreakRuleModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 transition-colors hover:bg-white/15"
+            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 transition-colors hover:bg-white/15 active:bg-white/80"
           >
             <X className="h-4 w-4 text-white/55" />
           </button>
@@ -2859,13 +2859,13 @@ function BreakRuleModal({
                   <label className={labelClass}>
                     {t.settings_break_valid_from} <span className="font-normal">{t.settings_break_optional_paren}</span>
                   </label>
-                  <input type="date" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} className={inputClass} />
+                  <input type="date" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} className={inputClass} placeholder="GG/MM/AAAA" />
                 </div>
                 <div>
                   <label className={labelClass}>
                     {t.settings_break_valid_to} <span className="font-normal">{t.settings_break_optional_paren}</span>
                   </label>
-                  <input type="date" value={validTo} onChange={(e) => setValidTo(e.target.value)} className={inputClass} />
+                  <input type="date" value={validTo} onChange={(e) => setValidTo(e.target.value)} className={inputClass} placeholder="GG/MM/AAAA" />
                 </div>
               </div>
 
@@ -2895,7 +2895,7 @@ function BreakRuleModal({
           <div className="flex gap-2 pt-1">
             <button
               type="submit"
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-accent hover:bg-accent-hover text-white font-bold text-sm transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-accent hover:bg-accent-hover text-white font-bold text-sm transition-colors active:bg-accent-hover/80"
             >
               <Check className="w-4 h-4" />
               {isEdit ? t.settings_break_save_changes : t.settings_break_create_rule}
@@ -2903,7 +2903,7 @@ function BreakRuleModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl bg-white/10 px-4 py-3 text-sm font-bold text-white/80 transition-colors hover:bg-white/15"
+              className="rounded-xl bg-white/10 px-4 py-3 text-sm font-bold text-white/80 transition-colors hover:bg-white/15 active:bg-white/80"
             >
               {t.cancel}
             </button>

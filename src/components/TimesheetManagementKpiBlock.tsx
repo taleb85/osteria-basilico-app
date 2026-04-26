@@ -241,13 +241,12 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
                         breakComputeOpts
                       );
                       return (
-                        <div key={s.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-amber-500/15 transition-colors">
+                        <div key={s.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-amber-500/15 transition-colors active:bg-amber-500/80">
                           <div className="w-7 h-7 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0 ring-1 ring-amber-400/30">
                             <span className="text-[11px] font-bold text-amber-300">{(u?.first_name?.[0] ?? '?').toUpperCase()}</span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-white truncate">
-                              {u?.first_name ?? '—'} {u?.last_name ?? ''}
+                            <p className="text-xs font-semibold text-white truncate" title={u?.first_name ?? '—'}>{u?.first_name ?? '—'} {u?.last_name ?? ''}
                             </p>
                             <p className="text-[11px] text-white/45">
                               {format(new Date(s.date), 'EEE d MMM', { locale: it })} · {(s.start_time || '').slice(0, 5)} –{' '}

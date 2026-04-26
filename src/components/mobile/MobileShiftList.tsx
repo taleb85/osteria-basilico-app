@@ -65,8 +65,7 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
               </div>
               
               {shift.notes && !shift.notes.startsWith('__OPEN__') && (
-                <p className="text-[11px] text-white/50 italic truncate max-w-[150px]">
-                  {shift.notes}
+                <p className="text-[11px] text-white/50 italic truncate max-w-[150px]" title={shift.notes}>{shift.notes}
                 </p>
               )}
             </div>

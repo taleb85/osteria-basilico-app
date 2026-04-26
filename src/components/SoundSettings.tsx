@@ -135,7 +135,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
         {/* Tasto Test */}
         <button
           onClick={handleTestSound}
-          className="w-full py-3 rounded-2xl bg-brand-deep/8 text-[11px] font-black text-brand-deep uppercase tracking-[0.2em] hover:bg-brand-deep/15 transition-colors border border-brand-deep/20"
+          className="w-full py-3 rounded-2xl bg-brand-deep/8 text-[11px] font-black text-brand-deep uppercase tracking-[0.2em] hover:bg-brand-deep/15 transition-colors border border-brand-deep/20 active:bg-brand-deep/80"
         >
           Prova Feedback
         </button>

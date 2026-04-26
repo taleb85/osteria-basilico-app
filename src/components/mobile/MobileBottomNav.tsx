@@ -93,8 +93,7 @@ export default function MobileBottomNav({ activeTab, onNavigate, visibleTabs, la
               strokeWidth={isActive ? 2.5 : 2}
               aria-hidden
             />
-            <span className={`text-[11px] font-bold uppercase tracking-tight truncate max-w-full text-center font-sans leading-none ${isActive ? 'opacity-100' : 'opacity-60'}`}>
-              {label}
+            <span className={`text-[11px] font-bold uppercase tracking-tight truncate max-w-full text-center font-sans leading-none ${isActive ? 'opacity-100' : 'opacity-60'}`} title={label}>{label}
             </span>
           </button>
         );

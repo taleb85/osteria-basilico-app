@@ -208,7 +208,7 @@ function MyTimesheetSection({
               key={wIdx}
               type="button"
               onClick={() => toggleWeek(wIdx)}
-              className="w-full flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3 text-left transition-all hover:border-white/20"
+              className="w-full flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3 text-left transition-all hover:border-white/20 active:brightness-95"
               style={cardBg}
             >
               <div className="flex flex-col gap-0.5">
@@ -511,8 +511,7 @@ function TeamTimesheetSection({
                       style={isAbsent ? undefined : cardBg}
                     >
                       <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                        <p className="text-[11px] font-black uppercase tracking-wide text-white/85 truncate">
-                          {fullName}
+                        <p className="text-[11px] font-black uppercase tracking-wide text-white/85 truncate" title={fullName}>{fullName}
                         </p>
                         <p className={`font-black tabular-nums text-sm leading-none ${
                           isAbsent ? 'text-white/40 line-through' : 'text-white'
@@ -630,7 +629,7 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
                 active
                   ? 'bg-accent text-white shadow-sm'
                   : 'bg-white/8 border border-white/20 text-white/60 hover:border-white/35 hover:text-white/90'
-              }`}
+              } active:text-white/90'`}
             >
               {label}
             </button>
@@ -673,15 +672,15 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
         </span>
         <div className="flex items-center border border-white/40 rounded-2xl overflow-hidden flex-1" style={{ background: 'transparent' }}>
           <button type="button" onClick={() => setNavOffset(o => o - 1)}
-            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-r border-white/20">
+            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-r border-white/20 active:bg-white/80">
             <ChevronLeft className="h-4 w-4" />
           </button>
           <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0" style={{ color: '#ffffff' }}>
             <Clock className="h-3 w-3 shrink-0" />
-            <span className="text-[11px] font-bold tabular-nums truncate">{rangeLabel}</span>
+            <span className="text-[11px] font-bold tabular-nums truncate" title={rangeLabel}>{rangeLabel}</span>
           </div>
           <button type="button" onClick={() => setNavOffset(o => o + 1)}
-            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-l border-white/20">
+            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-l border-white/20 active:bg-white/80">
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

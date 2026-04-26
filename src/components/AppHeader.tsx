@@ -105,7 +105,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
                       effectiveLanguage === lang
                         ? 'bg-accent/10 font-semibold text-accent'
                         : 'text-white/80 hover:bg-white/8'
-                    }`}
+                    } active:bg-white/8'/80`}
                   >
                     <span>{langFlags[lang]}</span>
                     <span className="text-xs font-medium">{langLabels[lang]}</span>

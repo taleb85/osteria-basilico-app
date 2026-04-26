@@ -78,7 +78,7 @@ export function ShiftHistoryCard({
           aria-expanded={isUnlocked && isExpanded}
           aria-controls="timesheet-drawer-combined-history"
           onClick={handleClick}
-          className="flex w-full min-h-[2.75rem] items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-amber-500/15"
+          className="flex w-full min-h-[2.75rem] items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-amber-500/15 active:bg-amber-500/80"
         >
           {shiftEdits.length === 0 && punchAuditEntries.length > 0 ? (
             <ShieldAlert className="h-4 w-4 shrink-0 text-orange-400" aria-hidden />
@@ -86,12 +86,10 @@ export function ShiftHistoryCard({
             <History className="h-4 w-4 shrink-0 text-amber-400" aria-hidden />
           )}
           <div className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-bold text-white">
-              {title}
+            <span className="block truncate text-sm font-bold text-white" title={title}>{title}
             </span>
             {!isUnlocked ? (
-              <span className="mt-0.5 block truncate text-[11px] font-medium text-amber-200/80">
-                {t.ts_enter_manager_pin}
+              <span className="mt-0.5 block truncate text-[11px] font-medium text-amber-200/80" title={t.ts_enter_manager_pin}>{t.ts_enter_manager_pin}
               </span>
             ) : null}
           </div>

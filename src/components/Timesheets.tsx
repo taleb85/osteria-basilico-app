@@ -2912,7 +2912,7 @@ export default function Timesheets() {
                     active
                       ? 'shadow-lg'
                       : 'bg-white/8 border border-white/20 hover:bg-white/15 hover:border-white/35'
-                  }`}
+                  } active:bg-white/80`}
                   style={active
                     ? { background: 'linear-gradient(135deg, #1a56db 0%, #0b3573 100%)', boxShadow: '0 2px 12px rgba(26,86,219,0.45)', color: '#ffffff' }
                     : { color: '#ffffff' }}
@@ -2970,7 +2970,7 @@ export default function Timesheets() {
                   <button
                     type="button"
                     onClick={() => setAutoApproveBannerDismissed(true)}
-                    className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-green-200"
+                    className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-green-200 active:bg-green-200/80"
                     aria-label={t.close}
                     style={{ color: '#166534' }}
                   >
@@ -3054,7 +3054,7 @@ export default function Timesheets() {
                   </div>
                   {isActive
                     ? <span className="text-[11px] font-bold text-accent shrink-0">× Filtro</span>
-                    : <ChevronRight className="w-4 h-4 text-white/30 shrink-0 opacity-70 group-hover:text-accent group-hover:opacity-100 transition-colors" aria-hidden />
+                    : <ChevronRight className="w-4 h-4 text-white/30 shrink-0 opacity-70 group-hover:text-accent group-hover:opacity-100 transition-colors active:opacity-90" aria-hidden />
                   }
                 </button>
                 );
@@ -3101,7 +3101,7 @@ export default function Timesheets() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-white">{item.user?.first_name ?? '—'}</p>
-                        <p className="text-[11px] text-white/55 truncate">{item.user?.department ?? ''}</p>
+                        <p className="text-[11px] text-white/55 truncate" title={item.user?.department ?? ''}>{item.user?.department ?? ''}</p>
                       </div>
                       <span className="flex flex-shrink-0 items-center gap-1 rounded-full border border-accent/40 bg-accent/15 px-2 py-0.5 text-[11px] font-bold text-accent">
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent/80" /> {t.ts_badge_in_shift}
@@ -3136,7 +3136,7 @@ export default function Timesheets() {
                           employeeName: item.user?.first_name ?? '—',
                         });
                       }}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-bold transition-colors shadow-sm"
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-bold transition-colors shadow-sm active:bg-accent-hover/80"
                     >
                       <LogOut className="w-4 h-4" /> {t.ts_btn_close_and_approve}
                     </button>
@@ -3180,7 +3180,7 @@ export default function Timesheets() {
                       viewMode === 'week'
                         ? 'bg-accent text-white font-extrabold'
                         : 'hover:bg-white/10'
-                    }`}
+                    } active:bg-white/10'/80`}
                     style={viewMode !== 'week' ? { color: 'rgba(255,255,255,0.80)' } : {}}
                   >
                     {t.ts_period_week}
@@ -3194,7 +3194,7 @@ export default function Timesheets() {
                       viewMode === 'month' && periodNavOffset === 0
                         ? 'bg-accent text-white font-extrabold'
                         : 'hover:bg-white/10'
-                    }`}
+                    } active:bg-white/10'/80`}
                     style={!(viewMode === 'month' && periodNavOffset === 0) ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     title={monthTabTitle}
                   >
@@ -3251,7 +3251,7 @@ export default function Timesheets() {
                     isShowingTodayWeek
                       ? 'cursor-default opacity-50'
                       : 'cursor-pointer'
-                  } disabled:opacity-40 disabled:cursor-not-allowed`}
+                  } disabled:opacity-40 disabled:cursor-not-allowed active:bg-white/80`}
                 >
                   <Calendar className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" style={{ color: 'rgba(255,255,255,0.70)' }} aria-hidden />
                   <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>
@@ -3286,7 +3286,7 @@ export default function Timesheets() {
                     }}
                     className={`ui-toolbar-tab !px-4 lg:!px-5 !text-[11px] lg:!text-sm shrink-0 ${
                       showPeriodPopover ? 'bg-accent/10 text-accent' : 'text-white/80 hover:bg-white/10'
-                    } ${!periodSaved ? 'font-extrabold' : ''}`}
+                    } ${!periodSaved ? 'font-extrabold' : ''} active:bg-white/10'/80`}
                     title="Seleziona periodo"
                   >
                     <span className="text-[12px] lg:text-sm font-bold tabular-nums capitalize text-white">
@@ -3331,7 +3331,7 @@ export default function Timesheets() {
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y - 1); }}
-                              className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10"
+                              className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 active:bg-white/80"
                             >
                               <ChevronLeft className="h-3.5 w-3.5" />
                             </button>
@@ -3341,7 +3341,7 @@ export default function Timesheets() {
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y + 1); }}
-                              className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10"
+                              className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 active:bg-white/80"
                             >
                               <ChevronRight className="h-3.5 w-3.5" />
                             </button>
@@ -3357,7 +3357,7 @@ export default function Timesheets() {
                                   isActive
                                     ? 'bg-accent/15'
                                     : 'hover:bg-white/8'
-                                }`}
+                                } active:bg-white/8'/80`}
                               >
                                 <span className={`text-[12px] font-bold capitalize ${
                                   isActive
@@ -3409,12 +3409,12 @@ export default function Timesheets() {
                       setTsUndoStack(rest);
                       await top.fn();
                     }}
-                    className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold text-white/80 shadow-sm transition-all hover:bg-white/10"
+                    className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold text-white/80 shadow-sm transition-all hover:bg-white/10 active:bg-white/80"
                     style={{ background: 'rgba(255, 255, 255, 0.14)' }}
                     title={tsUndoStack[0]?.label ?? 'Annulla ultima azione'}
                   >
                     <RotateCcw className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
-                    <span className="hidden sm:inline max-w-[7rem] truncate">{tsUndoStack[0]?.label ?? 'Annulla'}</span>
+                    <span className="hidden sm:inline max-w-[7rem] truncate" title={tsUndoStack[0]?.label ?? 'Annulla'}>{tsUndoStack[0]?.label ?? 'Annulla'}</span>
                     {tsUndoStack.length > 1 && (
                       <span className="tabular-nums rounded-md bg-white/15 px-1 py-px text-[11px] font-bold leading-none text-white border border-white/25">
                         {tsUndoStack.length}
@@ -3561,7 +3561,7 @@ export default function Timesheets() {
                                       onClick={() =>
                                         openSummary(w.weekApproved, w.weekApproved, true, `Tutti (${visibleUsers.length})`)
                                       }
-                                      className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold text-white/85 transition-colors hover:bg-white/10"
+                                      className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold text-white/85 transition-colors hover:bg-white/10 active:bg-white/80"
                                     >
                                       <Users className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
                                       <span className="flex-1">Tutti i dipendenti visibili</span>
@@ -3574,10 +3574,10 @@ export default function Timesheets() {
                                         onClick={() =>
                                           openSummary(approvedShifts, approvedShifts, true, name)
                                         }
-                                        className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold text-white/85 transition-colors hover:bg-white/10"
+                                        className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] font-bold text-white/85 transition-colors hover:bg-white/10 active:bg-white/80"
                                       >
                                         <UserCheck className="h-3.5 w-3.5 shrink-0 text-white/40" aria-hidden />
-                                        <span className="flex-1 truncate">{name}</span>
+                                        <span className="flex-1 truncate" title={name}>{name}</span>
                                       </button>
                                     ))}
                                   </>
@@ -3609,7 +3609,7 @@ export default function Timesheets() {
                                       w.fullWeekComplete
                                         ? 'text-white/85 hover:bg-white/10'
                                         : 'cursor-not-allowed text-white/30 opacity-60'
-                                    }`}
+                                    } active:bg-white/10'/80`}
                                   >
                                     <Users className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
                                     <span className="flex-1">Settimana intera (tutti)</span>
@@ -3633,10 +3633,10 @@ export default function Timesheets() {
                                         complete
                                           ? 'text-white/85 hover:bg-white/10'
                                           : 'cursor-not-allowed text-white/30 opacity-60'
-                                      }`}
+                                      } active:bg-white/10'/80`}
                                     >
                                       <UserCheck className="h-3.5 w-3.5 shrink-0 text-white/40" aria-hidden />
-                                      <span className="flex-1 truncate">{name}</span>
+                                      <span className="flex-1 truncate" title={name}>{name}</span>
                                     </button>
                                   ))}
                                 </>
@@ -3704,7 +3704,7 @@ export default function Timesheets() {
                                           setShowWeekApproveMenu(false);
                                           setWeekApproveDesktopPos(null);
                                         }}
-                                        className="rounded-lg p-1 text-white/50 hover:bg-white/10"
+                                        className="rounded-lg p-1 text-white/50 hover:bg-white/10 active:bg-white/80"
                                         aria-label={t.close}
                                       >
                                         <X className="h-4 w-4" />
@@ -3718,7 +3718,7 @@ export default function Timesheets() {
                                             onClick={() =>
                                               openSummary(w.weekApproved, w.weekApproved, true, `Tutti (${visibleUsers.length})`)
                                             }
-                                            className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold text-white/85 hover:bg-white/10"
+                                            className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold text-white/85 hover:bg-white/10 active:bg-white/80"
                                           >
                                             <Users className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                                             Tutti i dipendenti visibili
@@ -3728,7 +3728,7 @@ export default function Timesheets() {
                                               key={user.id}
                                               type="button"
                                               onClick={() => openSummary(approvedShifts, approvedShifts, true, name)}
-                                              className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold text-white/85 hover:bg-white/10"
+                                              className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left text-[11px] font-bold text-white/85 hover:bg-white/10 active:bg-white/80"
                                             >
                                               <UserCheck className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
                                               {name}
@@ -3752,7 +3752,7 @@ export default function Timesheets() {
                                               w.fullWeekComplete
                                                 ? 'text-white/85 hover:bg-white/10'
                                                 : 'cursor-not-allowed text-white/30 opacity-60'
-                                            }`}
+                                            } active:bg-white/10'/80`}
                                           >
                                             <Users className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                                             Settimana intera (tutti)
@@ -3770,7 +3770,7 @@ export default function Timesheets() {
                                                 complete
                                                   ? 'text-white/85 hover:bg-white/10'
                                                   : 'cursor-not-allowed text-white/30 opacity-60'
-                                              }`}
+                                              } active:bg-white/10'/80`}
                                             >
                                               <UserCheck className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
                                               {name}
@@ -3826,7 +3826,7 @@ export default function Timesheets() {
                                 pdfDeptFilter === 'all' 
                                   ? 'bg-accent text-white shadow-md' 
                                   : 'text-white/80 hover:bg-white/10'
-                              }`}
+                              } active:bg-white/10'/80`}
                             >
                               <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                 <Check className={`h-3 w-3 ${pdfDeptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
@@ -3847,7 +3847,7 @@ export default function Timesheets() {
                                   pdfDeptFilter === dept.value 
                                     ? 'bg-accent text-white shadow-md' 
                                     : 'text-white/70 hover:bg-white/10'
-                                }`}
+                                } active:bg-white/10'/80`}
                               >
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                   <span
@@ -3855,7 +3855,7 @@ export default function Timesheets() {
                                     style={pdfDeptFilter !== dept.value ? { backgroundColor: getDeptColor(dept.value) } : {}}
                                   />
                                 </div>
-                                <span className="flex-1 truncate">{dept.label}</span>
+                                <span className="flex-1 truncate" title={dept.label}>{dept.label}</span>
                                 {pdfDeptFilter === dept.value && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                               </button>
                             ))}
@@ -3877,7 +3877,7 @@ export default function Timesheets() {
                                 <button
                                   type="button"
                                   onClick={() => setShowPdfDeptMenu(false)}
-                                  className="rounded-lg p-1 text-white/50 transition-colors hover:bg-white/10 hover:text-white/70"
+                                  className="rounded-lg p-1 text-white/50 transition-colors hover:bg-white/10 hover:text-white/70 active:text-white/70"
                                   aria-label={t.close}
                                 >
                                   <X className="h-3.5 w-3.5" />
@@ -3890,7 +3890,7 @@ export default function Timesheets() {
                                   pdfDeptFilter === 'all' 
                                     ? 'bg-accent text-white shadow-md' 
                                     : 'text-white/70 hover:bg-white/10'
-                                }`}
+                                } active:bg-white/10'/80`}
                               >
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                   <Check className={`h-3 w-3 ${pdfDeptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
@@ -3911,7 +3911,7 @@ export default function Timesheets() {
                                     pdfDeptFilter === dept.value 
                                       ? 'bg-accent text-white shadow-md' 
                                       : 'text-white/70 hover:bg-white/10'
-                                  }`}
+                                  } active:bg-white/10'/80`}
                                 >
                                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                     <span
@@ -3919,7 +3919,7 @@ export default function Timesheets() {
                                       style={pdfDeptFilter !== dept.value ? { backgroundColor: getDeptColor(dept.value) } : {}}
                                     />
                                   </div>
-                                  <span className="flex-1 truncate">{dept.label}</span>
+                                  <span className="flex-1 truncate" title={dept.label}>{dept.label}</span>
                                   {pdfDeptFilter === dept.value && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                                 </button>
                               ))}
@@ -4085,7 +4085,7 @@ export default function Timesheets() {
                             onClick={canReview ? () => handleOpenDayReview(dStr) : undefined}
                             className={`box-border px-2 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1.5 ${
                               weekEndCol ? 'border-r-2 border-r-white/20' : 'border-r border-r-white/10'
-                            } ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''}`}
+                            } ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''} active:bg-white/80`}
                             style={{ background: payrollHighlight ? 'rgba(51,102,204,0.35)' : todayDate ? 'rgba(51,102,204,0.25)' : 'rgba(30, 55, 120, 0.80)' }}
                           >
                             <div className={todayDate && inP ? 'text-cyan-300' : 'text-white/70'}>
@@ -4100,7 +4100,7 @@ export default function Timesheets() {
                               </div>
                             )}
                             {canReview && (
-                              <div className="mt-0.5 text-[11px] font-semibold text-accent/60 group-hover:text-accent transition-colors">
+                              <div className="mt-0.5 text-[11px] font-semibold text-accent/60 group-hover:text-accent transition-colors active:text-accent">
                                 {t.ts_review_short}
                               </div>
                             )}
@@ -4168,7 +4168,7 @@ export default function Timesheets() {
                         }
                         className={`box-border px-2 py-1.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1 ${
                           weekEndCol ? 'border-r-2 border-r-white/15' : 'border-r border-r-white/10'
-                        } ${viewMode === 'month' && !inP ? 'opacity-40' : ''} ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''}`}
+                        } ${viewMode === 'month' && !inP ? 'opacity-40' : ''} ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''} active:bg-white/80`}
                         style={{ background: payrollHighlight ? 'rgba(51,102,204,0.35)' : todayDate ? 'rgba(51,102,204,0.25)' : 'rgba(30, 55, 120, 0.80)' }}
                       >
                         <div
@@ -4198,7 +4198,7 @@ export default function Timesheets() {
                             </span>
                           )}
                           {canReview && (
-                            <span className="text-[11px] font-semibold text-accent/60 group-hover:text-accent transition-colors">
+                            <span className="text-[11px] font-semibold text-accent/60 group-hover:text-accent transition-colors active:text-accent">
                               {t.ts_review_short}
                             </span>
                           )}
@@ -4415,7 +4415,7 @@ export default function Timesheets() {
                                         )}
                                       </div>
                                     )}
-                                    <ArrowRight className="absolute bottom-0.5 right-1 w-2 h-2 text-white/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <ArrowRight className="absolute bottom-0.5 right-1 w-2 h-2 text-white/40 opacity-0 group-hover:opacity-100 transition-opacity active:opacity-90" />
                                     </div>
                                   </button>
                                 );
@@ -4867,7 +4867,7 @@ export default function Timesheets() {
                   : 'text-white/50';
 
           return (
-              <div className="flex flex-1 flex-col overflow-hidden sm:overflow-y-auto lg:h-full sm:max-h-[calc(100vh-60px)] md:max-h-[calc(100vh-60px)]">
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                 {/* Drawer header — strip colorato in base allo stato */}
                 <TimesheetDrawerHeader
                   employeeName={drawerData.employeeName}
@@ -4995,7 +4995,7 @@ export default function Timesheets() {
                             // se fallisce, handleDrawerSaveTimbratures mostra già l'errore
                           })();
                         }}
-                        className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[11px] font-bold text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
+                        className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[11px] font-bold text-white transition-colors hover:bg-accent/90 disabled:opacity-50 active:bg-accent/80"
                       >
                         {manualPunchSaving
                           ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -5006,7 +5006,7 @@ export default function Timesheets() {
                       <button
                         type="button"
                         onClick={closeTimesheetShiftDrawer}
-                        className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/15"
+                        className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/15 active:bg-white/80"
                       >
                         <X className="h-3 w-3 shrink-0" />
                         Chiudi senza salvare
@@ -5014,7 +5014,7 @@ export default function Timesheets() {
                       <button
                         type="button"
                         onClick={() => setShowCloseConfirm(false)}
-                        className="ml-auto flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium text-white/60 transition-colors hover:bg-white/10"
+                        className="ml-auto flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium text-white/60 transition-colors hover:bg-white/10 active:bg-white/80"
                       >
                         Annulla
                       </button>
@@ -5023,7 +5023,7 @@ export default function Timesheets() {
                 )}
 
                 {/* Corpo popup (scroll) */}
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain min-h-[320px] lg:min-h-0">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                   {s.status === 'absent' && canTeamTimesheetOps && !isFrozen && (
                     <div className="border-b border-rose-500/30 bg-rose-500/10 p-5">
                       <p className="text-sm font-medium text-rose-300">{t.wst_status_sub_absent}</p>
@@ -5040,7 +5040,7 @@ export default function Timesheets() {
                             }
                           })()
                         }
-                        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 py-2.5 text-sm font-bold text-rose-300 transition-colors hover:bg-rose-500/20"
+                        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 py-2.5 text-sm font-bold text-rose-300 transition-colors hover:bg-rose-500/20 active:bg-rose-500/80"
                       >
                         {t.shift_restore_published_btn}
                       </button>
@@ -5203,7 +5203,7 @@ export default function Timesheets() {
                                   : punchComplete
                                   ? 'bg-brand-deep/10 ring-brand-deep/25'
                                   : 'bg-white/8 ring-amber-400/40'
-                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''}`}
+                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''} active:bg-amber-500/20'/80`}
                           >
                             <p className={`mb-0.5 text-[11px] font-semibold uppercase tracking-wide ${!s.actualStart ? 'text-red-400' : punchCrossDay ? 'text-red-300/80' : punchComplete ? 'text-blue-300/80' : 'text-amber-300/80'}`}>
                               {t.ts_drawer_manual_punch_in}
@@ -5231,7 +5231,7 @@ export default function Timesheets() {
                                   : punchComplete
                                   ? 'bg-brand-deep/10 ring-brand-deep/25'
                                   : 'bg-white/8 ring-amber-400/40'
-                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''}`}
+                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''} active:bg-amber-500/20'/80`}
                           >
                             <p className={`mb-0.5 text-[11px] sm:text-[11px] font-semibold uppercase tracking-wide ${!s.actualEnd ? 'text-red-400' : punchCrossDay ? 'text-red-300/80' : punchComplete ? 'text-blue-300/80' : 'text-amber-300/80'}`}>
                               {t.ts_drawer_manual_punch_out}
@@ -5293,6 +5293,7 @@ export default function Timesheets() {
                               value={manualPunchOutDate}
                               onChange={(e) => setManualPunchOutDate(e.target.value)}
                               className="w-full rounded-xl border border-amber-400/40 bg-white/8 px-3 py-2 text-base text-white outline-none focus:border-transparent focus:ring-2 focus:ring-amber-500 [color-scheme:dark]"
+                              placeholder="GG/MM/AAAA"
                             />
                           </div>
                           {/* ORA USCITA */}
@@ -5351,7 +5352,7 @@ export default function Timesheets() {
                                   }
                                 })();
                               }}
-                              className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-xs font-bold text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-40"
+                              className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-xs font-bold text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-40 active:bg-red-500/80"
                             >
                               <Trash2 className="h-3.5 w-3.5 shrink-0" />
                               {t.ts_drawer_delete_punches_btn}
@@ -5376,7 +5377,7 @@ export default function Timesheets() {
                               <button
                                 type="button"
                                 onClick={closeTimesheetShiftDrawer}
-                                className="w-full rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 bg-white/10 text-white/70 hover:bg-white/15 border border-white/20"
+                                className="w-full rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 bg-white/10 text-white/70 hover:bg-white/15 border border-white/20 active:bg-white/80"
                               >
                                 CHIUDI
                               </button>
@@ -5413,7 +5414,7 @@ export default function Timesheets() {
                                     closeTimesheetShiftDrawer();
                                   }
                                 }}
-                                className="w-full rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 bg-accent text-white hover:bg-accent-hover"
+                                className="w-full rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 bg-accent text-white hover:bg-accent-hover active:bg-accent-hover/80"
                               >
                                 {hasNext ? 'PROSSIMO' : 'CHIUDI'}
                               </button>
@@ -5475,7 +5476,7 @@ export default function Timesheets() {
                                   : !hasValidOut
                                   ? 'bg-amber-500 text-white hover:bg-amber-600'
                                   : 'bg-accent text-white hover:bg-accent-hover'
-                              } ${reviewQueueSaving || manualPunchSaving || drawerJustOpened ? 'opacity-50' : ''}`}
+                              } ${reviewQueueSaving || manualPunchSaving || drawerJustOpened ? 'opacity-50' : ''} active:bg-amber-600'/80`}
                             >
                               {isLast ? 'SALVA E CHIUDI' : t.ts_drawer_manual_punches_save}
                             </button>
@@ -5501,7 +5502,7 @@ export default function Timesheets() {
                         <div className="grid grid-cols-2 gap-2">
                           <div className="rounded-xl bg-white/8 border border-emerald-500/25 p-3">
                             <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-white/40">{t.ts_drawer_approved_by}</p>
-                            <p className="truncate text-sm font-bold text-white">{fullShift?.approved_by ?? s.approved_by ?? '—'}</p>
+                            <p className="truncate text-sm font-bold text-white" title={fullShift?.approved_by ?? s.approved_by ?? '—'}>{fullShift?.approved_by ?? s.approved_by ?? '—'}</p>
                           </div>
                           <div className="rounded-xl bg-white/8 border border-emerald-500/25 p-3">
                             <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-white/40">{t.ts_drawer_approval_date}</p>
@@ -5594,7 +5595,7 @@ export default function Timesheets() {
                                                 type="button"
                                                 onClick={() => handleDrawerReviewNavigate(-1)}
                                                 disabled={drawerReviewQueue.currentIdx === 0 || reviewQueueSaving}
-                                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-sm font-semibold text-white/70 transition-colors hover:bg-white/15 disabled:opacity-30"
+                                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-sm font-semibold text-white/70 transition-colors hover:bg-white/15 disabled:opacity-30 active:bg-white/80"
                                               >
                                                 ←
                                               </button>
@@ -5626,7 +5627,7 @@ export default function Timesheets() {
                                                   type="button"
                                                   onClick={() => handleDrawerReviewNavigate(1)}
                                                   disabled={reviewQueueSaving}
-                                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-sm font-semibold text-white/70 transition-colors hover:bg-white/15"
+                                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-sm font-semibold text-white/70 transition-colors hover:bg-white/15 active:bg-white/80"
                                               >
                                                 →
                                               </button>
@@ -5680,7 +5681,7 @@ export default function Timesheets() {
                             }
                           })();
                         }}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-700 bg-red-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-700 bg-red-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50 active:bg-red-700/80"
                       >
                         {markAbsentSaving ? (
                           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -5707,7 +5708,7 @@ export default function Timesheets() {
                           });
                           closeTimesheetShiftDrawer();
                         }}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600">
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600 active:bg-amber-600/80">
                         <LogOut className="w-4 h-4" />
                         {t.ts_btn_close_shift_insert_out}
                       </button>
@@ -5836,7 +5837,7 @@ export default function Timesheets() {
                       }
                     })();
                   }}
-                  className="flex-1 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-200 shadow-sm transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                  className="flex-1 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-200 shadow-sm transition-colors hover:bg-red-500/20 disabled:opacity-50 active:bg-red-500/80"
                 >
                   {undoApprovalBusy ? '...' : 'Ripristina'}
                 </button>
@@ -5844,7 +5845,7 @@ export default function Timesheets() {
                   type="button"
                   disabled={undoApprovalBusy}
                   onClick={() => setApproveWeekSummary(null)}
-                  className="flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white/95 shadow-sm transition-colors hover:bg-white/15 disabled:opacity-50"
+                  className="flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white/95 shadow-sm transition-colors hover:bg-white/15 disabled:opacity-50 active:bg-white/80"
                 >
                   Chiudi
                 </button>
@@ -5854,7 +5855,7 @@ export default function Timesheets() {
                 <button
                   type="button"
                   onClick={() => setApproveWeekSummary(null)}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-white/20 bg-white/10 text-white/80 text-sm font-semibold hover:bg-white/15 transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-white/20 bg-white/10 text-white/80 text-sm font-semibold hover:bg-white/15 transition-colors active:bg-white/80"
                 >
                   Annulla
                 </button>
@@ -5875,7 +5876,7 @@ export default function Timesheets() {
                     setPinGatePin('');
                     setPinGateError('');
                   }}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-semibold shadow-lg shadow-accent/20 transition-colors flex items-center justify-center gap-1.5"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-semibold shadow-lg shadow-accent/20 transition-colors flex items-center justify-center gap-1.5 active:bg-accent-hover/80"
                 >
                   <Lock className="w-3.5 h-3.5" />
                   Approva
@@ -5967,7 +5968,7 @@ export default function Timesheets() {
                     </p>
                   </div>
                   <button type="button" onClick={() => { setClosingShift(null); setClockOutTime(''); }}
-                    className="p-1.5 rounded-xl hover:bg-white/10 transition-colors">
+                    className="p-1.5 rounded-xl hover:bg-white/10 transition-colors active:bg-white/80">
                     <X className="w-4 h-4 text-white/60" />
                   </button>
                 </div>
@@ -6014,11 +6015,11 @@ export default function Timesheets() {
 
                 <div className="flex gap-2">
                   <button type="button" onClick={() => { setClosingShift(null); setClockOutTime(''); }}
-                    className="flex-1 px-4 py-2.5 rounded-xl text-white/70 text-sm font-medium transition-colors hover:bg-white/10" style={{ border: '1px solid rgba(255,255,255,0.22)' }}>
+                    className="flex-1 px-4 py-2.5 rounded-xl text-white/70 text-sm font-medium transition-colors hover:bg-white/10 active:bg-white/80" style={{ border: '1px solid rgba(255,255,255,0.22)' }}>
                     {t.cancel}
                   </button>
                   <button type="button" disabled={!clockOutTime || closingLoading} onClick={handleConfirmClose}
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-accent-hover disabled:opacity-50 flex items-center justify-center gap-1.5 transition-colors">
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-accent-hover disabled:opacity-50 flex items-center justify-center gap-1.5 transition-colors active:bg-accent-hover/80">
                     {closingLoading ? t.ts_saving : <><LogOut className="w-3.5 h-3.5" />{t.ts_btn_register_exit}</>}
                   </button>
                 </div>

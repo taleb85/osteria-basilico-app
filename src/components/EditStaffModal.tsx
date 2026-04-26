@@ -162,7 +162,7 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
               type="button"
               onClick={onClose}
               aria-label={t.close}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/15 bg-white/10 transition-colors hover:bg-white/15"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/15 bg-white/10 transition-colors hover:bg-white/15 active:bg-white/80"
             >
               <X className="h-4 w-4 text-white/70" aria-hidden />
             </button>

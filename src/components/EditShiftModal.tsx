@@ -86,7 +86,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
           <div className="bg-accent p-6 relative">
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+              className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors active:bg-white/80"
             >
               <X className="w-5 h-5 text-white" />
             </button>
@@ -109,6 +109,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
                 value={tempShifts.date}
                 onChange={(e) => setTempShifts((s) => ({ ...s, date: e.target.value }))}
                 className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 focus:border-accent outline-none font-bold text-white [color-scheme:dark]"
+                placeholder="GG/MM/AAAA"
               />
             </div>
 
@@ -141,20 +142,20 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
             <div className="flex space-x-3 pt-4">
               <button
                 onClick={handleSave}
-                className="flex-1 bg-accent text-white rounded-2xl py-4 font-black uppercase tracking-wider flex items-center justify-center space-x-2 hover:bg-accent-hover hover:shadow-lg transition-shadow"
+                className="flex-1 bg-accent text-white rounded-2xl py-4 font-black uppercase tracking-wider flex items-center justify-center space-x-2 hover:bg-accent-hover hover:shadow-lg transition-shadow active:bg-accent-hover/80"
               >
                 <Save className="w-5 h-5" />
                 <span>{t.save}</span>
               </button>
               <button
                 onClick={handleCopy}
-                className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center hover:bg-white/15 transition-colors"
+                className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center hover:bg-white/15 transition-colors active:bg-white/80"
               >
                 <Copy className="w-5 h-5 text-white/80" />
               </button>
               <button
                 onClick={handleDelete}
-                className="w-14 h-14 bg-red-900/20 rounded-2xl flex items-center justify-center hover:bg-red-900/30 transition-colors border border-red-500/30"
+                className="w-14 h-14 bg-red-900/20 rounded-2xl flex items-center justify-center hover:bg-red-900/30 transition-colors border border-red-500/30 active:bg-red-900/80"
               >
                 <Trash2 className="w-5 h-5 text-red-400" />
               </button>
