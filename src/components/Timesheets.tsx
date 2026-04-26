@@ -4004,7 +4004,7 @@ export default function Timesheets() {
             <div
               ref={timesheetMirrorHeaderRef}
               className="hidden md:block sticky z-[200] rounded-b-xl overflow-hidden border-x border-b border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
-              style={{ top: 'var(--app-sticky-header-offset)', background: 'rgba(42, 80, 160, 0.75)' }}
+              style={{ top: 'var(--app-sticky-header-offset)', background: 'rgba(42, 74, 138, 0.55)' }}
             >
               <div ref={timesheetHeaderScrollRef} className="overflow-x-hidden">
                 <table
@@ -4019,8 +4019,8 @@ export default function Timesheets() {
                     <col style={{ width: timesheetGridTotalColPx }} />
                   </colgroup>
                   <thead>
-                    <tr className="border-b border-white/20" style={{ background: 'rgba(42, 80, 160, 0.70)' }}>
-                      <th className="sticky left-0 z-10 box-border py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white border-r border-r-white/20 md:py-2.5 md:pl-3 md:pr-2" style={{ background: 'rgba(42, 80, 160, 0.70)' }}>
+                    <tr className="border-b border-white/20" style={{ background: 'rgba(42, 74, 138, 0.55)' }}>
+                      <th className="sticky left-0 z-10 box-border py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white border-r border-r-white/20 md:py-2.5 md:pl-3 md:pr-2" style={{ background: 'rgba(42, 74, 138, 0.55)' }}>
                         {t.employee}
                       </th>
                       {weekDays.map((day, dayIdx) => {
@@ -4042,7 +4042,7 @@ export default function Timesheets() {
                             className={`box-border px-2 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1.5 ${
                               weekEndCol ? 'border-r-2 border-r-white/20' : 'border-r border-r-white/10'
                             } ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''}`}
-                            style={{ background: payrollHighlight ? 'rgba(51,102,204,0.35)' : todayDate ? 'rgba(51,102,204,0.25)' : 'rgba(42, 80, 160, 0.70)' }}
+                            style={{ background: payrollHighlight ? 'rgba(51,102,204,0.35)' : todayDate ? 'rgba(51,102,204,0.25)' : 'rgba(42, 74, 138, 0.55)' }}
                           >
                             <div className={todayDate && inP ? 'text-cyan-300' : 'text-white/70'}>
                               {format(day, 'EEE', { locale })}
@@ -4063,7 +4063,7 @@ export default function Timesheets() {
                           </th>
                         );
                       })}
-                      <th className="box-border border-l border-l-white/20 px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-white md:px-2 md:py-2" style={{ background: 'rgba(42, 80, 160, 0.70)' }}>
+                      <th className="box-border border-l border-l-white/20 px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-white md:px-2 md:py-2" style={{ background: 'rgba(42, 74, 138, 0.55)' }}>
                         {t.stats_total}
                       </th>
                     </tr>
@@ -4096,7 +4096,7 @@ export default function Timesheets() {
               </colgroup>
               <thead ref={timesheetTheadRef}>
                 <tr className="border-b border-white/15">
-                  <th className="sticky left-0 z-10 box-border py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/50 border-r border-r-white/15 md:py-1.5 md:pl-3 md:pr-2" style={{ background: 'rgba(42, 80, 160, 0.70)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'none' }}>
+                  <th className="sticky left-0 z-10 box-border py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/50 border-r border-r-white/15 md:py-1.5 md:pl-3 md:pr-2" style={{ background: 'rgba(42, 74, 138, 0.55)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'none' }}>
                     {t.employee}
                   </th>
                   {weekDays.map((day, dayIdx) => {
@@ -4125,7 +4125,7 @@ export default function Timesheets() {
                         className={`box-border px-2 py-1.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1 ${
                           weekEndCol ? 'border-r-2 border-r-white/15' : 'border-r border-r-white/10'
                         } ${viewMode === 'month' && !inP ? 'opacity-40' : ''} ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''}`}
-                        style={{ background: payrollHighlight ? 'rgba(51,102,204,0.35)' : todayDate ? 'rgba(51,102,204,0.25)' : 'rgba(42, 80, 160, 0.70)' }}
+                        style={{ background: payrollHighlight ? 'rgba(51,102,204,0.35)' : todayDate ? 'rgba(51,102,204,0.25)' : 'rgba(42, 74, 138, 0.55)' }}
                       >
                         <div
                           className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${
