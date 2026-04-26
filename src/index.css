@@ -60,6 +60,13 @@ body .flow-brand-header {
   border-radius: 0 !important;
 }
 
+/* Riga tab TopTabBar (sotto la brand) — stessa famiglia cromatica */
+body .top-tabbar {
+  background: rgba(4, 12, 42, 0.94) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: none !important;
+}
+
 /*
  * Shell semplice (stile v1.9): onda + gradiente su html, body trasparente, scroll su #root.
  * Niente layer fixed .flow-pwa-backdrop, niente overflow su html (evita fratture iOS con la barra).
