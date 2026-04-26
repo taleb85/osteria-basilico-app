@@ -7,9 +7,6 @@ const COLORS = {
   green: { primary: '#32CD32', secondary: '#003300', bg: '#001A00' },
 } as const;
 
-/** Sfondo icona nella variante header (es. striscia blu) — come nel mockup HTML. */
-const HEADER_ICON_BG = '#25334d';
-
 export type FlowLogoSvgColor = keyof typeof COLORS;
 export type FlowLogoSvgVariant = 'full' | 'icon-only' | 'header';
 
@@ -18,11 +15,11 @@ export interface FlowLogoSvgProps {
   color?: FlowLogoSvgColor;
   className?: string;
   /**
-   * Solo `full`: testo sotto l’icona — default bianco come asset ufficiale;
-   * `onLight` = testo scuro su sfondo chiaro dietro l’SVG.
+   * `full`: sotto l’icona. `header`: testo "FLOW" a destra. Default `onDark` (bianco);
+   * `onLight` = testo scuro.
    */
   wordmark?: 'onLight' | 'onDark';
-  /** Rendi il wrapper `header` con sfondo scuro e testo bianco (come blocco “header” del mockup). */
+  /** Opzionale: contenitore attorno al logo header inline (es. striscia barra). */
   headerBar?: boolean;
 }
 
@@ -89,29 +86,61 @@ export default function FlowLogoSvg({
     );
   }
 
+  /** Header orizzontale 300×60: icona 60 + wordmark (gradient `userSpace` 0–60 come l’asset). */
   if (variant === 'header') {
-    const wrap = `flex items-center gap-4 ${headerBar ? 'rounded-[10px] bg-[#1A263E] px-6 py-3' : ''} ${className}`.trim();
-    return (
-      <div className={wrap}>
-        <svg
-          viewBox="0 0 200 200"
-          className="h-10 w-10 shrink-0"
-          width={50}
-          height={50}
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          role="img"
-          aria-hidden
+    const gradHeaderId = `${rawId}-grad-header`;
+    const headerTextFill = wordDark ? '#1A263E' : '#FFFFFF';
+    const svg = (
+      <svg
+        width={300}
+        height={60}
+        viewBox="0 0 300 60"
+        className={headerBar ? undefined : className}
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="FLOW"
+        style={{ maxWidth: '100%', height: 'auto' }}
+      >
+        <title>FLOW</title>
+        <defs>
+          <linearGradient
+            id={gradHeaderId}
+            x1="0"
+            y1="0"
+            x2="60"
+            y2="0"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="0%" stopColor={selected.primary} />
+            <stop offset="80%" stopColor={selected.secondary} />
+          </linearGradient>
+        </defs>
+        <rect width="60" height="60" rx="15" fill={selected.bg} />
+        <rect x="15" y="20" width="30" height="4" rx="2" fill={`url(#${gradHeaderId})`} />
+        <rect x="15" y="28" width="22" height="4" rx="2" fill={`url(#${gradHeaderId})`} />
+        <rect x="15" y="36" width="30" height="4" rx="2" fill={`url(#${gradHeaderId})`} />
+        <text
+          x="80"
+          y="40"
+          fill={headerTextFill}
+          fontFamily="Arial, sans-serif"
+          fontWeight="bold"
+          fontSize="24"
+          letterSpacing="2"
         >
-          <rect width="200" height="200" rx="45" fill={HEADER_ICON_BG} />
-          <Defs />
-          <BarsInIcon />
-        </svg>
-        <span className="text-2xl font-bold tracking-[0.2em] text-white" style={{ fontFamily: 'system-ui, Arial, sans-serif' }}>
           FLOW
-        </span>
-      </div>
+        </text>
+      </svg>
     );
+    if (headerBar) {
+      return (
+        <div className={`inline-flex max-w-full rounded-[10px] bg-[#1A263E] px-3 py-1.5 ${className}`.trim()}>
+          {svg}
+        </div>
+      );
+    }
+    return svg;
   }
 
   // full: viewBox 0 0 200 280 — come asset (testo bianco sotto; su sfondo chiaro usare wordmark="onLight")
