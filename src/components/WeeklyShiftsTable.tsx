@@ -2013,11 +2013,15 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         ? (viewMode === 'day' ? [weekStart] : eachDayOfInterval({ start: weekStart, end: addDays(weekStart, viewMode === '2weeks' ? 13 : 6) }))
         : eachDayOfInterval({ start: periodStartDate, end: addDays(periodStartDate, periodConfig.numWeeks * 7 - 1) });
 
+      const firstExportedDay = daysToExport[0];
+      if (!firstExportedDay) return;
+
+      // Primo argomento = inizio reale del range nel PDF (non periodStart se si esporta una settimana)
       // Usa sempre il reparto selezionato corrente (activeUsers già filtrati)
       const usersToExport = activeUsers;
       const filterLabelToUse = localFilterDepartment || undefined;
 
-      await exportSchedulePDF(periodStartDate, daysToExport, usersToExport, shifts, {
+      await exportSchedulePDF(firstExportedDay, daysToExport, usersToExport, shifts, {
         restaurantName: tenant?.name,
         filterLabel: filterLabelToUse,
         breakRules,
@@ -2883,7 +2887,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       <button
                         type="button"
                         onClick={() => void (async () => {
-                          await exportSchedulePDF(weekStart, allWeekDays, activeUsers, shifts, {
+                          await exportSchedulePDF(allWeekDays[0] ?? weekStart, allWeekDays, activeUsers, shifts, {
                             restaurantName: tenant?.name,
                             filterLabel: localFilterDepartment || undefined,
                             breakRules,

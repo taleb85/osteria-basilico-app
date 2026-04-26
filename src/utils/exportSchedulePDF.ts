@@ -413,7 +413,8 @@ export async function exportSchedulePDF(
   }
 
   // ── Save ──────────────────────────────────────────────────────────────────
-  /** Solo data della settimana (inizio periodo): es. `2026-03-30.pdf` */
-  const fileName = `${format(weekStart, 'yyyy-MM-dd')}.pdf`;
+  /** Nome file = primo giorno effettivamente esportato in `weekDays` (stesso range del PDF). */
+  const anchorDate = weekDays[0] ?? weekStart;
+  const fileName = `${format(anchorDate, 'yyyy-MM-dd')}.pdf`;
   doc.save(fileName);
 }
