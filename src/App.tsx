@@ -728,10 +728,10 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         }`}
         style={{
           top: impersonatingAs ? 40 : 0,
-          background: 'rgba(5, 14, 46, 0.97)',
+          background: 'rgba(42, 74, 138, 0.85)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(15, 35, 90, 0.82)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
         }}
       >
         <MobileProfileHeader
