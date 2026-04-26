@@ -1757,3 +1757,40 @@ body .bg-slate-200 { background-color: rgba(255, 255, 255, 0.14) !important; }
 body {
   color: #ffffff;
 }
+
+/* Desktop: superfici vetro meno trasparenti (leggibilità su wave) */
+@media (min-width: 768px) {
+  .surface-glass,
+  [class*='surface-glass'] {
+    background: rgba(255, 255, 255, 0.14) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .rounded-xl,
+  .rounded-2xl {
+    --surface-opacity: 0.14;
+  }
+
+  .border {
+    border-color: rgba(255, 255, 255, 0.22) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  [class*='kpi'],
+  [class*='stat-card'] {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  [class*='shift-card'],
+  [class*='ShiftCard'] {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  [class*='grid-cell'],
+  [class*='GridCell'] {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}

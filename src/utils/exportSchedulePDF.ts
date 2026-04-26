@@ -14,6 +14,11 @@ const BLACK: [number, number, number] = [0, 0, 0];
 const GRAY_ULTRA_LIGHT: [number, number, number] = [229, 231, 235]; // #e5e7eb
 const GRAY_TEXT: [number, number, number] = [107, 114, 128]; // #6b7280
 const GRAY_OFF: [number, number, number] = [209, 213, 219]; // #d1d5db
+const TABLE_LINE: [number, number, number] = [200, 200, 200];
+const TABLE_OUTER: [number, number, number] = [150, 150, 150];
+const HDR_DARK: [number, number, number] = [13, 31, 60];
+const ROW_STRIPE: [number, number, number] = [245, 247, 250];
+const HDR_TXT: [number, number, number] = [255, 255, 255];
 
 /** Stati turno: solo grassetto/grigio, no badge visibili */
 const STATUS_WEIGHT: Record<string, 'bold' | 'normal'> = {
@@ -174,30 +179,35 @@ export async function exportSchedulePDF(
     doc.setLineWidth(0.2);
     doc.line(MARGIN, 20, PAGE_W - MARGIN, 20);
 
-    // ── Column headers ─────────────────────────────────────────────────────────
+    // ── Column headers (griglia e bordi visibili) ──────────────────────────────
     let y = 26;
-    doc.setTextColor(...GRAY_TEXT);
+    doc.setFillColor(...HDR_DARK);
+    doc.rect(MARGIN, y, CONTENT_W, HEADER_ROW, 'F');
+    doc.setTextColor(...HDR_TXT);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.text(t.ts_pdf_col_employee, MARGIN + 2, y + 5);
 
-    // Day column headers
     weekDaysChunk.forEach((day, i) => {
       const x = MARGIN + NAME_W + i * DAY_W;
-      doc.setTextColor(...GRAY_TEXT);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
       const label = fmtDay(day, locale);
       doc.text(label, x + DAY_W / 2 - doc.getTextWidth(label) / 2, y + 5);
     });
 
-    // Total column header
     const totX = MARGIN + NAME_W + numDays * DAY_W;
-    doc.setTextColor(...GRAY_TEXT);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
     const totLabel = t.schedule_pdf_total_abbr;
     doc.text(totLabel, totX + TOT_W / 2 - doc.getTextWidth(totLabel) / 2, y + 5);
+
+    doc.setDrawColor(...TABLE_OUTER);
+    doc.setLineWidth(0.5);
+    doc.rect(MARGIN, y, CONTENT_W, HEADER_ROW, 'S');
+    doc.setDrawColor(...TABLE_LINE);
+    doc.setLineWidth(0.4);
+    for (let v = 0; v <= numDays; v++) {
+      const vx = MARGIN + NAME_W + v * DAY_W;
+      doc.line(vx, y, vx, y + HEADER_ROW);
+    }
+    doc.line(MARGIN + CONTENT_W, y, MARGIN + CONTENT_W, y + HEADER_ROW);
 
     y += HEADER_ROW;
 
@@ -215,36 +225,43 @@ export async function exportSchedulePDF(
         employeesOnCurrentPage = 0;
         
         // Ripeti header colonne
-        doc.setTextColor(...GRAY_TEXT);
+        doc.setFillColor(...HDR_DARK);
+        doc.rect(MARGIN, y, CONTENT_W, HEADER_ROW, 'F');
+        doc.setTextColor(...HDR_TXT);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
         doc.text(t.ts_pdf_col_employee, MARGIN + 2, y + 5);
-        
         weekDaysChunk.forEach((day, i) => {
           const x = MARGIN + NAME_W + i * DAY_W;
           const label = fmtDay(day, locale);
           doc.text(label, x + DAY_W / 2 - doc.getTextWidth(label) / 2, y + 5);
         });
-        
-        const totX = MARGIN + NAME_W + numDays * DAY_W;
-        const totLabel = t.schedule_pdf_total_abbr;
-        doc.text(totLabel, totX + TOT_W / 2 - doc.getTextWidth(totLabel) / 2, y + 5);
-        
+        const totXH = MARGIN + NAME_W + numDays * DAY_W;
+        const totLabel2 = t.schedule_pdf_total_abbr;
+        doc.text(totLabel2, totXH + TOT_W / 2 - doc.getTextWidth(totLabel2) / 2, y + 5);
+        doc.setDrawColor(...TABLE_OUTER);
+        doc.setLineWidth(0.5);
+        doc.rect(MARGIN, y, CONTENT_W, HEADER_ROW, 'S');
+        doc.setDrawColor(...TABLE_LINE);
+        doc.setLineWidth(0.4);
+        for (let v = 0; v <= numDays; v++) {
+          const vx = MARGIN + NAME_W + v * DAY_W;
+          doc.line(vx, y, vx, y + HEADER_ROW);
+        }
+        doc.line(MARGIN + CONTENT_W, y, MARGIN + CONTENT_W, y + HEADER_ROW);
         y += HEADER_ROW;
       }
 
       // Separator tra reparti
       const dept = user.department ?? 'sala_bar';
       if (dept !== prevDept && rowIdx > 0) {
-        doc.setDrawColor(...GRAY_ULTRA_LIGHT);
-        doc.setLineWidth(0.3);
+        doc.setDrawColor(...TABLE_LINE);
+        doc.setLineWidth(0.45);
         doc.line(MARGIN, y, MARGIN + CONTENT_W, y);
-        y += 2;
       }
       prevDept = dept;
 
-      // Sfondo bianco puro
-      doc.setFillColor(...WHITE);
+      doc.setFillColor(...(rowIdx % 2 === 0 ? WHITE : ROW_STRIPE));
       doc.rect(MARGIN, y, CONTENT_W, DATA_ROW, 'F');
 
       // Name
@@ -308,10 +325,16 @@ export async function exportSchedulePDF(
         doc.text(weekTotal, totX2 + TOT_W / 2 - tw / 2, y + 10);
       }
 
-      // Separator orizzontale
-      doc.setDrawColor(...GRAY_ULTRA_LIGHT);
-      doc.setLineWidth(0.2);
-      doc.line(MARGIN, y + DATA_ROW, MARGIN + CONTENT_W, y + DATA_ROW);
+      doc.setDrawColor(...TABLE_OUTER);
+      doc.setLineWidth(0.5);
+      doc.rect(MARGIN, y, CONTENT_W, DATA_ROW, 'S');
+      doc.setDrawColor(...TABLE_LINE);
+      doc.setLineWidth(0.35);
+      for (let v = 0; v <= numDays; v++) {
+        const vx = MARGIN + NAME_W + v * DAY_W;
+        doc.line(vx, y, vx, y + DATA_ROW);
+      }
+      doc.line(MARGIN + CONTENT_W, y, MARGIN + CONTENT_W, y + DATA_ROW);
 
       y += DATA_ROW;
       employeesOnCurrentPage++;

@@ -83,18 +83,30 @@ export async function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams)
 
   // Palette brand e funzionale
   const C_TEAL   : [number,number,number] = [45, 90, 39]; 
-  const C_GRID   : [number,number,number] = [148, 163, 184]; 
+  /** Griglia tabella: linee visibili (stampa/PDF) */
+  const C_TABLE_LINE : [number,number,number] = [200, 200, 200];
+  const C_TABLE_LINE_H : [number,number,number] = [150, 150, 150];
+  const C_HDR_DARK: [number,number,number] = [13, 31, 60];
   const C_HDR_BG : [number,number,number] = [241, 245, 249];
   const C_DARK   : [number,number,number] = [15, 23, 42];
   const C_MID    : [number,number,number] = [71, 85, 105];
   const C_LIGHT  : [number,number,number] = [148, 163, 184];
+  const C_HDR_TXT: [number,number,number] = [255, 255, 255];
+  const C_ROW_ALT: [number,number,number] = [245, 247, 250];
   
   const BG_CONFIRMED: [number,number,number] = [240, 253, 244]; 
   const BD_CONFIRMED: [number,number,number] = [45, 90, 39];    
   const _BG_PENDING  : [number,number,number] = [255, 251, 235]; 
   const _BD_PENDING  : [number,number,number] = [245, 158, 11];  
 
-  const grid = () => { doc.setDrawColor(...C_GRID); doc.setLineWidth(0.15); }; 
+  const strokeTableInner = () => {
+    doc.setDrawColor(...C_TABLE_LINE);
+    doc.setLineWidth(0.4);
+  };
+  const strokeTableOuter = () => {
+    doc.setDrawColor(...C_TABLE_LINE_H);
+    doc.setLineWidth(0.5);
+  };
   const setTxt = (sz: number, style: 'normal'|'bold', rgb: [number,number,number]) => {
     doc.setFontSize(sz); doc.setFont('helvetica', style); doc.setTextColor(...rgb);
   };
@@ -140,54 +152,60 @@ export async function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams)
     
     let y = 18;
 
-    // Intestazioni Colonne
-    doc.setFillColor(...C_HDR_BG);
+    // Intestazioni Colonne (sfondo scuro, testo bianco, griglia visibile)
+    doc.setFillColor(...C_HDR_DARK);
     doc.rect(MG, y, CW, H_HDR, 'F');
-    grid(); doc.rect(MG, y, CW, H_HDR, 'S');
-
-    setTxt(7, 'bold', C_DARK);
+    setTxt(7, 'bold', C_HDR_TXT);
     doc.text("EMPLOYEE", MG + 2, y + 6.5);
-    grid(); doc.line(MG + NAME_W, y, MG + NAME_W, y + H_HDR);
-
-    // Disegna sempre 7 colonne per i giorni (LUN-DOM)
     for (let i = 0; i < 7; i++) {
       const x = MG + NAME_W + i * DAY_W;
-      grid(); doc.line(x, y, x, y + H_HDR);
-      setTxt(7, 'bold', C_DARK);
+      setTxt(7, 'bold', C_HDR_TXT);
       centerText(DAYS_EN[i], x, DAY_W, y + 6.5);
     }
-
     const totXhdr = MG + NAME_W + 7 * DAY_W;
-    grid(); doc.line(totXhdr, y, totXhdr, y + H_HDR);
-    setTxt(7, 'bold', C_TEAL);
+    setTxt(7, 'bold', C_HDR_TXT);
     centerText("TOTAL", totXhdr, TOT_W, y + 6.5);
+    strokeTableOuter();
+    doc.rect(MG, y, CW, H_HDR, 'S');
+    strokeTableInner();
+    for (let i = 0; i < 7; i++) {
+      doc.line(MG + NAME_W + i * DAY_W, y, MG + NAME_W + i * DAY_W, y + H_HDR);
+    }
+    doc.line(totXhdr, y, totXhdr, y + H_HDR);
+    doc.line(MG + CW, y, MG + CW, y + H_HDR);
     y += H_HDR;
 
     // Righe Dipendenti
+    let bodyRow = 0;
     pdfUsers.forEach((user) => {
       if (y > PH - H_FOOT - H_ROW - 10) {
         doc.addPage();
         y = 10;
         // Ripeti Header Tabella su nuova pagina
-        doc.setFillColor(...C_HDR_BG);
+        doc.setFillColor(...C_HDR_DARK);
         doc.rect(MG, y, CW, H_HDR, 'F');
-        grid(); doc.rect(MG, y, CW, H_HDR, 'S');
-        setTxt(7, 'bold', C_DARK);
+        setTxt(7, 'bold', C_HDR_TXT);
         doc.text("EMPLOYEE", MG + 2, y + 6.5);
         for (let i = 0; i < 7; i++) {
           const x = MG + NAME_W + i * DAY_W;
-          grid(); doc.line(x, y, x, y + H_HDR);
+          setTxt(7, 'bold', C_HDR_TXT);
           centerText(DAYS_EN[i], x, DAY_W, y + 6.5);
         }
-        grid(); doc.line(MG + NAME_W, y, MG + NAME_W, y + H_HDR);
         const pX = MG + NAME_W + 7 * DAY_W;
-        grid(); doc.line(pX, y, pX, y + H_HDR);
-        setTxt(7, 'bold', C_TEAL);
+        setTxt(7, 'bold', C_HDR_TXT);
         centerText("TOTAL", pX, TOT_W, y + 6.5);
+        strokeTableOuter();
+        doc.rect(MG, y, CW, H_HDR, 'S');
+        strokeTableInner();
+        for (let i = 0; i < 7; i++) {
+          doc.line(MG + NAME_W + i * DAY_W, y, MG + NAME_W + i * DAY_W, y + H_HDR);
+        }
+        doc.line(pX, y, pX, y + H_HDR);
+        doc.line(MG + CW, y, MG + CW, y + H_HDR);
         y += H_HDR;
       }
 
-      doc.setFillColor(255, 255, 255);
+      doc.setFillColor(...(bodyRow % 2 === 0 ? [255, 255, 255] as [number, number, number] : C_ROW_ALT));
       doc.rect(MG, y, CW, H_ROW, 'F');
 
       // Nome e Cognome (MAIUSCOLO, senza ruoli o icone)
@@ -258,15 +276,16 @@ export async function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams)
         rightText(fmtDecimal(userWeekMins), totX2 + TOT_W - 2, y + H_ROW / 2 + 1.5);
       }
 
-      grid();
+      strokeTableOuter();
       doc.rect(MG, y, CW, H_ROW, 'S');
-      doc.line(MG + NAME_W, y, MG + NAME_W, y + H_ROW);
+      strokeTableInner();
       for (let i = 0; i <= 7; i++) {
         const lx = MG + NAME_W + i * DAY_W;
         doc.line(lx, y, lx, y + H_ROW);
       }
       doc.line(totX2 + TOT_W, y, totX2 + TOT_W, y + H_ROW);
       y += H_ROW;
+      bodyRow += 1;
     });
 
     // Riga Totali Settimana
@@ -274,16 +293,17 @@ export async function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams)
     if (y > PH - H_FOOT - H_SUM_ROW) { doc.addPage(); y = 10; }
     doc.setFillColor(...C_HDR_BG);
     doc.rect(MG, y, CW, H_SUM_ROW, 'F');
-    grid(); doc.rect(MG, y, CW, H_SUM_ROW, 'S');
     setTxt(7, 'bold', C_MID);
     doc.text("WEEK TOTALS", MG + 2, y + 6.5);
-    doc.line(MG + NAME_W, y, MG + NAME_W, y + H_SUM_ROW);
+    strokeTableOuter();
+    doc.rect(MG, y, CW, H_SUM_ROW, 'S');
+    strokeTableInner();
 
     let weekGrandTotal = 0;
     for (let i = 0; i < 7; i++) {
       const x = MG + NAME_W + i * DAY_W;
       const dayInWeek = week.find(d => (d.getDay() + 6) % 7 === i);
-      grid(); doc.line(x, y, x, y + H_SUM_ROW);
+      doc.line(x, y, x, y + H_SUM_ROW);
       if (dayInWeek) {
         const ds = format(dayInWeek, 'yyyy-MM-dd');
         const dayTotal = pdfUsers.reduce((s, u) => {
@@ -298,7 +318,8 @@ export async function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams)
       }
     }
     const totXf = MG + NAME_W + 7 * DAY_W;
-    grid(); doc.line(totXf, y, totXf, y + H_SUM_ROW);
+    doc.line(totXf, y, totXf, y + H_SUM_ROW);
+    doc.line(MG + CW, y, MG + CW, y + H_SUM_ROW);
     if (weekGrandTotal > 0) {
       setTxt(9, 'bold', C_TEAL);
       rightText(fmtDecimal(weekGrandTotal), totXf + TOT_W - 2, y + 6.5);
@@ -310,7 +331,7 @@ export async function exportTimesheetPdfToFile(params: ExportTimesheetPdfParams)
   const totalPages = doc.getNumberOfPages();
   for (let pg = 1; pg <= totalPages; pg++) {
     doc.setPage(pg);
-    doc.setDrawColor(...C_GRID); doc.setLineWidth(0.3);
+    doc.setDrawColor(...C_TABLE_LINE); doc.setLineWidth(0.35);
     doc.line(MG, PH - H_FOOT - 1, PW - MG, PH - H_FOOT - 1);
     setTxt(6.5, 'normal', C_LIGHT);
     doc.text("FLOW - Attendance System", MG, PH - 4);
