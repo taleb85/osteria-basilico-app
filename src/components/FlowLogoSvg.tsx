@@ -1,47 +1,62 @@
 import { useId, type CSSProperties } from 'react';
 
 /**
- * Palette brand. `bg` = navy quasi nero dello squircle; `bgGloss` = chiarore in alto;
- * `hi` = picco giallo/secondario per i segmenti "accesi" del logo.
+ * Sistema a traccia + riempimento come flow-brand-assets.html:
+ * stessa faccia blu 145° per tutte le varianti; cambiano i gradienti delle barre.
  */
-const COLORS = {
+const TRACK = '#3a2e35';
+
+const APP = {
+  W: 160,
+  trackW: 118,
+  trackH: 22,
+  gap: 10,
+  wTop: 86,
+  wMid: 118,
+  wBot: 60,
+} as const;
+
+const FULL_CARD = { W: 195, H: 235, faceRx: 34 } as const;
+const FULL = { trackW: 135, trackH: 23, gap: 9, wTop: 100, wMid: 135, wBot: 70 } as const;
+
+type BarGrads = { fill0: string; fill1: string; fill2: string; mid0: string; mid1: string; mid2: string };
+
+const BAR_GRADIENTS: Record<string, BarGrads> = {
   orange: {
-    primary: '#FF9500',
-    secondary: '#2A1E15',
-    bg: '#0A1020',
-    bgGloss: '#121a34',
-    bgDeep: '#040810',
-    hi: '#FFCC00',
+    fill0: '#ffcc00',
+    fill1: '#ff9900',
+    fill2: '#e07800',
+    mid0: '#ffd700',
+    mid1: '#ffaa00',
+    mid2: '#e08800',
   },
   teal: {
-    primary: '#00CED1',
-    secondary: '#002B2B',
-    bg: '#001A1A',
-    bgGloss: '#0a2a2c',
-    bgDeep: '#000808',
-    hi: '#66F0F0',
+    fill0: '#5dcaa5',
+    fill1: '#2a9d72',
+    fill2: '#0f6e56',
+    mid0: '#9fe1cb',
+    mid1: '#4fb892',
+    mid2: '#1d9e75',
   },
   purple: {
-    primary: '#BF40BF',
-    secondary: '#2E0854',
-    bg: '#120224',
-    bgGloss: '#1a0a32',
-    bgDeep: '#080218',
-    hi: '#E8A0FF',
+    fill0: '#afa9ec',
+    fill1: '#7a72c8',
+    fill2: '#534ab7',
+    mid0: '#cecbf6',
+    mid1: '#a8a0e8',
+    mid2: '#7f77dd',
   },
   green: {
-    primary: '#32CD32',
-    secondary: '#003300',
-    bg: '#001A00',
-    bgGloss: '#0a280a',
-    bgDeep: '#000800',
-    hi: '#9FFF9F',
+    fill0: '#97c459',
+    fill1: '#6a9a28',
+    fill2: '#3b6d11',
+    mid0: '#c0dd97',
+    mid1: '#9bc84a',
+    mid2: '#639922',
   },
 } as const;
 
-type Theme = (typeof COLORS)['orange'];
-
-export type FlowLogoSvgColor = keyof typeof COLORS;
+export type FlowLogoSvgColor = keyof typeof BAR_GRADIENTS;
 export type FlowLogoSvgVariant = 'full' | 'icon-only' | 'header';
 
 export interface FlowLogoSvgProps {
@@ -49,97 +64,166 @@ export interface FlowLogoSvgProps {
   color?: FlowLogoSvgColor;
   className?: string;
   style?: CSSProperties;
-  /**
-   * `full`: sotto l’icona. `header`: testo "FLOW" a destra. Default `onDark` (bianco);
-   * `onLight` = testo scuro.
-   */
   wordmark?: 'onLight' | 'onDark';
-  /** Opzionale: contenitore attorno al logo header inline (es. striscia barra). */
   headerBar?: boolean;
 }
 
-/** Icona 200×200: squircle con gloss + tre pill orizzontali (segmenti luminosi scartati, come app icon design). */
-function Icon200DefsAndBars({ gid, t }: { gid: string; t: Theme }) {
+function BarFillOnlyDefs({ gid, b }: { gid: string; b: BarGrads }) {
+  return (
+    <defs>
+      <linearGradient id={`${gid}-f`} x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+        <stop offset="0%" stopColor={b.fill0} />
+        <stop offset="60%" stopColor={b.fill1} />
+        <stop offset="100%" stopColor={b.fill2} />
+      </linearGradient>
+      <linearGradient id={`${gid}-fm`} x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+        <stop offset="0%" stopColor={b.mid0} />
+        <stop offset="60%" stopColor={b.mid1} />
+        <stop offset="100%" stopColor={b.mid2} />
+      </linearGradient>
+    </defs>
+  );
+}
+
+/** Faccia rettangolare (quadrata o per card) + clip arrotondato + gloss superiore. */
+function IconFaceGlossWithClip({
+  gid,
+  width,
+  height,
+  rx,
+}: {
+  gid: string;
+  width: number;
+  height: number;
+  rx: number;
+}) {
+  return (
+    <defs>
+      <linearGradient id={`${gid}-face`} x1="0" y1="0" x2={String(width)} y2={String(height)} gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#253660" />
+        <stop offset="40%" stopColor="#1a2744" />
+        <stop offset="100%" stopColor="#111c36" />
+      </linearGradient>
+      <linearGradient id={`${gid}-gloss`} x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.16" />
+        <stop offset="100%" stopColor="#ffffff" stopOpacity="0.02" />
+      </linearGradient>
+      <clipPath id={`${gid}-clip`}>
+        <rect width={width} height={height} rx={rx} />
+      </clipPath>
+    </defs>
+  );
+}
+
+/** 160×160 — HTML “Icon Applications / App Icon (Large)”. */
+function IconApp160({ gid, color }: { gid: string; color: FlowLogoSvgColor }) {
+  const b = BAR_GRADIENTS[color] ?? BAR_GRADIENTS.orange;
+  const th = APP.trackH;
+  const r = th / 2;
+  const tx = (APP.W - APP.trackW) / 2;
+  const hBlock = 3 * th + 2 * APP.gap;
+  const y0 = (APP.W - hBlock) / 2;
+  const y1 = y0;
+  const y2 = y0 + th + APP.gap;
+  const y3 = y0 + 2 * (th + APP.gap);
   return (
     <>
-      <defs>
-        <linearGradient
-          id={`${gid}-face`}
-          x1="0"
-          y1="0"
-          x2="0"
-          y2="200"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0%" stopColor={t.bgGloss} />
-          <stop offset="42%" stopColor={t.bg} />
-          <stop offset="100%" stopColor={t.bgDeep} />
-        </linearGradient>
-        {/*
-          Tre tracciati uguali (x, w, h, rx). Il segmento "acceso" differisce solo nel gradiente:
-          - top: glow a sinistra ~60% poi dissolvenza nel navy
-          - mid: segmento centrale (dark | glow | dark)
-          - bottom: glow a sinistra ~40% poi dissolvenza
-        */}
-        <linearGradient
-          id={`${gid}-b-top`}
-          x1="36"
-          y1="0"
-          x2="164"
-          y2="0"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0%" stopColor={t.hi} />
-          <stop offset="28%" stopColor={t.primary} />
-          <stop offset="52%" stopColor={t.primary} />
-          <stop offset="62%" stopColor={t.secondary} />
-          <stop offset="72%" stopColor={t.bg} stopOpacity="0.92" />
-          <stop offset="100%" stopColor={t.bg} />
-        </linearGradient>
-        <linearGradient
-          id={`${gid}-b-mid`}
-          x1="36"
-          y1="0"
-          x2="164"
-          y2="0"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0%" stopColor={t.bg} />
-          <stop offset="10%" stopColor={t.bg} />
-          <stop offset="16%" stopColor={t.secondary} stopOpacity="0.85" />
-          <stop offset="24%" stopColor={t.primary} />
-          <stop offset="50%" stopColor={t.hi} />
-          <stop offset="76%" stopColor={t.primary} />
-          <stop offset="84%" stopColor={t.secondary} stopOpacity="0.9" />
-          <stop offset="92%" stopColor={t.bg} />
-          <stop offset="100%" stopColor={t.bg} />
-        </linearGradient>
-        <linearGradient
-          id={`${gid}-b-bot`}
-          x1="36"
-          y1="0"
-          x2="164"
-          y2="0"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0%" stopColor={t.hi} />
-          <stop offset="22%" stopColor={t.primary} />
-          <stop offset="40%" stopColor={t.primary} />
-          <stop offset="48%" stopColor={t.secondary} />
-          <stop offset="58%" stopColor={t.bg} stopOpacity="0.9" />
-          <stop offset="100%" stopColor={t.bg} />
-        </linearGradient>
-      </defs>
-      <rect width="200" height="200" rx="44" fill={`url(#${gid}-face)`} />
-      <rect x="36" y="61" width="128" height="15" rx="7.5" fill={`url(#${gid}-b-top)`} />
-      <rect x="36" y="93" width="128" height="15" rx="7.5" fill={`url(#${gid}-b-mid)`} />
-      <rect x="36" y="125" width="128" height="15" rx="7.5" fill={`url(#${gid}-b-bot)`} />
+      <IconFaceGlossWithClip gid={gid} width={160} height={160} rx={28} />
+      <BarFillOnlyDefs gid={gid} b={b} />
+      <g clipPath={`url(#${gid}-clip)`}>
+        <rect width="160" height="160" rx="28" fill={`url(#${gid}-face)`} />
+        <rect x="0" y="0" width="160" height="85" fill={`url(#${gid}-gloss)`} />
+        <g>
+          <rect x={tx} y={y1} width={APP.trackW} height={th} rx={r} fill={TRACK} />
+          <rect x={tx} y={y1} width={APP.wTop} height={th} rx={r} fill={`url(#${gid}-f)`} />
+          <rect x={tx} y={y2} width={APP.trackW} height={th} rx={r} fill={TRACK} />
+          <rect x={tx} y={y2} width={APP.wMid} height={th} rx={r} fill={`url(#${gid}-fm)`} />
+          <rect x={tx} y={y3} width={APP.trackW} height={th} rx={r} fill={TRACK} />
+          <rect x={tx} y={y3} width={APP.wBot} height={th} rx={r} fill={`url(#${gid}-f)`} />
+        </g>
+      </g>
     </>
   );
 }
 
 /**
- * Wordmark FLOW in SVG. Icona: tre barre a pillola con segmenti luminosi scartati (stile app reference).
+ * Full logo 195×235 — HTML “Full Logo (Print & Web Header)”.
+ * Barre: 100 / 135 / 70 su traccia 135; testo sotto in SVG.
+ */
+function IconFull195({
+  gid,
+  color,
+  wordmark,
+}: {
+  gid: string;
+  color: FlowLogoSvgColor;
+  wordmark: 'onLight' | 'onDark';
+}) {
+  const b = BAR_GRADIENTS[color] ?? BAR_GRADIENTS.orange;
+  const w = FULL_CARD.W;
+  const h = FULL_CARD.H;
+  const th = FULL.trackH;
+  const r = th / 2;
+  const tx = (w - FULL.trackW) / 2;
+  const hBars = 3 * th + 2 * FULL.gap;
+  const y0 = 36;
+  const y1 = y0;
+  const y2 = y0 + th + FULL.gap;
+  const y3 = y0 + 2 * (th + FULL.gap);
+  const barBottom = y3 + th;
+  const tFlow = wordmark === 'onLight' ? '#1a2744' : '#ffffff';
+  const tSub = wordmark === 'onLight' ? 'rgba(26, 39, 68, 0.8)' : '#7a8fad';
+  const yFlow = barBottom + 16 + 28;
+
+  return (
+    <>
+      <IconFaceGlossWithClip gid={gid} width={w} height={h} rx={FULL_CARD.faceRx} />
+      <BarFillOnlyDefs gid={gid} b={b} />
+      <g clipPath={`url(#${gid}-clip)`}>
+        <rect width={w} height={h} rx={FULL_CARD.faceRx} fill={`url(#${gid}-face)`} />
+        <rect x="0" y="0" width={w} height={h * 0.48} fill={`url(#${gid}-gloss)`} />
+        <g>
+          <rect x={tx} y={y1} width={FULL.trackW} height={th} rx={r} fill={TRACK} />
+          <rect x={tx} y={y1} width={FULL.wTop} height={th} rx={r} fill={`url(#${gid}-f)`} />
+          <rect x={tx} y={y2} width={FULL.trackW} height={th} rx={r} fill={TRACK} />
+          <rect x={tx} y={y2} width={FULL.wMid} height={th} rx={r} fill={`url(#${gid}-fm)`} />
+          <rect x={tx} y={y3} width={FULL.trackW} height={th} rx={r} fill={TRACK} />
+          <rect x={tx} y={y3} width={FULL.wBot} height={th} rx={r} fill={`url(#${gid}-f)`} />
+        </g>
+        <text
+          x={w / 2}
+          y={yFlow}
+          textAnchor="middle"
+          fill={tFlow}
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fontWeight="900"
+          fontSize="32"
+          letterSpacing="4"
+        >
+          FLOW
+        </text>
+        <text
+          x={w / 2}
+          y={yFlow + 6 + 12}
+          textAnchor="middle"
+          fill={tSub}
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fontSize="12"
+          fontWeight="600"
+          letterSpacing="3"
+        >
+          <tspan x={w / 2}>WORK IN</tspan>
+          <tspan x={w / 2} dy="1.15em">
+            MOTION
+          </tspan>
+        </text>
+      </g>
+    </>
+  );
+}
+
+/**
+ * Wordmark SVG — struttura brand da flow-brand-assets.html
  */
 export default function FlowLogoSvg({
   variant = 'full',
@@ -150,18 +234,16 @@ export default function FlowLogoSvg({
   headerBar = false,
 }: FlowLogoSvgProps) {
   const rawId = useId().replace(/:/g, '');
-  const t = (COLORS[color] ?? COLORS.orange) as Theme;
-  const wordDark = wordmark === 'onLight';
-  const flowFill = wordDark ? '#0A1020' : '#FFFFFF';
-  const subFill = wordDark ? 'rgba(10, 16, 32, 0.8)' : '#FFFFFF';
+  const c = (color in BAR_GRADIENTS ? color : 'orange') as FlowLogoSvgColor;
   const gid = `${rawId}-mark`;
+  const gidH = `${rawId}-mh`;
 
   if (variant === 'icon-only') {
     return (
       <svg
-        width={200}
-        height={200}
-        viewBox="0 0 200 200"
+        width={160}
+        height={160}
+        viewBox="0 0 160 160"
         className={className}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -170,13 +252,13 @@ export default function FlowLogoSvg({
         style={{ maxWidth: '100%', height: 'auto', ...style }}
       >
         <title>FLOW</title>
-        <Icon200DefsAndBars gid={gid} t={t} />
+        <IconApp160 gid={gid} color={c} />
       </svg>
     );
   }
 
   if (variant === 'header') {
-    const headerTextFill = wordDark ? '#0A1020' : '#FFFFFF';
+    const headerTextFill = wordmark === 'onLight' ? '#1a2744' : '#FFFFFF';
     const svg = (
       <svg
         width={300}
@@ -190,21 +272,14 @@ export default function FlowLogoSvg({
         style={{ maxWidth: '100%', height: 'auto', ...style }}
       >
         <title>FLOW</title>
-        <svg
-          x="0"
-          y="0"
-          width="60"
-          height="60"
-          viewBox="0 0 200 200"
-          role="presentation"
-        >
-          <Icon200DefsAndBars gid={`${gid}-h`} t={t} />
+        <svg x="0" y="0" width="60" height="60" viewBox="0 0 160 160" role="presentation">
+          <IconApp160 gid={gidH} color={c} />
         </svg>
         <text
           x="80"
           y="40"
           fill={headerTextFill}
-          fontFamily="Arial, sans-serif"
+          fontFamily="system-ui, -apple-system, sans-serif"
           fontWeight="bold"
           fontSize="24"
           letterSpacing="2"
@@ -215,7 +290,7 @@ export default function FlowLogoSvg({
     );
     if (headerBar) {
       return (
-        <div className={`inline-flex max-w-full rounded-[10px] bg-[#0A1020] px-3 py-1.5 ${className}`.trim()}>
+        <div className={`inline-flex max-w-full rounded-[10px] bg-[#1a2744] px-3 py-1.5 ${className}`.trim()}>
           {svg}
         </div>
       );
@@ -225,9 +300,9 @@ export default function FlowLogoSvg({
 
   return (
     <svg
-      width={200}
-      height={280}
-      viewBox="0 0 200 280"
+      width={FULL_CARD.W}
+      height={FULL_CARD.H}
+      viewBox={`0 0 ${FULL_CARD.W} ${FULL_CARD.H}`}
       className={className}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -236,33 +311,7 @@ export default function FlowLogoSvg({
       style={{ maxWidth: '100%', height: 'auto', ...style }}
     >
       <title id={`${rawId}-title`}>FLOW — Work in Motion</title>
-      <g>
-        <Icon200DefsAndBars gid={gid} t={t} />
-      </g>
-      <text
-        x="100"
-        y="240"
-        fill={flowFill}
-        fontFamily="Arial, sans-serif"
-        fontWeight="bold"
-        fontSize="28"
-        textAnchor="middle"
-        letterSpacing="4"
-      >
-        FLOW
-      </text>
-      <text
-        x="100"
-        y="265"
-        fill={subFill}
-        fontFamily="Arial, sans-serif"
-        fontSize="10"
-        textAnchor="middle"
-        letterSpacing="2"
-        opacity={wordDark ? 1 : 0.8}
-      >
-        WORK IN MOTION
-      </text>
+      <IconFull195 gid={gid} color={c} wordmark={wordmark} />
     </svg>
   );
 }
