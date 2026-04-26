@@ -4648,14 +4648,30 @@ export default function Timesheets() {
                 (fullShift.end_time || '').slice(0, 5)
               )
             : 0;
+          /** Stesse finestre usate in getNetShiftMinutes per le timbrature: sennò il drawer mostrava il pianificato (es. 10–16) e compariva solo il pranzo. */
+          const canUseActualForBreakReadout =
+            !!s.actualStart &&
+            !!s.actualEnd &&
+            !s.isCrossDay &&
+            !s.hasMissingOut;
+          const grossForBreakReadout = canUseActualForBreakReadout
+            ? calculateShiftMinutesGross(s.actualStart, s.actualEnd)
+            : grossPlannedForBreakReadout;
+          const breakReadoutOpts: BreakMinutesComputeOptions = {
+            ...breakComputeOpts,
+            ...(s.displayFromFrozenApprovedTimes ? { autoBreaksFeatureEnabled: false } : {}),
+            ...(canUseActualForBreakReadout
+              ? { breakRuleWindow: { start: s.actualStart, end: s.actualEnd } }
+              : {}),
+          };
           const deductBreakLineItemsAll =
             fullShift && userForBreakReadout
               ? getBreakDeductionDisplayItems(
                   fullShift,
-                  grossPlannedForBreakReadout,
+                  grossForBreakReadout,
                   userForBreakReadout,
                   breakRules,
-                  breakComputeOpts,
+                  breakReadoutOpts,
                   {
                     fromShift: t.ts_deduct_break_from_shift,
                     auto: t.ts_deduct_break_auto,
@@ -4678,7 +4694,7 @@ export default function Timesheets() {
             !hasAdminBreakRules &&
             featureFlags['auto_breaks'] !== false &&
             !hasManualNonAutoBreak &&
-            grossPlannedForBreakReadout >= AUTO_BREAK_THRESHOLD_MINUTES
+            grossForBreakReadout >= AUTO_BREAK_THRESHOLD_MINUTES
           );
           const implicitAutoBreakTitles = new Set([
             t.ts_deduct_break_auto,

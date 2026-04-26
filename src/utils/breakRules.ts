@@ -352,8 +352,9 @@ export function getBreakDeductionDisplayItems(
   if (shift.deduct_break === false) return [];
   const active = getActiveBreakRules(rules);
   if (user && active.length > 0) {
-    const st = (shift.start_time ?? '').slice(0, 5);
-    const en = (shift.end_time ?? '').slice(0, 5);
+    const w = options?.breakRuleWindow;
+    const st = (w?.start ?? shift.start_time ?? '').slice(0, 5);
+    const en = (w?.end ?? shift.end_time ?? '').slice(0, 5);
     const d = shift.date ?? '';
     if (!st || !en || !d) return [];
     return getPlannedBreakDeductionLines({ start_time: st, end_time: en, date: d }, user, active);
