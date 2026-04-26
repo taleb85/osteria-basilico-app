@@ -2941,7 +2941,7 @@ export default function Timesheets() {
           {uiW('timesheet.stats_today') && canTeamTimesheetOps && (
             <>
             <p className="ui-section-title mb-2">{t.tab_statistics ?? 'Statistiche'}</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 w-full">
               {([
                 {
                   label: t.ts_stat_in_shift,
@@ -2994,7 +2994,7 @@ export default function Timesheets() {
                     }
                     handleStatCardClick();
                   }}
-                  className={`group w-full rounded-xl border px-3 py-2.5 shadow-none flex items-center gap-2.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 ${
+                  className={`group w-full rounded-lg border px-3 py-1.5 shadow-none flex items-center gap-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 ${
                     isActive
                       ? `${border} ring-1 ring-inset ring-accent/30`
                       : `${border} hover:bg-white/15`
