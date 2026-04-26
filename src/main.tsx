@@ -1,4 +1,3 @@
-import './utils/i18n'; // Inizializza i18n con detector prima dell'app
 import { StrictMode } from 'react';
 
 if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {

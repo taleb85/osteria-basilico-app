@@ -410,33 +410,33 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-white/55">Nome *</label>
                   <input value={form.first_name} onChange={(e) => setF('first_name', e.target.value)} placeholder="Mario"
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-white/55">Cognome</label>
                   <input value={form.last_name ?? ''} onChange={(e) => setF('last_name', e.target.value)} placeholder="Rossi"
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
               </div>
 
               <div className="space-y-1">
                 <label className="text-[11px] font-semibold text-white/55">Email</label>
                 <input type="email" value={form.email} onChange={(e) => setF('email', e.target.value)} placeholder="mario@email.com"
-                  className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                  className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-white/55">Ruolo *</label>
                   <select value={form.role} onChange={(e) => setF('role', e.target.value as UserRole)}
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40">
+                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40">
                     {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-white/55">Reparto</label>
                   <input value={form.department ?? ''} onChange={(e) => setF('department', e.target.value)} placeholder="sala, bar, cucina…"
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
               </div>
 
@@ -450,7 +450,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
                     placeholder="••••"
                     maxLength={4}
                     inputMode="numeric"
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 pr-9 text-sm font-mono text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 pr-9 text-base font-mono text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                   />
                   <button type="button" onClick={() => setShowPin((p) => !p)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-accent transition">
                     {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -853,7 +853,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                       type="number" step="0.000001"
                       value={settings.geofence.lat}
                       onChange={(e) => set('geofence', { ...settings.geofence!, lat: parseFloat(e.target.value) || 0 })}
-                      className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                     />
                   </div>
                   <div className="space-y-1">
@@ -862,7 +862,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                       type="number" step="0.000001"
                       value={settings.geofence.lng}
                       onChange={(e) => set('geofence', { ...settings.geofence!, lng: parseFloat(e.target.value) || 0 })}
-                      className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                     />
                   </div>
                 </div>
@@ -872,7 +872,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                     type="number" min={10} max={5000}
                     value={settings.geofence.radiusM}
                     onChange={(e) => set('geofence', { ...settings.geofence!, radiusM: parseInt(e.target.value) || 100 })}
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                   />
                 </div>
                 <p className="text-[11px] text-white/40">
@@ -893,7 +893,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
               <select
                 value={settings.defaultLanguage ?? 'it'}
                 onChange={(e) => set('defaultLanguage', e.target.value as 'it' | 'en' | 'es' | 'fr')}
-                className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
               >
                 {LANGUAGES.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
@@ -904,7 +904,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
               <select
                 value={settings.timezone ?? 'Europe/Rome'}
                 onChange={(e) => set('timezone', e.target.value)}
-                className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
               >
                 {TIMEZONES.map((tz) => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
               </select>
@@ -993,7 +993,7 @@ function NumberInput({ value, min, max, onChange, suffix }: {
         type="number" min={min} max={max}
         value={value}
         onChange={(e) => onChange(Math.max(min, Math.min(max, parseInt(e.target.value) || min)))}
-        className="w-16 rounded-lg border border-white/15 bg-white/8 px-2 py-1 text-sm text-center text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+        className="w-16 rounded-lg border border-white/15 bg-white/8 px-2 py-1 text-base text-center text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
       />
       <span className="text-xs text-white/40">{suffix}</span>
     </div>
@@ -1055,7 +1055,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Es. Ristorante Mario"
-          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
+          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
         />
       </div>
 
@@ -1069,7 +1069,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
             onChange={(e) => { setSlug(slugify(e.target.value)); setSlugManual(true); }}
             placeholder="es-ristorante-mario"
             pattern="[a-z0-9\-]+"
-            className="flex-1 rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-sm font-mono text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
+            className="flex-1 rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base font-mono text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
           />
           <button type="button" onClick={() => { setSlugManual(false); setSlug(slugify(name)); }} className="text-xs text-accent hover:underline shrink-0">Auto</button>
         </div>
@@ -2145,7 +2145,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
       <div className="space-y-1">
         <label className="text-[11px] font-semibold text-white/55 uppercase tracking-wider">Sede di destinazione</label>
         <select value={selectedTenantId} onChange={(e) => { setSelectedTenantId(e.target.value); setRows([]); setImportResult(null); }}
-          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-amber-400/40">
+          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-amber-400/40">
           {tenants.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
       </div>

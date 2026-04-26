@@ -431,7 +431,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                 value={quickSwitchSearch}
                 onChange={(e) => setQuickSwitchSearch(e.target.value)}
                 placeholder={tv.quick_switch_search_placeholder ?? 'Cerca dipendente...'}
-                className="w-full pl-9 pr-4 py-2 rounded-xl text-sm focus:ring-2 focus:ring-accent/30 outline-none"
+                className="w-full pl-9 pr-4 py-2 rounded-xl text-base focus:ring-2 focus:ring-accent/30 outline-none"
                 style={{ background: 'rgba(255, 255, 255, 0.16)', border: '1px solid rgba(255,255,255,0.12)', color: '#ffffff' }}
               />
             </div>

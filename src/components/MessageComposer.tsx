@@ -139,7 +139,7 @@ export function MessageComposer({
         <select
           value={selectedRecipientId}
           onChange={(e) => setSelectedRecipientId(e.target.value)}
-          className="w-full h-14 rounded-2xl border-2 border-white/15 bg-white/8 px-4 text-sm font-bold text-white outline-none focus:border-accent appearance-none"
+          className="w-full h-14 rounded-2xl border-2 border-white/15 bg-white/8 px-4 text-base font-bold text-white outline-none focus:border-accent appearance-none"
         >
           <option value="">Seleziona dipendente...</option>
           {allUsers
@@ -159,7 +159,7 @@ export function MessageComposer({
         placeholder="OGGETTO..."
         value={subject}
         onChange={(e) => setSubject(e.target.value.toUpperCase())}
-        className="w-full h-14 rounded-2xl border-2 border-white/15 bg-white/8 px-4 text-sm font-black tracking-widest text-white outline-none focus:border-accent"
+        className="w-full h-14 rounded-2xl border-2 border-white/15 bg-white/8 px-4 text-base font-black tracking-widest text-white outline-none focus:border-accent"
       />
 
       {/* Corpo Messaggio */}
@@ -169,7 +169,7 @@ export function MessageComposer({
         value={body}
         onChange={(e) => setBody(e.target.value)}
         rows={5}
-        className="w-full resize-none rounded-[24px] border-2 border-white/15 bg-white/8 p-5 text-sm font-medium leading-relaxed text-white outline-none focus:border-accent"
+        className="w-full resize-none rounded-[24px] border-2 border-white/15 bg-white/8 p-5 text-base font-medium leading-relaxed text-white outline-none focus:border-accent"
       />
 
       {/* Pulsante Invia stile PinPad */}

@@ -436,7 +436,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={tv.profile_visibility_search_ph ?? 'Cerca nome o email…'}
-              className="w-full rounded-xl border border-slate-200 py-2.5 pr-3 pl-10 text-sm text-white placeholder:text-white/50 outline-none focus:text-base focus:border-accent focus:ring-2 focus:ring-accent/25"
+              className="w-full rounded-xl border border-slate-200 py-2.5 pr-3 pl-10 text-base text-white placeholder:text-white/50 outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
             />
           </div>
           <div className="flex flex-wrap gap-2">

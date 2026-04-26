@@ -41,7 +41,7 @@ export type ProfileFormSelfData = {
 
 /** Form "Il mio profilo": Email, Telefono, Reparto, Lingua. Con `readOnly` i campi sono disabilitati (es. anteprima). */
 const inputClassLight =
-  'w-full px-3 py-2.5 rounded-xl bg-white/8 border border-white/18 text-white text-sm focus:text-base focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors placeholder:text-white/35';
+  'w-full px-3 py-2.5 rounded-xl bg-white/8 border border-white/18 text-white text-base focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors placeholder:text-white/35';
 const labelClassLight = 'block text-xs font-medium text-white/65 mb-1.5';
 
 function roleSelectValue(role: UserType['role']): string {
@@ -416,7 +416,7 @@ export type ProfileFormAdminData = {
 };
 
 const inputClass =
-  'w-full px-3 py-2 rounded-xl text-sm bg-white/8 border border-white/18 text-white placeholder:text-white/35 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors font-sans disabled:opacity-60';
+  'w-full px-3 py-2 rounded-xl text-base bg-white/8 border border-white/18 text-white placeholder:text-white/35 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors font-sans disabled:opacity-60';
 const labelClass =
   'block text-xs font-semibold text-white/65 mb-1 font-sans';
 

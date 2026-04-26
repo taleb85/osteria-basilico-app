@@ -1242,7 +1242,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               void notifyDepartmentsChanged();
                             }
                           }}
-                          className="min-w-0 flex-1 rounded-xl border border-white/15 px-3 py-2 text-sm text-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 sm:min-w-[12rem]"
+                          className="min-w-0 flex-1 rounded-xl border border-white/15 px-3 py-2 text-base text-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 sm:min-w-[12rem]"
                         />
                         {!builtinValues.has(editingDeptValue) && (
                           <div>
@@ -1326,7 +1326,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       }
                     }}
                     placeholder={t.settings_new_dept_placeholder}
-                    className="min-w-[8rem] flex-1 px-3 py-2 rounded-xl border border-white/15 bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+                    className="min-w-[8rem] flex-1 px-3 py-2 rounded-xl border border-white/15 bg-transparent text-base text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
                   />
                   <button
                     type="button"
@@ -1414,7 +1414,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         max={14}
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
-                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                     <div>
@@ -1425,7 +1425,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         max={24}
                         value={workRules.minRestHours}
                         onChange={(e) => updateWorkRule('minRestHours', Math.max(6, Math.min(24, +e.target.value || 11)))}
-                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                   </div>
@@ -1463,7 +1463,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         max={14}
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
-                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                     <div>
@@ -1474,7 +1474,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         max={60}
                         value={workRules.maxWeeklyHours}
                         onChange={(e) => updateWorkRule('maxWeeklyHours', Math.max(20, Math.min(60, +e.target.value || 48)))}
-                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                   </div>
@@ -1996,7 +1996,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     onChange={(e) => setHolidayEmailDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') saveHolidayEmail(); }}
                     placeholder="es. direzione@azienda.it"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-brand-mid/25 bg-white/8 text-sm text-white placeholder:text-white/40 outline-none transition-all focus:text-base focus:border-brand-mid focus:ring-2 focus:ring-brand-mid/20 focus:shadow-[0_0_0_3px_rgb(51_102_204/0.10)]"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-brand-mid/25 bg-white/8 text-base text-white placeholder:text-white/40 outline-none transition-all focus:border-brand-mid focus:ring-2 focus:ring-brand-mid/20 focus:shadow-[0_0_0_3px_rgb(51_102_204/0.10)]"
                   />
                 </div>
                 <button
@@ -2178,7 +2178,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     inputMode="decimal"
                     value={geoLat}
                     onChange={(e) => setGeoLat(e.target.value)}
-                    className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white"
+                    className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-base text-white"
                     placeholder="45.123456"
                   />
                 </label>
@@ -2189,7 +2189,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     inputMode="decimal"
                     value={geoLng}
                     onChange={(e) => setGeoLng(e.target.value)}
-                    className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white"
+                    className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-base text-white"
                     placeholder="9.123456"
                   />
                 </label>
@@ -2200,7 +2200,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     inputMode="numeric"
                     value={geoRadius}
                     onChange={(e) => setGeoRadius(e.target.value)}
-                    className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white"
+                    className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-base text-white"
                     placeholder="120"
                   />
                 </label>
@@ -2507,7 +2507,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           <select
                             value={reassignMap[u.id] ?? ''}
                             onChange={e => setReassignMap(m => ({ ...m, [u.id]: e.target.value }))}
-                            className="min-w-0 max-w-[130px] shrink rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-[11px] font-semibold text-white/80 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/30"
+                            className="min-w-0 max-w-[130px] shrink rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-base font-semibold text-white/80 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/30"
                           >
                             <option value="">— nessun reparto —</option>
                             {departments
@@ -2671,7 +2671,7 @@ function BreakRuleModal({
   const labelClass =
     'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/55';
   const inputClass =
-    'w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2.5 text-sm font-semibold text-white transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20';
+    'w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2.5 text-base font-semibold text-white transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20';
   const chipClass = (active: boolean) =>
     `cursor-pointer px-2.5 py-1 text-xs font-semibold transition-colors ${
       active

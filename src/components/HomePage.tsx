@@ -470,6 +470,7 @@ export default function HomePage({
     const todayShiftsMine = shifts.filter((s) => s.date === todayStr && s.user_id === currentUser.id);
     return (
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
+        <div className="mx-auto w-full max-w-7xl">
         <div className="block md:hidden space-y-4">
           <MobileStaffDashboard
             user={currentUser}
@@ -519,7 +520,7 @@ export default function HomePage({
                         onChange={(e) => setBoardDraft(e.target.value)}
                         placeholder={t.home_board_placeholder}
                         rows={2}
-                        className="w-full text-sm text-white bg-amber-500/10 border border-amber-400/40 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
+                        className="w-full text-base text-white bg-amber-500/10 border border-amber-400/40 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
                       />
                       <div className="flex gap-2">
                         <button
@@ -695,6 +696,7 @@ export default function HomePage({
             </div>
           )}
         </motion.div>
+        </div>
       </div>
     );
   }
@@ -757,7 +759,7 @@ export default function HomePage({
                     <div className="flex flex-col gap-2">
                       <textarea autoFocus value={boardDraft} onChange={(e) => setBoardDraft(e.target.value)}
                         placeholder={t.home_board_placeholder} rows={2}
-                        className="w-full text-sm text-white bg-amber-500/10 border border-amber-400/40 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                        className="w-full text-base text-white bg-amber-500/10 border border-amber-400/40 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400" />
                       <div className="flex gap-2">
                         <button type="button" onClick={handleSaveBoard} className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600">
                           <Check size={12} /> {t.save}

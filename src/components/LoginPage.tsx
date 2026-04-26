@@ -509,7 +509,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 onKeyDown={handleKeyDown}
                 placeholder={t.login_name_ph ?? 'Nome utente'}
                 autoComplete="name"
-                className="w-full pl-10 pr-4 py-3.5 rounded-2xl text-white text-sm focus:text-base uppercase placeholder:normal-case placeholder:text-white/35 placeholder:text-sm focus:outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3.5 rounded-2xl text-white text-base uppercase placeholder:normal-case placeholder:text-white/35 placeholder:text-base focus:outline-none transition-all"
                 style={{ background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' }}
               />
             </div>
@@ -537,7 +537,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 style={!showPassword
                   ? ({ WebkitTextSecurity: 'disc', background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' } as CSSProperties)
                   : { background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' }}
-                className="w-full pl-10 pr-10 py-3.5 rounded-2xl text-white text-sm focus:text-base placeholder:text-white/35 focus:outline-none transition-all"
+                className="w-full pl-10 pr-10 py-3.5 rounded-2xl text-white text-base placeholder:text-white/35 focus:outline-none transition-all"
               />
               <button
                 type="button"

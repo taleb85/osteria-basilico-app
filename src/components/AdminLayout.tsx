@@ -130,17 +130,19 @@ export default function AdminLayout() {
       </header>
 
       <main className="flex-1 overflow-y-auto pb-6">
-        {/* Gestione Profili */}
-        <div className={activeTab === 'profili' ? 'block' : 'hidden'} aria-hidden={activeTab !== 'profili'}>
-          <SettingsPage view="profili" />
-        </div>
-        {/* Gestione Regole */}
-        <div className={activeTab === 'regole' ? 'block' : 'hidden'} aria-hidden={activeTab !== 'regole'}>
-          <SettingsPage view="regole" />
-        </div>
-        {/* Impostazioni */}
-        <div className={activeTab === 'impostazioni' ? 'block' : 'hidden'} aria-hidden={activeTab !== 'impostazioni'}>
-          <ImpostazioniPage onOpenProfilesTab={() => handleTabChange('profili')} />
+        <div className="mx-auto w-full max-w-7xl">
+          {/* Gestione Profili */}
+          <div className={activeTab === 'profili' ? 'block' : 'hidden'} aria-hidden={activeTab !== 'profili'}>
+            <SettingsPage view="profili" />
+          </div>
+          {/* Gestione Regole */}
+          <div className={activeTab === 'regole' ? 'block' : 'hidden'} aria-hidden={activeTab !== 'regole'}>
+            <SettingsPage view="regole" />
+          </div>
+          {/* Impostazioni */}
+          <div className={activeTab === 'impostazioni' ? 'block' : 'hidden'} aria-hidden={activeTab !== 'impostazioni'}>
+            <ImpostazioniPage onOpenProfilesTab={() => handleTabChange('profili')} />
+          </div>
         </div>
       </main>
     </div>

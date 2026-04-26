@@ -2101,7 +2101,7 @@ const baseEn: Record<string, string> = {
   profile_logout_confirm: 'Log out of your account?',
   profile_framing_modal_title: 'Photo framing',
   profile_framing_done: 'Done',
-  profile_photo_source_sheet_aria: '[Come vuoi aggiungere la foto]',
+  profile_photo_source_sheet_aria: 'How would you like to add your photo',
   profile_photo_source_gallery: 'Choose from gallery',
   profile_photo_source_camera: 'Take photo',
   profile_photo_source_files: 'Choose from files',

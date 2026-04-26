@@ -93,7 +93,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
   };
 
   const inputCls =
-    'w-full px-3 py-2.5 text-sm rounded-2xl border border-white/15 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-white placeholder:text-white/40 transition-all' as const;
+    'w-full px-3 py-2.5 text-base rounded-2xl border border-white/15 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-white placeholder:text-white/40 transition-all' as const;
   const labelCls = 'block text-xs font-semibold text-white/70 uppercase tracking-wider mb-1';
 
   if (!isOpen) return null;

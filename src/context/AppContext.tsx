@@ -91,7 +91,6 @@ import {
 } from '../utils/shiftDeductExclusionsLocal';
 import { loadTimesheetPeriodFromSupabase, applyRemoteTimesheetPeriod } from '../utils/timesheetPeriodSupabase';
 import { PwaGate } from '../components/PwaGate';
-import i18n from '../utils/i18n';
 import { userRowToSessionUser, defaultPermissionFieldsForNewUser } from '../utils/staffPermissionDefaults';
 import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
 import { PATH_PROFILO } from '../config/appPaths';
@@ -2006,7 +2005,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateUser(currentUser.id, { language: lang });
       setCurrentUser({ ...currentUser, language: lang });
     }
-    i18n.changeLanguage(lang);
   }, [currentUser, updateUser]);
 
   const clearLanguage = useCallback(() => {
@@ -2017,7 +2015,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateUser(currentUser.id, { language: null as unknown as Language });
       setCurrentUser({ ...currentUser, language: undefined as unknown as Language });
     }
-    i18n.changeLanguage(deviceLang);
   }, [currentUser, updateUser]);
 
   /** Ritardo prima di mostrare il banner: sync veloci non lampeggiano (focus, tab, polling ravvicinati). */

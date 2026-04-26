@@ -367,7 +367,7 @@ export default function Statistics() {
   const staffRangeTotalMins = Object.values(minutesByUserByWeek[currentUser.id] ?? {}).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="pb-content pt-4 px-4 w-full max-w-full font-sans">
+    <div className="pb-content pt-4 px-4 w-full max-w-7xl mx-auto font-sans">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}

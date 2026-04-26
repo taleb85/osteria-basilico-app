@@ -174,8 +174,8 @@ function LoginMock({ dark }: { dark: boolean }) {
           <span className={`text-xs tracking-widest uppercase font-semibold ${dark ? 'text-white/40' : 'text-slate-400'}`}>Work in Motion</span>
         </div>
         <div className="w-full flex flex-col gap-3">
-          <input readOnly placeholder="Nome utente" className={`w-full rounded-xl px-4 py-3 text-sm outline-none pointer-events-none ${dark ? 'border border-white/10 bg-white/5 text-white/70' : 'border border-slate-200 bg-white text-slate-700 shadow-sm'}`} />
-          <input readOnly type="password" placeholder="Password" className={`w-full rounded-xl px-4 py-3 text-sm outline-none pointer-events-none ${dark ? 'border border-white/10 bg-white/5 text-white/70' : 'border border-slate-200 bg-white text-slate-700 shadow-sm'}`} />
+          <input readOnly placeholder="Nome utente" className={`w-full rounded-xl px-4 py-3 text-base outline-none pointer-events-none ${dark ? 'border border-white/10 bg-white/5 text-white/70' : 'border border-slate-200 bg-white text-slate-700 shadow-sm'}`} />
+          <input readOnly type="password" placeholder="Password" className={`w-full rounded-xl px-4 py-3 text-base outline-none pointer-events-none ${dark ? 'border border-white/10 bg-white/5 text-white/70' : 'border border-slate-200 bg-white text-slate-700 shadow-sm'}`} />
           <button className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 pointer-events-none">
             <LogIn size={16} /> Accedi
           </button>

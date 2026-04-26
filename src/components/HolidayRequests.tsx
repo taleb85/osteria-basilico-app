@@ -189,7 +189,7 @@ export default function HolidayRequests() {
 
   // ── Shared input style ────────────────────────────────────────────────────
   const inputCls =
-    'w-full rounded-lg px-3 py-2 text-sm outline-none transition-all';
+    'w-full rounded-lg px-3 py-2 text-base outline-none transition-all';
   const inputStyle = {
     background: 'rgba(255, 255, 255, 0.16)',
     border: '1px solid rgba(255,255,255,0.20)',

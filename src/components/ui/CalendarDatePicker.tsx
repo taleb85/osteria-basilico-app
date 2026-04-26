@@ -273,7 +273,7 @@ export function DatePickerInput({ value, onChange, inputClassName, minDate, maxD
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className={`flex w-full items-center gap-2 rounded-xl border border-white/35 bg-white/15 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 ${inputClassName ?? ''}`}
+        className={`flex w-full items-center gap-2 rounded-xl border border-white/35 bg-white/15 px-3 py-2.5 text-base font-semibold text-white shadow-sm transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 ${inputClassName ?? ''}`}
       >
         <CalendarDays className="h-4 w-4 shrink-0 text-white/50" />
         <span className="flex-1 text-left">{displayValue || <span className="text-white/35 font-normal">Seleziona data</span>}</span>

@@ -2059,7 +2059,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   if (!currentUser) return null;
 
   return (
-    <div ref={tableContainerRef} className="pb-content pt-6 w-full max-w-full font-sans">
+    <div ref={tableContainerRef} className="pb-content pt-6 w-full max-w-7xl mx-auto font-sans">
 
       {/* Banner modalità incolla */}
       {pasteMode && selectionClipboard && (
@@ -2924,7 +2924,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             if (e.key === 'Enter') void handleSaveTemplate(saveTemplateName);
                           }}
                           placeholder={t.template_name_placeholder}
-                          className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-accent"
+                          className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-base focus:outline-none focus:ring-1 focus:ring-accent"
                           style={{ background: 'rgba(255,255,255,0.13)', border: '1px solid rgba(255,255,255,0.24)', color: '#ffffff' }}
                         />
                         <button
@@ -3328,7 +3328,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             setEditingNameUserId(null);
                           }
                         }}
-                        className="flex-1 min-w-0 px-2 py-1 text-sm font-semibold rounded-xl border border-accent/50 bg-white/10 focus:outline-none focus:ring-1 focus:ring-accent text-white"
+                        className="flex-1 min-w-0 px-2 py-1 text-base font-semibold rounded-xl border border-accent/50 bg-white/10 focus:outline-none focus:ring-1 focus:ring-accent text-white"
                         autoFocus
                       />
                     ) : (
@@ -5840,7 +5840,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         type="time"
                         value={slotPickerNewStart}
                         onChange={(e) => setSlotPickerNewStart(e.target.value)}
-                        className="flex-1 rounded-lg px-2 py-1 text-[12px] font-mono border text-white"
+                        className="flex-1 rounded-lg px-2 py-1 text-base font-mono border text-white"
                         style={{ background: isDark ? 'rgba(255, 255, 255, 0.14)' : '#f8fafc', borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0' }}
                       />
                       <span className="text-[11px] text-white/40">–</span>
@@ -5848,7 +5848,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         type="time"
                         value={slotPickerNewEnd}
                         onChange={(e) => setSlotPickerNewEnd(e.target.value)}
-                        className="flex-1 rounded-lg px-2 py-1 text-[12px] font-mono border text-white"
+                        className="flex-1 rounded-lg px-2 py-1 text-base font-mono border text-white"
                         style={{ background: isDark ? 'rgba(255, 255, 255, 0.14)' : '#f8fafc', borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0' }}
                       />
                     </div>
@@ -6234,7 +6234,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
   };
 
   const inputClass =
-    'w-full rounded-xl border border-white/35 bg-white/15 px-3 py-2.5 font-sans text-sm font-semibold text-white shadow-sm transition-colors placeholder:text-white/55 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25';
+    'w-full rounded-xl border border-white/35 bg-white/15 px-3 py-2.5 font-sans text-base font-semibold text-white shadow-sm transition-colors placeholder:text-white/55 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25';
   const labelClass =
     'mb-1.5 block font-sans text-[11px] font-bold uppercase tracking-wider text-white/85';
 
