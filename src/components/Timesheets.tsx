@@ -4179,7 +4179,7 @@ export default function Timesheets() {
                             style={{ background: userIdx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}
                           >
                       {/* Nome dipendente — click → revisione settimana (coda turni) */}
-                      <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-white/10 z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: userIdx % 2 === 0 ? 'rgba(17,34,64,0.95)' : 'rgba(17,34,64,0.92)', boxShadow: 'none', backdropFilter: 'blur(8px)' }}>
+                      <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-white/10 z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: userIdx % 2 === 0 ? 'rgba(42,74,138,0.55)' : 'rgba(42,74,138,0.45)', boxShadow: 'none', backdropFilter: 'blur(8px)' }}>
                         {canTeamTimesheetOps ? (
                           <div className="flex flex-col gap-1 justify-center">
                             <button
@@ -4464,7 +4464,7 @@ export default function Timesheets() {
               {canTeamTimesheetOps && (
                 <tfoot>
                   <tr className="bg-[#3366CC]/5 border-t-2 border-[#3366CC]/35">
-                    <td className="sticky left-0 pl-4 pr-3 py-3 text-accent font-bold text-xs uppercase border-r-2 border-r-white/15 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[10px]" style={{ background: 'rgba(17,34,64,0.95)', backdropFilter: 'blur(8px)' }}>
+                    <td className="sticky left-0 pl-4 pr-3 py-3 text-accent font-bold text-xs uppercase border-r-2 border-r-white/15 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[10px]" style={{ background: 'rgba(42,74,138,0.55)', backdropFilter: 'blur(8px)' }}>
                       {t.stats_total}
                     </td>
                     {weekDays.map((day, dayIdx) => {
