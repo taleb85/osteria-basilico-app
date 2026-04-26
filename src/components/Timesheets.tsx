@@ -5710,10 +5710,8 @@ export default function Timesheets() {
         open={!!approveWeekSummary}
         onClose={() => setApproveWeekSummary(null)}
         maxWidthClass="max-w-[380px]"
-        panelClassName={`rounded-[40px] overflow-hidden ${
-          approveWeekSummary?.approvedIds
-            ? '!bg-emerald-50 !border-emerald-300/40 !text-slate-900'
-            : '!bg-[#0052FF]/5 !border-[#0052FF]/18'
+        panelClassName={`rounded-[40px] overflow-hidden !bg-[#0052FF]/5 !border-[#0052FF]/18 ${
+          approveWeekSummary?.approvedIds ? 'ring-1 ring-inset ring-emerald-500/25' : ''
         }`}
         ariaLabel="Riepilogo approvazione settimana"
       >
@@ -5723,34 +5721,51 @@ export default function Timesheets() {
           <div className="p-6">
             {/* Header */}
             <div className="flex items-center gap-3 mb-4">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${isDone ? 'bg-emerald-100' : 'bg-[#0052FF]/12'}`}>
+              <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
+                  isDone ? 'bg-emerald-500/20 ring-1 ring-emerald-400/30' : 'bg-[#0052FF]/12'
+                }`}
+              >
                 {isDone
-                  ? <Check className="h-5 w-5 !text-emerald-600" strokeWidth={2.5} />
+                  ? <Check className="h-5 w-5 text-emerald-400" strokeWidth={2.5} />
                   : <Lock className="h-5 w-5 text-[#0052FF]" />
                 }
               </div>
               <div>
-                <h3 className={`font-bold text-base ${isDone ? '!text-emerald-950' : 'text-white'}`}>
+                <h3 className="font-bold text-base text-white">
                   {isDone ? 'Approvazione Completata' : 'Approvazione Settimanale'}
                 </h3>
-                <p className={`text-sm ${isDone ? '!text-emerald-800' : 'text-white/60'}`}>
+                <p
+                  className={`text-sm ${isDone ? 'text-emerald-200/90' : 'text-white/60'}`}
+                >
                   {approveWeekSummary.employeeName} · {approveWeekSummary.shiftIds.length} turni
                 </p>
               </div>
             </div>
 
             {/* Lista turni */}
-            <div className={`mb-4 max-h-[260px] overflow-y-auto rounded-xl border divide-y ${isDone ? 'border-emerald-200 divide-emerald-100' : 'border-[#0052FF]/18 divide-[#0052FF]/10'}`}>
+            <div
+              className={`mb-4 max-h-[260px] overflow-y-auto rounded-xl border divide-y ${
+                isDone
+                  ? 'border-emerald-500/25 divide-emerald-500/15'
+                  : 'border-[#0052FF]/18 divide-[#0052FF]/10'
+              }`}
+            >
               {approveWeekSummary.previewRows.map((row, i) => {
                 const approved = isDone;
                 return (
-                  <div key={i} className={`flex items-center justify-between px-3 py-2.5 transition-colors ${approved ? 'bg-emerald-50/70' : 'bg-[#0052FF]/4'}`}>
-                    <span className={`text-sm font-medium capitalize ${isDone ? '!text-emerald-900' : 'text-white/80'}`}>
+                  <div
+                    key={i}
+                    className={`flex items-center justify-between px-3 py-2.5 transition-colors ${
+                      approved ? 'bg-emerald-500/10' : 'bg-[#0052FF]/4'
+                    }`}
+                  >
+                    <span className={`text-sm font-medium capitalize ${isDone ? 'text-white/90' : 'text-white/80'}`}>
                       {row.employeeLabel ? (
                         <span className="block text-left">
                           <span
                             className={`block text-[10px] font-semibold uppercase tracking-wide ${
-                              isDone ? '!text-emerald-600' : 'text-white/60'
+                              isDone ? 'text-white/50' : 'text-white/60'
                             }`}
                           >
                             {row.employeeLabel}
@@ -5762,11 +5777,11 @@ export default function Timesheets() {
                       )}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold tabular-nums ${isDone ? '!text-emerald-950' : 'text-white'}`}>
+                      <span className="text-sm font-bold tabular-nums text-white">
                         {row.planned}
                       </span>
                       {approved && (
-                        <Check className="h-4 w-4 !text-emerald-600 shrink-0" strokeWidth={2.5} />
+                        <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={2.5} />
                       )}
                     </div>
                   </div>
@@ -5797,7 +5812,7 @@ export default function Timesheets() {
                       }
                     })();
                   }}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 !text-red-800 text-sm font-semibold shadow-sm disabled:opacity-50 transition-colors"
+                  className="flex-1 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-200 shadow-sm transition-colors hover:bg-red-500/20 disabled:opacity-50"
                 >
                   {undoApprovalBusy ? '...' : 'Ripristina'}
                 </button>
@@ -5805,7 +5820,7 @@ export default function Timesheets() {
                   type="button"
                   disabled={undoApprovalBusy}
                   onClick={() => setApproveWeekSummary(null)}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 !text-white text-sm font-bold shadow-sm shadow-emerald-600/25 disabled:opacity-50 transition-colors"
+                  className="flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white/95 shadow-sm transition-colors hover:bg-white/15 disabled:opacity-50"
                 >
                   Chiudi
                 </button>
