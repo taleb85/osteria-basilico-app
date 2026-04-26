@@ -454,8 +454,14 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
                     inputMode="numeric"
                     className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 pr-9 text-base font-mono text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                   />
-                  <button type="button" onClick={() => setShowPin((p) => !p)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-accent transition active:text-accent">
-                    {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  <button
+                    type="button"
+                    onClick={() => setShowPin((p) => !p)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-accent transition active:text-accent"
+                    aria-label={showPin ? 'Nascondi PIN' : 'Mostra PIN'}
+                    aria-pressed={showPin}
+                  >
+                    {showPin ? <EyeOff className="w-4 h-4" aria-hidden /> : <Eye className="w-4 h-4" aria-hidden />}
                   </button>
                 </div>
               </div>
@@ -1451,9 +1457,10 @@ function SuperAdminPanelInner() {
             <button
               onClick={handleLogout}
               title="Esci da Super Admin"
-              className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/10 hover:bg-red-50 hover:text-red-500 text-white/40 transition active:scale-95"
+              aria-label="Esci da Super Admin"
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/10 hover:bg-red-50 hover:text-red-500 text-white/40 transition active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4" aria-hidden />
             </button>
           </div>
         </div>

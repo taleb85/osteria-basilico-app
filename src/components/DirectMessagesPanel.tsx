@@ -115,7 +115,7 @@ function NewChatPicker({
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.messages_search_employee ?? 'Cerca dipendente...'}
           aria-label={t.messages_search_employee ?? 'Cerca dipendente'}
-          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-base text-white outline-none focus:border-brand-electric transition-colors"
+          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-base text-white outline-none focus:border-brand-electric focus-visible:ring-2 focus-visible:ring-white/50 transition-colors"
         />
       </div>
       <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-2 pb-4 [-webkit-overflow-scrolling:touch]">
@@ -346,8 +346,9 @@ function ChatView({
             }}
             onKeyDown={handleKeyDown}
             placeholder={t.messages_write_placeholder ?? 'Scrivi un messaggio...'}
+            aria-label={t.messages_write_placeholder ?? 'Scrivi un messaggio'}
             rows={1}
-            className="flex-1 resize-none rounded-2xl border border-white/15 bg-white/8 px-4 py-2.5 text-base text-white outline-none focus:border-brand-electric transition-colors"
+            className="flex-1 resize-none rounded-2xl border border-white/15 bg-white/8 px-4 py-2.5 text-base text-white outline-none focus:border-brand-electric focus-visible:ring-2 focus-visible:ring-white/50 transition-colors"
             style={{ maxHeight: 120, overflowY: 'auto' }}
           />
           <button

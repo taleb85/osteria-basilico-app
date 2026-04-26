@@ -40,8 +40,9 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTa
   const tabs = defs.filter((d) => visible.has(d.id));
 
   return (
-    <div
+    <nav
       className="top-tabbar flex items-center scrollbar-none"
+      aria-label={t.nav_primary_tabs}
     >
       <div className="flex w-full">
         {tabs.map(({ id, label }) => {
@@ -77,6 +78,6 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTa
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }

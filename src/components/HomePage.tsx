@@ -726,7 +726,10 @@ export default function HomePage({
 
   return (
     <>
-      <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
+      <section
+        className="pb-content pt-6 w-full app-horizontal-pad font-sans"
+        aria-label={t.home_dashboard_title}
+      >
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
           className="flex flex-col gap-5">
 
@@ -1051,7 +1054,7 @@ export default function HomePage({
           </div>
 
         </motion.div>
-      </div>
+      </section>
 
       {/* ── Modal Chiudi Turno ─────────────────────────────────────────────── */}
       <AnimatePresence>

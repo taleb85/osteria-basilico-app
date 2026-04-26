@@ -419,7 +419,7 @@ export default function ProfileNavTabPanel({
               aria-expanded={preferNativePhotoPicker ? undefined : photoSourceSheetOpen}
               aria-haspopup={preferNativePhotoPicker ? undefined : 'menu'}
               aria-controls={preferNativePhotoPicker ? undefined : 'profile-photo-source-menu'}
-              className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white shadow-md outline-none transition-colors hover:opacity-90 active:scale-[0.96] disabled:opacity-50 touch-manipulation"
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white shadow-md outline-none transition-colors hover:opacity-90 active:scale-[0.96] disabled:opacity-50 touch-manipulation focus-visible:ring-2 focus-visible:ring-white/50"
               style={{ background: 'rgb(0, 82, 255)' }}
               title={changePhoto}
               aria-label={changePhoto}
@@ -433,7 +433,7 @@ export default function ProfileNavTabPanel({
                 type="button"
                 onClick={(ev) => { ev.stopPropagation(); void handleRemovePhoto(); }}
                 disabled={photoBusy}
-                className="absolute -top-2 -right-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white shadow-md outline-none transition-colors hover:opacity-90 active:scale-[0.96] disabled:opacity-50 touch-manipulation"
+                className="absolute -top-2 -right-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white shadow-md outline-none transition-colors hover:opacity-90 active:scale-[0.96] disabled:opacity-50 touch-manipulation focus-visible:ring-2 focus-visible:ring-white/50"
                 style={{ background: 'rgba(220,38,38,0.90)' }}
                 title={tv.profile_tab_remove_photo_confirm ?? 'Rimuovi foto'}
                 aria-label={tv.profile_tab_remove_photo_confirm ?? 'Rimuovi foto'}

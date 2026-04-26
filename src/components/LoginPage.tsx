@@ -508,8 +508,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 onChange={(e) => { setStaffName(e.target.value); setError(''); setDeviceSuccess(''); }}
                 onKeyDown={handleKeyDown}
                 placeholder={t.login_name_ph ?? 'Nome utente'}
+                aria-label={t.login_name_label}
                 autoComplete="name"
-                className="w-full pl-10 pr-4 py-3.5 rounded-2xl text-white text-base uppercase placeholder:normal-case placeholder:text-white/35 placeholder:text-base focus:outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3.5 rounded-2xl text-white text-base uppercase placeholder:normal-case placeholder:text-white/35 placeholder:text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 transition-all"
                 style={{ background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' }}
               />
             </div>
@@ -534,18 +535,21 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 onKeyDown={handleKeyDown}
                 ref={pinInputRef}
                 placeholder={t.login_password_label ?? 'Password'}
+                aria-label={t.login_password_label}
                 style={!showPassword
                   ? ({ WebkitTextSecurity: 'disc', background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' } as CSSProperties)
                   : { background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' }}
-                className="w-full pl-10 pr-10 py-3.5 rounded-2xl text-white text-base placeholder:text-white/35 focus:outline-none transition-all"
+                className="w-full pl-10 pr-10 py-3.5 rounded-2xl text-white text-base placeholder:text-white/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/35 hover:text-white/70 transition-colors active:text-white/70"
                 tabIndex={-1}
+                aria-label={showPassword ? t.pin_toggle_hide : t.pin_toggle_show}
+                aria-pressed={showPassword}
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? <EyeOff className="w-4 h-4" aria-hidden /> : <Eye className="w-4 h-4" aria-hidden />}
               </button>
             </div>
 

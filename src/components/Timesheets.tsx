@@ -2895,7 +2895,11 @@ export default function Timesheets() {
 
   return (
     <>
-      <div className="pb-content pt-6 w-full max-w-7xl mx-auto font-sans">
+      <div
+        className="pb-content pt-6 w-full max-w-7xl mx-auto font-sans"
+        role="region"
+        aria-label={t.timesheet_title ?? 'Presenze'}
+      >
 
         {/* ── Sub-tab: Griglia | Statistiche ──────────────────────────────────── */}
         {showStatsSubTab && (
@@ -5292,7 +5296,8 @@ export default function Timesheets() {
                               tabIndex={-1}
                               value={manualPunchOutDate}
                               onChange={(e) => setManualPunchOutDate(e.target.value)}
-                              className="w-full rounded-xl border border-amber-400/40 bg-white/8 px-3 py-2 text-base text-white outline-none focus:border-transparent focus:ring-2 focus:ring-amber-500 [color-scheme:dark]"
+                              aria-label={t.ts_drawer_manual_punch_out_date}
+                              className="w-full rounded-xl border border-amber-400/40 bg-white/8 px-3 py-2 text-base text-white outline-none focus:border-transparent focus:ring-2 focus:ring-amber-500 focus-visible:ring-2 focus-visible:ring-white/50 [color-scheme:dark]"
                               placeholder="GG/MM/AAAA"
                             />
                           </div>

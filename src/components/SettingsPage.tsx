@@ -2702,8 +2702,9 @@ function BreakRuleModal({
             type="button"
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 transition-colors hover:bg-white/15 active:bg-white/80"
+            aria-label={t.close}
           >
-            <X className="h-4 w-4 text-white/55" />
+            <X className="h-4 w-4 text-white/55" aria-hidden />
           </button>
         </div>
 

@@ -2059,7 +2059,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   if (!currentUser) return null;
 
   return (
-    <div ref={tableContainerRef} className="pb-content pt-6 w-full max-w-7xl mx-auto font-sans">
+    <div
+      ref={tableContainerRef}
+      className="pb-content pt-6 w-full max-w-7xl mx-auto font-sans"
+      role="region"
+      aria-label={t.sidebar_shifts ?? 'Turni'}
+    >
 
       {/* Banner modalità incolla */}
       {pasteMode && selectionClipboard && (
@@ -2074,8 +2079,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               type="button"
               onClick={() => setPasteMode(false)}
               className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-accent/60 transition-colors hover:bg-accent/20 hover:text-accent active:text-accent"
+              aria-label={t.cancel ?? 'Annulla'}
             >
-              <X className="h-3 w-3" />
+              <X className="h-3 w-3" aria-hidden />
             </button>
           </div>
         </div>
@@ -2269,8 +2275,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y - 1); }}
                           className="flex h-6 w-6 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-cyan-600/12 active:bg-cyan-600/80"
+                          aria-label={t.wst_period_popover_year_prev}
                         >
-                          <ChevronLeft className="h-3.5 w-3.5" />
+                          <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
                         </button>
                         <span className="text-[11px] font-extrabold text-cyan-300 tabular-nums">
                           {listYear}
@@ -2279,8 +2286,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y + 1); }}
                           className="flex h-6 w-6 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-cyan-600/12 active:bg-cyan-600/80"
+                          aria-label={t.wst_period_popover_year_next}
                         >
-                          <ChevronRight className="h-3.5 w-3.5" />
+                          <ChevronRight className="h-3.5 w-3.5" aria-hidden />
                         </button>
                       </div>
                       <div className="max-h-[340px] overflow-y-auto py-1">
@@ -2956,9 +2964,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   type="button"
                                   onClick={() => void handleDeleteTemplate(name)}
                                   title={t.template_delete_confirm}
+                                  aria-label={t.template_delete_confirm}
                                   className="shrink-0 rounded-md p-1 text-white/40 hover:bg-red-500/15 hover:text-red-500 active:text-red-500"
                                 >
-                                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
                                 </button>
                               </li>
                             ))}
@@ -4872,7 +4881,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                                 if (e.key === 'Escape') { setAssigningOpenShiftId(null); setAssignExternalName(''); }
                                               }}
                                               placeholder={tv.wst_open_shift_external_placeholder ?? t.wst_open_shift_external_placeholder}
-                                              className="w-full rounded-lg border border-amber-300 bg-white/80 px-1.5 py-0.5 text-[11px] text-white outline-none placeholder:text-white/40 focus:border-accent"
+                                              aria-label={tv.wst_open_shift_external_placeholder ?? t.wst_open_shift_external_placeholder}
+                                              className="w-full rounded-lg border border-amber-300 bg-white/80 px-1.5 py-0.5 text-[11px] text-white outline-none placeholder:text-white/40 focus:border-accent focus-visible:ring-2 focus-visible:ring-white/50"
                                             />
                                             <div className="flex gap-0.5">
                                               <button
@@ -4985,8 +4995,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 <ChevronRight className="h-4 w-4 text-white/50" />
               </button>
             </div>
-            <button type="button" onClick={closeShiftDetailPanel} className="rounded-xl p-2 transition-colors hover:bg-white/10 active:bg-white/80">
-              <X className="h-5 w-5 text-white/50" />
+            <button
+              type="button"
+              onClick={closeShiftDetailPanel}
+              className="rounded-xl p-2 transition-colors hover:bg-white/10 active:bg-white/80"
+              aria-label={t.close}
+            >
+              <X className="h-5 w-5 text-white/50" aria-hidden />
             </button>
           </div>
 

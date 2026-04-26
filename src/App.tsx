@@ -681,6 +681,12 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       )}
     </AnimatePresence>
     <div className="min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[600] focus:px-4 focus:py-2 focus:bg-white focus:text-app-bg focus:rounded focus:font-medium"
+      >
+        Vai al contenuto principale
+      </a>
       <BodyPullToRefresh
         onRefresh={() => silentRefreshData({ pullRemoteConfig: true })}
         disabled={!!(isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending)}
@@ -746,6 +752,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                 onClick={handleHardRefresh}
                 disabled={isRefreshing || dataSyncInProgress}
                 title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Sincronizza dati'}
+                aria-label={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso' : 'Sincronizza dati'}
                 className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
                   isRefreshing || dataSyncInProgress
                     ? 'text-amber-500 liquid-glass-amber'
@@ -755,14 +762,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                 }`}
               >
                 {isRefreshing || dataSyncInProgress ? (
-                  <RotateCw className="h-3.5 w-3.5 animate-spin" strokeWidth={2.5} />
+                  <RotateCw className="h-3.5 w-3.5 animate-spin" strokeWidth={2.5} aria-hidden />
                 ) : isSynced ? (
-                  <span className="relative inline-flex">
+                  <span className="relative inline-flex" aria-hidden>
                     <Cloud className="h-3.5 w-3.5" strokeWidth={2.5} />
                     <span className="absolute -bottom-0.5 -right-1 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-emerald-500 text-white" style={{ fontSize: 7 }}>✓</span>
                   </span>
                 ) : (
-                  <CloudOff className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  <CloudOff className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
                 )}
               </button>
               {featureFlags['unlock_with_pin'] !== false && currentUser && isManagement && (
@@ -778,8 +785,8 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                   }`}
                 >
                   {globalPinSessionId
-                    ? <Unlock className="h-3.5 w-3.5" strokeWidth={2.5} />
-                    : <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />}
+                    ? <Unlock className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
+                    : <Lock className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />}
                 </button>
               )}
             </div>
@@ -795,6 +802,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <main
+        id="main-content"
         className={`w-full flex flex-col shrink-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
         style={{ paddingTop: 'var(--app-sticky-header-offset, 80px)' }}
       >
