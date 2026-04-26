@@ -51,14 +51,15 @@ export default function FlowLogoSvg({
     </>
   );
 
+  /** Allineato a `grad_icon`: userSpace su x 45→155, y in % come l’asset statico. */
   const Defs = () => (
     <defs>
       <linearGradient
         id={gradId}
         x1="45"
-        y1="0"
+        y1="0%"
         x2="155"
-        y2="0"
+        y2="0%"
         gradientUnits="userSpaceOnUse"
       >
         <stop offset="0%" stopColor={selected.primary} />
@@ -69,10 +70,20 @@ export default function FlowLogoSvg({
 
   if (variant === 'icon-only') {
     return (
-      <svg viewBox="0 0 200 200" className={className} fill="none" role="img" aria-label="FLOW">
+      <svg
+        width={200}
+        height={200}
+        viewBox="0 0 200 200"
+        className={className}
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="FLOW"
+        style={{ maxWidth: '100%', height: 'auto' }}
+      >
         <title>FLOW</title>
-        <Defs />
         <rect width="200" height="200" rx="45" fill={selected.bg} />
+        <Defs />
         <BarsInIcon />
       </svg>
     );
@@ -88,11 +99,12 @@ export default function FlowLogoSvg({
           width={50}
           height={50}
           fill="none"
+          xmlns="http://www.w3.org/2000/svg"
           role="img"
           aria-hidden
         >
-          <Defs />
           <rect width="200" height="200" rx="45" fill={HEADER_ICON_BG} />
+          <Defs />
           <BarsInIcon />
         </svg>
         <span className="text-2xl font-bold tracking-[0.2em] text-white" style={{ fontFamily: 'system-ui, Arial, sans-serif' }}>
