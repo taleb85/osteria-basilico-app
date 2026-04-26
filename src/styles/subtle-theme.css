@@ -25,9 +25,9 @@
   --flow-blue:   #3b82f6;
 }
 
-/* ── Topbar / header ── */
+/* ── Topbar / header: striscia brand più scura sotto il fixed header (MobileProfileHeader) ── */
 .flow-brand-header {
-  background: transparent !important;
+  background: rgba(8, 18, 55, 0.88) !important;
   box-shadow: none !important;
   border-radius: 0 !important;
 }
