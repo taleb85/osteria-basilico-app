@@ -728,7 +728,8 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         }`}
         style={{
           top: impersonatingAs ? 40 : 0,
-          background: 'rgba(42, 74, 138, 0.85)',
+          /* Stessa tonalità header-tab (un solo layer: brand + top-tabbar) */
+          background: 'var(--surface-header-slab, rgba(4, 12, 42, 0.94))',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.12)',

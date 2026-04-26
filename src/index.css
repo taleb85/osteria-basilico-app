@@ -55,17 +55,15 @@ button:active,
   color: #ffffff !important;
 }
 
-/* Striscia brand (50px) più scura — subtle-theme non è nel bundle; stile qui */
+/* Brand + top-tabbar: fill sul <header> in App (un blocco unico, niente fessura 1px) */
 body .flow-brand-header {
-  background: var(--surface-header-slab) !important;
+  background: transparent !important;
   box-shadow: none !important;
   border-radius: 0 !important;
 }
 
-/* Riga tab TopTabBar (sotto la brand) — stessa famiglia cromatica */
 body .top-tabbar {
-  background: var(--surface-header-slab) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: transparent !important;
   box-shadow: none !important;
 }
 
