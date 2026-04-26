@@ -1,6 +1,7 @@
+import FlowLogoSvg from './FlowLogoSvg';
+
 /**
- * FlowLogo — logo ufficiale FLOW (immagine PNG).
- * Sostituisce il precedente SVG con la nuova icona brand rosa/viola/blu.
+ * FlowLogo — icona vettoriale (FlowLogoSvg) + wordmark. Brand navy/arancio.
  */
 interface FlowLogoProps {
   size?: number;
@@ -23,15 +24,12 @@ export default function FlowLogo({
 
   return (
     <div className={`flex items-center gap-2.5 leading-none select-none ${className}`}>
-      {/* Icona PNG ufficiale FLOW */}
       {showIcon && (
-        <img
-          src="/icon-flow-final.png"
-          alt="FLOW"
-          width={size}
-          height={size}
-          draggable={false}
-          style={{ width: size, height: size, borderRadius: size * 0.22, flexShrink: 0, objectFit: 'cover' }}
+        <FlowLogoSvg
+          variant="icon-only"
+          color="orange"
+          className="shrink-0"
+          style={{ width: size, height: size, display: 'block' }}
         />
       )}
 
@@ -47,7 +45,7 @@ export default function FlowLogo({
               lineHeight: 1,
               ...(isWhite
                 ? { color: '#FFFFFF' }
-                  : { color: '#0052FF' }),
+                : { color: '#1A263E' }),
             }}
           >
             FLOW

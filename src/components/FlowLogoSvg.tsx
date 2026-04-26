@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, type CSSProperties } from 'react';
 
 const COLORS = {
   orange: { primary: '#FF9500', secondary: '#2A1E15', bg: '#1A263E' },
@@ -14,6 +14,7 @@ export interface FlowLogoSvgProps {
   variant?: FlowLogoSvgVariant;
   color?: FlowLogoSvgColor;
   className?: string;
+  style?: CSSProperties;
   /**
    * `full`: sotto l’icona. `header`: testo "FLOW" a destra. Default `onDark` (bianco);
    * `onLight` = testo scuro.
@@ -24,17 +25,19 @@ export interface FlowLogoSvgProps {
 }
 
 /**
- * Wordmark FLOW in SVG (barre + testo), varianti colore. Distinto da {@link FlowLogo} (PNG ufficiale in app).
+ * Wordmark FLOW in SVG. Barre 1 e 3: gradiente LTR (accordo → scuro); barra 2: inverso (scuro → accento), come brand.
  */
 export default function FlowLogoSvg({
   variant = 'full',
   color = 'orange',
   className = '',
+  style,
   wordmark = 'onDark',
   headerBar = false,
 }: FlowLogoSvgProps) {
   const rawId = useId().replace(/:/g, '');
-  const gradId = `${rawId}-flow-grad`;
+  const gradLtr = `${rawId}-flow-grad-ltr`;
+  const gradMid = `${rawId}-flow-grad-mid`;
   const selected = COLORS[color] ?? COLORS.orange;
   const wordDark = wordmark === 'onLight';
   const flowFill = wordDark ? '#1A263E' : '#FFFFFF';
@@ -42,17 +45,17 @@ export default function FlowLogoSvg({
 
   const BarsInIcon = () => (
     <>
-      <rect x="45" y="65" width="110" height="16" rx="8" fill={`url(#${gradId})`} />
-      <rect x="45" y="92" width="85" height="16" rx="8" fill={`url(#${gradId})`} />
-      <rect x="45" y="119" width="110" height="16" rx="8" fill={`url(#${gradId})`} />
+      <rect x="45" y="65" width="110" height="16" rx="8" fill={`url(#${gradLtr})`} />
+      <rect x="45" y="92" width="85" height="16" rx="8" fill={`url(#${gradMid})`} />
+      <rect x="45" y="119" width="110" height="16" rx="8" fill={`url(#${gradLtr})`} />
     </>
   );
 
-  /** Allineato a `grad_icon`: userSpace su x 45→155, y in % come l’asset statico. */
+  /** LTR = accento → scuro; MID = inverso (scuro → accento) per la barra centrale. */
   const Defs = () => (
     <defs>
       <linearGradient
-        id={gradId}
+        id={gradLtr}
         x1="45"
         y1="0%"
         x2="155"
@@ -61,6 +64,17 @@ export default function FlowLogoSvg({
       >
         <stop offset="0%" stopColor={selected.primary} />
         <stop offset="80%" stopColor={selected.secondary} />
+      </linearGradient>
+      <linearGradient
+        id={gradMid}
+        x1="45"
+        y1="0%"
+        x2="155"
+        y2="0%"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="0%" stopColor={selected.secondary} />
+        <stop offset="80%" stopColor={selected.primary} />
       </linearGradient>
     </defs>
   );
@@ -76,7 +90,7 @@ export default function FlowLogoSvg({
         xmlns="http://www.w3.org/2000/svg"
         role="img"
         aria-label="FLOW"
-        style={{ maxWidth: '100%', height: 'auto' }}
+        style={{ maxWidth: '100%', height: 'auto', ...style }}
       >
         <title>FLOW</title>
         <rect width="200" height="200" rx="45" fill={selected.bg} />
@@ -88,7 +102,8 @@ export default function FlowLogoSvg({
 
   /** Header orizzontale 300×60: icona 60 + wordmark (gradient `userSpace` 0–60 come l’asset). */
   if (variant === 'header') {
-    const gradHeaderId = `${rawId}-grad-header`;
+    const gradHeaderLtr = `${rawId}-grad-h-ltr`;
+    const gradHeaderMid = `${rawId}-grad-h-mid`;
     const headerTextFill = wordDark ? '#1A263E' : '#FFFFFF';
     const svg = (
       <svg
@@ -100,12 +115,12 @@ export default function FlowLogoSvg({
         xmlns="http://www.w3.org/2000/svg"
         role="img"
         aria-label="FLOW"
-        style={{ maxWidth: '100%', height: 'auto' }}
+        style={{ maxWidth: '100%', height: 'auto', ...style }}
       >
         <title>FLOW</title>
         <defs>
           <linearGradient
-            id={gradHeaderId}
+            id={gradHeaderLtr}
             x1="0"
             y1="0"
             x2="60"
@@ -115,11 +130,22 @@ export default function FlowLogoSvg({
             <stop offset="0%" stopColor={selected.primary} />
             <stop offset="80%" stopColor={selected.secondary} />
           </linearGradient>
+          <linearGradient
+            id={gradHeaderMid}
+            x1="0"
+            y1="0"
+            x2="60"
+            y2="0"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="0%" stopColor={selected.secondary} />
+            <stop offset="80%" stopColor={selected.primary} />
+          </linearGradient>
         </defs>
         <rect width="60" height="60" rx="15" fill={selected.bg} />
-        <rect x="15" y="20" width="30" height="4" rx="2" fill={`url(#${gradHeaderId})`} />
-        <rect x="15" y="28" width="22" height="4" rx="2" fill={`url(#${gradHeaderId})`} />
-        <rect x="15" y="36" width="30" height="4" rx="2" fill={`url(#${gradHeaderId})`} />
+        <rect x="15" y="20" width="30" height="4" rx="2" fill={`url(#${gradHeaderLtr})`} />
+        <rect x="15" y="28" width="22" height="4" rx="2" fill={`url(#${gradHeaderMid})`} />
+        <rect x="15" y="36" width="30" height="4" rx="2" fill={`url(#${gradHeaderLtr})`} />
         <text
           x="80"
           y="40"
@@ -154,7 +180,7 @@ export default function FlowLogoSvg({
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-labelledby={`${rawId}-title`}
-      style={{ maxWidth: '100%', height: 'auto' }}
+      style={{ maxWidth: '100%', height: 'auto', ...style }}
     >
       <title id={`${rawId}-title`}>FLOW — Work in Motion</title>
       <Defs />
