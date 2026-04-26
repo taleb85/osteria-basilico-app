@@ -690,7 +690,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                                           aria-checked={enabled}
                                           onClick={() => handleModuleToggle(previewUser, mod, !enabled)}
                                           className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 ${
-                                            enabled ? 'bg-accent' : 'bg-slate-300'
+                                            enabled ? 'bg-accent' : 'bg-white/20'
                                           }`}
                                         >
                                           <span
@@ -773,7 +773,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                                       }}
                                       className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-2 ${
                                         isSelectedAdmin ? 'cursor-default opacity-100' : 'cursor-pointer'
-                                      } ${eff ? 'bg-accent' : 'bg-slate-300'}`}
+                                      } ${eff ? 'bg-accent' : 'bg-white/20'}`}
                                     >
                                       <span
                                         className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${

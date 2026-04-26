@@ -908,7 +908,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               aria-checked={user.status === 'active'}
                               onClick={() => handleToggleStatus(user)}
                               className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
-                                user.status === 'active' ? 'bg-accent' : 'bg-white/15'
+                                user.status === 'active' ? 'bg-accent' : 'bg-white/20'
                               }`}
                             >
                               <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${user.status === 'active' ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -1398,7 +1398,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     role="switch"
                     aria-checked={workRules.criticEnabled}
                     onClick={() => updateWorkRule('criticEnabled', !workRules.criticEnabled)}
-                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.criticEnabled ? 'bg-accent' : 'bg-white/15'}`}
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.criticEnabled ? 'bg-accent' : 'bg-white/20'}`}
                   >
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${workRules.criticEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
@@ -1447,7 +1447,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     role="switch"
                     aria-checked={workRules.attentionEnabled}
                     onClick={() => updateWorkRule('attentionEnabled', !workRules.attentionEnabled)}
-                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.attentionEnabled ? 'bg-accent' : 'bg-white/15'}`}
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.attentionEnabled ? 'bg-accent' : 'bg-white/20'}`}
                   >
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${workRules.attentionEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
@@ -1496,7 +1496,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     role="switch"
                     aria-checked={workRules.overlapEnabled}
                     onClick={() => updateWorkRule('overlapEnabled', !workRules.overlapEnabled)}
-                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.overlapEnabled ? 'bg-accent' : 'bg-white/15'}`}
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${workRules.overlapEnabled ? 'bg-accent' : 'bg-white/20'}`}
                   >
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${workRules.overlapEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
@@ -1569,7 +1569,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           aria-checked={isEnabled}
                           onClick={toggle}
                           title={isEnabled ? t.settings_break_toggle_disable : t.settings_break_toggle_enable}
-                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${isEnabled ? 'bg-accent' : 'bg-white/15'}`}
+                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${isEnabled ? 'bg-accent' : 'bg-white/20'}`}
                         >
                           <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${isEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
@@ -1913,7 +1913,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     }
                   }}
                   className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
-                    presenceVerificationConfig.requireVerification ? 'bg-accent' : 'bg-white/15'
+                    presenceVerificationConfig.requireVerification ? 'bg-accent' : 'bg-white/20'
                   }`}
                 >
                   <span
@@ -2122,8 +2122,8 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         }}
                         className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
                           isMaintenance
-                            ? enabled ? 'bg-red-500' : 'bg-white/15'
-                            : enabled ? 'bg-accent' : 'bg-white/15'
+                            ? enabled ? 'bg-red-500' : 'bg-white/20'
+                            : enabled ? 'bg-accent' : 'bg-white/20'
                         }`}
                       >
                         <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white toggle-knob shadow-sm transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-0'}`} />

@@ -956,7 +956,7 @@ function Toggle({ value, onChange, danger }: { value: boolean; onChange: (v: boo
       className={`relative w-10 h-5.5 rounded-full transition-colors duration-200 shrink-0 ${
         value
           ? danger ? 'bg-red-500' : 'bg-accent'
-          : 'bg-white/14'
+          : 'bg-white/20'
       }`}
       style={{ minWidth: '2.5rem', height: '1.375rem' }}
     >

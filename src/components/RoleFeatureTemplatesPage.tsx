@@ -272,8 +272,8 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const colCount = nonAdminUsers.length + 1;
 
   const MatrixToggle = ({
-    enabled, onToggle, locked, accent,
-  }: { enabled: boolean; onToggle: () => void; locked?: boolean; accent?: string }) => (
+    enabled, onToggle, locked,
+  }: { enabled: boolean; onToggle: () => void; locked?: boolean }) => (
     <button
       type="button"
       role="switch"
@@ -281,9 +281,8 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
       disabled={locked}
       onClick={onToggle}
       className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 ${
-        enabled ? '' : 'bg-white/25'
+        enabled ? 'bg-accent' : 'bg-white/20'
       }`}
-      style={enabled ? { backgroundColor: accent ?? ACCENT } : undefined}
     >
       <span
         className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition-transform ${
@@ -687,8 +686,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
         aria-checked={enabled}
         disabled={locked}
         onClick={onToggle}
-        className={`relative shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed ${enabled ? '' : 'bg-white/25'}`}
-        style={enabled && mobileUser ? { backgroundColor: roleColor(mobileUser.role) } : undefined}
+        className={`relative shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed ${enabled ? 'bg-accent' : 'bg-white/20'}`}
       >
         <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
       </button>
@@ -885,7 +883,6 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                       <MatrixToggle
                         enabled={(userFeatures[u.id]?.[key]) === true}
                         locked={locked}
-                        accent={roleColor(u.role)}
                         onToggle={() => toggleFeature(u.id, key)}
                       />
                     </td>
@@ -914,7 +911,6 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                   <td key={u.id} className="px-2 py-2.5 text-center">
                     <MatrixToggle
                       enabled={(userFeatures[u.id]?.[key]) === true}
-                      accent={roleColor(u.role)}
                       onToggle={() => toggleFeature(u.id, key)}
                     />
                   </td>
@@ -942,7 +938,6 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                   <td key={u.id} className="px-2 py-2.5 text-center">
                     <MatrixToggle
                       enabled={(userFeatures[u.id]?.[key]) === true}
-                      accent={roleColor(u.role)}
                       onToggle={() => toggleFeature(u.id, key)}
                     />
                   </td>
@@ -961,7 +956,6 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 <td key={u.id} className="px-2 py-2.5 text-center">
                   <MatrixToggle
                     enabled={userPlannedOnly[u.id] ?? false}
-                    accent={roleColor(u.role)}
                     onToggle={() => togglePlannedOnly(u.id)}
                   />
                 </td>
@@ -993,7 +987,6 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                   <td key={u.id} className="px-2 py-2.5 text-center">
                     <MatrixToggle
                       enabled={(userOp[u.id]?.[perm.key]) === true}
-                      accent={roleColor(u.role)}
                       onToggle={() => toggleOp(u.id, perm.key)}
                     />
                   </td>
@@ -1021,7 +1014,6 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 <td key={u.id} className="px-2 py-2.5 text-center">
                   <MatrixToggle
                     enabled={userTeamVisible[u.id] ?? true}
-                    accent={roleColor(u.role)}
                     onToggle={() => toggleTeamVisible(u.id)}
                   />
                 </td>
@@ -1040,7 +1032,6 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                     <span className="text-[11px] text-white/50">Globale</span>
                     <MatrixToggle
                       enabled={mods[key] === true}
-                      accent="#6366f1"
                       onToggle={() => toggleMod(key)}
                     />
                   </div>

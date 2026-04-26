@@ -292,7 +292,7 @@ export default function GestioneProfiliPage() {
                                         await updateUser(user.id, { team_schedule_visible: next });
                                         showSuccess?.(`Visibilità ${next ? 'attivata' : 'disattivata'}`);
                                       }}
-                                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 ${user.team_schedule_visible !== false ? 'bg-accent' : 'bg-white/25'}`}
+                                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 ${user.team_schedule_visible !== false ? 'bg-accent' : 'bg-white/20'}`}
                                     >
                                       <span
                                         className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white toggle-knob shadow transition ${user.team_schedule_visible !== false ? 'translate-x-5' : 'translate-x-1'}`}

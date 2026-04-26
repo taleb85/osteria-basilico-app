@@ -95,7 +95,7 @@ export default function StaffOperationalPermissionsEditor({ user, currentUser }:
                     disabled={busyKey !== null}
                     onClick={() => void handleToggle(perm.key, perm.adminOnly)}
                     className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${
-                      enabled ? 'bg-accent' : 'bg-slate-200'
+                      enabled ? 'bg-accent' : 'bg-white/20'
                     } ${busyKey !== null ? 'cursor-wait opacity-60' : ''}`}
                   >
                     <span

@@ -6418,7 +6418,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                         checked={deductBreak}
                         onChange={(e) => setDeductBreak(e.target.checked)}
                       />
-                      <div className={`h-5 w-9 rounded-full transition-colors duration-200 ${deductBreak ? 'bg-accent' : 'bg-white/15'}`} />
+                      <div className={`h-5 w-9 rounded-full transition-colors duration-200 ${deductBreak ? 'bg-accent' : 'bg-white/20'}`} />
                       <div className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${deductBreak ? 'translate-x-4' : 'translate-x-0'}`} />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -6448,7 +6448,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                         onChange={(e) => setNotifyEmployee(e.target.checked)}
                         className="sr-only peer"
                       />
-                      <div className="h-5 w-9 rounded-full bg-white/15 transition-colors peer-checked:bg-accent" />
+                      <div className="h-5 w-9 rounded-full bg-white/20 transition-colors peer-checked:bg-accent" />
                       <div className="toggle-knob absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
                     </div>
                     <div>

@@ -81,7 +81,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
           <button
             onClick={handleToggleSound}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-              isSoundEnabled ? 'bg-accent' : 'bg-slate-200'
+              isSoundEnabled ? 'bg-accent' : 'bg-white/20'
             }`}
           >
             <span
