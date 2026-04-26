@@ -4691,10 +4691,9 @@ export default function Timesheets() {
           );
           const showAutoBreakSubToggle = !!(
             fullShift &&
-            !hasAdminBreakRules &&
-            featureFlags['auto_breaks'] !== false &&
             !hasManualNonAutoBreak &&
-            grossForBreakReadout >= AUTO_BREAK_THRESHOLD_MINUTES
+            featureFlags['auto_breaks'] !== false &&
+            (hasAdminBreakRules || grossForBreakReadout >= AUTO_BREAK_THRESHOLD_MINUTES)
           );
           const implicitAutoBreakTitles = new Set([
             t.ts_deduct_break_auto,
@@ -5019,6 +5018,7 @@ export default function Timesheets() {
                     showAutoBreakSubToggle={showAutoBreakSubToggle}
                     autoSubChecked={autoSubChecked}
                     autoBreakSubLineItems={autoBreakSubLineItems}
+                    subToggleForAdminRules={!!(hasAdminBreakRules && showAutoBreakSubToggle)}
                     defaultAutoBreakMinutes={DEFAULT_AUTO_BREAK_MINUTES}
                     fmtHM={fmtHM}
                     fmtBreakDeductionShort={fmtBreakDeductionShort}

@@ -266,6 +266,8 @@ export function getBreakMinutesForShift(
 
   const activeRules = getActiveBreakRules(rules);
   if (user && activeRules.length > 0) {
+    /** Con regole admin: come il fallback ≥6h, disattivabile con `is_auto_break: false`. */
+    if (shift.is_auto_break === false) return 0;
     const w = options?.breakRuleWindow;
     const fromRules = calculateBreakDeductionsSafe(
       {
@@ -352,6 +354,7 @@ export function getBreakDeductionDisplayItems(
   if (shift.deduct_break === false) return [];
   const active = getActiveBreakRules(rules);
   if (user && active.length > 0) {
+    if (shift.is_auto_break === false) return [];
     const w = options?.breakRuleWindow;
     const st = (w?.start ?? shift.start_time ?? '').slice(0, 5);
     const en = (w?.end ?? shift.end_time ?? '').slice(0, 5);

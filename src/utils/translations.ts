@@ -1276,6 +1276,11 @@ const baseIt = {
   ts_deduct_break_auto: 'Pausa automatica (≥6h)',
   ts_deduct_break_lunch: 'Pausa pranzo (11:30–12:00)',
   ts_deduct_break_dinner: 'Pausa cena (17:00–17:30)',
+  ts_subtoggle_apply_rule_breaks_label: 'Applica pause dalle regole',
+  ts_subtoggle_apply_rule_breaks_hint:
+    'Se disattivi, le detrazioni configurate in amministrazione non vengono applicate (ore nette senza quelle pause).',
+  ts_subtoggle_second_off_readout:
+    'Con il secondo interruttore disattivato, le detrazioni da regole o da pausa automatica non si applicano.',
   wst_drawer_break_toggle: 'Cambia',
   wst_drawer_planned_short: 'Stimato · pianificato',
   wst_drawer_actual_short: 'Effettivo · timbrature',
@@ -2797,6 +2802,11 @@ const baseEn: Record<string, string> = {
   ts_deduct_break_auto: 'Automatic break (≥6h)',
   ts_deduct_break_lunch: 'Lunch break (11:30–12:00)',
   ts_deduct_break_dinner: 'Dinner break (17:00–17:30)',
+  ts_subtoggle_apply_rule_breaks_label: 'Apply break rules',
+  ts_subtoggle_apply_rule_breaks_hint:
+    'When off, configured admin break deductions are not applied (net hours without those breaks).',
+  ts_subtoggle_second_off_readout:
+    'With the second switch off, rule-based or automatic break deductions are not applied.',
   wst_drawer_break_toggle: 'Change',
   wst_drawer_planned_short: 'Planned estimate',
   wst_drawer_actual_short: 'Actual · punches',
@@ -4333,6 +4343,11 @@ const baseEs: Record<string, string> = {
   ts_deduct_break_auto: 'Pausa automática (≥6h)',
   ts_deduct_break_lunch: 'Pausa comida (11:30–12:00)',
   ts_deduct_break_dinner: 'Pausa cena (17:00–17:30)',
+  ts_subtoggle_apply_rule_breaks_label: 'Aplicar pausas de las reglas',
+  ts_subtoggle_apply_rule_breaks_hint:
+    'Si lo desactivas, no se aplican las deducciones configuradas en administración (horas netas sin esas pausas).',
+  ts_subtoggle_second_off_readout:
+    'Con el segundo interruptor desactivado, no se aplican deducciones por reglas o pausa automática.',
   wst_drawer_break_toggle: 'Cambiar',
   wst_drawer_planned_short: 'Estimado · planificado',
   wst_drawer_actual_short: 'Efectivo · fichajes',
@@ -5296,6 +5311,11 @@ const baseFr: Record<string, string> = {
   ts_deduct_break_auto: 'Pause automatique (≥6h)',
   ts_deduct_break_lunch: 'Pause déjeuner (11:30–12:00)',
   ts_deduct_break_dinner: 'Pause dîner (17:00–17:30)',
+  ts_subtoggle_apply_rule_breaks_label: 'Appliquer les pauses des règles',
+  ts_subtoggle_apply_rule_breaks_hint:
+    'Désactivé : les déductions configurées en admin ne s’appliquent pas (heures nettes sans ces pauses).',
+  ts_subtoggle_second_off_readout:
+    'Avec le second interrupteur désactivé, les déductions par règles ou pause auto ne s’appliquent pas.',
   wst_drawer_break_toggle: 'Modifier',
   wst_drawer_planned_short: 'Estimé · planifié',
   wst_drawer_actual_short: 'Effectif · pointages',

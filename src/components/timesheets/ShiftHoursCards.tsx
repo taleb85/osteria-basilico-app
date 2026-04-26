@@ -63,6 +63,8 @@ interface ShiftHoursCardsProps {
   onAutoBreakChange?: (shiftId: string, on: boolean) => void;
   /** Righe sotto l’interruttore: pranzo/cena/unica (≥6h) */
   autoBreakSubLineItems?: { title: string; minutes: number }[];
+  /** Secondo interruttore = applica le regole in ammin. (etiquette + hint dedicati) */
+  subToggleForAdminRules?: boolean;
   /** Minuti se non ci sono righe (fallback) */
   defaultAutoBreakMinutes?: number;
   
@@ -106,6 +108,7 @@ export function ShiftHoursCards({
   autoSubChecked = false,
   onAutoBreakChange,
   autoBreakSubLineItems,
+  subToggleForAdminRules = false,
   defaultAutoBreakMinutes = 30,
   fmtHM,
   fmtBreakDeductionShort,
@@ -266,6 +269,7 @@ export function ShiftHoursCards({
         !isFrozen &&
         !isAbsent && (
         <div className="mt-5 space-y-3">
+        <div>
         <label
           className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 transition-colors ${
             deductBreakSaving ? 'pointer-events-none opacity-50' : ''
@@ -292,39 +296,45 @@ export function ShiftHoursCards({
           </div>
           <div className="min-w-0 flex-1">
             <p className={`text-xs font-semibold ${fullShift.deduct_break !== false ? 'text-white' : 'text-white/70'}`}>{t.deduct_break_label}</p>
-            {fullShift.deduct_break !== false ? (
-              (deductBreakLineItems && deductBreakLineItems.length > 1) ? (
-                <div className="mt-0.5 space-y-1.5 text-[11px] leading-snug text-white/50">
-                  <p>{t.wst_drawer_breaks_deducted_list_intro}</p>
-                  <ul className="list-none space-y-0.5 pl-0 text-white/70">
-                    {deductBreakLineItems.map((it) => (
-                      <li key={`${it.title}-${it.minutes}`} className="flex flex-wrap items-baseline justify-between gap-x-2 tabular-nums">
-                        <span className="font-medium text-white/80">{it.title}</span>
-                        <span>−{fmtBreakDeductionShort(it.minutes)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (deductBreakLineItems && deductBreakLineItems.length === 1) ? (
-                <div className="mt-0.5 space-y-0.5 text-[11px] leading-snug text-white/50">
-                  <p className="flex flex-wrap items-baseline justify-between gap-x-2 text-white/75 tabular-nums">
-                    <span className="font-medium text-white/85">{deductBreakLineItems[0].title}</span>
-                    <span>−{fmtBreakDeductionShort(deductBreakLineItems[0].minutes)}</span>
-                  </p>
-                  <p className="text-white/50">{tv.wst_drawer_break_deducted_readout}</p>
-                </div>
-              ) : (
-                <p className="mt-0.5 text-[11px] leading-snug text-white/50">
-                  {tv.wst_drawer_break_deducted_readout}
-                </p>
-              )
-            ) : (
+            {fullShift.deduct_break === false ? (
               <p className="mt-0.5 text-[11px] leading-snug text-white/50">
                 {tv.wst_create_shift_no_deduct_badge}
               </p>
-            )}
+            ) : null}
           </div>
         </label>
+        {fullShift.deduct_break !== false ? (
+          (deductBreakLineItems && deductBreakLineItems.length > 1) ? (
+            <div className="mt-2 space-y-1.5 pl-[2.75rem] text-[11px] leading-snug text-white/50 pr-1">
+              <p>{t.wst_drawer_breaks_deducted_list_intro}</p>
+              <ul className="list-none space-y-0.5 pl-0 text-white/70">
+                {deductBreakLineItems.map((it) => (
+                  <li key={`${it.title}-${it.minutes}`} className="flex flex-wrap items-baseline justify-between gap-x-2 tabular-nums">
+                    <span className="font-medium text-white/80">{it.title}</span>
+                    <span>−{fmtBreakDeductionShort(it.minutes)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (deductBreakLineItems && deductBreakLineItems.length === 1) ? (
+            <div className="mt-2 space-y-0.5 pl-[2.75rem] text-[11px] leading-snug text-white/50 pr-1">
+              <p className="flex flex-wrap items-baseline justify-between gap-x-2 text-white/75 tabular-nums">
+                <span className="font-medium text-white/85">{deductBreakLineItems[0].title}</span>
+                <span>−{fmtBreakDeductionShort(deductBreakLineItems[0].minutes)}</span>
+              </p>
+              <p className="text-white/50">{tv.wst_drawer_break_deducted_readout}</p>
+            </div>
+          ) : !autoSubChecked && showAutoBreakSubToggle ? (
+            <p className="mt-2 pl-[2.75rem] text-[11px] leading-snug text-white/45 pr-1">
+              {t.ts_subtoggle_second_off_readout}
+            </p>
+          ) : (
+            <p className="mt-2 pl-[2.75rem] text-[11px] leading-snug text-white/50 pr-1">
+              {tv.wst_drawer_break_deducted_readout}
+            </p>
+          )
+        ) : null}
+        </div>
         {showAutoBreakSubToggle &&
           fullShift.deduct_break !== false &&
           onAutoBreakChange && (
@@ -353,7 +363,15 @@ export function ShiftHoursCards({
               />
             </div>
             <div className="min-w-0 flex-1">
-              {autoBreakSubLineItems && autoBreakSubLineItems.length > 0 ? (
+              {subToggleForAdminRules ? (
+                <p
+                  className={`text-xs font-semibold ${
+                    autoSubChecked ? 'text-white' : 'text-white/70'
+                  }`}
+                >
+                  {t.ts_subtoggle_apply_rule_breaks_label}
+                </p>
+              ) : autoBreakSubLineItems && autoBreakSubLineItems.length > 0 ? (
                 <ul className="list-none space-y-1">
                   {autoBreakSubLineItems.map((it) => (
                     <li
@@ -378,7 +396,7 @@ export function ShiftHoursCards({
                 </p>
               )}
               <p className="mt-0.5 text-[11px] leading-snug text-white/50">
-                {tv.wst_drawer_auto_break_hint}
+                {subToggleForAdminRules ? t.ts_subtoggle_apply_rule_breaks_hint : tv.wst_drawer_auto_break_hint}
               </p>
             </div>
           </label>
