@@ -19,6 +19,7 @@ import {
 } from '../utils/loginIdentifier';
 import { useTenant } from '../context/TenantContext';
 import FlowWaveIcon from './ui/FlowWaveIcon';
+import FlowLogoSvg from './FlowLogoSvg';
 import {
   supportsPinUnlockWebAuthn,
   registerPinUnlockCredential,
@@ -402,17 +403,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         aria-hidden
         className="pointer-events-none select-none absolute inset-0 flex items-center justify-center"
       >
-        <img
-          src="/icon-flow-final.png"
-          alt=""
-          draggable={false}
-          style={{
-            width: '110vw',
-            maxWidth: 860,
-            minWidth: 320,
-            opacity: 0.055,
-            filter: 'saturate(0) brightness(0) blur(6px)',
-          }}
+        <FlowLogoSvg
+          variant="icon-only"
+          color="orange"
+          className="w-[110vw] max-w-[860px] min-w-[320px] h-auto"
+          style={{ opacity: 0.055, filter: 'saturate(0) brightness(0) blur(6px)' }}
         />
       </div>
 
@@ -437,9 +432,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <span className="pointer-events-none inline-flex" aria-hidden>
             <motion.div
               animate={{ boxShadow: [
-                '0 0 18px rgba(0,82,255,0.55), 0 0 6px rgba(34,211,238,0.35)',
-                '0 0 36px rgba(0,82,255,0.90), 0 0 14px rgba(34,211,238,0.60)',
-                '0 0 18px rgba(0,82,255,0.55), 0 0 6px rgba(34,211,238,0.35)',
+                '0 0 18px rgba(255,149,0,0.55), 0 0 6px rgba(255,200,150,0.35)',
+                '0 0 36px rgba(255,149,0,0.90), 0 0 14px rgba(255,200,150,0.60)',
+                '0 0 18px rgba(255,149,0,0.55), 0 0 6px rgba(255,200,150,0.35)',
               ]}}
               transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
               style={{ borderRadius: 28 }}
@@ -475,9 +470,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           <div className="flex flex-col items-center mb-8">
             <motion.div
               animate={{ boxShadow: [
-                '0 0 14px rgba(0,82,255,0.50), 0 0 5px rgba(34,211,238,0.30)',
-                '0 0 28px rgba(0,82,255,0.80), 0 0 12px rgba(34,211,238,0.50)',
-                '0 0 14px rgba(0,82,255,0.50), 0 0 5px rgba(34,211,238,0.30)',
+                '0 0 14px rgba(255,149,0,0.50), 0 0 5px rgba(255,200,150,0.30)',
+                '0 0 28px rgba(255,149,0,0.80), 0 0 12px rgba(255,200,150,0.50)',
+                '0 0 14px rgba(255,149,0,0.50), 0 0 5px rgba(255,200,150,0.30)',
               ]}}
               transition={{ duration: 2.2, ease: 'easeInOut', repeat: Infinity }}
               style={{ borderRadius: 26 }}

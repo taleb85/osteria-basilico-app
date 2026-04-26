@@ -901,14 +901,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
       {isGlobalRefreshing && (() => {
         return (
-          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18' }}>
+          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.22) 0%, transparent 55%), #000B18' }}>
             <div className="flex flex-col items-center gap-6">
               <motion.div
                 animate={{
                   boxShadow: [
-                    '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
-                    '0 0 56px rgba(0,82,255,1.00), 0 0 24px rgba(34,211,238,0.80)',
-                    '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
+                    '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
+                    '0 0 56px rgba(255,149,0,1.00), 0 0 24px rgba(255,200,150,0.80)',
+                    '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
                   ],
                 }}
                 transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
@@ -1006,7 +1006,7 @@ function ProtectedApp() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.35 }}
         className="fixed inset-0 flex items-center justify-center font-sans"
-        style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18' }}
+        style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.22) 0%, transparent 55%), #000B18' }}
       >
         <motion.div
           initial={{ scale: 0.82, opacity: 0 }}
@@ -1014,9 +1014,9 @@ function ProtectedApp() {
             scale: 1,
             opacity: 1,
             boxShadow: [
-              '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
-              '0 0 56px rgba(0,82,255,1.00), 0 0 24px rgba(34,211,238,0.80)',
-              '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
+              '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
+              '0 0 56px rgba(255,149,0,1.00), 0 0 24px rgba(255,200,150,0.80)',
+              '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
             ],
           }}
           transition={{

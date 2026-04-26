@@ -1,13 +1,14 @@
 import type React from 'react';
+import FlowLogoSvg from '../FlowLogoSvg';
 
 /**
- * FlowWaveIcon — logo onda FLOW usato ovunque nell'app.
- * Stessa forma del pulsante brand nella TopBar, scalabile.
+ * FlowWaveIcon — icona brand FLOW (tre barre SVG), scalabile.
+ * Usata in login, boot, PWA, profilo mobile, ecc.
  */
 interface FlowWaveIconProps {
-  /** Dimensione totale del quadrato contenitore (default 48) */
+  /** Lato del quadrato contenitore (default 48) */
   size?: number;
-  /** Raggio bordi (default size * 0.27) */
+  /** Raggio angoli wrapper (default size * 0.27) — il logo SVG ha già angoli arrotondati */
   radius?: number;
   className?: string;
   style?: React.CSSProperties;
@@ -15,8 +16,6 @@ interface FlowWaveIconProps {
 
 export default function FlowWaveIcon({ size = 48, radius, className, style }: FlowWaveIconProps) {
   const r = radius ?? Math.round(size * 0.27);
-  const iconSize = Math.round(size * 0.60);
-
   return (
     <div
       className={className}
@@ -25,26 +24,19 @@ export default function FlowWaveIcon({ size = 48, radius, className, style }: Fl
         height: size,
         borderRadius: r,
         flexShrink: 0,
-        background: 'rgba(26, 86, 219, 0.40)',
-        border: '1px solid rgba(59, 130, 246, 0.50)',
+        overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        lineHeight: 0,
         ...style,
       }}
     >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#22d3ee"
-        strokeWidth={2.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ width: iconSize, height: iconSize }}
-        aria-hidden
-      >
-        <path d="M3 12l4-4 4 4 4-4 4 4" />
-      </svg>
+      <FlowLogoSvg
+        variant="icon-only"
+        color="orange"
+        style={{ width: size, height: size, display: 'block' }}
+      />
     </div>
   );
 }

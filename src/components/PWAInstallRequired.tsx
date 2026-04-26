@@ -5,8 +5,8 @@ import { isIOS, isAndroid, isDesktop } from '../utils/pwaStandalone';
 import { useApp } from '../context/appContextCore';
 import FlowWaveIcon from './ui/FlowWaveIcon';
 
-const BG = 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.18) 0%, transparent 60%)';
-const ACCENT = '#0052FF';
+const BG = 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.18) 0%, transparent 60%)';
+const ACCENT = '#FF9500';
 
 /* ─── Icona Condividi Safari ─── */
 function ShareIcon() {
@@ -43,10 +43,10 @@ function StepRow({
       className="flex items-center gap-3 rounded-2xl px-4 py-3.5 transition-all"
       style={{
         background: active
-          ? 'rgba(0,82,255,0.22)'
-          : 'rgba(15, 35, 90, 0.82)',
+          ? 'rgba(255,149,0,0.22)'
+          : 'rgba(40, 32, 24, 0.82)',
         border: active
-          ? '1px solid rgba(0,82,255,0.50)'
+          ? '1px solid rgba(255,149,0,0.50)'
           : '1px solid rgba(255,255,255,0.15)',
       }}
     >
@@ -195,9 +195,9 @@ export default function PWAInstallRequired() {
             opacity: 1,
             scale: 1,
             boxShadow: [
-              '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
-              '0 0 56px rgba(0,82,255,1.00), 0 0 24px rgba(34,211,238,0.80)',
-              '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
+              '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
+              '0 0 56px rgba(255,149,0,1.00), 0 0 24px rgba(255,200,150,0.80)',
+              '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
             ],
           }}
           transition={{
@@ -272,7 +272,7 @@ export default function PWAInstallRequired() {
                 onClick={handleInstall}
                 disabled={installing}
                 className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-white font-bold text-sm transition active:scale-[0.97] disabled:opacity-50"
-                style={{ background: ACCENT, border: '1px solid rgba(120,170,255,0.3)' }}
+                style={{ background: ACCENT, border: '1px solid rgba(255,210,160,0.35)' }}
               >
                 <Download className="w-4 h-4" />
                 {installing ? 'Installazione…' : 'Installa FLOW'}
@@ -296,7 +296,7 @@ export default function PWAInstallRequired() {
                 onClick={handleInstall}
                 disabled={installing}
                 className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-white font-bold text-sm transition active:scale-[0.97] disabled:opacity-50"
-                style={{ background: ACCENT, border: '1px solid rgba(120,170,255,0.3)' }}
+                style={{ background: ACCENT, border: '1px solid rgba(255,210,160,0.35)' }}
               >
                 <Download className="w-4 h-4" />
                 {installing ? 'Installazione…' : 'Installa FLOW'}
