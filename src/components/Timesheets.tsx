@@ -4224,7 +4224,7 @@ export default function Timesheets() {
                             ? { background: 'rgba(0,82,255,0.08)' }
                             : tdMuted
                               ? { background: 'transparent', opacity: 0.35 }
-                              : { background: userIdx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' };
+                              : { background: userIdx % 2 === 0 ? 'rgba(20,45,110,0.60)' : 'rgba(20,45,110,0.70)' };
 
                         if (!dayData || dayData.shifts.length === 0) {
                           return (
