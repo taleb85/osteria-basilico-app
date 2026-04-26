@@ -294,7 +294,8 @@ export function getBreakMinutesForShift(
     return Math.max(0, fromRules);
   }
 
-  if (shift.break_minutes != null && shift.break_minutes > 0) {
+  /* Pausa manuale sul turno: rispetta `break_minutes` solo se non è la pausa automatica persistita. */
+  if (shift.break_minutes != null && shift.break_minutes > 0 && shift.is_auto_break !== true) {
     return shift.break_minutes;
   }
   if (options?.autoBreaksFeatureEnabled === false) {
@@ -387,7 +388,7 @@ export function getBreakDeductionDisplayItems(
     toMinutes(endStr) > toMinutes(startStr) &&
     grossMinutes >= AUTO_BREAK_THRESHOLD_MINUTES &&
     shift.is_auto_break !== false &&
-    !(shift.break_minutes != null && shift.break_minutes > 0)
+    !(shift.break_minutes != null && shift.break_minutes > 0 && shift.is_auto_break !== true)
   ) {
     const mealKeys = getBreakLabels(startStr, endStr);
     if (mealKeys.length > 0) {
@@ -400,7 +401,7 @@ export function getBreakDeductionDisplayItems(
   }
   const total = getBreakMinutesForShift(shift, grossMinutes, user, rules, options);
   if (total <= 0) return [];
-  if (shift.break_minutes != null && shift.break_minutes > 0) {
+  if (shift.break_minutes != null && shift.break_minutes > 0 && shift.is_auto_break !== true) {
     return [{ title: i18n.fromShift, minutes: total }];
   }
   if (
