@@ -4184,7 +4184,7 @@ export default function Timesheets() {
                           <div className="flex flex-col gap-1 justify-center">
                             <button
                               type="button"
-                              className="w-full max-w-full rounded-lg py-0.5 text-right transition-colors hover:bg-white/10"
+                              className="w-full max-w-full rounded-lg py-0.5 text-right transition-colors"
                               aria-label={formatTrans(t.ts_employee_week_review_open_aria, { name: user.first_name })}
                               onClick={(e) => {
                                 e.stopPropagation();
