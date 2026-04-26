@@ -52,6 +52,33 @@ function fmtDay(date: Date, locale: Locale): string {
   return format(date, 'EEE d', { locale }).toUpperCase();
 }
 
+function isShiftAbsent(s: Shift): boolean {
+  return String(s.approval_status).toLowerCase() === 'absent';
+}
+
+/** Minuti da mezzanotte dall’inizio del turno (per ordinare: mattina sopra, sera sotto). */
+function shiftStartMinutes(s: Shift, punchRecords: PunchRecordLike[]): number {
+  const { start } = getResolvedStartEndForHours(s, punchRecords);
+  if (!start || start === '—') return 99 * 60;
+  const part = (start as string).replace(/:+/g, ':').trim().slice(0, 5);
+  const m = part.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return 99 * 60;
+  const h = Math.min(23, Math.max(0, parseInt(m[1], 10) || 0));
+  const min = Math.min(59, Math.max(0, parseInt(m[2], 10) || 0));
+  return h * 60 + min;
+}
+
+/** Turni non assenti, ordinati per inizio crescente (stessa logica spesso usata: prima fascia, poi sera). */
+function sortShiftsByStartOfDay(
+  dayShifts: Shift[],
+  punchRecords: PunchRecordLike[]
+): Shift[] {
+  const work = dayShifts.filter((s) => !isShiftAbsent(s));
+  return work.sort(
+    (a, b) => shiftStartMinutes(a, punchRecords) - shiftStartMinutes(b, punchRecords)
+  );
+}
+
 function totalHours(
   shifts: Shift[],
   user: User,
@@ -288,28 +315,28 @@ export async function exportSchedulePDF(
         userShifts.push(...dayShifts);
 
         const x = MARGIN + NAME_W + i * DAY_W;
+        const ordered = sortShiftsByStartOfDay(dayShifts, punchRecords);
 
-        if (dayShifts.length > 0) {
-          dayShifts.slice(0, 2).forEach((s, si) => {
-            const isAbsent = String(s.approval_status).toLowerCase() === 'absent';
+        if (ordered.length > 0) {
+          ordered.slice(0, 2).forEach((s, si) => {
             const { start, end } = getResolvedStartEndForHours(s, punchRecords);
             const cleanStart = cleanTimeFormat(start);
             const cleanEnd = cleanTimeFormat(end);
-            const timeStr = isAbsent ? 'OFF' : `${cleanStart}–${cleanEnd}`;
-            
+            const timeStr = `${cleanStart}–${cleanEnd}`;
+
             const statusColor = STATUS_COLOR_MINIMAL[s.approval_status] ?? BLACK;
             const statusWeight = STATUS_WEIGHT[s.approval_status] ?? 'normal';
-            
+
             doc.setTextColor(...statusColor);
             doc.setFontSize(10);
             doc.setFont('helvetica', statusWeight);
             doc.text(timeStr, x + 3, y + 6 + si * 6);
           });
-          if (dayShifts.length > 2) {
+          if (ordered.length > 2) {
             doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(...GRAY_TEXT);
-            doc.text(`+${dayShifts.length - 2}`, x + DAY_W - 8, y + DATA_ROW - 3);
+            doc.text(`+${ordered.length - 2}`, x + DAY_W - 8, y + DATA_ROW - 3);
           }
         }
       });
