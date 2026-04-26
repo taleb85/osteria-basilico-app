@@ -152,7 +152,7 @@ body {
     --slate-neutral: #475569; /* Grigio ardesia per stati neutri */
     
     /* ═══ DARK THEME GLOBAL TOKENS ═══ */
-    --bg-primary: #0d1f3c;
+    --bg-primary: #2a4a8a;
     --bg-surface: rgba(5, 14, 60, 0.45);
     --bg-surface-hover: rgba(5, 14, 60, 0.58);
     --bg-surface-solid: rgba(5, 14, 60, 0.52);

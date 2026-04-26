@@ -3734,7 +3734,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           <th key={di} className="text-center px-2 py-2"
                             style={{
                               background: isTodayDH ? 'rgba(51,102,204,0.25)' : 'rgba(42, 74, 138, 0.85)',
-                              borderRight: di < allWeekDays.length - 1 ? '1px solid rgba(15, 35, 90, 0.82)' : undefined,
+                              borderRight: di < allWeekDays.length - 1 ? '1px solid rgba(255, 255, 255, 0.15)' : undefined,
                             }}>
                             <div className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-cyan-300' : 'text-white/50'}`}>
                               {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it })}
@@ -3758,7 +3758,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           >
             {(() => {
               const _isDarkGrid = true;
-              const cellBorder = '1px solid rgba(15, 35, 90, 0.85)';
+              const cellBorder = '1px solid rgba(255, 255, 255, 0.15)';
               const headBorder = '1px solid rgba(255,255,255,0.22)';
               return (
             <table className="w-full border-collapse table-fixed">
