@@ -53,6 +53,13 @@ button:active,
   color: #ffffff !important;
 }
 
+/* Striscia brand (50px) più scura — subtle-theme non è nel bundle; stile qui */
+body .flow-brand-header {
+  background: rgba(4, 12, 42, 0.94) !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
 /*
  * Shell semplice (stile v1.9): onda + gradiente su html, body trasparente, scroll su #root.
  * Niente layer fixed .flow-pwa-backdrop, niente overflow su html (evita fratture iOS con la barra).
