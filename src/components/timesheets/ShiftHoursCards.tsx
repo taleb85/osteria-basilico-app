@@ -27,8 +27,14 @@ interface ShiftHoursCardsProps {
   /** Dati shift */
   shift: ShiftData;
   
-  /** Shift completo dal DB (per toggle deduct_break / pausa auto) */
-  fullShift?: { id: string; deduct_break?: boolean; is_auto_break?: boolean; break_minutes?: number } | null;
+  /** Shift completo dal DB (per toggle deduct_break / pausa auto / esclusioni regole) */
+  fullShift?: {
+    id: string;
+    deduct_break?: boolean;
+    is_auto_break?: boolean;
+    break_minutes?: number;
+    deduct_excluded_rule_ids?: string[];
+  } | null;
   
   /** Classi CSS per card pianificato */
   plannedCardBoxClass: string;
@@ -56,15 +62,17 @@ interface ShiftHoursCardsProps {
   
   /** Handler toggle deduct_break */
   onDeductBreakChange: (shiftId: string, newValue: boolean) => void;
+  /** Attiva/detrazione per singola regola pausa (id regola) */
+  onDeductPerRuleChange?: (shiftId: string, ruleId: string, applyDeduction: boolean) => void;
+  /** Regole con detrazione disattivata (stesso set del turno) */
+  deductExcludedRuleIds?: string[] | null;
 
-  /** Pausa automatica (≥6h) — solo se non ci sono regole admin e il turno lo consente (Timesheets) */
+  /** Pausa automatica (≥6h) — solo se non ci sono regole admin (Timesheets) */
   showAutoBreakSubToggle?: boolean;
   autoSubChecked?: boolean;
   onAutoBreakChange?: (shiftId: string, on: boolean) => void;
   /** Righe sotto l’interruttore: pranzo/cena/unica (≥6h) */
   autoBreakSubLineItems?: { title: string; minutes: number }[];
-  /** Secondo interruttore = applica le regole in ammin. (etiquette + hint dedicati) */
-  subToggleForAdminRules?: boolean;
   /** Minuti se non ci sono righe (fallback) */
   defaultAutoBreakMinutes?: number;
   
@@ -81,8 +89,8 @@ interface ShiftHoursCardsProps {
   t: Record<string, string>;
   tv: Record<string, string>;
   
-  /** Voci sotto l’interruttore (regole: una per pausa); opzionale */
-  deductBreakLineItems?: { title: string; minutes: number }[];
+  /** Voci sotto l’interruttore; `ruleId` se da regole admin (interruttori per riga) */
+  deductBreakLineItems?: { title: string; minutes: number; ruleId?: string }[];
 }
 
 /**
@@ -104,11 +112,12 @@ export function ShiftHoursCards({
   isAbsent,
   deductBreakSaving,
   onDeductBreakChange,
+  onDeductPerRuleChange,
+  deductExcludedRuleIds,
   showAutoBreakSubToggle = false,
   autoSubChecked = false,
   onAutoBreakChange,
   autoBreakSubLineItems,
-  subToggleForAdminRules = false,
   defaultAutoBreakMinutes = 30,
   fmtHM,
   fmtBreakDeductionShort,
@@ -117,6 +126,12 @@ export function ShiftHoursCards({
   tv,
   deductBreakLineItems,
 }: ShiftHoursCardsProps) {
+  const ruleExclusion = new Set(deductExcludedRuleIds ?? []);
+  const hasPerRuleSwitches = !!(
+    onDeductPerRuleChange &&
+    fullShift &&
+    (deductBreakLineItems?.some((it) => Boolean(it.ruleId)) ?? false)
+  );
   return (
     <div className="border-b border-white/10 px-5 py-7 sm:px-6 sm:py-8 shrink-0"
       style={{
@@ -304,7 +319,71 @@ export function ShiftHoursCards({
           </div>
         </label>
         {fullShift.deduct_break !== false ? (
-          (deductBreakLineItems && deductBreakLineItems.length > 1) ? (
+          hasPerRuleSwitches && deductBreakLineItems && deductBreakLineItems.length > 0 ? (
+            <div className="mt-2 space-y-2 pl-[2.75rem] pr-1">
+              {deductBreakLineItems.length > 1 ? (
+                <p className="text-[11px] leading-snug text-white/50">{t.wst_drawer_breaks_deducted_list_intro}</p>
+              ) : null}
+              <div className="space-y-2">
+                {deductBreakLineItems.map((it) =>
+                  it.ruleId && onDeductPerRuleChange ? (
+                    <label
+                      key={it.ruleId}
+                      className={`flex min-h-[40px] cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 transition-colors ${
+                        deductBreakSaving ? 'pointer-events-none opacity-50' : ''
+                      } ${
+                        !ruleExclusion.has(it.ruleId)
+                          ? 'border-white/18 bg-white/6 hover:bg-white/10'
+                          : 'border-white/10 bg-white/4 hover:bg-white/7'
+                      }`}
+                    >
+                      <div className="relative shrink-0">
+                        <input
+                          type="checkbox"
+                          className="peer sr-only"
+                          checked={!ruleExclusion.has(it.ruleId)}
+                          disabled={deductBreakSaving}
+                          onChange={() => onDeductPerRuleChange(s.id, it.ruleId!, ruleExclusion.has(it.ruleId))}
+                        />
+                        <div
+                          className={`h-5 w-9 rounded-full transition-colors duration-200 ${
+                            !ruleExclusion.has(it.ruleId) ? 'bg-accent' : 'bg-white/20'
+                          }`}
+                        />
+                        <div
+                          className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                            !ruleExclusion.has(it.ruleId) ? 'translate-x-4' : 'translate-x-0'
+                          }`}
+                        />
+                      </div>
+                      <div className="flex min-w-0 flex-1 items-baseline justify-between gap-2 tabular-nums">
+                        <span
+                          className={`text-[11px] font-medium ${
+                            !ruleExclusion.has(it.ruleId) ? 'text-white/85' : 'text-white/45 line-through'
+                          }`}
+                        >
+                          {it.title}
+                        </span>
+                        <span
+                          className={`text-[11px] ${!ruleExclusion.has(it.ruleId) ? 'text-white/70' : 'text-white/35'}`}
+                        >
+                          −{fmtBreakDeductionShort(it.minutes)}
+                        </span>
+                      </div>
+                    </label>
+                  ) : (
+                    <div
+                      key={`${it.title}-${it.minutes}`}
+                      className="flex flex-wrap items-baseline justify-between gap-x-2 pl-1 text-[11px] tabular-nums text-white/70"
+                    >
+                      <span className="font-medium text-white/80">{it.title}</span>
+                      <span>−{fmtBreakDeductionShort(it.minutes)}</span>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          ) : (deductBreakLineItems && deductBreakLineItems.length > 1) ? (
             <div className="mt-2 space-y-1.5 pl-[2.75rem] text-[11px] leading-snug text-white/50 pr-1">
               <p>{t.wst_drawer_breaks_deducted_list_intro}</p>
               <ul className="list-none space-y-0.5 pl-0 text-white/70">
@@ -363,15 +442,7 @@ export function ShiftHoursCards({
               />
             </div>
             <div className="min-w-0 flex-1">
-              {subToggleForAdminRules ? (
-                <p
-                  className={`text-xs font-semibold ${
-                    autoSubChecked ? 'text-white' : 'text-white/70'
-                  }`}
-                >
-                  {t.ts_subtoggle_apply_rule_breaks_label}
-                </p>
-              ) : autoBreakSubLineItems && autoBreakSubLineItems.length > 0 ? (
+              {autoBreakSubLineItems && autoBreakSubLineItems.length > 0 ? (
                 <ul className="list-none space-y-1">
                   {autoBreakSubLineItems.map((it) => (
                     <li
@@ -396,7 +467,7 @@ export function ShiftHoursCards({
                 </p>
               )}
               <p className="mt-0.5 text-[11px] leading-snug text-white/50">
-                {subToggleForAdminRules ? t.ts_subtoggle_apply_rule_breaks_hint : tv.wst_drawer_auto_break_hint}
+                {tv.wst_drawer_auto_break_hint}
               </p>
             </div>
           </label>

@@ -154,6 +154,8 @@ export interface Shift {
   break_minutes?: number;
   /** true se la pausa è stata applicata automaticamente (es. turno > 6h). */
   is_auto_break?: boolean;
+  /** ID delle regole pausa (admin) da non detrarre su questo turno. */
+  deduct_excluded_rule_ids?: string[];
   /** Reparto del turno (pianificazione; opzionale). */
   department?: Department;
   /** Competenze/task richieste per questo turno (es. "sommelier,cassa") */

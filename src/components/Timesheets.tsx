@@ -2397,6 +2397,27 @@ export default function Timesheets() {
     [updateShift, showSuccess, showError, t, shifts, users, breakRules, breakComputeOpts]
   );
 
+  /** Attiva/disattiva la detrazione per singola regola pausa (admin). */
+  const handleDrawerDeductRuleExclusionChange = useCallback(
+    async (shiftId: string, ruleId: string, applyDeduction: boolean) => {
+      setDeductBreakSaving(true);
+      try {
+        const sh = shifts.find((x) => x.id === shiftId);
+        const cur = Array.isArray(sh?.deduct_excluded_rule_ids) ? [...sh.deduct_excluded_rule_ids!] : [];
+        const next = new Set(cur);
+        if (applyDeduction) next.delete(ruleId);
+        else next.add(ruleId);
+        await updateShift(shiftId, { deduct_excluded_rule_ids: Array.from(next) });
+        showSuccess?.(t.shift_saved);
+      } catch {
+        showError?.(t.save_error);
+      } finally {
+        setDeductBreakSaving(false);
+      }
+    },
+    [updateShift, showSuccess, showError, t, shifts]
+  );
+
   // ── Day Review ───────────────────────────────────────────────────────────
 
   const handleOpenDayReview = (dateStr: string) => {
@@ -4692,8 +4713,9 @@ export default function Timesheets() {
           const showAutoBreakSubToggle = !!(
             fullShift &&
             !hasManualNonAutoBreak &&
+            !hasAdminBreakRules &&
             featureFlags['auto_breaks'] !== false &&
-            (hasAdminBreakRules || grossForBreakReadout >= AUTO_BREAK_THRESHOLD_MINUTES)
+            grossForBreakReadout >= AUTO_BREAK_THRESHOLD_MINUTES
           );
           const implicitAutoBreakTitles = new Set([
             t.ts_deduct_break_auto,
@@ -5015,11 +5037,12 @@ export default function Timesheets() {
                     deductBreakSaving={deductBreakSaving}
                     onDeductBreakChange={handleDrawerDeductBreakChange}
                     onAutoBreakChange={handleDrawerAutoBreakChange}
+                    onDeductPerRuleChange={handleDrawerDeductRuleExclusionChange}
                     showAutoBreakSubToggle={showAutoBreakSubToggle}
                     autoSubChecked={autoSubChecked}
                     autoBreakSubLineItems={autoBreakSubLineItems}
-                    subToggleForAdminRules={!!(hasAdminBreakRules && showAutoBreakSubToggle)}
                     defaultAutoBreakMinutes={DEFAULT_AUTO_BREAK_MINUTES}
+                    deductExcludedRuleIds={fullShift?.deduct_excluded_rule_ids}
                     fmtHM={fmtHM}
                     fmtBreakDeductionShort={fmtBreakDeductionShort}
                     punchSourceLabel={punchSourceLabel}

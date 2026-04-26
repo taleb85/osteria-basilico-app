@@ -459,7 +459,7 @@ export const database = {
       // approved_at / approved_by sono colonne opzionali: incluse ma con fallback graceful
       const allowedKeys: (keyof Shift)[] = [
         'user_id', 'date', 'start_time', 'end_time', 'type', 'approval_status',
-        'notes', 'deduct_break', 'break_minutes', 'is_auto_break', 'admin_note', 'skills', 'approved_at', 'approved_by',
+        'notes', 'deduct_break', 'break_minutes', 'is_auto_break', 'deduct_excluded_rule_ids', 'admin_note', 'skills', 'approved_at', 'approved_by',
         'approved_start_time', 'approved_end_time',
       ];
       const payload: Record<string, unknown> = {};
@@ -483,6 +483,7 @@ export const database = {
           'deduct_break',
           'break_minutes',
           'is_auto_break',
+          'deduct_excluded_rule_ids',
           'notes',
           'admin_note',
           'skills',

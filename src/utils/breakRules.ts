@@ -118,7 +118,7 @@ function toMinutes(hhmm: string): number {
  *
  * Restituisce 0 se il campo `paid` è true (pausa retribuita → non detrae).
  */
-export type BreakDeductionLine = { title: string; minutes: number };
+export type BreakDeductionLine = { title: string; minutes: number; /** regola break admin */ ruleId?: string };
 
 /**
  * Riga per riga le pause non retribuite (regole) che si applicano al turno
@@ -177,6 +177,7 @@ export function getPlannedBreakDeductionLines(
       lines.push({
         title: (rule.title && rule.title.trim()) || 'Pausa',
         minutes: breakDuration,
+        ruleId: rule.id,
       });
     }
   }
@@ -255,6 +256,8 @@ export function getBreakMinutesForShift(
     break_minutes?: number;
     /** Se `false`, non applicare la pausa automatica (≥6h) quando non si usano `break_minutes` né le regole. */
     is_auto_break?: boolean;
+    /** Regole break admin escluse per questo turno. */
+    deduct_excluded_rule_ids?: string[];
   },
   grossMinutes: number,
   user?: { department?: string | null; role: string } | null,
@@ -266,18 +269,20 @@ export function getBreakMinutesForShift(
 
   const activeRules = getActiveBreakRules(rules);
   if (user && activeRules.length > 0) {
-    /** Con regole admin: come il fallback ≥6h, disattivabile con `is_auto_break: false`. */
-    if (shift.is_auto_break === false) return 0;
     const w = options?.breakRuleWindow;
-    const fromRules = calculateBreakDeductionsSafe(
-      {
-        start_time: (w?.start ?? shift.start_time ?? '').slice(0, 5),
-        end_time: (w?.end ?? shift.end_time ?? '').slice(0, 5),
-        date: shift.date ?? '',
-      },
+    const st = (w?.start ?? shift.start_time ?? '').slice(0, 5);
+    const en = (w?.end ?? shift.end_time ?? '').slice(0, 5);
+    const d = shift.date ?? '';
+    if (!st || !en || !d) return 0;
+    const lines = getPlannedBreakDeductionLines(
+      { start_time: st, end_time: en, date: d },
       user,
       activeRules
     );
+    const ex = new Set(shift.deduct_excluded_rule_ids ?? []);
+    const fromRules = lines
+      .filter((l) => !l.ruleId || !ex.has(l.ruleId))
+      .reduce((sum, l) => sum + l.minutes, 0);
     return Math.max(0, fromRules);
   }
 
@@ -344,6 +349,7 @@ export function getBreakDeductionDisplayItems(
     deduct_break?: boolean;
     break_minutes?: number;
     is_auto_break?: boolean;
+    deduct_excluded_rule_ids?: string[];
   },
   grossMinutes: number,
   user: { department?: string | null; role: string } | null | undefined,
@@ -354,7 +360,6 @@ export function getBreakDeductionDisplayItems(
   if (shift.deduct_break === false) return [];
   const active = getActiveBreakRules(rules);
   if (user && active.length > 0) {
-    if (shift.is_auto_break === false) return [];
     const w = options?.breakRuleWindow;
     const st = (w?.start ?? shift.start_time ?? '').slice(0, 5);
     const en = (w?.end ?? shift.end_time ?? '').slice(0, 5);
