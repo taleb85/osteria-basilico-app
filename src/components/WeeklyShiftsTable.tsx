@@ -3714,7 +3714,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             <div
               ref={flatMirrorHeaderRef}
               className="sticky z-[200] rounded-b-xl overflow-hidden border-x border-b border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)] mb-1"
-              style={{ top: 'var(--app-sticky-header-offset)', background: 'rgba(15, 40, 90, 0.85)' }}
+              style={{ top: 'var(--app-sticky-header-offset)', background: 'rgba(30, 55, 130, 0.90)' }}
             >
               <div ref={flatHeaderScrollRef} className="overflow-x-hidden">
                 <table className="w-full border-collapse table-fixed">
@@ -3723,9 +3723,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     {allWeekDays.map((_, ci) => <col key={ci} />)}
                   </colgroup>
                   <thead>
-                    <tr style={{ background: 'rgba(15, 40, 90, 0.85)' }}>
+                    <tr style={{ background: 'rgba(30, 55, 130, 0.85)' }}>
                       <th className="text-left px-4 py-3 text-[9px] font-black uppercase tracking-widest text-white border-r border-white/20"
-                        style={{ background: 'rgba(15, 40, 90, 0.85)' }}>
+                        style={{ background: 'rgba(30, 55, 130, 0.85)' }}>
                         Staff
                       </th>
                       {allWeekDays.map((day, di) => {
@@ -3733,7 +3733,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         return (
                           <th key={di} className="text-center px-2 py-2"
                             style={{
-                              background: isTodayDH ? 'rgba(51,102,204,0.25)' : 'rgba(15, 40, 90, 0.85)',
+                              background: isTodayDH ? 'rgba(51,102,204,0.25)' : 'rgba(30, 55, 130, 0.85)',
                               borderRight: di < allWeekDays.length - 1 ? '1px solid rgba(15, 35, 90, 0.82)' : undefined,
                             }}>
                             <div className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-cyan-300' : 'text-white/50'}`}>
