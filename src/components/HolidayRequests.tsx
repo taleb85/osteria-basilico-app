@@ -198,7 +198,7 @@ export default function HolidayRequests() {
   const labelStyle = { color: 'rgba(255,255,255,0.60)' } as React.CSSProperties;
 
   return (
-    <div className="pb-content pt-2 w-full max-w-full font-sans min-h-[calc(100dvh-140px)] flex flex-col">
+    <div className="pb-content pt-2 w-full max-w-full font-sans h-[calc(100dvh-140px)] flex flex-col">
       <motion.div
         className="flex flex-col flex-1 min-h-0"
         initial={{ opacity: 0, y: 16 }}
@@ -374,7 +374,7 @@ export default function HolidayRequests() {
         {/* Left: calendar */}
         <div className="md:col-span-1 space-y-4 h-full">
           {uiW('ferie.calendar') && (
-          <div className="surface-glass p-4" style={{ background: 'rgba(255, 255, 255, 0.16)', border: '1px solid rgba(255, 255, 255, 0.14)' }}>
+          <div className="surface-glass p-4 h-full" style={{ background: 'rgba(255, 255, 255, 0.16)', border: '1px solid rgba(255, 255, 255, 0.14)' }}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-xl" style={{ color: '#ffffff' }}>
                 {format(now, 'MMMM yyyy', { locale: it })}
