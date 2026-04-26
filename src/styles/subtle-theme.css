@@ -2,13 +2,13 @@
 
 /* ── Variabili CSS aggiornate — devono venire DOPO index.css ── */
 :root {
-  --bg-primary:            #0d1f3c;
-  --bg-surface:            rgba(15, 35, 90, 0.45);
-  --bg-surface-hover:      rgba(15, 35, 90, 0.55);
-  --bg-surface-solid:      rgba(10, 25, 75, 0.75);
-  --bg-surface-secondary:  rgba(15, 35, 90, 0.38);
-  --surface:               rgba(15, 35, 90, 0.45);
-  --surface-card:          rgba(15, 35, 90, 0.52);
+  --bg-primary:            #2a4a8a;
+  --bg-surface:            rgba(30, 60, 130, 0.45);
+  --bg-surface-hover:      rgba(30, 60, 130, 0.55);
+  --bg-surface-solid:      rgba(20, 50, 115, 0.75);
+  --bg-surface-secondary:  rgba(30, 60, 130, 0.35);
+  --surface:               rgba(30, 60, 130, 0.45);
+  --surface-card:          rgba(30, 60, 130, 0.52);
   --border-color:          rgba(255, 255, 255, 0.24);
   /* forza body background trasparente */
   --app-bg:                transparent;
