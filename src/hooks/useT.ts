@@ -15,9 +15,6 @@ import { getTranslations } from '../utils/translations';
 
 type Translations = ReturnType<typeof getTranslations>;
 
-/** Chiavi stringa note nel dizionario (Record ha chiavi stringa). */
-export type TranslationKey = Extract<keyof Translations, string>;
-
 export function useT(): Translations {
   const { effectiveLanguage } = useApp();
   return useMemo(() => getTranslations(effectiveLanguage), [effectiveLanguage]);

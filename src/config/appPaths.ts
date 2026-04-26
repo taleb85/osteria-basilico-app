@@ -1,8 +1,6 @@
 /**
- * Percorsi pubblici distinti: timbratura (kiosk) vs accesso profili staff/manager.
- * I vecchi `/kiosk` e `/login` reindirizzano qui per retrocompatibilità.
+ * Percorsi pubblici: accesso profili staff/manager; rotte legacy (`/kiosk`, `/login`, `/timbratura`) reindirizzate in `App.tsx`.
  */
-export const PATH_TIMBRATURA = '/timbratura';
 export const PATH_PROFILO = '/profilo';
 
 export type ProfiloInviteLinkOptions = {
@@ -124,8 +122,3 @@ export function buildShortInviteLink(user: SlimUser, allUsers: SlimUser[], origi
   const slug = buildUserInviteSlug(user, allUsers);
   return `${base}${PATH_INVITE}/${slug}`;
 }
-
-/** @deprecated Usa PATH_TIMBRATURA — mantenuto per link già condivisi */
-export const PATH_KIOSK_LEGACY = '/kiosk';
-/** @deprecated Usa PATH_PROFILO */
-export const PATH_LOGIN_LEGACY = '/login';

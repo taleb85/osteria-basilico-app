@@ -11,10 +11,6 @@ export function setDatabaseTenant(tenantId: string): void {
   _tenantId = tenantId;
 }
 
-export function getDatabaseTenant(): string | null {
-  return _tenantId;
-}
-
 /** Aggiunge il filtro tenant_id alla query se il tenant è stato impostato. */
 function withTenant<T extends { eq: (col: string, val: unknown) => T }>(query: T): T {
   return _tenantId ? query.eq('tenant_id', _tenantId) : query;

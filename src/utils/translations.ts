@@ -5824,8 +5824,6 @@ export function getDateLocale(language: Language) {
   return LOCALE_MAP[language ?? 'it'] ?? it;
 }
 
-export const getLanguageLocale = getDateLocale;
-
 /** BCP 47 tag for `Intl` (dates, numbers). */
 export function getIntlLocale(language: Language): string {
   const lang = (language ?? 'it') as Language;

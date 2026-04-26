@@ -17,7 +17,6 @@ const fetchNoCache: typeof fetch = (input, init) =>
  * GoTrue su localStorage (es. con React Strict Mode) e richieste inutili.
  * 
  * CRITICAL: Se questo export è `null` (env mancanti), l'app degrada gracefully in prod.
- * Usa sempre `getSupabaseClient()` da `./supabaseClient.ts` per error handling robusto.
  * 
  * Cache bypass: fetchNoCache assicura che ogni richiesta sia fresca,
  * evitando problemi di stale data su pull-to-refresh e sync multi-dispositivo.
