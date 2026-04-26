@@ -255,7 +255,8 @@ export default function MobileStaffDashboard({
   };
 
   return (
-    <div className="flex min-h-0 flex-col font-sans">
+    <div className="flex min-h-0 w-full flex-col font-sans">
+      <div className="mx-auto w-full min-h-0 max-w-7xl flex flex-col">
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
@@ -269,6 +270,7 @@ export default function MobileStaffDashboard({
       </AnimatePresence>
 
       {presenceModal}
+      </div>
 
       <AnimatePresence>
         {closeModal && (

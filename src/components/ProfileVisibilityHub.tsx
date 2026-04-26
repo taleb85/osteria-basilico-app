@@ -415,7 +415,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
 
   return (
     <>
-    <div className="pb-content pt-6 w-full app-horizontal-pad font-sans max-w-6xl mx-auto">
+    <div className="app-horizontal-pad font-sans mx-auto w-full max-w-7xl pb-content pt-6">
       <div className="mb-6">
         <h1 className="text-xl font-bold tracking-tight text-white">
           {tv.profile_visibility_title ?? 'Cosa vede chi'}
@@ -490,10 +490,18 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                       {(u.first_name?.[0] ?? '?').toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-white">
+                      <p
+                        className="truncate text-sm font-semibold text-white"
+                        title={`${u.first_name ?? ''} ${u.last_name ?? ''}`.trim()}
+                      >
                         {u.first_name} {u.last_name ?? ''}
                       </p>
-                      <p className="text-[11px] text-white/60 truncate">{translateRole(u.role, currentUser.language)}</p>
+                      <p
+                        className="text-[11px] text-white/60 truncate"
+                        title={translateRole(u.role, currentUser.language)}
+                      >
+                        {translateRole(u.role, currentUser.language)}
+                      </p>
                       {u.status !== 'active' && (
                         <span className="mt-1 inline-block rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] font-bold text-amber-700 uppercase">
                           {u.status}
@@ -543,10 +551,18 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
               >
                 {tv.profile_visibility_fullscreen_title ?? 'Anteprima profilo'}
               </p>
-              <p className="truncate text-base font-bold text-white">
+              <p
+                className="truncate text-base font-bold text-white"
+                title={`${previewUser.first_name ?? ''} ${previewUser.last_name ?? ''}`.trim()}
+              >
                 {previewUser.first_name} {previewUser.last_name ?? ''}
               </p>
-              <p className="text-[11px] text-white/60 truncate">{translateRole(previewUser.role, currentUser.language)}</p>
+              <p
+                className="text-[11px] text-white/60 truncate"
+                title={translateRole(previewUser.role, currentUser.language)}
+              >
+                {translateRole(previewUser.role, currentUser.language)}
+              </p>
             </div>
             {hasUnsavedChanges ? (
               <button
@@ -564,7 +580,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
           </header>
 
           <div className="flex-1 min-h-0 overflow-y-auto app-horizontal-pad py-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
-            <div className="mx-auto w-full max-w-6xl xl:max-w-7xl space-y-4">
+            <div className="mx-auto w-full max-w-7xl space-y-4">
               <div className="surface-glass-sm overflow-hidden">
                 <div className="border-b border-slate-100 bg-slate-50 px-3 py-2">
                   <p className="text-[11px] font-bold text-white/60 uppercase tracking-wider">

@@ -4704,7 +4704,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               initial={{ y: 12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.06, duration: 0.22 }}
-              className="pointer-events-auto relative z-10 mt-1 flex w-full max-w-full shrink-0 flex-col overflow-hidden rounded-xl border-2 border-dashed border-amber-400/60 bg-amber-500/10 backdrop-blur-sm max-h-[min(42vh,320px)] min-h-0 shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)]"
+              className="pointer-events-auto relative z-10 mt-1 flex w-full max-w-full shrink-0 flex-col overflow-hidden rounded-xl border-2 border-dashed border-amber-400/60 bg-amber-500/10 backdrop-blur-sm min-h-0 shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)]"
             >
               <div className="flex h-8 shrink-0 items-center justify-between gap-2 border-b border-amber-400/20 bg-amber-500/15 px-2 py-0 sm:px-3">
                 <div className="flex min-h-0 min-w-0 items-center gap-1">
@@ -4747,7 +4747,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               </div>
               {!openShiftsBarCollapsed && (
                 <div
-                  className="min-h-0 flex-1 overflow-y-auto overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity"
+                  className="overflow-x-auto-safe smooth-touch overscroll-x-contain touch-manipulation snap-x snap-proximity"
                   ref={(el) => { if (el) cardScrollRefs.current[activeUsers.length] = el; }}
                   onScroll={(e) => syncScrollLeft(e.currentTarget)}
                 >

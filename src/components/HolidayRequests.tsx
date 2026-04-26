@@ -57,7 +57,7 @@ export default function HolidayRequests() {
 
   if (featureFlags['staff_requests'] === false) {
     return (
-      <div className="pb-content w-full app-horizontal-pad font-sans min-h-[40vh] flex items-center justify-center">
+      <div className="app-horizontal-pad font-sans mx-auto flex min-h-[40vh] w-full max-w-7xl items-center justify-center pb-content">
         <div className="surface-glass max-w-md px-6 py-8 text-center">
           <Palmtree className="w-10 h-10 text-accent mx-auto mb-3 opacity-90" />
           <p className="text-white/80 font-semibold text-sm">{t.staff_requests_feature_off}</p>
@@ -199,7 +199,7 @@ export default function HolidayRequests() {
   const labelStyle = { color: 'rgba(255,255,255,0.60)' } as React.CSSProperties;
 
   return (
-    <div className="pb-content pt-2 w-full max-w-full font-sans h-[calc(100dvh-140px)] flex flex-col">
+    <div className="font-sans mx-auto flex h-[calc(100dvh-140px)] w-full max-w-7xl flex-col pb-content pt-2">
       <motion.div
         className="flex flex-col flex-1 min-h-0"
         initial={{ opacity: 0, y: 16 }}

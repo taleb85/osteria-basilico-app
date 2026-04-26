@@ -530,7 +530,7 @@ export function DirectMessagesPanel({ onClose }: { onClose?: () => void } = {}) 
   }
 
   return (
-    <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="relative flex h-full min-h-0 w-full max-w-7xl flex-1 flex-col overflow-hidden mx-auto">
       <AnimatePresence mode="wait">
         {showNewChat ? (
           <NewChatPicker

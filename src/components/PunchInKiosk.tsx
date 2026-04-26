@@ -528,11 +528,12 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
       </GiantBrandHeader>
 
       <motion.div
-        className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto flex flex-col items-center justify-center px-2 sm:px-4"
+        className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto flex flex-col items-stretch justify-center px-2 sm:px-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
       >
+        <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center min-h-0">
         {employeesWithShifts.length === 0 ? (
           <div className="flex flex-col items-center justify-center">
             <p className="text-sm font-sans font-semibold text-white/70">{t.waiting_publication}</p>
@@ -660,6 +661,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
             })}
           </div>
         )}
+        </div>
       </motion.div>
 
       {/* Schermata welcome full-screen per il dipendente selezionato */}

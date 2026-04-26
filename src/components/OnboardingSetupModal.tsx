@@ -152,7 +152,8 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
-      <div className="relative w-full max-w-md mx-auto flex flex-col min-h-full px-4 py-safe">
+      <div className="relative mx-auto flex w-full max-w-7xl flex-col min-h-full px-4 py-safe">
+        <div className="mx-auto w-full max-w-md flex flex-col min-h-full">
         {/* Header FLOW */}
         <div className="pt-8 pb-8 text-center text-white">
           {/* Logo FLOW — versione bianca su sfondo blu */}
@@ -417,6 +418,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
             </div>
           )}
         </motion.div>
+        </div>
       </div>
     </motion.div>
   );

@@ -127,6 +127,7 @@ export default function InviteRedirect() {
       className="min-h-screen min-h-[100dvh] w-full flex flex-col items-center justify-center px-6 font-sans"
       style={{ background: 'transparent' }}
     >
+      <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center">
       {/* Card */}
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.97 }}
@@ -209,6 +210,7 @@ export default function InviteRedirect() {
       >
         FLOW
       </motion.div>
+      </div>
     </div>
   );
 }

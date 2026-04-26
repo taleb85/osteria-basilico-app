@@ -1209,14 +1209,14 @@ function NewAdminCredentialsModal({ creds, onClose }: { creds: NewAdminCredentia
         <div className="flex gap-2">
           <button
             onClick={handleCopy}
-            className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-white/15 py-2.5 text-sm font-semibold text-white/80 hover:bg-white/5 transition"
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-white/15 py-2.5 text-sm font-semibold text-white/80 hover:bg-white/5 active:bg-white/10 transition"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
             {copied ? 'Copiato!' : 'Copia'}
           </button>
           <button
             onClick={onClose}
-            className="flex-1 rounded-xl bg-accent py-2.5 text-sm font-bold text-white hover:bg-accent-hover transition"
+            className="flex-1 rounded-xl bg-accent py-2.5 text-sm font-bold text-white hover:bg-accent-hover active:brightness-95 transition"
           >
             Ho salvato
           </button>
@@ -1411,7 +1411,7 @@ function SuperAdminPanelInner() {
       <header className="sticky top-0 z-30 backdrop-blur-md border-b border-white/10"
         style={{ background: 'rgba(8, 18, 52, 0.82)', paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2.5 min-w-0">
             <img
               src="/icon-192.png?v=3"
@@ -1455,7 +1455,7 @@ function SuperAdminPanelInner() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4"
+      <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-4 sm:py-6 space-y-4"
         style={{ paddingLeft: 'max(1rem, env(safe-area-inset-left))', paddingRight: 'max(1rem, env(safe-area-inset-right))' }}
       >
 

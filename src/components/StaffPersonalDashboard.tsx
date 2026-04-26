@@ -936,6 +936,7 @@ export default function StaffPersonalDashboard({
 
   return (
     <div className="w-full scroll-smooth text-white/90 font-sans antialiased pb-content">
+      <div className="mx-auto w-full max-w-7xl">
       {holidaysFocus && (
         <div className="mb-3 flex items-center gap-2">
           <button
@@ -1092,6 +1093,7 @@ export default function StaffPersonalDashboard({
             )}
           </motion.div>
         </AnimatePresence>
+      </div>
       </div>
 
       <AnimatePresence>

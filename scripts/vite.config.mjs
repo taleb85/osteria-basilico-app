@@ -90,7 +90,11 @@ export default defineConfig(({ command }) => {
       /** In dev niente SW: evita cache / navigate che sembrano “/app non funziona” su 127.0.0.1:5173. */
       devOptions: { enabled: false },
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon-1024.png', 'flow-app-icon.png', 'icon-152.png', 'icon-167.png'],
+      includeAssets: [
+        'favicon.ico', 'apple-touch-icon.png', 'og-image.png',
+        'icon-192.png', 'icon-512.png', 'icon-1024.png', 'flow-app-icon.png', 'icon-152.png', 'icon-167.png',
+        'icons/icon-48.png', 'icons/icon-72.png', 'icons/icon-96.png', 'icons/icon-128.png', 'icons/icon-144.png', 'icons/icon-384.png',
+      ],
       manifest: {
         name: 'FLOW',
         short_name: 'FLOW',
@@ -103,6 +107,12 @@ export default defineConfig(({ command }) => {
         orientation: 'any',
         scope: '/',
         icons: [
+          { src: '/icons/icon-48.png',  sizes: '48x48',   type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-72.png',  sizes: '72x72',   type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-96.png',  sizes: '96x96',   type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-128.png', sizes: '128x128', type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-144.png', sizes: '144x144', type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-384.png', sizes: '384x384', type: 'image/png', purpose: 'any' },
           { src: '/icon-192.png',       sizes: '192x192',   type: 'image/png', purpose: 'any' },
           { src: '/icon-192.png',       sizes: '192x192',   type: 'image/png', purpose: 'maskable' },
           { src: '/icon-512.png',       sizes: '512x512',   type: 'image/png', purpose: 'any' },
