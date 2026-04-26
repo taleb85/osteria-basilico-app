@@ -56,33 +56,32 @@ function isShiftAbsent(s: Shift): boolean {
   return String(s.approval_status).toLowerCase() === 'absent';
 }
 
-/** Soglia: inizio dopo 16:00 = fascia “sera” in basso nella cella PDF. */
-const EVENING_START_AFTER_MIN = 16 * 60; // 16:00 esclusa dalla fascia sera
+/**
+ * Soglia allineata al tabellone: `getPunchPairForShift` usa `hour < 16` = pranzo/mattina.
+ * Qui "sera" = inizio **pianificato** (start_time) dopo le 16:00 — non l’orario effettivo
+ * della timbratura, altrimenti un IN mattutino su turno cena manda il turno in alto.
+ */
+const EVENING_START_AFTER_MIN = 16 * 60;
 
-/** Minuti da mezzanotte dall’inizio del turno. */
-function shiftStartMinutes(s: Shift, punchRecords: PunchRecordLike[]): number {
-  const { start } = getResolvedStartEndForHours(s, punchRecords);
-  if (!start || start === '—') return 99 * 60;
-  const part = (start as string).replace(/:+/g, ':').trim().slice(0, 5);
-  const m = part.match(/^(\d{1,2}):(\d{2})/);
-  if (!m) return 99 * 60;
+/** Minuti da mezzanotte da `shift.start_time` (pianificato), stesso criterio del tabellone. */
+function plannedStartMinutes(s: Shift): number {
+  const t = (s.start_time || '').replace(/:+/g, ':').trim().slice(0, 5);
+  const m = t.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return 24 * 60;
   const h = Math.min(23, Math.max(0, parseInt(m[1], 10) || 0));
   const min = Math.min(59, Math.max(0, parseInt(m[2], 10) || 0));
   return h * 60 + min;
 }
 
 /**
- * Turni non assenti: prima quelli con inizio ≤ 16:00, poi quelli con inizio dopo le 16:00;
- * dentro ogni gruppo, ordine cronologico.
+ * Turni non assenti: prima inizio pianificato ≤ 16:00, poi dopo le 16:00;
+ * dentro ogni gruppo, ordine per ora pianificata.
  */
-function sortShiftsLunchBlockThenEvening(
-  dayShifts: Shift[],
-  punchRecords: PunchRecordLike[]
-): Shift[] {
+function sortShiftsLunchBlockThenEvening(dayShifts: Shift[]): Shift[] {
   const work = dayShifts.filter((s) => !isShiftAbsent(s));
   return [...work].sort((a, b) => {
-    const ma = shiftStartMinutes(a, punchRecords);
-    const mb = shiftStartMinutes(b, punchRecords);
+    const ma = plannedStartMinutes(a);
+    const mb = plannedStartMinutes(b);
     const groupA = ma > EVENING_START_AFTER_MIN ? 1 : 0;
     const groupB = mb > EVENING_START_AFTER_MIN ? 1 : 0;
     if (groupA !== groupB) return groupA - groupB;
@@ -326,7 +325,7 @@ export async function exportSchedulePDF(
         userShifts.push(...dayShifts);
 
         const x = MARGIN + NAME_W + i * DAY_W;
-        const ordered = sortShiftsLunchBlockThenEvening(dayShifts, punchRecords);
+        const ordered = sortShiftsLunchBlockThenEvening(dayShifts);
 
         if (ordered.length > 0) {
           ordered.slice(0, 2).forEach((s, si) => {
