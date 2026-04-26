@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
-const BG = 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000000 72%)';
+const BG = 'transparent';
 
 const SYNC_STAGES: { label: string; duration: number }[] = [
   { label: 'Pulizia cache locale…',       duration: 1400 },

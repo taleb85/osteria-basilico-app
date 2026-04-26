@@ -53,7 +53,7 @@ const ANIMATIONS = [
 
 export default function AnimPreview() {
   return (
-    <div className="min-h-screen bg-[#0052FF] flex flex-col items-center justify-center p-8 gap-6 font-sans">
+    <div className="min-h-screen flex flex-col items-center justify-center p-8 gap-6 font-sans" style={{ background: 'transparent' }}>
       <h1 className="text-white text-xl font-bold tracking-widest uppercase mb-2">
         Anteprima animazioni logo F
       </h1>

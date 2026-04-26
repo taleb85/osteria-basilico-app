@@ -124,17 +124,8 @@ export default function InviteRedirect() {
   return (
     <div
       className="min-h-screen min-h-[100dvh] w-full flex flex-col items-center justify-center px-6 font-sans"
-      style={{
-        background:
-          'radial-gradient(ellipse at 50% 30%, rgba(51,102,204,0.35) 0%, transparent 55%), #000010',
-      }}
+      style={{ background: 'transparent' }}
     >
-      {/* Glow blob */}
-      <div
-        className="pointer-events-none absolute top-[20%] left-1/2 -translate-x-1/2 w-[340px] h-[340px] rounded-full opacity-25 blur-[80px]"
-        style={{ background: 'radial-gradient(circle, #3366CC 0%, transparent 70%)' }}
-      />
-
       {/* Card */}
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.97 }}

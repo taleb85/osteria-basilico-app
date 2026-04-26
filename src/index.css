@@ -73,13 +73,7 @@ body .top-tabbar {
  */
 html {
   min-height: 100%;
-  background-color: #3a5fa0;
-  background-image:
-    linear-gradient(160deg, rgba(20, 40, 100, 0.30) 0%, rgba(20, 40, 100, 0.40) 100%),
-    url('/background-wave.png');
-  background-repeat: no-repeat, no-repeat;
-  background-position: center, center;
-  background-size: cover, cover;
+  background: transparent;
 }
 
 html,

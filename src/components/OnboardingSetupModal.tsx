@@ -148,19 +148,10 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-[99999] flex flex-col items-center justify-start overflow-y-auto font-sans"
       style={{
-        background: 'linear-gradient(160deg, #001A80 0%, #001266 55%, #001F80 100%)',
+        background: 'transparent',
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
-      {/* Pattern di sfondo */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
-          backgroundSize: '28px 28px',
-        }}
-      />
-
       <div className="relative w-full max-w-md mx-auto flex flex-col min-h-full px-4 py-safe">
         {/* Header FLOW */}
         <div className="pt-8 pb-8 text-center text-white">

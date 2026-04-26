@@ -514,7 +514,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   return (
     <div
       className="min-h-screen overflow-hidden text-neutral-100 flex flex-col p-6 sm:p-8 relative"
-      style={{ background: 'radial-gradient(circle at 50% 25%, rgba(180,210,255,0.18) 0%, transparent 22%), radial-gradient(ellipse at 50% 50%, #1a3785 0%, #0e1e60 18%, #050e2e 38%, #010618 62%, #000 100%)' }}
+      style={{ background: 'transparent' }}
     >
       <GiantBrandHeader now={now} locale={dateLocale}>
         <button
@@ -670,7 +670,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6 text-center"
-            style={{ background: 'radial-gradient(circle at 50% 25%, rgba(180,210,255,0.20) 0%, transparent 22%), radial-gradient(ellipse at 50% 50%, #1a3785 0%, #0e1e60 18%, #050e2e 38%, #010618 62%, #000 100%)' }}
+            style={{ background: 'transparent' }}
           >
             <motion.div
               initial={{ opacity: 0, y: -12 }}

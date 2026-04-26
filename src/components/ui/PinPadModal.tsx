@@ -137,7 +137,7 @@ export function PinPadModal({
 
   const filledCount = pin.length;
 
-  const BG = 'rgba(8, 18, 40, 0.72)';
+  const BG = 'transparent';
   const border = '1px solid rgba(255,255,255,0.30)';
   const btnBase = { background: 'transparent', border } as React.CSSProperties;
 
@@ -259,7 +259,7 @@ export function PinPadModal({
         exit={{ opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 360, damping: 30, mass: 0.9 }}
         className="flex flex-col w-full max-w-[340px] mx-4 rounded-3xl overflow-hidden"
-        style={{ background: 'linear-gradient(160deg, #1a3a6e 0%, #0d1f3c 100%)', border: '1px solid rgba(255,255,255,0.28)', boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(11,53,115,0.5)' }}
+        style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.28)', boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(11,53,115,0.5)' }}
         onClick={e => e.stopPropagation()}
       >
         {content}

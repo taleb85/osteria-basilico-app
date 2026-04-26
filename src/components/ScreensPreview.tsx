@@ -35,7 +35,7 @@ function MockFrame({ label, children, scale = 0.42 }: {
 }
 
 /* ── NeonIcon (solo dark — effetto neon non esiste in light) ──────── */
-const BG_DARK = 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000 72%)';
+const BG_DARK = 'transparent';
 const ICON_C = ['#F72585', '#7B2FBE', '#4361EE'] as const;
 
 function NeonIcon({ progress = 1 }: { progress?: number }) {
@@ -115,7 +115,7 @@ function BootMock({ dark }: { dark: boolean }) {
     </div>
   );
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-6 font-sans" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(100,150,255,0.15) 0%, transparent 50%), linear-gradient(160deg, #f0f4ff 0%, #e8eeff 40%, #f5f0ff 100%)' }}>
+    <div className="h-full flex flex-col items-center justify-center gap-6 font-sans" style={{ background: 'transparent' }}>
       <div className="flex flex-col items-center gap-6">
         <LightRing progress={0.6} />
         <div className="flex flex-col items-center gap-1 select-none">
@@ -144,7 +144,7 @@ function SyncMock({ stage, progress, dark }: { stage: string; progress: number; 
     </div>
   );
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(100,150,255,0.15) 0%, transparent 50%), linear-gradient(160deg, #f0f4ff 0%, #e8eeff 40%, #f5f0ff 100%)' }}>
+    <div className="h-full flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'transparent' }}>
       <div className="flex flex-col items-center gap-6">
         <LightRing progress={progress} />
         <div className="flex flex-col items-center gap-1 select-none">

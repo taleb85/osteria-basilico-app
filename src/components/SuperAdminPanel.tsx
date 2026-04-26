@@ -76,12 +76,9 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
       style={{
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'env(safe-area-inset-bottom)',
-        background: 'radial-gradient(ellipse at 50% 10%, #0e5f75 0%, #003380 38%, #001055 75%, #000820 100%)',
+        background: 'transparent',
       }}
     >
-      {/* Bordo luminoso in alto */}
-      <div className="pointer-events-none fixed inset-0" style={{ background: 'linear-gradient(180deg, rgba(51,102,204,0.08) 0%, transparent 30%)' }} />
-
       {/* Logo / icona */}
       <div className="mb-8 flex flex-col items-center gap-3 relative">
         <img

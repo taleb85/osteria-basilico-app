@@ -50,8 +50,6 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
     };
   }, [onDone, onReload]);
 
-  const dark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -59,11 +57,7 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
       className="fixed inset-0 z-[99999] flex flex-col items-center justify-center px-6 text-center font-sans"
-      style={
-        dark
-          ? { background: 'radial-gradient(circle at 50% 40%, rgba(51,102,204,0.18) 0%, transparent 55%), #000' }
-          : { background: 'radial-gradient(circle at 50% 40%, rgba(51,102,204,0.09) 0%, transparent 55%), #f8fafc' }
-      }
+      style={{ background: 'transparent' }}
       role="status"
       aria-live="polite"
       aria-busy="true"
