@@ -45,8 +45,8 @@ button:active,
   --app-bg:   #f4f7fa;
   --card-bg:  #ffffff;
   --text-main: #1a1a1a;
-  /* Stessa tonalità di .flow-brand-header / .top-tabbar */
-  --surface-header-slab: rgba(4, 12, 42, 0.94);
+  /* Header fisso + card allineate (bacheca): leggermente più chiaro per leggere FLOW/tab */
+  --surface-header-slab: rgba(14, 34, 88, 0.86);
 }
 
 /* Header brand — rimane blu in entrambi i temi, testo sempre bianco */
