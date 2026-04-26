@@ -1268,6 +1268,8 @@ const baseIt = {
   wst_punch_mode_frozen: 'Valore congelato in contabilità',
   wst_drawer_hours_summary: 'Ore nette (dopo pausa)',
   wst_drawer_break_deducted_readout: 'La pausa viene detratta dalle ore nette.',
+  wst_drawer_auto_break_hint:
+    'Turni di almeno 6 h: se attiva, la detrazione automatica di 30 m si applica solo quando non valgono le pause impostate in amministrazione.',
   wst_drawer_breaks_deducted_list_intro:
     'Le pause non retribuite configurate vengono detratte dalle ore nette (una riga per ogni pausa):',
   ts_deduct_break_from_shift: 'Pausa (minuti turno)',
@@ -2785,6 +2787,8 @@ const baseEn: Record<string, string> = {
   wst_punch_mode_frozen: 'Payroll-frozen value',
   wst_drawer_hours_summary: 'Net hours (after break)',
   wst_drawer_break_deducted_readout: 'Break time is deducted from net hours.',
+  wst_drawer_auto_break_hint:
+    'Shifts of 6h or more: when on, the automatic 30m deduction applies only when no admin break rules are in effect for this person.',
   wst_drawer_breaks_deducted_list_intro:
     'Each configured unpaid break is deducted from net hours (one line per break):',
   ts_deduct_break_from_shift: 'Break (shift minutes)',
@@ -4317,6 +4321,8 @@ const baseEs: Record<string, string> = {
   wst_punch_mode_frozen: 'Valor congelado en contabilidad',
   wst_drawer_hours_summary: 'Horas netas (tras pausa)',
   wst_drawer_break_deducted_readout: 'La pausa se descuenta de las horas netas.',
+  wst_drawer_auto_break_hint:
+    'Turnos de al menos 6 h: si está activa, aplica el descuento automático de 30 m solo cuando no aplican reglas de pausa de administración.',
   wst_drawer_breaks_deducted_list_intro:
     'Cada pausa no remunerada configurada se descuenta de las horas netas (una línea por pausa):',
   ts_deduct_break_from_shift: 'Pausa (minutos del turno)',
@@ -5276,6 +5282,8 @@ const baseFr: Record<string, string> = {
   wst_punch_mode_frozen: 'Valeur figée en paie',
   wst_drawer_hours_summary: 'Heures nettes (après pause)',
   wst_drawer_break_deducted_readout: 'La pause est déduite des heures nettes.',
+  wst_drawer_auto_break_hint:
+    'Quarts d’au moins 6 h : si activée, la déduction automatique de 30 min s’applique seulement sans règles de pause côté administration.',
   wst_drawer_breaks_deducted_list_intro:
     'Chaque pause non payante configurée est déduite des heures nettes (une ligne par pause) :',
   ts_deduct_break_from_shift: 'Pause (minutes du poste)',

@@ -29,9 +29,12 @@ import {
   normalizeTimeInputToHHmm,
 } from '../utils/timeCalculations';
 import {
+  getActiveBreakRules,
   getBreakMinutesForShift,
   getNetShiftMinutes,
   getBreakDeductionDisplayItems,
+  DEFAULT_AUTO_BREAK_MINUTES,
+  AUTO_BREAK_THRESHOLD_MINUTES,
   type BreakMinutesComputeOptions,
   type BreakRule,
 } from '../utils/breakRules';
@@ -2357,6 +2360,28 @@ export default function Timesheets() {
     [updateShift, showSuccess, showError, t]
   );
 
+  const handleDrawerAutoBreakChange = useCallback(
+    async (shiftId: string, on: boolean) => {
+      setDeductBreakSaving(true);
+      try {
+        if (on) {
+          await updateShift(shiftId, {
+            is_auto_break: true,
+            break_minutes: DEFAULT_AUTO_BREAK_MINUTES,
+          });
+        } else {
+          await updateShift(shiftId, { is_auto_break: false, break_minutes: 0 });
+        }
+        showSuccess?.(t.shift_saved);
+      } catch {
+        showError?.(t.save_error);
+      } finally {
+        setDeductBreakSaving(false);
+      }
+    },
+    [updateShift, showSuccess, showError, t]
+  );
+
   // ── Day Review ───────────────────────────────────────────────────────────
 
   const handleOpenDayReview = (dateStr: string) => {
@@ -4608,7 +4633,7 @@ export default function Timesheets() {
                 (fullShift.end_time || '').slice(0, 5)
               )
             : 0;
-          const deductBreakLineItems =
+          const deductBreakLineItemsAll =
             fullShift && userForBreakReadout
               ? getBreakDeductionDisplayItems(
                   fullShift,
@@ -4619,6 +4644,32 @@ export default function Timesheets() {
                   { fromShift: t.ts_deduct_break_from_shift, auto: t.ts_deduct_break_auto }
                 )
               : undefined;
+          const hasAdminBreakRules = !!(
+            userForBreakReadout && getActiveBreakRules(breakRules).length > 0
+          );
+          const hasManualNonAutoBreak = !!(
+            fullShift &&
+            fullShift.break_minutes != null &&
+            fullShift.break_minutes > 0 &&
+            fullShift.is_auto_break !== true
+          );
+          const showAutoBreakSubToggle = !!(
+            fullShift &&
+            !hasAdminBreakRules &&
+            featureFlags['auto_breaks'] !== false &&
+            !hasManualNonAutoBreak &&
+            grossPlannedForBreakReadout >= AUTO_BREAK_THRESHOLD_MINUTES
+          );
+          const deductBreakLineItems =
+            showAutoBreakSubToggle && deductBreakLineItemsAll
+              ? deductBreakLineItemsAll.filter((it) => it.title !== t.ts_deduct_break_auto)
+              : deductBreakLineItemsAll;
+          const autoSubChecked = !!(
+            fullShift &&
+            showAutoBreakSubToggle &&
+            fullShift.deduct_break !== false &&
+            fullShift.is_auto_break !== false
+          );
           
           // Utility function per calcolo permessi drawer
           const permissions = calculateDrawerPermissions({
@@ -4919,6 +4970,10 @@ export default function Timesheets() {
                     isAbsent={isAbsentDraw}
                     deductBreakSaving={deductBreakSaving}
                     onDeductBreakChange={handleDrawerDeductBreakChange}
+                    onAutoBreakChange={handleDrawerAutoBreakChange}
+                    showAutoBreakSubToggle={showAutoBreakSubToggle}
+                    autoSubChecked={autoSubChecked}
+                    defaultAutoBreakMinutes={DEFAULT_AUTO_BREAK_MINUTES}
                     fmtHM={fmtHM}
                     fmtBreakDeductionShort={fmtBreakDeductionShort}
                     punchSourceLabel={punchSourceLabel}

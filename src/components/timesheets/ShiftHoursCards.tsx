@@ -27,8 +27,8 @@ interface ShiftHoursCardsProps {
   /** Dati shift */
   shift: ShiftData;
   
-  /** Shift completo dal DB (per toggle deduct_break) */
-  fullShift?: { id: string; deduct_break?: boolean } | null;
+  /** Shift completo dal DB (per toggle deduct_break / pausa auto) */
+  fullShift?: { id: string; deduct_break?: boolean; is_auto_break?: boolean; break_minutes?: number } | null;
   
   /** Classi CSS per card pianificato */
   plannedCardBoxClass: string;
@@ -56,6 +56,13 @@ interface ShiftHoursCardsProps {
   
   /** Handler toggle deduct_break */
   onDeductBreakChange: (shiftId: string, newValue: boolean) => void;
+
+  /** Pausa automatica (≥6h) — solo se non ci sono regole admin e il turno lo consente (Timesheets) */
+  showAutoBreakSubToggle?: boolean;
+  autoSubChecked?: boolean;
+  onAutoBreakChange?: (shiftId: string, on: boolean) => void;
+  /** Minuti mostrati come −Xm sul secondo interruttore (di solito 30) */
+  defaultAutoBreakMinutes?: number;
   
   /** Funzione helper: formatta minuti → "Xh Ym" */
   fmtHM: (mins: number) => string;
@@ -93,6 +100,10 @@ export function ShiftHoursCards({
   isAbsent,
   deductBreakSaving,
   onDeductBreakChange,
+  showAutoBreakSubToggle = false,
+  autoSubChecked = false,
+  onAutoBreakChange,
+  defaultAutoBreakMinutes = 30,
   fmtHM,
   fmtBreakDeductionShort,
   punchSourceLabel,
@@ -245,14 +256,15 @@ export function ShiftHoursCards({
         </div>
       </div>
 
-      {/* Toggle "Deduci pausa" */}
+      {/* Toggles: detrazione pausa + (opz.) pausa automatica ≥6h */}
       {!isEmployeeWeekReviewSheet &&
         fullShift &&
         canTeamTimesheetOps &&
         !isFrozen &&
         !isAbsent && (
+        <div className="mt-5 space-y-3">
         <label
-          className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 transition-colors mt-5 ${
+          className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 transition-colors ${
             deductBreakSaving ? 'pointer-events-none opacity-50' : ''
           } ${
             fullShift.deduct_break !== false
@@ -310,6 +322,49 @@ export function ShiftHoursCards({
             )}
           </div>
         </label>
+        {showAutoBreakSubToggle &&
+          fullShift.deduct_break !== false &&
+          onAutoBreakChange && (
+          <label
+            className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 transition-colors ${
+              deductBreakSaving ? 'pointer-events-none opacity-50' : ''
+            } ${
+              autoSubChecked
+                ? 'border-white/20 bg-white/8 hover:bg-white/12'
+                : 'border-white/12 bg-white/5 hover:bg-white/8'
+            }`}
+          >
+            <div className="relative shrink-0 mt-0.5">
+              <input
+                type="checkbox"
+                className="peer sr-only"
+                checked={autoSubChecked}
+                disabled={deductBreakSaving}
+                onChange={() => onAutoBreakChange(s.id, !autoSubChecked)}
+              />
+              <div className={`h-5 w-9 rounded-full transition-colors duration-200 ${autoSubChecked ? 'bg-accent' : 'bg-white/20'}`} />
+              <div
+                className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                  autoSubChecked ? 'translate-x-4' : 'translate-x-0'
+                }`}
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p
+                className={`flex flex-wrap items-baseline gap-x-1.5 text-xs font-semibold ${
+                  autoSubChecked ? 'text-white' : 'text-white/70'
+                }`}
+              >
+                <span>{t.ts_deduct_break_auto}</span>
+                <span className="tabular-nums">−{fmtBreakDeductionShort(defaultAutoBreakMinutes)}</span>
+              </p>
+              <p className="mt-0.5 text-[11px] leading-snug text-white/50">
+                {tv.wst_drawer_auto_break_hint}
+              </p>
+            </div>
+          </label>
+        )}
+        </div>
       )}
     </div>
   );

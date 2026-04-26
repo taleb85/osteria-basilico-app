@@ -245,7 +245,15 @@ export type BreakMinutesComputeOptions = {
  * (solo se `autoBreaksFeatureEnabled !== false`).
  */
 export function getBreakMinutesForShift(
-  shift: { start_time?: string; end_time?: string; date?: string; deduct_break?: boolean; break_minutes?: number },
+  shift: {
+    start_time?: string;
+    end_time?: string;
+    date?: string;
+    deduct_break?: boolean;
+    break_minutes?: number;
+    /** Se `false`, non applicare la pausa automatica (≥6h) quando non si usano `break_minutes` né le regole. */
+    is_auto_break?: boolean;
+  },
   grossMinutes: number,
   user?: { department?: string | null; role: string } | null,
   rules?: BreakRule[] | null,
@@ -282,6 +290,9 @@ export function getBreakMinutesForShift(
     return 0;
   }
   if (grossMinutes >= AUTO_BREAK_THRESHOLD_MINUTES) {
+    if (shift.is_auto_break === false) {
+      return 0;
+    }
     return DEFAULT_AUTO_BREAK_MINUTES;
   }
   return 0;
@@ -289,7 +300,14 @@ export function getBreakMinutesForShift(
 
 /** Calcola i minuti netti di un turno: (End - Start) - break. */
 export function getNetShiftMinutes(
-  shift: { start_time?: string; end_time?: string; date?: string; deduct_break?: boolean; break_minutes?: number },
+  shift: {
+    start_time?: string;
+    end_time?: string;
+    date?: string;
+    deduct_break?: boolean;
+    break_minutes?: number;
+    is_auto_break?: boolean;
+  },
   startTime: string,
   endTime: string,
   user?: { department?: string | null; role: string } | null,
@@ -311,7 +329,14 @@ export function getNetShiftMinutes(
  * Con regole attive: **una riga per ogni pausa non retribuita**; altrimenti una riga con etichetta i18n.
  */
 export function getBreakDeductionDisplayItems(
-  shift: { start_time?: string; end_time?: string; date?: string; deduct_break?: boolean; break_minutes?: number },
+  shift: {
+    start_time?: string;
+    end_time?: string;
+    date?: string;
+    deduct_break?: boolean;
+    break_minutes?: number;
+    is_auto_break?: boolean;
+  },
   grossMinutes: number,
   user: { department?: string | null; role: string } | null | undefined,
   rules: BreakRule[] | null | undefined,
@@ -341,6 +366,9 @@ export function getBreakDeductionDisplayItems(
     toMinutes(endStr) > toMinutes(startStr) &&
     grossMinutes >= AUTO_BREAK_THRESHOLD_MINUTES
   ) {
+    if (shift.is_auto_break === false) {
+      return [];
+    }
     return [{ title: i18n.auto, minutes: total }];
   }
   return [{ title: i18n.fromShift, minutes: total }];
