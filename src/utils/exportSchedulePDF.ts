@@ -132,7 +132,7 @@ export async function exportSchedulePDF(
     breakRules?: BreakRule[];
     breakComputeOpts?: BreakMinutesComputeOptions;
     punchRecords?: PunchRecordLike[];
-    /** Lingua UI utente (etichette PDF). */
+    /** Ignorato: il PDF turni è sempre in inglese. */
     language?: Language;
   } = {}
 ): Promise<void> {
@@ -143,13 +143,11 @@ export async function exportSchedulePDF(
     breakRules = [],
     breakComputeOpts,
     punchRecords = [],
-    language: langOpt,
   } = options;
   const { jsPDF } = await import('jspdf');
 
-  const language = langOpt ?? 'it';
-  const t = getTranslations(language);
-  const locale = getDateLocale(language) as Locale;
+  const t = getTranslations('en');
+  const locale = getDateLocale('en') as Locale;
 
   /** Difesa in profondità: l'admin non deve mai comparire nel PDF anche se passato per errore. */
   const scheduleUsers = activeUsers.filter((u) => !isPurelyManagementRole(u.role));
@@ -184,14 +182,17 @@ export async function exportSchedulePDF(
         (includeOpen || !s.notes?.startsWith('__OPEN__'))
     );
 
-    // Column widths
-    const NAME_W = 38;
-    const DAY_W = (CONTENT_W - NAME_W - 24) / numDays;
-    const TOT_W = 24;
+    // Column widths (nome stretto → più spazio per orari)
+    const NAME_W = 26;
+    const TOT_W = 22;
+    const DAY_W = (CONTENT_W - NAME_W - TOT_W) / numDays;
 
-    // Row heights
+    // Row heights & tipografia orari
     const HEADER_ROW = 14;
-    const DATA_ROW = 18;
+    const DATA_ROW = 22;
+    const TIME_FS = 12;
+    const TIME_LINE0_Y = 4.8;
+    const TIME_DY = 7.2;
 
     // ── Page header (MINIMALISTA) ──────────────────────────────────────────────
     doc.setTextColor(...BLACK);
@@ -313,17 +314,16 @@ export async function exportSchedulePDF(
       doc.setFillColor(...(rowIdx % 2 === 0 ? WHITE : ROW_STRIPE));
       doc.rect(MARGIN, y, CONTENT_W, DATA_ROW, 'F');
 
-      // Name
+      // Name (colonna stretta, font compatti)
       doc.setTextColor(...BLACK);
-      doc.setFontSize(14);
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
       const firstName = user.first_name.toUpperCase();
-      doc.text(firstName, MARGIN + 2, y + 7);
+      doc.text(firstName, MARGIN + 1.5, y + 6.2);
       if (user.last_name) {
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
         doc.setTextColor(...GRAY_TEXT);
-        doc.text(user.last_name.toUpperCase(), MARGIN + 2, y + 12);
+        doc.text(user.last_name.toUpperCase(), MARGIN + 1.5, y + 10.2);
       }
 
       // Day cells
@@ -347,9 +347,9 @@ export async function exportSchedulePDF(
           const statusColor = STATUS_COLOR_MINIMAL[s.approval_status] ?? BLACK;
           const statusWeight = STATUS_WEIGHT[s.approval_status] ?? 'normal';
           doc.setTextColor(...statusColor);
-          doc.setFontSize(10);
+          doc.setFontSize(TIME_FS);
           doc.setFont('helvetica', statusWeight);
-          doc.text(timeStr, x + 3, y + 6 + lineIdx * 6);
+          doc.text(timeStr, x + 2, y + TIME_LINE0_Y + lineIdx * TIME_DY);
         };
         if (lunch) writeShift(lunch, 0);
         if (evening) writeShift(evening, 1);
@@ -369,7 +369,7 @@ export async function exportSchedulePDF(
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         const tw = doc.getTextWidth(weekTotal);
-        doc.text(weekTotal, totX2 + TOT_W / 2 - tw / 2, y + 10);
+        doc.text(weekTotal, totX2 + TOT_W / 2 - tw / 2, y + 11.5);
       }
 
       doc.setDrawColor(...TABLE_OUTER);
@@ -394,8 +394,8 @@ export async function exportSchedulePDF(
       doc.setFont('helvetica', 'normal');
       
       const legend = [
-        { label: `${t.status_approved}: ${t.status_confirmed} (grassetto)` },
-        { label: `${t.status_draft} (grigio)` },
+        { label: `${t.status_approved}: ${t.status_confirmed} (bold)` },
+        { label: `${t.status_draft} (gray)` },
       ];
       
       let lx = MARGIN;
