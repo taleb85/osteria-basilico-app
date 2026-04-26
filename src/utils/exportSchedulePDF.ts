@@ -415,6 +415,6 @@ export async function exportSchedulePDF(
   // ── Save ──────────────────────────────────────────────────────────────────
   /** Nome file = primo giorno effettivamente esportato in `weekDays` (stesso range del PDF). */
   const anchorDate = weekDays[0] ?? weekStart;
-  const fileName = `${format(anchorDate, 'yyyy-MM-dd')}.pdf`;
+  const fileName = `${format(anchorDate, 'dd-MM-yyyy')}.pdf`;
   doc.save(fileName);
 }
