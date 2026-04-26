@@ -1363,9 +1363,8 @@ export default function Timesheets() {
             );
           const isCrossDay =
             !frozen && !!actualEndFull && actualEndDate !== dateStr && !nightRolloverOk;
-          /** Pausa sulle ore effettive: regole / fallback usano timbratura (o orari congelati), non il pianificato.
-           *  Per i turni congelati si disabilita il fallback auto-break (≥6h → 30min): le ore approvate
-           *  potrebbero essere più lunghe del pianificato (straordinario) e il break non era previsto. */
+          /** Pausa sulle ore effettive: regole e fasce pranzo/cena usano timbratura (o congelate); su turni congelati
+           *  si disabilita solo il fallback unico 30' senza fascia pasto (straordinario oltre il pianificato). */
           const actualMins =
             displayActualStart && displayActualEnd
               ? getNetShiftMinutes(
