@@ -42,6 +42,7 @@ function UserAvatar({ user, size = 40 }: { user?: User; size?: number }) {
       <img
         src={photoSrc}
         alt=""
+        role="presentation"
         style={{ width: size, height: size, borderRadius: radius, objectFit: 'cover', flexShrink: 0 }}
         draggable={false}
       />
@@ -97,19 +98,23 @@ function NewChatPicker({
     >
       <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
         <button
+          type="button"
           onClick={onClose}
           className="flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:bg-white/10 transition-colors active:bg-white/80"
+          aria-label={t.cancel ?? 'Chiudi'}
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4" aria-hidden />
         </button>
         <h3 className="text-sm font-bold text-white flex-1">{t.messages_new_conversation ?? 'Nuova conversazione'}</h3>
       </div>
       <div className="px-4 pt-3 pb-2">
         <input
+          type="search"
           autoFocus
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.messages_search_employee ?? 'Cerca dipendente...'}
+          aria-label={t.messages_search_employee ?? 'Cerca dipendente'}
           className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-base text-white outline-none focus:border-brand-electric transition-colors"
         />
       </div>
@@ -276,10 +281,12 @@ function ChatView({
         style={{ background: BRAND }}
       >
         <button
+          type="button"
           onClick={onBack}
           className="flex h-8 w-8 items-center justify-center rounded-full text-white/80 hover:bg-white/15 transition-colors active:bg-white/80"
+          aria-label={t.notif_aria_back ?? 'Indietro'}
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5" aria-hidden />
         </button>
         <UserAvatar user={contact} size={34} />
         <div className="min-w-0 flex-1">
@@ -344,15 +351,17 @@ function ChatView({
             style={{ maxHeight: 120, overflowY: 'auto' }}
           />
           <button
+            type="button"
             onClick={handleSend}
             disabled={!text.trim() || sending}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-all active:scale-90 disabled:opacity-40"
             style={{ background: BRAND }}
+            aria-label={t.messages_send_btn ?? 'Invia messaggio'}
           >
             {sending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
             ) : (
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4" aria-hidden />
             )}
           </button>
         </div>

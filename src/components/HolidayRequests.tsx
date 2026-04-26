@@ -250,10 +250,14 @@ export default function HolidayRequests() {
             >
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-white font-semibold text-base">{t.new_request}</h3>
-                <button type="button" onClick={() => setShowForm(false)}
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
                   className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/10 active:bg-white/80"
-                  style={{ color: 'rgba(255,255,255,0.60)' }}>
-                  <X className="h-4 w-4" />
+                  style={{ color: 'rgba(255,255,255,0.60)' }}
+                  aria-label={t.cancel ?? 'Chiudi'}
+                >
+                  <X className="h-4 w-4" aria-hidden />
                 </button>
               </div>
 
@@ -309,10 +313,14 @@ export default function HolidayRequests() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-white font-semibold">{t.pending}</h3>
-                <button type="button" onClick={() => setSelectedH(null)}
+                <button
+                  type="button"
+                  onClick={() => setSelectedH(null)}
                   className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/10 active:bg-white/80"
-                  style={{ color: 'rgba(255,255,255,0.60)' }}>
-                  <X className="h-4 w-4" />
+                  style={{ color: 'rgba(255,255,255,0.60)' }}
+                  aria-label={t.cancel ?? 'Chiudi'}
+                >
+                  <X className="h-4 w-4" aria-hidden />
                 </button>
               </div>
               {(() => {

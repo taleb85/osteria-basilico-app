@@ -388,7 +388,9 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
         <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700 flex gap-2 items-center">
           <X className="w-3.5 h-3.5 shrink-0" />
           <span className="flex-1">{error}</span>
-          <button onClick={() => setError(null)}><X className="w-3 h-3" /></button>
+          <button type="button" onClick={() => setError(null)} aria-label="Chiudi messaggio" className="shrink-0 p-0 border-0 bg-transparent text-red-800">
+            <X className="w-3 h-3" aria-hidden />
+          </button>
         </div>
       )}
 
@@ -1466,7 +1468,14 @@ function SuperAdminPanelInner() {
           <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 flex gap-2 items-start">
             <X className="w-4 h-4 shrink-0 mt-0.5" />
             <span className="flex-1">{error}</span>
-            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 shrink-0 p-1 active:text-red-600"><X className="w-3.5 h-3.5" /></button>
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              className="text-red-400 hover:text-red-600 shrink-0 p-1 active:text-red-600"
+              aria-label="Chiudi messaggio"
+            >
+              <X className="w-3.5 h-3.5" aria-hidden />
+            </button>
           </div>
         )}
 
@@ -2141,7 +2150,9 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
             CSV con turni passati. I nomi non riconosciuti vengono ignorati. Stesso slot (sede, data, orari, tipo) non viene duplicato se è già in tabella.
           </p>
         </div>
-        <button onClick={onClose} className="text-white/40 hover:text-white/80 transition p-1 active:text-white/80"><X className="w-4 h-4" /></button>
+        <button type="button" onClick={onClose} className="text-white/40 hover:text-white/80 transition p-1 active:text-white/80" aria-label="Chiudi">
+          <X className="w-4 h-4" aria-hidden />
+        </button>
       </div>
 
       <div className="space-y-1">

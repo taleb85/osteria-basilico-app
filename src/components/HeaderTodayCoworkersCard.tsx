@@ -223,6 +223,7 @@ export default function HeaderTodayCoworkersCard() {
                         <img
                           src={avatarSrc}
                           alt=""
+                          role="presentation"
                           className="h-full w-full object-cover"
                           style={{ objectPosition: avatarFocusToObjectPosition(focus) }}
                           draggable={false}

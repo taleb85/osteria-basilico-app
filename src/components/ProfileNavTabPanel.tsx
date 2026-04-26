@@ -399,6 +399,7 @@ export default function ProfileNavTabPanel({
                 <img
                   src={resolvedAvatar}
                   alt=""
+                  role="presentation"
                   className="h-full w-full object-cover"
                   style={{ objectPosition: avatarFocusToObjectPosition(avatarFocus) }}
                   draggable={false}

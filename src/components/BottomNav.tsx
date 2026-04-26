@@ -337,6 +337,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                       <img
                         src={profileThumb}
                         alt=""
+                        role="presentation"
                         className="h-full w-full object-cover"
                         style={{ objectPosition: avatarFocusToObjectPosition(profileThumbFocus) }}
                         draggable={false}
@@ -416,20 +417,23 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                 {tv.quick_switch_title ?? 'Cambio rapido utente'}
               </h3>
               <button
+                type="button"
                 onClick={() => setIsQuickSwitchOpen(false)}
                 className="p-1.5 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors active:text-white"
+                aria-label="Chiudi"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden />
               </button>
             </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
               <input
-                type="text"
+                type="search"
                 autoFocus
                 value={quickSwitchSearch}
                 onChange={(e) => setQuickSwitchSearch(e.target.value)}
                 placeholder={tv.quick_switch_search_placeholder ?? 'Cerca dipendente...'}
+                aria-label={tv.quick_switch_search_placeholder ?? 'Cerca dipendente'}
                 className="w-full pl-9 pr-4 py-2 rounded-xl text-base focus:ring-2 focus:ring-accent/30 outline-none"
                 style={{ background: 'rgba(255, 255, 255, 0.16)', border: '1px solid rgba(255,255,255,0.12)', color: '#ffffff' }}
               />
@@ -463,6 +467,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                       <img
                         src={uThumb}
                         alt=""
+                        role="presentation"
                         className="h-full w-full object-cover pointer-events-none select-none"
                         style={{ objectPosition: avatarFocusToObjectPosition(uThumbFocus) }}
                         draggable={false}

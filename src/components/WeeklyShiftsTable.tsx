@@ -3138,7 +3138,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 <History className="h-4 w-4 text-white/70" />
                 <h3 className="text-sm font-bold text-white">{t.wst_schedule_history_title}</h3>
               </div>
-              <button type="button" onClick={() => setShowHistoryModal(false)} className="rounded-xl p-1.5 text-white/50 hover:bg-white/10 active:bg-white/80"><X className="h-4 w-4" /></button>
+              <button type="button" onClick={() => setShowHistoryModal(false)} className="rounded-xl p-1.5 text-white/50 hover:bg-white/10 active:bg-white/80" aria-label={t.close ?? 'Chiudi'}>
+                <X className="h-4 w-4" aria-hidden />
+              </button>
             </div>
             <div className="max-h-[80vh] flex-1 divide-y divide-white/10 overflow-y-auto">
               {(() => {
@@ -3188,7 +3190,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 <EyeOff className="h-4 w-4 text-white/70" />
                 <h3 className="text-sm font-bold text-white">{t.wst_hidden_periods_modal_title}</h3>
               </div>
-              <button type="button" onClick={() => setShowHiddenPeriodsModal(false)} className="rounded-xl p-1.5 text-white/50 hover:bg-white/10 active:bg-white/80"><X className="h-4 w-4" /></button>
+              <button type="button" onClick={() => setShowHiddenPeriodsModal(false)} className="rounded-xl p-1.5 text-white/50 hover:bg-white/10 active:bg-white/80" aria-label={t.close ?? 'Chiudi'}>
+                <X className="h-4 w-4" aria-hidden />
+              </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               <p className="text-xs text-white/50 mb-3">{t.wst_hidden_periods_modal_help}</p>
