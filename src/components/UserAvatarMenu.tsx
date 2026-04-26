@@ -149,7 +149,7 @@ export default function UserAvatarMenu({
           </span>
           {displayRole ? (
             <span
-              className="w-full text-center text-[8px] font-semibold uppercase leading-tight text-white/60 truncate select-none"
+              className="w-full text-center text-[11px] font-semibold uppercase leading-tight text-white/60 truncate select-none"
               aria-hidden
             >
               {displayRole}
@@ -176,7 +176,7 @@ export default function UserAvatarMenu({
             </span>
             {displayRole ? (
               <span
-                className={`font-medium text-white/60 truncate max-w-[200px] ${dense ? 'text-[10px]' : 'text-[11px]'}`}
+                className={`font-medium text-white/60 truncate max-w-[200px] ${dense ? 'text-[11px]' : 'text-[11px]'}`}
               >
                 {displayRole}
               </span>
@@ -211,7 +211,7 @@ export default function UserAvatarMenu({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 flex items-center justify-center z-[9999]"
+                className="fixed inset-0 flex items-center justify-center z-[200]"
               >
                 <div
                   onClick={() => setIsOpen(false)}
@@ -224,7 +224,7 @@ export default function UserAvatarMenu({
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="relative z-[9999] mx-4 w-full max-w-sm overflow-visible rounded-2xl modal-glass-panel p-5 font-sans"
+                  className="relative z-[201] mx-4 w-full max-w-sm overflow-visible rounded-2xl modal-glass-panel p-5 font-sans"
                 >
                   <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                     <h3 className="text-base font-bold text-white">{t.profile_settings}</h3>

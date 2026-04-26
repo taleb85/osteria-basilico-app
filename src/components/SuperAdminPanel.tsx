@@ -501,7 +501,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white/90 truncate">
                   {u.first_name} {u.last_name}
-                  {u.status !== 'active' && <span className="ml-1.5 text-[10px] font-bold text-red-400">(sospeso)</span>}
+                  {u.status !== 'active' && <span className="ml-1.5 text-[11px] font-bold text-red-400">(sospeso)</span>}
                 </p>
                 <p className="text-[11px] text-white/40 truncate">
                   {ROLE_LABELS[u.role]}{u.department ? ` · ${u.department}` : ''}
@@ -749,7 +749,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
             <p className="text-[11px] text-white/40 mb-3">Abilita o disabilita i moduli per questa sede.</p>
 
             <div className="space-y-1 mb-4">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-2">Moduli principali</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2">Moduli principali</p>
               {([
                 { key: 'timesheets', label: 'Presenze (timbrature)' },
                 { key: 'shifts',     label: 'Turni (tabellone)' },
@@ -764,7 +764,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
             </div>
 
             <div className="border-t border-white/15 pt-3 space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-2">Funzionalità avanzate</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2">Funzionalità avanzate</p>
               {FEATURE_DEFS.map((f) => (
                 <div key={f.slug} className="flex items-center justify-between py-1.5">
                   <span className={`text-sm ${f.dangerous ? 'text-red-600' : 'text-white/80'}`}>
@@ -815,7 +815,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
             </RuleRow>
 
             <div className="border-t border-white/15 pt-3 space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1">Alert automatici</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-1">Alert automatici</p>
               {([
                 { key: 'criticEnabled',    label: 'Alert critico (turno lungo + riposo insufficiente)' },
                 { key: 'attentionEnabled', label: 'Alert attenzione (ore oltre limite)' },
@@ -875,7 +875,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                     className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                   />
                 </div>
-                <p className="text-[10px] text-white/40">
+                <p className="text-[11px] text-white/40">
                   Lat {settings.geofence.lat.toFixed(5)} · Lng {settings.geofence.lng.toFixed(5)} · R {settings.geofence.radiusM}m
                 </p>
               </div>
@@ -1073,13 +1073,13 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
           />
           <button type="button" onClick={() => { setSlugManual(false); setSlug(slugify(name)); }} className="text-xs text-accent hover:underline shrink-0">Auto</button>
         </div>
-        <p className="text-[10px] text-white/40">Sarà il sottodominio: <span className="font-mono">{slug || '…'}.tuodominio.com</span></p>
+        <p className="text-[11px] text-white/40">Sarà il sottodominio: <span className="font-mono">{slug || '…'}.tuodominio.com</span></p>
       </div>
 
       {/* Nota branding — colore e logo fissi FLOW */}
       <div className="rounded-xl border border-white/15 bg-white/6 px-3.5 py-2.5 flex items-center gap-2.5">
         <div className="w-6 h-6 rounded-full bg-[#001A80] flex items-center justify-center shrink-0">
-          <span className="text-white text-[10px] font-bold">F</span>
+          <span className="text-white text-[11px] font-bold">F</span>
         </div>
         <p className="text-[11px] text-white/55">
           Colore, font e logo sono fissi — brand FLOW per tutte le sedi.
@@ -1171,7 +1171,7 @@ function NewAdminCredentialsModal({ creds, onClose }: { creds: NewAdminCredentia
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/35 backdrop-blur-sm p-4">
       <div className="bg-white/8 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
@@ -1535,7 +1535,7 @@ function SuperAdminPanelInner() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-white text-sm">{t.name}</span>
-                              {!t.is_active && <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200">Inattiva</span>}
+                              {!t.is_active && <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200">Inattiva</span>}
                             </div>
 
                             {/* Slug */}
@@ -1941,7 +1941,8 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
   useEffect(() => {
     if (!supabase || !selectedTenantId) return;
     supabase.from('users').select('id,first_name,last_name').eq('tenant_id', selectedTenantId).eq('status', 'active')
-      .then(({ data }: { data: any }) => setTenantUsers((data ?? []) as { id: string; first_name: string; last_name?: string }[]));
+      .then(({ data }: { data: any }) => setTenantUsers((data ?? []) as { id: string; first_name: string; last_name?: string }[]))
+      .catch((err) => console.error('[SuperAdminPanel] users fetch error', err));
     void loadHistory(selectedTenantId);
   }, [selectedTenantId]);
 
@@ -2156,14 +2157,14 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
       </div>
 
       <div className="rounded-xl bg-white/5 border border-white/15 p-3 space-y-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Formato A — griglia settimanale (Ore dipendenti)</p>
-        <p className="text-[10px] text-white/55 leading-snug">
-          Separatore <strong>;</strong>, prima riga con <code className="text-[10px]">DATA:</code> e giorni <code className="text-[10px]">MONDAY 29;;TUESDAY 30;;</code> … Poi una riga per dipendente (nome in maiuscolo) e righe successive senza nome per altri turni nella stessa settimana.
-          Includi nel <strong>nome file</strong> qualsiasi data della settimana in <strong>DD-MM-YY</strong> o <strong>DD-MM-YYYY</strong> (es. <code className="text-[10px]">04-01-26</code> o <code className="text-[10px]">16-02-2026</code>).
+        <p className="text-[11px] font-bold uppercase tracking-wider text-white/40">Formato A — griglia settimanale (Ore dipendenti)</p>
+        <p className="text-[11px] text-white/55 leading-snug">
+          Separatore <strong>;</strong>, prima riga con <code className="text-[11px]">DATA:</code> e giorni <code className="text-[11px]">MONDAY 29;;TUESDAY 30;;</code> … Poi una riga per dipendente (nome in maiuscolo) e righe successive senza nome per altri turni nella stessa settimana.
+          Includi nel <strong>nome file</strong> qualsiasi data della settimana in <strong>DD-MM-YY</strong> o <strong>DD-MM-YYYY</strong> (es. <code className="text-[11px]">04-01-26</code> o <code className="text-[11px]">16-02-2026</code>).
         </p>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 pt-1">Formato B — una riga per turno</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 pt-1">Formato B — una riga per turno</p>
         <code className="text-[11px] text-white/55 leading-relaxed whitespace-pre block">{`Nome,Data,Inizio,Fine\nGUSTAVO,29/01/2026,10:00,16:00`}</code>
-        <p className="text-[10px] text-white/40">Virgola &nbsp;·&nbsp; Data GG/MM/AAAA &nbsp;·&nbsp; Ora HH:MM</p>
+        <p className="text-[11px] text-white/40">Virgola &nbsp;·&nbsp; Data GG/MM/AAAA &nbsp;·&nbsp; Ora HH:MM</p>
       </div>
 
       {parseError && <div className="rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-600">{parseError}</div>}
@@ -2214,7 +2215,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
                 </tbody>
               </table>
             </div>
-            {rows.length > 15 && <p className="text-center text-[10px] text-white/40 py-2 border-t border-white/12">… e altri {rows.length - 15} turni</p>}
+            {rows.length > 15 && <p className="text-center text-[11px] text-white/40 py-2 border-t border-white/12">… e altri {rows.length - 15} turni</p>}
           </div>
         </div>
       )}
@@ -2234,7 +2235,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
         )}
         {rows.length > 0 && matched.length > 0 && (
           <p className="text-xs text-emerald-800">
-            Pronti <strong>{matched.length}</strong> turni da scrivere in tabella <code className="text-[10px] bg-white/10 px-1 rounded">shifts</code>
+            Pronti <strong>{matched.length}</strong> turni da scrivere in tabella <code className="text-[11px] bg-white/10 px-1 rounded">shifts</code>
             {unmatched.length > 0 && (
               <span className="text-amber-700"> · {rows.length - matched.length} righe saltate (nome non trovato)</span>
             )}
@@ -2262,7 +2263,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
           <button
             onClick={() => void loadHistory(selectedTenantId)}
             disabled={historyLoading}
-            className="text-[10px] text-white/40 hover:text-white/80 transition font-semibold"
+            className="text-[11px] text-white/40 hover:text-white/80 transition font-semibold"
           >
             {historyLoading ? 'Caricamento…' : '↺ Aggiorna'}
           </button>
@@ -2283,7 +2284,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
                   <p className="text-[12px] font-semibold text-white/80 truncate" title={batch.fileName}>
                     {batch.fileName}
                   </p>
-                  <p className="text-[10px] text-white/40 mt-0.5">
+                  <p className="text-[11px] text-white/40 mt-0.5">
                     {batch.minDate === batch.maxDate
                       ? batch.minDate
                       : `${batch.minDate} → ${batch.maxDate}`}
@@ -2294,17 +2295,17 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
 
                 {confirmDelete === batch.adminNote ? (
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[10px] text-red-600 font-semibold">Eliminare {batch.count} turni?</span>
+                    <span className="text-[11px] text-red-600 font-semibold">Eliminare {batch.count} turni?</span>
                     <button
                       onClick={() => void deleteImportBatch(batch.adminNote)}
                       disabled={deletingBatch === batch.adminNote}
-                      className="rounded-lg bg-red-500 hover:bg-red-600 px-2 py-1 text-[10px] font-bold text-white transition disabled:opacity-50"
+                      className="rounded-lg bg-red-500 hover:bg-red-600 px-2 py-1 text-[11px] font-bold text-white transition disabled:opacity-50"
                     >
                       {deletingBatch === batch.adminNote ? '…' : 'Sì, elimina'}
                     </button>
                     <button
                       onClick={() => setConfirmDelete(null)}
-                      className="rounded-lg border border-white/15 px-2 py-1 text-[10px] font-semibold text-white/70 hover:bg-white/5 transition"
+                      className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/70 hover:bg-white/5 transition"
                     >
                       Annulla
                     </button>
@@ -2312,7 +2313,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
                 ) : (
                   <button
                     onClick={() => setConfirmDelete(batch.adminNote)}
-                    className="shrink-0 flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-[10px] font-semibold text-red-500 hover:bg-red-50 hover:border-red-300 transition"
+                    className="shrink-0 flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-[11px] font-semibold text-red-500 hover:bg-red-50 hover:border-red-300 transition"
                   >
                     <Trash2 className="w-3 h-3" />
                     Elimina

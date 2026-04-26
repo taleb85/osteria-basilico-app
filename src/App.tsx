@@ -748,7 +748,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                 onClick={handleHardRefresh}
                 disabled={isRefreshing || dataSyncInProgress}
                 title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Sincronizza dati'}
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[9px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
                   isRefreshing || dataSyncInProgress
                     ? 'text-amber-500 liquid-glass-amber'
                     : isSynced
@@ -773,7 +773,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                   onClick={() => setShowPinMenu(true)}
                   title={globalPinSessionId ? 'Sessione PIN attiva' : 'Sblocca sessione PIN'}
                   aria-label={globalPinSessionId ? 'Gestisci sessione PIN' : 'Sblocca sessione PIN'}
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[9px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
                     globalPinSessionId
                       ? 'text-emerald-500 liquid-glass-green'
                       : 'text-red-500 liquid-glass-red'
@@ -1062,7 +1062,7 @@ function IosSafariInstallBanner() {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[99990] flex items-center justify-between gap-3 px-4 py-2.5 font-sans"
+      className="fixed top-0 left-0 right-0 z-[400] flex items-center justify-between gap-3 px-4 py-2.5 font-sans"
       style={{
         background: 'rgba(0,26,128,0.96)',
         backdropFilter: 'blur(12px)',

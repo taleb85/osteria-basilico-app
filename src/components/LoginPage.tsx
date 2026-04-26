@@ -108,7 +108,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   // true solo se il dispositivo ha biometria integrata (Face ID / Touch ID / Windows Hello)
   const [hasBiometric, setHasBiometric] = useState(false);
   useEffect(() => {
-    hasPlatformBiometricAuthenticator().then(setHasBiometric);
+    hasPlatformBiometricAuthenticator().then(setHasBiometric).catch(() => setHasBiometric(false));
   }, []);
 
   const resolvedUser = useMemo(() => {

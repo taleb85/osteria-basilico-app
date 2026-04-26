@@ -157,7 +157,7 @@ export function PinPadModal({
       <div className="flex flex-col items-center gap-2 px-8 mt-4">
         <div className="flex items-center gap-1.5 text-white/50 mb-1">
           <ShieldCheck className="w-4 h-4" strokeWidth={2.5} />
-          <span className="text-[10px] font-bold uppercase tracking-widest">{pinLabel}</span>
+          <span className="text-[11px] font-bold uppercase tracking-widest">{pinLabel}</span>
         </div>
         <div className="w-full h-14 rounded-2xl flex items-center justify-center relative"
           style={{ background: 'transparent', border: '1.5px solid rgba(255,255,255,0.30)' }}>
@@ -248,7 +248,7 @@ export function PinPadModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.22 }}
-      className="fixed inset-0 z-[1000000] flex flex-col items-center justify-center overflow-hidden"
+      className="fixed inset-0 z-[500] flex flex-col items-center justify-center overflow-hidden"
       style={{ background: BG, backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >

@@ -96,13 +96,13 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.home_label_planned}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.home_label_planned}</p>
                 <p className="font-bold tabular-nums text-white/90">
                   {pair.plannedStart} → {pair.plannedEnd}
                 </p>
               </div>
               <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.ts_label_punched}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.ts_label_punched}</p>
                 <p className="font-bold tabular-nums text-white/90">
                   {pair.actualStart ?? '—'} → {pair.actualEnd ?? '—'}
                 </p>

@@ -1,6 +1,7 @@
 /**
  * ScreensPreview — anteprima di tutte le schermate non-tab (dark + light).
  * Rotta: /screens-preview
+ * Testi con text-[8–10]px: intenzionali (mock in scala ridotta / artefatti miniatura), non sottoposti al minimo 11px UI.
  */
 import { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -115,12 +116,12 @@ function BootMock({ dark }: { dark: boolean }) {
     </div>
   );
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-6 font-sans" style={{ background: 'transparent' }}>
+    <div data-theme="light" className="h-full flex flex-col items-center justify-center gap-6 font-sans" style={{ background: 'transparent' }}>
       <div className="flex flex-col items-center gap-6">
         <LightRing progress={0.6} />
         <div className="flex flex-col items-center gap-1 select-none">
-          <span className="text-slate-800 font-extrabold tracking-[0.28em] text-xl leading-none uppercase">FLOW</span>
-          <span className="text-slate-400 font-semibold tracking-[0.18em] text-[11px] uppercase">Work in Motion</span>
+          <span className="text-slate-100 font-extrabold tracking-[0.28em] text-xl leading-none uppercase">FLOW</span>
+          <span className="text-white/50 font-semibold tracking-[0.18em] text-[11px] uppercase">Work in Motion</span>
         </div>
       </div>
     </div>
@@ -144,16 +145,16 @@ function SyncMock({ stage, progress, dark }: { stage: string; progress: number; 
     </div>
   );
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'transparent' }}>
+    <div data-theme="light" className="h-full flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'transparent' }}>
       <div className="flex flex-col items-center gap-6">
         <LightRing progress={progress} />
         <div className="flex flex-col items-center gap-1 select-none">
-          <span className="text-slate-800 font-extrabold tracking-[0.28em] text-xl leading-none uppercase">FLOW</span>
-          <span className="text-slate-400 font-semibold tracking-[0.18em] text-[11px] uppercase">Work in Motion</span>
+          <span className="text-slate-100 font-extrabold tracking-[0.28em] text-xl leading-none uppercase">FLOW</span>
+          <span className="text-white/50 font-semibold tracking-[0.18em] text-[11px] uppercase">Work in Motion</span>
         </div>
         <div className="flex flex-col items-center gap-1 min-h-[40px]">
-          <p className="text-slate-500 text-xs font-semibold uppercase tracking-widest">Sincronizzazione in corso</p>
-          {stage && <p className="text-slate-700 text-sm font-medium">{stage}</p>}
+          <p className="text-white/60 text-xs font-semibold uppercase tracking-widest">Sincronizzazione in corso</p>
+          {stage && <p className="text-slate-100 text-sm font-medium">{stage}</p>}
         </div>
       </div>
     </div>
@@ -165,7 +166,7 @@ function LoginMock({ dark }: { dark: boolean }) {
   const bg = dark ? BG_DARK : 'linear-gradient(135deg, #f8faff 0%, #ffffff 50%, #f0f4ff 100%)';
 
   return (
-    <div className="h-full flex flex-col items-center justify-center p-8 font-sans" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col items-center justify-center p-8 font-sans" style={{ background: bg }}>
       <div className="w-full max-w-sm flex flex-col items-center gap-6">
         <div className="flex flex-col items-center gap-4">
           {dark ? <NeonIcon progress={1} /> : <LightRing progress={1} />}
@@ -202,7 +203,7 @@ function PwaIosMock({ dark }: { dark: boolean }) {
   const bg = dark ? BG_DARK : 'linear-gradient(135deg, #e8f0ff 0%, #f0e8ff 50%, #e0eeff 100%)';
 
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-8 font-sans px-8" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col items-center justify-center gap-8 font-sans px-8" style={{ background: bg }}>
       <div className="flex flex-col items-center gap-3">
         {dark ? <NeonIcon progress={1} /> : <LightRing progress={1} />}
         <p className={`font-bold text-lg ${dark ? 'text-white' : 'text-slate-800'}`}>Installa FLOW</p>
@@ -236,7 +237,7 @@ function PwaAndroidMock({ dark }: { dark: boolean }) {
   const bg = dark ? BG_DARK : 'linear-gradient(135deg, #e8f0ff 0%, #f0e8ff 50%, #e0eeff 100%)';
 
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-8 font-sans px-8" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col items-center justify-center gap-8 font-sans px-8" style={{ background: bg }}>
       <div className="flex flex-col items-center gap-3">
         {dark ? <NeonIcon progress={1} /> : <LightRing progress={1} />}
         <p className={`font-bold text-lg ${dark ? 'text-white' : 'text-slate-800'}`}>Installa FLOW</p>
@@ -285,7 +286,7 @@ function SwUpdateMock({ dark, activeIdx, progress }: { dark: boolean; activeIdx:
   const bg = dark ? BG_DARK : 'radial-gradient(circle at 50% 30%, #dbeafe 0%, transparent 60%), #f8faff';
   const Icon = dark ? NeonIcon : LightRing;
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: bg }}>
       <div className="flex flex-col items-center gap-6">
         <Icon progress={progress} />
         <div className="flex flex-col items-center gap-1 select-none">
@@ -308,7 +309,7 @@ function PostUnlockMock({ dark, activeIdx, progress }: { dark: boolean; activeId
   const bg = dark ? BG_DARK : 'radial-gradient(circle at 50% 30%, #dcfce7 0%, transparent 60%), #f8fff9';
   const Icon = dark ? NeonIcon : LightRing;
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: bg }}>
       <div className="flex flex-col items-center gap-6">
         <Icon progress={progress} />
         <div className="flex flex-col items-center gap-1 select-none">
@@ -344,7 +345,9 @@ function RefreshLockMock({ dark }: { dark: boolean }) {
   };
 
   return (
-    <div className="h-full flex flex-col font-sans relative overflow-hidden"
+    <div
+      data-theme={dark ? undefined : 'light'}
+      className="h-full flex flex-col font-sans relative overflow-hidden"
       style={{ background: bg }}>
 
       {/* Header — in alto */}
@@ -403,7 +406,7 @@ function RefreshLockMock({ dark }: { dark: boolean }) {
 function KioskMock({ dark }: { dark: boolean }) {
   const bg = dark ? BG_DARK : '#f9fafb';
   return (
-    <div className="h-full flex flex-col font-sans" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col font-sans" style={{ background: bg }}>
       <div className="flex items-center justify-center pt-16 pb-2">
         {dark ? <NeonIcon progress={1} /> : <LightRing progress={1} />}
       </div>
@@ -435,7 +438,7 @@ function InviteMock({ dark }: { dark: boolean }) {
   const bg = dark ? BG_DARK : 'linear-gradient(135deg, #e8f0ff 0%, #f5f0ff 50%, #e0eeff 100%)';
 
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-6 font-sans px-8" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col items-center justify-center gap-6 font-sans px-8" style={{ background: bg }}>
       <div className="flex flex-col items-center gap-4 text-center">
         {dark ? <NeonIcon progress={1} /> : <LightRing progress={1} />}
         <div className="flex flex-col gap-1">
@@ -469,7 +472,7 @@ function PwaDesktopMock({ dark }: { dark: boolean }) {
   const bg = dark ? BG_DARK : 'linear-gradient(135deg, #e8f0ff 0%, #f0e8ff 50%, #e0eeff 100%)';
 
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-8 font-sans px-8" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col items-center justify-center gap-8 font-sans px-8" style={{ background: bg }}>
       <div className="flex flex-col items-center gap-3">
         {dark ? <NeonIcon progress={1} /> : <LightRing progress={1} />}
         <p className={`font-bold text-lg ${dark ? 'text-white' : 'text-slate-800'}`}>Installa FLOW</p>
@@ -549,7 +552,7 @@ function BottomNav({ dark, active }: { dark: boolean; active: 'home' | 'turni' |
 function PanoramicaMock({ dark }: { dark: boolean }) {
   const bg = dark ? BG_DARK : BG_LIGHT_TAB;
   return (
-    <div className="h-full flex flex-col font-sans" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col font-sans" style={{ background: bg }}>
       <TabHeader dark={dark} title="Panoramica" />
       <div className="flex-1 overflow-hidden px-4 py-4 flex flex-col gap-3">
         {/* Turno oggi */}
@@ -600,7 +603,7 @@ function TurniMock({ dark }: { dark: boolean }) {
   const nums = [31, 1, 2, 3, 4, 5, 6];
   const shifts = [null, '18–23', '18–23', null, '10–16', '18–23', null];
   return (
-    <div className="h-full flex flex-col font-sans" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col font-sans" style={{ background: bg }}>
       <TabHeader dark={dark} title="Turni" />
       <div className="flex-1 overflow-hidden px-4 py-4 flex flex-col gap-3">
         {/* Week selector */}
@@ -650,7 +653,7 @@ function PresenzeMock({ dark }: { dark: boolean }) {
     { date: 'Ven 4 apr',  in: '08:00', out: '—',     h: 'In corso', ok: true },
   ];
   return (
-    <div className="h-full flex flex-col font-sans" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col font-sans" style={{ background: bg }}>
       <TabHeader dark={dark} title="Presenze" />
       <div className="flex-1 overflow-hidden px-4 py-4 flex flex-col gap-3">
         <Card dark={dark}>
@@ -693,7 +696,7 @@ function FerieMock({ dark }: { dark: boolean }) {
     amber:   { dark: 'text-amber-400 bg-amber-500/15',   light: 'text-amber-700 bg-amber-50' },
   };
   return (
-    <div className="h-full flex flex-col font-sans" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col font-sans" style={{ background: bg }}>
       <TabHeader dark={dark} title="Ferie" />
       <div className="flex-1 overflow-hidden px-4 py-4 flex flex-col gap-3">
         <Card dark={dark}>
@@ -732,7 +735,7 @@ function FerieMock({ dark }: { dark: boolean }) {
 function ProfiloMock({ dark }: { dark: boolean }) {
   const bg = dark ? BG_DARK : BG_LIGHT_TAB;
   return (
-    <div className="h-full flex flex-col font-sans" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col font-sans" style={{ background: bg }}>
       <div className={`shrink-0 px-5 pt-10 pb-5 flex flex-col items-center gap-3 border-b ${dark ? 'border-white/8' : 'border-black/5'}`}>
         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black ${dark ? 'bg-white/12 text-white border border-white/15' : 'bg-blue-100 text-blue-600'}`}>M</div>
         <div className="flex flex-col items-center gap-0.5">
@@ -790,7 +793,7 @@ function DesktopShell({ dark, active, children }: { dark: boolean; active: strin
     { id: 'profilo',    label: 'Profilo' },
   ];
   return (
-    <div className="h-full flex font-sans" style={{ background: bg }}>
+    <div data-theme={dark ? undefined : 'light'} className="h-full flex font-sans" style={{ background: bg }}>
       {/* Sidebar */}
       <div className={`flex flex-col shrink-0 h-full border-r ${dark ? 'border-white/8 bg-black/20' : 'border-slate-100 bg-white/60'}`}
         style={{ width: SIDEBAR_W }}>
@@ -1223,7 +1226,7 @@ function screenFor(id: ScreenId, dark: boolean) {
     case 'dtab-profilo':    return <DProfiloMock dark={dark} />;
     case 'mockup-cards':
       return (
-        <div className="h-full overflow-y-auto p-8 space-y-12" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+        <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-8 space-y-12" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <div className="max-w-md mx-auto space-y-8">
             <h2 className={`text-center text-xl font-black uppercase tracking-widest ${dark ? 'text-white/40' : 'text-slate-400'}`}>Mockup Design Schede</h2>
             
@@ -1284,7 +1287,7 @@ function screenFor(id: ScreenId, dark: boolean) {
       );
     case 'full-app-preview':
       return (
-        <div className="h-full overflow-y-auto p-4 space-y-8" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+        <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-4 space-y-8" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <div className="space-y-4">
             <h2 className={`text-lg font-bold ${dark ? 'text-white' : 'text-slate-800'}`}>1. Home Gestionale</h2>
             <ManagementHomePreview previewUser={mockAdmin} language={mockLang} isSelectedAdmin={true} staffRequestsEnabled={true} onUiToggle={() => {}} embedded />
@@ -1311,7 +1314,7 @@ function screenFor(id: ScreenId, dark: boolean) {
           </div>
           <div className="space-y-4">
             <h2 className={`text-lg font-bold ${dark ? 'text-white' : 'text-slate-800'}`}>7. Presenze Staff</h2>
-            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-lg" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+            <div data-theme={dark ? undefined : 'light'} className="rounded-2xl overflow-hidden border border-white/10 shadow-lg" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
               <MobileTimesheet
                 shifts={[
                   { id: 's1', date: '2026-03-29', start_time: '10:00:00', end_time: '16:00:00', approval_status: 'confirmed', type: 'lunch' },
@@ -1341,7 +1344,7 @@ function screenFor(id: ScreenId, dark: boolean) {
       );
     case 'home-mgmt':
       return (
-        <div className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+        <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <ManagementHomePreview
             previewUser={mockAdmin}
             language={mockLang}
@@ -1354,7 +1357,7 @@ function screenFor(id: ScreenId, dark: boolean) {
       );
     case 'turni-mgmt':
       return (
-        <div className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+        <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <TurniMgmtPreview
             previewUser={mockAdmin}
             language={mockLang}
@@ -1365,7 +1368,7 @@ function screenFor(id: ScreenId, dark: boolean) {
       );
     case 'ts-mgmt':
       return (
-        <div className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+        <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <TimesheetTabPreview
             previewUser={mockAdmin}
             language={mockLang}
@@ -1376,7 +1379,7 @@ function screenFor(id: ScreenId, dark: boolean) {
       );
     case 'staff-home':
       return (
-        <div className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+        <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <StaffHomePreview
             previewUser={mockStaff}
             language={mockLang}
@@ -1387,7 +1390,7 @@ function screenFor(id: ScreenId, dark: boolean) {
       );
     case 'staff-shifts':
       return (
-        <div className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+        <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <StaffShiftsPreview
             previewUser={mockStaff}
             language={mockLang}
@@ -1398,7 +1401,7 @@ function screenFor(id: ScreenId, dark: boolean) {
       );
     case 'staff-ferie':
       return (
-        <div className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+        <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <StaffHolidaysPreview
             previewUser={mockStaff}
             language={mockLang}
@@ -1409,7 +1412,7 @@ function screenFor(id: ScreenId, dark: boolean) {
       );
     case 'staff-ts':
       return (
-        <div className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+        <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <MobileTimesheet
             shifts={[
               { id: 's1', date: '2026-03-29', start_time: '10:00:00', end_time: '16:00:00', approval_status: 'confirmed', type: 'lunch' },
@@ -1429,7 +1432,7 @@ function screenFor(id: ScreenId, dark: boolean) {
       );
     case 'stats-preview':
       return (
-        <div className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+        <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <StatisticsTabPreview
             previewUser={mockAdmin}
             language={mockLang}
@@ -1440,7 +1443,7 @@ function screenFor(id: ScreenId, dark: boolean) {
       );
     case 'settings-preview':
       return (
-        <div className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
+        <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <SettingsTabPreview
             previewUser={mockAdmin}
             language={mockLang}
@@ -1470,7 +1473,8 @@ export default function ScreensPreview() {
   };
 
   return (
-    <div className="h-full flex flex-col gap-6 p-6 font-sans overflow-y-auto" style={{ background: '#111' }}>
+    <div className="h-full flex flex-col gap-6 p-6 font-sans overflow-y-auto bg-app-bg">
+      {/* mock preview — intentional: text-[8–10px] sotto (scala ridotta) */}
       <h1 className="text-center text-sm font-bold uppercase tracking-widest text-white/30">
         Anteprima schermate — Dark · Light
       </h1>

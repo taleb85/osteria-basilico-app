@@ -159,11 +159,11 @@ export default function MobileHome({
       <section className="shift-card-ultra px-4 py-4">
         {/* Header row: label + stato badge */}
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50">
             {todayShiftLabel}
           </p>
           {inProgress ? (
-            <span className="flex items-center gap-1.5 text-[10px] font-medium text-emerald-400">
+            <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               {inProgressLabel}
             </span>
@@ -208,7 +208,7 @@ export default function MobileHome({
                 <span className="text-base font-medium shift-time-clean text-white">
                   {s.start_time.slice(0, 5)} – {s.end_time?.slice(0, 5) ?? '…'}
                 </span>
-                <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-white/50">
                   {s.type === 'lunch' ? 'Pranzo' : 'Cena'}
                 </span>
               </div>
@@ -246,7 +246,7 @@ export default function MobileHome({
             </button>
           ) : (
             todayWorkShiftsCount > 0 && (
-              <p className="text-center text-[10px] font-bold uppercase tracking-widest text-white/50 py-2">
+              <p className="text-center text-[11px] font-bold uppercase tracking-widest text-white/50 py-2">
                 {tapStartHint}
               </p>
             )
@@ -256,7 +256,7 @@ export default function MobileHome({
 
       {/* ── Questa settimana ──────────────────────────────────────────────── */}
       <div className={`${cardCls} px-4 py-3`} style={cardStyle}>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-2">
           Questa settimana
         </p>
         <div className="flex flex-col divide-y divide-white/[0.07]">
@@ -297,13 +297,13 @@ export default function MobileHome({
       {/* ── I miei numeri ───────────────────────────────────────────── */}
       <section>
         <div className="flex items-center justify-between px-1 mb-2">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-white/50">
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-white/50">
             {statsLabels.title}
           </h2>
           {onNavigateToTimesheet && (
             <button
               onClick={onNavigateToTimesheet}
-              className="text-[10px] font-bold text-blue-400 flex items-center gap-0.5 hover:opacity-80 transition-opacity"
+              className="text-[11px] font-bold text-blue-400 flex items-center gap-0.5 hover:opacity-80 transition-opacity"
             >
               {detailLabel} <ChevronRight className="w-3 h-3" />
             </button>
@@ -313,7 +313,7 @@ export default function MobileHome({
         <div className="grid grid-cols-2 gap-3">
           {/* Ore settimana */}
           <div className={`${cardCls} px-4 py-3`} style={cardStyle}>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-white/50 mb-1">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-1">
               {statsLabels.week}
             </p>
             <p className="text-xl font-black text-white tabular-nums leading-none mb-2">
@@ -325,20 +325,20 @@ export default function MobileHome({
                 style={{ width: `${weekPct}%` }}
               />
             </div>
-            <p className="text-[8px] text-white/50 mt-1 tabular-nums">
+            <p className="text-[11px] text-white/50 mt-1 tabular-nums">
               / {fmtH(weekCapMinutes)}
             </p>
           </div>
 
           {/* Ore mese */}
           <div className={`${cardCls} px-4 py-3`} style={cardStyle}>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-white/50 mb-1">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-1">
               {statsLabels.month}
             </p>
             <p className="text-xl font-black text-white tabular-nums leading-none mb-1">
               {fmtH(monthlyMinutes)}
             </p>
-            <p className="text-[10px] text-white/50 tabular-nums">
+            <p className="text-[11px] text-white/50 tabular-nums">
               {monthDaysWorked} {statsLabels.daysWorked}
             </p>
           </div>

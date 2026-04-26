@@ -471,7 +471,7 @@ export default function ProfileNavTabPanel({
             {[roleDisplay, t.status_active].filter(Boolean).map((label, i) => (
               <span
                 key={i}
-                className="text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
+                className="text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
                 style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.20)', color: 'rgba(255,255,255,0.65)' }}
               >
                 {label}

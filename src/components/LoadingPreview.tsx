@@ -183,7 +183,7 @@ function SyncScreen() {
         </div>
         <div className="flex flex-col items-center gap-1 min-h-[44px]">
           {phase !== 'done' && (
-            <p className="text-white/70 text-[10px] font-semibold uppercase tracking-widest">
+            <p className="text-white/70 text-[11px] font-semibold uppercase tracking-widest">
               Sincronizzazione in corso
             </p>
           )}

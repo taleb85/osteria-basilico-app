@@ -1,3 +1,7 @@
+/**
+ * Contenitore anteprima in miniatura (profilePreview/): testi `text-[8–10px]`
+ * sono voluti per scala ridotta; round2: miniature preview — intentional.
+ */
 import type { ReactNode } from 'react';
 import type { User } from '../../types';
 import { isUiWidgetVisible } from '../../utils/uiScreenWidgets';

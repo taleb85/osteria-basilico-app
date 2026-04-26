@@ -56,7 +56,7 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-[99999] flex flex-col items-center justify-center px-6 text-center font-sans"
+      className="fixed inset-0 z-[400] flex flex-col items-center justify-center px-6 text-center font-sans"
       style={{ background: 'transparent' }}
       role="status"
       aria-live="polite"

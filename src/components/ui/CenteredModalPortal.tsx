@@ -45,7 +45,7 @@ export function CenteredModalPortal({
   panelClassName = '',
   panelStyle,
   markDatePickerPortal = false,
-  overlayZClass = 'z-[999999]',
+  overlayZClass = 'z-[200]',
   disableBackdropClose = true,
 }: CenteredModalPortalProps) {
   useBodyScrollLock(open);

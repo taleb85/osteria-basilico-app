@@ -133,21 +133,21 @@ export default function GestioneProfiliPage() {
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); toggleTab(user.id, 'permissions'); }}
-                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'permissions' ? 'bg-white/20 text-accent shadow-sm' : 'text-white/60'}`}
+                          className={`px-2 py-1 text-[11px] font-bold uppercase rounded-md transition-all ${currentTab === 'permissions' ? 'bg-white/20 text-accent shadow-sm' : 'text-white/60'}`}
                         >
                           Permessi
                         </button>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); toggleTab(user.id, 'visibility'); }}
-                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'visibility' ? 'bg-white/20 text-accent shadow-sm' : 'text-white/60'}`}
+                          className={`px-2 py-1 text-[11px] font-bold uppercase rounded-md transition-all ${currentTab === 'visibility' ? 'bg-white/20 text-accent shadow-sm' : 'text-white/60'}`}
                         >
                           Cosa vede
                         </button>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); toggleTab(user.id, 'grid'); }}
-                          className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${currentTab === 'grid' ? 'bg-white/20 text-accent shadow-sm' : 'text-white/60'}`}
+                          className={`px-2 py-1 text-[11px] font-bold uppercase rounded-md transition-all ${currentTab === 'grid' ? 'bg-white/20 text-accent shadow-sm' : 'text-white/60'}`}
                         >
                           Griglia
                         </button>
@@ -238,14 +238,14 @@ export default function GestioneProfiliPage() {
                                 </p>
                                 <button
                                   onClick={() => toggleTab(user.id, 'permissions')}
-                                  className="text-[10px] font-bold text-accent uppercase hover:underline"
+                                  className="text-[11px] font-bold text-accent uppercase hover:underline"
                                 >
                                   Torna ai permessi
                                 </button>
                               </div>
                               <div className="rounded-xl overflow-hidden border border-white/15" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
                                 <div className="p-4 border-b border-white/10 bg-white/5">
-                                  <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Configurazione Visualizzazione</p>
+                                  <p className="text-[11px] font-bold text-white/50 uppercase tracking-widest">Configurazione Visualizzazione</p>
                                 </div>
                                 <div className="p-4">
                                   <button

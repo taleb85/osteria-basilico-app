@@ -146,7 +146,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-[99999] flex flex-col items-center justify-start overflow-y-auto font-sans"
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-start overflow-y-auto font-sans"
       style={{
         background: 'transparent',
         paddingTop: 'env(safe-area-inset-top, 0px)',
@@ -407,7 +407,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               </button>
 
               {/* Note privacy */}
-              <p className="text-center text-[10px] text-white/45 leading-relaxed">
+              <p className="text-center text-[11px] text-white/45 leading-relaxed">
                 {lang === 'it'
                   ? 'I tuoi dati sono cifrati e utilizzati solo per identificarti nell\'app.'
                   : lang === 'es'

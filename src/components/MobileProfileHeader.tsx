@@ -130,7 +130,7 @@ export default function MobileProfileHeader({
           </span>
         </div>
         {isSessionElevated && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
             <ShieldCheck className="h-3 w-3" />
             Admin
           </span>

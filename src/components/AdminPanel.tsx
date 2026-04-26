@@ -115,11 +115,11 @@ export default function AdminPanel() {
             <>
               <button onClick={handleImportClick} className="bg-black/15 backdrop-blur-xl rounded-[24px] p-5 border-2 border-white/30 hover:bg-black/25 transition-all">
                 <Upload className="w-6 h-6 text-white mx-auto mb-2" />
-                <span className="text-white text-[10px] font-medium uppercase tracking-widest block font-sans">{t.restore}</span>
+                <span className="text-white text-[11px] font-medium uppercase tracking-widest block font-sans">{t.restore}</span>
               </button>
               <button onClick={handleExportJSON} className="bg-black/15 backdrop-blur-xl rounded-[24px] p-5 border-2 border-white/30 hover:bg-black/25 transition-all">
                 <Download className="w-6 h-6 text-white mx-auto mb-2" />
-                <span className="text-white text-[10px] font-medium uppercase tracking-widest block font-sans">{t.backup_json}</span>
+                <span className="text-white text-[11px] font-medium uppercase tracking-widest block font-sans">{t.backup_json}</span>
               </button>
             </>
           )}
@@ -162,7 +162,7 @@ export default function AdminPanel() {
 
                     <div>
                       <p className="text-white font-bold text-base uppercase font-sans">{user.first_name}</p>
-                      <p className="text-white text-[10px] font-medium uppercase tracking-wider font-sans">
+                      <p className="text-white text-[11px] font-medium uppercase tracking-wider font-sans">
                         {translateRole(user.role, currentUser?.language ?? 'it')} • {t.pin}: {user.pin}
                       </p>
                     </div>

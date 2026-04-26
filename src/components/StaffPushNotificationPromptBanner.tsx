@@ -73,7 +73,7 @@ export function StaffPushNotificationPromptBanner({ userId, effectiveLanguage }:
             onClick={() => void requestNotificationPermission().then(() => {
               if (typeof Notification !== 'undefined') setPerm(Notification.permission);
             })}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white disabled:opacity-50 transition-opacity"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white disabled:opacity-50 transition-opacity"
             style={{ background: 'rgba(245,158,11,0.55)' }}
           >
             {isLoading ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden /> : null}

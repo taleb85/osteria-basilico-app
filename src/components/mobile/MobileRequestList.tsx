@@ -71,7 +71,7 @@ export default function MobileRequestList({ requests, t = {} }: MobileRequestLis
               
               <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${config.bg} ${config.border} ${config.color}`}>
                 <Icon className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-black uppercase tracking-wider">
+                <span className="text-[11px] font-black uppercase tracking-wider">
                   {config.label}
                 </span>
               </div>

@@ -60,7 +60,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
           >
             {tenantName}
           </h1>
-          <p className="text-[9px] text-white/50 font-semibold uppercase tracking-widest leading-none">
+          <p className="text-[11px] text-white/50 font-semibold uppercase tracking-widest leading-none">
             {t.header_tagline}
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
               type="button"
               onClick={onLogout}
               title={t.header_logout}
-              className="flex min-h-[36px] min-w-[36px] flex-shrink-0 items-center justify-center surface-glass-sm text-white/70 surface-ghost-interactive md:hidden"
+              className="flex min-h-[44px] min-w-[44px] flex-shrink-0 items-center justify-center surface-glass-sm text-white/70 surface-ghost-interactive md:hidden"
             >
               <LogOut className="w-4 h-4" strokeWidth={2} />
             </button>

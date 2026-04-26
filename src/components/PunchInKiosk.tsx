@@ -650,7 +650,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
                           <span className={`text-xs font-medium uppercase ${textColor}`}>{timeStr}</span>
                           {done && <Check className="w-3 h-3 text-accent flex-shrink-0" strokeWidth={2.5} />}
-                          {awaitingOut && <span className="text-[10px] text-amber-500 font-semibold">{t.punch_exit_question}</span>}
+                          {awaitingOut && <span className="text-[11px] text-amber-500 font-semibold">{t.punch_exit_question}</span>}
                         </span>
                       );
                     })}
@@ -847,7 +847,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                         className="flex flex-col items-center justify-center gap-0.5 text-white/50 active:scale-95 transition-transform"
                       >
                         <Smartphone className="w-5 h-5 text-[#455a3f]" />
-                        <span className="text-[8px] font-black uppercase tracking-tighter leading-none">
+                        <span className="text-[11px] font-black uppercase tracking-tighter leading-none">
                           {t.change_shift}
                         </span>
                       </button>

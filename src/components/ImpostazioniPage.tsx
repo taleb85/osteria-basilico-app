@@ -124,7 +124,7 @@ const FeatureCard = memo(function FeatureCard({
                     className="overflow-hidden"
                   >
                     <div className="surface-glass-sm mt-2 bg-white/5 px-2.5 py-2">
-                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-white/60">
+                      <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-white/60">
                         {detailLabel}
                       </p>
                       <ul className="list-disc space-y-1 pl-3.5 text-[11px] leading-relaxed text-white/70">

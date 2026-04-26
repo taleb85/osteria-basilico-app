@@ -159,7 +159,7 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
           >
             Continua
           </button>
-          <p className="text-center text-[10px] text-white/50 mt-2">
+          <p className="text-center text-[11px] text-white/50 mt-2">
             Puoi modificare questi permessi in qualsiasi momento dalle impostazioni del dispositivo
           </p>
         </div>

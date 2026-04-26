@@ -81,7 +81,7 @@ function NavPreviewBar({
   const rowMin = fs ? 'min-h-[72px] sm:min-h-[88px]' : hub ? 'min-h-[48px] sm:min-h-[52px]' : 'min-h-[44px]';
   const gap = fs ? 'gap-1.5 px-1' : hub ? 'gap-1 px-0.5' : 'gap-0.5 px-1';
   const iconSz = fs ? 'w-7 h-7 sm:w-8 sm:h-8' : hub ? 'w-[18px] h-[18px] sm:w-5 sm:h-5' : 'w-4 h-4';
-  const labelSz = fs ? 'text-[11px] sm:text-xs' : hub ? 'text-[8px] sm:text-[10px]' : 'text-[8px]';
+  const labelSz = fs ? 'text-[11px] sm:text-xs' : hub ? 'text-[11px] sm:text-[11px]' : 'text-[11px]';
   return (
     <div className={`rounded-[1.25rem] border border-white/15 shadow-inner ${pad}`} style={{ backgroundColor: ACCENT }}>
       <div className={`flex justify-between items-stretch gap-1 sm:gap-2 ${rowMin}`}>
@@ -494,7 +494,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                       </p>
                       <p className="text-[11px] text-white/60 truncate">{translateRole(u.role, currentUser.language)}</p>
                       {u.status !== 'active' && (
-                        <span className="mt-1 inline-block rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 uppercase">
+                        <span className="mt-1 inline-block rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] font-bold text-amber-700 uppercase">
                           {u.status}
                         </span>
                       )}
@@ -538,7 +538,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
             <div className="min-w-0 flex-1">
               <p
                 id="profile-visibility-fs-title"
-                className="text-[10px] font-bold text-white/60 uppercase tracking-wider"
+                className="text-[11px] font-bold text-white/60 uppercase tracking-wider"
               >
                 {tv.profile_visibility_fullscreen_title ?? 'Anteprima profilo'}
               </p>
@@ -551,7 +551,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
               <button
                 type="button"
                 onClick={handleSaveAndApply}
-                className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm transition-all hover:bg-accent-hover active:scale-95"
+                className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-[11px] font-bold tracking-wider text-white uppercase shadow-sm transition-all hover:bg-accent-hover active:scale-95"
               >
                 {tv.profile_visibility_save_apply ?? 'Salva e applica'}
               </button>
@@ -566,7 +566,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
             <div className="mx-auto w-full max-w-6xl xl:max-w-7xl space-y-4">
               <div className="surface-glass-sm overflow-hidden">
                 <div className="border-b border-slate-100 bg-slate-50 px-3 py-2">
-                  <p className="text-[10px] font-bold text-white/60 uppercase tracking-wider">
+                  <p className="text-[11px] font-bold text-white/60 uppercase tracking-wider">
                     {tv.profile_visibility_preview_banner ?? 'Anteprima navigazione'}
                   </p>
                 </div>
@@ -655,7 +655,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                           />
                           {staffModulesForActiveTab.length > 0 && (
                             <div className="space-y-1 border-t border-slate-300/80 pt-1.5">
-                              <p className="px-1 text-[8px] font-bold uppercase tracking-wider text-white/60">
+                              <p className="px-1 text-[11px] font-bold uppercase tracking-wider text-white/60">
                                 {tv.profile_visibility_tab_staff_modules ?? 'Moduli area personale'}
                               </p>
                               {staffModulesForActiveTab.map((mod) => {

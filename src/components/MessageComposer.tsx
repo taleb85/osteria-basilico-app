@@ -117,7 +117,7 @@ export function MessageComposer({
           }`}
         >
           <Users className="h-5 w-5" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Tutti (Staff)</span>
+          <span className="text-[11px] font-black uppercase tracking-widest">Tutti (Staff)</span>
         </button>
         <button
           type="button"
@@ -129,7 +129,7 @@ export function MessageComposer({
           }`}
         >
           <User className="h-5 w-5" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Privato</span>
+          <span className="text-[11px] font-black uppercase tracking-widest">Privato</span>
         </button>
       </div>
 

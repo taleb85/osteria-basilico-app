@@ -1586,10 +1586,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
               : t.punch_presence_proof_mismatch;
           return { error: errMsg };
         }
-        console.info('[presence-proof] verifica superata', {
-          method: v.method,
-          tenantSlug: tenantSlug || '(default)',
-        });
+        if (import.meta.env.DEV) {
+          console.info('[presence-proof] verifica superata', {
+            method: v.method,
+            tenantSlug: tenantSlug || '(default)',
+          });
+        }
       }
 
       const record: Record<string, unknown> = {

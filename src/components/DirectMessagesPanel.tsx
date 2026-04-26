@@ -127,7 +127,7 @@ function NewChatPicker({
                 <p className="text-sm font-semibold text-white truncate">
                   {u.first_name} {u.last_name ?? ''}
                 </p>
-                <p className="text-[10px] text-white/50 uppercase tracking-wide">{translateRole(u.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</p>
+                <p className="text-[11px] text-white/50 uppercase tracking-wide">{translateRole(u.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</p>
               </div>
             </button>
           ))
@@ -157,7 +157,7 @@ function ChatBubble({ body, time, isMine }: { body: string; time: string; isMine
           {body}
         </p>
         <p
-          className={`text-[10px] mt-1 text-right ${
+          className={`text-[11px] mt-1 text-right ${
             isMine ? 'text-white/65' : 'text-white/50'
           }`}
         >
@@ -286,7 +286,7 @@ function ChatView({
           <p className="text-sm font-bold text-white truncate leading-tight">
             {contact ? `${contact.first_name} ${contact.last_name ?? ''}`.trim() : '—'}
           </p>
-          <p className="text-[10px] text-white/60 uppercase tracking-wide leading-none mt-0.5">
+          <p className="text-[11px] text-white/60 uppercase tracking-wide leading-none mt-0.5">
             {contact?.role ?? ''}
           </p>
         </div>
@@ -303,7 +303,7 @@ function ChatView({
         {grouped.map(({ label, msgs }) => (
           <div key={label}>
             <div className="flex items-center justify-center my-3">
-              <span className="px-3 py-1 rounded-full bg-white/10 text-[10px] font-semibold text-white/50 uppercase tracking-wide">
+              <span className="px-3 py-1 rounded-full bg-white/10 text-[11px] font-semibold text-white/50 uppercase tracking-wide">
                 {label}
               </span>
             </div>
@@ -455,7 +455,7 @@ function ConversationList({
                           ? `${contact.first_name} ${contact.last_name ?? ''}`.trim()
                           : '—'}
                       </p>
-                      <span className="text-[10px] text-white/50 shrink-0">
+                      <span className="text-[11px] text-white/50 shrink-0">
                         {formatTime(conv.lastMessage.created_at, intlLocale)}
                       </span>
                     </div>
@@ -472,7 +472,7 @@ function ConversationList({
                   </div>
                   {conv.unreadCount > 0 && (
                     <div
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-black text-white"
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-black text-white"
                       style={{ background: '#EF4444' }}
                     >
                       {conv.unreadCount > 9 ? '9+' : conv.unreadCount}

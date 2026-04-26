@@ -103,7 +103,7 @@ export default function RoleFeatureSectionsBlock(props: Props) {
         description={lockedOn ? homeHint : undefined}
         badge={
           lockedOn ? (
-            <span className="rounded-lg px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/60" style={{ background: 'rgba(255,255,255,0.13)', border: '1px solid rgba(255,255,255,0.22)' }}>
+            <span className="rounded-lg px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-white/60" style={{ background: 'rgba(255,255,255,0.13)', border: '1px solid rgba(255,255,255,0.22)' }}>
               {tv.role_template_always_on ?? 'Sempre'}
             </span>
           ) : undefined

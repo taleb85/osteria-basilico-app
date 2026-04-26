@@ -58,7 +58,10 @@ function initials(user: User): string {
   return (f + l).toUpperCase() || '?';
 }
 
-/** Template permessi per dipendente. Usabile in pagina dedicata o dentro Impostazioni. */
+/**
+ * Template permessi per dipendente. Usabile in pagina dedicata o dentro Impostazioni.
+ * nelle anteprime compatte, text-[8–10]px è voluto (mini-card).
+ */
 export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const {
     currentUser,
@@ -1082,6 +1085,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   if (variant === 'embedded') {
     return (
       <div className="pb-1">
+        {/* miniature preview — intentional: text-[8–10px] nelle anteprime compatte / matrix */}
         {renderMobileView()}
         {renderMatrix()}
       </div>
@@ -1090,6 +1094,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
 
   return (
     <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
+      {/* miniature preview — intentional: text-[8–10px] nelle anteprime compatte / matrix */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
         {renderMobileView()}
         {renderMatrix()}

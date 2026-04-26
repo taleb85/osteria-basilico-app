@@ -123,7 +123,7 @@ function DepartmentColorPicker({
           maxWidthClass="max-w-sm"
           panelClassName="p-3.5"
         >
-          <p className="mb-3 px-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+          <p className="mb-3 px-0.5 text-[11px] font-bold uppercase tracking-wider text-white">
             {title}
           </p>
           <div className="grid grid-cols-6 gap-2.5">
@@ -534,7 +534,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         <p className="truncate text-sm font-semibold uppercase text-white">
                           {user.first_name} {user.last_name ?? ''}
                         </p>
-                        <p className="text-[10px] uppercase tracking-wider text-white/55">
+                        <p className="text-[11px] uppercase tracking-wider text-white/55">
                           {translateRole(user.role, currentUser.language)}
                           {!isActiveRow && (
                             <span className="ml-1.5 font-semibold text-amber-400">
@@ -559,7 +559,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               showError?.((t as { copy_failed?: string }).copy_failed ?? 'Copia non riuscita.');
                             }
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5"
                         >
                           <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
                           Link accesso
@@ -567,7 +567,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         <button
                           type="button"
                           onClick={() => setEditingUser(user)}
-                          className="rounded-lg border border-white/15 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5"
+                          className="rounded-lg border border-white/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5"
                         >
                           {t.settings_delegated_view_profile}
                         </button>
@@ -575,7 +575,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           <button
                             type="button"
                             onClick={() => handleDelegateSuspend(user)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/15 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-red-400 transition-colors hover:bg-red-500/150/25"
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-red-400 transition-colors hover:bg-red-500/150/25"
                           >
                             <UserX className="h-3.5 w-3.5 shrink-0" aria-hidden />
                             {t.settings_delegated_suspend}
@@ -587,7 +587,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                 <button
                                   type="button"
                                   onClick={() => setDeleteConfirmUserId(null)}
-                                  className="rounded-lg border border-white/15 px-2 py-1 text-[10px] font-semibold text-white/55 hover:bg-white/10"
+                                  className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/55 hover:bg-white/10"
                                 >
                                   {t.cancel ?? 'Annulla'}
                                 </button>
@@ -599,7 +599,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                     await deleteUser(user.id);
                                     showSuccess?.(t.settings_delete_user_success);
                                   }}
-                                  className="rounded-lg bg-red-600 px-2 py-1 text-[10px] font-bold text-white hover:bg-red-700"
+                                  className="rounded-lg bg-red-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-red-700"
                                 >
                                   {t.settings_delete_user_title ?? 'Elimina'}
                                 </button>
@@ -617,7 +617,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             <button
                               type="button"
                               onClick={() => handleDelegateReactivate(user)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-accent/35 bg-accent/10 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-accent transition-colors hover:bg-accent/15"
+                              className="inline-flex items-center gap-1 rounded-lg border border-accent/35 bg-accent/10 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-accent transition-colors hover:bg-accent/15"
                             >
                               <UserCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
                               {t.settings_delegated_reactivate}
@@ -746,7 +746,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         <span className="block truncate text-sm font-semibold uppercase text-white">
                           {user.first_name ?? ''} {user.last_name ?? ''}
                         </span>
-                        <span className="text-white/55 text-[10px] uppercase tracking-wider">
+                        <span className="text-white/55 text-[11px] uppercase tracking-wider">
                           {translateRole(user.role, currentUser.language)}
                           {!isPurelyManagementRole(user.role) && user.status === 'active' && !isUserVisibleOnTeamSchedule(user) && (
                             <span className="ml-1.5 text-amber-600 font-semibold normal-case">
@@ -858,7 +858,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               setExpandedVisibilityUserId(expandedVisibilityUserId === user.id ? null : user.id);
                               setExpandedPermsUserId(null);
                             }}
-                            className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md transition-all border ${expandedVisibilityUserId === user.id ? 'bg-white/15 text-accent border-accent/30 shadow-sm' : 'text-white/55 border-transparent hover:text-white/80'}`}
+                            className={`px-2 py-1 text-[11px] font-bold uppercase rounded-md transition-all border ${expandedVisibilityUserId === user.id ? 'bg-white/15 text-accent border-accent/30 shadow-sm' : 'text-white/55 border-transparent hover:text-white/80'}`}
                           >
                             {t.what_sees}
                           </button>
@@ -874,7 +874,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                   <button
                                     type="button"
                                     onClick={() => setDeleteConfirmUserId(null)}
-                                    className="rounded-lg border border-white/15 px-2 py-1 text-[10px] font-semibold text-white/55 hover:bg-white/10"
+                                    className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/55 hover:bg-white/10"
                                   >
                                     {t.cancel ?? 'Annulla'}
                                   </button>
@@ -886,7 +886,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                       await deleteUser(user.id);
                                       showSuccess?.(t.settings_delete_user_success);
                                     }}
-                                    className="rounded-lg bg-red-600 px-2 py-1 text-[10px] font-bold text-white hover:bg-red-700"
+                                    className="rounded-lg bg-red-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-red-700"
                                   >
                                     {t.settings_delete_user_title ?? 'Elimina'}
                                   </button>
@@ -972,7 +972,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                       }
                                       action={
                                         <span
-                                          className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
+                                          className={`shrink-0 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
                                             isUserVisibleOnTeamSchedule(user) ? 'bg-accent text-white shadow-sm' : 'bg-white/10 text-white/55'
                                           }`}
                                         >
@@ -981,7 +981,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                       }
                                     />
                                   </div>
-                                  <p className="text-[10px] text-white/60 mt-2 leading-snug">
+                                  <p className="text-[11px] text-white/60 mt-2 leading-snug">
                                     Template + pulsante Griglia in riga (override solo visibilità tabellone).
                                   </p>
                                 </div>
@@ -991,7 +991,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             {/* Moduli scheda Impostazioni: globali, solo Admin modifica (Permessi ruoli) */}
                             {isManagementRole(user.role) && (
                               <div>
-                                <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mb-2">
+                                <p className="text-[11px] font-bold text-white/60 uppercase tracking-widest mb-2">
                                   {formatTrans(t.settings_admin_settings_modules_heading, { name: user.first_name ?? '' })}
                                 </p>
                                 <p className="text-[11px] text-white/55 mb-2">
@@ -1012,7 +1012,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                         }
                                         action={
                                           <span
-                                            className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
+                                            className={`shrink-0 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
                                             enabled
                                               ? 'bg-accent text-white shadow-sm'
                                               : 'bg-white/10 text-white/55'
@@ -1107,7 +1107,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       </span>
                       {!isBuiltin && d.permissionCategory && (
                         <span
-                          className="text-[9px] font-semibold normal-case opacity-90 border-l border-white/35 pl-1.5 shrink-0 max-w-[5.5rem] truncate"
+                          className="text-[11px] font-semibold normal-case opacity-90 border-l border-white/35 pl-1.5 shrink-0 max-w-[5.5rem] truncate"
                           title={t.settings_dept_permission_group}
                         >
                           {d.permissionCategory === 'sala_bar'
@@ -1121,7 +1121,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       )}
                       {isBuiltin && d.permissionCategory && (
                         <span
-                          className="text-[9px] font-semibold normal-case opacity-90 border-l border-white/35 pl-1.5 shrink-0 max-w-[5.5rem] truncate"
+                          className="text-[11px] font-semibold normal-case opacity-90 border-l border-white/35 pl-1.5 shrink-0 max-w-[5.5rem] truncate"
                           title={t.settings_dept_permission_group}
                         >
                           {d.permissionCategory === 'sala_bar'
@@ -1170,7 +1170,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               {/* Reparti built-in nascosti — pulsante ripristino */}
               {hiddenBuiltins.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-white/40">
                     Nascosti
                   </span>
                   {hiddenBuiltins.map((v) => {
@@ -1210,7 +1210,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     className="overflow-hidden"
                   >
                     <div className="space-y-3 rounded-xl border border-accent/25 bg-white/8 p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-white/55">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-white/55">
                         {t.settings_dept_edit_title}
                       </p>
                       {builtinValues.has(editingDeptValue) && (
@@ -1245,7 +1245,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         />
                         {!builtinValues.has(editingDeptValue) && (
                           <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1">
+                            <label className="block text-[11px] font-bold uppercase tracking-wider text-white/40 mb-1">
                               {t.settings_dept_permission_group}
                             </label>
                             <select
@@ -1349,7 +1349,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
                   <div className="shrink-0 sm:w-56">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-white/40 mb-1">
                       {t.settings_dept_permission_group}
                     </label>
                     <select
@@ -1406,7 +1406,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 {workRules.criticEnabled && (
                   <div className="grid grid-cols-2 gap-2 border-t border-white/10 pt-2">
                     <div>
-                      <label className="block text-[10px] font-semibold text-white/55 mb-0.5">{t.settings_wr_max_shift_h}</label>
+                      <label className="block text-[11px] font-semibold text-white/55 mb-0.5">{t.settings_wr_max_shift_h}</label>
                       <input
                         type="number"
                         min={4}
@@ -1417,7 +1417,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold text-white/55 mb-0.5">{t.settings_wr_min_rest}</label>
+                      <label className="block text-[11px] font-semibold text-white/55 mb-0.5">{t.settings_wr_min_rest}</label>
                       <input
                         type="number"
                         min={6}
@@ -1455,7 +1455,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 {workRules.attentionEnabled && (
                   <div className="grid grid-cols-2 gap-2 border-t border-white/10 pt-2">
                     <div>
-                      <label className="block text-[10px] font-semibold text-white/55 mb-0.5">{t.settings_wr_max_day}</label>
+                      <label className="block text-[11px] font-semibold text-white/55 mb-0.5">{t.settings_wr_max_day}</label>
                       <input
                         type="number"
                         min={4}
@@ -1466,7 +1466,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold text-white/55 mb-0.5">{t.settings_wr_max_week}</label>
+                      <label className="block text-[11px] font-semibold text-white/55 mb-0.5">{t.settings_wr_max_week}</label>
                       <input
                         type="number"
                         min={20}
@@ -1654,7 +1654,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             {tmpl.count} turno{tmpl.count !== 1 ? 'i' : ''} · {tmpl.days.map(d => DAY_LABELS[d] ?? d).join(', ')}
                           </p>
                           {tmpl.created_at && (
-                            <p className="text-[10px] text-white/60 mt-0.5">
+                            <p className="text-[11px] text-white/60 mt-0.5">
                               {new Date(tmpl.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                             </p>
                           )}
@@ -1711,10 +1711,10 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   return (
                     <div className={`rounded-xl border-2 border-l-4 ${borderColor} bg-white/10 px-3 py-2.5`}>
                       <div className="flex items-center gap-1.5 mb-1">
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-white/40">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-white/40">
                           Periodo attivo
                         </p>
-                        <span className={`text-[9px] font-extrabold uppercase tracking-wide ${ruleColor}`}>
+                        <span className={`text-[11px] font-extrabold uppercase tracking-wide ${ruleColor}`}>
                           · {ruleName}
                         </span>
                       </div>
@@ -1723,7 +1723,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         <span className="text-white/40 font-normal"> → </span>
                         {format(previewEnd, 'dd/MM/yy')}
                       </p>
-                      <p className={`text-[10px] mt-0.5 ${ruleColor}`}>
+                      <p className={`text-[11px] mt-0.5 ${ruleColor}`}>
                         {periodCfg.numWeeks} sett.
                       </p>
                     </div>
@@ -1732,7 +1732,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 {/* Bozza (non ancora salvata) */}
                 {periodDraftDirty ? (
                   <div className="rounded-xl border-2 border-l-4 border-amber-300/60 border-l-amber-500 bg-amber-50/80 px-3 py-2.5">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-amber-600 mb-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-amber-600 mb-1">
                       Bozza non salvata
                     </p>
                     <p className="text-[13px] font-bold text-white tabular-nums">
@@ -1740,13 +1740,13 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       <span className="text-white/40 font-normal"> → </span>
                       {format(addDays(parseISO(periodDraftStart), periodDraftWeeks * 7 - 1), 'dd/MM/yy')}
                     </p>
-                    <p className="text-[10px] text-amber-600 mt-0.5">
+                    <p className="text-[11px] text-amber-600 mt-0.5">
                       {periodDraftWeeks} sett. · premi Salva per confermare
                     </p>
                   </div>
                 ) : (
                   <div className="rounded-xl border border-white/10 bg-white/50 px-3 py-2.5 flex items-center justify-center">
-                    <p className="text-[10px] text-white/60 text-center leading-snug">
+                    <p className="text-[11px] text-white/60 text-center leading-snug">
                       Nessuna modifica in bozza
                     </p>
                   </div>
@@ -1755,7 +1755,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
 
               {/* ── Selettore regola ────────────────────────────────────────── */}
               <div>
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-white/40">
                   Regola di calcolo
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -1776,7 +1776,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'last_sunday' ? 'text-accent' : 'text-white/70'}`}>
                       Ultima domenica
                     </span>
-                    <span className="text-[10px] leading-snug text-white/40">
+                    <span className="text-[11px] leading-snug text-white/40">
                       Il periodo termina sull'ultima dom. del mese
                     </span>
                   </button>
@@ -1797,7 +1797,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-[#001A80]' : 'text-white/70'}`}>
                       Primo giorno
                     </span>
-                    <span className="text-[10px] leading-snug text-white/40">
+                    <span className="text-[11px] leading-snug text-white/40">
                       Imposti la data di inizio, il sistema calcola la fine
                     </span>
                   </button>
@@ -1808,7 +1808,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               {periodRuleMode === 'fixed_start' && (
                 /* Regola "Primo giorno": l'utente imposta la data di inizio */
                 <div>
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-white/40">
                     Primo giorno del periodo
                   </p>
                   <DatePickerField
@@ -1833,7 +1833,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       <div className="flex items-center justify-between rounded-xl border border-[#001A80]/22 bg-[#001A80]/80/8 px-3 py-2.5">
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] font-bold text-[#001A80]">Primo giorno</span>
-                          <span className="rounded-full bg-[#001A80]/80/15 px-2 py-0.5 text-[9px] font-bold text-[#001A80]">
+                          <span className="rounded-full bg-[#001A80]/80/15 px-2 py-0.5 text-[11px] font-bold text-[#001A80]">
                             {cfg.numWeeks} sett.
                           </span>
                         </div>
@@ -1890,7 +1890,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         : t.settings_presence_token_none}
                     </p>
                     {!diskTok && effectiveTok ? (
-                      <p className="text-[10px] text-white/55 leading-snug">{t.settings_presence_token_env_only}</p>
+                      <p className="text-[11px] text-white/55 leading-snug">{t.settings_presence_token_env_only}</p>
                     ) : null}
                   </div>
                 );
@@ -2103,7 +2103,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                             {featureLabel}
                           </p>
                           {isMaintenance && enabled && (
-                            <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold text-red-600">
+                            <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-bold text-red-600">
                               <AlertTriangle className="w-2.5 h-2.5" />
                               {t.settings_maintenance_active_badge}
                             </span>
@@ -2274,7 +2274,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
           >
             <div className="surface-glass-sm overflow-hidden">
               <div className="space-y-3 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">{t.settings_backup_data_section}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-white/40">{t.settings_backup_data_section}</p>
 
                 {dataToolsLocked ? (
                   /* ── Stato bloccato ── */
@@ -2296,13 +2296,13 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   /* ── Stato sbloccato ── */
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
+                      <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
                         <Unlock className="h-3 w-3" /> Sbloccato
                       </span>
                       <button
                         type="button"
                         onClick={() => setDataToolsLocked(true)}
-                        className="text-[10px] text-white/60 hover:text-white/70 transition-colors"
+                        className="text-[11px] text-white/60 hover:text-white/70 transition-colors"
                       >
                         Blocca di nuovo
                       </button>
@@ -2709,7 +2709,7 @@ function BreakRuleModal({
         <div className="px-5 py-5 space-y-5">
           {/* ── Generale ── */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-3">{t.settings_break_section_general}</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-3">{t.settings_break_section_general}</p>
             <div className="space-y-3">
               {/* Titolo */}
               <div>
@@ -2767,7 +2767,7 @@ function BreakRuleModal({
                 </div>
                 {minShiftThresholdOn && (
                   <div className="flex items-center gap-3 border-t border-white/10/90 pt-1">
-                    <span className="shrink-0 text-[10px] font-semibold uppercase text-white/55">{t.settings_break_min_label}</span>
+                    <span className="shrink-0 text-[11px] font-semibold uppercase text-white/55">{t.settings_break_min_label}</span>
                     <button
                       type="button"
                       onClick={() => setMinHours((h) => Math.max(0.5, Math.round((h - 0.5) * 10) / 10))}
@@ -2805,7 +2805,7 @@ function BreakRuleModal({
 
           {/* ── Assegna a ── */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-3">{t.settings_break_assign_section}</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-3">{t.settings_break_assign_section}</p>
             <div className="space-y-3">
               <div>
                 <label className={labelClass}>
@@ -2850,7 +2850,7 @@ function BreakRuleModal({
 
           {/* ── Applica a ── */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-3">{t.settings_break_apply_section}</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-3">{t.settings_break_apply_section}</p>
             <div className="space-y-3">
               {/* Date range */}
               <div className="grid grid-cols-2 gap-3">

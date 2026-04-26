@@ -85,7 +85,7 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
             {e.user?.first_name ?? '—'}
           </p>
           {subLine && (
-            <p className="text-[10px] truncate mt-0.5" style={{ color: 'rgba(255,255,255,0.50)' }}>
+            <p className="text-[11px] truncate mt-0.5" style={{ color: 'rgba(255,255,255,0.50)' }}>
               {subLine}
             </p>
           )}
@@ -102,7 +102,7 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
               : <Sun className="h-2.5 w-2.5 text-amber-300 opacity-70" />
             }
             <span
-              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${style.badge}`}
+              className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${style.badge}`}
               style={style.label.toLowerCase().includes('approv') ? {
                 background: 'rgba(16, 185, 129, 0.20)',
                 color: '#6ee7b7',
@@ -118,12 +118,12 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
       {/* Orario effettivo / delta (se timbrato) */}
       {actualTimeStr && (
         <div className="mt-1.5 flex items-center gap-2">
-          <span className="text-[10px] tabular-nums" style={{ color: 'rgba(255,255,255,0.50)' }}>
+          <span className="text-[11px] tabular-nums" style={{ color: 'rgba(255,255,255,0.50)' }}>
             ↳ {actualTimeStr}
           </span>
           {deltaLabel && (
             <span
-              className="text-[10px] font-bold"
+              className="text-[11px] font-bold"
               style={{ color: e.deltaMins > 5 ? '#34d399' : e.deltaMins < -5 ? '#f87171' : 'rgba(255,255,255,0.40)' }}
             >
               {deltaLabel}

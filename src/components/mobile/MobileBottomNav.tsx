@@ -71,7 +71,7 @@ export default function MobileBottomNav({ activeTab, onNavigate, visibleTabs, la
   return (
     <nav
       ref={navRef}
-      className="fixed bottom-0 left-0 right-0 h-20 border-t border-white/10 flex justify-around items-stretch px-2 z-[9999] md:hidden safe-area-pb" style={{ background: 'rgba(13,31,60,0.92)', backdropFilter: 'blur(20px)' }}
+      className="fixed bottom-0 left-0 right-0 h-20 border-t border-white/10 flex justify-around items-stretch px-2 z-[100] md:hidden safe-area-pb" style={{ background: 'rgba(13,31,60,0.92)', backdropFilter: 'blur(20px)' }}
       aria-label="Navigazione principale mobile"
     >
       {shown.map(({ tab, icon: Icon, label }) => {
@@ -93,7 +93,7 @@ export default function MobileBottomNav({ activeTab, onNavigate, visibleTabs, la
               strokeWidth={isActive ? 2.5 : 2}
               aria-hidden
             />
-            <span className={`text-[10px] font-bold uppercase tracking-tight truncate max-w-full text-center font-sans leading-none ${isActive ? 'opacity-100' : 'opacity-60'}`}>
+            <span className={`text-[11px] font-bold uppercase tracking-tight truncate max-w-full text-center font-sans leading-none ${isActive ? 'opacity-100' : 'opacity-60'}`}>
               {label}
             </span>
           </button>

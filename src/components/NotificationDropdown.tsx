@@ -158,7 +158,7 @@ export function NotificationDropdown({
                     </p>
 
                     {/* Tempo */}
-                    <p className="text-[10px] text-white/60 mt-1">
+                    <p className="text-[11px] text-white/60 mt-1">
                       {timeAgo}
                     </p>
                   </div>
@@ -180,8 +180,10 @@ export function NotificationDropdown({
           <button
             type="button"
             onClick={() => {
-              // TODO: Naviga a profilo con sezione messaggi
               onClose();
+              console.warn(
+                "[NotificationDropdown] Navigazione alla sezione messaggi del profilo non ancora implementata (nessuna rotta / query dedicata).",
+              );
             }}
             className="w-full text-center text-xs font-semibold text-accent hover:text-accent-hover transition-colors py-1"
           >

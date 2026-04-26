@@ -48,7 +48,7 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
               </div>
               
               {shift.department && (
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-[10px] font-black uppercase tracking-wider border border-white/15">
+                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-[11px] font-black uppercase tracking-wider border border-white/15">
                   {translateDepartmentValue(shift.department, language as any)}
                 </span>
               )}

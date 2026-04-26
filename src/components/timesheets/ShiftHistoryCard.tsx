@@ -90,12 +90,12 @@ export function ShiftHistoryCard({
               {title}
             </span>
             {!isUnlocked ? (
-              <span className="mt-0.5 block truncate text-[10px] font-medium text-amber-200/80">
+              <span className="mt-0.5 block truncate text-[11px] font-medium text-amber-200/80">
                 {t.ts_enter_manager_pin}
               </span>
             ) : null}
           </div>
-          <span className="shrink-0 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-200">
+          <span className="shrink-0 rounded-full bg-amber-500/20 px-2 py-0.5 text-[11px] font-bold text-amber-200">
             {totalCount}
           </span>
           {isUnlocked ? (
@@ -117,7 +117,7 @@ export function ShiftHistoryCard({
             {shiftEdits.length > 0 && (
               <div className="flex flex-col gap-2">
                 {punchAuditEntries.length > 0 && (
-                  <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-amber-300/90">
+                  <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-amber-300/90">
                     <History className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
                     {t.ts_drawer_shift_edits}
                   </p>
@@ -127,7 +127,7 @@ export function ShiftHistoryCard({
                     key={e.id}
                     className="rounded-lg border border-amber-400/25 bg-amber-500/10 p-2.5"
                   >
-                    <div className="mb-1 flex items-center justify-between text-[10px] text-white/50">
+                    <div className="mb-1 flex items-center justify-between text-[11px] text-white/50">
                       <span className="font-semibold text-amber-300">
                         {humanizeFieldName(e.field || '')}
                       </span>
@@ -142,7 +142,7 @@ export function ShiftHistoryCard({
                         {fmtAuditValue(e.newValue)}
                       </span>
                     </div>
-                    <p className="mt-1 text-[10px] text-white/50">{t.edited_by_prefix} {e.actorName}</p>
+                    <p className="mt-1 text-[11px] text-white/50">{t.edited_by_prefix} {e.actorName}</p>
                   </div>
                 ))}
               </div>
@@ -157,7 +157,7 @@ export function ShiftHistoryCard({
                       className="my-1 border-t border-white/10"
                       role="separator"
                     />
-                    <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-orange-300/90">
+                    <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-orange-300/90">
                       <ShieldAlert className="h-3.5 w-3.5 shrink-0" aria-hidden />
                       {t.ts_drawer_punch_edits}
                     </p>
@@ -168,7 +168,7 @@ export function ShiftHistoryCard({
                     key={e.id}
                     className="rounded-lg border border-orange-400/25 bg-orange-500/10 p-2.5"
                   >
-                    <div className="mb-1 flex items-center justify-between text-[10px] text-white/50">
+                    <div className="mb-1 flex items-center justify-between text-[11px] text-white/50">
                       <span className="font-semibold text-orange-300">
                         {humanizeFieldName(e.field || '')}
                       </span>
@@ -183,7 +183,7 @@ export function ShiftHistoryCard({
                         {fmtAuditValue(e.new_value)}
                       </span>
                     </div>
-                    <p className="mt-1 text-[10px] text-white/50">{t.edited_by_prefix} {e.actor_name}</p>
+                    <p className="mt-1 text-[11px] text-white/50">{t.edited_by_prefix} {e.actor_name}</p>
                   </div>
                 ))}
               </div>
