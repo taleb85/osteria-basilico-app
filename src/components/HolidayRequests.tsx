@@ -198,7 +198,7 @@ export default function HolidayRequests() {
   const labelStyle = { color: 'rgba(255,255,255,0.60)' } as React.CSSProperties;
 
   return (
-    <div className="pb-content pt-2 w-full max-w-full font-sans min-h-[calc(100dvh-140px)]">
+    <div className="pb-content pt-2 w-full max-w-full font-sans min-h-[calc(100dvh-140px)] flex flex-col">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -368,10 +368,10 @@ export default function HolidayRequests() {
       </AnimatePresence>
 
       {/* ── Layout ────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 md:items-start">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 md:items-stretch flex-1">
 
         {/* Left: calendar */}
-        <div className="md:col-span-1 space-y-4">
+        <div className="md:col-span-1 space-y-4 h-full">
           {uiW('ferie.calendar') && (
           <div className="surface-glass p-4" style={{ background: 'rgba(255, 255, 255, 0.16)', border: '1px solid rgba(255, 255, 255, 0.14)' }}>
             <div className="flex items-center justify-between mb-4">
@@ -486,11 +486,11 @@ export default function HolidayRequests() {
         </div>
 
         {/* Right: admin panels */}
-        <div className="md:col-span-2 space-y-4">
+        <div className="md:col-span-2 space-y-4 h-full">
 
           {/* Pending (manager) */}
           {isAdmin && uiW('ferie.list') && pendingAll.length > 0 && (
-            <div className="surface-glass overflow-hidden">
+            <div className="surface-glass overflow-hidden h-full">
               <div className="px-5 py-4 border-b border-[#60a5fa]/15 flex items-center justify-between">
                 <h3 className="text-white font-semibold text-xl">{t.pending}</h3>
                 <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200/80">{pendingAll.length}</span>
