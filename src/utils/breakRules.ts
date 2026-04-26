@@ -211,6 +211,14 @@ export function calculateBreakDeductionsSafe(
 /** Durata pausa predefinita per turni > 6 ore (minuti). */
 export const DEFAULT_AUTO_BREAK_MINUTES = 30;
 
+/** ID sintetici in `deduct_excluded_rule_ids` per escludere pranzo/cena nel percorso pausa auto (≥6h, senza regole admin). */
+export const FLOW_MEAL_EXCLUSION_LUNCH = '__flow_meal_lunch' as const;
+export const FLOW_MEAL_EXCLUSION_DINNER = '__flow_meal_dinner' as const;
+
+export function flowMealExclusionId(meal: 'lunch' | 'dinner'): string {
+  return meal === 'lunch' ? FLOW_MEAL_EXCLUSION_LUNCH : FLOW_MEAL_EXCLUSION_DINNER;
+}
+
 /** Soglia turno per pausa automatica: 6 ore in minuti. */
 export const AUTO_BREAK_THRESHOLD_MINUTES = 6 * 60;
 
@@ -304,9 +312,11 @@ export function getBreakMinutesForShift(
   if (shift.is_auto_break === false) {
     return 0;
   }
-  const mealCount = getBreakLabels(startStr, endStr).length;
-  if (mealCount > 0) {
-    return mealCount * DEFAULT_AUTO_BREAK_MINUTES;
+  const mealKeys = getBreakLabels(startStr, endStr);
+  if (mealKeys.length > 0) {
+    const ex = new Set(shift.deduct_excluded_rule_ids ?? []);
+    const active = mealKeys.filter((k) => !ex.has(flowMealExclusionId(k)));
+    return active.length * DEFAULT_AUTO_BREAK_MINUTES;
   }
   return DEFAULT_AUTO_BREAK_MINUTES;
 }
@@ -367,13 +377,32 @@ export function getBreakDeductionDisplayItems(
     if (!st || !en || !d) return [];
     return getPlannedBreakDeductionLines({ start_time: st, end_time: en, date: d }, user, active);
   }
+  const startStr = (options?.breakRuleWindow?.start ?? shift.start_time ?? '').slice(0, 5);
+  const endStr = (options?.breakRuleWindow?.end ?? shift.end_time ?? '').slice(0, 5);
+  /** Pranzo/cena (fasce) con interruttori separati — prima del return per total ≤ 0. */
+  if (
+    (options?.autoBreaksFeatureEnabled !== false) &&
+    startStr &&
+    endStr &&
+    toMinutes(endStr) > toMinutes(startStr) &&
+    grossMinutes >= AUTO_BREAK_THRESHOLD_MINUTES &&
+    shift.is_auto_break !== false &&
+    !(shift.break_minutes != null && shift.break_minutes > 0)
+  ) {
+    const mealKeys = getBreakLabels(startStr, endStr);
+    if (mealKeys.length > 0) {
+      return mealKeys.map((k) => ({
+        title: k === 'lunch' ? i18n.lunch : i18n.dinner,
+        minutes: DEFAULT_AUTO_BREAK_MINUTES,
+        ruleId: flowMealExclusionId(k),
+      }));
+    }
+  }
   const total = getBreakMinutesForShift(shift, grossMinutes, user, rules, options);
   if (total <= 0) return [];
   if (shift.break_minutes != null && shift.break_minutes > 0) {
     return [{ title: i18n.fromShift, minutes: total }];
   }
-  const startStr = (options?.breakRuleWindow?.start ?? shift.start_time ?? '').slice(0, 5);
-  const endStr = (options?.breakRuleWindow?.end ?? shift.end_time ?? '').slice(0, 5);
   if (
     (options?.autoBreaksFeatureEnabled !== false) &&
     startStr &&
@@ -383,13 +412,6 @@ export function getBreakDeductionDisplayItems(
   ) {
     if (shift.is_auto_break === false) {
       return [];
-    }
-    const mealKeys = getBreakLabels(startStr, endStr);
-    if (mealKeys.length > 0) {
-      return mealKeys.map((k) => ({
-        title: k === 'lunch' ? i18n.lunch : i18n.dinner,
-        minutes: DEFAULT_AUTO_BREAK_MINUTES,
-      }));
     }
     return [{ title: i18n.auto, minutes: total }];
   }

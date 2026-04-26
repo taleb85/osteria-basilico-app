@@ -4710,10 +4710,15 @@ export default function Timesheets() {
             fullShift.break_minutes > 0 &&
             fullShift.is_auto_break !== true
           );
+          /** Pranzo/cena (fasce) con ruleId: interruttori sotto «Detrae pausa»; niente secondo blocco «pausa auto». */
+          const hasPerMealAutoBreak = !!(
+            deductBreakLineItemsAll?.some((it) => it.ruleId?.startsWith('__flow_meal_')) ?? false
+          );
           const showAutoBreakSubToggle = !!(
             fullShift &&
             !hasManualNonAutoBreak &&
             !hasAdminBreakRules &&
+            !hasPerMealAutoBreak &&
             featureFlags['auto_breaks'] !== false &&
             grossForBreakReadout >= AUTO_BREAK_THRESHOLD_MINUTES
           );
