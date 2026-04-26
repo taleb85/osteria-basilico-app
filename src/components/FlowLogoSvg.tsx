@@ -67,28 +67,26 @@ export interface FlowLogoSvgProps {
 function IconApp160({
   uid,
   color,
-  s: W = 160,
-  r: scale = 1,
+  s = 160,
+  r = 1,
 }: {
   uid: string;
   color: FlowLogoSvgColor;
-  /** Lato viewBox (px). */
   s?: number;
-  /** s / 160; moltiplicatore per le misure di design. */
   r?: number;
 }) {
   const { a, b } = fillsForColor(color);
   const { tw: tw0, th: th0, gap: gap0, br: br0, fw: fw0 } = APP;
-  const tw = tw0 * scale;
-  const th = th0 * scale;
-  const gap = gap0 * scale;
-  const br = br0 * scale;
+  const tw = tw0 * r;
+  const th = th0 * r;
+  const gap = gap0 * r;
+  const br = br0 * r;
   const pillR = th / 2;
-  const fw: [number, number, number] = [fw0[0] * scale, fw0[1] * scale, fw0[2] * scale];
+  const fw: [number, number, number] = [fw0[0] * r, fw0[1] * r, fw0[2] * r];
   const totalH = 3 * th + 2 * gap;
-  const startY = (W - totalH) / 2;
-  const startX = (W - tw) / 2;
-  const glossH = W * 0.52;
+  const startY = (s - totalH) / 2;
+  const startX = (s - tw) / 2;
+  const glossH = s * 0.52;
 
   return (
     <>
@@ -101,10 +99,10 @@ function IconApp160({
           <stop offset="100%" stopColor={FACE.gloss2} />
         </linearGradient>
         <clipPath id={`${uid}-ic`}>
-          <rect width={W} height={W} rx={br} />
+          <rect width={s} height={s} rx={br} />
         </clipPath>
       </defs>
-      <rect width={W} height={W} rx={br} fill={`url(#${uid}-face)`} />
+      <rect width={s} height={s} rx={br} fill={`url(#${uid}-face)`} />
       {[0, 1, 2].map((i) => {
         const y = startY + i * (th + gap);
         const gradId = i === 1 ? `${uid}-fb` : `${uid}-fa`;
@@ -115,7 +113,7 @@ function IconApp160({
           </g>
         );
       })}
-      <rect x="0" y="0" width={W} height={glossH} fill={`url(#${uid}-gloss)`} clipPath={`url(#${uid}-ic)`} />
+      <rect x="0" y="0" width={s} height={glossH} fill={`url(#${uid}-gloss)`} clipPath={`url(#${uid}-ic)`} />
     </>
   );
 }
