@@ -78,20 +78,30 @@ function plannedStartMinutes(s: Shift): number {
 }
 
 /**
- * Non assenti: prima slot pranzo (ora < 16), poi slot cena (ora ≥ 16, inclusa 16:00);
- * dentro ogni slot, ordine per ora pianificata.
+ * Stessa griglia a 2 slot del tabellone: prima riga = pranzo (ora < 16), seconda = cena (ora ≥ 16).
+ * La cena è sempre disegnata sulla seconda riga (y+12), anche se non c’è pranzo.
  */
-function sortShiftsLunchBlockThenEvening(dayShifts: Shift[]): Shift[] {
-  const work = dayShifts.filter((s) => !isShiftAbsent(s));
-  return [...work].sort((a, b) => {
-    const evA = isEveningSlot(a) ? 1 : 0;
-    const evB = isEveningSlot(b) ? 1 : 0;
-    if (evA !== evB) return evA - evB;
-    return plannedStartMinutes(a) - plannedStartMinutes(b);
-  });
+function splitDayShiftsLunchEvening(rowShifts: Shift[]): {
+  lunch: Shift | null;
+  evening: Shift | null;
+  extra: number;
+} {
+  const work = rowShifts.filter((s) => !isShiftAbsent(s));
+  const lunchList = work
+    .filter((s) => !isEveningSlot(s))
+    .sort((a, b) => plannedStartMinutes(a) - plannedStartMinutes(b));
+  const eveningList = work
+    .filter((s) => isEveningSlot(s))
+    .sort((a, b) => plannedStartMinutes(a) - plannedStartMinutes(b));
+  const lunch = lunchList[0] ?? null;
+  const evening = eveningList[0] ?? null;
+  const shown = (lunch ? 1 : 0) + (evening ? 1 : 0);
+  const extra = Math.max(0, work.length - shown);
+  return { lunch, evening, extra };
 }
 
-function totalHours(
+/** Totale minuti lavoro netti (settimana riga) → `22:30` in stile durata, senza "h". */
+function totalWeekMinutesToHHmm(
   shifts: Shift[],
   user: User,
   breakRules: BreakRule[],
@@ -102,10 +112,10 @@ function totalHours(
     const { start, end } = getResolvedStartEndForHours(s, punchRecords);
     return sum + getNetShiftMinutes(s, start, end, user, breakRules, breakComputeOpts);
   }, 0);
-  if (mins === 0) return '';
+  if (mins <= 0) return '';
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  return m > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${h}h`;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
@@ -327,35 +337,33 @@ export async function exportSchedulePDF(
         userShifts.push(...dayShifts);
 
         const x = MARGIN + NAME_W + i * DAY_W;
-        const ordered = sortShiftsLunchBlockThenEvening(dayShifts);
+        const { lunch, evening, extra } = splitDayShiftsLunchEvening(dayShifts);
 
-        if (ordered.length > 0) {
-          ordered.slice(0, 2).forEach((s, si) => {
-            const { start, end } = getResolvedStartEndForHours(s, punchRecords);
-            const cleanStart = cleanTimeFormat(start);
-            const cleanEnd = cleanTimeFormat(end);
-            const timeStr = `${cleanStart}–${cleanEnd}`;
-
-            const statusColor = STATUS_COLOR_MINIMAL[s.approval_status] ?? BLACK;
-            const statusWeight = STATUS_WEIGHT[s.approval_status] ?? 'normal';
-
-            doc.setTextColor(...statusColor);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', statusWeight);
-            doc.text(timeStr, x + 3, y + 6 + si * 6);
-          });
-          if (ordered.length > 2) {
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(...GRAY_TEXT);
-            doc.text(`+${ordered.length - 2}`, x + DAY_W - 8, y + DATA_ROW - 3);
-          }
+        const writeShift = (s: Shift, lineIdx: 0 | 1) => {
+          const { start, end } = getResolvedStartEndForHours(s, punchRecords);
+          const cleanStart = cleanTimeFormat(start);
+          const cleanEnd = cleanTimeFormat(end);
+          const timeStr = `${cleanStart}–${cleanEnd}`;
+          const statusColor = STATUS_COLOR_MINIMAL[s.approval_status] ?? BLACK;
+          const statusWeight = STATUS_WEIGHT[s.approval_status] ?? 'normal';
+          doc.setTextColor(...statusColor);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', statusWeight);
+          doc.text(timeStr, x + 3, y + 6 + lineIdx * 6);
+        };
+        if (lunch) writeShift(lunch, 0);
+        if (evening) writeShift(evening, 1);
+        if (extra > 0) {
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(...GRAY_TEXT);
+          doc.text(`+${extra}`, x + DAY_W - 8, y + DATA_ROW - 3);
         }
       });
 
       // Total cell
       const totX2 = MARGIN + NAME_W + numDays * DAY_W;
-      const weekTotal = totalHours(userShifts, user, breakRules, breakComputeOpts, punchRecords);
+      const weekTotal = totalWeekMinutesToHHmm(userShifts, user, breakRules, breakComputeOpts, punchRecords);
       if (weekTotal) {
         doc.setTextColor(...BLACK);
         doc.setFontSize(12);
