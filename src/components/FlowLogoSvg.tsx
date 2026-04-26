@@ -60,18 +60,31 @@ export interface FlowLogoSvgProps {
   style?: CSSProperties;
   wordmark?: 'onLight' | 'onDark';
   headerBar?: boolean;
+  /** Solo `icon-only`: lato in px (default 160). */
+  size?: number;
 }
 
 function IconApp160({
   uid,
   color,
+  s: W = 160,
+  r: scale = 1,
 }: {
   uid: string;
   color: FlowLogoSvgColor;
+  /** Lato viewBox (px). */
+  s?: number;
+  /** s / 160; moltiplicatore per le misure di design. */
+  r?: number;
 }) {
   const { a, b } = fillsForColor(color);
-  const { W, tw, th, gap, br, fw } = APP;
-  const r = th / 2;
+  const { tw: tw0, th: th0, gap: gap0, br: br0, fw: fw0 } = APP;
+  const tw = tw0 * scale;
+  const th = th0 * scale;
+  const gap = gap0 * scale;
+  const br = br0 * scale;
+  const pillR = th / 2;
+  const fw: [number, number, number] = [fw0[0] * scale, fw0[1] * scale, fw0[2] * scale];
   const totalH = 3 * th + 2 * gap;
   const startY = (W - totalH) / 2;
   const startX = (W - tw) / 2;
@@ -97,8 +110,8 @@ function IconApp160({
         const gradId = i === 1 ? `${uid}-fb` : `${uid}-fa`;
         return (
           <g key={i}>
-            <rect x={startX} y={y} width={tw} height={th} rx={r} fill={FACE.track} />
-            <rect x={startX} y={y} width={fw[i]} height={th} rx={r} fill={`url(#${gradId})`} />
+            <rect x={startX} y={y} width={tw} height={th} rx={pillR} fill={FACE.track} />
+            <rect x={startX} y={y} width={fw[i]} height={th} rx={pillR} fill={`url(#${gradId})`} />
           </g>
         );
       })}
@@ -202,6 +215,7 @@ export default function FlowLogoSvg({
   style,
   wordmark = 'onDark',
   headerBar = false,
+  size,
 }: FlowLogoSvgProps) {
   const rawId = useId().replace(/:/g, '');
   const c = (color in FILLS ? color : 'orange') as FlowLogoSvgColor;
@@ -209,11 +223,13 @@ export default function FlowLogoSvg({
   const uidH = `${rawId}-fh`;
 
   if (variant === 'icon-only') {
+    const s = size ?? 160;
+    const r = s / 160;
     return (
       <svg
-        width={160}
-        height={160}
-        viewBox="0 0 160 160"
+        width={s}
+        height={s}
+        viewBox={`0 0 ${s} ${s}`}
         className={className}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -222,7 +238,7 @@ export default function FlowLogoSvg({
         style={{ maxWidth: '100%', height: 'auto', display: 'block', lineHeight: 0, ...style }}
       >
         <title>FLOW</title>
-        <IconApp160 uid={uid} color={c} />
+        <IconApp160 uid={uid} color={c} s={s} r={r} />
       </svg>
     );
   }
