@@ -4176,7 +4176,7 @@ export default function Timesheets() {
                           <tr
                             key={user.id}
                             className={`depth-row last:border-b-0`}
-                            style={{ background: userIdx % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.07)' }}
+                            style={{ background: userIdx % 2 === 0 ? 'rgba(20,45,110,0.60)' : 'rgba(20,45,110,0.70)' }}
                           >
                       {/* Nome dipendente — click → revisione settimana (coda turni) */}
                       <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-white/10 z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: userIdx % 2 === 0 ? 'rgba(30, 55, 120, 0.80)' : 'rgba(30, 55, 120, 0.70)', boxShadow: 'none', backdropFilter: 'blur(8px)' }}>
