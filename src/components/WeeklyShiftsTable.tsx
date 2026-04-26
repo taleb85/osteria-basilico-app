@@ -3754,7 +3754,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           <div
             ref={flatBodyScrollRef}
             className="overflow-hidden rounded-2xl"
-            style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255, 255, 255, 0.12)' }}
+            style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(42, 74, 138, 0.55)' }}
           >
             {(() => {
               const _isDarkGrid = true;
