@@ -208,12 +208,7 @@ function MyShiftsSection({
                       key={i}
                       className="flex flex-col items-center gap-1 cursor-pointer"
                       onClick={() => {
-                        setSelectedDayKey(prev => prev === key ? null : key);
-                        setClosedWeeks(prev => {
-                          const next = new Set(prev);
-                          next.delete(wIdx);
-                          return next;
-                        });
+                        setSelectedDayKey((prev) => (prev === key ? null : key));
                       }}
                     >
                       <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#60a5fa]' : 'text-white/55'}`}>

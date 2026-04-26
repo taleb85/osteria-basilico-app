@@ -1,7 +1,7 @@
 import { Play, LogOut, ChevronRight, Clock, RotateCcw } from 'lucide-react';
 import HeaderTodayCoworkersCard from '../HeaderTodayCoworkersCard';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
-import { startOfWeek, addDays, format, isToday } from 'date-fns';
+import { startOfWeek, addDays, format, isToday, type Locale } from 'date-fns';
 
 export interface MobileHomeProps {
   onRefresh?: () => Promise<void> | void;

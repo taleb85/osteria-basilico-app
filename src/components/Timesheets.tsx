@@ -4702,13 +4702,13 @@ export default function Timesheets() {
             !s.isCrossDay &&
             !s.hasMissingOut;
           const grossForBreakReadout = canUseActualForBreakReadout
-            ? calculateShiftMinutesGross(s.actualStart, s.actualEnd)
+            ? calculateShiftMinutesGross(s.actualStart as string, s.actualEnd as string)
             : grossPlannedForBreakReadout;
           const breakReadoutOpts: BreakMinutesComputeOptions = {
             ...breakComputeOpts,
             ...(s.displayFromFrozenApprovedTimes ? { autoBreaksFeatureEnabled: false } : {}),
             ...(canUseActualForBreakReadout
-              ? { breakRuleWindow: { start: s.actualStart, end: s.actualEnd } }
+              ? { breakRuleWindow: { start: s.actualStart as string, end: s.actualEnd as string } }
               : {}),
           };
           const deductBreakLineItemsAll =

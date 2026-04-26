@@ -343,7 +343,10 @@ export function ShiftHoursCards({
                           className="peer sr-only"
                           checked={!ruleExclusion.has(it.ruleId)}
                           disabled={deductBreakSaving}
-                          onChange={() => onDeductPerRuleChange(s.id, it.ruleId!, ruleExclusion.has(it.ruleId))}
+                          onChange={() =>
+                            it.ruleId != null &&
+                            onDeductPerRuleChange(s.id, it.ruleId, ruleExclusion.has(it.ruleId))
+                          }
                         />
                         <div
                           className={`h-5 w-9 rounded-full transition-colors duration-200 ${
