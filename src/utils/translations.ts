@@ -1268,6 +1268,10 @@ const baseIt = {
   wst_punch_mode_frozen: 'Valore congelato in contabilità',
   wst_drawer_hours_summary: 'Ore nette (dopo pausa)',
   wst_drawer_break_deducted_readout: 'La pausa viene detratta dalle ore nette.',
+  wst_drawer_breaks_deducted_list_intro:
+    'Le pause non retribuite configurate vengono detratte dalle ore nette (una riga per ogni pausa):',
+  ts_deduct_break_from_shift: 'Pausa (minuti turno)',
+  ts_deduct_break_auto: 'Pausa automatica (≥6h)',
   wst_drawer_break_toggle: 'Cambia',
   wst_drawer_planned_short: 'Stimato · pianificato',
   wst_drawer_actual_short: 'Effettivo · timbrature',
@@ -2781,6 +2785,10 @@ const baseEn: Record<string, string> = {
   wst_punch_mode_frozen: 'Payroll-frozen value',
   wst_drawer_hours_summary: 'Net hours (after break)',
   wst_drawer_break_deducted_readout: 'Break time is deducted from net hours.',
+  wst_drawer_breaks_deducted_list_intro:
+    'Each configured unpaid break is deducted from net hours (one line per break):',
+  ts_deduct_break_from_shift: 'Break (shift minutes)',
+  ts_deduct_break_auto: 'Automatic break (≥6h)',
   wst_drawer_break_toggle: 'Change',
   wst_drawer_planned_short: 'Planned estimate',
   wst_drawer_actual_short: 'Actual · punches',
@@ -4309,6 +4317,10 @@ const baseEs: Record<string, string> = {
   wst_punch_mode_frozen: 'Valor congelado en contabilidad',
   wst_drawer_hours_summary: 'Horas netas (tras pausa)',
   wst_drawer_break_deducted_readout: 'La pausa se descuenta de las horas netas.',
+  wst_drawer_breaks_deducted_list_intro:
+    'Cada pausa no remunerada configurada se descuenta de las horas netas (una línea por pausa):',
+  ts_deduct_break_from_shift: 'Pausa (minutos del turno)',
+  ts_deduct_break_auto: 'Pausa automática (≥6h)',
   wst_drawer_break_toggle: 'Cambiar',
   wst_drawer_planned_short: 'Estimado · planificado',
   wst_drawer_actual_short: 'Efectivo · fichajes',
@@ -5264,6 +5276,10 @@ const baseFr: Record<string, string> = {
   wst_punch_mode_frozen: 'Valeur figée en paie',
   wst_drawer_hours_summary: 'Heures nettes (après pause)',
   wst_drawer_break_deducted_readout: 'La pause est déduite des heures nettes.',
+  wst_drawer_breaks_deducted_list_intro:
+    'Chaque pause non payante configurée est déduite des heures nettes (une ligne par pause) :',
+  ts_deduct_break_from_shift: 'Pause (minutes du poste)',
+  ts_deduct_break_auto: 'Pause automatique (≥6h)',
   wst_drawer_break_toggle: 'Modifier',
   wst_drawer_planned_short: 'Estimé · planifié',
   wst_drawer_actual_short: 'Effectif · pointages',

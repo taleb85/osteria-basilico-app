@@ -69,6 +69,9 @@ interface ShiftHoursCardsProps {
   /** Traduzione */
   t: Record<string, string>;
   tv: Record<string, string>;
+  
+  /** Voci sotto l’interruttore (regole: una per pausa); opzionale */
+  deductBreakLineItems?: { title: string; minutes: number }[];
 }
 
 /**
@@ -95,6 +98,7 @@ export function ShiftHoursCards({
   punchSourceLabel,
   t,
   tv,
+  deductBreakLineItems,
 }: ShiftHoursCardsProps) {
   return (
     <div className="border-b border-white/10 px-5 py-7 sm:px-6 sm:py-8 shrink-0"
@@ -273,11 +277,37 @@ export function ShiftHoursCards({
           </div>
           <div className="min-w-0 flex-1">
             <p className={`text-xs font-semibold ${fullShift.deduct_break !== false ? 'text-white' : 'text-white/70'}`}>{t.deduct_break_label}</p>
-            <p className="mt-0.5 text-[11px] leading-snug text-white/50">
-              {fullShift.deduct_break !== false
-                ? tv.wst_drawer_break_deducted_readout
-                : tv.wst_create_shift_no_deduct_badge}
-            </p>
+            {fullShift.deduct_break !== false ? (
+              (deductBreakLineItems && deductBreakLineItems.length > 1) ? (
+                <div className="mt-0.5 space-y-1.5 text-[11px] leading-snug text-white/50">
+                  <p>{t.wst_drawer_breaks_deducted_list_intro}</p>
+                  <ul className="list-none space-y-0.5 pl-0 text-white/70">
+                    {deductBreakLineItems.map((it) => (
+                      <li key={`${it.title}-${it.minutes}`} className="flex flex-wrap items-baseline justify-between gap-x-2 tabular-nums">
+                        <span className="font-medium text-white/80">{it.title}</span>
+                        <span>−{fmtBreakDeductionShort(it.minutes)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (deductBreakLineItems && deductBreakLineItems.length === 1) ? (
+                <div className="mt-0.5 space-y-0.5 text-[11px] leading-snug text-white/50">
+                  <p className="flex flex-wrap items-baseline justify-between gap-x-2 text-white/75 tabular-nums">
+                    <span className="font-medium text-white/85">{deductBreakLineItems[0].title}</span>
+                    <span>−{fmtBreakDeductionShort(deductBreakLineItems[0].minutes)}</span>
+                  </p>
+                  <p className="text-white/50">{tv.wst_drawer_break_deducted_readout}</p>
+                </div>
+              ) : (
+                <p className="mt-0.5 text-[11px] leading-snug text-white/50">
+                  {tv.wst_drawer_break_deducted_readout}
+                </p>
+              )
+            ) : (
+              <p className="mt-0.5 text-[11px] leading-snug text-white/50">
+                {tv.wst_create_shift_no_deduct_badge}
+              </p>
+            )}
           </div>
         </label>
       )}

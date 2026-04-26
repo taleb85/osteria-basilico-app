@@ -118,37 +118,37 @@ function toMinutes(hhmm: string): number {
  *
  * Restituisce 0 se il campo `paid` è true (pausa retribuita → non detrae).
  */
-export function calculateBreakDeductions(
+export type BreakDeductionLine = { title: string; minutes: number };
+
+/**
+ * Riga per riga le pause non retribuite (regole) che si applicano al turno
+ * (stessi criteri di `calculateBreakDeductions`).
+ */
+export function getPlannedBreakDeductionLines(
   shift: { start_time: string; end_time: string; date: string },
   user: { department?: string | null; role: string },
   rules: BreakRule[]
-): number {
-  if (!rules.length) return 0;
+): BreakDeductionLine[] {
+  if (!rules.length) return [];
 
   const shiftStart = toMinutes(shift.start_time);
   const shiftEndRaw = toMinutes(shift.end_time);
   let shiftDuration = shiftEndRaw - shiftStart;
   if (shiftDuration < 0) shiftDuration += 24 * 60;
-  /** Fine turno in minuti dalla mezzanotte del giorno del turno (notte: 16:00→00:00 ⇒ fino a 1440, non 0). */
   const shiftSpanEnd = shiftEndRaw <= shiftStart ? shiftEndRaw + 24 * 60 : shiftEndRaw;
 
-  let totalDeduction = 0;
+  const lines: BreakDeductionLine[] = [];
 
   for (const rule of rules) {
-    // Salta regole disabilitate
     if (rule.enabled === false) continue;
-    // Filtro reparto
     if (rule.departments.length > 0 && !departmentMatchesBreakRuleDepartments(user.department, rule.departments)) continue;
-    // Filtro ruolo
     if (rule.roles.length > 0 && !rule.roles.includes(user.role)) continue;
 
-    // Filtro giorni settimana
     if (rule.daysOfWeek.length > 0) {
       const dow = getDay(parseISO(shift.date)) as DayOfWeek;
       if (!rule.daysOfWeek.includes(dow)) continue;
     }
 
-    // Filtro date validità
     if (rule.validFrom || rule.validTo) {
       try {
         const shiftDate = parseISO(shift.date);
@@ -160,29 +160,36 @@ export function calculateBreakDeductions(
       }
     }
 
-    // Durata minima turno (disattivabile per regola)
     if (rule.minShiftDurationEnabled !== false && shiftDuration < rule.minShiftMinutes) continue;
 
-    // Controlla se la finestra pausa si sovrappone al turno
     const breakStart = toMinutes(rule.breakStart);
     const breakEnd = toMinutes(rule.breakEnd);
     const breakDuration = Math.max(0, breakEnd - breakStart);
 
-    const overlapStart = Math.max(shiftStart, breakStart);
     const overlapEnd = Math.min(shiftSpanEnd, breakEnd);
+    const overlapStart = Math.max(shiftStart, breakStart);
     if (overlapEnd <= overlapStart) continue;
 
-    // La pausa scatta solo se il turno copre interamente la finestra
     const shiftCoversBreak = shiftStart <= breakStart && shiftSpanEnd >= breakEnd;
     if (!shiftCoversBreak) continue;
 
-    // Pausa non retribuita → detrae; retribuita → non detrae
-    if (!rule.paid) {
-      totalDeduction += breakDuration;
+    if (!rule.paid && breakDuration > 0) {
+      lines.push({
+        title: (rule.title && rule.title.trim()) || 'Pausa',
+        minutes: breakDuration,
+      });
     }
   }
 
-  return totalDeduction;
+  return lines;
+}
+
+export function calculateBreakDeductions(
+  shift: { start_time: string; end_time: string; date: string },
+  user: { department?: string | null; role: string },
+  rules: BreakRule[]
+): number {
+  return getPlannedBreakDeductionLines(shift, user, rules).reduce((sum, l) => sum + l.minutes, 0);
 }
 
 /**
@@ -297,4 +304,44 @@ export function getNetShiftMinutes(
   const bm = Number.isFinite(breakMins) ? breakMins : 0;
   const net = gross - bm;
   return Math.max(0, Number.isFinite(net) ? net : 0);
+}
+
+/**
+ * Voci per il testo sotto l’interruttore «Detrae pausa» nel drawer presenze.
+ * Con regole attive: **una riga per ogni pausa non retribuita**; altrimenti una riga con etichetta i18n.
+ */
+export function getBreakDeductionDisplayItems(
+  shift: { start_time?: string; end_time?: string; date?: string; deduct_break?: boolean; break_minutes?: number },
+  grossMinutes: number,
+  user: { department?: string | null; role: string } | null | undefined,
+  rules: BreakRule[] | null | undefined,
+  options: BreakMinutesComputeOptions | undefined,
+  i18n: { fromShift: string; auto: string }
+): BreakDeductionLine[] {
+  if (shift.deduct_break === false) return [];
+  const active = getActiveBreakRules(rules);
+  if (user && active.length > 0) {
+    const st = (shift.start_time ?? '').slice(0, 5);
+    const en = (shift.end_time ?? '').slice(0, 5);
+    const d = shift.date ?? '';
+    if (!st || !en || !d) return [];
+    return getPlannedBreakDeductionLines({ start_time: st, end_time: en, date: d }, user, active);
+  }
+  const total = getBreakMinutesForShift(shift, grossMinutes, user, rules, options);
+  if (total <= 0) return [];
+  if (shift.break_minutes != null && shift.break_minutes > 0) {
+    return [{ title: i18n.fromShift, minutes: total }];
+  }
+  const startStr = (options?.breakRuleWindow?.start ?? shift.start_time ?? '').slice(0, 5);
+  const endStr = (options?.breakRuleWindow?.end ?? shift.end_time ?? '').slice(0, 5);
+  if (
+    (options?.autoBreaksFeatureEnabled !== false) &&
+    startStr &&
+    endStr &&
+    toMinutes(endStr) > toMinutes(startStr) &&
+    grossMinutes >= AUTO_BREAK_THRESHOLD_MINUTES
+  ) {
+    return [{ title: i18n.auto, minutes: total }];
+  }
+  return [{ title: i18n.fromShift, minutes: total }];
 }

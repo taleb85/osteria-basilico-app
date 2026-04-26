@@ -31,6 +31,7 @@ import {
 import {
   getBreakMinutesForShift,
   getNetShiftMinutes,
+  getBreakDeductionDisplayItems,
   type BreakMinutesComputeOptions,
   type BreakRule,
 } from '../utils/breakRules';
@@ -4600,6 +4601,24 @@ export default function Timesheets() {
         {drawerData && (() => {
           const s = drawerData.shift;
           const fullShift = shifts.find((sh) => sh.id === s.id);
+          const userForBreakReadout = users.find((u) => u.id === drawerData.userId);
+          const grossPlannedForBreakReadout = fullShift
+            ? calculateShiftMinutesGross(
+                (fullShift.start_time || '').slice(0, 5),
+                (fullShift.end_time || '').slice(0, 5)
+              )
+            : 0;
+          const deductBreakLineItems =
+            fullShift && userForBreakReadout
+              ? getBreakDeductionDisplayItems(
+                  fullShift,
+                  grossPlannedForBreakReadout,
+                  userForBreakReadout,
+                  breakRules,
+                  breakComputeOpts,
+                  { fromShift: t.ts_deduct_break_from_shift, auto: t.ts_deduct_break_auto }
+                )
+              : undefined;
           
           // Utility function per calcolo permessi drawer
           const permissions = calculateDrawerPermissions({
@@ -4905,6 +4924,7 @@ export default function Timesheets() {
                     punchSourceLabel={punchSourceLabel}
                     t={t}
                     tv={tv}
+                    deductBreakLineItems={deductBreakLineItems}
                   />
 
                   {/* Storico: modifiche turno + audit timbrature — stessa scheda ambra, dettaglio dopo PIN */}
