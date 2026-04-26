@@ -76,7 +76,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const pinInputRef = useRef<HTMLInputElement>(null);
   const staffNameInputRef = useRef<HTMLInputElement>(null);
   const loginBtnRef = useRef<HTMLButtonElement>(null);
-  const lastFocusedInviteRef = useRef<string | null>(null);
   /** /profilo: lingua da browser/OS (navigator.languages), non ultimo profilo in localStorage */
   const [loginLang, setLoginLang] = useState<LangType>(() => getDeviceUiLanguage());
   const t = getTranslations(loginLang);
@@ -137,11 +136,23 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     if (invitePinFromUrl) setPassword(invitePinFromUrl);
   }, [inviteUserId, inviteNameFromUrl, invitePinFromUrl, linkedUser]);
 
+  /**
+   * Quando il form diventa visibile (dopo "Tap to start"), sposta il focus sull'input giusto.
+   * Prima gli input non sono montati: autoFocus da solo non basta, soprattutto su iOS.
+   */
   useEffect(() => {
-    if (!inviteUserId && !inviteNameFromUrl && !invitePinFromUrl) {
-      lastFocusedInviteRef.current = null;
-      return;
-    }
+    if (!showForm) return;
+    if (isInviteLink) return;
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        staffNameInputRef.current?.focus();
+      });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [showForm, isInviteLink]);
+
+  useEffect(() => {
+    if (!showForm || !isInviteLink) return;
     const hasNameHint =
       Boolean(inviteNameFromUrl) ||
       Boolean(
@@ -149,15 +160,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           linkedUser &&
           `${linkedUser.first_name} ${linkedUser.last_name ?? ''}`.trim()
       );
-    const sig = `${inviteUserId}|${invitePinFromUrl}|${inviteNameFromUrl}|${linkedUser?.id ?? ''}`;
-    if (lastFocusedInviteRef.current === sig) return;
-    lastFocusedInviteRef.current = sig;
-    requestAnimationFrame(() => {
-      if (invitePinFromUrl && hasNameHint) loginBtnRef.current?.focus();
-      else if (invitePinFromUrl) pinInputRef.current?.focus();
-      else staffNameInputRef.current?.focus();
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (invitePinFromUrl && hasNameHint) loginBtnRef.current?.focus();
+        else if (invitePinFromUrl) pinInputRef.current?.focus();
+        else staffNameInputRef.current?.focus();
+      });
     });
-  }, [inviteUserId, inviteNameFromUrl, invitePinFromUrl, linkedUser]);
+    return () => cancelAnimationFrame(id);
+  }, [showForm, isInviteLink, inviteUserId, inviteNameFromUrl, invitePinFromUrl, linkedUser]);
 
   useEffect(() => {
     const sync = () => setLoginLang(getDeviceUiLanguage());
@@ -508,7 +519,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 onKeyDown={handleKeyDown}
                 placeholder={t.login_name_ph ?? 'Nome utente'}
                 autoComplete="name"
-                autoFocus={!isInviteLink}
                 className="w-full pl-10 pr-4 py-3.5 rounded-2xl text-white text-sm uppercase placeholder:normal-case placeholder:text-white/35 placeholder:text-sm focus:outline-none transition-all"
                 style={{ background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' }}
               />
