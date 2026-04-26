@@ -85,6 +85,7 @@ import {
 } from '../utils/breakRules';
 import {
   mergeShiftsDeductExclusionsFromLocal,
+  mergeShiftDeductExclusionsFromLocal,
   setLocalDeductExcludedRuleIds,
   clearLocalDeductExcludedRuleIds,
 } from '../utils/shiftDeductExclusionsLocal';
@@ -1070,17 +1071,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const approvedBy = `${actor.first_name} ${actor.last_name ?? ''}`.trim() || 'Manager';
       const startHH = (existing.start_time || '').slice(0, 5);
       const endHH = (existing.end_time || '').slice(0, 5);
-      const absentFreezePayload = {
+      const ab = mergeShiftDeductExclusionsFromLocal(existing);
+      const absentFreezePayload: Record<string, unknown> = {
         approved_at: approvedAt,
         approved_by: approvedBy,
         approved_start_time: startHH,
         approved_end_time: endHH,
+        deduct_break: ab.deduct_break !== false,
+        ...(ab.break_minutes !== undefined ? { break_minutes: ab.break_minutes } : {}),
+        ...(ab.is_auto_break !== undefined ? { is_auto_break: ab.is_auto_break } : {}),
+        ...(Array.isArray(ab.deduct_excluded_rule_ids) ? { deduct_excluded_rule_ids: ab.deduct_excluded_rule_ids } : {}),
       };
       try {
         const res = await database.shifts.update(shiftId, absentFreezePayload);
         const nextRow = (res ? { ...existing, ...res } : { ...existing, ...absentFreezePayload }) as Shift;
         setShifts((prev) => prev.map((s) => (s.id === shiftId ? nextRow : s)));
         markManagementDataTouched();
+        if (Array.isArray(ab.deduct_excluded_rule_ids)) clearLocalDeductExcludedRuleIds(shiftId);
         logShiftEdit({
           shiftId,
           actorName: approvedBy,
@@ -1128,13 +1135,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       endHH = def.end;
     }
 
+    const mb = mergeShiftDeductExclusionsFromLocal(existing);
+
     /** Non usare `updateShift`: dopo promote da bozza lo stato React in chiusura può essere obsoleto e il guard su `confirmed` blocca il congelamento. */
-    const freezePayload = {
+    const freezePayload: Record<string, unknown> = {
       approval_status: 'approved' as const,
       approved_at: approvedAt,
       approved_by: approvedBy,
       approved_start_time: startHH,
       approved_end_time: endHH,
+      deduct_break: mb.deduct_break !== false,
+      ...(mb.break_minutes !== undefined ? { break_minutes: mb.break_minutes } : {}),
+      ...(mb.is_auto_break !== undefined ? { is_auto_break: mb.is_auto_break } : {}),
+      ...(Array.isArray(mb.deduct_excluded_rule_ids) ? { deduct_excluded_rule_ids: mb.deduct_excluded_rule_ids } : {}),
     };
 
     try {
@@ -1142,6 +1155,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const nextRow = (res ? { ...existing, ...res } : { ...existing, ...freezePayload }) as Shift;
       setShifts((prev) => prev.map((s) => (s.id === shiftId ? nextRow : s)));
       markManagementDataTouched();
+      if (Array.isArray(mb.deduct_excluded_rule_ids)) clearLocalDeductExcludedRuleIds(shiftId);
       logShiftEdit({
         shiftId,
         actorName: approvedBy,
