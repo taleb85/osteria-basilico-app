@@ -74,7 +74,7 @@ const ManagementMobileTimesheet = lazy(() => import('./components/mobile/Managem
 // ─── Maintenance Page ─────────────────────────────────────────────────────────
 function MaintenancePage() {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 px-6 text-center font-sans antialiased">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-app-bg px-6 text-center font-sans antialiased">
       <div className="w-20 h-20 rounded-2xl bg-amber-100 flex items-center justify-center mb-6 shadow-sm">
         <Wrench className="w-10 h-10 text-amber-500" />
       </div>
@@ -157,7 +157,7 @@ function KioskRoute() {
   if (featureFlags['kiosk_active'] === false) return null;
 
   return (
-    <div className="min-h-screen w-full flex flex-col safe-area-pad bg-[#f8fafc] font-sans antialiased text-white">
+    <div className="min-h-screen w-full flex flex-col safe-area-pad bg-app-bg font-sans antialiased text-white">
       <Suspense fallback={null}><PunchInKiosk onGoToLogin={() => navigate(PATH_PROFILO)} /></Suspense>
     </div>
   );
@@ -1117,7 +1117,7 @@ function AppContent() {
       <Route path="/loading-preview" element={<Suspense fallback={null}><LoadingPreview /></Suspense>} />
       <Route path="/screens-preview" element={
         <AppProvider>
-          <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-[#111] text-white/30 font-sans uppercase tracking-widest text-xs">Caricamento anteprime...</div>}>
+          <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-app-bg text-white/30 font-sans uppercase tracking-widest text-xs">Caricamento anteprime...</div>}>
             <ScreensPreview />
           </Suspense>
         </AppProvider>

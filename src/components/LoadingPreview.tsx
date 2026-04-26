@@ -199,7 +199,7 @@ function SyncScreen() {
 /* ── Pagina ── */
 export default function LoadingPreview() {
   return (
-    <div className="min-h-screen bg-neutral-200 flex flex-col items-center justify-center gap-8 p-8 font-sans">
+    <div className="min-h-screen bg-app-bg flex flex-col items-center justify-center gap-8 p-8 font-sans">
       <h1 className="text-white/70 text-lg font-bold tracking-widest uppercase">
         Anteprima schermate di caricamento
       </h1>

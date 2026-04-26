@@ -5,6 +5,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        'app-bg': '#0d3b6e',
         // Colore brand dinamico — iniettato da TenantContext via CSS custom properties
         accent: {
           DEFAULT: 'var(--brand)',

@@ -10,8 +10,7 @@
   --surface:               rgba(50, 90, 170, 0.55);
   --surface-card:          rgba(50, 90, 170, 0.60);
   --border-color:          rgba(255, 255, 255, 0.24);
-  /* forza body background trasparente */
-  --app-bg:                transparent;
+  --app-bg:                #0d3b6e;
 
   --text-primary:         rgba(255, 255, 255, 0.97);
   --text-secondary:       rgba(255, 255, 255, 0.72);

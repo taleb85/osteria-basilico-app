@@ -36,7 +36,7 @@ export function AppRoutes() {
         <Route path="/loading-preview" element={<Suspense fallback={null}><LoadingPreview /></Suspense>} />
         <Route path="/screens-preview" element={
           <AppProviders>
-            <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-[#111] text-white/30 font-sans uppercase tracking-widest text-xs">Caricamento anteprime...</div>}>
+            <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-app-bg text-white/30 font-sans uppercase tracking-widest text-xs">Caricamento anteprime...</div>}>
               <ScreensPreview />
             </Suspense>
           </AppProviders>
