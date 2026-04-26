@@ -123,8 +123,8 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-left transition-all select-none"
-          style={{ background: 'rgba(15, 35, 90, 0.82)', border: '1px solid rgba(255,255,255,0.18)' }}
+          className="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all select-none min-h-[64px]"
+          style={{ background: 'rgba(30, 55, 120, 0.80)', border: '1px solid rgba(255,255,255,0.18)' }}
         >
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/20 ring-1 ring-inset ring-accent/40">
             <CheckCircle2 className="h-4 w-4 text-accent" />
@@ -145,10 +145,10 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`flex items-center gap-3 rounded-xl px-4 py-2.5 ${
+            className={`flex items-center gap-3 rounded-xl px-4 py-3 min-h-[64px] ${
               estimatedCostStats.shiftsWithRate === 0 ? 'opacity-75' : ''
             }`}
-            style={{ background: 'rgba(15, 35, 90, 0.82)', border: '1px solid rgba(255,255,255,0.18)' }}
+            style={{ background: 'rgba(30, 55, 120, 0.80)', border: '1px solid rgba(255,255,255,0.18)' }}
           >
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-inset ring-accent/25">
               <TrendingUp className="h-4 w-4 text-accent" />
@@ -177,9 +177,9 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-left transition-all select-none`}
+          className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all select-none min-h-[64px]`}
           style={{
-            background: pendingCount > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(15, 35, 90, 0.82)',
+            background: pendingCount > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(30, 55, 120, 0.80)',
             border: pendingCount > 0 ? '1px solid rgba(245,158,11,0.30)' : '1px solid rgba(255,255,255,0.18)',
           }}
         >
