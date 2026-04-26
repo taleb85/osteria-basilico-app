@@ -30,6 +30,7 @@ import { getTranslations, getDateLocale, getIntlLocale, formatTrans } from '../u
 import { translateRole } from '../utils/roles';
 import { getShiftViolations, DEFAULT_WORK_RULES } from '../utils/workRules';
 import { getBreakMinutesForShift, getNetShiftMinutes } from '../utils/breakRules';
+import { mergeShiftDeductExclusionsFromLocal } from '../utils/shiftDeductExclusionsLocal';
 import {
   isPurelyManagementRole,
   isManagementRole,
@@ -5017,6 +5018,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   const setDeductBreak = (val: boolean) => {
                     setSidebarEdits((prev) => ({ ...prev, [shift.id]: { ...edits, deduct_break: val } }));
                   };
+                  const shiftForBreak = mergeShiftDeductExclusionsFromLocal(shift);
 
                   const drawerPunchPair = getPunchPairForShift(shift, punchRecords);
                   const drawerTimbrature = computeDrawerTimbratureDisplay(shift, punchRecords, drawerPunchAudits);
@@ -5026,7 +5028,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   const plannedNetMins =
                     stPlanned && enPlanned && stPlanned !== enPlanned
                       ? getNetShiftMinutes(
-                          { ...shift, start_time: stPlanned, end_time: enPlanned, deduct_break: deductBreak },
+                          {
+                            ...shiftForBreak,
+                            start_time: stPlanned,
+                            end_time: enPlanned,
+                            deduct_break: deductBreak,
+                          },
                           stPlanned,
                           enPlanned,
                           u ?? undefined,
@@ -5041,7 +5048,14 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     const fs = (shift.approved_start_time || '').slice(0, 5);
                     const fe = (shift.approved_end_time || '').slice(0, 5);
                     if (fs && fe) {
-                      actualNetMins = getNetShiftMinutes(shift, fs, fe, u ?? undefined, breakRules, breakComputeOpts);
+                      actualNetMins = getNetShiftMinutes(
+                        shiftForBreak,
+                        fs,
+                        fe,
+                        u ?? undefined,
+                        breakRules,
+                        breakComputeOpts
+                      );
                     }
                   } else {
                     const pair = drawerPunchPair;
@@ -5061,7 +5075,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
                     if (aS && aE) {
                       actualNetMins = getNetShiftMinutes(
-                        { ...shift, deduct_break: deductBreak, start_time: aS, end_time: aE },
+                        {
+                          ...shiftForBreak,
+                          deduct_break: deductBreak,
+                          start_time: aS,
+                          end_time: aE,
+                        },
                         aS,
                         aE,
                         u ?? undefined,

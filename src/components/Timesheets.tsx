@@ -1248,11 +1248,18 @@ export default function Timesheets() {
           .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
 
         const shiftRows: ShiftRow[] = dayShifts.map((s) => {
+          const sForBreak = mergeShiftDeductExclusionsFromLocal(s);
           if (s.approval_status === 'absent') {
             const plannedStart = (s.start_time || '').slice(0, 5);
             const plannedEnd = (s.end_time || '').slice(0, 5);
             const grossPlanned = calculateShiftMinutesGross(plannedStart, plannedEnd);
-            const breakMinutes = getBreakMinutesForShift(s, grossPlanned, user, breakRules, breakComputeOpts);
+            const breakMinutes = getBreakMinutesForShift(
+              sForBreak,
+              grossPlanned,
+              user,
+              breakRules,
+              breakComputeOpts
+            );
             const plannedMins = Math.max(0, grossPlanned - breakMinutes);
             return {
               id: s.id,
@@ -1280,7 +1287,13 @@ export default function Timesheets() {
           const plannedStart = (s.start_time || '').slice(0, 5);
           const plannedEnd = (s.end_time || '').slice(0, 5);
           const grossPlanned = calculateShiftMinutesGross(plannedStart, plannedEnd);
-          const breakMinutes = getBreakMinutesForShift(s, grossPlanned, user, breakRules, breakComputeOpts);
+          const breakMinutes = getBreakMinutesForShift(
+            sForBreak,
+            grossPlanned,
+            user,
+            breakRules,
+            breakComputeOpts
+          );
           const plannedMins = Math.max(0, grossPlanned - breakMinutes);
 
           const shiftHour = parseInt(plannedStart.split(':')[0], 10);
@@ -1368,7 +1381,7 @@ export default function Timesheets() {
           const actualMins =
             displayActualStart && displayActualEnd
               ? getNetShiftMinutes(
-                  s,
+                  sForBreak,
                   displayActualStart,
                   displayActualEnd,
                   user,
@@ -1709,7 +1722,14 @@ export default function Timesheets() {
       const plannedStart = (s.start_time || '').slice(0, 5);
       const plannedEnd = (s.end_time || '').slice(0, 5);
       const grossPlanned = calculateShiftMinutesGross(plannedStart, plannedEnd);
-      const breakMins = getBreakMinutesForShift(s, grossPlanned, user ?? undefined, breakRules, breakComputeOpts);
+      const sForBreak = mergeShiftDeductExclusionsFromLocal(s);
+      const breakMins = getBreakMinutesForShift(
+        sForBreak,
+        grossPlanned,
+        user ?? undefined,
+        breakRules,
+        breakComputeOpts
+      );
       const plannedMins = Math.max(0, grossPlanned - breakMins);
 
       result.push({
@@ -2641,7 +2661,8 @@ export default function Timesheets() {
     }
     setReviewQueueSaving(true);
     try {
-      const fullShiftForBreak = shifts.find((x) => x.id === s.id);
+      const foundShift = shifts.find((x) => x.id === s.id);
+      const fullShiftForBreak = foundShift ? mergeShiftDeductExclusionsFromLocal(foundShift) : undefined;
       const userForBreak = users.find((u) => u.id === drawerData.userId);
       if (!fullShiftForBreak || !userForBreak) {
         showError?.(t.save_error);
@@ -5919,7 +5940,8 @@ export default function Timesheets() {
         {closingShift && (() => {
           const [h, m] = clockOutTime ? clockOutTime.split(':').map(Number) : [0, 0];
           const outTime = clockOutTime ? `${String(h ?? 0).padStart(2,'0')}:${String(m ?? 0).padStart(2,'0')}` : '';
-          const shiftObj = shifts.find((s) => s.id === closingShift.shiftId);
+          const shiftObjRaw = shifts.find((s) => s.id === closingShift.shiftId);
+          const shiftObj = shiftObjRaw ? mergeShiftDeductExclusionsFromLocal(shiftObjRaw) : undefined;
           const userObj = shiftObj ? users.find((u) => u.id === shiftObj.user_id) : undefined;
           const previewMins = outTime && shiftObj && userObj
             ? getNetShiftMinutes(shiftObj, closingShift.actualStart, outTime, userObj, breakRules, breakComputeOpts)

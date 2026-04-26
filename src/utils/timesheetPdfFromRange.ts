@@ -7,6 +7,7 @@ import type { Locale } from 'date-fns';
 import type { Shift, PunchRecord, User } from '../types';
 import { calculateShiftMinutesGross } from './timeCalculations';
 import { getBreakMinutesForShift, getNetShiftMinutes, type BreakRule } from './breakRules';
+import { mergeShiftDeductExclusionsFromLocal } from './shiftDeductExclusionsLocal';
 import { getResolvedStartEndForHours } from './shiftResolvedClockTimes';
 import {
   exportTimesheetPdfToFile,
@@ -72,10 +73,17 @@ function computeTimesheetGridForPdf(
       const shiftRows: GridShiftRow[] = dayShifts
         .filter((s) => s.approval_status !== 'absent' || s.approval_status === 'absent') // placeholder to keep structure, we'll filter below
         .map((s) => {
+          const sForBreak = mergeShiftDeductExclusionsFromLocal(s);
           const plannedStart = (s.start_time || '').slice(0, 5);
           const plannedEnd = (s.end_time || '').slice(0, 5);
           const grossPlanned = calculateShiftMinutesGross(plannedStart, plannedEnd);
-          const breakMinutes = getBreakMinutesForShift(s, grossPlanned, user, breakRules, breakComputeOpts);
+          const breakMinutes = getBreakMinutesForShift(
+            sForBreak,
+            grossPlanned,
+            user,
+            breakRules,
+            breakComputeOpts
+          );
           const plannedMins = Math.max(0, grossPlanned - breakMinutes);
 
           if (s.approval_status === 'absent') {
@@ -149,7 +157,7 @@ function computeTimesheetGridForPdf(
           const actualMins =
             displayActualStart && displayActualEnd
               ? getNetShiftMinutes(
-                  s,
+                  sForBreak,
                   displayActualStart,
                   displayActualEnd,
                   user,
