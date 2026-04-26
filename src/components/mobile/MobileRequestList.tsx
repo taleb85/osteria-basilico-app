@@ -55,7 +55,7 @@ export default function MobileRequestList({ requests, t = {} }: MobileRequestLis
         return (
           <div 
             key={req.id}
-            className="rounded-3xl p-5 border border-white/10 flex flex-col gap-4" style={{ background: 'rgba(255,255,255,0.08)' }}
+            className="rounded-3xl p-5 border border-white/10 flex flex-col gap-4" style={{ background: 'rgba(255, 255, 255, 0.16)' }}
           >
             <div className="flex justify-between items-start">
               <div className="flex flex-col">

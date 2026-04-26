@@ -86,7 +86,7 @@ export default function MobileHome({
   const { pullDistance, isRefreshing, isTriggered, indicatorOpacity, indicatorRotation } =
     usePullToRefresh({ onRefresh: onRefresh ?? (() => {}), disabled: !onRefresh });
   const cardCls = 'rounded-2xl border border-white/10';
-  const cardStyle = { background: 'rgba(255,255,255,0.06)' };
+  const cardStyle = { background: 'rgba(255, 255, 255, 0.14)' };
 
   const firstShift = todayWorkShifts[0];
   const shiftRange = firstShift
@@ -191,7 +191,7 @@ export default function MobileHome({
         {/* Elapsed timer */}
         {inProgress && elapsedLabel && (
           <div className="flex items-center gap-2 mb-3 px-3 py-2.5 rounded-xl"
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+            style={{ background: 'rgba(255, 255, 255, 0.16)', border: '1px solid rgba(255,255,255,0.12)' }}
           >
             <Clock className="w-4 h-4 text-white/50 shrink-0" strokeWidth={1.5} />
             <span className="text-2xl shift-time-clean font-medium text-white tabular-nums">
@@ -348,7 +348,7 @@ export default function MobileHome({
       {/* ── Colleghi in turno oggi ───────────────────────────────────── */}
       <div className="rounded-2xl overflow-hidden border border-white/10"
         style={{
-          background: 'rgba(255,255,255,0.08)',
+          background: 'rgba(255, 255, 255, 0.16)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
         }}

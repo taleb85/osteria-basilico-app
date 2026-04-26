@@ -838,7 +838,7 @@ export default function HomePage({
               <div
                 key={label}
                 className={`group w-full rounded-xl border px-3 py-2.5 flex items-center gap-2.5 text-left ${border}`}
-                style={{ background: 'rgba(255,255,255,0.10)' }}
+                style={{ background: 'rgba(15, 35, 90, 0.82)' }}
               >
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
                   <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />

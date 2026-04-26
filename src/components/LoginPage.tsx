@@ -624,7 +624,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     disabled={linkDeviceLoading || isLoading || deviceLoading}
                     title={t.login_device_link_title}
                     className="w-full py-2.5 rounded-xl text-white/45 text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    style={{ background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255,255,255,0.08)' }}
                   >
                     {linkDeviceLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                     {t.login_device_link_btn}

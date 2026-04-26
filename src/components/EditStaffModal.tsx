@@ -146,7 +146,7 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="modal-glass-panel w-full max-w-md overflow-hidden rounded-xl"
         >
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/15 px-5 py-4" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/15 px-5 py-4" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
             <div>
               <h2 className="text-base font-bold tracking-wide text-white font-sans">
                 {readOnly

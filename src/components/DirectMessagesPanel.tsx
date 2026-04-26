@@ -422,7 +422,7 @@ function ConversationList({
           <div className="flex flex-col items-center justify-center h-full gap-3 px-6 py-10 text-center">
             <div
               className="flex h-16 w-16 items-center justify-center rounded-2xl"
-              style={{ background: 'rgba(0,82,255,0.07)' }}
+              style={{ background: 'rgba(0, 82, 255, 0.20)' }}
             >
               <MessageCircle className="w-8 h-8" style={{ color: BRAND }} />
             </div>

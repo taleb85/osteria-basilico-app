@@ -88,7 +88,7 @@ export default function GestioneProfiliPage() {
         </div>
 
         <div className="surface-glass-sm overflow-hidden">
-          <div className="border-b px-4 py-3" style={{ borderColor: 'rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.10)' }}>
+          <div className="border-b px-4 py-3" style={{ borderColor: 'rgba(255,255,255,0.18)', background: 'rgba(15, 35, 90, 0.82)' }}>
             <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/80">
               <Users className="w-4 h-4" />
               Dipendenti
@@ -112,7 +112,7 @@ export default function GestioneProfiliPage() {
                       onClick={() => setExpandedUserId(isExpanded ? null : user.id)}
                       className="flex-1 flex items-center gap-3 text-left"
                     >
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white/70" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white/70" style={{ background: 'rgba(15, 35, 90, 0.85)' }}>
                         {user.first_name?.[0]}{user.last_name?.[0]}
                       </div>
                       <div>
@@ -174,7 +174,7 @@ export default function GestioneProfiliPage() {
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-4 pb-6 pt-0 space-y-4" style={{ background: 'rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.12)' }}>
+                        <div className="px-4 pb-6 pt-0 space-y-4" style={{ background: 'rgba(255,255,255,0.05)', borderTop: '1px solid rgba(15, 35, 90, 0.82)' }}>
                           {currentTab === 'permissions' ? (
                             <>
                               {user.role === 'admin' && (
@@ -192,7 +192,7 @@ export default function GestioneProfiliPage() {
                                   <div className="flex gap-2">
                                     <button
                                       onClick={() => handleReset(user.id)}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white/70 text-[11px] font-bold transition-colors" style={{ background: 'rgba(255,255,255,0.14)' }}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white/70 text-[11px] font-bold transition-colors" style={{ background: 'rgba(15, 35, 90, 0.82)' }}
                                     >
                                       <RotateCcw className="w-3 h-3" /> Annulla
                                     </button>
@@ -207,7 +207,7 @@ export default function GestioneProfiliPage() {
                                 )}
                               </div>
 
-                              <div className="rounded-xl border border-white/15 p-4" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                              <div className="rounded-xl border border-white/15 p-4" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
                                 <RoleFeatureSectionsBlock
                                   mode="toggles"
                                   features={features}
@@ -243,7 +243,7 @@ export default function GestioneProfiliPage() {
                                   Torna ai permessi
                                 </button>
                               </div>
-                              <div className="rounded-xl overflow-hidden border border-white/15" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                              <div className="rounded-xl overflow-hidden border border-white/15" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
                                 <div className="p-4 border-b border-white/10 bg-white/5">
                                   <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Configurazione Visualizzazione</p>
                                 </div>
@@ -277,7 +277,7 @@ export default function GestioneProfiliPage() {
                               <p className="text-[11px] text-white/60">
                                 Impostazioni visibilità in griglia per <strong>{user.first_name}</strong>
                               </p>
-                              <div className="rounded-xl border border-white/15 p-4" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                              <div className="rounded-xl border border-white/15 p-4" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
                                 <AdminRow
                                   icon={<Users className="h-4 w-4 text-white/60" aria-hidden />}
                                   label="Visibile in tabellone turni"

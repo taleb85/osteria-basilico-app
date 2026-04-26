@@ -1857,7 +1857,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     : 'hover:opacity-90 active:scale-[0.98]'
                 }`}
                 style={!periodDraftDirty || periodSavingCloud
-                  ? { background: 'rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.35)' }
+                  ? { background: 'rgba(15, 35, 90, 0.82)', color: 'rgba(255,255,255,0.35)' }
                   : { background: '#3b82f6', color: '#ffffff', opacity: 1 }
                 }
               >

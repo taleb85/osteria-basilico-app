@@ -3,12 +3,12 @@
 /* ── Variabili CSS aggiornate — devono venire DOPO index.css ── */
 :root {
   --bg-primary:            #0d1f3c;
-  --bg-surface:            rgba(15, 35, 90, 0.55);
-  --bg-surface-hover:      rgba(15, 35, 90, 0.68);
-  --bg-surface-solid:      rgba(10, 25, 75, 0.92);
-  --bg-surface-secondary:  rgba(15, 35, 90, 0.45);
-  --surface:               rgba(15, 35, 90, 0.55);
-  --surface-card:          rgba(15, 35, 90, 0.62);
+  --bg-surface:            rgba(15, 35, 90, 0.82);
+  --bg-surface-hover:      rgba(15, 35, 90, 0.90);
+  --bg-surface-solid:      rgba(10, 25, 75, 0.96);
+  --bg-surface-secondary:  rgba(15, 35, 90, 0.75);
+  --surface:               rgba(15, 35, 90, 0.82);
+  --surface-card:          rgba(15, 35, 90, 0.88);
   --border-color:          rgba(255, 255, 255, 0.24);
   /* forza body background trasparente */
   --app-bg:                transparent;
@@ -112,7 +112,7 @@
 }
 .modal-glass-panel .bg-slate-100:hover,
 .modal-glass-panel .bg-slate-200:hover {
-  background: rgba(255, 255, 255, 0.14) !important;
+  background: rgba(15, 35, 90, 0.82) !important;
 }
 
 /* Dropdown panels */
@@ -149,7 +149,7 @@
 
 /* ── Tailwind bg-white → glass card ── */
 body .bg-white:not(input):not(textarea):not(select):not([class*="modal"]):not([class*="pin"]):not([class*="kiosk"]) {
-  background-color: rgba(255, 255, 255, 0.10) !important;
+  background-color: rgba(15, 35, 90, 0.82) !important;
 }
 body .bg-slate-50:not(input):not(textarea):not(select),
 body .bg-gray-50:not(input):not(textarea):not(select) {
@@ -162,7 +162,7 @@ body .bg-gray-100:not(input):not(textarea):not(select) {
 }
 body .bg-slate-200:not(input):not(textarea):not(select),
 body .bg-gray-200:not(input):not(textarea):not(select) {
-  background-color: rgba(255, 255, 255, 0.14) !important;
+  background-color: rgba(15, 35, 90, 0.82) !important;
 }
 body .bg-slate-300:not(input):not(textarea):not(select),
 body .bg-gray-300:not(input):not(textarea):not(select) {
@@ -222,7 +222,7 @@ input[type="tel"],
 input[type="url"],
 textarea,
 select {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.16) !important;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
   color: rgba(255, 255, 255, 0.9) !important;
 }
@@ -230,7 +230,7 @@ select {
 input:focus,
 textarea:focus,
 select:focus {
-  background: rgba(255, 255, 255, 0.10) !important;
+  background: rgba(15, 35, 90, 0.82) !important;
   border-color: rgba(59, 130, 246, 0.6) !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
 }
@@ -258,7 +258,7 @@ select:focus {
 }
 .ui-toolbar-chip:hover,
 .ui-toolbar-tab:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(15, 35, 90, 0.82) !important;
   color: rgba(255, 255, 255, 0.95) !important;
 }
 .ui-toolbar-pill {
@@ -273,12 +273,12 @@ select:focus {
 
 /* ── Table header ── */
 thead tr, thead th {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.16) !important;
   color: rgba(255, 255, 255, 0.60) !important;
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 tbody tr:hover {
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.14) !important;
 }
 td, th {
   border-color: rgba(255, 255, 255, 0.08) !important;
@@ -315,7 +315,7 @@ body {
 .panel,
 .card-factorial,
 [class*="surface-"] {
-  background: rgba(255, 255, 255, 0.10) !important;
+  background: rgba(15, 35, 90, 0.82) !important;
 }
 
 /* ── Force all page-level containers transparent + no nested scroll ── */

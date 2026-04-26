@@ -410,7 +410,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
         panelStyle={{ background: 'rgba(17,34,64,0.95)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.12)' }}
       >
         <div className="flex flex-col h-full max-h-[80vh]">
-          <div className="p-4 border-b border-white/10 sticky top-0 z-10 rounded-t-2xl" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)' }}>
+          <div className="p-4 border-b border-white/10 sticky top-0 z-10 rounded-t-2xl" style={{ background: 'rgba(255, 255, 255, 0.16)', backdropFilter: 'blur(12px)' }}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-semibold text-white uppercase tracking-tight">
                 {tv.quick_switch_title ?? 'Cambio rapido utente'}
@@ -431,7 +431,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                 onChange={(e) => setQuickSwitchSearch(e.target.value)}
                 placeholder={tv.quick_switch_search_placeholder ?? 'Cerca dipendente...'}
                 className="w-full pl-9 pr-4 py-2 rounded-xl text-sm focus:ring-2 focus:ring-accent/30 outline-none"
-                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#ffffff' }}
+                style={{ background: 'rgba(255, 255, 255, 0.16)', border: '1px solid rgba(255,255,255,0.12)', color: '#ffffff' }}
               />
             </div>
           </div>
@@ -457,7 +457,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                       ? 'border border-accent/40 bg-accent/15 text-accent ring-1 ring-accent/30'
                       : 'border border-white/15'
                   }`}
-                  style={currentUser?.id !== u.id ? { background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' } : undefined}
+                  style={currentUser?.id !== u.id ? { background: 'rgba(15, 35, 90, 0.82)', color: 'rgba(255,255,255,0.7)' } : undefined}
                   >
                     {uThumb ? (
                       <img

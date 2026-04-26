@@ -44,7 +44,7 @@ function StepRow({
       style={{
         background: active
           ? 'rgba(0,82,255,0.22)'
-          : 'rgba(255,255,255,0.10)',
+          : 'rgba(15, 35, 90, 0.82)',
         border: active
           ? '1px solid rgba(0,82,255,0.50)'
           : '1px solid rgba(255,255,255,0.15)',

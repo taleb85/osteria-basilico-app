@@ -32,7 +32,7 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
         return (
           <div 
             key={shift.id}
-            className={`rounded-3xl p-5 border flex flex-col gap-4 ${isAbsent ? 'opacity-60 border-red-500/20' : 'border-white/10'}`} style={isAbsent ? { background: 'rgba(239,68,68,0.08)' } : { background: 'rgba(255,255,255,0.08)' }}
+            className={`rounded-3xl p-5 border flex flex-col gap-4 ${isAbsent ? 'opacity-60 border-red-500/20' : 'border-white/10'}`} style={isAbsent ? { background: 'rgba(239,68,68,0.08)' } : { background: 'rgba(255, 255, 255, 0.16)' }}
           >
             <div className="flex justify-between items-start">
               <div className="flex flex-col">

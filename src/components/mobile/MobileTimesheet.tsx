@@ -26,7 +26,7 @@ function getLocale(lang = 'it') {
 function getDarkCard() {
   return {
     cls: 'rounded-2xl border border-white/10 overflow-hidden',
-    style: { background: 'rgba(255,255,255,0.06)' } as React.CSSProperties,
+    style: { background: 'rgba(255, 255, 255, 0.14)' } as React.CSSProperties,
   };
 }
 

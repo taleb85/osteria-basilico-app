@@ -168,7 +168,7 @@ export default function MobileProfileHeader({
             onClick={() => { triggerHapticFeedback('click'); onLogout?.(); }}
             title={t.header_logout}
             aria-label={t.header_logout}
-            style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s', flexShrink: 0 }}
+            style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(255, 255, 255, 0.16)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s', flexShrink: 0 }}
             className="text-white/70 hover:bg-white/15 hover:text-white active:scale-95 touch-manipulation"
           >
             <LogOut style={{ width: 13, height: 13 }} strokeWidth={2} aria-hidden />

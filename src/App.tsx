@@ -731,7 +731,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           background: 'rgba(5, 14, 46, 0.97)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255,255,255,0.10)',
+          borderBottom: '1px solid rgba(15, 35, 90, 0.82)',
         }}
       >
         <MobileProfileHeader
@@ -1065,7 +1065,7 @@ function IosSafariInstallBanner() {
       style={{
         background: 'rgba(0,26,128,0.96)',
         backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.10)',
+        borderBottom: '1px solid rgba(15, 35, 90, 0.82)',
       }}
     >
       <p className="text-[12px] text-white/90 leading-snug flex-1">
@@ -1172,7 +1172,7 @@ function App() {
               <SuperAdminPanel />
             </Suspense>
           : <div className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
-              <div className="rounded-2xl border border-white/15 p-8 max-w-sm" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
+              <div className="rounded-2xl border border-white/15 p-8 max-w-sm" style={{ background: 'rgba(255, 255, 255, 0.16)', backdropFilter: 'blur(16px)' }}>
                 <h1 className="text-2xl font-bold mb-2">SuperAdmin</h1>
                 <p className="text-white/50 text-sm">Se il Super Admin è su un host dedicato, apri l’indirizzo configurato in produzione (stesso build o sottodominio in Cloudflare)</p>
               </div>

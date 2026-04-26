@@ -2958,7 +2958,7 @@ export default function Timesheets() {
                       ? `${border} ring-1 ring-inset ring-accent/30`
                       : `${border} hover:bg-white/15`
                   }`}
-                  style={{ background: isActive ? 'rgba(59,130,246,0.20)' : 'rgba(255,255,255,0.10)' }}
+                  style={{ background: isActive ? 'rgba(59,130,246,0.20)' : 'rgba(15, 35, 90, 0.82)' }}
                 >
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
                     <Icon className={`h-4.5 w-4.5 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
@@ -3325,7 +3325,7 @@ export default function Timesheets() {
                       await top.fn();
                     }}
                     className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold text-white/80 shadow-sm transition-all hover:bg-white/10"
-                    style={{ background: 'rgba(255,255,255,0.06)' }}
+                    style={{ background: 'rgba(255, 255, 255, 0.14)' }}
                     title={tsUndoStack[0]?.label ?? 'Annulla ultima azione'}
                   >
                     <RotateCcw className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
@@ -3750,7 +3750,7 @@ export default function Timesheets() {
                               {pdfDeptFilter === 'all' && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                             </button>
 
-                            <div className="my-1 h-px" style={{ background: 'rgba(255,255,255,0.12)' }} />
+                            <div className="my-1 h-px" style={{ background: 'rgba(15, 35, 90, 0.82)' }} />
 
                             {availableDepts
                               .map((dept) => (
@@ -3785,7 +3785,7 @@ export default function Timesheets() {
                               panelClassName="p-1"
                               disableBackdropClose
                             >
-                              <div className="flex items-center justify-between px-2 py-1.5 mb-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.14)' }}>
+                              <div className="flex items-center justify-between px-2 py-1.5 mb-1" style={{ borderBottom: '1px solid rgba(15, 35, 90, 0.82)' }}>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">
                                   {t.department_filter_label}
                                 </span>
@@ -3814,7 +3814,7 @@ export default function Timesheets() {
                                 {pdfDeptFilter === 'all' && <Check className="h-3 w-3 text-white/90" strokeWidth={3} />}
                               </button>
 
-                              <div className="my-1 h-px" style={{ background: 'rgba(255,255,255,0.12)' }} />
+                              <div className="my-1 h-px" style={{ background: 'rgba(15, 35, 90, 0.82)' }} />
 
                               {availableDepts
                                 .map((dept) => (
@@ -4032,7 +4032,7 @@ export default function Timesheets() {
             </div>
           )}
 
-          <div id="timesheet-section-main-grid" className="hidden md:block overflow-hidden scroll-mt-24 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)' }}>
+          <div id="timesheet-section-main-grid" className="hidden md:block overflow-hidden scroll-mt-24 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255,255,255,0.12)' }}>
             <HorizontalScrollArea
               variant="overlay"
               remeasureKey={`${viewMode}-${weekStr}-${weekDays.length}`}
@@ -4084,7 +4084,7 @@ export default function Timesheets() {
                         className={`box-border px-2 py-1.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1 ${
                           weekEndCol ? 'border-r-2 border-r-white/15' : 'border-r border-r-white/10'
                         } ${viewMode === 'month' && !inP ? 'opacity-40' : ''} ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''}`}
-                        style={{ background: payrollHighlight ? 'rgba(51,102,204,0.15)' : todayDate ? 'rgba(51,102,204,0.10)' : 'rgba(255,255,255,0.04)' }}
+                        style={{ background: payrollHighlight ? 'rgba(51,102,204,0.15)' : todayDate ? 'rgba(51,102,204,0.10)' : 'rgba(255, 255, 255, 0.12)' }}
                       >
                         <div
                           className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${
@@ -4355,7 +4355,7 @@ export default function Timesheets() {
                       })}
 
                       {/* Totale settimana */}
-                      <td className="px-3 py-2 text-center border-l-2 border-l-white/15 md:px-2 md:py-1.5" style={{ background: userIdx % 2 === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.06)' }}>
+                      <td className="px-3 py-2 text-center border-l-2 border-l-white/15 md:px-2 md:py-1.5" style={{ background: userIdx % 2 === 0 ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.14)' }}>
                         <div className="flex flex-col items-center gap-2">
                           <div className="text-xs font-semibold text-white/55 md:text-[10px]">
                             {showFullTimesheetGrid || plannedOnlyTimesheetGrid

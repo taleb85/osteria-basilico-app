@@ -110,7 +110,7 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
             className="w-3 h-3 rounded-full transition-all duration-150"
             style={i < digits.length
               ? { background: error ? '#f87171' : 'linear-gradient(110deg, #3366CC, #001A80)', boxShadow: error ? '0 0 8px rgba(248,113,113,0.5)' : '0 0 8px rgba(51,102,204,0.55)' }
-              : { background: 'rgba(255,255,255,0.15)' }
+              : { background: 'rgba(15, 35, 90, 0.85)' }
             }
           />
         ))}

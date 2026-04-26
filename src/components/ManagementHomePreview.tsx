@@ -120,7 +120,7 @@ export default function ManagementHomePreview({
             onUiToggle={onUiToggle}
             hiddenBadge={hiddenBadge}
           >
-            <div className="flex items-center gap-3 rounded-2xl border border-white/15 px-4 py-3" style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <div className="flex items-center gap-3 rounded-2xl border border-white/15 px-4 py-3" style={{ background: 'rgba(255, 255, 255, 0.16)' }}>
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
                 <Users className="h-4 w-4 text-white/60" />
               </div>
@@ -139,7 +139,7 @@ export default function ManagementHomePreview({
           onUiToggle={onUiToggle}
           hiddenBadge={hiddenBadge}
         >
-          <div className="rounded-2xl border border-dashed border-white/20 px-4 py-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div className="rounded-2xl border border-dashed border-white/20 px-4 py-3" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
             <div className="flex items-start gap-3">
               <Megaphone size={15} className="mt-0.5 shrink-0 text-white/50" />
               <div className="min-w-0 flex-1">

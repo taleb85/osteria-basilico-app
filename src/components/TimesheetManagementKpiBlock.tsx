@@ -124,7 +124,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
           className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-left transition-all select-none"
-          style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)' }}
+          style={{ background: 'rgba(15, 35, 90, 0.82)', border: '1px solid rgba(255,255,255,0.18)' }}
         >
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/20 ring-1 ring-inset ring-accent/40">
             <CheckCircle2 className="h-4 w-4 text-accent" />
@@ -148,7 +148,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
             className={`flex items-center gap-3 rounded-xl px-4 py-2.5 ${
               estimatedCostStats.shiftsWithRate === 0 ? 'opacity-75' : ''
             }`}
-            style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)' }}
+            style={{ background: 'rgba(15, 35, 90, 0.82)', border: '1px solid rgba(255,255,255,0.18)' }}
           >
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-inset ring-accent/25">
               <TrendingUp className="h-4 w-4 text-accent" />
@@ -179,7 +179,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           transition={{ delay: 0.15 }}
           className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-left transition-all select-none`}
           style={{
-            background: pendingCount > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.10)',
+            background: pendingCount > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(15, 35, 90, 0.82)',
             border: pendingCount > 0 ? '1px solid rgba(245,158,11,0.30)' : '1px solid rgba(255,255,255,0.18)',
           }}
         >

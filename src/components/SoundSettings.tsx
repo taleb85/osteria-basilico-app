@@ -54,7 +54,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
   }
 
   return (
-    <div className="space-y-4 rounded-3xl border border-white/10 p-5" style={{ background: 'rgba(255,255,255,0.06)' }}>
+    <div className="space-y-4 rounded-3xl border border-white/10 p-5" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-accent">
           <BellRing size={20} />

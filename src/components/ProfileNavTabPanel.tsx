@@ -494,7 +494,7 @@ export default function ProfileNavTabPanel({
             <AnimatePresence initial={false}>
               {expanded === 'settings' && (
                 <motion.div key="settings-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }} className="px-4 py-4 text-white">
+                  <div style={{ borderTop: '1px solid rgba(15, 35, 90, 0.82)' }} className="px-4 py-4 text-white">
                     <ProfileFormSelf
                       formData={formData}
                       setFormData={setFormData}
@@ -521,7 +521,7 @@ export default function ProfileNavTabPanel({
             <AnimatePresence initial={false}>
               {expanded === 'notif' && (
                 <motion.div key="notif-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }} className="px-4 py-3">
+                  <div style={{ borderTop: '1px solid rgba(15, 35, 90, 0.82)' }} className="px-4 py-3">
                     <NotificationPermissionButton effectiveLanguage={effectiveLanguage} userId={currentUser?.id} />
                   </div>
                 </motion.div>
@@ -538,8 +538,8 @@ export default function ProfileNavTabPanel({
             <AnimatePresence initial={false}>
               {expanded === 'lang' && (
                 <motion.div key="lang-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }} className="px-4 py-3 space-y-3">
-                    <div className="flex gap-1 rounded-xl p-1" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                  <div style={{ borderTop: '1px solid rgba(15, 35, 90, 0.82)' }} className="px-4 py-3 space-y-3">
+                    <div className="flex gap-1 rounded-xl p-1" style={{ background: 'rgba(255, 255, 255, 0.16)', border: '1px solid rgba(255,255,255,0.12)' }}>
                       {(() => {
                         const deviceLang = getDeviceUiLanguage();
                         const isAuto = pendingLang === null;

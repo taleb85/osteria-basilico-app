@@ -2488,7 +2488,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                 await top.fn();
               }}
               className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold shadow-sm transition-all"
-              style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.24)', color: 'rgba(255,255,255,0.90)' }}
+              style={{ background: 'rgba(15, 35, 90, 0.82)', border: '1px solid rgba(255,255,255,0.24)', color: 'rgba(255,255,255,0.90)' }}
               title={undoStack[0]?.label ?? 'Annulla ultima azione'}
             >
               <RotateCcw className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
@@ -2827,7 +2827,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           periodDraftSaved ? 'cursor-not-allowed' : 'hover:opacity-90'
                         }`}
                         style={periodDraftSaved
-                          ? { background: 'rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.35)' }
+                          ? { background: 'rgba(15, 35, 90, 0.82)', color: 'rgba(255,255,255,0.35)' }
                           : { background: '#3b82f6', color: '#ffffff' }
                         }
                       >
@@ -3610,9 +3610,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
             navRowClassName="pb-2"
             scrollClassName="overflow-x-auto-safe"
           >
-          <div className="min-w-[640px] overflow-hidden rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)' }}>
+          <div className="min-w-[640px] overflow-hidden rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255,255,255,0.12)' }}>
             {/* Intestazione giorni settimana */}
-            <div className="grid grid-cols-7 border-b border-white/15" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div className="grid grid-cols-7 border-b border-white/15" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
               {allWeekDays.slice(0, 7).map((d, i) => (
                 <div
                   key={d.toString()}
@@ -3734,7 +3734,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           <th key={di} className="text-center px-2 py-2"
                             style={{
                               background: isTodayDH ? 'rgba(51,102,204,0.25)' : '#0d1e4a',
-                              borderRight: di < allWeekDays.length - 1 ? '1px solid rgba(255,255,255,0.12)' : undefined,
+                              borderRight: di < allWeekDays.length - 1 ? '1px solid rgba(15, 35, 90, 0.82)' : undefined,
                             }}>
                             <div className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-cyan-300' : 'text-white/50'}`}>
                               {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it })}
@@ -3754,11 +3754,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           <div
             ref={flatBodyScrollRef}
             className="overflow-hidden rounded-2xl"
-            style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}
+            style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255, 255, 255, 0.12)' }}
           >
             {(() => {
               const _isDarkGrid = true;
-              const cellBorder = '1px solid rgba(255,255,255,0.18)';
+              const cellBorder = '1px solid rgba(15, 35, 90, 0.85)';
               const headBorder = '1px solid rgba(255,255,255,0.22)';
               return (
             <table className="w-full border-collapse table-fixed">
@@ -3783,7 +3783,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         style={{
                           borderBottom: headBorder,
                           borderRight: di < allWeekDays.length - 1 ? cellBorder : undefined,
-                          background: isTodayDH ? 'rgba(0,82,255,0.10)' : undefined,
+                          background: isTodayDH ? 'rgba(0, 82, 255, 0.25)' : undefined,
                         }}
                       >
                         <div className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-accent/70' : 'text-white/40'}`}>
@@ -3836,9 +3836,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   : cellBorder
                                 : undefined,
                               background: dropTargetKey === `flat_${user.id}_${dayStr}`
-                                ? (dragCopyMode ? 'rgba(0,82,255,0.15)' : 'rgba(251,191,36,0.15)')
+                                ? (dragCopyMode ? 'rgba(0, 82, 255, 0.28)' : 'rgba(251,191,36,0.15)')
                                 : isTodayCell
-                                  ? 'rgba(0,82,255,0.07)'
+                                  ? 'rgba(0, 82, 255, 0.20)'
                                   : userIdx % 2 === 0 ? undefined : 'rgba(255,255,255,0.02)',
                             }}
                             onContextMenu={(e) => canEditInApp ? handleShiftContextMenu(e, user.id, dayStr, null) : e.preventDefault()}
@@ -3999,9 +3999,32 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                   ? { outline: `2px dashed ${dragCopyMode ? 'rgba(0,82,255,0.7)' : 'rgba(251,191,36,0.8)'}`, borderRadius: '6px' }
                                   : {};
                               return (
-                                <div className="flex flex-col justify-between group/cell" style={{ height: '72px', paddingTop: '4px', paddingBottom: '4px', gap: '6px' }}>
-                                  <div className="w-full" {...slotDropHandlers('lunch')} style={slotHighlight('lunch')}>{lunchShift ? renderBadge(lunchShift) : emptySlot('10:00')}</div>
-                                  <div className="w-full" {...slotDropHandlers('evening')} style={slotHighlight('evening')}>{eveningShift ? renderBadge(eveningShift) : emptySlot('18:00')}</div>
+                                <div className="flex flex-col group/cell" style={{ height: '72px' }}>
+                                  <div
+                                    className="flex items-center"
+                                    {...slotDropHandlers('lunch')}
+                                    style={{
+                                      height: '50%',
+                                      borderBottom: '1px solid rgba(255,255,255,0.10)',
+                                      paddingLeft: '4px',
+                                      paddingRight: '4px',
+                                      ...slotHighlight('lunch'),
+                                    }}
+                                  >
+                                    {lunchShift ? renderBadge(lunchShift) : emptySlot('10:00')}
+                                  </div>
+                                  <div
+                                    className="flex items-center"
+                                    {...slotDropHandlers('evening')}
+                                    style={{
+                                      height: '50%',
+                                      paddingLeft: '4px',
+                                      paddingRight: '4px',
+                                      ...slotHighlight('evening'),
+                                    }}
+                                  >
+                                    {eveningShift ? renderBadge(eveningShift) : emptySlot('18:00')}
+                                  </div>
                                 </div>
                               );
                             })()}
@@ -4028,7 +4051,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.04 + 0.03 * userIdx, duration: 0.28 }}
                     className="w-full rounded-xl !p-0 overflow-hidden"
-                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: 'none' }}
+                    style={{ background: 'rgba(255, 255, 255, 0.14)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: 'none' }}
                   >
                     {/* Header scheda: nome + ore (fisso, non scorre) — verde bottomnav */}
                     <div
@@ -5751,7 +5774,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     type="button"
                     onClick={() => { setSlotPickerEditMode(!slotPickerEditMode); setSlotPickerNewStart(''); setSlotPickerNewEnd(''); }}
                     className="text-[10px] font-bold px-2 py-0.5 rounded-lg transition-colors"
-                    style={{ background: slotPickerEditMode ? (isDark ? 'rgba(0,82,255,0.3)' : 'rgba(0,82,255,0.1)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'), color: slotPickerEditMode ? '#3366CC' : (isDark ? 'rgba(255,255,255,0.5)' : '#64748b') }}
+                    style={{ background: slotPickerEditMode ? (isDark ? 'rgba(0,82,255,0.3)' : 'rgba(0, 82, 255, 0.25)') : (isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0,0,0,0.05)'), color: slotPickerEditMode ? '#3366CC' : (isDark ? 'rgba(255,255,255,0.5)' : '#64748b') }}
                   >
                     {slotPickerEditMode ? 'Fatto' : 'Modifica'}
                   </button>
@@ -5795,7 +5818,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         value={slotPickerNewStart}
                         onChange={(e) => setSlotPickerNewStart(e.target.value)}
                         className="flex-1 rounded-lg px-2 py-1 text-[12px] font-mono border text-white"
-                        style={{ background: isDark ? 'rgba(255,255,255,0.06)' : '#f8fafc', borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0' }}
+                        style={{ background: isDark ? 'rgba(255, 255, 255, 0.14)' : '#f8fafc', borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0' }}
                       />
                       <span className="text-[11px] text-white/40">–</span>
                       <input
@@ -5803,7 +5826,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         value={slotPickerNewEnd}
                         onChange={(e) => setSlotPickerNewEnd(e.target.value)}
                         className="flex-1 rounded-lg px-2 py-1 text-[12px] font-mono border text-white"
-                        style={{ background: isDark ? 'rgba(255,255,255,0.06)' : '#f8fafc', borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0' }}
+                        style={{ background: isDark ? 'rgba(255, 255, 255, 0.14)' : '#f8fafc', borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0' }}
                       />
                     </div>
                     <button
@@ -5811,7 +5834,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       onClick={addPreset}
                       disabled={!slotPickerNewStart || !slotPickerNewEnd}
                       className="w-full rounded-xl py-1.5 text-[12px] font-bold transition-colors disabled:opacity-40"
-                      style={{ background: isDark ? 'rgba(0,82,255,0.25)' : 'rgba(0,82,255,0.10)', color: '#3366CC' }}
+                      style={{ background: isDark ? 'rgba(0,82,255,0.25)' : 'rgba(0, 82, 255, 0.25)', color: '#3366CC' }}
                     >
                       + Aggiungi
                     </button>
@@ -6293,7 +6316,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
             </div>
           </div>
 
-          <div className="space-y-4 px-5 pb-5 pt-4" style={{ background: 'rgba(255,255,255,0.04)' }}>
+          <div className="space-y-4 px-5 pb-5 pt-4" style={{ background: 'rgba(255, 255, 255, 0.12)' }}>
             {/* ── Data ── */}
             <div>
               <label className={labelClass}>Data</label>

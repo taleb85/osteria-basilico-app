@@ -65,7 +65,7 @@ export default function MobileRequests({ requests, onRequestNew, t = {} }: Mobil
             <div 
               key={req.id}
               className="rounded-3xl p-5 border flex flex-col gap-4"
-              style={{ background: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)', boxShadow: 'none' }}
+              style={{ background: 'rgba(255, 255, 255, 0.14)', borderColor: 'rgba(255,255,255,0.12)', boxShadow: 'none' }}
             >
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">

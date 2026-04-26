@@ -88,7 +88,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
         return (
           <div key={wIdx} className="mb-4">
             {/* Card griglia settimanale — trasparente, solo bordo */}
-            <div className="rounded-2xl border border-white/10 overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div className="rounded-2xl border border-white/10 overflow-hidden" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
               {/* Griglia giorni */}
               <div className="grid grid-cols-7 gap-1 px-2 pt-3 pb-2">
                 {weekDays.map((day, i) => {
@@ -178,7 +178,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                               ? 'border-red-500/30 bg-red-500/10'
                               : 'border-white/10'
                           }`}
-                          style={isAbsent ? {} : { background: 'rgba(255,255,255,0.08)' }}
+                          style={isAbsent ? {} : { background: 'rgba(255, 255, 255, 0.16)' }}
                         >
                           <div className="flex flex-col gap-0.5">
                             <p className={`font-black tabular-nums text-base leading-none ${isAbsent ? 'text-white/40 line-through' : 'text-white/90'}`}>

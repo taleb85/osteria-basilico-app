@@ -190,7 +190,7 @@ export default function HolidayRequests() {
   const inputCls =
     'w-full rounded-lg px-3 py-2 text-sm outline-none transition-all';
   const inputStyle = {
-    background: 'rgba(255,255,255,0.08)',
+    background: 'rgba(255, 255, 255, 0.16)',
     border: '1px solid rgba(255,255,255,0.20)',
     color: '#ffffff',
   } as React.CSSProperties;
@@ -373,7 +373,7 @@ export default function HolidayRequests() {
         {/* Left: calendar */}
         <div className="md:col-span-1 space-y-4">
           {uiW('ferie.calendar') && (
-          <div className="surface-glass p-4" style={{ background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.14)' }}>
+          <div className="surface-glass p-4" style={{ background: 'rgba(255, 255, 255, 0.16)', border: '1px solid rgba(255, 255, 255, 0.14)' }}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-xl" style={{ color: '#ffffff' }}>
                 {format(now, 'MMMM yyyy', { locale: it })}
