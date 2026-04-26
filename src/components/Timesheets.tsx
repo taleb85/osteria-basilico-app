@@ -87,6 +87,7 @@ import { calculateDrawerPermissions } from '../utils/drawerPermissions';
 import { TimesheetDrawerHeader } from './timesheets/TimesheetDrawerHeader';
 import { ShiftHoursCards } from './timesheets/ShiftHoursCards';
 import { ShiftHistoryCard } from './timesheets/ShiftHistoryCard';
+import { mergeShiftDeductExclusionsFromLocal } from '../utils/shiftDeductExclusionsLocal';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -2403,7 +2404,11 @@ export default function Timesheets() {
       setDeductBreakSaving(true);
       try {
         const sh = shifts.find((x) => x.id === shiftId);
-        const cur = Array.isArray(sh?.deduct_excluded_rule_ids) ? [...sh.deduct_excluded_rule_ids!] : [];
+        if (!sh) return;
+        const withLocal = mergeShiftDeductExclusionsFromLocal(sh);
+        const cur = Array.isArray(withLocal.deduct_excluded_rule_ids)
+          ? [...withLocal.deduct_excluded_rule_ids]
+          : [];
         const next = new Set(cur);
         if (applyDeduction) next.delete(ruleId);
         else next.add(ruleId);
@@ -4661,7 +4666,8 @@ export default function Timesheets() {
         >
         {drawerData && (() => {
           const s = drawerData.shift;
-          const fullShift = shifts.find((sh) => sh.id === s.id);
+          const fullShiftRaw = shifts.find((sh) => sh.id === s.id);
+          const fullShift = fullShiftRaw ? mergeShiftDeductExclusionsFromLocal(fullShiftRaw) : undefined;
           const userForBreakReadout = users.find((u) => u.id === drawerData.userId);
           const grossPlannedForBreakReadout = fullShift
             ? calculateShiftMinutesGross(

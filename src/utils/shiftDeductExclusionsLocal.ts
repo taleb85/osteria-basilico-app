@@ -49,12 +49,19 @@ export function clearLocalDeductExcludedRuleIds(shiftId: string): void {
 export function mergeShiftDeductExclusionsFromLocal<T extends { id: string; deduct_excluded_rule_ids?: string[] }>(
   shift: T
 ): T {
-  if (Array.isArray(shift.deduct_excluded_rule_ids)) {
+  const server = shift.deduct_excluded_rule_ids;
+  const serverNonEmpty = Array.isArray(server) && server.length > 0;
+  if (serverNonEmpty) {
     return shift;
   }
   const local = getLocalDeductExcludedRuleIds(shift.id);
-  if (!local || local.length === 0) return shift;
-  return { ...shift, deduct_excluded_rule_ids: local };
+  if (local && local.length > 0) {
+    return { ...shift, deduct_excluded_rule_ids: [...local] };
+  }
+  if (Array.isArray(shift.deduct_excluded_rule_ids)) {
+    return shift;
+  }
+  return shift;
 }
 
 export function mergeShiftsDeductExclusionsFromLocal<T extends { id: string; deduct_excluded_rule_ids?: string[] }>(

@@ -1012,6 +1012,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         setShifts((prev) => prev.map((s) => (s.id === id ? { ...res, ...updates } : s)));
         markManagementDataTouched();
+      } else if (!isAbsentUpdate) {
+        /* UPDATE riuscito ma select() senza riga: mantieni stato ottimistico e segna toccato */
+        markManagementDataTouched();
       }
     } catch (err) {
       const updateKeys = Object.keys(updates).filter(
