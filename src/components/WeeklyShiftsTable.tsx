@@ -3713,7 +3713,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           {flatHeaderSticky && (
             <div
               ref={flatMirrorHeaderRef}
-              className="sticky z-[200] rounded-b-xl overflow-hidden border-x border-b border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)] mb-1"
+              className="sticky z-[200] rounded-b-xl overflow-hidden border-x border-b border-white/15 mb-1"
               style={{ top: 'var(--app-sticky-header-offset)', background: 'rgba(42, 74, 138, 0.55)' }}
             >
               <div ref={flatHeaderScrollRef} className="overflow-x-hidden">
