@@ -3,12 +3,12 @@
 /* ── Variabili CSS aggiornate — devono venire DOPO index.css ── */
 :root {
   --bg-primary:            #0d1f3c;
-  --bg-surface:            rgba(15, 35, 90, 0.82);
-  --bg-surface-hover:      rgba(15, 35, 90, 0.90);
-  --bg-surface-solid:      rgba(10, 25, 75, 0.96);
-  --bg-surface-secondary:  rgba(15, 35, 90, 0.75);
-  --surface:               rgba(15, 35, 90, 0.82);
-  --surface-card:          rgba(15, 35, 90, 0.88);
+  --bg-surface:            rgba(15, 35, 90, 0.65);
+  --bg-surface-hover:      rgba(15, 35, 90, 0.75);
+  --bg-surface-solid:      rgba(10, 25, 75, 0.88);
+  --bg-surface-secondary:  rgba(15, 35, 90, 0.58);
+  --surface:               rgba(15, 35, 90, 0.65);
+  --surface-card:          rgba(15, 35, 90, 0.72);
   --border-color:          rgba(255, 255, 255, 0.24);
   /* forza body background trasparente */
   --app-bg:                transparent;
