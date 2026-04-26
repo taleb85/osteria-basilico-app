@@ -56,7 +56,10 @@ function isShiftAbsent(s: Shift): boolean {
   return String(s.approval_status).toLowerCase() === 'absent';
 }
 
-/** Minuti da mezzanotte dall’inizio del turno (per ordinare: mattina sopra, sera sotto). */
+/** Soglia: inizio dopo 16:00 = fascia “sera” in basso nella cella PDF. */
+const EVENING_START_AFTER_MIN = 16 * 60; // 16:00 esclusa dalla fascia sera
+
+/** Minuti da mezzanotte dall’inizio del turno. */
 function shiftStartMinutes(s: Shift, punchRecords: PunchRecordLike[]): number {
   const { start } = getResolvedStartEndForHours(s, punchRecords);
   if (!start || start === '—') return 99 * 60;
@@ -68,15 +71,23 @@ function shiftStartMinutes(s: Shift, punchRecords: PunchRecordLike[]): number {
   return h * 60 + min;
 }
 
-/** Turni non assenti, ordinati per inizio crescente (stessa logica spesso usata: prima fascia, poi sera). */
-function sortShiftsByStartOfDay(
+/**
+ * Turni non assenti: prima quelli con inizio ≤ 16:00, poi quelli con inizio dopo le 16:00;
+ * dentro ogni gruppo, ordine cronologico.
+ */
+function sortShiftsLunchBlockThenEvening(
   dayShifts: Shift[],
   punchRecords: PunchRecordLike[]
 ): Shift[] {
   const work = dayShifts.filter((s) => !isShiftAbsent(s));
-  return work.sort(
-    (a, b) => shiftStartMinutes(a, punchRecords) - shiftStartMinutes(b, punchRecords)
-  );
+  return [...work].sort((a, b) => {
+    const ma = shiftStartMinutes(a, punchRecords);
+    const mb = shiftStartMinutes(b, punchRecords);
+    const groupA = ma > EVENING_START_AFTER_MIN ? 1 : 0;
+    const groupB = mb > EVENING_START_AFTER_MIN ? 1 : 0;
+    if (groupA !== groupB) return groupA - groupB;
+    return ma - mb;
+  });
 }
 
 function totalHours(
@@ -315,7 +326,7 @@ export async function exportSchedulePDF(
         userShifts.push(...dayShifts);
 
         const x = MARGIN + NAME_W + i * DAY_W;
-        const ordered = sortShiftsByStartOfDay(dayShifts, punchRecords);
+        const ordered = sortShiftsLunchBlockThenEvening(dayShifts, punchRecords);
 
         if (ordered.length > 0) {
           ordered.slice(0, 2).forEach((s, si) => {
