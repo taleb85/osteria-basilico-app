@@ -57,35 +57,37 @@ function isShiftAbsent(s: Shift): boolean {
 }
 
 /**
- * Soglia allineata al tabellone: `getPunchPairForShift` usa `hour < 16` = pranzo/mattina.
- * Qui "sera" = inizio **pianificato** (start_time) dopo le 16:00 — non l’orario effettivo
- * della timbratura, altrimenti un IN mattutino su turno cena manda il turno in alto.
+ * Stesso criterio di `WeeklyShiftsTable` (slot pranzo vs cena):
+ * `parseInt(s.start_time.split(':')[0]) < 16` → riga superiore, `>= 16` → inferiore.
+ * Non usare l’orario risolto dalle timbrature per l’ordine verticale.
  */
-const EVENING_START_AFTER_MIN = 16 * 60;
+function isEveningSlot(s: Shift): boolean {
+  const t = (s.start_time || '').trim();
+  const h = parseInt(t.split(':')[0] ?? '0', 10);
+  return !Number.isNaN(h) && h >= 16;
+}
 
-/** Minuti da mezzanotte da `shift.start_time` (pianificato), stesso criterio del tabellone. */
+/** Minuti da mezzanotte da `start_time` (ordine all’interno dello stesso slot). */
 function plannedStartMinutes(s: Shift): number {
   const t = (s.start_time || '').replace(/:+/g, ':').trim().slice(0, 5);
   const m = t.match(/^(\d{1,2}):(\d{2})/);
-  if (!m) return 24 * 60;
+  if (!m) return 0;
   const h = Math.min(23, Math.max(0, parseInt(m[1], 10) || 0));
   const min = Math.min(59, Math.max(0, parseInt(m[2], 10) || 0));
   return h * 60 + min;
 }
 
 /**
- * Turni non assenti: prima inizio pianificato ≤ 16:00, poi dopo le 16:00;
- * dentro ogni gruppo, ordine per ora pianificata.
+ * Non assenti: prima slot pranzo (ora < 16), poi slot cena (ora ≥ 16, inclusa 16:00);
+ * dentro ogni slot, ordine per ora pianificata.
  */
 function sortShiftsLunchBlockThenEvening(dayShifts: Shift[]): Shift[] {
   const work = dayShifts.filter((s) => !isShiftAbsent(s));
   return [...work].sort((a, b) => {
-    const ma = plannedStartMinutes(a);
-    const mb = plannedStartMinutes(b);
-    const groupA = ma > EVENING_START_AFTER_MIN ? 1 : 0;
-    const groupB = mb > EVENING_START_AFTER_MIN ? 1 : 0;
-    if (groupA !== groupB) return groupA - groupB;
-    return ma - mb;
+    const evA = isEveningSlot(a) ? 1 : 0;
+    const evB = isEveningSlot(b) ? 1 : 0;
+    if (evA !== evB) return evA - evB;
+    return plannedStartMinutes(a) - plannedStartMinutes(b);
   });
 }
 
