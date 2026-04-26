@@ -1,65 +1,26 @@
-import { format, addDays } from 'date-fns';
-import type { Locale } from 'date-fns';
+import { addDays, format } from 'date-fns';
+import { enUS } from 'date-fns/locale';
+import type { jsPDF } from 'jspdf';
 import { User, Shift, type Language } from '../types';
 import { getNetShiftMinutes, type BreakMinutesComputeOptions, type BreakRule } from './breakRules';
 import { isPurelyManagementRole } from './permissions';
 import { getResolvedStartEndForHours, type PunchRecordLike } from './shiftResolvedClockTimes';
-import { formatTrans, getDateLocale, getTranslations } from './translations';
 
-// ── Colours (ULTRA-CLEAN MINIMALISTA) ────────────────────────────────────────
-
-/** ULTRA-CLEAN: solo bianco, nero e grigio chiarissimo */
-const WHITE: [number, number, number] = [255, 255, 255];
 const BLACK: [number, number, number] = [0, 0, 0];
-const GRAY_ULTRA_LIGHT: [number, number, number] = [229, 231, 235]; // #e5e7eb
-const GRAY_TEXT: [number, number, number] = [107, 114, 128]; // #6b7280
-const GRAY_OFF: [number, number, number] = [209, 213, 219]; // #d1d5db
-const TABLE_LINE: [number, number, number] = [200, 200, 200];
-const TABLE_OUTER: [number, number, number] = [150, 150, 150];
-const HDR_DARK: [number, number, number] = [13, 31, 60];
-const ROW_STRIPE: [number, number, number] = [245, 247, 250];
-const HDR_TXT: [number, number, number] = [255, 255, 255];
+const WHITE: [number, number, number] = [255, 255, 255];
+const GRAY_STRIPE: [number, number, number] = [242, 242, 242]; // #f2f2f2
+const GRID_COLOR: [number, number, number] = [119, 119, 119]; // #777
+const SEP_MID: [number, number, number] = [187, 187, 187]; // #bbb
 
-/** Stati turno: solo grassetto/grigio, no badge visibili */
-const STATUS_WEIGHT: Record<string, 'bold' | 'normal'> = {
-  approved: 'bold',
-  confirmed: 'bold',
-  draft: 'normal',
-  absent: 'normal',
-};
-const STATUS_COLOR_MINIMAL: Record<string, [number, number, number]> = {
-  approved: BLACK,
-  confirmed: BLACK,
-  draft: GRAY_TEXT,
-  absent: GRAY_OFF,
-};
-
-// ── Helper ────────────────────────────────────────────────────────────────────
+const PAGE_W = 297;
+const PAGE_H = 210;
+const MARGIN = 8;
+const NAME_W = 22;
+const TOT_W = 14;
+const HEADER_ROW = 8;
 
 /**
- * Valida e formatta orario in formato HH:mm.
- */
-function cleanTimeFormat(time: string): string {
-  if (!time) return '—';
-  let cleaned = time.replace(/:+/g, ':').trim();
-  if (/^\d{4}$/.test(cleaned)) {
-    cleaned = `${cleaned.slice(0, 2)}:${cleaned.slice(2)}`;
-  }
-  return /^\d{2}:\d{2}$/.test(cleaned) ? cleaned : '—';
-}
-
-function fmtDay(date: Date, locale: Locale): string {
-  return format(date, 'EEE d', { locale }).toUpperCase();
-}
-
-function isShiftAbsent(s: Shift): boolean {
-  return String(s.approval_status).toLowerCase() === 'absent';
-}
-
-/**
- * Stesso criterio di `WeeklyShiftsTable` (slot pranzo vs cena):
- * `parseInt(s.start_time.split(':')[0]) < 16` → riga superiore, `>= 16` → inferiore.
- * Non usare l’orario risolto dalle timbrature per l’ordine verticale.
+ * Criterio mattina/sera (come `WeeklyShiftsTable`): inizio < 16:00 = mattina.
  */
 function isEveningSlot(s: Shift): boolean {
   const t = (s.start_time || '').trim();
@@ -67,7 +28,10 @@ function isEveningSlot(s: Shift): boolean {
   return !Number.isNaN(h) && h >= 16;
 }
 
-/** Minuti da mezzanotte da `start_time` (ordine all’interno dello stesso slot). */
+function isShiftAbsent(s: Shift): boolean {
+  return String(s.approval_status).toLowerCase() === 'absent';
+}
+
 function plannedStartMinutes(s: Shift): number {
   const t = (s.start_time || '').replace(/:+/g, ':').trim().slice(0, 5);
   const m = t.match(/^(\d{1,2}):(\d{2})/);
@@ -77,10 +41,6 @@ function plannedStartMinutes(s: Shift): number {
   return h * 60 + min;
 }
 
-/**
- * Stessa griglia a 2 slot del tabellone: prima riga = pranzo (ora < 16), seconda = cena (ora ≥ 16).
- * La cena è sempre disegnata sulla seconda riga (y+12), anche se non c’è pranzo.
- */
 function splitDayShiftsLunchEvening(rowShifts: Shift[]): {
   lunch: Shift | null;
   evening: Shift | null;
@@ -100,7 +60,26 @@ function splitDayShiftsLunchEvening(rowShifts: Shift[]): {
   return { lunch, evening, extra };
 }
 
-/** Totale minuti lavoro netti (settimana riga) → `22:30` in stile durata, senza "h". */
+function cleanTimeFormat(time: string): string {
+  if (!time) return '—';
+  let cleaned = time.replace(/:+/g, ':').trim();
+  if (/^\d{4}$/.test(cleaned)) {
+    cleaned = `${cleaned.slice(0, 2)}:${cleaned.slice(2)}`;
+  }
+  return /^\d{2}:\d{2}$/.test(cleaned) ? cleaned : '—';
+}
+
+function dayHeaderLabel(d: Date): string {
+  return format(d, 'EEE d', { locale: enUS }).toUpperCase();
+}
+
+function rowHeightForEmployeeCount(employeeCount: number): number {
+  if (employeeCount <= 10) return 18;
+  if (employeeCount <= 14) return 14;
+  if (employeeCount <= 18) return 11;
+  return 9;
+}
+
 function totalWeekMinutesToHHmm(
   shifts: Shift[],
   user: User,
@@ -118,6 +97,44 @@ function totalWeekMinutesToHHmm(
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
+function drawNameColumnWrapped(
+  doc: jsPDF,
+  user: User,
+  leftMm: number,
+  rowTopY: number,
+  nameColWidthMm: number,
+  nameFontSize: number,
+  rowHeight: number
+): void {
+  const full = [user.first_name, user.last_name]
+    .map((s) => (s ?? '').trim())
+    .filter((s) => s.length > 0)
+    .join(' ')
+    .toUpperCase() || '—';
+  doc.setTextColor(...BLACK);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(nameFontSize);
+  const innerW = Math.max(6, nameColWidthMm - 2);
+  const lines: string[] = doc.splitTextToSize(full, innerW) as string[];
+  const lineH = Math.max(2.2, nameFontSize * 0.4);
+  const maxByHeight = Math.max(1, Math.min(3, Math.floor((rowHeight - 2) / lineH)));
+  const maxLines = maxByHeight;
+  let toShow = lines.slice(0, maxLines);
+  if (lines.length > maxLines) {
+    let last = toShow[maxLines - 1] ?? '';
+    last = last.replace(/\s+$/g, '') + '…';
+    while (last.length > 1 && doc.getTextWidth(last) > innerW) {
+      last = last.slice(0, -2) + '…';
+    }
+    toShow = [...toShow.slice(0, maxLines - 1), last];
+  }
+  const blockH = toShow.length * lineH;
+  const y0 = rowTopY + (rowHeight - blockH) / 2 + lineH * 0.75;
+  toShow.forEach((line, li) => {
+    doc.text(line, leftMm + 1, y0 + li * lineH);
+  });
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export async function exportSchedulePDF(
@@ -132,7 +149,6 @@ export async function exportSchedulePDF(
     breakRules?: BreakRule[];
     breakComputeOpts?: BreakMinutesComputeOptions;
     punchRecords?: PunchRecordLike[];
-    /** Ignorato: il PDF turni è sempre in inglese. */
     language?: Language;
   } = {}
 ): Promise<void> {
@@ -146,25 +162,20 @@ export async function exportSchedulePDF(
   } = options;
   const { jsPDF } = await import('jspdf');
 
-  const t = getTranslations('en');
-  const locale = getDateLocale('en') as Locale;
-
-  /** Difesa in profondità: l'admin non deve mai comparire nel PDF anche se passato per errore. */
   const scheduleUsers = activeUsers.filter((u) => !isPurelyManagementRole(u.role));
+  const employeeCount = scheduleUsers.length;
+  const rowHeight = rowHeightForEmployeeCount(employeeCount);
+  const shiftFontSize = Math.max(7, rowHeight * 0.55);
+  const nameFontSize = Math.max(6, rowHeight * 0.45);
 
-  // ── Split in settimane (1 pagina per settimana se periodo lungo) ──────────
   const weekChunks: Date[][] = [];
   for (let i = 0; i < weekDays.length; i += 7) {
     weekChunks.push(weekDays.slice(i, i + 7));
   }
 
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-  const PAGE_W = 297;
-  const PAGE_H = 210;
-  const MARGIN = 12;
   const CONTENT_W = PAGE_W - MARGIN * 2;
 
-  // ── Loop: 1 pagina per ogni settimana ─────────────────────────────────────
   weekChunks.forEach((weekDaysChunk, chunkIdx) => {
     if (chunkIdx > 0) {
       doc.addPage();
@@ -182,153 +193,58 @@ export async function exportSchedulePDF(
         (includeOpen || !s.notes?.startsWith('__OPEN__'))
     );
 
-    // Column widths (nome stretto → più spazio per orari)
-    const NAME_W = 26;
-    const TOT_W = 22;
-    const DAY_W = (CONTENT_W - NAME_W - TOT_W) / numDays;
+    const dayColWidth = (PAGE_W - MARGIN * 2 - NAME_W - TOT_W) / numDays;
+    if (dayColWidth <= 0) {
+      return;
+    }
 
-    // Row heights & tipografia orari
-    const HEADER_ROW = 14;
-    const DATA_ROW = 22;
-    const TIME_FS = 12;
-    const TIME_LINE0_Y = 4.8;
-    const TIME_DY = 7.2;
+    const startLabel = format(chunkStart, 'd MMM yyyy', { locale: enUS });
+    const endLabel = format(addDays(chunkEnd, -1), 'd MMM yyyy', { locale: enUS });
+    const topParts: string[] = [];
+    if (restaurantName) topParts.push(restaurantName);
+    topParts.push(`${startLabel} – ${endLabel}`);
+    if (filterLabel) topParts.push(filterLabel);
+    const topLine = topParts.join(' · ');
 
-    // ── Page header (MINIMALISTA) ──────────────────────────────────────────────
+    let y = MARGIN + 5;
     doc.setTextColor(...BLACK);
-    doc.setFontSize(18);
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    
-    let rangeLabelX = MARGIN;
-    if (restaurantName) {
-      doc.text(restaurantName, MARGIN, 14);
-      rangeLabelX = MARGIN + 65;
-    }
+    doc.text(topLine, MARGIN, y);
+    y = MARGIN + 12;
 
-    // Week range
-    const rangeLabel = `${format(chunkStart, 'd MMMM', { locale })} – ${format(addDays(chunkEnd, -1), 'd MMMM yyyy', { locale })}`;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...GRAY_TEXT);
-    doc.text(rangeLabel, rangeLabelX, 14);
+    const tableTopY = y;
+    const totColumnLeftX = MARGIN + NAME_W + numDays * dayColWidth;
 
-    if (filterLabel) {
-      doc.text(`· ${filterLabel}`, rangeLabelX + doc.getTextWidth(rangeLabel) + 2, 14);
-    }
-
-    // Print timestamp
-    doc.setFontSize(8);
-    doc.setTextColor(...GRAY_ULTRA_LIGHT);
-    const printedAt = formatTrans(t.ts_pdf_printed_on, {
-      datetime: format(new Date(), 'd MMM yyyy HH:mm', { locale }),
-    });
-    doc.text(printedAt, PAGE_W - MARGIN - doc.getTextWidth(printedAt), 14);
-
-    // Linea separator
-    doc.setDrawColor(...GRAY_ULTRA_LIGHT);
-    doc.setLineWidth(0.2);
-    doc.line(MARGIN, 20, PAGE_W - MARGIN, 20);
-
-    // ── Column headers (griglia e bordi visibili) ──────────────────────────────
-    let y = 26;
-    doc.setFillColor(...HDR_DARK);
-    doc.rect(MARGIN, y, CONTENT_W, HEADER_ROW, 'F');
-    doc.setTextColor(...HDR_TXT);
-    doc.setFontSize(8);
+    // — Header row (black bg, white, 9pt bold) —————————————————
+    doc.setFillColor(...BLACK);
+    doc.rect(MARGIN, tableTopY, CONTENT_W, HEADER_ROW, 'F');
+    doc.setTextColor(...WHITE);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text(t.ts_pdf_col_employee, MARGIN + 2, y + 5);
-
+    const headMidY = tableTopY + HEADER_ROW * 0.55 + 1.5;
+    doc.text('EMPLOYEE', MARGIN + 1, headMidY);
     weekDaysChunk.forEach((day, i) => {
-      const x = MARGIN + NAME_W + i * DAY_W;
-      const label = fmtDay(day, locale);
-      doc.text(label, x + DAY_W / 2 - doc.getTextWidth(label) / 2, y + 5);
+      const x = MARGIN + NAME_W + i * dayColWidth;
+      const label = dayHeaderLabel(day);
+      const tw = doc.getTextWidth(label);
+      doc.text(label, x + (dayColWidth - tw) / 2, headMidY);
     });
+    const totW = doc.getTextWidth('TOT');
+    doc.text('TOT', totColumnLeftX + (TOT_W - totW) / 2, headMidY);
 
-    const totX = MARGIN + NAME_W + numDays * DAY_W;
-    const totLabel = t.schedule_pdf_total_abbr;
-    doc.text(totLabel, totX + TOT_W / 2 - doc.getTextWidth(totLabel) / 2, y + 5);
+    y = tableTopY + HEADER_ROW;
 
-    doc.setDrawColor(...TABLE_OUTER);
-    doc.setLineWidth(0.5);
-    doc.rect(MARGIN, y, CONTENT_W, HEADER_ROW, 'S');
-    doc.setDrawColor(...TABLE_LINE);
-    doc.setLineWidth(0.4);
-    for (let v = 0; v <= numDays; v++) {
-      const vx = MARGIN + NAME_W + v * DAY_W;
-      doc.line(vx, y, vx, y + HEADER_ROW);
-    }
-    doc.line(MARGIN + CONTENT_W, y, MARGIN + CONTENT_W, y + HEADER_ROW);
-
-    y += HEADER_ROW;
-
-    // ── Data rows ──────────────────────────────────────────────────────────────
-    let prevDept = '';
-    let employeesOnCurrentPage = 0;
-    const MAX_EMPLOYEES_PER_PAGE = 10;
-
+    // — Data ——————————————————————————————————————————————————
     scheduleUsers.forEach((user, rowIdx) => {
-      // Page break ogni 10 dipendenti
-      if (employeesOnCurrentPage >= MAX_EMPLOYEES_PER_PAGE && rowIdx < scheduleUsers.length - 1) {
-        doc.addPage();
-        y = 24;
-        prevDept = '';
-        employeesOnCurrentPage = 0;
-        
-        // Ripeti header colonne
-        doc.setFillColor(...HDR_DARK);
-        doc.rect(MARGIN, y, CONTENT_W, HEADER_ROW, 'F');
-        doc.setTextColor(...HDR_TXT);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
-        doc.text(t.ts_pdf_col_employee, MARGIN + 2, y + 5);
-        weekDaysChunk.forEach((day, i) => {
-          const x = MARGIN + NAME_W + i * DAY_W;
-          const label = fmtDay(day, locale);
-          doc.text(label, x + DAY_W / 2 - doc.getTextWidth(label) / 2, y + 5);
-        });
-        const totXH = MARGIN + NAME_W + numDays * DAY_W;
-        const totLabel2 = t.schedule_pdf_total_abbr;
-        doc.text(totLabel2, totXH + TOT_W / 2 - doc.getTextWidth(totLabel2) / 2, y + 5);
-        doc.setDrawColor(...TABLE_OUTER);
-        doc.setLineWidth(0.5);
-        doc.rect(MARGIN, y, CONTENT_W, HEADER_ROW, 'S');
-        doc.setDrawColor(...TABLE_LINE);
-        doc.setLineWidth(0.4);
-        for (let v = 0; v <= numDays; v++) {
-          const vx = MARGIN + NAME_W + v * DAY_W;
-          doc.line(vx, y, vx, y + HEADER_ROW);
-        }
-        doc.line(MARGIN + CONTENT_W, y, MARGIN + CONTENT_W, y + HEADER_ROW);
-        y += HEADER_ROW;
-      }
+      const cellY = y;
+      const isStripe = rowIdx % 2 === 0;
+      doc.setFillColor(...(isStripe ? GRAY_STRIPE : WHITE));
+      doc.rect(MARGIN, cellY, CONTENT_W, rowHeight, 'F');
 
-      // Separator tra reparti
-      const dept = user.department ?? 'sala_bar';
-      if (dept !== prevDept && rowIdx > 0) {
-        doc.setDrawColor(...TABLE_LINE);
-        doc.setLineWidth(0.45);
-        doc.line(MARGIN, y, MARGIN + CONTENT_W, y);
-      }
-      prevDept = dept;
+      drawNameColumnWrapped(doc, user, MARGIN, cellY, NAME_W, nameFontSize, rowHeight);
 
-      doc.setFillColor(...(rowIdx % 2 === 0 ? WHITE : ROW_STRIPE));
-      doc.rect(MARGIN, y, CONTENT_W, DATA_ROW, 'F');
-
-      // Name (colonna stretta, font compatti)
-      doc.setTextColor(...BLACK);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      const firstName = user.first_name.toUpperCase();
-      doc.text(firstName, MARGIN + 1.5, y + 6.2);
-      if (user.last_name) {
-        doc.setFontSize(9);
-        doc.setTextColor(...GRAY_TEXT);
-        doc.text(user.last_name.toUpperCase(), MARGIN + 1.5, y + 10.2);
-      }
-
-      // Day cells
       const userShifts: Shift[] = [];
-
       weekDaysChunk.forEach((day, i) => {
         const dateStr = format(day, 'yyyy-MM-dd');
         const dayShifts = weekShifts.filter(
@@ -336,93 +252,86 @@ export async function exportSchedulePDF(
         );
         userShifts.push(...dayShifts);
 
-        const x = MARGIN + NAME_W + i * DAY_W;
+        const x = MARGIN + NAME_W + i * dayColWidth;
         const { lunch, evening, extra } = splitDayShiftsLunchEvening(dayShifts);
-
-        const writeShift = (s: Shift, lineIdx: 0 | 1) => {
+        const hasBoth = lunch && evening;
+        const topBaselineSingle = (cy: number) => cy + 2 + shiftFontSize * 0.3;
+        const topBaselineDouble = (cy: number) => cy + 3 + shiftFontSize * 0.3;
+        const bottomBaseline = (cy: number) => cy + rowHeight - 3;
+        const writeTime = (s: Shift, baselineY: number) => {
           const { start, end } = getResolvedStartEndForHours(s, punchRecords);
-          const cleanStart = cleanTimeFormat(start);
-          const cleanEnd = cleanTimeFormat(end);
-          const timeStr = `${cleanStart}–${cleanEnd}`;
-          const statusColor = STATUS_COLOR_MINIMAL[s.approval_status] ?? BLACK;
-          const statusWeight = STATUS_WEIGHT[s.approval_status] ?? 'normal';
-          doc.setTextColor(...statusColor);
-          doc.setFontSize(TIME_FS);
-          doc.setFont('helvetica', statusWeight);
-          doc.text(timeStr, x + 2, y + TIME_LINE0_Y + lineIdx * TIME_DY);
+          const timeStr = `${cleanTimeFormat(start)}–${cleanTimeFormat(end)}`;
+          doc.setTextColor(...BLACK);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(shiftFontSize);
+          doc.text(timeStr, x + 2, baselineY);
         };
-        if (lunch) writeShift(lunch, 0);
-        if (evening) writeShift(evening, 1);
+
+        if (hasBoth) {
+          writeTime(lunch, topBaselineDouble(cellY));
+          const midY = cellY + rowHeight / 2;
+          doc.setDrawColor(...SEP_MID);
+          doc.setLineWidth(0.2);
+          doc.line(x, midY, x + dayColWidth, midY);
+          writeTime(evening, bottomBaseline(cellY));
+        } else if (lunch) {
+          writeTime(lunch, topBaselineSingle(cellY));
+        } else if (evening) {
+          writeTime(evening, bottomBaseline(cellY));
+        }
+
         if (extra > 0) {
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(...GRAY_TEXT);
-          doc.text(`+${extra}`, x + DAY_W - 8, y + DATA_ROW - 3);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(Math.max(6, shiftFontSize - 1.5));
+          doc.setTextColor(...GRID_COLOR);
+          const tag = `+${extra}`;
+          doc.text(tag, x + dayColWidth - 1.5 - doc.getTextWidth(tag), cellY + rowHeight - 1.2);
         }
       });
 
-      // Total cell
-      const totX2 = MARGIN + NAME_W + numDays * DAY_W;
-      const weekTotal = totalWeekMinutesToHHmm(userShifts, user, breakRules, breakComputeOpts, punchRecords);
+      const weekTotal = totalWeekMinutesToHHmm(
+        userShifts,
+        user,
+        breakRules,
+        breakComputeOpts,
+        punchRecords
+      );
       if (weekTotal) {
         doc.setTextColor(...BLACK);
-        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        const tw = doc.getTextWidth(weekTotal);
-        doc.text(weekTotal, totX2 + TOT_W / 2 - tw / 2, y + 11.5);
+        doc.setFontSize(shiftFontSize);
+        const wtw = doc.getTextWidth(weekTotal);
+        const vert = cellY + rowHeight / 2 + shiftFontSize * 0.3;
+        doc.text(weekTotal, totColumnLeftX + (TOT_W - wtw) / 2, vert);
       }
 
-      doc.setDrawColor(...TABLE_OUTER);
-      doc.setLineWidth(0.5);
-      doc.rect(MARGIN, y, CONTENT_W, DATA_ROW, 'S');
-      doc.setDrawColor(...TABLE_LINE);
-      doc.setLineWidth(0.35);
-      for (let v = 0; v <= numDays; v++) {
-        const vx = MARGIN + NAME_W + v * DAY_W;
-        doc.line(vx, y, vx, y + DATA_ROW);
-      }
-      doc.line(MARGIN + CONTENT_W, y, MARGIN + CONTENT_W, y + DATA_ROW);
-
-      y += DATA_ROW;
-      employeesOnCurrentPage++;
+      y += rowHeight;
     });
 
-    // ── Legend (solo prima pagina/settimana) ───────────────────────────────────
-    if (chunkIdx === 0) {
-      const legendY = Math.min(y + 8, PAGE_H - 14);
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
-      
-      const legend = [
-        { label: `${t.status_approved}: ${t.status_confirmed} (bold)` },
-        { label: `${t.status_draft} (gray)` },
-      ];
-      
-      let lx = MARGIN;
-      legend.forEach(({ label }) => {
-        doc.setTextColor(...GRAY_TEXT);
-        doc.setFont('helvetica', 'normal');
-        doc.text(label, lx, legendY + 2.5);
-        lx += doc.getTextWidth(label) + 8;
-      });
+    const tableBottomY = y;
+    const tableH = tableBottomY - tableTopY;
+
+    // — Grid: #777, TOT col thick left black —————————————————
+    doc.setDrawColor(...GRID_COLOR);
+    doc.setLineWidth(0.3);
+    doc.rect(MARGIN, tableTopY, CONTENT_W, tableH, 'S');
+    for (let v = 0; v <= numDays; v++) {
+      const vx = MARGIN + NAME_W + v * dayColWidth;
+      doc.line(vx, tableTopY, vx, tableBottomY);
+    }
+    doc.line(MARGIN + CONTENT_W, tableTopY, MARGIN + CONTENT_W, tableBottomY);
+
+    doc.setDrawColor(...BLACK);
+    doc.setLineWidth(0.8);
+    doc.line(totColumnLeftX, tableTopY, totColumnLeftX, tableBottomY);
+    for (let r = 0; r < scheduleUsers.length; r++) {
+      const hy = tableTopY + HEADER_ROW + r * rowHeight;
+      doc.setDrawColor(...GRID_COLOR);
+      doc.setLineWidth(0.3);
+      doc.line(MARGIN, hy, MARGIN + CONTENT_W, hy);
     }
   });
 
-  // ── Footer (tutte le pagine) ──────────────────────────────────────────────
-  const totalPages = doc.getNumberOfPages();
-  for (let p = 1; p <= totalPages; p++) {
-    doc.setPage(p);
-    doc.setFontSize(7);
-    doc.setTextColor(...GRAY_ULTRA_LIGHT);
-    const pageStr = formatTrans(t.schedule_pdf_page_x_of_y, {
-      page: p,
-      total: totalPages,
-    });
-    doc.text(pageStr, PAGE_W - MARGIN - doc.getTextWidth(pageStr), PAGE_H - 5);
-  }
-
-  // ── Save ──────────────────────────────────────────────────────────────────
-  /** Nome file = primo giorno effettivamente esportato in `weekDays` (stesso range del PDF). */
   const anchorDate = weekDays[0] ?? weekStart;
   const fileName = `${format(anchorDate, 'dd-MM-yyyy')}.pdf`;
   doc.save(fileName);
