@@ -4906,7 +4906,11 @@ export default function Timesheets() {
                         });
                         await updateShift(s.id, { approval_status: 'absent' });
                         showSuccess?.(t.shift_marked_absent_toast);
-                        closeTimesheetShiftDrawer();
+                        if (drawerReviewQueue) {
+                          advanceDrawerReviewAfterStep();
+                        } else {
+                          closeTimesheetShiftDrawer();
+                        }
                       } catch (e) {
                         const raw =
                           e && typeof e === 'object' && 'message' in e
@@ -5626,7 +5630,11 @@ export default function Timesheets() {
                               });
                               await updateShift(s.id, { approval_status: 'absent' });
                               showSuccess?.(t.shift_marked_absent_toast);
-                              closeTimesheetShiftDrawer();
+                              if (drawerReviewQueue) {
+                                advanceDrawerReviewAfterStep();
+                              } else {
+                                closeTimesheetShiftDrawer();
+                              }
                             } catch (e) {
                               const raw =
                                 e && typeof e === 'object' && 'message' in e
