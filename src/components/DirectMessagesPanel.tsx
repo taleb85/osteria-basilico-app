@@ -109,7 +109,7 @@ function NewChatPicker({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.messages_search_employee ?? 'Cerca dipendente...'}
-          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm text-white outline-none focus:border-[#0052FF] transition-colors"
+          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm text-white outline-none focus:text-base focus:border-brand-electric transition-colors"
         />
       </div>
       <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-2 pb-4 [-webkit-overflow-scrolling:touch]">
@@ -337,7 +337,7 @@ function ChatView({
             onKeyDown={handleKeyDown}
             placeholder={t.messages_write_placeholder ?? 'Scrivi un messaggio...'}
             rows={1}
-            className="flex-1 resize-none rounded-2xl border border-white/15 bg-white/8 px-4 py-2.5 text-sm text-white outline-none focus:border-[#0052FF] transition-colors"
+            className="flex-1 resize-none rounded-2xl border border-white/15 bg-white/8 px-4 py-2.5 text-sm text-white outline-none focus:text-base focus:border-brand-electric transition-colors"
             style={{ maxHeight: 120, overflowY: 'auto' }}
           />
           <button

@@ -40,7 +40,7 @@ export type ProfileFormSelfData = {
 
 /** Form "Il mio profilo": Email, Telefono, Reparto, Lingua. Con `readOnly` i campi sono disabilitati (es. anteprima). */
 const inputClassLight =
-  'w-full px-3 py-2.5 rounded-xl bg-white/8 border border-white/18 text-white text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors placeholder:text-white/35';
+  'w-full px-3 py-2.5 rounded-xl bg-white/8 border border-white/18 text-white text-sm focus:text-base focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors placeholder:text-white/35';
 const labelClassLight = 'block text-xs font-medium text-white/65 mb-1.5';
 
 function roleSelectValue(role: UserType['role']): string {
@@ -100,7 +100,7 @@ export function ProfileFormSelf({
     setLanguage(l);
   };
 
-  const inputClassDark = 'w-full px-3 py-2.5 rounded-xl bg-black/30 border border-white/10 text-white text-sm focus:border-white/20 focus:outline-none focus:ring-0';
+  const inputClassDark = 'w-full px-3 py-2.5 rounded-xl bg-black/30 border border-white/10 text-white text-sm focus:text-base focus:border-white/20 focus:outline-none focus:ring-0';
   const inputClass = appearance === 'light' ? inputClassLight : inputClassDark;
   const inputClassDisabled =
     inputClass +

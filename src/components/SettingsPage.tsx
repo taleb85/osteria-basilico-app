@@ -1704,10 +1704,10 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   const ruleName = isLastSunday ? 'Ultima domenica' : 'Primo giorno';
                   const ruleColor = isLastSunday
                     ? 'text-accent'
-                    : 'text-[#001A80]';
+                    : 'text-brand-deep';
                   const borderColor = isLastSunday
                     ? 'border-accent/25 border-l-accent'
-                    : 'border-[#001A80]/25 border-l-[#001A80]';
+                    : 'border-brand-deep/25 border-l-brand-deep';
                   return (
                     <div className={`rounded-xl border-2 border-l-4 ${borderColor} bg-white/10 px-3 py-2.5`}>
                       <div className="flex items-center gap-1.5 mb-1">
@@ -1790,11 +1790,11 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     }}
                     className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
                       periodRuleMode === 'fixed_start'
-                        ? 'border-[#001A80] bg-[#001A80]/8'
+                        ? 'border-brand-deep bg-brand-deep/8'
                         : 'border-white/15 bg-white/8 hover:border-white/20'
                     }`}
                   >
-                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-[#001A80]' : 'text-white/70'}`}>
+                    <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-brand-deep' : 'text-white/70'}`}>
                       Primo giorno
                     </span>
                     <span className="text-[11px] leading-snug text-white/40">
@@ -1830,10 +1830,10 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     const cfg = periodConfigFromStartDate(draftStart);
                     const endDate = addDays(draftStart, cfg.numWeeks * 7 - 1);
                     return (
-                      <div className="flex items-center justify-between rounded-xl border border-[#001A80]/22 bg-[#001A80]/80/8 px-3 py-2.5">
+                      <div className="flex items-center justify-between rounded-xl border border-brand-deep/22 bg-brand-deep/80/8 px-3 py-2.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold text-[#001A80]">Primo giorno</span>
-                          <span className="rounded-full bg-[#001A80]/80/15 px-2 py-0.5 text-[11px] font-bold text-[#001A80]">
+                          <span className="text-[11px] font-bold text-brand-deep">Primo giorno</span>
+                          <span className="rounded-full bg-brand-deep/80/15 px-2 py-0.5 text-[11px] font-bold text-brand-deep">
                             {cfg.numWeeks} sett.
                           </span>
                         </div>
@@ -1973,7 +1973,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
           >
             <div className="surface-glass depth-card p-4 space-y-4">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#3366CC]/10 text-[#2255BB]">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-brand-mid/10 text-[#2255BB]">
                   <Mail className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -1988,14 +1988,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
 
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#3366CC]/60 pointer-events-none" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-brand-mid/60 pointer-events-none" />
                   <input
                     type="email"
                     value={holidayEmailDraft}
                     onChange={(e) => setHolidayEmailDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') saveHolidayEmail(); }}
                     placeholder="es. direzione@azienda.it"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#3366CC]/25 bg-white/8 text-sm text-white placeholder:text-white/40 outline-none transition-all focus:border-[#3366CC] focus:ring-2 focus:ring-[#3366CC]/20 focus:shadow-[0_0_0_3px_rgba(51,102,204,0.10)]"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-brand-mid/25 bg-white/8 text-sm text-white placeholder:text-white/40 outline-none transition-all focus:text-base focus:border-brand-mid focus:ring-2 focus:ring-brand-mid/20 focus:shadow-[0_0_0_3px_rgb(51_102_204/0.10)]"
                   />
                 </div>
                 <button
@@ -2003,7 +2003,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   onClick={saveHolidayEmail}
                   disabled={holidayEmailDraft.trim() === holidayEmail}
                   className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]"
-                  style={{ background: 'linear-gradient(110deg, #3366CC, #001A80)' }}
+                  style={{ background: 'linear-gradient(110deg, rgb(51, 102, 204), rgb(0, 26, 128))' }}
                 >
                   {holidayEmailSaved ? (
                     <><Check className="h-3.5 w-3.5" />Salvata</>
@@ -2014,7 +2014,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               </div>
 
               {holidayEmail && (
-                <div className="flex items-center justify-between rounded-xl border border-[#3366CC]/20 bg-[#3366CC]/5 px-3 py-2">
+                <div className="flex items-center justify-between rounded-xl border border-brand-mid/20 bg-brand-mid/5 px-3 py-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <Check className="h-3.5 w-3.5 flex-shrink-0 text-[#2255BB]" />
                     <span className="text-xs font-medium text-[#2255BB] truncate">{holidayEmail}</span>
@@ -2693,7 +2693,7 @@ function BreakRuleModal({
         className="modal-glass-panel max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl font-sans"
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[rgba(13,31,60,0.80)] px-5 pt-5 pb-4 backdrop-blur-md">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-app-bg/80 px-5 pt-5 pb-4 backdrop-blur-md">
           <h2 className="text-base font-bold text-white">
             {isEdit ? t.settings_break_modal_edit_title : t.settings_break_modal_new_title}
           </h2>

@@ -74,7 +74,7 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
         transition={{ duration: 0.28, ease: 'easeOut' }}
-        className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border border-white/10" style={{ background: 'rgba(13,31,60,0.97)' }}
+        className="w-full max-w-sm rounded-2xl border border-white/10 bg-app-bg/95 shadow-2xl overflow-hidden"
       >
         {/* Header */}
         <div className="px-5 pt-6 pb-4 text-center border-b border-white/10">

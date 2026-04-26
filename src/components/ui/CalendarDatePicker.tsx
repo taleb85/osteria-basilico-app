@@ -282,7 +282,7 @@ export function DatePickerInput({ value, onChange, inputClassName, minDate, maxD
 
       {/* Popover */}
       {open && (
-        <div className="absolute left-0 top-full z-[99] mt-1.5 w-full min-w-[300px] max-w-[340px]">
+        <div className="absolute left-0 top-full z-[99] mt-1.5 w-full min-w-0 min-w-[min(300px,100%)] max-w-[min(340px,calc(100vw-32px))] overflow-x-hidden">
           <CalendarDatePicker
             value={value}
             onChange={handleChange}

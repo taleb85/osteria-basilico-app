@@ -71,7 +71,7 @@ export default function MobileBottomNav({ activeTab, onNavigate, visibleTabs, la
   return (
     <nav
       ref={navRef}
-      className="fixed bottom-0 left-0 right-0 h-20 border-t border-white/10 flex justify-around items-stretch px-2 z-[100] md:hidden safe-area-pb" style={{ background: 'rgba(13,31,60,0.92)', backdropFilter: 'blur(20px)' }}
+      className="fixed bottom-0 left-0 right-0 h-20 border-t border-white/10 flex justify-around items-stretch px-2 z-[100] md:hidden safe-area-pb bg-app-bg/92 backdrop-blur-[20px]"
       aria-label="Navigazione principale mobile"
     >
       {shown.map(({ tab, icon: Icon, label }) => {

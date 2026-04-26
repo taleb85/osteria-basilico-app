@@ -196,8 +196,8 @@ body {
   }
 
   /**
-   * Telefono stretto: anche in modalità "comodo" non allargare i margini orizzontali
-   * (il contenuto resta leggibile; tablet/desktop restano a 1.5rem).
+   * Telefono (larghezza &lt; 640px, come Tailwind `sm:`): in modalità "comodo" non
+   * allargare i margini orizzontali (tablet/desktop restano a 1.5rem).
    */
   html[data-layout-effective='comfortable'][data-viewport-class='phone'] {
     --layout-app-px: 1rem;

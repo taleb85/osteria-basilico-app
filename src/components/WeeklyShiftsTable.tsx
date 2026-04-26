@@ -2691,7 +2691,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       },
                       {
                         bg: 'bg-cyan-600/8',
-                        border: 'border-2 border-[#0052FF]/70',
+                        border: 'border-2 border-brand-electric/70',
                         textCls: 'text-cyan-300',
                         label: t.wst_filter_published,
                         sub: t.wst_status_sub_published,
@@ -3934,7 +3934,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     }}
                                     onDragEnd={() => { setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
                                     onContextMenu={(e) => canEditInApp ? handleShiftContextMenu(e, user.id, dayStr, shift) : e.preventDefault()}
-                                    className={`w-full rounded-md flex items-center justify-between gap-1 px-1.5 text-[12px] font-bold select-none transition-all cursor-grab active:cursor-grabbing ${fv.bg} ${fv.text} ${flatBorderCls} ${isSelected ? 'ring-2 ring-[#0052FF] ring-offset-1' : ''}`}
+                                    className={`w-full rounded-md flex items-center justify-between gap-1 px-1.5 text-[12px] font-bold select-none transition-all cursor-grab active:cursor-grabbing ${fv.bg} ${fv.text} ${flatBorderCls} ${isSelected ? 'ring-2 ring-brand-electric ring-offset-1' : ''}`}
                                     style={{ height: '28px' }}
                                   >
                                     {isSelected ? (
@@ -4188,7 +4188,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               pasteMode
                                 ? 'ring-2 ring-inset ring-accent/20 hover:ring-accent/60 hover:bg-accent/5 transition-colors'
                                 : isPayrollCol
-                                  ? 'bg-cyan-600/6 ring-1 ring-inset ring-[#0052FF]/18'
+                                  ? 'bg-cyan-600/6 ring-1 ring-inset ring-brand-electric/18'
                                   : isToday(day)
                                     ? 'bg-accent/5'
                                     : isUnavailDay
@@ -4256,13 +4256,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     ? dayVariant === 'planned'
                                       ? 'border-b-2 border-dashed border-slate-300'
                                       : dayVariant === 'inprogress'
-                                        ? 'border-b-2 border-[#0052FF]/60'
+                                        ? 'border-b-2 border-brand-electric/60'
                                         : dayVariant === 'punchMissing'
                                           ? 'border-b-2 border-amber-500/55'
                                           : dayVariant === 'absent'
                                             ? 'border-b-2 border-rose-400/60'
                                             : dayVariant === 'approved'
-                                              ? 'border-b-2 border-[#0052FF]/50'
+                                              ? 'border-b-2 border-brand-electric/50'
                                               : 'border-b-2 border-slate-400'
                                     : 'border-b-2 border-slate-400'
                                 } relative select-none ${hasOverlap ? 'shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''} ${dropTargetKey === `${user.id}_${dayStr}_0` ? (dragCopyMode ? 'bg-accent/10 border-2 border-accent' : 'bg-amber-100 border-2 border-amber-400') : dayShift ? getCellStyle(dayShift, selectedShiftIds.includes(dayShift.id) || isInDragRect(0), selectedShiftIds.length > 0, dayVariant) : isInDragRect(0) ? 'bg-accent/10 border-2 border-accent' : 'border border-white/[0.12]'} ${dayShift ? 'shift-card-hover-group' : ''} ${!dayShift && canManageThisUser ? 'cursor-pointer hover:bg-white/[0.08]' : !dayShift ? 'cursor-default' : dayShift && canEditInApp ? 'cursor-pointer hover:ring-2 hover:ring-accent/40 hover:ring-inset' : ''}`}
@@ -5209,7 +5209,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const hasIn = drawerTimbrature.inTime !== '—';
                           const hasOut = drawerTimbrature.outTime !== '—';
                           const timbCard = hasIn && hasOut
-                            ? 'border-2 border-l-4 border-cyan-600/25 border-l-[#0052FF] bg-cyan-600/8'
+                            ? 'border-2 border-l-4 border-cyan-600/25 border-l-brand-electric bg-cyan-600/8'
                             : hasIn
                             ? 'border-2 border-l-4 border-amber-300/80 border-l-review bg-amber-500/10'
                             : 'border-2 border-l-4 border-white/15 border-l-white/30 bg-white/8';
@@ -5260,7 +5260,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           const delta = actualNetMins != null && plannedNetMins != null ? actualNetMins - plannedNetMins : null;
                           const hoursCard = actualNetMins != null && plannedNetMins != null
                             ? delta! >= 0
-                              ? 'border-2 border-l-4 border-cyan-600/25 border-l-[#0052FF] bg-cyan-600/8'
+                              ? 'border-2 border-l-4 border-cyan-600/25 border-l-brand-electric bg-cyan-600/8'
                               : 'border-2 border-l-4 border-amber-300/80 border-l-review bg-amber-500/10'
                             : 'border-2 border-l-4 border-white/15 border-l-white/30 bg-white/8';
                           const hoursLabelCls = actualNetMins != null && plannedNetMins != null
@@ -5796,7 +5796,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     type="button"
                     onClick={() => { setSlotPickerEditMode(!slotPickerEditMode); setSlotPickerNewStart(''); setSlotPickerNewEnd(''); }}
                     className="text-[11px] font-bold px-2 py-0.5 rounded-lg transition-colors"
-                    style={{ background: slotPickerEditMode ? (isDark ? 'rgba(0,82,255,0.3)' : 'rgba(0, 82, 255, 0.25)') : (isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0,0,0,0.05)'), color: slotPickerEditMode ? '#3366CC' : (isDark ? 'rgba(255,255,255,0.5)' : '#64748b') }}
+                    style={{ background: slotPickerEditMode ? (isDark ? 'rgba(0,82,255,0.3)' : 'rgba(0, 82, 255, 0.25)') : (isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0,0,0,0.05)'), color: slotPickerEditMode ? 'rgb(51, 102, 204)' : (isDark ? 'rgba(255,255,255,0.5)' : '#64748b') }}
                   >
                     {slotPickerEditMode ? 'Fatto' : 'Modifica'}
                   </button>
@@ -5856,7 +5856,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       onClick={addPreset}
                       disabled={!slotPickerNewStart || !slotPickerNewEnd}
                       className="w-full rounded-xl py-1.5 text-[12px] font-bold transition-colors disabled:opacity-40"
-                      style={{ background: isDark ? 'rgba(0,82,255,0.25)' : 'rgba(0, 82, 255, 0.25)', color: '#3366CC' }}
+                      style={{ background: isDark ? 'rgba(0,82,255,0.25)' : 'rgba(0, 82, 255, 0.25)', color: 'rgb(51, 102, 204)' }}
                     >
                       + Aggiungi
                     </button>

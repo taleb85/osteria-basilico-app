@@ -617,8 +617,8 @@ function TurniMock({ dark }: { dark: boolean }) {
           {days.map((d, i) => (
             <div key={i} className="flex flex-col items-center gap-1">
               <span className={`text-[8px] font-bold ${dark ? 'text-white/35' : 'text-slate-400'}`}>{d}</span>
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold ${i === 1 ? 'bg-[#3366CC] text-white' : (dark ? 'text-white/60' : 'text-slate-600')}`}>{nums[i]}</div>
-              <div className={`w-full h-10 rounded-lg flex items-center justify-center ${shifts[i] ? (dark ? 'bg-[#3366CC]/25 border border-[#3366CC]/40' : 'bg-blue-50 border border-blue-100') : (dark ? 'bg-white/[0.03]' : 'bg-slate-50')}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold ${i === 1 ? 'bg-brand-mid text-white' : (dark ? 'text-white/60' : 'text-slate-600')}`}>{nums[i]}</div>
+              <div className={`w-full h-10 rounded-lg flex items-center justify-center ${shifts[i] ? (dark ? 'bg-brand-mid/25 border border-brand-mid/40' : 'bg-blue-50 border border-blue-100') : (dark ? 'bg-white/[0.03]' : 'bg-slate-50')}`}>
                 {shifts[i] && <span className={`text-[7px] font-bold text-center leading-tight ${dark ? 'text-[#93c5fd]' : 'text-blue-700'}`}>{shifts[i]}</span>}
               </div>
             </div>
@@ -944,12 +944,12 @@ function DTurniMock({ dark }: { dark: boolean }) {
             <div key={si} className={`grid border-b last:border-0 ${dark ? 'border-white/[0.06]' : 'border-slate-50'}`}
               style={{ gridTemplateColumns: `140px repeat(7, 1fr)` }}>
               <div className={`flex items-center gap-2 px-4 py-2 ${dark ? 'bg-white/[0.02]' : 'bg-slate-50/50'}`}>
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${dark ? 'bg-[#3366CC]/30 text-[#93c5fd]' : 'bg-blue-100 text-blue-600'}`}>{s[0]}</div>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${dark ? 'bg-brand-mid/30 text-[#93c5fd]' : 'bg-blue-100 text-blue-600'}`}>{s[0]}</div>
                 <span className={`text-[10px] font-semibold ${dark ? 'text-white/70' : 'text-slate-700'}`}>{s}</span>
               </div>
               {grid[si].map((cell, ci) => (
                 <div key={ci} className="px-1 py-2 flex items-center justify-center">
-                  {cell && <div className={`w-full rounded-lg py-1 text-center text-[9px] font-bold ${dark ? 'bg-[#3366CC]/20 text-[#93c5fd] border border-[#3366CC]/30' : 'bg-blue-50 text-blue-700 border border-blue-100'}`}>{cell}</div>}
+                  {cell && <div className={`w-full rounded-lg py-1 text-center text-[9px] font-bold ${dark ? 'bg-brand-mid/20 text-[#93c5fd] border border-brand-mid/30' : 'bg-blue-50 text-blue-700 border border-blue-100'}`}>{cell}</div>}
                 </div>
               ))}
             </div>

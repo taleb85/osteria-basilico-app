@@ -393,8 +393,7 @@ export default function ProfileNavTabPanel({
           {/* Avatar + photo button */}
           <div className="relative inline-block" ref={photoMenuWrapRef}>
             <div
-              className="flex h-[9rem] w-[9rem] items-center justify-center overflow-hidden rounded-3xl text-[3.5rem] font-bold"
-              style={{ background: 'rgba(0,82,255,0.06)', border: '2px solid #F1F5F9', color: '#0052FF' }}
+              className="flex h-[9rem] w-[9rem] items-center justify-center overflow-hidden rounded-3xl border-2 border-slate-100 bg-brand-electric/6 text-[3.5rem] font-bold text-brand-electric"
             >
               {resolvedAvatar ? (
                 <img
@@ -420,7 +419,7 @@ export default function ProfileNavTabPanel({
               aria-haspopup={preferNativePhotoPicker ? undefined : 'menu'}
               aria-controls={preferNativePhotoPicker ? undefined : 'profile-photo-source-menu'}
               className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white shadow-md outline-none transition-colors hover:opacity-90 active:scale-[0.96] disabled:opacity-50 touch-manipulation"
-              style={{ background: '#0052FF' }}
+              style={{ background: 'rgb(0, 82, 255)' }}
               title={changePhoto}
               aria-label={changePhoto}
             >
@@ -548,7 +547,7 @@ export default function ProfileNavTabPanel({
                             type="button"
                             onClick={() => setPendingLang(null)}
                             className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
-                            style={isAuto ? { background: '#0052FF', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
+                            style={isAuto ? { background: 'rgb(0, 82, 255)', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
                             title={`Auto → ${deviceLang.toUpperCase()}`}
                           >
                             Auto
@@ -561,7 +560,7 @@ export default function ProfileNavTabPanel({
                           type="button"
                           onClick={() => setPendingLang(l)}
                           className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
-                          style={pendingLang === l ? { background: '#0052FF', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
+                          style={pendingLang === l ? { background: 'rgb(0, 82, 255)', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
                         >
                           {l.toUpperCase()}
                         </button>
@@ -575,7 +574,7 @@ export default function ProfileNavTabPanel({
                       style={langSaved
                         ? { background: '#10b981', color: '#fff' }
                         : hasLangChanges
-                          ? { background: '#0052FF', color: '#fff' }
+                          ? { background: 'rgb(0, 82, 255)', color: '#fff' }
                           : { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.40)', border: '1px solid rgba(255,255,255,0.12)' }}
                     >
                       {langSaved ? '✓ Salvato' : langSaving ? 'Salvataggio…' : 'Salva'}

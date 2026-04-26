@@ -520,9 +520,9 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
         <button
           type="button"
           onClick={onGoToLogin}
-          className="group flex items-center gap-2 rounded-xl border-2 border-[#001A80]/30 bg-[#001A80]/8 px-4 py-2.5 text-xs font-semibold text-[#001A80] shadow-[0_2px_8px_-2px_rgba(0,26,128,0.12)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-[#001A80]/60 hover:bg-[#001A80]/15 hover:shadow-[0_4px_12px_-3px_rgba(0,26,128,0.2)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
+          className="group flex items-center gap-2 rounded-xl border-2 border-brand-deep/30 bg-brand-deep/8 px-4 py-2.5 text-xs font-semibold text-brand-deep shadow-[0_2px_8px_-2px_rgba(0,26,128,0.12)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-brand-deep/60 hover:bg-brand-deep/15 hover:shadow-[0_4px_12px_-3px_rgba(0,26,128,0.2)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
         >
-          <User className="h-4 w-4 shrink-0 text-[#001A80]" strokeWidth={2} />
+          <User className="h-4 w-4 shrink-0 text-brand-deep" strokeWidth={2} />
           {t.area_personale}
         </button>
       </GiantBrandHeader>
@@ -691,7 +691,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.18, type: 'spring', stiffness: 280, damping: 22 }}
               className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl text-4xl font-bold text-white shadow-xl shadow-black/40"
-              style={{ background: 'linear-gradient(135deg, #0052FF 0%, #1a3785 100%)' }}
+              style={{ background: 'linear-gradient(135deg, rgb(0, 82, 255) 0%, #1a3785 100%)' }}
             >
               {selectedUser.first_name[0].toUpperCase()}
             </motion.div>

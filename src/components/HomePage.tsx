@@ -978,7 +978,7 @@ export default function HomePage({
               <div className="space-y-3">
                 {[
                   { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-accent' },
-                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-[#001A80]' },
+                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-brand-deep' },
                 ].map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="flex justify-between text-xs mb-1.5">
@@ -1079,7 +1079,7 @@ export default function HomePage({
                     <p className="text-[11px] text-white/45 uppercase font-semibold mb-1">{t.home_label_planned}</p>
                     <p className="font-bold text-white tabular-nums">{closeModal.actualStart} → {closeModal.plannedEnd}</p>
                   </div>
-                  <div className="rounded-xl bg-[#001A80]/8 p-3 text-center">
+                  <div className="rounded-xl bg-brand-deep/8 p-3 text-center">
                     <p className="text-[11px] text-white/55 uppercase font-semibold mb-1">{t.home_label_entry}</p>
                     <p className="font-bold text-white tabular-nums">{closeModal.actualStart}</p>
                   </div>

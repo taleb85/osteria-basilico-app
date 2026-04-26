@@ -4313,7 +4313,7 @@ export default function Timesheets() {
                                       <span className="mr-1.5 flex shrink-0 flex-col items-center justify-center gap-0.5 self-stretch md:mr-1">
                                         {s.status === 'confirmed' && (
                                           <Check
-                                            className="h-2.5 w-2.5 shrink-0 text-[#3366CC] md:h-2 md:w-2"
+                                            className="h-2.5 w-2.5 shrink-0 text-brand-mid md:h-2 md:w-2"
                                             strokeWidth={2.5}
                                             aria-hidden
                                           />
@@ -4506,7 +4506,7 @@ export default function Timesheets() {
               {/* Footer totali */}
               {canTeamTimesheetOps && (
                 <tfoot>
-                  <tr className="bg-[#3366CC]/5 border-t-2 border-[#3366CC]/35">
+                  <tr className="bg-brand-mid/5 border-t-2 border-brand-mid/35">
                     <td className="sticky left-0 pl-4 pr-3 py-3 text-accent font-bold text-xs uppercase border-r-2 border-r-white/15 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[11px]" style={{ background: 'rgba(30, 55, 120, 0.80)', backdropFilter: 'blur(8px)' }}>
                       {t.stats_total}
                     </td>
@@ -4622,7 +4622,7 @@ export default function Timesheets() {
                       {
                         label: t.ts_kpi_delta,
                         val: `${(myTot?.deltaMins ?? 0) >= 0 ? '+' : ''}${fmtHM(myTot?.deltaMins ?? 0)}`,
-                        color: (myTot?.deltaMins ?? 0) >= 0 ? 'text-[#3366CC]' : 'text-red-500',
+                        color: (myTot?.deltaMins ?? 0) >= 0 ? 'text-brand-mid' : 'text-red-500',
                       },
                     ]
                   : plannedOnlyTimesheetGrid && frozenM > 0
@@ -4831,7 +4831,7 @@ export default function Timesheets() {
           const plannedCardBoxClass = plannedApprovedCard
             ? 'rounded-xl border-2 border-l-4 border-emerald-500/30 border-l-emerald-500 bg-emerald-500/12 p-3'
             : plannedConfirmedCard
-              ? 'rounded-xl border-2 border-l-4 border-[#0052FF]/30 border-l-[#0052FF] bg-[#0052FF]/10 p-3'
+              ? 'rounded-xl border-2 border-l-4 border-brand-electric/30 border-l-brand-electric bg-brand-electric/10 p-3'
               : plannedAbsentCard
                 ? 'rounded-xl border-2 border-l-4 border-rose-500/30 border-l-error bg-rose-500/12 p-3'
                 : plannedDraftCard
@@ -5116,13 +5116,13 @@ export default function Timesheets() {
                         const cardCls = punchCrossDay
                           ? 'border-red-400/50 border-l-error bg-red-500/12'
                           : punchComplete
-                          ? 'border-[#001A80]/25 border-l-[#3366CC] bg-[#001A80]/8'
+                          ? 'border-brand-deep/25 border-l-brand-mid bg-brand-deep/8'
                           : 'border-amber-400/70 bg-amber-500/12';
                         const hoverCls = timbraturePinGateTarget
                           ? punchCrossDay
                             ? 'hover:bg-red-500/20'
                             : punchComplete
-                            ? 'hover:bg-[#001A80]/12'
+                            ? 'hover:bg-brand-deep/12'
                             : 'hover:bg-amber-500/20'
                           : '';
                         const titleCls = punchCrossDay
@@ -5200,7 +5200,7 @@ export default function Timesheets() {
                                 : punchCrossDay
                                   ? 'bg-red-500/12 ring-red-400/30'
                                   : punchComplete
-                                  ? 'bg-[#001A80]/10 ring-[#001A80]/25'
+                                  ? 'bg-brand-deep/10 ring-brand-deep/25'
                                   : 'bg-white/8 ring-amber-400/40'
                             } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''}`}
                           >
@@ -5228,7 +5228,7 @@ export default function Timesheets() {
                                 : punchCrossDay
                                   ? 'bg-red-500/12 ring-red-400/30'
                                   : punchComplete
-                                  ? 'bg-[#001A80]/10 ring-[#001A80]/25'
+                                  ? 'bg-brand-deep/10 ring-brand-deep/25'
                                   : 'bg-white/8 ring-amber-400/40'
                             } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''}`}
                           >
@@ -5733,7 +5733,7 @@ export default function Timesheets() {
         open={!!approveWeekSummary}
         onClose={() => setApproveWeekSummary(null)}
         maxWidthClass="max-w-[380px]"
-        panelClassName={`rounded-[40px] overflow-hidden !bg-[#0052FF]/5 !border-[#0052FF]/18 ${
+        panelClassName={`rounded-[40px] overflow-hidden !bg-brand-electric/5 !border-brand-electric/18 ${
           approveWeekSummary?.approvedIds ? 'ring-1 ring-inset ring-emerald-500/25' : ''
         }`}
         ariaLabel="Riepilogo approvazione settimana"
@@ -5746,12 +5746,12 @@ export default function Timesheets() {
             <div className="flex items-center gap-3 mb-4">
               <div
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
-                  isDone ? 'bg-emerald-500/20 ring-1 ring-emerald-400/30' : 'bg-[#0052FF]/12'
+                  isDone ? 'bg-emerald-500/20 ring-1 ring-emerald-400/30' : 'bg-brand-electric/12'
                 }`}
               >
                 {isDone
                   ? <Check className="h-5 w-5 text-emerald-400" strokeWidth={2.5} />
-                  : <Lock className="h-5 w-5 text-[#0052FF]" />
+                  : <Lock className="h-5 w-5 text-brand-electric" />
                 }
               </div>
               <div>
@@ -5771,7 +5771,7 @@ export default function Timesheets() {
               className={`mb-4 max-h-[260px] overflow-y-auto rounded-xl border divide-y ${
                 isDone
                   ? 'border-emerald-500/25 divide-emerald-500/15'
-                  : 'border-[#0052FF]/18 divide-[#0052FF]/10'
+                  : 'border-brand-electric/18 divide-brand-electric/10'
               }`}
             >
               {approveWeekSummary.previewRows.map((row, i) => {
@@ -5780,7 +5780,7 @@ export default function Timesheets() {
                   <div
                     key={i}
                     className={`flex items-center justify-between px-3 py-2.5 transition-colors ${
-                      approved ? 'bg-emerald-500/10' : 'bg-[#0052FF]/4'
+                      approved ? 'bg-emerald-500/10' : 'bg-brand-electric/4'
                     }`}
                   >
                     <span className={`text-sm font-medium capitalize ${isDone ? 'text-white/90' : 'text-white/80'}`}>
@@ -5946,7 +5946,7 @@ export default function Timesheets() {
           const clockOutComplete = /^\d{2}:\d{2}$/.test((clockOutTime || '').trim());
           const showHoursPreview = clockOutComplete && !!shiftObj && !!userObj;
           const previewDelta = previewMins - closingShift.plannedMins;
-          const previewDeltaColor = previewDelta > 5 ? 'text-[#3366CC]' : previewDelta < -5 ? 'text-red-500' : 'text-white/60';
+          const previewDeltaColor = previewDelta > 5 ? 'text-brand-mid' : previewDelta < -5 ? 'text-red-500' : 'text-white/60';
 
           return (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}

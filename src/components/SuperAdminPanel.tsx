@@ -106,7 +106,7 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
             key={i}
             className="w-3 h-3 rounded-full transition-all duration-150"
             style={i < digits.length
-              ? { background: error ? '#f87171' : 'linear-gradient(110deg, #3366CC, #001A80)', boxShadow: error ? '0 0 8px rgba(248,113,113,0.5)' : '0 0 8px rgba(51,102,204,0.55)' }
+              ? { background: error ? '#f87171' : 'linear-gradient(110deg, rgb(51, 102, 204), rgb(0, 26, 128))', boxShadow: error ? '0 0 8px rgba(248,113,113,0.5)' : '0 0 8px rgba(51,102,204,0.55)' }
               : { background: 'rgba(15, 35, 90, 0.85)' }
             }
           />
@@ -1078,7 +1078,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
 
       {/* Nota branding — colore e logo fissi FLOW */}
       <div className="rounded-xl border border-white/15 bg-white/6 px-3.5 py-2.5 flex items-center gap-2.5">
-        <div className="w-6 h-6 rounded-full bg-[#001A80] flex items-center justify-center shrink-0">
+        <div className="w-6 h-6 rounded-full bg-brand-deep flex items-center justify-center shrink-0">
           <span className="text-white text-[11px] font-bold">F</span>
         </div>
         <p className="text-[11px] text-white/55">
@@ -1438,7 +1438,7 @@ function SuperAdminPanelInner() {
             <button
               onClick={() => { setShowForm(true); setEditingTenant(null); setShowImport(false); }}
               className="flex items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold text-white active:scale-95 transition"
-              style={{ background: 'linear-gradient(110deg, #3366CC, #001A80)' }}
+              style={{ background: 'linear-gradient(110deg, rgb(51, 102, 204), rgb(0, 26, 128))' }}
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Nuova sede</span>
@@ -1493,7 +1493,7 @@ function SuperAdminPanelInner() {
         {/* Lista sedi */}
           {loading ? (
           <div className="text-center py-16 text-white/40">
-            <div className="w-8 h-8 border-2 border-[#3366CC]/30 border-t-accent rounded-full animate-spin mx-auto mb-3" />
+            <div className="w-8 h-8 border-2 border-brand-mid/30 border-t-accent rounded-full animate-spin mx-auto mb-3" />
             Caricamento…
           </div>
         ) : tenants.length === 0 ? (
@@ -1575,8 +1575,8 @@ function SuperAdminPanelInner() {
                             onClick={() => setExpandedSettings(expandedSettings === t.id ? null : t.id)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition active:scale-95 ${
                               expandedSettings === t.id
-                                ? 'bg-[#3366CC]/10 text-[#2255BB]'
-                                : 'bg-white/10 text-white/55 hover:bg-[#3366CC]/8 hover:text-[#2255BB]'
+                                ? 'bg-brand-mid/10 text-[#2255BB]'
+                                : 'bg-white/10 text-white/55 hover:bg-brand-mid/8 hover:text-[#2255BB]'
                             }`}
                           >
                             <Settings className="w-3.5 h-3.5" />
@@ -1593,8 +1593,8 @@ function SuperAdminPanelInner() {
                             onClick={() => toggleActive(t)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition active:scale-95 ${
                               t.is_active
-                                ? 'bg-[#3366CC]/10 text-[#2255BB] hover:bg-red-50 hover:text-red-500'
-                                : 'bg-white/10 text-white/40 hover:bg-[#3366CC]/8 hover:text-[#2255BB]'
+                                ? 'bg-brand-mid/10 text-[#2255BB] hover:bg-red-50 hover:text-red-500'
+                                : 'bg-white/10 text-white/40 hover:bg-brand-mid/8 hover:text-[#2255BB]'
                             }`}
                           >
                             {t.is_active ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}

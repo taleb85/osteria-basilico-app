@@ -100,7 +100,7 @@ export default defineConfig(({ command }) => {
         display: 'standalone',
         background_color: '#0d3b6e',
         theme_color: '#0d3b6e',
-        orientation: 'portrait',
+        orientation: 'any',
         scope: '/',
         icons: [
           { src: '/icon-192.png',       sizes: '192x192',   type: 'image/png', purpose: 'any' },

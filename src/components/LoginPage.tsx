@@ -401,7 +401,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         <FlowLogoSvg
           variant="icon-only"
           color="orange"
-          className="w-[110vw] max-w-[860px] min-w-[320px] h-auto"
+          className="w-full max-w-[860px] min-w-[320px] h-auto overflow-x-hidden"
           style={{ opacity: 0.055, filter: 'saturate(0) brightness(0) blur(6px)' }}
         />
       </div>
@@ -509,7 +509,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 onKeyDown={handleKeyDown}
                 placeholder={t.login_name_ph ?? 'Nome utente'}
                 autoComplete="name"
-                className="w-full pl-10 pr-4 py-3.5 rounded-2xl text-white text-sm uppercase placeholder:normal-case placeholder:text-white/35 placeholder:text-sm focus:outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3.5 rounded-2xl text-white text-sm focus:text-base uppercase placeholder:normal-case placeholder:text-white/35 placeholder:text-sm focus:outline-none transition-all"
                 style={{ background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' }}
               />
             </div>
@@ -537,7 +537,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 style={!showPassword
                   ? ({ WebkitTextSecurity: 'disc', background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' } as CSSProperties)
                   : { background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' }}
-                className="w-full pl-10 pr-10 py-3.5 rounded-2xl text-white text-sm placeholder:text-white/35 focus:outline-none transition-all"
+                className="w-full pl-10 pr-10 py-3.5 rounded-2xl text-white text-sm focus:text-base placeholder:text-white/35 focus:outline-none transition-all"
               />
               <button
                 type="button"
@@ -579,7 +579,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               onClick={handleLogin}
               disabled={!staffName.trim() || !password.trim() || isLoading || deviceLoading || linkDeviceLoading}
               className="w-full py-3.5 rounded-2xl text-white font-semibold text-sm active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-blue-900/40"
-              style={{ background: '#0052FF', border: '1px solid rgba(120,170,255,0.28)' }}
+              style={{ background: 'rgb(0, 82, 255)', border: '1px solid rgba(120,170,255,0.28)' }}
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
