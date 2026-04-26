@@ -5,7 +5,8 @@ import { LogOut, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTenant } from '../context/TenantContext';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
-import { getDateLocale, getTranslations } from '../utils/translations';
+import { getDateLocale } from '../utils/translations';
+import { useT } from '../hooks/useT';
 import UserAvatarMenu from './UserAvatarMenu';
 import NotificationCenter from './NotificationCenter';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
@@ -35,7 +36,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
     return () => document.removeEventListener('pointerdown', handler);
   }, [langOpen]);
 
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const locale = getDateLocale(effectiveLanguage) ?? it;
   const langLabels: Record<string, string> = { it: 'IT', en: 'EN', es: 'ES', fr: 'FR' };
   const langFlags: Record<string, string> = { it: '🇮🇹', en: '🇬🇧', es: '🇪🇸', fr: '🇫🇷' };
@@ -60,7 +61,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
           >
             {tenantName}
           </h1>
-          <p className="text-[9px] text-white/50 font-semibold uppercase tracking-widest leading-none">
+          <p className="text-[11px] text-white/50 font-semibold uppercase tracking-widest leading-none">
             {t.header_tagline}
           </p>
         </div>
@@ -120,7 +121,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
               type="button"
               onClick={onLogout}
               title={t.header_logout}
-              className="flex min-h-[36px] min-w-[36px] flex-shrink-0 items-center justify-center surface-glass-sm text-white/70 surface-ghost-interactive md:hidden"
+              className="flex min-h-[44px] min-w-[44px] flex-shrink-0 items-center justify-center surface-glass-sm text-white/70 surface-ghost-interactive md:hidden"
             >
               <LogOut className="w-4 h-4" strokeWidth={2} />
             </button>

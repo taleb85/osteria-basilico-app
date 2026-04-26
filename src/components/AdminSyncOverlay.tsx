@@ -50,20 +50,14 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
     };
   }, [onDone, onReload]);
 
-  const dark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-[99999] flex flex-col items-center justify-center px-6 text-center font-sans"
-      style={
-        dark
-          ? { background: 'radial-gradient(circle at 50% 40%, rgba(51,102,204,0.18) 0%, transparent 55%), #000' }
-          : { background: 'radial-gradient(circle at 50% 40%, rgba(51,102,204,0.09) 0%, transparent 55%), #f8fafc' }
-      }
+      className="fixed inset-0 z-[400] flex flex-col items-center justify-center px-6 text-center font-sans"
+      style={{ background: 'transparent' }}
       role="status"
       aria-live="polite"
       aria-busy="true"
@@ -80,7 +74,7 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
         />
         <motion.circle
           cx="60" cy="60" r="54"
-          fill="none" stroke="#3366CC" strokeWidth="3"
+          fill="none" stroke="rgb(51, 102, 204)" strokeWidth="3"
           strokeLinecap="round"
           pathLength={1}
           initial={{ pathLength: 0 }}
@@ -89,12 +83,12 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
           transition={{ duration: 3.2, ease: 'easeInOut' }}
         />
       </svg>
-        <div className="flex aspect-square w-[min(44vw,7.5rem)] max-w-[120px] items-center justify-center rounded-[1.75rem] bg-[#3366CC]/10">
+        <div className="flex aspect-square w-[min(44vw,7.5rem)] max-w-[120px] items-center justify-center rounded-[1.75rem] bg-brand-mid/10">
           <motion.div
             animate={{ rotate: [0, 360] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           >
-            <ShieldCheck className="w-10 h-10 text-[#3366CC]" strokeWidth={1.5} />
+            <ShieldCheck className="w-10 h-10 text-brand-mid" strokeWidth={1.5} />
           </motion.div>
         </div>
       </div>
@@ -121,7 +115,7 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
               >
                 <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-colors duration-300 ${
                   done
-                    ? 'bg-[#3366CC]'
+                    ? 'bg-brand-mid'
                     : 'border-2 border-slate-300'
                 }`}>
                   {done && !isLast && (
@@ -134,7 +128,7 @@ export default function AdminSyncOverlay({ onDone, onReload }: Props) {
                     <motion.div
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 0.8, repeat: Infinity }}
-                      className="w-2 h-2 rounded-full bg-[#3366CC]"
+                      className="w-2 h-2 rounded-full bg-brand-mid"
                     />
                   )}
                 </div>

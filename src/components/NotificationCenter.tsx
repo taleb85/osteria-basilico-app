@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Bell, BellOff, X, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations } from '../utils/translations';
 import {
   generateNotifications,
@@ -21,7 +22,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
   const [isOpen, setIsOpen] = useState(false);
   // Tick incrementato dopo markAllSeen per forzare re-lettura seenIds da localStorage
   const [seenTick, setSeenTick] = useState(0);
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
 
   // Generazione e sincronizzazione feed
   const feed = useMemo(() => {
@@ -66,7 +67,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
       >
         <Bell className={`${denseTrigger ? 'h-4 w-4' : 'h-5 w-5'} ${unreadCount > 0 ? 'animate-ring text-red-500' : ''}`} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -105,7 +106,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-bold text-white">{n.title}</p>
                       <p className="mt-0.5 text-xs leading-relaxed text-white/70">{n.body}</p>
-                      <p className="mt-2 text-[10px] font-medium uppercase tracking-wider text-white/50">
+                      <p className="mt-2 text-[11px] font-medium uppercase tracking-wider text-white/50">
                         {n.timestamp}
                       </p>
                     </div>

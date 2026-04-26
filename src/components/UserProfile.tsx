@@ -8,6 +8,7 @@
 import { useMemo, useCallback, useState, useRef } from 'react';
 import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone, Calendar, Smartphone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations, formatTrans } from '../utils/translations';
 import { buildShortInviteLink } from '../config/appPaths';
 import type { User as UserType, Language, Department } from '../types';
@@ -40,7 +41,7 @@ export type ProfileFormSelfData = {
 
 /** Form "Il mio profilo": Email, Telefono, Reparto, Lingua. Con `readOnly` i campi sono disabilitati (es. anteprima). */
 const inputClassLight =
-  'w-full px-3 py-2.5 rounded-xl bg-white/8 border border-white/18 text-white text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors placeholder:text-white/35';
+  'w-full px-3 py-2.5 rounded-xl bg-white/8 border border-white/18 text-white text-sm focus:text-base focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors placeholder:text-white/35';
 const labelClassLight = 'block text-xs font-medium text-white/65 mb-1.5';
 
 function roleSelectValue(role: UserType['role']): string {
@@ -92,7 +93,7 @@ export function ProfileFormSelf({
 }) {
   const { effectiveLanguage, setLanguage, currentUser, departmentsRevision } = useApp();
   void departmentsRevision;
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
 
   const _applyLanguage = (l: Language) => {
     if (readOnly) return;
@@ -100,7 +101,7 @@ export function ProfileFormSelf({
     setLanguage(l);
   };
 
-  const inputClassDark = 'w-full px-3 py-2.5 rounded-xl bg-black/30 border border-white/10 text-white text-sm focus:border-white/20 focus:outline-none focus:ring-0';
+  const inputClassDark = 'w-full px-3 py-2.5 rounded-xl bg-black/30 border border-white/10 text-white text-sm focus:text-base focus:border-white/20 focus:outline-none focus:ring-0';
   const inputClass = appearance === 'light' ? inputClassLight : inputClassDark;
   const inputClassDisabled =
     inputClass +
@@ -243,7 +244,7 @@ export function ProfileFormSelf({
         if (!scope) return null;
         return (
           <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/45 mb-1">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-white/45 mb-1">
               {tv.profile_role_scope_label}
             </p>
             <p className="text-[11px] text-white/70 leading-snug">{scope}</p>
@@ -337,7 +338,7 @@ export function ProfileFormSelf({
 /** Solo admin: limita la griglia Presenze dell’utente ai soli orari pianificati pubblicati/confermati. */
 export function AdminTimesheetGridPrivacyEditor({ user }: { user: UserType }) {
   const { updateUser, effectiveLanguage, showSuccess, showError } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   const plannedOnly = getTimesheetGridPrivacyMode(user) === 'planned_only';
   const [busy, setBusy] = useState(false);
@@ -373,7 +374,7 @@ export function AdminTimesheetGridPrivacyEditor({ user }: { user: UserType }) {
           <p className="text-xs font-semibold text-white">
             {tv.admin_timesheet_grid_planned_only_label}
           </p>
-          <p className="mt-1 text-[10px] leading-snug text-white/55">
+          <p className="mt-1 text-[11px] leading-snug text-white/55">
             {tv.admin_timesheet_grid_planned_only_hint}
           </p>
         </div>
@@ -451,7 +452,7 @@ export function ProfileFormAdmin({
 }) {
   const { effectiveLanguage, showSuccess, showError, departmentsRevision, users, isSessionElevated } = useApp();
   void departmentsRevision;
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   // Translations in the employee's own language (for share messages sent to them)
   const rawLang = (user as { language?: string }).language ?? effectiveLanguage;
@@ -620,7 +621,7 @@ export function ProfileFormAdmin({
           if (!scope) return null;
           return (
             <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-white/45 mb-1">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/45 mb-1">
                 {tv.profile_role_scope_label}
               </p>
               <p className="text-[11px] text-white/70 leading-snug">{scope}</p>
@@ -826,7 +827,7 @@ export function ProfileFormAdmin({
                 {tv.admin_employee_access_link_pin_incomplete ?? ''}
               </p>
             )}
-            <p className="text-[10px] text-white/45 font-mono break-all pl-5">{accessLink}</p>
+            <p className="text-[11px] text-white/45 font-mono break-all pl-5">{accessLink}</p>
           </div>
         )}
 

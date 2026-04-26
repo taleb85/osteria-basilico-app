@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
+import FlowLogoSvg from './FlowLogoSvg';
 
 const STEPS = [
   { label: 'Nuova versione rilevata',   doneAt: 0    },
@@ -12,7 +13,7 @@ const STEPS = [
   { label: 'Riavvio…',                  doneAt: null },
 ];
 
-const BG = 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18';
+const BG = 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.22) 0%, transparent 55%), #000B18';
 
 function redirectToApp() {
   try {
@@ -56,7 +57,7 @@ export default function SwUpdateOverlay() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="fixed inset-0 z-[99999] flex flex-col items-center justify-center gap-6 font-sans text-center px-4"
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6 font-sans text-center px-4"
       style={{ background: BG }}
       role="status"
       aria-live="polite"
@@ -64,20 +65,19 @@ export default function SwUpdateOverlay() {
       aria-label="Aggiornamento app"
     >
       {/* Icona */}
-      <motion.img
-        src="/icon-flow-final.png"
-        alt="FLOW"
-        draggable={false}
+      <motion.div
         animate={{
           filter: [
-            'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
-            'drop-shadow(0 0 56px rgba(0,82,255,1.00)) drop-shadow(0 0 24px rgba(0,180,255,0.80))',
-            'drop-shadow(0 0 32px rgba(0,82,255,0.70)) drop-shadow(0 0 12px rgba(0,180,255,0.50))',
+            'drop-shadow(0 0 32px rgba(255,149,0,0.70)) drop-shadow(0 0 12px rgba(255,200,150,0.50))',
+            'drop-shadow(0 0 56px rgba(255,149,0,1.00)) drop-shadow(0 0 24px rgba(255,200,150,0.80))',
+            'drop-shadow(0 0 32px rgba(255,149,0,0.70)) drop-shadow(0 0 12px rgba(255,200,150,0.50))',
           ],
         }}
         transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
-        style={{ width: 120, height: 120, objectFit: 'contain' }}
-      />
+        className="leading-none"
+      >
+        <FlowLogoSvg variant="icon-only" color="orange" style={{ width: 120, height: 120, display: 'block' }} />
+      </motion.div>
 
       {/* Stato */}
       <div className="flex flex-col items-center gap-1.5 min-h-[44px]">

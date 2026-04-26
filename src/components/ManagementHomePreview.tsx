@@ -165,10 +165,10 @@ export default function ManagementHomePreview({
                 label: t.home_stat_in_shift,
                 value: 0,
                 Icon: Users,
-                iconColor: 'text-[#3366CC]',
+                iconColor: 'text-brand-mid',
                 bg: 'bg-white/8',
                 border: 'border-white/10',
-                iconWell: 'bg-[#3366CC]/10',
+                iconWell: 'bg-brand-mid/10',
               },
               {
                 label: t.home_stat_delays,
@@ -292,7 +292,7 @@ export default function ManagementHomePreview({
               <div className="space-y-3">
                 {[
                   { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-accent' },
-                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-[#001A80]' },
+                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-brand-deep' },
                 ].map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="mb-1.5 flex justify-between text-xs">
@@ -346,14 +346,14 @@ export default function ManagementHomePreview({
               <div className="surface-glass cursor-default p-4">
                 <div className="mb-2 flex items-center justify-between">
                   <TrendingUp className="h-4 w-4 text-white/50" />
-                  <span className="text-[10px] font-semibold uppercase text-white/50">{t.home_kpi_hours_week}</span>
+                  <span className="text-[11px] font-semibold uppercase text-white/50">{t.home_kpi_hours_week}</span>
                 </div>
                 <p className="text-2xl font-bold text-white">{formatMinutesToHoursAndMinutes(weeklyMinutesDemo)}</p>
               </div>
               <div className="surface-glass cursor-default p-4">
                 <div className="mb-2 flex items-center justify-between">
                   <Calendar className="h-4 w-4 text-white/50" />
-                  <span className="text-[10px] font-semibold uppercase text-white/50">{t.home_kpi_shifts_week}</span>
+                  <span className="text-[11px] font-semibold uppercase text-white/50">{t.home_kpi_shifts_week}</span>
                 </div>
                 <p className="text-2xl font-bold text-white">{shiftsWeekDemo}</p>
                 <p className="mt-0.5 text-[11px] text-white/50">{t.home_today}</p>
@@ -369,7 +369,7 @@ export default function ManagementHomePreview({
 
   return (
     <div className="w-full max-w-3xl rounded-[1.75rem] border-[3px] border-slate-800 bg-transparent p-3 shadow-2xl sm:p-4)]">
-      <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-wider text-white/60">
+      <p className="mb-3 text-center text-[11px] font-bold uppercase tracking-wider text-white/60">
         {tv.profile_visibility_mock_realistic_label ?? 'Anteprima — Home gestionale (dati dimostrativi)'}
       </p>
       {body}

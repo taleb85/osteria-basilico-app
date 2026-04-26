@@ -150,7 +150,7 @@ export function ShiftHoursCards({
             boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.3)',
           }}
         >
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/50">{t.ts_label_planned}</p>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/50">{t.ts_label_planned}</p>
           <div className="flex items-start gap-1.5">
             {(s.status === 'confirmed' || s.status === 'approved') && (
               <span className="shrink-0 mt-0.5">
@@ -196,7 +196,7 @@ export function ShiftHoursCards({
           }}
         >
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/50">{t.ts_label_punched}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50">{t.ts_label_punched}</p>
             {(s.punched && !s.actualEnd) || !s.punched ? (
               <span className="flex h-2 w-2 rounded-full bg-white/30 animate-pulse" title={t.data_missing} />
             ) : null}
@@ -252,12 +252,12 @@ export function ShiftHoursCards({
                 )}
               </p>
               <div className="mt-2 space-y-0.5 border-t border-white/15 pt-2">
-                <p className="text-[10px] leading-snug text-white/55">
+                <p className="text-[11px] leading-snug text-white/55">
                   <span className="font-semibold text-white/45">{t.ts_punch_source_row_in}</span>{' '}
                   {punchSourceLabel(s.punchInSource, t)}
                 </p>
                 {s.actualEnd ? (
-                  <p className="text-[10px] leading-snug text-white/55">
+                  <p className="text-[11px] leading-snug text-white/55">
                     <span className="font-semibold text-white/45">{t.ts_punch_source_row_out}</span>{' '}
                     {punchSourceLabel(s.punchOutSource, t)}
                   </p>
@@ -343,7 +343,10 @@ export function ShiftHoursCards({
                           className="peer sr-only"
                           checked={!ruleExclusion.has(it.ruleId)}
                           disabled={deductBreakSaving}
-                          onChange={() => onDeductPerRuleChange(s.id, it.ruleId!, ruleExclusion.has(it.ruleId))}
+                          onChange={() =>
+                            it.ruleId != null &&
+                            onDeductPerRuleChange(s.id, it.ruleId, ruleExclusion.has(it.ruleId))
+                          }
                         />
                         <div
                           className={`h-5 w-9 rounded-full transition-colors duration-200 ${

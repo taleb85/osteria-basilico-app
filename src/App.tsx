@@ -20,7 +20,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import { ProfileLeaveGuardRefContext, type ProfileLeaveGuard } from './context/ProfileLeaveGuardContext';
 import { LayoutPresetProvider } from './context/LayoutPresetContext';
 import { applyUnauthenticatedDocumentTheme } from './utils/theme';
-import { getTranslations } from './utils/translations';
+import { useT } from './hooks/useT';
 import TopTabBar from './components/TopTabBar';
 import MobileProfileHeader from './components/MobileProfileHeader';
 import FlowWaveIcon from './components/ui/FlowWaveIcon';
@@ -74,7 +74,7 @@ const ManagementMobileTimesheet = lazy(() => import('./components/mobile/Managem
 // ─── Maintenance Page ─────────────────────────────────────────────────────────
 function MaintenancePage() {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 px-6 text-center font-sans antialiased">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-app-bg px-6 text-center font-sans antialiased">
       <div className="w-20 h-20 rounded-2xl bg-amber-100 flex items-center justify-center mb-6 shadow-sm">
         <Wrench className="w-10 h-10 text-amber-500" />
       </div>
@@ -157,7 +157,7 @@ function KioskRoute() {
   if (featureFlags['kiosk_active'] === false) return null;
 
   return (
-    <div className="min-h-screen w-full flex flex-col safe-area-pad bg-[#f8fafc] font-sans antialiased text-white">
+    <div className="min-h-screen w-full flex flex-col safe-area-pad bg-app-bg font-sans antialiased text-white">
       <Suspense fallback={null}><PunchInKiosk onGoToLogin={() => navigate(PATH_PROFILO)} /></Suspense>
     </div>
   );
@@ -228,7 +228,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     setIsSessionElevated,
   } = useApp();
 
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const isMobileViewport = useIsMobileViewport();
   const staffMobileCompactHeader = !isManagement && isMobileViewport;
@@ -350,8 +350,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const handleTabChange = useCallback(
     (id: AppNavTab) => {
       void (async () => {
-        const tr = getTranslations(effectiveLanguage);
-        const tv = tr as Record<string, string>;
+        const tv = t as Record<string, string>;
         if (activeTab === 'profile' && id !== 'profile') {
           const g = profileLeaveGuardRef.current;
           if (g?.isDirty()) {
@@ -369,7 +368,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         applyTabChange(id);
       })();
     },
-    [activeTab, effectiveLanguage, applyTabChange]
+    [activeTab, t, applyTabChange]
   );
 
   useEffect(() => {
@@ -519,8 +518,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       const anchor = ce.detail?.anchor;
       if (!tab || !visibleNavTabs.includes(tab)) return;
       void (async () => {
-        const tr = getTranslations(effectiveLanguage);
-        const tv = tr as Record<string, string>;
+        const tv = t as Record<string, string>;
         if (activeTab === 'profile' && tab !== 'profile') {
           const g = profileLeaveGuardRef.current;
           if (g?.isDirty()) {
@@ -547,7 +545,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     };
     window.addEventListener('osteria-navigate', onNavigate as EventListener);
     return () => window.removeEventListener('osteria-navigate', onNavigate as EventListener);
-  }, [visibleNavTabs, activeTab, effectiveLanguage]);
+  }, [visibleNavTabs, activeTab, t]);
 
   const now = useMemo(() => new Date(), []);
   const isSynced = !!featureFlags && Object.keys(featureFlags).length > 0;
@@ -748,7 +746,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                 onClick={handleHardRefresh}
                 disabled={isRefreshing || dataSyncInProgress}
                 title={isRefreshing || dataSyncInProgress ? 'Sincronizzazione in corso...' : 'Sincronizza dati'}
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[9px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
                   isRefreshing || dataSyncInProgress
                     ? 'text-amber-500 liquid-glass-amber'
                     : isSynced
@@ -773,7 +771,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                   onClick={() => setShowPinMenu(true)}
                   title={globalPinSessionId ? 'Sessione PIN attiva' : 'Sblocca sessione PIN'}
                   aria-label={globalPinSessionId ? 'Gestisci sessione PIN' : 'Sblocca sessione PIN'}
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[9px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation liquid-glass ${
                     globalPinSessionId
                       ? 'text-emerald-500 liquid-glass-green'
                       : 'text-red-500 liquid-glass-red'
@@ -863,7 +861,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           )}
           {noNavTabs ? (
             <div className="rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-10 pb-content text-center text-sm text-amber-950 max-w-lg mx-auto">
-              {(getTranslations(effectiveLanguage) as Record<string, string>).app_all_nav_tabs_disabled}
+              {(t as Record<string, string>).app_all_nav_tabs_disabled}
             </div>
           ) : isManagement ? (
             <AnimatePresence mode="wait" custom={tabNavDirection.current}>
@@ -901,14 +899,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
       {isGlobalRefreshing && (() => {
         return (
-          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18' }}>
+          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.22) 0%, transparent 55%), #000B18' }}>
             <div className="flex flex-col items-center gap-6">
               <motion.div
                 animate={{
                   boxShadow: [
-                    '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
-                    '0 0 56px rgba(0,82,255,1.00), 0 0 24px rgba(34,211,238,0.80)',
-                    '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
+                    '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
+                    '0 0 56px rgba(255,149,0,1.00), 0 0 24px rgba(255,200,150,0.80)',
+                    '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
                   ],
                 }}
                 transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
@@ -918,7 +916,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
               </motion.div>
               <div className="flex flex-col items-center gap-1 min-h-[40px]">
                 <p className="text-white/70 text-xs font-semibold uppercase tracking-widest">
-                  {getTranslations(effectiveLanguage).sync_total_in_progress}
+                  {t.sync_total_in_progress}
                 </p>
                 {syncStage ? (
                   <p className="text-white/90 text-sm font-medium">{syncStage}</p>
@@ -946,14 +944,15 @@ function ProtectedApp() {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, isLoading: appIsLoading, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, featureFlags, showError, effectiveLanguage, setIsSessionElevated } = useApp();
+  const t = useT();
 
   useEffect(() => {
     const state = location.state as { accessDenied?: boolean } | null;
     if (state?.accessDenied) {
-      showError?.(getTranslations(effectiveLanguage).app_access_denied);
+      showError?.(t.app_access_denied);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, location.pathname, navigate, showError, effectiveLanguage]);
+  }, [location.state, location.pathname, navigate, showError, t]);
 
   const handleLogout = () => {
     applyUnauthenticatedDocumentTheme();
@@ -1006,7 +1005,7 @@ function ProtectedApp() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.35 }}
         className="fixed inset-0 flex items-center justify-center font-sans"
-        style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18' }}
+        style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.22) 0%, transparent 55%), #000B18' }}
       >
         <motion.div
           initial={{ scale: 0.82, opacity: 0 }}
@@ -1014,9 +1013,9 @@ function ProtectedApp() {
             scale: 1,
             opacity: 1,
             boxShadow: [
-              '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
-              '0 0 56px rgba(0,82,255,1.00), 0 0 24px rgba(34,211,238,0.80)',
-              '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
+              '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
+              '0 0 56px rgba(255,149,0,1.00), 0 0 24px rgba(255,200,150,0.80)',
+              '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
             ],
           }}
           transition={{
@@ -1062,7 +1061,7 @@ function IosSafariInstallBanner() {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[99990] flex items-center justify-between gap-3 px-4 py-2.5 font-sans"
+      className="fixed top-0 left-0 right-0 z-[400] flex items-center justify-between gap-3 px-4 py-2.5 font-sans"
       style={{
         background: 'rgba(0,26,128,0.96)',
         backdropFilter: 'blur(12px)',
@@ -1117,7 +1116,7 @@ function AppContent() {
       <Route path="/loading-preview" element={<Suspense fallback={null}><LoadingPreview /></Suspense>} />
       <Route path="/screens-preview" element={
         <AppProvider>
-          <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-[#111] text-white/30 font-sans uppercase tracking-widest text-xs">Caricamento anteprime...</div>}>
+          <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-app-bg text-white/30 font-sans uppercase tracking-widest text-xs">Caricamento anteprime...</div>}>
             <ScreensPreview />
           </Suspense>
         </AppProvider>

@@ -41,8 +41,8 @@ button:active,
 }
 
 :root {
-  color-scheme: only light;
-  --app-bg:   #f4f7fa;
+  color-scheme: dark;
+  --app-bg:   #0d3b6e;
   --card-bg:  #ffffff;
   --text-main: #1a1a1a;
   /* Header fisso + card allineate (bacheca): leggermente più chiaro per leggere FLOW/tab */
@@ -68,18 +68,12 @@ body .top-tabbar {
 }
 
 /*
- * Shell semplice (stile v1.9): onda + gradiente su html, body trasparente, scroll su #root.
- * Niente layer fixed .flow-pwa-backdrop, niente overflow su html (evita fratture iOS con la barra).
+ * Sfondo globale app: scroll su #root, html/body stesso colore.
  */
 html {
   min-height: 100%;
-  background-color: #3a5fa0;
-  background-image:
-    linear-gradient(160deg, rgba(20, 40, 100, 0.30) 0%, rgba(20, 40, 100, 0.40) 100%),
-    url('/background-wave.png');
-  background-repeat: no-repeat, no-repeat;
-  background-position: center, center;
-  background-size: cover, cover;
+  background: #0d3b6e;
+  color-scheme: dark;
 }
 
 html,
@@ -94,7 +88,8 @@ body,
 }
 
 body {
-  background: transparent;
+  background: #0d3b6e;
+  color-scheme: dark;
 }
 
 #root {
@@ -201,8 +196,8 @@ body {
   }
 
   /**
-   * Telefono stretto: anche in modalità "comodo" non allargare i margini orizzontali
-   * (il contenuto resta leggibile; tablet/desktop restano a 1.5rem).
+   * Telefono (larghezza &lt; 640px, come Tailwind `sm:`): in modalità "comodo" non
+   * allargare i margini orizzontali (tablet/desktop restano a 1.5rem).
    */
   html[data-layout-effective='comfortable'][data-viewport-class='phone'] {
     --layout-app-px: 1rem;
@@ -235,7 +230,8 @@ body {
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: transparent;
+    background: #0d3b6e;
+    color-scheme: dark;
     color: var(--text-primary);
     width: 100%;
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -1617,88 +1613,111 @@ thead th {
                text-blue-*, text-white (left unchanged). text-black → forced white.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Text color overrides — slate/gray families → white equivalents */
-body .text-slate-900, body .text-gray-900 { color: rgba(255, 255, 255, 1.0) !important; }
-body .text-slate-800, body .text-gray-800 { color: rgba(255, 255, 255, 0.90) !important; }
-body .text-slate-700, body .text-gray-700 { color: rgba(255, 255, 255, 0.80) !important; }
-body .text-slate-600, body .text-gray-600 { color: rgba(255, 255, 255, 0.70) !important; }
-body .text-slate-500, body .text-gray-500 { color: rgba(255, 255, 255, 0.60) !important; }
-body .text-slate-400, body .text-gray-400 { color: rgba(255, 255, 255, 0.50) !important; }
-body .text-slate-300, body .text-gray-300 { color: rgba(255, 255, 255, 0.40) !important; }
+/* Text color overrides — slate/gray families → white equivalents (solo sotto [data-theme="dark"]) */
+[data-theme="dark"] .text-slate-900, [data-theme="dark"] .text-gray-900 { color: rgba(255, 255, 255, 1.0) !important; }
+[data-theme="dark"] .text-slate-800, [data-theme="dark"] .text-gray-800 { color: rgba(255, 255, 255, 0.90) !important; }
+[data-theme="dark"] .text-slate-700, [data-theme="dark"] .text-gray-700 { color: rgba(255, 255, 255, 0.80) !important; }
+[data-theme="dark"] .text-slate-600, [data-theme="dark"] .text-gray-600 { color: rgba(255, 255, 255, 0.70) !important; }
+[data-theme="dark"] .text-slate-500, [data-theme="dark"] .text-gray-500 { color: rgba(255, 255, 255, 0.60) !important; }
+[data-theme="dark"] .text-slate-400, [data-theme="dark"] .text-gray-400 { color: rgba(255, 255, 255, 0.50) !important; }
+[data-theme="dark"] .text-slate-300, [data-theme="dark"] .text-gray-300 { color: rgba(255, 255, 255, 0.40) !important; }
 
 /* Preserve colored text classes explicitly (do NOT override these) */
-body [class*="text-green-"],
-body [class*="text-emerald-"],
-body [class*="text-red-"],
-body [class*="text-amber-"],
-body [class*="text-yellow-"],
-body [class*="text-blue-"],
-body [class*="text-cyan-"],
-body [class*="text-indigo-"],
-body [class*="text-purple-"],
-body [class*="text-pink-"],
-body [class*="text-accent"],
-body .flow-brand-header,
-body .flow-brand-header * {
+[data-theme="dark"] [class*="text-green-"],
+[data-theme="dark"] [class*="text-emerald-"],
+[data-theme="dark"] [class*="text-red-"],
+[data-theme="dark"] [class*="text-amber-"],
+[data-theme="dark"] [class*="text-yellow-"],
+[data-theme="dark"] [class*="text-blue-"],
+[data-theme="dark"] [class*="text-cyan-"],
+[data-theme="dark"] [class*="text-indigo-"],
+[data-theme="dark"] [class*="text-purple-"],
+[data-theme="dark"] [class*="text-pink-"],
+[data-theme="dark"] [class*="text-accent"],
+[data-theme="dark"] .flow-brand-header,
+[data-theme="dark"] .flow-brand-header * {
   /* These classes keep their own colors - no override */
   color: revert;
 }
 
 /* text-white must be FORCED (not reverted) so browser-default button/input colors don't override it */
-body [class*="text-white"] { color: #ffffff !important; }
+[data-theme="dark"] [class*="text-white"] { color: #ffffff !important; }
 
 /* Force black → white globally */
-body [class*="text-black"] { color: #ffffff !important; }
-body .text-neutral-900, body .text-zinc-900, body .text-stone-900 { color: rgba(255,255,255,1.0) !important; }
-body .text-neutral-800, body .text-zinc-800, body .text-stone-800 { color: rgba(255,255,255,0.90) !important; }
-body .text-neutral-700, body .text-zinc-700, body .text-stone-700 { color: rgba(255,255,255,0.80) !important; }
+[data-theme="dark"] [class*="text-black"] { color: #ffffff !important; }
+[data-theme="dark"] .text-neutral-900, [data-theme="dark"] .text-zinc-900, [data-theme="dark"] .text-stone-900 { color: rgba(255,255,255,1.0) !important; }
+[data-theme="dark"] .text-neutral-800, [data-theme="dark"] .text-zinc-800, [data-theme="dark"] .text-stone-800 { color: rgba(255,255,255,0.90) !important; }
+[data-theme="dark"] .text-neutral-700, [data-theme="dark"] .text-zinc-700, [data-theme="dark"] .text-stone-700 { color: rgba(255,255,255,0.80) !important; }
 
 /* Re-apply brand header override (highest priority) */
-body .flow-brand-header,
-body .flow-brand-header * {
+[data-theme="dark"] .flow-brand-header,
+[data-theme="dark"] .flow-brand-header * {
   color: #ffffff !important;
 }
 
 /* Background overrides — white/light → dark surfaces */
-body .bg-white:not(input):not(textarea):not(select):not([class*="modal"]):not([class*="pin"]):not([class*="kiosk"]) {
+[data-theme="dark"] .bg-white:not(input):not(textarea):not(select):not([class*="modal"]):not([class*="pin"]):not([class*="kiosk"]) {
   background-color: rgba(255, 255, 255, 0.13) !important;
 }
-body .bg-slate-50:not(input):not(textarea):not(select) { background-color: rgba(255, 255, 255, 0.07) !important; }
-body .bg-gray-50:not(input):not(textarea):not(select)  { background-color: rgba(255, 255, 255, 0.07) !important; }
-body .bg-slate-100:not(input):not(textarea):not(select){ background-color: rgba(255, 255, 255, 0.11) !important; }
-body .bg-gray-100:not(input):not(textarea):not(select) { background-color: rgba(255, 255, 255, 0.11) !important; }
-body .bg-slate-200:not(input):not(textarea):not(select){ background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .bg-slate-50:not(input):not(textarea):not(select) { background-color: rgba(255, 255, 255, 0.07) !important; }
+[data-theme="dark"] .bg-gray-50:not(input):not(textarea):not(select)  { background-color: rgba(255, 255, 255, 0.07) !important; }
+[data-theme="dark"] .bg-slate-100:not(input):not(textarea):not(select){ background-color: rgba(255, 255, 255, 0.11) !important; }
+[data-theme="dark"] .bg-gray-100:not(input):not(textarea):not(select) { background-color: rgba(255, 255, 255, 0.11) !important; }
+[data-theme="dark"] .bg-slate-200:not(input):not(textarea):not(select){ background-color: rgba(15, 35, 90, 0.82) !important; }
 
 /* Hover state overrides */
-body .hover\:bg-slate-50:hover { background-color: rgba(15, 35, 90, 0.82) !important; }
-body .hover\:bg-gray-50:hover  { background-color: rgba(15, 35, 90, 0.82) !important; }
-body .hover\:bg-white:hover    { background-color: rgba(15, 35, 90, 0.82) !important; }
-body .hover\:bg-slate-100:hover{ background-color: rgba(15, 35, 90, 0.82) !important; }
-body .hover\:bg-gray-100:hover { background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .hover\:bg-slate-50:hover { background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .hover\:bg-gray-50:hover  { background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .hover\:bg-white:hover    { background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .hover\:bg-slate-100:hover{ background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .hover\:bg-gray-100:hover { background-color: rgba(15, 35, 90, 0.82) !important; }
 
 /* Border overrides — light borders → dark equivalents */
-body .border-slate-200 { border-color: rgba(255, 255, 255, 0.22) !important; }
-body .border-gray-200  { border-color: rgba(255, 255, 255, 0.22) !important; }
-body .border-slate-100 { border-color: rgba(255, 255, 255, 0.16) !important; }
-body .border-gray-100  { border-color: rgba(255, 255, 255, 0.16) !important; }
-body .border-slate-300 { border-color: rgba(255, 255, 255, 0.28) !important; }
-body .border-gray-300  { border-color: rgba(255, 255, 255, 0.28) !important; }
-body .divide-slate-200 > * + * { border-color: rgba(255, 255, 255, 0.22) !important; }
-body .divide-gray-200  > * + * { border-color: rgba(255, 255, 255, 0.22) !important; }
+[data-theme="dark"] .border-slate-200 { border-color: rgba(255, 255, 255, 0.22) !important; }
+[data-theme="dark"] .border-gray-200  { border-color: rgba(255, 255, 255, 0.22) !important; }
+[data-theme="dark"] .border-slate-100 { border-color: rgba(255, 255, 255, 0.16) !important; }
+[data-theme="dark"] .border-gray-100  { border-color: rgba(255, 255, 255, 0.16) !important; }
+[data-theme="dark"] .border-slate-300 { border-color: rgba(255, 255, 255, 0.28) !important; }
+[data-theme="dark"] .border-gray-300  { border-color: rgba(255, 255, 255, 0.28) !important; }
+[data-theme="dark"] .divide-slate-200 > * + * { border-color: rgba(255, 255, 255, 0.22) !important; }
+[data-theme="dark"] .divide-gray-200  > * + * { border-color: rgba(255, 255, 255, 0.22) !important; }
 
 /* bg-white with opacity variants */
-body .bg-white\/95 { background-color: rgba(13, 31, 60, 0.97) !important; }
-body .bg-white\/90 { background-color: rgba(15, 35, 90, 0.82) !important; }
-body .bg-white\/80 { background-color: rgba(255, 255, 255, 0.13) !important; }
-body .bg-white\/70 { background-color: rgba(255, 255, 255, 0.11) !important; }
-body .bg-white\/60 { background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .bg-white\/95 { background-color: rgba(13, 31, 60, 0.97) !important; }
+[data-theme="dark"] .bg-white\/90 { background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .bg-white\/80 { background-color: rgba(255, 255, 255, 0.13) !important; }
+[data-theme="dark"] .bg-white\/70 { background-color: rgba(255, 255, 255, 0.11) !important; }
+[data-theme="dark"] .bg-white\/60 { background-color: rgba(15, 35, 90, 0.82) !important; }
 
 /* divide colors */
-body .divide-\[#F1F5F9\] > * + * { border-color: rgba(255, 255, 255, 0.15) !important; }
+[data-theme="dark"] .divide-\[#F1F5F9\] > * + * { border-color: rgba(255, 255, 255, 0.15) !important; }
 
 /* Progress bar tracks */
-body .bg-gray-200  { background-color: rgba(15, 35, 90, 0.82) !important; }
-body .bg-slate-200 { background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .bg-gray-200  { background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .bg-slate-200 { background-color: rgba(15, 35, 90, 0.82) !important; }
+
+/* Mock / superfici light: ripristina colori Tailwind sotto [data-theme="light"] (discendente di html[data-theme="dark"]) */
+[data-theme="light"] .text-slate-900,
+[data-theme="light"] .text-slate-800,
+[data-theme="light"] .text-slate-700,
+[data-theme="light"] .text-slate-600,
+[data-theme="light"] .text-slate-500,
+[data-theme="light"] .text-slate-400,
+[data-theme="light"] .text-gray-900,
+[data-theme="light"] .text-gray-800,
+[data-theme="light"] .text-gray-700,
+[data-theme="light"] .text-gray-600,
+[data-theme="light"] .text-neutral-900,
+[data-theme="light"] .text-black {
+  color: revert !important;
+}
+
+[data-theme="light"] .bg-white,
+[data-theme="light"] .bg-slate-50,
+[data-theme="light"] .bg-gray-50,
+[data-theme="light"] .bg-neutral-100 {
+  background-color: revert !important;
+}
 
 /* Avatar boost — slightly more visible */
 .shift-card-ultra [class*="rounded-full"][class*="bg-white\/"] {
@@ -1777,7 +1796,7 @@ body .bg-slate-200 { background-color: rgba(15, 35, 90, 0.82) !important; }
 }
 
 /* ── DARK THEME GLOBAL ENFORCEMENT ─────────────────────────────────── */
-body {
+html[data-theme="dark"] body {
   color: #ffffff;
 }
 

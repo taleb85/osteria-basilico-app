@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { startOfMonth, endOfMonth, eachWeekOfInterval, format, endOfWeek, eachDayOfInterval } from 'date-fns';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { formatMinutesToHoursAndMinutes, calculateShiftMinutesGross } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
 import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
@@ -21,7 +22,7 @@ export default function MonthlySummaryTable() {
     [featureFlags]
   );
   if (!currentUser) return null;
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const hasManagementAccess =
     isManagementRole(currentUser.role) && canViewAllTeamHours(currentUser);
   const getLocale = () => getDateLocale(effectiveLanguage) ?? it;

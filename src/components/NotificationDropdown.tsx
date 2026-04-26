@@ -3,7 +3,8 @@ import { Bell, Mail, MessageCircle, X, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { it, enUS, es, fr, type Locale } from 'date-fns/locale';
 import { Message } from '../hooks/useMessages';
-import { getTranslations } from '../utils/translations';
+import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 
 const LOCALE_MAP: Record<string, Locale> = { it, en: enUS, es, fr };
 
@@ -13,7 +14,6 @@ interface NotificationDropdownProps {
   onMessageClick: (message: Message) => void;
   isOpen: boolean;
   onClose: () => void;
-  effectiveLanguage?: string;
 }
 
 /**
@@ -26,9 +26,9 @@ export function NotificationDropdown({
   onMessageClick,
   isOpen,
   onClose,
-  effectiveLanguage,
 }: NotificationDropdownProps) {
-  const t = getTranslations(effectiveLanguage as 'it' | 'en' | 'es' | 'fr');
+  const { effectiveLanguage } = useApp();
+  const t = useT();
   const dateLocale = LOCALE_MAP[effectiveLanguage ?? 'it'] ?? it;
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [recentMessages, setRecentMessages] = useState<Message[]>([]);
@@ -65,7 +65,8 @@ export function NotificationDropdown({
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 top-full z-50 mt-2 w-80 max-h-96 rounded-lg border border-white/15 shadow-xl" style={{ background: 'rgba(13,31,60,0.95)', backdropFilter: 'blur(20px)' }}
+      className="absolute right-0 top-full z-50 mt-2 w-80 max-h-96 rounded-lg border border-white/15 bg-app-bg/95 shadow-xl"
+      style={{ backdropFilter: 'blur(20px)' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 bg-white/5">
@@ -158,7 +159,7 @@ export function NotificationDropdown({
                     </p>
 
                     {/* Tempo */}
-                    <p className="text-[10px] text-white/60 mt-1">
+                    <p className="text-[11px] text-white/60 mt-1">
                       {timeAgo}
                     </p>
                   </div>
@@ -180,8 +181,10 @@ export function NotificationDropdown({
           <button
             type="button"
             onClick={() => {
-              // TODO: Naviga a profilo con sezione messaggi
               onClose();
+              console.warn(
+                "[NotificationDropdown] Navigazione alla sezione messaggi del profilo non ancora implementata (nessuna rotta / query dedicata).",
+              );
             }}
             className="w-full text-center text-xs font-semibold text-accent hover:text-accent-hover transition-colors py-1"
           >

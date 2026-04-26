@@ -62,7 +62,7 @@ export default function ElevatedAccessPanel() {
                 <p className="text-sm font-semibold text-white truncate">
                   {u.first_name} {u.last_name ?? ''}
                 </p>
-                <p className="text-[10px] text-white/60 uppercase tracking-wide">
+                <p className="text-[11px] text-white/60 uppercase tracking-wide">
                   {translateRole(u.role, effectiveLanguage)}
                 </p>
               </div>

@@ -2,7 +2,8 @@ import { useLayoutEffect, useRef, useState, useCallback, useEffect, useMemo } fr
 import { Home, Calendar, ClipboardList, ShieldCheck, Palmtree, User, Search, X, Fingerprint, Settings } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { getTranslations, formatTrans } from '../utils/translations';
+import { formatTrans } from '../utils/translations';
+import { useT } from '../hooks/useT';
 import type { AppNavTab } from '../utils/enabledModules';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 import {
@@ -44,7 +45,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   /** Utente che ha aperto la modale (catturato all'apertura per rilevare se è admin). */
   const [switchingFromUser, setSwitchingFromUser] = useState<typeof currentUser>(null);
 
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
 
   const handleLongPressStart = useCallback((id: AppNavTab) => {
     if (id !== 'profile' || !currentUser) return;

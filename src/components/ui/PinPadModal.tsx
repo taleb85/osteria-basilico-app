@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Lock, ShieldCheck, Delete, Fingerprint, Loader2, Smartphone } from 'lucide-react';
 import React, { ReactNode, useEffect, useState, useCallback } from 'react';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { useT } from '../../hooks/useT';
 import {
   supportsPinUnlockWebAuthn,
   hasPinUnlockCredential,
@@ -45,8 +46,8 @@ export function PinPadModal({
   onCancel,
   error,
   isLoading = false,
-  confirmLabel = 'Conferma',
-  cancelLabel = 'Annulla',
+  confirmLabel,
+  cancelLabel,
   leftActionButton,
   backdropClass,
   userId,
@@ -54,6 +55,9 @@ export function PinPadModal({
   userEmail,
   onBiometricSuccess,
 }: PinPadModalProps) {
+  const t = useT();
+  const confirmText = confirmLabel ?? t.confirm;
+  const cancelText = cancelLabel ?? t.cancel;
   useBodyScrollLock(true);
 
   // ── Biometrica interna (solo se leftActionButton non è fornito) ─────────────
@@ -137,7 +141,7 @@ export function PinPadModal({
 
   const filledCount = pin.length;
 
-  const BG = 'rgba(8, 18, 40, 0.72)';
+  const BG = 'transparent';
   const border = '1px solid rgba(255,255,255,0.30)';
   const btnBase = { background: 'transparent', border } as React.CSSProperties;
 
@@ -157,7 +161,7 @@ export function PinPadModal({
       <div className="flex flex-col items-center gap-2 px-8 mt-4">
         <div className="flex items-center gap-1.5 text-white/50 mb-1">
           <ShieldCheck className="w-4 h-4" strokeWidth={2.5} />
-          <span className="text-[10px] font-bold uppercase tracking-widest">{pinLabel}</span>
+          <span className="text-[11px] font-bold uppercase tracking-widest">{pinLabel}</span>
         </div>
         <div className="w-full h-14 rounded-2xl flex items-center justify-center relative"
           style={{ background: 'transparent', border: '1.5px solid rgba(255,255,255,0.30)' }}>
@@ -232,11 +236,11 @@ export function PinPadModal({
       <div className="flex gap-3 px-8 pb-10 sm:pb-6 mt-4">
         <button type="button" onClick={onCancel}
           className="flex-1 h-14 rounded-2xl font-bold text-sm text-white/60 hover:text-white active:scale-95 transition-all"
-          style={btnBase}>{cancelLabel}</button>
+          style={btnBase}>{cancelText}</button>
         <button type="button" disabled={pin.length !== 4 || isLoading} onClick={onConfirm}
           className="flex-1 h-14 rounded-2xl text-white font-bold text-sm disabled:opacity-35 active:scale-95 transition-all flex items-center justify-center gap-2"
           style={btnBase}>
-          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : confirmLabel}
+          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : confirmText}
         </button>
       </div>
     </>
@@ -248,7 +252,7 @@ export function PinPadModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.22 }}
-      className="fixed inset-0 z-[1000000] flex flex-col items-center justify-center overflow-hidden"
+      className="fixed inset-0 z-[500] flex flex-col items-center justify-center overflow-hidden"
       style={{ background: BG, backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
@@ -259,7 +263,7 @@ export function PinPadModal({
         exit={{ opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 360, damping: 30, mass: 0.9 }}
         className="flex flex-col w-full max-w-[340px] mx-4 rounded-3xl overflow-hidden"
-        style={{ background: 'linear-gradient(160deg, #1a3a6e 0%, #0d1f3c 100%)', border: '1px solid rgba(255,255,255,0.28)', boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(11,53,115,0.5)' }}
+        style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.28)', boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(11,53,115,0.5)' }}
         onClick={e => e.stopPropagation()}
       >
         {content}

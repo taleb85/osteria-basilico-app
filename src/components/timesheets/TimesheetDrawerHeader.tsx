@@ -169,7 +169,7 @@ export function TimesheetDrawerHeader({
                 type="button"
                 disabled={markAbsentSaving}
                 onClick={onMarkAbsent}
-                className="flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-medium transition-all hover:scale-105 active:scale-95 disabled:opacity-50" style={{ background: "rgba(239,68,68,0.15)", borderColor: "rgba(239,68,68,0.5)", color: "#fca5a5" }}
+                className="flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-medium transition-all hover:scale-105 active:scale-95 disabled:opacity-50" style={{ background: "rgba(239,68,68,0.15)", borderColor: "rgba(239,68,68,0.5)", color: "#fca5a5" }}
                 title={t.shift_mark_absent}
               >
                 {markAbsentSaving ? (
@@ -287,15 +287,15 @@ export function TimesheetDrawerHeader({
             {(drawerOpenSource === 'date' || !drawerOpenSource) && <History className="h-3 w-3 shrink-0" />}
           </span>
           <span className="shrink-0 text-white/30">·</span>
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${labelCls}`}>{label}</span>
+          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${labelCls}`}>{label}</span>
           {department && (
-            <span className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold" style={departmentChipStyle(getDeptColor(department))}>
+            <span className="shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold" style={departmentChipStyle(getDeptColor(department))}>
               {translateDepartmentValue(department, effectiveLanguage as Language)}
             </span>
           )}
           {isApproved && <Lock className="h-3 w-3 shrink-0 text-emerald-400" />}
           {isEmployeeWeekReviewSheet && drawerReviewQueue && (
-            <span className="shrink-0 text-[10px] font-semibold text-white/55">
+            <span className="shrink-0 text-[11px] font-semibold text-white/55">
               {formatTrans(t.ts_employee_week_review_progress, { current: String(drawerReviewQueue.currentIdx + 1), total: String(drawerReviewQueue.items.length) })}
             </span>
           )}
@@ -309,7 +309,7 @@ export function TimesheetDrawerHeader({
                 type="button"
                 disabled={markAbsentSaving}
                 onClick={onMarkAbsent}
-                className="flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-medium transition-all hover:scale-105 active:scale-95 disabled:opacity-50" style={{ background: "rgba(239,68,68,0.15)", borderColor: "rgba(239,68,68,0.5)", color: "#fca5a5" }}
+                className="flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-medium transition-all hover:scale-105 active:scale-95 disabled:opacity-50" style={{ background: "rgba(239,68,68,0.15)", borderColor: "rgba(239,68,68,0.5)", color: "#fca5a5" }}
                 title={t.shift_mark_absent}
               >
                 {markAbsentSaving ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <UserX className="w-3.5 h-3.5" />}

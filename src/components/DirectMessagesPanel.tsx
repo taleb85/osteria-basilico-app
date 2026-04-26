@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Send, Plus, X, Loader2, MessageCircle } from 'lucide-react';
 import { useMessages, groupIntoConversations } from '../hooks/useMessages';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { isManagementRole, isPurelyManagementRole } from '../utils/permissions';
 import { translateRole } from '../utils/roles';
 import type { User, Language } from '../types';
@@ -109,7 +110,7 @@ function NewChatPicker({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.messages_search_employee ?? 'Cerca dipendente...'}
-          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm text-white outline-none focus:border-[#0052FF] transition-colors"
+          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm text-white outline-none focus:text-base focus:border-brand-electric transition-colors"
         />
       </div>
       <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-2 pb-4 [-webkit-overflow-scrolling:touch]">
@@ -127,7 +128,7 @@ function NewChatPicker({
                 <p className="text-sm font-semibold text-white truncate">
                   {u.first_name} {u.last_name ?? ''}
                 </p>
-                <p className="text-[10px] text-white/50 uppercase tracking-wide">{translateRole(u.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</p>
+                <p className="text-[11px] text-white/50 uppercase tracking-wide">{translateRole(u.role, effectiveLanguage as 'it' | 'en' | 'es' | 'fr')}</p>
               </div>
             </button>
           ))
@@ -157,7 +158,7 @@ function ChatBubble({ body, time, isMine }: { body: string; time: string; isMine
           {body}
         </p>
         <p
-          className={`text-[10px] mt-1 text-right ${
+          className={`text-[11px] mt-1 text-right ${
             isMine ? 'text-white/65' : 'text-white/50'
           }`}
         >
@@ -286,7 +287,7 @@ function ChatView({
           <p className="text-sm font-bold text-white truncate leading-tight">
             {contact ? `${contact.first_name} ${contact.last_name ?? ''}`.trim() : '—'}
           </p>
-          <p className="text-[10px] text-white/60 uppercase tracking-wide leading-none mt-0.5">
+          <p className="text-[11px] text-white/60 uppercase tracking-wide leading-none mt-0.5">
             {contact?.role ?? ''}
           </p>
         </div>
@@ -303,7 +304,7 @@ function ChatView({
         {grouped.map(({ label, msgs }) => (
           <div key={label}>
             <div className="flex items-center justify-center my-3">
-              <span className="px-3 py-1 rounded-full bg-white/10 text-[10px] font-semibold text-white/50 uppercase tracking-wide">
+              <span className="px-3 py-1 rounded-full bg-white/10 text-[11px] font-semibold text-white/50 uppercase tracking-wide">
                 {label}
               </span>
             </div>
@@ -337,7 +338,7 @@ function ChatView({
             onKeyDown={handleKeyDown}
             placeholder={t.messages_write_placeholder ?? 'Scrivi un messaggio...'}
             rows={1}
-            className="flex-1 resize-none rounded-2xl border border-white/15 bg-white/8 px-4 py-2.5 text-sm text-white outline-none focus:border-[#0052FF] transition-colors"
+            className="flex-1 resize-none rounded-2xl border border-white/15 bg-white/8 px-4 py-2.5 text-sm text-white outline-none focus:text-base focus:border-brand-electric transition-colors"
             style={{ maxHeight: 120, overflowY: 'auto' }}
           />
           <button
@@ -455,7 +456,7 @@ function ConversationList({
                           ? `${contact.first_name} ${contact.last_name ?? ''}`.trim()
                           : '—'}
                       </p>
-                      <span className="text-[10px] text-white/50 shrink-0">
+                      <span className="text-[11px] text-white/50 shrink-0">
                         {formatTime(conv.lastMessage.created_at, intlLocale)}
                       </span>
                     </div>
@@ -472,7 +473,7 @@ function ConversationList({
                   </div>
                   {conv.unreadCount > 0 && (
                     <div
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-black text-white"
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-black text-white"
                       style={{ background: '#EF4444' }}
                     >
                       {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
@@ -491,7 +492,7 @@ function ConversationList({
 // ─── Main export ──────────────────────────────────────────────────────────────
 export function DirectMessagesPanel({ onClose }: { onClose?: () => void } = {}) {
   const { currentUser, users, effectiveLanguage } = useApp();
-  const t = getTranslations(effectiveLanguage as 'it' | 'en' | 'es' | 'fr');
+  const t = useT();
   const intlLocale = getIntlLocale(effectiveLanguage);
   const { messages, sendMessage, markAsRead, isLoading } = useMessages(
     currentUser?.id,

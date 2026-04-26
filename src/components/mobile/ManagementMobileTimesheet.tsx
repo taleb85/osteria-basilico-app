@@ -119,7 +119,7 @@ function ShiftStatusBadge({ shift, t }: { shift: Shift; t: Record<string, string
       ? (t.status_draft ?? 'Bozza')
       : (t.shifts_confirmed ?? 'Confermato');
   return (
-    <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${cls}`}>
+    <span className={`text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${cls}`}>
       {label}
     </span>
   );
@@ -171,7 +171,7 @@ function MyTimesheetSection({
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
         <Clock className="w-6 h-6 text-white/55 mb-2" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-white/55">{t.no_attendance_records}</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-white/55">{t.no_attendance_records}</p>
       </div>
     );
   }
@@ -212,14 +212,14 @@ function MyTimesheetSection({
               style={cardBg}
             >
               <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-white/50">
                   {weekLabel}
                 </span>
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-semibold text-white/70 tabular-nums">
                     {confirmed.length} {t.shift_plural ?? 'turni'}
                   </span>
-                  <span className="text-[10px] text-white/40">·</span>
+                  <span className="text-[11px] text-white/40">·</span>
                   <span className="text-xs font-semibold text-white/70 tabular-nums">
                     {minsLabel(totalMins)}
                   </span>
@@ -269,10 +269,10 @@ function MyTimesheetSection({
                         }
                       }}
                     >
-                      <span className={`text-[8px] font-bold ${isToday_ ? 'text-[#60a5fa]' : 'text-white/55'}`}>
+                      <span className={`text-[11px] font-bold ${isToday_ ? 'text-[#60a5fa]' : 'text-white/55'}`}>
                         {dayLetters[i]}
                       </span>
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-bold ${
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold ${
                         isToday_ ? 'bg-[#60a5fa] text-white shadow-[0_0_12px_rgba(96,165,250,0.4)]' : 'text-white/55'
                       }`}>
                         {format(day, 'd')}
@@ -285,7 +285,7 @@ function MyTimesheetSection({
                             {shiftCount}
                           </span>
                         )}
-                        {isAbsent && <span className="text-[10px] font-bold text-red-500 opacity-80">—</span>}
+                        {isAbsent && <span className="text-[11px] font-bold text-red-500 opacity-80">—</span>}
                       </div>
                     </div>
                   );
@@ -301,7 +301,7 @@ function MyTimesheetSection({
                 ].map(({ label, value }, i) => (
                   <div key={i} className="flex flex-col items-center gap-0.5">
                     <span className="text-sm font-bold text-white tabular-nums">{value}</span>
-                    <span className="text-[8px] text-white/50 uppercase font-bold tracking-wider">{label}</span>
+                    <span className="text-[11px] text-white/50 uppercase font-bold tracking-wider">{label}</span>
                   </div>
                 ))}
                 {!plannedOnly && (
@@ -312,7 +312,7 @@ function MyTimesheetSection({
                     else { toggleWeek(wIdx); }
                   }}
                   aria-label={isOpen ? 'Comprimi' : 'Espandi'}
-                  className="flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest border-white/20 text-white/80"
+                  className="flex items-center gap-1 px-2 h-7 rounded-lg border transition-all text-[11px] font-black uppercase tracking-widest border-white/20 text-white/80"
                   style={{ background: 'rgba(15, 35, 90, 0.82)' }}
                 >
                   <span>{isDayInThisWeek ? (t.all ?? 'Tutti') : isOpen ? (t.collapse ?? 'Comprimi') : (t.ts_period_week ?? 'Espandi')}</span>
@@ -338,7 +338,7 @@ function MyTimesheetSection({
                   const isToday_ = isToday(day);
                   return (
                     <div key={key}>
-                      <p className="text-[10px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-[#60a5fa]">
+                      <p className="text-[11px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-[#60a5fa]">
                         {format(day, 'EEEE d MMMM', { locale })}
                         {isToday_ && <span className="h-1 w-1 rounded-full bg-[#60a5fa] shadow-[0_0_4px_rgba(96,165,250,0.8)]" />}
                       </p>
@@ -359,13 +359,13 @@ function MyTimesheetSection({
                               </p>
                               {/* Timbratura — nascosta in modalità plannedOnly */}
                               {!plannedOnly && !isAbsent && (pIn || pOut) && (
-                                <p className="text-[9px] tabular-nums text-white/55 mt-0.5 flex items-center gap-1">
+                                <p className="text-[11px] tabular-nums text-white/55 mt-0.5 flex items-center gap-1">
                                   <Clock className="w-2.5 h-2.5 shrink-0" />
                                   {pIn ? punchLabel(pIn) : '–'} → {pOut ? punchLabel(pOut) : '–'}
                                 </p>
                               )}
                               {shift.department && (
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-white/55 mt-0.5">
+                                <p className="text-[11px] font-bold uppercase tracking-widest text-white/55 mt-0.5">
                                   {translateDepartmentValue(shift.department, language as any)}
                                 </p>
                               )}
@@ -450,7 +450,7 @@ function TeamTimesheetSection({
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
         <Users className="w-6 h-6 text-white/55 mb-2" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-white/55">{t.no_team_attendance}</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-white/55">{t.no_team_attendance}</p>
       </div>
     );
   }
@@ -473,7 +473,7 @@ function TeamTimesheetSection({
               className="w-full flex items-center justify-between px-3 py-2.5 active:bg-white/8 transition-colors"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <span className={`text-[10px] font-black uppercase tracking-widest truncate ${
+                <span className={`text-[11px] font-black uppercase tracking-widest truncate ${
                   isToday_ ? 'text-[#60a5fa]' : 'text-white/55'
                 }`}>
                   {format(day, 'EEE d MMM', { locale })}
@@ -481,7 +481,7 @@ function TeamTimesheetSection({
                 {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-[#60a5fa] shrink-0 shadow-[0_0_4px_rgba(96,165,250,0.8)]" />}
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[9px] font-black tabular-nums text-white/55">
+                <span className="text-[11px] font-black tabular-nums text-white/55">
                   {confirmed.length} {t.shift_plural ?? 'turni'}
                 </span>
                 <ChevronDown
@@ -511,7 +511,7 @@ function TeamTimesheetSection({
                       style={isAbsent ? undefined : cardBg}
                     >
                       <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                        <p className="text-[10px] font-black uppercase tracking-wide text-white/85 truncate">
+                        <p className="text-[11px] font-black uppercase tracking-wide text-white/85 truncate">
                           {fullName}
                         </p>
                         <p className={`font-black tabular-nums text-sm leading-none ${
@@ -520,13 +520,13 @@ function TeamTimesheetSection({
                           {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                         </p>
                         {!plannedOnly && !isAbsent && (pIn || pOut) && (
-                          <p className="text-[9px] tabular-nums text-white/55 mt-0.5 flex items-center gap-1">
+                          <p className="text-[11px] tabular-nums text-white/55 mt-0.5 flex items-center gap-1">
                             <Clock className="w-2.5 h-2.5 shrink-0" />
                             {pIn ? punchLabel(pIn) : '–'} → {pOut ? punchLabel(pOut) : '–'}
                           </p>
                         )}
                         {shift.department && (
-                          <p className="text-[9px] font-bold uppercase tracking-widest text-white/55 mt-0.5">
+                          <p className="text-[11px] font-bold uppercase tracking-widest text-white/55 mt-0.5">
                             {translateDepartmentValue(shift.department, language as any)}
                           </p>
                         )}
@@ -668,7 +668,7 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
 
       {/* Barra navigazione periodo */}
       <div className="flex items-center gap-2 mb-5 px-4">
-        <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#60a5fa]/40 text-[#60a5fa] text-[9px] font-black uppercase tracking-widest shrink-0">
+        <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#60a5fa]/40 text-[#60a5fa] text-[11px] font-black uppercase tracking-widest shrink-0">
           {t.tab_period ?? 'Periodo'}
         </span>
         <div className="flex items-center border border-white/40 rounded-2xl overflow-hidden flex-1" style={{ background: 'transparent' }}>
@@ -678,7 +678,7 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
           </button>
           <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0" style={{ color: '#ffffff' }}>
             <Clock className="h-3 w-3 shrink-0" />
-            <span className="text-[10px] font-bold tabular-nums truncate">{rangeLabel}</span>
+            <span className="text-[11px] font-bold tabular-nums truncate">{rangeLabel}</span>
           </div>
           <button type="button" onClick={() => setNavOffset(o => o + 1)}
             className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-l border-white/20">
@@ -692,8 +692,8 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
         {/* I miei turni */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/55">{t.my_attendance_label ?? 'Le mie presenze'}</span>
-            {myShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#60a5fa]">({myShifts.length})</span>}
+            <span className="text-[11px] font-black uppercase tracking-widest text-white/55">{t.my_attendance_label ?? 'Le mie presenze'}</span>
+            {myShifts.length > 0 && <span className="text-[11px] font-black tabular-nums text-[#60a5fa]">({myShifts.length})</span>}
           </div>
           <MyTimesheetSection myShifts={myShifts} myPunches={myPunches} locale={locale} dayLetters={dayLetters} language={language} t={t} plannedOnly={plannedOnly} />
         </section>
@@ -701,8 +701,8 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
         {/* Team */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/55">Team</span>
-            {teamShifts.length > 0 && <span className="text-[9px] font-black tabular-nums text-[#60a5fa]">({teamShifts.length})</span>}
+            <span className="text-[11px] font-black uppercase tracking-widest text-white/55">Team</span>
+            {teamShifts.length > 0 && <span className="text-[11px] font-black tabular-nums text-[#60a5fa]">({teamShifts.length})</span>}
           </div>
           <TeamTimesheetSection teamShifts={teamShifts} allPunches={teamPunches} users={users} locale={locale} language={language} t={t} plannedOnly={plannedOnly} />
         </section>

@@ -85,6 +85,7 @@ import {
 } from '../utils/breakRules';
 import {
   mergeShiftsDeductExclusionsFromLocal,
+  mergeShiftDeductExclusionsFromLocal,
   setLocalDeductExcludedRuleIds,
   clearLocalDeductExcludedRuleIds,
 } from '../utils/shiftDeductExclusionsLocal';
@@ -1012,6 +1013,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         setShifts((prev) => prev.map((s) => (s.id === id ? { ...res, ...updates } : s)));
         markManagementDataTouched();
+      } else if (!isAbsentUpdate) {
+        /* UPDATE riuscito ma select() senza riga: mantieni stato ottimistico e segna toccato */
+        markManagementDataTouched();
       }
     } catch (err) {
       const updateKeys = Object.keys(updates).filter(
@@ -1067,17 +1071,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const approvedBy = `${actor.first_name} ${actor.last_name ?? ''}`.trim() || 'Manager';
       const startHH = (existing.start_time || '').slice(0, 5);
       const endHH = (existing.end_time || '').slice(0, 5);
-      const absentFreezePayload = {
+      const ab = mergeShiftDeductExclusionsFromLocal(existing);
+      const absentFreezePayload: Record<string, unknown> = {
         approved_at: approvedAt,
         approved_by: approvedBy,
         approved_start_time: startHH,
         approved_end_time: endHH,
+        deduct_break: ab.deduct_break !== false,
+        ...(ab.break_minutes !== undefined ? { break_minutes: ab.break_minutes } : {}),
+        ...(ab.is_auto_break !== undefined ? { is_auto_break: ab.is_auto_break } : {}),
+        ...(Array.isArray(ab.deduct_excluded_rule_ids) ? { deduct_excluded_rule_ids: ab.deduct_excluded_rule_ids } : {}),
       };
       try {
         const res = await database.shifts.update(shiftId, absentFreezePayload);
         const nextRow = (res ? { ...existing, ...res } : { ...existing, ...absentFreezePayload }) as Shift;
         setShifts((prev) => prev.map((s) => (s.id === shiftId ? nextRow : s)));
         markManagementDataTouched();
+        if (Array.isArray(ab.deduct_excluded_rule_ids)) clearLocalDeductExcludedRuleIds(shiftId);
         logShiftEdit({
           shiftId,
           actorName: approvedBy,
@@ -1125,20 +1135,64 @@ export function AppProvider({ children }: { children: ReactNode }) {
       endHH = def.end;
     }
 
+    const mb = mergeShiftDeductExclusionsFromLocal(existing);
+    const userForFreeze = users.find((u) => u.id === existing.user_id);
+    const grossFreeze = calculateShiftMinutesGross(startHH, endHH);
+    const breakOpts = {
+      autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false,
+      breakRuleWindow: { start: startHH, end: endHH },
+    };
+    const isManualFixedBreak =
+      mb.break_minutes != null && mb.break_minutes > 0 && mb.is_auto_break === false;
+    let breakMinsFreeze: number;
+    let isAutoFreeze: boolean;
+    if (mb.deduct_break === false) {
+      breakMinsFreeze = 0;
+      isAutoFreeze = false;
+    } else if (isManualFixedBreak) {
+      breakMinsFreeze = mb.break_minutes as number;
+      isAutoFreeze = false;
+    } else {
+      breakMinsFreeze = getBreakMinutesForShift(
+        { ...mb, start_time: startHH, end_time: endHH, date: existing.date },
+        grossFreeze,
+        userForFreeze ?? null,
+        breakRules,
+        breakOpts
+      );
+      isAutoFreeze = true;
+    }
+
     /** Non usare `updateShift`: dopo promote da bozza lo stato React in chiusura può essere obsoleto e il guard su `confirmed` blocca il congelamento. */
-    const freezePayload = {
+    const freezePayload: Record<string, unknown> = {
       approval_status: 'approved' as const,
       approved_at: approvedAt,
       approved_by: approvedBy,
       approved_start_time: startHH,
       approved_end_time: endHH,
+      deduct_break: mb.deduct_break !== false,
+      break_minutes: breakMinsFreeze,
+      is_auto_break: isAutoFreeze,
+      ...(Array.isArray(mb.deduct_excluded_rule_ids) ? { deduct_excluded_rule_ids: mb.deduct_excluded_rule_ids } : {}),
     };
 
     try {
       const res = await database.shifts.update(shiftId, freezePayload);
-      const nextRow = (res ? { ...existing, ...res } : { ...existing, ...freezePayload }) as Shift;
+      const fromRes = (res || {}) as Partial<Shift>;
+      const nextRow = {
+        ...existing,
+        ...freezePayload,
+        ...fromRes,
+        deduct_excluded_rule_ids:
+          fromRes.deduct_excluded_rule_ids !== undefined
+            ? fromRes.deduct_excluded_rule_ids
+            : mb.deduct_excluded_rule_ids,
+        break_minutes: fromRes.break_minutes != null ? fromRes.break_minutes : breakMinsFreeze,
+        is_auto_break: fromRes.is_auto_break != null ? fromRes.is_auto_break : isAutoFreeze,
+      } as Shift;
       setShifts((prev) => prev.map((s) => (s.id === shiftId ? nextRow : s)));
       markManagementDataTouched();
+      if (Array.isArray(mb.deduct_excluded_rule_ids)) clearLocalDeductExcludedRuleIds(shiftId);
       logShiftEdit({
         shiftId,
         actorName: approvedBy,
@@ -1168,7 +1222,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // audit log non bloccante
       }
     }
-  }, [shifts, punchRecordsRef, markManagementDataTouched]);
+  }, [shifts, punchRecordsRef, markManagementDataTouched, users, breakRules, featureFlags]);
 
   const deleteShift = useCallback(async (id: string) => {
     const op = currentUserRef.current;
@@ -1532,10 +1586,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
               : t.punch_presence_proof_mismatch;
           return { error: errMsg };
         }
-        console.info('[presence-proof] verifica superata', {
-          method: v.method,
-          tenantSlug: tenantSlug || '(default)',
-        });
+        if (import.meta.env.DEV) {
+          console.info('[presence-proof] verifica superata', {
+            method: v.method,
+            tenantSlug: tenantSlug || '(default)',
+          });
+        }
       }
 
       const record: Record<string, unknown> = {

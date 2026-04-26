@@ -20,7 +20,7 @@ export type { LayoutEffective, ViewportClass };
 type LayoutPresetContextValue = {
   /** Derivato solo dalla larghezza finestra (&lt;768 compatto). */
   effective: LayoutEffective;
-  /** phone &lt; 480px, tablet fino a 1024px, desktop oltre. */
+  /** phone &lt; 640px (come `sm:`), tablet fino a 1024px, desktop oltre. */
   viewportClass: ViewportClass;
   innerWidth: number;
 };

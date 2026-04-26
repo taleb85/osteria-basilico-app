@@ -2,6 +2,7 @@ import FlowWaveIcon from './ui/FlowWaveIcon';
 import { type ReactNode } from 'react';
 import { LogOut, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations, getDateLocale } from '../utils/translations';
 // import { getRoleScopeHint } from '../utils/roleScopeHint'; // unused
 import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
@@ -83,7 +84,7 @@ export default function MobileProfileHeader({
   }, []);
   const dateLabel = format(now, 'EEE d MMM · HH:mm', { locale: getDateLocale(effectiveLanguage) ?? itLocale });
 
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   if (!currentUser) return null;
 
   const _pageTitle = getAppNavTabTitle(t, activeTab);
@@ -130,7 +131,7 @@ export default function MobileProfileHeader({
           </span>
         </div>
         {isSessionElevated && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
             <ShieldCheck className="h-3 w-3" />
             Admin
           </span>

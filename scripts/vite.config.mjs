@@ -98,9 +98,9 @@ export default defineConfig(({ command }) => {
         start_url: '/profilo',
         lang: 'it',
         display: 'standalone',
-        background_color: '#0d1f3c',
-        theme_color: '#0d1f3c',
-        orientation: 'portrait',
+        background_color: '#0d3b6e',
+        theme_color: '#0d3b6e',
+        orientation: 'any',
         scope: '/',
         icons: [
           { src: '/icon-192.png',       sizes: '192x192',   type: 'image/png', purpose: 'any' },
@@ -143,7 +143,6 @@ export default defineConfig(({ command }) => {
         // Precache: icone/manifest + index.html (obbligatorio se navigateFallback punta a index.html,
         // altrimenti Workbox lancia non-precached-url). NO js/css: evita cache stale sui chunk.
         globPatterns: ['**/*.{ico,png,svg,webmanifest}', 'index.html'],
-        globIgnores: ['**/*.js', '**/*.css'],
 
         // SPA fallback: tutte le rotte tornano a index.html
         navigateFallback: 'index.html',
@@ -164,6 +163,14 @@ export default defineConfig(({ command }) => {
             urlPattern: /\/app-version\.txt(?:\?.*)?$/i,
             handler: 'NetworkOnly',
             method: 'GET',
+          },
+          {
+            urlPattern: /\.(js|css)$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'app-chunks',
+              expiration: { maxEntries: 60, maxAgeSeconds: 7 * 24 * 60 * 60 },
+            },
           },
           {
             // Google Fonts → CacheFirst: raramente cambiano

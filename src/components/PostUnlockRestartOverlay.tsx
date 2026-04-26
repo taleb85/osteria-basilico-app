@@ -82,7 +82,7 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[110] flex flex-col items-center justify-center px-6 text-center font-sans"
-      style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,82,255,0.22) 0%, transparent 55%), #000B18' }}
+      style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.22) 0%, transparent 55%), #000B18' }}
       role="status"
       aria-live="polite"
       aria-busy="true"
@@ -92,9 +92,9 @@ export default function PostUnlockRestartOverlay({ language }: { language: Langu
       <motion.div
         animate={{
           boxShadow: [
-            '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
-            '0 0 56px rgba(0,82,255,1.00), 0 0 24px rgba(34,211,238,0.80)',
-            '0 0 32px rgba(0,82,255,0.70), 0 0 12px rgba(34,211,238,0.50)',
+            '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
+            '0 0 56px rgba(255,149,0,1.00), 0 0 24px rgba(255,200,150,0.80)',
+            '0 0 32px rgba(255,149,0,0.70), 0 0 12px rgba(255,200,150,0.50)',
           ],
         }}
         transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}

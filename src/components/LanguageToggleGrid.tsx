@@ -42,7 +42,7 @@ export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, den
           className="flex flex-col items-center justify-center gap-0.5 py-1.5 px-0.5 rounded-lg font-semibold transition-colors min-h-[44px] min-w-0 bg-slate-100 text-white/70 active:bg-slate-200"
         >
           <span className="text-[13px] leading-none" aria-hidden>⚙︎</span>
-          <span className="text-[9px] leading-tight text-center truncate w-full tracking-tight">AUTO</span>
+          <span className="text-[11px] leading-tight text-center truncate w-full tracking-tight">AUTO</span>
         </button>
         {LANGS.map((lang) => (
           <button
@@ -58,7 +58,7 @@ export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, den
             <span className="text-[15px] leading-none" aria-hidden>
               {FLAGS[lang]}
             </span>
-            <span className="text-[9px] leading-tight text-center truncate w-full tracking-tight">{LABELS_SHORT[lang]}</span>
+            <span className="text-[11px] leading-tight text-center truncate w-full tracking-tight">{LABELS_SHORT[lang]}</span>
           </button>
         ))}
       </div>

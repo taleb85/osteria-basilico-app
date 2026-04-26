@@ -63,7 +63,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
           <h3 className="text-sm font-bold text-white uppercase tracking-tight">
             Notifiche e Feedback
           </h3>
-          <p className="text-[10px] font-medium text-white/60 uppercase tracking-wider">
+          <p className="text-[11px] font-medium text-white/60 uppercase tracking-wider">
             Personalizza suoni e vibrazioni
           </p>
         </div>
@@ -96,8 +96,8 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
         {isSoundEnabled && (
           <div className="space-y-2">
             <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">Volume</span>
-              <span className="text-[10px] font-black text-accent">{soundVolume}%</span>
+              <span className="text-[11px] font-black text-white/50 uppercase tracking-widest">Volume</span>
+              <span className="text-[11px] font-black text-accent">{soundVolume}%</span>
             </div>
             <input
               type="range"
@@ -119,7 +119,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
               </div>
               <span className="text-xs font-bold text-white/80">Feedback Aptico</span>
             </div>
-            <span className="text-[10px] font-black text-accent uppercase tracking-widest">{hapticIntensity}%</span>
+            <span className="text-[11px] font-black text-accent uppercase tracking-widest">{hapticIntensity}%</span>
           </div>
           <input
             type="range"
@@ -135,7 +135,7 @@ export function SoundSettings({ compact = false }: SoundSettingsProps) {
         {/* Tasto Test */}
         <button
           onClick={handleTestSound}
-          className="w-full py-3 rounded-2xl bg-[#001A80]/8 text-[10px] font-black text-[#001A80] uppercase tracking-[0.2em] hover:bg-[#001A80]/15 transition-colors border border-[#001A80]/20"
+          className="w-full py-3 rounded-2xl bg-brand-deep/8 text-[11px] font-black text-brand-deep uppercase tracking-[0.2em] hover:bg-brand-deep/15 transition-colors border border-brand-deep/20"
         >
           Prova Feedback
         </button>

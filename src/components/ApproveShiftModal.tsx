@@ -7,6 +7,7 @@ import { calculateShiftMinutes, formatMinutesToHoursAndMinutes } from '../utils/
 import { getPunchPairForShift, getDefaultApprovalClockHHMM, type PunchRecordLike } from '../utils/shiftResolvedClockTimes';
 import { getTranslations } from '../utils/translations';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { TimeInputField } from './ui/TimeInputField';
 
 interface ApproveShiftModalProps {
@@ -22,7 +23,7 @@ interface ApproveShiftModalProps {
 export default function ApproveShiftModal({ shift, punchRecords, userName, onClose, onApprove, onRevertToPending, currentUser }: ApproveShiftModalProps) {
   useBodyScrollLock(true);
   const { effectiveLanguage } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const pair = getPunchPairForShift(shift, punchRecords);
   const defaults = getDefaultApprovalClockHHMM(shift, punchRecords);
   const [startTime, setStartTime] = useState(defaults.start);
@@ -96,13 +97,13 @@ export default function ApproveShiftModal({ shift, punchRecords, userName, onClo
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.home_label_planned}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.home_label_planned}</p>
                 <p className="font-bold tabular-nums text-white/90">
                   {pair.plannedStart} → {pair.plannedEnd}
                 </p>
               </div>
               <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.ts_label_punched}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-white/60 mb-1">{t.ts_label_punched}</p>
                 <p className="font-bold tabular-nums text-white/90">
                   {pair.actualStart ?? '—'} → {pair.actualEnd ?? '—'}
                 </p>

@@ -1,4 +1,5 @@
 import { motion, type Transition } from 'framer-motion';
+import FlowLogoSvg from '../FlowLogoSvg';
 
 export interface FlowNeonIconProps {
   size?: number;
@@ -99,13 +100,13 @@ export function FlowNeonIcon({
           zIndex: 20,
           borderRadius: `${(size * 0.266).toFixed(1)}px`,
           overflow: 'hidden',
+          lineHeight: 0,
         }}
       >
-        <img
-            src="/icon-flow-final.png"
-          alt="FLOW"
-          draggable={false}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.6)' }}
+        <FlowLogoSvg
+          variant="icon-only"
+          color="orange"
+          style={{ width: '100%', height: '100%', display: 'block' }}
         />
       </div>
     </div>

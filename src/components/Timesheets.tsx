@@ -21,6 +21,7 @@ import {
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations, getDateLocale, formatTrans } from '../utils/translations';
 import {
   calculateShiftMinutesGross,
@@ -87,6 +88,7 @@ import { calculateDrawerPermissions } from '../utils/drawerPermissions';
 import { TimesheetDrawerHeader } from './timesheets/TimesheetDrawerHeader';
 import { ShiftHoursCards } from './timesheets/ShiftHoursCards';
 import { ShiftHistoryCard } from './timesheets/ShiftHistoryCard';
+import { mergeShiftDeductExclusionsFromLocal } from '../utils/shiftDeductExclusionsLocal';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -506,7 +508,7 @@ export default function Timesheets() {
     departmentsRevision,
     isSessionElevated,
   } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const locale = getDateLocale(effectiveLanguage) ?? it;
 
   const canTeamTimesheetOps = currentUser ? canOperateTeamSchedule(currentUser) : false;
@@ -1247,11 +1249,18 @@ export default function Timesheets() {
           .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
 
         const shiftRows: ShiftRow[] = dayShifts.map((s) => {
+          const sForBreak = mergeShiftDeductExclusionsFromLocal(s);
           if (s.approval_status === 'absent') {
             const plannedStart = (s.start_time || '').slice(0, 5);
             const plannedEnd = (s.end_time || '').slice(0, 5);
             const grossPlanned = calculateShiftMinutesGross(plannedStart, plannedEnd);
-            const breakMinutes = getBreakMinutesForShift(s, grossPlanned, user, breakRules, breakComputeOpts);
+            const breakMinutes = getBreakMinutesForShift(
+              sForBreak,
+              grossPlanned,
+              user,
+              breakRules,
+              breakComputeOpts
+            );
             const plannedMins = Math.max(0, grossPlanned - breakMinutes);
             return {
               id: s.id,
@@ -1279,7 +1288,13 @@ export default function Timesheets() {
           const plannedStart = (s.start_time || '').slice(0, 5);
           const plannedEnd = (s.end_time || '').slice(0, 5);
           const grossPlanned = calculateShiftMinutesGross(plannedStart, plannedEnd);
-          const breakMinutes = getBreakMinutesForShift(s, grossPlanned, user, breakRules, breakComputeOpts);
+          const breakMinutes = getBreakMinutesForShift(
+            sForBreak,
+            grossPlanned,
+            user,
+            breakRules,
+            breakComputeOpts
+          );
           const plannedMins = Math.max(0, grossPlanned - breakMinutes);
 
           const shiftHour = parseInt(plannedStart.split(':')[0], 10);
@@ -1362,13 +1377,12 @@ export default function Timesheets() {
             );
           const isCrossDay =
             !frozen && !!actualEndFull && actualEndDate !== dateStr && !nightRolloverOk;
-          /** Pausa sulle ore effettive: regole / fallback usano timbratura (o orari congelati), non il pianificato.
-           *  Per i turni congelati si disabilita il fallback auto-break (≥6h → 30min): le ore approvate
-           *  potrebbero essere più lunghe del pianificato (straordinario) e il break non era previsto. */
+          /** Pausa sulle ore effettive: regole e fasce pranzo/cena usano timbratura (o congelate); su turni congelati
+           *  si disabilita solo il fallback unico 30' senza fascia pasto (straordinario oltre il pianificato). */
           const actualMins =
             displayActualStart && displayActualEnd
               ? getNetShiftMinutes(
-                  s,
+                  sForBreak,
                   displayActualStart,
                   displayActualEnd,
                   user,
@@ -1475,12 +1489,9 @@ export default function Timesheets() {
       (s) => visibleUserIds.has(s.user_id) && s.date >= weekStr && s.date < weekEnd
     );
     if (weekShiftsAll.length === 0) return null;
-    const weekShiftsToApprove = weekShiftsAll.filter(
-      (s) => normalizedApprovalStatus(s.approval_status) !== 'approved'
-    );
-    const weekApproved = weekShiftsAll.filter(
-      (s) => normalizedApprovalStatus(s.approval_status) === 'approved'
-    );
+    /** Turni ancora da sigillare in contabilità (inclusi absent senza `approved_at`). I congelati sono `approved` o `absent`+`approved_at`. */
+    const weekShiftsToApprove = weekShiftsAll.filter((s) => !isShiftPayrollFrozen(s));
+    const weekApproved = weekShiftsAll.filter((s) => isShiftPayrollFrozen(s));
     const hasDataToApprove = weekShiftsToApprove.length > 0;
     const hasApproved = weekApproved.length > 0;
     if (!hasDataToApprove && !hasApproved) return null;
@@ -1709,7 +1720,14 @@ export default function Timesheets() {
       const plannedStart = (s.start_time || '').slice(0, 5);
       const plannedEnd = (s.end_time || '').slice(0, 5);
       const grossPlanned = calculateShiftMinutesGross(plannedStart, plannedEnd);
-      const breakMins = getBreakMinutesForShift(s, grossPlanned, user ?? undefined, breakRules, breakComputeOpts);
+      const sForBreak = mergeShiftDeductExclusionsFromLocal(s);
+      const breakMins = getBreakMinutesForShift(
+        sForBreak,
+        grossPlanned,
+        user ?? undefined,
+        breakRules,
+        breakComputeOpts
+      );
       const plannedMins = Math.max(0, grossPlanned - breakMins);
 
       result.push({
@@ -2403,7 +2421,11 @@ export default function Timesheets() {
       setDeductBreakSaving(true);
       try {
         const sh = shifts.find((x) => x.id === shiftId);
-        const cur = Array.isArray(sh?.deduct_excluded_rule_ids) ? [...sh.deduct_excluded_rule_ids!] : [];
+        if (!sh) return;
+        const withLocal = mergeShiftDeductExclusionsFromLocal(sh);
+        const cur = Array.isArray(withLocal.deduct_excluded_rule_ids)
+          ? [...withLocal.deduct_excluded_rule_ids]
+          : [];
         const next = new Set(cur);
         if (applyDeduction) next.delete(ruleId);
         else next.add(ruleId);
@@ -2637,7 +2659,8 @@ export default function Timesheets() {
     }
     setReviewQueueSaving(true);
     try {
-      const fullShiftForBreak = shifts.find((x) => x.id === s.id);
+      const foundShift = shifts.find((x) => x.id === s.id);
+      const fullShiftForBreak = foundShift ? mergeShiftDeductExclusionsFromLocal(foundShift) : undefined;
       const userForBreak = users.find((u) => u.id === drawerData.userId);
       if (!fullShiftForBreak || !userForBreak) {
         showError?.(t.save_error);
@@ -3027,10 +3050,10 @@ export default function Timesheets() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xl font-bold text-white leading-none tabular-nums">{value}</p>
-                    <p className="text-[10px] text-white/75 mt-0.5 leading-tight pr-1">{label}</p>
+                    <p className="text-[11px] text-white/75 mt-0.5 leading-tight pr-1">{label}</p>
                   </div>
                   {isActive
-                    ? <span className="text-[10px] font-bold text-accent shrink-0">× Filtro</span>
+                    ? <span className="text-[11px] font-bold text-accent shrink-0">× Filtro</span>
                     : <ChevronRight className="w-4 h-4 text-white/30 shrink-0 opacity-70 group-hover:text-accent group-hover:opacity-100 transition-colors" aria-hidden />
                   }
                 </button>
@@ -3080,20 +3103,20 @@ export default function Timesheets() {
                         <p className="text-sm font-bold text-white">{item.user?.first_name ?? '—'}</p>
                         <p className="text-[11px] text-white/55 truncate">{item.user?.department ?? ''}</p>
                       </div>
-                      <span className="flex flex-shrink-0 items-center gap-1 rounded-full border border-accent/40 bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-accent">
+                      <span className="flex flex-shrink-0 items-center gap-1 rounded-full border border-accent/40 bg-accent/15 px-2 py-0.5 text-[11px] font-bold text-accent">
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent/80" /> {t.ts_badge_in_shift}
                       </span>
                     </div>
                     {/* Times */}
                     <div className="grid grid-cols-2 gap-2 mb-3">
                       <div className="rounded-xl bg-white/10 px-2.5 py-2 text-center">
-                        <p className="mb-0.5 text-[9px] font-semibold uppercase text-white/50">{t.ts_label_planned}</p>
+                        <p className="mb-0.5 text-[11px] font-semibold uppercase text-white/50">{t.ts_label_planned}</p>
                         <p className="text-sm font-bold text-white tabular-nums">
                           {item.scheduledStart}–{item.scheduledEnd}
                         </p>
                       </div>
                       <div className="rounded-xl bg-white/10 px-2.5 py-2 text-center">
-                        <p className="mb-0.5 text-[9px] font-semibold uppercase text-white/50">{t.ts_label_actual_entry}</p>
+                        <p className="mb-0.5 text-[11px] font-semibold uppercase text-white/50">{t.ts_label_actual_entry}</p>
                         <p className="text-sm font-bold text-white tabular-nums">{item.actualStart}</p>
                       </div>
                     </div>
@@ -3238,7 +3261,7 @@ export default function Timesheets() {
 
                 {viewMode === 'month' && payrollStripForToolbar && (
                   <span
-                    className="hidden min-[400px]:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,12rem)] shrink-0 items-center truncate rounded-lg px-2 lg:px-2.5 text-[9px] lg:text-[10px] font-semibold"
+                    className="hidden min-[400px]:inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 max-w-[min(100%,12rem)] shrink-0 items-center truncate rounded-lg px-2 lg:px-2.5 text-[11px] lg:text-[11px] font-semibold"
                     style={{ border: '1px solid rgba(59,130,246,0.35)', background: 'rgba(59,130,246,0.12)', color: 'rgba(255,255,255,0.85)' }}
                     title={tv.ts_timesheet_month_tab_hint}
                   >
@@ -3345,13 +3368,13 @@ export default function Timesheets() {
                                 }`}>
                                   {format(s, 'MMMM', { locale })}
                                   {listYear !== nowYear && (
-                                    <span className="ml-1 text-[10px] font-normal text-white/40">{listYear}</span>
+                                    <span className="ml-1 text-[11px] font-normal text-white/40">{listYear}</span>
                                   )}
                                   {isCurrentMonth && !isActive && (
                                     <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-cyan-400 align-middle" />
                                   )}
                                 </span>
-                                <span className={`shrink-0 text-[10px] tabular-nums ${
+                                <span className={`shrink-0 text-[11px] tabular-nums ${
                                   isActive
                                     ? 'text-accent font-bold'
                                     : 'text-white/45'
@@ -3393,7 +3416,7 @@ export default function Timesheets() {
                     <RotateCcw className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
                     <span className="hidden sm:inline max-w-[7rem] truncate">{tsUndoStack[0]?.label ?? 'Annulla'}</span>
                     {tsUndoStack.length > 1 && (
-                      <span className="tabular-nums rounded-md bg-white/15 px-1 py-px text-[9px] font-bold leading-none text-white border border-white/25">
+                      <span className="tabular-nums rounded-md bg-white/15 px-1 py-px text-[11px] font-bold leading-none text-white border border-white/25">
                         {tsUndoStack.length}
                       </span>
                     )}
@@ -3430,7 +3453,7 @@ export default function Timesheets() {
                         }
                         setShowWeekApproveMenu(true);
                       }}
-                      className={`ui-toolbar-chip !inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs items-center gap-1.5 shrink-0 border shadow-sm ${
+                      className={`ui-toolbar-chip !inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[11px] lg:!text-xs items-center gap-1.5 shrink-0 border shadow-sm ${
                         weekApproveDisabled
                           ? 'cursor-not-allowed opacity-60'
                           : wAp.isApprovedState
@@ -3530,7 +3553,7 @@ export default function Timesheets() {
                               if (w.isApprovedState) {
                                 return (
                                   <>
-                                    <p className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-white/40">
+                                    <p className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white/40">
                                       Ripristina approvazione
                                     </p>
                                     <button
@@ -3563,7 +3586,7 @@ export default function Timesheets() {
 
                               return (
                                 <>
-                                  <p className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-white/40">
+                                  <p className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white/40">
                                     Approva turni
                                   </p>
                                   <button
@@ -3592,7 +3615,7 @@ export default function Timesheets() {
                                     <span className="flex-1">Settimana intera (tutti)</span>
                                   </button>
                                   <div className="my-1 h-px bg-white/10" />
-                                  <p className="px-2 py-0.5 text-[9px] font-semibold text-white/40">
+                                  <p className="px-2 py-0.5 text-[11px] font-semibold text-white/40">
                                     Per dipendente
                                   </p>
                                   {w.employeesPending.map(({ user, name, pendingShifts, complete }) => (
@@ -3734,7 +3757,7 @@ export default function Timesheets() {
                                             <Users className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                                             Settimana intera (tutti)
                                           </button>
-                                          <p className="px-2 pt-2 pb-1 text-[9px] font-semibold uppercase text-white/40">
+                                          <p className="px-2 pt-2 pb-1 text-[11px] font-semibold uppercase text-white/40">
                                             Per dipendente
                                           </p>
                                           {w.employeesPending.map(({ user, name, pendingShifts, complete }) => (
@@ -3772,7 +3795,7 @@ export default function Timesheets() {
                       e.stopPropagation(); 
                       setShowPdfDeptMenu(prev => !prev); 
                     }}
-                    className="ui-toolbar-chip !inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[10px] lg:!text-xs items-center gap-1.5 cursor-pointer relative z-[110] max-w-[110px] sm:max-w-none"
+                    className="ui-toolbar-chip !inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[11px] lg:!text-xs items-center gap-1.5 cursor-pointer relative z-[110] max-w-[110px] sm:max-w-none"
                     title="Seleziona reparto per PDF"
                   >
                     <Filter className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0 text-white/50" />
@@ -3793,7 +3816,7 @@ export default function Timesheets() {
                             initial={{ opacity: 0, y: 4, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                            className="hidden lg:block absolute left-0 lg:right-0 lg:left-auto top-full z-[9999] mt-1 w-48 rounded-xl border border-white/15 p-1 shadow-xl"
+                            className="hidden lg:block absolute left-0 lg:right-0 lg:left-auto top-full z-[300] mt-1 w-48 rounded-xl border border-white/15 p-1 shadow-xl"
                             style={{ background: '#152848', isolation: 'isolate' }}
                           >
                             <button
@@ -3848,7 +3871,7 @@ export default function Timesheets() {
                               disableBackdropClose
                             >
                               <div className="flex items-center justify-between px-2 py-1.5 mb-1" style={{ borderBottom: '1px solid rgba(15, 35, 90, 0.82)' }}>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">
+                                <span className="text-[11px] font-bold uppercase tracking-wider text-white/50">
                                   {t.department_filter_label}
                                 </span>
                                 <button
@@ -3929,11 +3952,11 @@ export default function Timesheets() {
                     <div>
                       <h4 className="font-bold text-lg text-white">{user.first_name}</h4>
                       {user.department && (
-                        <p className="text-[10px] text-white/50 font-medium uppercase tracking-wider">{user.department}</p>
+                        <p className="text-[11px] text-white/50 font-medium uppercase tracking-wider">{user.department}</p>
                       )}
                     </div>
                     <div className="text-right">
-                      <div className="text-[10px] font-bold text-white/50 uppercase tracking-tight">{t.stats_total}</div>
+                      <div className="text-[11px] font-bold text-white/50 uppercase tracking-tight">{t.stats_total}</div>
                       <div className="text-sm font-bold text-accent">
                         {formatMinutesToHoursAndMinutes(totals?.actualMins || totals?.plannedMins || 0)}
                       </div>
@@ -3970,7 +3993,7 @@ export default function Timesheets() {
                             }}
                           >
                             <div className="w-10 shrink-0 text-center">
-                              <div className={`text-[10px] font-bold uppercase ${todayDate ? 'text-accent' : 'text-white/50'}`}>
+                              <div className={`text-[11px] font-bold uppercase ${todayDate ? 'text-accent' : 'text-white/50'}`}>
                                 {format(day, 'EEE', { locale })}
                               </div>
                               <div className={`text-xs font-bold ${todayDate ? 'text-accent' : 'text-white/70'}`}>
@@ -3999,7 +4022,7 @@ export default function Timesheets() {
                                         {s.plannedStart}–{s.plannedEnd || '?'}
                                       </span>
                                       {s.punched && s.actualStart && (
-                                        <span className="text-[10px] font-medium text-white/60">
+                                        <span className="text-[11px] font-medium text-white/60">
                                           {s.actualStart}–{s.actualEnd || '...'}
                                         </span>
                                       )}
@@ -4072,12 +4095,12 @@ export default function Timesheets() {
                               {format(day, 'd MMM', { locale })}
                             </div>
                             {payrollHighlight && (
-                              <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-400">
+                              <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-emerald-400">
                                 {tv.ts_payroll_day_abbr ?? 'Paga'}
                               </div>
                             )}
                             {canReview && (
-                              <div className="mt-0.5 text-[9px] font-semibold text-accent/60 group-hover:text-accent transition-colors">
+                              <div className="mt-0.5 text-[11px] font-semibold text-accent/60 group-hover:text-accent transition-colors">
                                 {t.ts_review_short}
                               </div>
                             )}
@@ -4149,7 +4172,7 @@ export default function Timesheets() {
                         style={{ background: payrollHighlight ? 'rgba(51,102,204,0.35)' : todayDate ? 'rgba(51,102,204,0.25)' : 'rgba(30, 55, 120, 0.80)' }}
                       >
                         <div
-                          className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${
+                          className={`text-[11px] font-bold uppercase tracking-widest mb-0.5 ${
                             todayDate && inP ? 'text-accent/70' : 'text-white/40'
                           }`}
                         >
@@ -4170,12 +4193,12 @@ export default function Timesheets() {
                             {format(day, 'd/MM')}
                           </div>
                           {payrollHighlight && (
-                            <span className="text-[8px] font-bold uppercase tracking-wide text-[#007A5E]">
+                            <span className="text-[11px] font-bold uppercase tracking-wide text-[#007A5E]">
                               {tv.ts_payroll_day_abbr ?? 'Paga'}
                             </span>
                           )}
                           {canReview && (
-                            <span className="text-[9px] font-semibold text-accent/60 group-hover:text-accent transition-colors">
+                            <span className="text-[11px] font-semibold text-accent/60 group-hover:text-accent transition-colors">
                               {t.ts_review_short}
                             </span>
                           )}
@@ -4214,7 +4237,7 @@ export default function Timesheets() {
                             >
                               <div className="font-semibold text-sm text-white md:text-xs">{user.first_name}</div>
                               {user.department && (
-                                <div className="text-[10px] text-white/40 mt-0.5 md:text-[9px] uppercase">{user.department}</div>
+                                <div className="text-[11px] text-white/40 mt-0.5 md:text-[11px] uppercase">{user.department}</div>
                               )}
                             </button>
                           </div>
@@ -4222,7 +4245,7 @@ export default function Timesheets() {
                           <div className="text-right">
                             <div className="font-semibold text-sm text-white md:text-xs">{user.first_name}</div>
                             {user.department && (
-                              <div className="text-[10px] text-white/40 mt-0.5 md:text-[9px] uppercase">{user.department}</div>
+                              <div className="text-[11px] text-white/40 mt-0.5 md:text-[11px] uppercase">{user.department}</div>
                             )}
                           </div>
                         )}
@@ -4291,7 +4314,7 @@ export default function Timesheets() {
                                       <span className="mr-1.5 flex shrink-0 flex-col items-center justify-center gap-0.5 self-stretch md:mr-1">
                                         {s.status === 'confirmed' && (
                                           <Check
-                                            className="h-2.5 w-2.5 shrink-0 text-[#3366CC] md:h-2 md:w-2"
+                                            className="h-2.5 w-2.5 shrink-0 text-brand-mid md:h-2 md:w-2"
                                             strokeWidth={2.5}
                                             aria-hidden
                                           />
@@ -4308,7 +4331,7 @@ export default function Timesheets() {
                                     <div className="flex min-w-0 flex-1 flex-col gap-1 md:gap-0.5">
                                     <div className="mb-0.5 flex items-center justify-between gap-1 md:mb-0">
                                       <span
-                                        className="text-[11px] font-semibold text-white/70 tabular-nums md:text-[10px]"
+                                        className="text-[11px] font-semibold text-white/70 tabular-nums md:text-[11px]"
                                         aria-label={
                                           showPlannedTimesInCell
                                             ? undefined
@@ -4326,11 +4349,11 @@ export default function Timesheets() {
                                       s.punched ? (
                                         s.actualEnd ? (
                                           <div className="flex items-center justify-between gap-1">
-                                            <span className="text-[11px] font-bold text-white tabular-nums md:text-[10px]">
+                                            <span className="text-[11px] font-bold text-white tabular-nums md:text-[11px]">
                                               {`${s.actualStart}–${s.actualEnd}`}
                                             </span>
                                             <span
-                                              className={`max-w-[min(100%,5.5rem)] shrink-0 text-right text-[10px] font-semibold leading-tight tabular-nums md:max-w-[4.75rem] md:text-[9px] ${
+                                              className={`max-w-[min(100%,5.5rem)] shrink-0 text-right text-[11px] font-semibold leading-tight tabular-nums md:max-w-[4.75rem] md:text-[11px] ${
                                                 s.breakMinutesActual > 0 ? 'text-white/50' : deltaColor
                                               }`}
                                               title={
@@ -4346,13 +4369,13 @@ export default function Timesheets() {
                                           </div>
                                         ) : (
                                           <div className="flex items-start justify-between gap-1 md:gap-0.5">
-                                            <div className="min-w-0 flex flex-1 flex-wrap items-center gap-x-0.5 text-[10px] font-semibold text-red-400 md:text-[9px]">
+                                            <div className="min-w-0 flex flex-1 flex-wrap items-center gap-x-0.5 text-[11px] font-semibold text-red-400 md:text-[11px]">
                                               <span>{s.actualStart}</span>
                                               <span className="text-red-500">{t.ts_missing_exit}</span>
                                             </div>
                                             {s.breakMinutes > 0 && (
                                               <span
-                                                className="max-w-[min(100%,5.5rem)] shrink-0 text-right text-[10px] font-semibold leading-tight tabular-nums text-white/50 md:max-w-[4.75rem] md:text-[9px]"
+                                                className="max-w-[min(100%,5.5rem)] shrink-0 text-right text-[11px] font-semibold leading-tight tabular-nums text-white/50 md:max-w-[4.75rem] md:text-[11px]"
                                                 title={`${t.ts_kpi_planned}: ${fmtHM(s.plannedMins)}`}
                                               >
                                                 {`−${fmtBreakDeductionShort(s.breakMinutes)}`}
@@ -4361,7 +4384,7 @@ export default function Timesheets() {
                                           </div>
                                         )
                                       ) : (
-                                        <span className="text-[10px] font-semibold text-white/45 md:text-[9px]">–</span>
+                                        <span className="text-[11px] font-semibold text-white/45 md:text-[11px]">–</span>
                                       )
                                     ) : plannedOnlyTimesheetGrid &&
                                       publishedCell &&
@@ -4370,7 +4393,7 @@ export default function Timesheets() {
                                       s.actualEnd ? (
                                       <div className="flex items-center justify-between gap-1">
                                         <span
-                                          className="text-[11px] font-bold text-white tabular-nums md:text-[10px]"
+                                          className="text-[11px] font-bold text-white tabular-nums md:text-[11px]"
                                           title={t.ts_kpi_frozen_official}
                                         >
                                           {`${s.actualStart}–${s.actualEnd}`}
@@ -4381,12 +4404,12 @@ export default function Timesheets() {
                                     {showFullTimesheetGrid && (punchAuditCount > 0 || getShiftHistory(s.id).length > 0) && (
                                       <div className="absolute top-0.5 right-1 flex items-center gap-0.5">
                                         {punchAuditCount > 0 && (
-                                          <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-orange-300 bg-orange-500/20 rounded px-0.5 py-px leading-none">
+                                          <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-orange-300 bg-orange-500/20 rounded px-0.5 py-px leading-none">
                                             <ShieldAlert className="w-2 h-2" />{punchAuditCount}
                                           </span>
                                         )}
                                         {getShiftHistory(s.id).length > 0 && (
-                                          <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-300 bg-amber-500/20 rounded px-0.5 py-px leading-none">
+                                          <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-amber-300 bg-amber-500/20 rounded px-0.5 py-px leading-none">
                                             <History className="w-2 h-2" />{getShiftHistory(s.id).length}
                                           </span>
                                         )}
@@ -4419,7 +4442,7 @@ export default function Timesheets() {
                       {/* Totale settimana */}
                       <td className="px-3 py-2 text-center border-l-2 border-l-white/15 md:px-2 md:py-1.5" style={{ background: userIdx % 2 === 0 ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.14)' }}>
                         <div className="flex flex-col items-center gap-2">
-                          <div className="text-xs font-semibold text-white/55 md:text-[10px]">
+                          <div className="text-xs font-semibold text-white/55 md:text-[11px]">
                             {showFullTimesheetGrid || plannedOnlyTimesheetGrid
                               ? formatMinutesToHoursAndMinutes(totals?.plannedMins ?? 0)
                               : t.ts_times_masked_hm}
@@ -4429,7 +4452,7 @@ export default function Timesheets() {
                               <div className="text-sm font-bold text-white md:text-xs">
                                 {formatMinutesToHoursAndMinutes(totals?.actualMins ?? 0)}
                               </div>
-                              <div className={`text-[10px] font-semibold ${(totals?.deltaMins ?? 0) >= 0 ? 'text-accent' : 'text-red-400'} md:text-[9px]`}>
+                              <div className={`text-[11px] font-semibold ${(totals?.deltaMins ?? 0) >= 0 ? 'text-accent' : 'text-red-400'} md:text-[11px]`}>
                                 {(totals?.deltaMins ?? 0) >= 0 ? '+' : ''}
                                 {fmtHM(totals?.deltaMins ?? 0)}
                               </div>
@@ -4484,8 +4507,8 @@ export default function Timesheets() {
               {/* Footer totali */}
               {canTeamTimesheetOps && (
                 <tfoot>
-                  <tr className="bg-[#3366CC]/5 border-t-2 border-[#3366CC]/35">
-                    <td className="sticky left-0 pl-4 pr-3 py-3 text-accent font-bold text-xs uppercase border-r-2 border-r-white/15 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[10px]" style={{ background: 'rgba(30, 55, 120, 0.80)', backdropFilter: 'blur(8px)' }}>
+                  <tr className="bg-brand-mid/5 border-t-2 border-brand-mid/35">
+                    <td className="sticky left-0 pl-4 pr-3 py-3 text-accent font-bold text-xs uppercase border-r-2 border-r-white/15 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[11px]" style={{ background: 'rgba(30, 55, 120, 0.80)', backdropFilter: 'blur(8px)' }}>
                       {t.stats_total}
                     </td>
                     {weekDays.map((day, dayIdx) => {
@@ -4508,7 +4531,7 @@ export default function Timesheets() {
                           ? { background: 'transparent', opacity: 0.35 }
                           : {};
                       return (
-                        <td key={dateStr} className={`px-2 py-3 text-center ${tdBorder} text-xs md:px-1.5 md:py-2 md:text-[10px]`} style={tdBgStyle}>
+                        <td key={dateStr} className={`px-2 py-3 text-center ${tdBorder} text-xs md:px-1.5 md:py-2 md:text-[11px]`} style={tdBgStyle}>
                           {planned > 0 ? (
                             <>
                               <div className={tdMuted ? 'text-white/30' : 'text-white/55'}>
@@ -4535,11 +4558,11 @@ export default function Timesheets() {
                       );
                     })}
                     <td className="px-3 py-3 text-center bg-white/5 border-l-[3px] border-l-white/30 md:px-2 md:py-2">
-                      <div className="text-xs text-white/60 md:text-[10px]">
+                      <div className="text-xs text-white/60 md:text-[11px]">
                         {formatMinutesToHoursAndMinutes(visibleUsers.reduce((s, u) => s + (userTotals[u.id]?.plannedMins ?? 0), 0))}
                       </div>
                       {showFullTimesheetGrid && (
-                        <div className="text-xs font-bold text-white md:text-[10px]">
+                        <div className="text-xs font-bold text-white md:text-[11px]">
                           {(() => {
                             const act = visibleUsers.reduce((s, u) => s + (userTotals[u.id]?.actualMins ?? 0), 0);
                             return act > 0 ? formatMinutesToHoursAndMinutes(act) : '';
@@ -4551,7 +4574,7 @@ export default function Timesheets() {
                           const gf = visibleUsers.reduce((s, u) => s + (userTotals[u.id]?.frozenOfficialMins ?? 0), 0);
                           return gf > 0 ? (
                             <div
-                              className="text-xs font-bold text-white md:text-[10px]"
+                              className="text-xs font-bold text-white md:text-[11px]"
                               title={t.ts_kpi_frozen_official}
                             >
                               {formatMinutesToHoursAndMinutes(gf)}
@@ -4600,7 +4623,7 @@ export default function Timesheets() {
                       {
                         label: t.ts_kpi_delta,
                         val: `${(myTot?.deltaMins ?? 0) >= 0 ? '+' : ''}${fmtHM(myTot?.deltaMins ?? 0)}`,
-                        color: (myTot?.deltaMins ?? 0) >= 0 ? 'text-[#3366CC]' : 'text-red-500',
+                        color: (myTot?.deltaMins ?? 0) >= 0 ? 'text-brand-mid' : 'text-red-500',
                       },
                     ]
                   : plannedOnlyTimesheetGrid && frozenM > 0
@@ -4627,7 +4650,7 @@ export default function Timesheets() {
                   <div className={`grid gap-4 ${gridCols}`}>
                     {kpiItems.map(({ label, val, color }) => (
                       <div key={label}>
-                        <p className="text-[10px] text-white/50 uppercase tracking-wide mb-1">{label}</p>
+                        <p className="text-[11px] text-white/50 uppercase tracking-wide mb-1">{label}</p>
                         <p className={`text-2xl font-bold ${color}`}>{val}</p>
                       </div>
                     ))}
@@ -4653,7 +4676,7 @@ export default function Timesheets() {
               : 'max-w-sm md:max-w-2xl lg:max-w-4xl'
           }
           maxHeightClass="max-h-[92dvh] lg:max-h-[630px]"
-          overlayZClass="z-[999999]"
+          overlayZClass="z-[200]"
           ariaLabel={drawerData ? `${drawerData.employeeName} · ${drawerData.dateStr}` : t.ts_shift_detail_modal_aria}
           panelClassName="!overflow-hidden flex flex-col p-0"
           markDatePickerPortal
@@ -4661,7 +4684,8 @@ export default function Timesheets() {
         >
         {drawerData && (() => {
           const s = drawerData.shift;
-          const fullShift = shifts.find((sh) => sh.id === s.id);
+          const fullShiftRaw = shifts.find((sh) => sh.id === s.id);
+          const fullShift = fullShiftRaw ? mergeShiftDeductExclusionsFromLocal(fullShiftRaw) : undefined;
           const userForBreakReadout = users.find((u) => u.id === drawerData.userId);
           const grossPlannedForBreakReadout = fullShift
             ? calculateShiftMinutesGross(
@@ -4676,13 +4700,13 @@ export default function Timesheets() {
             !s.isCrossDay &&
             !s.hasMissingOut;
           const grossForBreakReadout = canUseActualForBreakReadout
-            ? calculateShiftMinutesGross(s.actualStart, s.actualEnd)
+            ? calculateShiftMinutesGross(s.actualStart as string, s.actualEnd as string)
             : grossPlannedForBreakReadout;
           const breakReadoutOpts: BreakMinutesComputeOptions = {
             ...breakComputeOpts,
             ...(s.displayFromFrozenApprovedTimes ? { autoBreaksFeatureEnabled: false } : {}),
             ...(canUseActualForBreakReadout
-              ? { breakRuleWindow: { start: s.actualStart, end: s.actualEnd } }
+              ? { breakRuleWindow: { start: s.actualStart as string, end: s.actualEnd as string } }
               : {}),
           };
           const deductBreakLineItemsAll =
@@ -4808,7 +4832,7 @@ export default function Timesheets() {
           const plannedCardBoxClass = plannedApprovedCard
             ? 'rounded-xl border-2 border-l-4 border-emerald-500/30 border-l-emerald-500 bg-emerald-500/12 p-3'
             : plannedConfirmedCard
-              ? 'rounded-xl border-2 border-l-4 border-[#0052FF]/30 border-l-[#0052FF] bg-[#0052FF]/10 p-3'
+              ? 'rounded-xl border-2 border-l-4 border-brand-electric/30 border-l-brand-electric bg-brand-electric/10 p-3'
               : plannedAbsentCard
                 ? 'rounded-xl border-2 border-l-4 border-rose-500/30 border-l-error bg-rose-500/12 p-3'
                 : plannedDraftCard
@@ -5093,13 +5117,13 @@ export default function Timesheets() {
                         const cardCls = punchCrossDay
                           ? 'border-red-400/50 border-l-error bg-red-500/12'
                           : punchComplete
-                          ? 'border-[#001A80]/25 border-l-[#3366CC] bg-[#001A80]/8'
+                          ? 'border-brand-deep/25 border-l-brand-mid bg-brand-deep/8'
                           : 'border-amber-400/70 bg-amber-500/12';
                         const hoverCls = timbraturePinGateTarget
                           ? punchCrossDay
                             ? 'hover:bg-red-500/20'
                             : punchComplete
-                            ? 'hover:bg-[#001A80]/12'
+                            ? 'hover:bg-brand-deep/12'
                             : 'hover:bg-amber-500/20'
                           : '';
                         const titleCls = punchCrossDay
@@ -5155,7 +5179,7 @@ export default function Timesheets() {
                         >
                         <div>
                           <h4 className={`text-xs font-bold ${titleCls}`}>{t.ts_drawer_manual_punches_title}</h4>
-                          {!punchComplete && <p className={`mt-0.5 text-[9px] font-medium ${hintCls}`}>{t.ts_drawer_manual_punches_hint}</p>}
+                          {!punchComplete && <p className={`mt-0.5 text-[11px] font-medium ${hintCls}`}>{t.ts_drawer_manual_punches_hint}</p>}
                         </div>
                         {/* Mostra il riepilogo entrata/uscita quando il form è chiuso O collassato */}
                         {(!showTimbratureEditForm || !drawerManualPunchFormExpanded) && (
@@ -5177,11 +5201,11 @@ export default function Timesheets() {
                                 : punchCrossDay
                                   ? 'bg-red-500/12 ring-red-400/30'
                                   : punchComplete
-                                  ? 'bg-[#001A80]/10 ring-[#001A80]/25'
+                                  ? 'bg-brand-deep/10 ring-brand-deep/25'
                                   : 'bg-white/8 ring-amber-400/40'
                             } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''}`}
                           >
-                            <p className={`mb-0.5 text-[9px] font-semibold uppercase tracking-wide ${!s.actualStart ? 'text-red-400' : punchCrossDay ? 'text-red-300/80' : punchComplete ? 'text-blue-300/80' : 'text-amber-300/80'}`}>
+                            <p className={`mb-0.5 text-[11px] font-semibold uppercase tracking-wide ${!s.actualStart ? 'text-red-400' : punchCrossDay ? 'text-red-300/80' : punchComplete ? 'text-blue-300/80' : 'text-amber-300/80'}`}>
                               {t.ts_drawer_manual_punch_in}
                             </p>
                             <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualStart ? 'text-white' : s.plannedStart ? 'text-white/40' : 'text-red-400'}`}>
@@ -5205,18 +5229,18 @@ export default function Timesheets() {
                                 : punchCrossDay
                                   ? 'bg-red-500/12 ring-red-400/30'
                                   : punchComplete
-                                  ? 'bg-[#001A80]/10 ring-[#001A80]/25'
+                                  ? 'bg-brand-deep/10 ring-brand-deep/25'
                                   : 'bg-white/8 ring-amber-400/40'
                             } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''}`}
                           >
-                            <p className={`mb-0.5 text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide ${!s.actualEnd ? 'text-red-400' : punchCrossDay ? 'text-red-300/80' : punchComplete ? 'text-blue-300/80' : 'text-amber-300/80'}`}>
+                            <p className={`mb-0.5 text-[11px] sm:text-[11px] font-semibold uppercase tracking-wide ${!s.actualEnd ? 'text-red-400' : punchCrossDay ? 'text-red-300/80' : punchComplete ? 'text-blue-300/80' : 'text-amber-300/80'}`}>
                               {t.ts_drawer_manual_punch_out}
                             </p>
                             <p className={`text-xs sm:text-sm font-bold tabular-nums ${s.actualEnd ? 'text-white' : s.plannedEnd ? 'text-white/40' : 'text-red-400'}`}>
                               {s.actualEnd ?? s.plannedEnd ?? '—'}
                             </p>
                             {s.isCrossDay && s.actualEndFull && s.actualEnd && (
-                              <p className="mt-1 flex items-center gap-1 text-[10px] font-bold text-amber-300">
+                              <p className="mt-1 flex items-center gap-1 text-[11px] font-bold text-amber-300">
                                 <AlertTriangle className="h-3 w-3 flex-shrink-0" />
                                 {formatTrans(t.ts_crossday_out_label, {
                                   time: format(new Date(s.actualEndFull), 'dd/MM HH:mm'),
@@ -5224,7 +5248,7 @@ export default function Timesheets() {
                               </p>
                             )}
                             {s.nightRolloverOk && s.actualEndFull && s.actualEnd && (
-                              <p className="mt-1 text-[10px] font-medium text-white/50">
+                              <p className="mt-1 text-[11px] font-medium text-white/50">
                                 {formatTrans(t.ts_punch_out_next_calendar_day_hint, {
                                   time: format(new Date(s.actualEndFull), 'dd/MM HH:mm'),
                                 })}
@@ -5238,7 +5262,7 @@ export default function Timesheets() {
                         <div className="space-y-2 border-t border-amber-400/30 pt-3">
                           {/* ORA ENTRATA */}
                           <div>
-                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300/80">
+                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300/80">
                               {t.ts_drawer_manual_punch_in}
                             </p>
                             <TimeInputField
@@ -5260,7 +5284,7 @@ export default function Timesheets() {
                           </div>
                           {/* DATA USCITA */}
                           <div>
-                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300/80">
+                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300/80">
                               {t.ts_drawer_manual_punch_out_date}
                             </p>
                             <input
@@ -5273,7 +5297,7 @@ export default function Timesheets() {
                           </div>
                           {/* ORA USCITA */}
                           <div>
-                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300/80">
+                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300/80">
                               {t.ts_drawer_manual_punch_out}
                             </p>
                             <TimeInputField
@@ -5476,11 +5500,11 @@ export default function Timesheets() {
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <div className="rounded-xl bg-white/8 border border-emerald-500/25 p-3">
-                            <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-white/40">{t.ts_drawer_approved_by}</p>
+                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-white/40">{t.ts_drawer_approved_by}</p>
                             <p className="truncate text-sm font-bold text-white">{fullShift?.approved_by ?? s.approved_by ?? '—'}</p>
                           </div>
                           <div className="rounded-xl bg-white/8 border border-emerald-500/25 p-3">
-                            <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-white/40">{t.ts_drawer_approval_date}</p>
+                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-white/40">{t.ts_drawer_approval_date}</p>
                             <p className="text-sm font-bold text-white">
                               {(fullShift?.approved_at ?? s.approved_at)
                                 ? format(new Date((fullShift?.approved_at ?? s.approved_at)!), 'dd/MM/yyyy HH:mm')
@@ -5710,7 +5734,7 @@ export default function Timesheets() {
         open={!!approveWeekSummary}
         onClose={() => setApproveWeekSummary(null)}
         maxWidthClass="max-w-[380px]"
-        panelClassName={`rounded-[40px] overflow-hidden !bg-[#0052FF]/5 !border-[#0052FF]/18 ${
+        panelClassName={`rounded-[40px] overflow-hidden !bg-brand-electric/5 !border-brand-electric/18 ${
           approveWeekSummary?.approvedIds ? 'ring-1 ring-inset ring-emerald-500/25' : ''
         }`}
         ariaLabel="Riepilogo approvazione settimana"
@@ -5723,12 +5747,12 @@ export default function Timesheets() {
             <div className="flex items-center gap-3 mb-4">
               <div
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
-                  isDone ? 'bg-emerald-500/20 ring-1 ring-emerald-400/30' : 'bg-[#0052FF]/12'
+                  isDone ? 'bg-emerald-500/20 ring-1 ring-emerald-400/30' : 'bg-brand-electric/12'
                 }`}
               >
                 {isDone
                   ? <Check className="h-5 w-5 text-emerald-400" strokeWidth={2.5} />
-                  : <Lock className="h-5 w-5 text-[#0052FF]" />
+                  : <Lock className="h-5 w-5 text-brand-electric" />
                 }
               </div>
               <div>
@@ -5748,7 +5772,7 @@ export default function Timesheets() {
               className={`mb-4 max-h-[260px] overflow-y-auto rounded-xl border divide-y ${
                 isDone
                   ? 'border-emerald-500/25 divide-emerald-500/15'
-                  : 'border-[#0052FF]/18 divide-[#0052FF]/10'
+                  : 'border-brand-electric/18 divide-brand-electric/10'
               }`}
             >
               {approveWeekSummary.previewRows.map((row, i) => {
@@ -5757,14 +5781,14 @@ export default function Timesheets() {
                   <div
                     key={i}
                     className={`flex items-center justify-between px-3 py-2.5 transition-colors ${
-                      approved ? 'bg-emerald-500/10' : 'bg-[#0052FF]/4'
+                      approved ? 'bg-emerald-500/10' : 'bg-brand-electric/4'
                     }`}
                   >
                     <span className={`text-sm font-medium capitalize ${isDone ? 'text-white/90' : 'text-white/80'}`}>
                       {row.employeeLabel ? (
                         <span className="block text-left">
                           <span
-                            className={`block text-[10px] font-semibold uppercase tracking-wide ${
+                            className={`block text-[11px] font-semibold uppercase tracking-wide ${
                               isDone ? 'text-white/50' : 'text-white/60'
                             }`}
                           >
@@ -5914,7 +5938,8 @@ export default function Timesheets() {
         {closingShift && (() => {
           const [h, m] = clockOutTime ? clockOutTime.split(':').map(Number) : [0, 0];
           const outTime = clockOutTime ? `${String(h ?? 0).padStart(2,'0')}:${String(m ?? 0).padStart(2,'0')}` : '';
-          const shiftObj = shifts.find((s) => s.id === closingShift.shiftId);
+          const shiftObjRaw = shifts.find((s) => s.id === closingShift.shiftId);
+          const shiftObj = shiftObjRaw ? mergeShiftDeductExclusionsFromLocal(shiftObjRaw) : undefined;
           const userObj = shiftObj ? users.find((u) => u.id === shiftObj.user_id) : undefined;
           const previewMins = outTime && shiftObj && userObj
             ? getNetShiftMinutes(shiftObj, closingShift.actualStart, outTime, userObj, breakRules, breakComputeOpts)
@@ -5922,7 +5947,7 @@ export default function Timesheets() {
           const clockOutComplete = /^\d{2}:\d{2}$/.test((clockOutTime || '').trim());
           const showHoursPreview = clockOutComplete && !!shiftObj && !!userObj;
           const previewDelta = previewMins - closingShift.plannedMins;
-          const previewDeltaColor = previewDelta > 5 ? 'text-[#3366CC]' : previewDelta < -5 ? 'text-red-500' : 'text-white/60';
+          const previewDeltaColor = previewDelta > 5 ? 'text-brand-mid' : previewDelta < -5 ? 'text-red-500' : 'text-white/60';
 
           return (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -5969,18 +5994,18 @@ export default function Timesheets() {
 
                 {showHoursPreview && (
                   <div className="bg-white/8 rounded-xl p-3 mb-4">
-                    <p className="text-[10px] font-semibold text-white/60 uppercase tracking-wide mb-2">{t.ts_modal_hours_preview}</p>
+                    <p className="text-[11px] font-semibold text-white/60 uppercase tracking-wide mb-2">{t.ts_modal_hours_preview}</p>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
-                        <p className="text-[10px] text-white/50">{t.ts_kpi_planned}</p>
+                        <p className="text-[11px] text-white/50">{t.ts_kpi_planned}</p>
                         <p className="font-bold text-white/80 text-sm">{fmtHM(closingShift.plannedMins)}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-white/50">{t.ts_kpi_actual}</p>
+                        <p className="text-[11px] text-white/50">{t.ts_kpi_actual}</p>
                         <p className="font-bold text-white/90 text-sm">{fmtHM(previewMins)}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-white/50">{t.ts_kpi_delta}</p>
+                        <p className="text-[11px] text-white/50">{t.ts_kpi_delta}</p>
                         <p className={`font-bold text-sm ${previewDeltaColor}`}>{previewDelta >= 0 ? '+' : ''}{fmtHM(previewDelta)}</p>
                       </div>
                     </div>

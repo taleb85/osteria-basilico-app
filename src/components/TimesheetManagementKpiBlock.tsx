@@ -4,6 +4,7 @@ import { it } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, TrendingUp } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import type { Language } from '../types';
 import { getTranslations } from '../utils/translations';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
@@ -32,7 +33,7 @@ type Props = {
  */
 export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetailPanels }: Props) {
   const { users, shifts, currentUser, effectiveLanguage, breakRules, featureFlags, punchRecords } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   const [activeWidget, _setActiveWidget] = useState<'approved' | 'pending' | null>(null);
 
@@ -131,8 +132,8 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           </div>
           <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-white/75">{t.stats_approved_hours}</p>
-              <p className="text-[10px] leading-snug text-white/55">{t.stats_approved_shifts_count.replace('{n}', String(approvedShifts.length))}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-white/75">{t.stats_approved_hours}</p>
+              <p className="text-[11px] leading-snug text-white/55">{t.stats_approved_shifts_count.replace('{n}', String(approvedShifts.length))}</p>
             </div>
             <p className="text-xl font-black tabular-nums leading-none text-white shrink-0">
               {approvedMins > 0 ? formatMinutesToHoursAndMinutes(approvedMins) : '—'}
@@ -155,8 +156,8 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
             </div>
             <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-white/75">{t.stats_estimated_cost}</p>
-                <p className="text-[10px] leading-snug text-white/55">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-white/75">{t.stats_estimated_cost}</p>
+                <p className="text-[11px] leading-snug text-white/55">
                   {estimatedCostStats.shiftsWithRate + estimatedCostStats.shiftsWithoutRate === 0
                     ? (tv.stats_no_approved_for_cost ?? t.stats_no_approved_shifts)
                     : estimatedCostStats.shiftsWithRate === 0
@@ -196,8 +197,8 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           </div>
           <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-white/75">{t.stats_pending_shifts}</p>
-              <p className="text-[10px] leading-snug text-white/55">{t.stats_confirmed_not_approved}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-white/75">{t.stats_pending_shifts}</p>
+              <p className="text-[11px] leading-snug text-white/55">{t.stats_confirmed_not_approved}</p>
             </div>
             <p className={`text-xl font-black tabular-nums leading-none shrink-0 ${pendingCount > 0 ? 'text-amber-300' : 'text-white'}`}>
               {pendingCount}

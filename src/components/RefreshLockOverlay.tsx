@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Smartphone, Fingerprint, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations, formatTrans } from '../utils/translations';
 import { supportsPinUnlockWebAuthn, hasPlatformBiometricAuthenticator } from '../utils/pinUnlockWebAuthn';
 import { PinPadModal } from './ui/PinPadModal';
@@ -24,7 +25,7 @@ export default function RefreshLockOverlay() {
   const [loading, setLoading] = useState(false);
   const [deviceUnlockLoading, setDeviceUnlockLoading] = useState(false);
   const [linkDeviceLoading, setLinkDeviceLoading] = useState(false);
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   const [webAuthnSupported, setWebAuthnSupported] = useState(false);
   useEffect(() => {
@@ -148,7 +149,7 @@ export default function RefreshLockOverlay() {
         ) : (
           <Smartphone className="w-5 h-5 text-[#455a3f]" />
         )}
-        <span className="text-[8px] font-black uppercase tracking-tighter leading-none">
+        <span className="text-[11px] font-black uppercase tracking-tighter leading-none">
           {t.sync_lock_link_device}
         </span>
       </button>

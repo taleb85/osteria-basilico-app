@@ -1,3 +1,8 @@
+/**
+ * Dizionari per lingua (`it`, `en`, `es`, `fr`) e helper `getTranslations` / `formatTrans`.
+ * Per stringhe UI nel tree React usa `useT()` in `../hooks/useT.ts` (stessa sorgente di `effectiveLanguage` da `AppContext`).
+ * Usa `getTranslations(lang)` solo dove serve una lingua esplicita (login, anteprime, util non legati al contesto app).
+ */
 import type { Language } from '../types';
 import type { AdminModuleKey } from './enabledFeatures';
 import { it, enUS, es, fr } from 'date-fns/locale';
@@ -2096,6 +2101,7 @@ const baseEn: Record<string, string> = {
   profile_logout_confirm: 'Log out of your account?',
   profile_framing_modal_title: 'Photo framing',
   profile_framing_done: 'Done',
+  profile_photo_source_sheet_aria: '[Come vuoi aggiungere la foto]',
   profile_photo_source_gallery: 'Choose from gallery',
   profile_photo_source_camera: 'Take photo',
   profile_photo_source_files: 'Choose from files',

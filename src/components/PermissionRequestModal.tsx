@@ -74,7 +74,7 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
         transition={{ duration: 0.28, ease: 'easeOut' }}
-        className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border border-white/10" style={{ background: 'rgba(13,31,60,0.97)' }}
+        className="w-full max-w-sm rounded-2xl border border-white/10 bg-app-bg/95 shadow-2xl overflow-hidden"
       >
         {/* Header */}
         <div className="px-5 pt-6 pb-4 text-center border-b border-white/10">
@@ -159,7 +159,7 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
           >
             Continua
           </button>
-          <p className="text-center text-[10px] text-white/50 mt-2">
+          <p className="text-center text-[11px] text-white/50 mt-2">
             Puoi modificare questi permessi in qualsiasi momento dalle impostazioni del dispositivo
           </p>
         </div>

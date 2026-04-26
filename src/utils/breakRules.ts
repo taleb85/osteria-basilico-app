@@ -231,8 +231,8 @@ export function getActiveBreakRules(rules: BreakRule[] | null | undefined): Brea
 /** Opzioni comuni per calcolo pausa (allineate al feature `auto_breaks` ovunque nell’app). */
 export type BreakMinutesComputeOptions = {
   /**
-   * Se `false`, non applicare il fallback automatico ≥6h (30 min).
-   * Le **regole pausa attive** restano sempre prioritarie. Default: true (undefined = true).
+   * Se `false`, non applicare il **solo** fallback generico ≥6h (30 min senza fasce pasto).
+   * Fasce pranzo/cena (`getBreakLabels`) e regole admin restano prioritarie. Default: true.
    */
   autoBreaksFeatureEnabled?: boolean;
   /**
@@ -250,16 +250,18 @@ export type BreakMinutesComputeOptions = {
  * (anche 0 se nessuna finestra admin copre il turno, es. turno 18:00 con pause 11:30–12 e 17:00–17:30).
  * Non si applicano `break_minutes` sul turno né il fallback automatico ≥6h (evita −30′ indebiti).
  *
- * **Senza regole attive:** `break_minutes` sul turno; altrimenti, con durata ≥6h e fasce pasto
- * coperte (11:30–12:00 e/o 17:00–17:30, vedi `getBreakLabels`) si detrae **30 min per fascia**;
- * se nessuna fascia è coperta ma la durata è ≥6h, resta 30 min di fallback; tutto disattivabile con
- * `is_auto_break: false` (solo se `autoBreaksFeatureEnabled !== false`).
+ * **Senza regole attive:** `break_minutes` sul turno; con durata ≥6h, fasce pasto
+ * (vedi `getBreakLabels`) e `deduct_excluded_rule_ids` su `__flow_meal_*` si detrae **30 min per fascia
+ * attiva**; se nessuna fascia copre la finestra ma la durata è ≥6h, resta 30 min di fallback
+ * (disattivabile con `autoBreaksFeatureEnabled: false` — es. turno congelato oltre il pianificato, senza pasti
+ * in finestra). `is_auto_break: false` disattiva l’autocalcolo fasce+fallback.
  */
 export function getBreakMinutesForShift(
   shift: {
     start_time?: string;
     end_time?: string;
     date?: string;
+    approved_at?: string | null;
     deduct_break?: boolean;
     break_minutes?: number;
     /** Se `false`, non applicare la pausa automatica (≥6h) quando non si usano `break_minutes` né le regole. */
@@ -298,12 +300,13 @@ export function getBreakMinutesForShift(
   if (shift.break_minutes != null && shift.break_minutes > 0 && shift.is_auto_break !== true) {
     return shift.break_minutes;
   }
-  if (options?.autoBreaksFeatureEnabled === false) {
-    return 0;
+  /** Dopo congelamento: l’importo auto è fissato su DB; evita −60′ se `deduct_excluded_rule_ids` non è persistito. */
+  if (shift.approved_at && shift.is_auto_break === true && shift.break_minutes != null && shift.break_minutes >= 0) {
+    return Math.max(0, shift.break_minutes);
   }
-  // Turni che attraversano la mezzanotte: l'auto-break non si applica
   const startStr = (options?.breakRuleWindow?.start ?? shift.start_time ?? '').slice(0, 5);
   const endStr   = (options?.breakRuleWindow?.end   ?? shift.end_time   ?? '').slice(0, 5);
+  // Turni che attraversano la mezzanotte: niente fasce pasto né fallback generico
   if (startStr && endStr && toMinutes(endStr) <= toMinutes(startStr)) {
     return 0;
   }
@@ -319,6 +322,9 @@ export function getBreakMinutesForShift(
     const active = mealKeys.filter((k) => !ex.has(flowMealExclusionId(k)));
     return active.length * DEFAULT_AUTO_BREAK_MINUTES;
   }
+  if (options?.autoBreaksFeatureEnabled === false) {
+    return 0;
+  }
   return DEFAULT_AUTO_BREAK_MINUTES;
 }
 
@@ -328,6 +334,7 @@ export function getNetShiftMinutes(
     start_time?: string;
     end_time?: string;
     date?: string;
+    approved_at?: string | null;
     deduct_break?: boolean;
     break_minutes?: number;
     is_auto_break?: boolean;
@@ -380,9 +387,8 @@ export function getBreakDeductionDisplayItems(
   }
   const startStr = (options?.breakRuleWindow?.start ?? shift.start_time ?? '').slice(0, 5);
   const endStr = (options?.breakRuleWindow?.end ?? shift.end_time ?? '').slice(0, 5);
-  /** Pranzo/cena (fasce) con interruttori separati — prima del return per total ≤ 0. */
+  /** Pranzo/cena (fasce) con interruttori separati — allineate a getBreakMinutesForShift (anche con `autoBreaksFeatureEnabled: false` per fasce). */
   if (
-    (options?.autoBreaksFeatureEnabled !== false) &&
     startStr &&
     endStr &&
     toMinutes(endStr) > toMinutes(startStr) &&

@@ -19,6 +19,7 @@ import {
 } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations, getDateLocale, formatTrans } from '../utils/translations';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
 import {
@@ -83,7 +84,7 @@ export default function Statistics() {
     showError,
     departmentsRevision,
   } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
     [featureFlags]
@@ -531,7 +532,7 @@ export default function Statistics() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
                             transition={{ duration: 0.1 }}
-                            className="hidden lg:block absolute right-0 top-full z-[9999] mt-1 w-48 rounded-xl p-1 shadow-xl"
+                            className="hidden lg:block absolute right-0 top-full z-[300] mt-1 w-48 rounded-xl p-1 shadow-xl"
                             style={{ background: '#152848', border: '1px solid rgba(255,255,255,0.15)', isolation: 'isolate' }}
                           >
                             <div className="px-2 py-1.5 text-xs font-bold uppercase tracking-wider text-white/60 border-b border-white/10 mb-1">

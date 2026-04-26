@@ -97,7 +97,7 @@ export function MessagesList({
               </div>
 
               {/* Data */}
-              <div className="flex-shrink-0 text-[10px] text-white/60">
+              <div className="flex-shrink-0 text-[11px] text-white/60">
                 {format(createdDate, 'd MMM', { locale: it })}
               </div>
 

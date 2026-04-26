@@ -154,7 +154,7 @@ export function useMessages(userId?: string, isAdmin = false) {
             table: 'staff_messages',
           },
           (payload) => {
-            console.log('[useMessages] Change detected:', payload);
+            if (import.meta.env.DEV) console.log('[useMessages] Change detected:', payload);
             const msg = (payload.new || payload.old) as Message;
             
             // Admin ricarica sempre; altri solo se il messaggio li riguarda
@@ -187,7 +187,7 @@ export function useMessages(userId?: string, isAdmin = false) {
           }
         )
         .subscribe((status) => {
-          console.log('[useMessages] Subscription status:', status);
+          if (import.meta.env.DEV) console.log('[useMessages] Subscription status:', status);
         });
 
       setSubscription(channel);

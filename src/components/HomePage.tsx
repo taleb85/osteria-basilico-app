@@ -5,6 +5,7 @@ import {
   ArrowRight, ChevronRight,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format, isToday, isTomorrow, isValid, parseISO, addDays, startOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -91,7 +92,7 @@ export default function HomePage({
   activeTab: activeTabProp,
 }: HomePageProps) {
   const { currentUser, shifts, holidays, users, punchRecords, updatePunchRecord, approveShift, effectiveLanguage, showSuccess, showError, breakRules, featureFlags } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const shiftsListRef = useRef<HTMLDivElement>(null);
   const now = useWallAlignedMinuteClock();
 
@@ -555,7 +556,7 @@ export default function HomePage({
                     <p className="text-xs italic" style={{ color: '#ffffff' }}>{t.home_board_empty}</p>
                   )}
                   {boardNote && !editingBoard && (
-                    <p className="text-[10px] text-amber-600 mt-1">
+                    <p className="text-[11px] text-amber-600 mt-1">
                       Da {boardNote.author} · {safeFormatDate(boardNote.updatedAt, 'd MMM HH:mm', { locale: it })}
                     </p>
                   )}
@@ -784,7 +785,7 @@ export default function HomePage({
                     <p className="text-xs italic" style={{ color: '#ffffff' }}>{t.home_board_empty}</p>
                   )}
                   {boardNote && !editingBoard && (
-                    <p className="text-[10px] text-amber-600 mt-1">Da {boardNote.author} · {safeFormatDate(boardNote.updatedAt, 'd MMM HH:mm', { locale: it })}</p>
+                    <p className="text-[11px] text-amber-600 mt-1">Da {boardNote.author} · {safeFormatDate(boardNote.updatedAt, 'd MMM HH:mm', { locale: it })}</p>
                   )}
                 </div>
                 {canEditTeamBoard && !editingBoard && (
@@ -876,17 +877,17 @@ export default function HomePage({
                         <p className="font-bold text-white text-sm">{e.user?.first_name ?? '—'}</p>
                         <p className="text-[11px] text-white/55">{e.user?.department ?? e.user?.role ?? ''}</p>
                       </div>
-                      <span className="ml-auto flex items-center gap-1 rounded-full border border-accent/50 bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-white">
+                      <span className="ml-auto flex items-center gap-1 rounded-full border border-accent/50 bg-accent/15 px-2 py-0.5 text-[11px] font-bold text-white">
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500" /> {t.home_badge_in_shift}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mb-3">
                       <div className="bg-transparent rounded-xl px-2.5 py-2 text-center border border-white/10">
-                        <p className="text-[9px] text-white/45 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
+                        <p className="text-[11px] text-white/45 uppercase font-semibold mb-0.5">{t.home_label_planned}</p>
                         <p className="text-sm font-bold text-white tabular-nums">{e.scheduledStart}–{e.scheduledEnd}</p>
                       </div>
                       <div className="bg-transparent rounded-xl px-2.5 py-2 text-center border border-white/10">
-                        <p className="text-[9px] text-white/45 uppercase font-semibold mb-0.5">{t.home_label_entry}</p>
+                        <p className="text-[11px] text-white/45 uppercase font-semibold mb-0.5">{t.home_label_entry}</p>
                         <p className="text-sm font-bold text-white tabular-nums">{e.actualStart ?? '—'}</p>
                       </div>
                     </div>
@@ -978,7 +979,7 @@ export default function HomePage({
               <div className="space-y-3">
                 {[
                   { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-accent' },
-                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-[#001A80]' },
+                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-brand-deep' },
                 ].map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="flex justify-between text-xs mb-1.5">
@@ -1014,7 +1015,7 @@ export default function HomePage({
                   return (
                     <div key={h.id} className="flex items-center justify-between py-1 border-b border-white/8 last:border-0">
                       <span className="text-white/70 text-xs font-medium truncate flex-1">{u?.first_name ?? '?'}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ml-2 ${h.status === 'approved' ? 'bg-accent/15 text-accent border-accent/30' : h.status === 'pending' ? 'bg-amber-500/15 text-amber-300 border-amber-400/30' : 'bg-red-500/15 text-red-300 border-red-400/30'}`}>
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ml-2 ${h.status === 'approved' ? 'bg-accent/15 text-accent border-accent/30' : h.status === 'pending' ? 'bg-amber-500/15 text-amber-300 border-amber-400/30' : 'bg-red-500/15 text-red-300 border-red-400/30'}`}>
                         {h.status === 'approved' ? t.home_holiday_approved : h.status === 'pending' ? t.home_holiday_pending : t.home_holiday_rejected}
                       </span>
                     </div>
@@ -1031,14 +1032,14 @@ export default function HomePage({
               <div className="surface-glass surface-ghost-interactive cursor-pointer p-4" onClick={() => onNavigateToShifts?.()}>
                 <div className="flex items-center justify-between mb-2">
                   <TrendingUp className="w-4 h-4 text-white/45" />
-                  <span className="text-[10px] text-white/55 font-semibold uppercase">{t.home_kpi_hours_week}</span>
+                  <span className="text-[11px] text-white/55 font-semibold uppercase">{t.home_kpi_hours_week}</span>
                 </div>
                 <p className="text-2xl font-bold text-white tabular-nums">{formatMinutesToHoursAndMinutes(weeklyMinutes)}</p>
               </div>
               <div className="surface-glass surface-ghost-interactive cursor-pointer p-4" onClick={() => onNavigateToShifts?.()}>
                 <div className="flex items-center justify-between mb-2">
                   <Calendar className="w-4 h-4 text-white/45" />
-                  <span className="text-[10px] text-white/55 font-semibold uppercase">{t.home_kpi_shifts_week}</span>
+                  <span className="text-[11px] text-white/55 font-semibold uppercase">{t.home_kpi_shifts_week}</span>
                 </div>
                 <p className="text-2xl font-bold text-white tabular-nums">{todayAllShifts.length}</p>
                 <p className="text-[11px] text-white/55 mt-0.5">{t.home_today}</p>
@@ -1076,11 +1077,11 @@ export default function HomePage({
 
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <div className="bg-transparent rounded-xl p-3 text-center border border-white/10">
-                    <p className="text-[10px] text-white/45 uppercase font-semibold mb-1">{t.home_label_planned}</p>
+                    <p className="text-[11px] text-white/45 uppercase font-semibold mb-1">{t.home_label_planned}</p>
                     <p className="font-bold text-white tabular-nums">{closeModal.actualStart} → {closeModal.plannedEnd}</p>
                   </div>
-                  <div className="rounded-xl bg-[#001A80]/8 p-3 text-center">
-                    <p className="text-[10px] text-white/55 uppercase font-semibold mb-1">{t.home_label_entry}</p>
+                  <div className="rounded-xl bg-brand-deep/8 p-3 text-center">
+                    <p className="text-[11px] text-white/55 uppercase font-semibold mb-1">{t.home_label_entry}</p>
                     <p className="font-bold text-white tabular-nums">{closeModal.actualStart}</p>
                   </div>
                 </div>
@@ -1105,7 +1106,7 @@ export default function HomePage({
                       { label: t.home_modal_duration, val: `${Math.floor(previewMins / 60)}h${previewMins % 60 > 0 ? String(previewMins % 60).padStart(2,'0') : ''}` },
                     ].map(({ label, val }) => (
                       <div key={label}>
-                        <p className="text-[10px] text-white/45 uppercase font-semibold mb-0.5">{label}</p>
+                        <p className="text-[11px] text-white/45 uppercase font-semibold mb-0.5">{label}</p>
                         <p className="font-bold text-white text-sm tabular-nums">{val}</p>
                       </div>
                     ))}

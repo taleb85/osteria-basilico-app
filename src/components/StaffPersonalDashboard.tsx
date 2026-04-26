@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Download, X, Share, ChevronRight, ChevronLeft, LogOut, Shield, Calendar } from 'lucide-react';
 import { database } from '../lib/database';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { User as UserType, Shift, HolidayRequest, PunchRecord } from '../types';
 import { format, isToday, isFuture, startOfWeek, endOfWeek, addWeeks, addDays, startOfMonth, endOfMonth, parseISO, isWithinInterval, startOfDay, endOfDay, getISOWeek } from 'date-fns';
 import { it as itLocale } from 'date-fns/locale';
@@ -78,7 +79,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-slate-200">
           <Calendar className="w-7 h-7 text-white/40" />
         </div>
-        <p className="text-white/70 font-bold uppercase tracking-widest text-[10px]">
+        <p className="text-white/70 font-bold uppercase tracking-widest text-[11px]">
           {t.no_shifts_scheduled}
         </p>
       </div>
@@ -117,7 +118,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-black" />
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-white/60 leading-none mb-1">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-white/60 leading-none mb-1">
                     {t.week_label ?? 'Sett.'}
                   </p>
                   <p className="text-base font-semibold text-white">
@@ -147,7 +148,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                   >
                     {/* Day header */}
                     <div className={`px-3 py-3 ${today ? 'bg-white/15' : ''}`}>
-                      <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-white' : 'text-white/70'}`}>
+                      <p className={`text-[11px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-white' : 'text-white/70'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
                       <p className={`text-base font-semibold ${today ? 'text-white' : 'text-white/90'}`}>
@@ -236,7 +237,7 @@ function StaffDesktopTimesheet({
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-slate-200">
           <Clock className="w-7 h-7 text-white/40" />
         </div>
-        <p className="text-white/70 font-bold uppercase tracking-widest text-[10px]">
+        <p className="text-white/70 font-bold uppercase tracking-widest text-[11px]">
           {t.no_shifts_scheduled ?? 'Nessuno storico disponibile'}
         </p>
       </div>
@@ -291,7 +292,7 @@ function StaffDesktopTimesheet({
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-black" />
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-white/60 leading-none mb-1">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-white/60 leading-none mb-1">
                     {t.week_label ?? 'Sett.'}
                   </p>
                   <p className="text-base font-semibold text-white">
@@ -321,7 +322,7 @@ function StaffDesktopTimesheet({
                   >
                     {/* Day header */}
                     <div className={`px-3 py-3 ${today ? 'bg-white/15' : ''}`}>
-                      <p className={`text-[9px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-white' : 'text-white/70'}`}>
+                      <p className={`text-[11px] font-medium uppercase tracking-wider mb-1 ${today ? 'text-white' : 'text-white/70'}`}>
                         {format(day, 'EEE', { locale })}
                       </p>
                       <p className={`text-base font-semibold ${today ? 'text-white' : 'text-white/90'}`}>
@@ -417,7 +418,7 @@ export default function StaffPersonalDashboard({
   const [loading, setLoading] = useState(true);
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
   const [seedingDemoProfile, setSeedingDemoProfile] = useState(false);
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const now = useWallAlignedMinuteClock();
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
@@ -760,7 +761,7 @@ export default function StaffPersonalDashboard({
   const MobileNavBar = () => (
     <div className="flex items-center gap-2 mb-4 px-4">
       {/* Etichetta "Periodo" a sinistra */}
-      <span className="h-9 inline-flex items-center px-3 rounded-2xl bg-accent text-white text-[10px] font-extrabold uppercase tracking-wider shrink-0 shadow-sm">
+      <span className="h-9 inline-flex items-center px-3 rounded-2xl bg-accent text-white text-[11px] font-extrabold uppercase tracking-wider shrink-0 shadow-sm">
         {t.tab_period}
       </span>
 
@@ -776,7 +777,7 @@ export default function StaffPersonalDashboard({
 
         <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0">
           <Calendar className="h-3 w-3 text-white/50 shrink-0" />
-          <span className="text-[10px] font-bold text-white/80 tabular-nums truncate">
+          <span className="text-[11px] font-bold text-white/80 tabular-nums truncate">
             {mobileNavTab === 'week'
               ? `S.${getISOWeek(mobileRange.start)} · ${format(mobileRange.start, 'd MMM', { locale: mobileLocale })} – ${format(mobileRange.end, 'd MMM', { locale: mobileLocale })}`
               : `${format(mobileRange.start, 'd MMM', { locale: mobileLocale })} – ${format(mobileRange.end, 'd MMM yy', { locale: mobileLocale })}`
@@ -869,7 +870,7 @@ export default function StaffPersonalDashboard({
               >
                 {seedingDemoProfile ? t.ui_ellipsis : t.settings_seed_demo_profile_btn}
               </button>
-              <p className="text-[10px] text-white/50 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
+              <p className="text-[11px] text-white/50 leading-relaxed">{t.settings_seed_demo_profile_hint}</p>
             </div>
           )}
           <button
@@ -961,7 +962,7 @@ export default function StaffPersonalDashboard({
                   border: '1px solid rgba(255,255,255,0.18)',
                 }}
               >
-                <p className="text-white/60 text-[10px] font-medium uppercase tracking-widest mb-1">{t.week_hours}</p>
+                <p className="text-white/60 text-[11px] font-medium uppercase tracking-widest mb-1">{t.week_hours}</p>
                 <p className="text-white text-2xl font-bold tabular-nums">{totalApprovedHours}</p>
               </div>
               <div className="rounded-2xl px-4 py-3 text-center"
@@ -972,7 +973,7 @@ export default function StaffPersonalDashboard({
                   border: '1px solid rgba(255,255,255,0.18)',
                 }}
               >
-                <p className="text-white/60 text-[10px] font-medium uppercase tracking-widest mb-1">{t.shifts_week}</p>
+                <p className="text-white/60 text-[11px] font-medium uppercase tracking-widest mb-1">{t.shifts_week}</p>
                 <p className="text-white text-2xl font-bold tabular-nums">{upcomingShifts.length + todayShifts.length}</p>
               </div>
             </div>

@@ -64,7 +64,7 @@ export default function MobileTimesheet({
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border border-white/[0.08]">
           <Clock className="w-7 h-7 text-white/50" />
         </div>
-        <p className="text-white/50 font-bold uppercase tracking-widest text-[10px]">
+        <p className="text-white/50 font-bold uppercase tracking-widest text-[11px]">
           {t.no_shifts_scheduled ?? 'Nessuno storico disponibile'}
         </p>
       </div>
@@ -114,7 +114,7 @@ export default function MobileTimesheet({
                   <Calendar className="w-3.5 h-3.5 text-[#60a5fa]" />
                 </div>
                 <div>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-white/50 leading-none mb-0.5">
+                  <p className="text-[11px] font-black uppercase tracking-widest text-white/50 leading-none mb-0.5">
                     {t.week_label ?? 'Sett.'}
                   </p>
                   <p className="text-sm font-bold text-white/90 leading-none">
@@ -123,7 +123,7 @@ export default function MobileTimesheet({
                 </div>
               </div>
               {totalMins > 0 && (
-                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/15 text-[#93c5fd] border border-[#4361EE]/25">
+                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/15 text-[#93c5fd] border border-[#4361EE]/25">
                   {totalLabel}
                 </span>
               )}
@@ -134,7 +134,7 @@ export default function MobileTimesheet({
               {days.map((day) => (
                 <div key={day.date} className="px-4 py-3 flex flex-col gap-2">
                   {/* Label giorno */}
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[#60a5fa]">
+                  <p className="text-[11px] font-black uppercase tracking-widest text-[#60a5fa]">
                     {safeFormatDate(day.date, 'EEEE d MMMM', { locale })}
                   </p>
 
@@ -174,20 +174,20 @@ export default function MobileTimesheet({
                               {isAbsent ? '—' : hoursWorked}
                             </p>
                             {/* Badge stato */}
-                            <span className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${config.pill}`}>
+                            <span className={`flex items-center gap-1 text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${config.pill}`}>
                               <Icon className="w-3 h-3" />
                               {config.label}
                             </span>
                           </div>
                           {/* Orario pianificato + tipo */}
                           <div className="flex items-center justify-between">
-                            <p className={`text-[10px] font-bold tabular-nums ${
+                            <p className={`text-[11px] font-bold tabular-nums ${
                               isAbsent ? 'text-white/50 line-through' : 'text-white/60'
                             }`}>
                               {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                             </p>
                             {shift.type && (
-                              <p className="text-[9px] font-semibold uppercase tracking-widest text-white/50">
+                              <p className="text-[11px] font-semibold uppercase tracking-widest text-white/50">
                                 {shift.type === 'lunch' ? (t.lunch ?? 'Pranzo') : (t.dinner ?? 'Cena')}
                               </p>
                             )}

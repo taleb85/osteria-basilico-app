@@ -146,21 +146,12 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-[99999] flex flex-col items-center justify-start overflow-y-auto font-sans"
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-start overflow-y-auto font-sans"
       style={{
-        background: 'linear-gradient(160deg, #001A80 0%, #001266 55%, #001F80 100%)',
+        background: 'transparent',
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
-      {/* Pattern di sfondo */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
-          backgroundSize: '28px 28px',
-        }}
-      />
-
       <div className="relative w-full max-w-md mx-auto flex flex-col min-h-full px-4 py-safe">
         {/* Header FLOW */}
         <div className="pt-8 pb-8 text-center text-white">
@@ -186,8 +177,8 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               animate={{ scale: 1, opacity: 1 }}
               className="flex flex-col items-center justify-center gap-4 py-8 text-center"
             >
-              <div className="w-16 h-16 rounded-full bg-[#001A80]/10 flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-[#001A80]" strokeWidth={2} />
+              <div className="w-16 h-16 rounded-full bg-brand-deep/10 flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-brand-deep" strokeWidth={2} />
               </div>
               <p className="text-lg font-bold text-white">
                 {lang === 'it' ? 'Profilo configurato!' : lang === 'es' ? '¡Perfil configurado!' : lang === 'fr' ? 'Profil configuré !' : 'Profile set up!'}
@@ -201,7 +192,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               {/* EMAIL */}
               <div>
                 <label className="block text-xs font-semibold text-white/60 uppercase tracking-wide mb-1.5">
-                  <Mail className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#001A80]" />
+                  <Mail className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-brand-deep" />
                   {lang === 'it' ? 'Email personale' : lang === 'es' ? 'Email personal' : lang === 'fr' ? 'Email personnelle' : 'Personal email'}
                 </label>
                 <input
@@ -214,7 +205,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                   onBlur={() => setTouched((p) => ({ ...p, email: true }))}
                   onKeyDown={handleKeyDown}
                   placeholder={lang === 'it' ? 'Inserisci la tua email…' : 'Enter your email…'}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-white/10 text-white placeholder:text-white/40 focus:ring-2 focus:ring-accent/30 focus:border-accent ${
+                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-white/10 text-white placeholder:text-white/40 focus:text-base focus:ring-2 focus:ring-accent/30 focus:border-accent ${
                     emailError ? 'border-red-400 bg-red-50/50' : 'border-white/20'
                   }`}
                 />
@@ -229,7 +220,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               {/* TELEFONO */}
               <div>
                 <label className="block text-xs font-semibold text-white/60 uppercase tracking-wide mb-1.5">
-                  <Phone className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#001A80]" />
+                  <Phone className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-brand-deep" />
                   {lang === 'it' ? 'Numero di telefono' : lang === 'es' ? 'Número de teléfono' : lang === 'fr' ? 'Numéro de téléphone' : 'Phone number'}
                 </label>
                 <input
@@ -241,7 +232,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                   onBlur={() => setTouched((p) => ({ ...p, phone: true }))}
                   onKeyDown={handleKeyDown}
                   placeholder={lang === 'it' ? 'Es. +39 333 1234567' : lang === 'es' ? 'Ej. +34 600 000000' : '+1 555 000 0000'}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-white/10 text-white placeholder:text-white/40 focus:ring-2 focus:ring-accent/30 focus:border-accent ${
+                  className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors outline-none bg-white/10 text-white placeholder:text-white/40 focus:text-base focus:ring-2 focus:ring-accent/30 focus:border-accent ${
                     phoneError ? 'border-red-400 bg-red-50/50' : 'border-white/20'
                   }`}
                 />
@@ -259,7 +250,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               {/* NUOVO PIN */}
               <div>
                 <label className="block text-xs font-semibold text-white/60 uppercase tracking-wide mb-1.5">
-                  <Lock className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-[#001A80]" />
+                  <Lock className="inline w-3.5 h-3.5 mr-1 -mt-0.5 text-brand-deep" />
                   {lang === 'it' ? 'Nuovo PIN (4 cifre)' : lang === 'es' ? 'Nuevo PIN (4 dígitos)' : lang === 'fr' ? 'Nouveau PIN (4 chiffres)' : 'New PIN (4 digits)'}
                 </label>
                 <div className="flex gap-2.5 justify-center">
@@ -268,7 +259,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                       key={i}
                       className={`flex h-12 w-12 items-center justify-center rounded-xl border-2 text-xl font-bold transition-all select-none ${
                         pinDigits.length > i
-                          ? 'border-[#001A80] bg-[#001A80]/8 text-[#001A80]'
+                          ? 'border-brand-deep bg-brand-deep/8 text-brand-deep'
                           : pinError
                           ? 'border-red-300 bg-red-50/50'
                           : 'border-white/20 bg-white/10'
@@ -400,7 +391,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
                 className="w-full flex items-center justify-center gap-2.5 rounded-2xl py-4 text-sm font-bold tracking-wide uppercase text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{
                   background: isFormValid
-                    ? 'linear-gradient(135deg, #001A80 0%, #001266 100%)'
+                    ? 'linear-gradient(135deg, rgb(0, 26, 128) 0%, #001266 100%)'
                     : 'linear-gradient(135deg, #94a3b8 0%, #64748b 100%)',
                   boxShadow: isFormValid ? '0 4px 20px rgba(0,26,128,0.35)' : 'none',
                 }}
@@ -416,7 +407,7 @@ export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModa
               </button>
 
               {/* Note privacy */}
-              <p className="text-center text-[10px] text-white/45 leading-relaxed">
+              <p className="text-center text-[11px] text-white/45 leading-relaxed">
                 {lang === 'it'
                   ? 'I tuoi dati sono cifrati e utilizzati solo per identificarti nell\'app.'
                   : lang === 'es'

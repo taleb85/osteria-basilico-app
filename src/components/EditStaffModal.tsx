@@ -4,7 +4,8 @@ import { X } from 'lucide-react';
 import { User as UserType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { getTranslations, formatTrans } from '../utils/translations';
+import { useT } from '../hooks/useT';
+import { formatTrans } from '../utils/translations';
 import { findActiveUserWithSamePin } from '../utils/loginIdentifier';
 import { ProfileFormAdmin, type ProfileFormAdminData } from './UserProfile';
 
@@ -31,7 +32,7 @@ interface EditStaffModalProps {
 export default function EditStaffModal({ isOpen, onClose, user, readOnly = false }: EditStaffModalProps) {
   useBodyScrollLock(isOpen);
   const { updateUser, currentUser, effectiveLanguage, showError, users } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const hourlyStr =
     user.hourly_rate_eur != null && Number.isFinite(user.hourly_rate_eur)
       ? String(user.hourly_rate_eur).replace('.', ',')
@@ -88,9 +89,8 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
     const other = findActiveUserWithSamePin(users, pinDigits, user.id);
     if (!other) return null;
     const name = `${other.first_name ?? ''} ${other.last_name ?? ''}`.trim() || other.email;
-    const tr = getTranslations(effectiveLanguage);
-    return formatTrans(tr.employee_pin_taken_by_active, { name });
-  }, [users, formData.pin, formData.status, user.id, effectiveLanguage]);
+    return formatTrans(t.employee_pin_taken_by_active, { name });
+  }, [users, formData.pin, formData.status, user.id, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

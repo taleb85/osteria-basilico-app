@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
-const BG = 'radial-gradient(circle at 50% 50%, rgba(180,210,255,0.22) 0%, transparent 18%), radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0e1e60 15%, #060f30 32%, #01050f 52%, #000000 72%)';
+const BG = 'transparent';
 
 const SYNC_STAGES: { label: string; duration: number }[] = [
   { label: 'Pulizia cache locale…',       duration: 1400 },
@@ -183,7 +183,7 @@ function SyncScreen() {
         </div>
         <div className="flex flex-col items-center gap-1 min-h-[44px]">
           {phase !== 'done' && (
-            <p className="text-white/70 text-[10px] font-semibold uppercase tracking-widest">
+            <p className="text-white/70 text-[11px] font-semibold uppercase tracking-widest">
               Sincronizzazione in corso
             </p>
           )}
@@ -199,7 +199,7 @@ function SyncScreen() {
 /* ── Pagina ── */
 export default function LoadingPreview() {
   return (
-    <div className="min-h-screen bg-neutral-200 flex flex-col items-center justify-center gap-8 p-8 font-sans">
+    <div className="min-h-screen bg-app-bg flex flex-col items-center justify-center gap-8 p-8 font-sans">
       <h1 className="text-white/70 text-lg font-bold tracking-widest uppercase">
         Anteprima schermate di caricamento
       </h1>

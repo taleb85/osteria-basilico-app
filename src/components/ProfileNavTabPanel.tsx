@@ -4,7 +4,7 @@ import { Camera, ChevronRight, Trash2, Settings2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useProfileLeaveGuardRef } from '../context/ProfileLeaveGuardContext';
-import { getTranslations } from '../utils/translations';
+import { useT } from '../hooks/useT';
 import { getDeviceUiLanguage, readStoredUiLanguage } from '../utils/uiLanguagePreference';
 import { NotificationPermissionButton } from './NotificationPermissionButton';
 
@@ -49,7 +49,7 @@ export default function ProfileNavTabPanel({
   const { currentUser, effectiveLanguage, setLanguage, clearLanguage, updateUser, showError, isSessionElevated } = useApp();
   const profileLeaveGuardRef = useProfileLeaveGuardRef();
   const navigate = useNavigate();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   const [formData, setFormData] = useState<ProfileFormSelfData>({
     first_name: '',
@@ -393,8 +393,7 @@ export default function ProfileNavTabPanel({
           {/* Avatar + photo button */}
           <div className="relative inline-block" ref={photoMenuWrapRef}>
             <div
-              className="flex h-[9rem] w-[9rem] items-center justify-center overflow-hidden rounded-3xl text-[3.5rem] font-bold"
-              style={{ background: 'rgba(0,82,255,0.06)', border: '2px solid #F1F5F9', color: '#0052FF' }}
+              className="flex h-[9rem] w-[9rem] items-center justify-center overflow-hidden rounded-3xl border-2 border-slate-100 bg-brand-electric/6 text-[3.5rem] font-bold text-brand-electric"
             >
               {resolvedAvatar ? (
                 <img
@@ -420,7 +419,7 @@ export default function ProfileNavTabPanel({
               aria-haspopup={preferNativePhotoPicker ? undefined : 'menu'}
               aria-controls={preferNativePhotoPicker ? undefined : 'profile-photo-source-menu'}
               className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white shadow-md outline-none transition-colors hover:opacity-90 active:scale-[0.96] disabled:opacity-50 touch-manipulation"
-              style={{ background: '#0052FF' }}
+              style={{ background: 'rgb(0, 82, 255)' }}
               title={changePhoto}
               aria-label={changePhoto}
             >
@@ -471,7 +470,7 @@ export default function ProfileNavTabPanel({
             {[roleDisplay, t.status_active].filter(Boolean).map((label, i) => (
               <span
                 key={i}
-                className="text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
+                className="text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
                 style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.20)', color: 'rgba(255,255,255,0.65)' }}
               >
                 {label}
@@ -522,7 +521,7 @@ export default function ProfileNavTabPanel({
               {expanded === 'notif' && (
                 <motion.div key="notif-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
                   <div style={{ borderTop: '1px solid rgba(15, 35, 90, 0.82)' }} className="px-4 py-3">
-                    <NotificationPermissionButton effectiveLanguage={effectiveLanguage} userId={currentUser?.id} />
+                    <NotificationPermissionButton userId={currentUser?.id} />
                   </div>
                 </motion.div>
               )}
@@ -548,7 +547,7 @@ export default function ProfileNavTabPanel({
                             type="button"
                             onClick={() => setPendingLang(null)}
                             className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
-                            style={isAuto ? { background: '#0052FF', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
+                            style={isAuto ? { background: 'rgb(0, 82, 255)', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
                             title={`Auto → ${deviceLang.toUpperCase()}`}
                           >
                             Auto
@@ -561,7 +560,7 @@ export default function ProfileNavTabPanel({
                           type="button"
                           onClick={() => setPendingLang(l)}
                           className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
-                          style={pendingLang === l ? { background: '#0052FF', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
+                          style={pendingLang === l ? { background: 'rgb(0, 82, 255)', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
                         >
                           {l.toUpperCase()}
                         </button>
@@ -575,7 +574,7 @@ export default function ProfileNavTabPanel({
                       style={langSaved
                         ? { background: '#10b981', color: '#fff' }
                         : hasLangChanges
-                          ? { background: '#0052FF', color: '#fff' }
+                          ? { background: 'rgb(0, 82, 255)', color: '#fff' }
                           : { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.40)', border: '1px solid rgba(255,255,255,0.12)' }}
                     >
                       {langSaved ? '✓ Salvato' : langSaving ? 'Salvataggio…' : 'Salva'}

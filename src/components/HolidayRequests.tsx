@@ -3,6 +3,7 @@ import { Calendar, Check, X, Palmtree, Trash2 } from 'lucide-react';
 import { getTranslations } from '../utils/translations';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { canApproveShiftActions } from '../utils/permissions';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday, isBefore, startOfDay } from 'date-fns';
@@ -34,7 +35,7 @@ export default function HolidayRequests() {
 
   if (!currentUser) return null;
 
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
 
   const STATUS_CONFIG = {
     approved: {

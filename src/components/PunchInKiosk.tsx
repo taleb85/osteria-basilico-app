@@ -514,15 +514,15 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   return (
     <div
       className="min-h-screen overflow-hidden text-neutral-100 flex flex-col p-6 sm:p-8 relative"
-      style={{ background: 'radial-gradient(circle at 50% 25%, rgba(180,210,255,0.18) 0%, transparent 22%), radial-gradient(ellipse at 50% 50%, #1a3785 0%, #0e1e60 18%, #050e2e 38%, #010618 62%, #000 100%)' }}
+      style={{ background: 'transparent' }}
     >
       <GiantBrandHeader now={now} locale={dateLocale}>
         <button
           type="button"
           onClick={onGoToLogin}
-          className="group flex items-center gap-2 rounded-xl border-2 border-[#001A80]/30 bg-[#001A80]/8 px-4 py-2.5 text-xs font-semibold text-[#001A80] shadow-[0_2px_8px_-2px_rgba(0,26,128,0.12)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-[#001A80]/60 hover:bg-[#001A80]/15 hover:shadow-[0_4px_12px_-3px_rgba(0,26,128,0.2)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
+          className="group flex items-center gap-2 rounded-xl border-2 border-brand-deep/30 bg-brand-deep/8 px-4 py-2.5 text-xs font-semibold text-brand-deep shadow-[0_2px_8px_-2px_rgba(0,26,128,0.12)] transition-[color,background-color,border-color,box-shadow,transform] hover:border-brand-deep/60 hover:bg-brand-deep/15 hover:shadow-[0_4px_12px_-3px_rgba(0,26,128,0.2)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
         >
-          <User className="h-4 w-4 shrink-0 text-[#001A80]" strokeWidth={2} />
+          <User className="h-4 w-4 shrink-0 text-brand-deep" strokeWidth={2} />
           {t.area_personale}
         </button>
       </GiantBrandHeader>
@@ -650,7 +650,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
                           <span className={`text-xs font-medium uppercase ${textColor}`}>{timeStr}</span>
                           {done && <Check className="w-3 h-3 text-accent flex-shrink-0" strokeWidth={2.5} />}
-                          {awaitingOut && <span className="text-[10px] text-amber-500 font-semibold">{t.punch_exit_question}</span>}
+                          {awaitingOut && <span className="text-[11px] text-amber-500 font-semibold">{t.punch_exit_question}</span>}
                         </span>
                       );
                     })}
@@ -670,7 +670,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6 text-center"
-            style={{ background: 'radial-gradient(circle at 50% 25%, rgba(180,210,255,0.20) 0%, transparent 22%), radial-gradient(ellipse at 50% 50%, #1a3785 0%, #0e1e60 18%, #050e2e 38%, #010618 62%, #000 100%)' }}
+            style={{ background: 'transparent' }}
           >
             <motion.div
               initial={{ opacity: 0, y: -12 }}
@@ -691,7 +691,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.18, type: 'spring', stiffness: 280, damping: 22 }}
               className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl text-4xl font-bold text-white shadow-xl shadow-black/40"
-              style={{ background: 'linear-gradient(135deg, #0052FF 0%, #1a3785 100%)' }}
+              style={{ background: 'linear-gradient(135deg, rgb(0, 82, 255) 0%, #1a3785 100%)' }}
             >
               {selectedUser.first_name[0].toUpperCase()}
             </motion.div>
@@ -847,7 +847,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                         className="flex flex-col items-center justify-center gap-0.5 text-white/50 active:scale-95 transition-transform"
                       >
                         <Smartphone className="w-5 h-5 text-[#455a3f]" />
-                        <span className="text-[8px] font-black uppercase tracking-tighter leading-none">
+                        <span className="text-[11px] font-black uppercase tracking-tighter leading-none">
                           {t.change_shift}
                         </span>
                       </button>

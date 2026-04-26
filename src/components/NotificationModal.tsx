@@ -52,7 +52,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100000] flex items-center justify-center overflow-y-auto overflow-x-hidden p-4 font-sans"
+        className="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto overflow-x-hidden p-4 font-sans"
       >
         {/* Overlay */}
         <button
@@ -68,7 +68,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative my-auto flex w-full max-w-[92vw] min-h-0 flex-col overflow-hidden rounded-[40px] border border-white/10 shadow-2xl sm:max-w-[460px] z-[100001]"
+          className="relative my-auto flex w-full max-w-[92vw] min-h-0 flex-col overflow-hidden rounded-[40px] border border-white/10 shadow-2xl sm:max-w-[460px] z-[201]"
           style={{ background: 'rgba(8,18,52,0.82)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', height: 'min(88vh, 680px)', maxHeight: 'min(88vh, 680px)' }}
           onClick={(e) => e.stopPropagation()}
         >

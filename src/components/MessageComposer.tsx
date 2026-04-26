@@ -3,6 +3,7 @@ import { Send, Loader2, Users, User } from 'lucide-react';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations } from '../utils/translations';
 
 interface MessageComposerProps {
@@ -27,7 +28,7 @@ export function MessageComposer({
   const { sendMessage } = useMessages(userId);
   const { triggerHapticFeedback } = useMultisensorialFeedback();
   const { effectiveLanguage } = useApp();
-  const t = getTranslations(effectiveLanguage as 'it' | 'en' | 'es' | 'fr');
+  const t = useT();
 
   const [messageType, setMessageType] = useState<'broadcast' | 'private'>('broadcast');
   const [selectedRecipientId, setSelectedRecipientId] = useState('');
@@ -117,7 +118,7 @@ export function MessageComposer({
           }`}
         >
           <Users className="h-5 w-5" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Tutti (Staff)</span>
+          <span className="text-[11px] font-black uppercase tracking-widest">Tutti (Staff)</span>
         </button>
         <button
           type="button"
@@ -129,7 +130,7 @@ export function MessageComposer({
           }`}
         >
           <User className="h-5 w-5" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Privato</span>
+          <span className="text-[11px] font-black uppercase tracking-widest">Privato</span>
         </button>
       </div>
 

@@ -3,6 +3,7 @@ import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { X, Save, Copy, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { Shift } from '../types';
 import { format, addDays, parseISO } from 'date-fns';
 import { getTranslations } from '../utils/translations';
@@ -17,7 +18,7 @@ interface EditShiftModalProps {
 export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) {
   useBodyScrollLock(true);
   const { users, shifts, updateShift, deleteShift, copyShift, effectiveLanguage, showError } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const [tempShifts, setTempShifts] = useState({
     start_time: (shift.start_time || '').trim().slice(0, 5),
     end_time: (shift.end_time || '').trim().slice(0, 5),

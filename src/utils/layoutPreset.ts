@@ -1,8 +1,8 @@
-/** Allineare a `index.html` (script layout) se si cambia. */
+/** Compact vs comfortable: allineare a `LayoutPresetProvider` / `index.html`. */
 export const LAYOUT_BREAKPOINT_PX = 768;
 
-/** Larghezza &lt; questo valore ⇒ `phone` (critico per layout touch / spazio). Allineare a `index.html`. */
-export const VIEWPORT_PHONE_MAX_PX = 480;
+/** Larghezza &lt; questo valore ⇒ `phone` (allineato a Tailwind `sm` = 640px e a `index.html`). */
+export const VIEWPORT_PHONE_MAX_PX = 640;
 
 /** Larghezza &lt; questo valore ⇒ `tablet` se già ≥ phone; altrimenti `desktop`. */
 export const VIEWPORT_TABLET_MAX_PX = 1024;
