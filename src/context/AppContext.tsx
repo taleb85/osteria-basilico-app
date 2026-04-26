@@ -1136,6 +1136,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     const mb = mergeShiftDeductExclusionsFromLocal(existing);
+    const userForFreeze = users.find((u) => u.id === existing.user_id);
+    const grossFreeze = calculateShiftMinutesGross(startHH, endHH);
+    const breakOpts = {
+      autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false,
+      breakRuleWindow: { start: startHH, end: endHH },
+    };
+    const isManualFixedBreak =
+      mb.break_minutes != null && mb.break_minutes > 0 && mb.is_auto_break === false;
+    let breakMinsFreeze: number;
+    let isAutoFreeze: boolean;
+    if (mb.deduct_break === false) {
+      breakMinsFreeze = 0;
+      isAutoFreeze = false;
+    } else if (isManualFixedBreak) {
+      breakMinsFreeze = mb.break_minutes as number;
+      isAutoFreeze = false;
+    } else {
+      breakMinsFreeze = getBreakMinutesForShift(
+        { ...mb, start_time: startHH, end_time: endHH, date: existing.date },
+        grossFreeze,
+        userForFreeze ?? null,
+        breakRules,
+        breakOpts
+      );
+      isAutoFreeze = true;
+    }
 
     /** Non usare `updateShift`: dopo promote da bozza lo stato React in chiusura può essere obsoleto e il guard su `confirmed` blocca il congelamento. */
     const freezePayload: Record<string, unknown> = {
@@ -1145,14 +1171,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
       approved_start_time: startHH,
       approved_end_time: endHH,
       deduct_break: mb.deduct_break !== false,
-      ...(mb.break_minutes !== undefined ? { break_minutes: mb.break_minutes } : {}),
-      ...(mb.is_auto_break !== undefined ? { is_auto_break: mb.is_auto_break } : {}),
+      break_minutes: breakMinsFreeze,
+      is_auto_break: isAutoFreeze,
       ...(Array.isArray(mb.deduct_excluded_rule_ids) ? { deduct_excluded_rule_ids: mb.deduct_excluded_rule_ids } : {}),
     };
 
     try {
       const res = await database.shifts.update(shiftId, freezePayload);
-      const nextRow = (res ? { ...existing, ...res } : { ...existing, ...freezePayload }) as Shift;
+      const fromRes = (res || {}) as Partial<Shift>;
+      const nextRow = {
+        ...existing,
+        ...freezePayload,
+        ...fromRes,
+        deduct_excluded_rule_ids:
+          fromRes.deduct_excluded_rule_ids !== undefined
+            ? fromRes.deduct_excluded_rule_ids
+            : mb.deduct_excluded_rule_ids,
+        break_minutes: fromRes.break_minutes != null ? fromRes.break_minutes : breakMinsFreeze,
+        is_auto_break: fromRes.is_auto_break != null ? fromRes.is_auto_break : isAutoFreeze,
+      } as Shift;
       setShifts((prev) => prev.map((s) => (s.id === shiftId ? nextRow : s)));
       markManagementDataTouched();
       if (Array.isArray(mb.deduct_excluded_rule_ids)) clearLocalDeductExcludedRuleIds(shiftId);
@@ -1185,7 +1222,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // audit log non bloccante
       }
     }
-  }, [shifts, punchRecordsRef, markManagementDataTouched]);
+  }, [shifts, punchRecordsRef, markManagementDataTouched, users, breakRules, featureFlags]);
 
   const deleteShift = useCallback(async (id: string) => {
     const op = currentUserRef.current;

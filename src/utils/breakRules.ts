@@ -261,6 +261,7 @@ export function getBreakMinutesForShift(
     start_time?: string;
     end_time?: string;
     date?: string;
+    approved_at?: string | null;
     deduct_break?: boolean;
     break_minutes?: number;
     /** Se `false`, non applicare la pausa automatica (≥6h) quando non si usano `break_minutes` né le regole. */
@@ -299,6 +300,10 @@ export function getBreakMinutesForShift(
   if (shift.break_minutes != null && shift.break_minutes > 0 && shift.is_auto_break !== true) {
     return shift.break_minutes;
   }
+  /** Dopo congelamento: l’importo auto è fissato su DB; evita −60′ se `deduct_excluded_rule_ids` non è persistito. */
+  if (shift.approved_at && shift.is_auto_break === true && shift.break_minutes != null && shift.break_minutes >= 0) {
+    return Math.max(0, shift.break_minutes);
+  }
   const startStr = (options?.breakRuleWindow?.start ?? shift.start_time ?? '').slice(0, 5);
   const endStr   = (options?.breakRuleWindow?.end   ?? shift.end_time   ?? '').slice(0, 5);
   // Turni che attraversano la mezzanotte: niente fasce pasto né fallback generico
@@ -329,6 +334,7 @@ export function getNetShiftMinutes(
     start_time?: string;
     end_time?: string;
     date?: string;
+    approved_at?: string | null;
     deduct_break?: boolean;
     break_minutes?: number;
     is_auto_break?: boolean;
