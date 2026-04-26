@@ -1268,7 +1268,7 @@ td, th {
 
 /* Table hover */
 tbody tr:hover {
-  background: rgba(15, 35, 90, 0.82) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
