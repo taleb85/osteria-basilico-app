@@ -27,15 +27,6 @@ const config: KnipConfig = {
     'tesseract.js',
   ],
   ignoreBinaries: ['wrangler'],
-  /**
-   * Molti `src/utils/*.ts` espongono helper per uso incrociato o futuro: knip non risolve
-   * tutti i call graph. Layout/Tenant: hook + tipi re-export intenzionali.
-   */
-  ignoreIssues: {
-    'src/utils/**/*.ts': ['exports', 'types', 'duplicates', 'nsExports', 'nsTypes', 'namespaceMembers', 'enumMembers'],
-    'src/context/LayoutPresetContext.tsx': ['exports', 'types', 'duplicates', 'nsExports'],
-    'src/context/TenantContext.tsx': ['exports', 'types', 'duplicates', 'nsExports'],
-  },
   ignoreExportsUsedInFile: true,
 };
 

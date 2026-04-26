@@ -1,9 +1,6 @@
 /** Tag registrato con `SyncManager` (Chrome/Edge/Android WebView; non su Safari iOS). */
 export const OSTERIA_BACKGROUND_SYNC_TAG = 'osteria-data-sync';
 
-/** Messaggio inviato dallo SW alle finestre quando parte un sync in background. */
-export const OSTERIA_BACKGROUND_SYNC_MESSAGE = 'OSTERIA_BACKGROUND_SYNC' as const;
-
 /** True in Chromium (Chrome, Edge, Android WebView compatibile); assente su Safari iOS. */
 export function supportsBackgroundSync(): boolean {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;

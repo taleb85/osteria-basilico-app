@@ -13,16 +13,6 @@ import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
 const DEFAULT_SLUG: string | null = null;
 const DEFAULT_ACCENT = '#001A80';
 
-/** Opzioni font per l'intestazione dell'app. */
-export const HEADER_FONTS = [
-  { id: 'parisienne',  label: 'Parisienne',       value: "'Parisienne', 'Snell Roundhand', cursive" },
-  { id: 'great-vibes', label: 'Great Vibes',       value: "'Great Vibes', cursive" },
-  { id: 'inter',       label: 'Inter (moderno)',   value: "'Inter', sans-serif" },
-  { id: 'playfair',    label: 'Playfair Display',  value: "'Playfair Display', Georgia, serif" },
-  { id: 'montserrat',  label: 'Montserrat',        value: "'Montserrat', 'Inter', sans-serif" },
-] as const;
-export type HeaderFontId = typeof HEADER_FONTS[number]['id'];
-
 /**
  * Legge lo slug dal env var, sottodominio, o path URL.
  * Ritorna null se nessun slug è configurato (modalità Option B single-URL):

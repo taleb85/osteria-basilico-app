@@ -47,15 +47,6 @@ export function findUserByNameAndPinAnyStatus(users: User[], nameRaw: string, pi
   return undefined;
 }
 
-/**
- * Login: nome + PIN. Preferisce nome e cognome esatto; se più omonimi con lo stesso solo nome, fallisce (serve cognome).
- * Solo dipendenti `active` (sospesi/inattivi esclusi).
- */
-export function findUserByNameAndPin(users: User[], nameRaw: string, pin: string): User | undefined {
-  const u = findUserByNameAndPinAnyStatus(users, nameRaw, pin);
-  return u && u.status === 'active' ? u : undefined;
-}
-
 export type LoginNamePinFailureKind = 'no_name_match' | 'wrong_pin' | 'homonym_or_ambiguous';
 
 /**

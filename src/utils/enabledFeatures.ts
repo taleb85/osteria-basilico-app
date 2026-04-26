@@ -6,11 +6,7 @@
 import type { RoleFeatureTemplatesOnDisk, RoleTemplateGroup } from './roleFeatureTemplates';
 import { getRoleFeatureTemplatesCache } from './roleFeatureTemplates';
 import { getAdminModulesGlobalCache } from './adminModulesGlobal';
-import {
-  SETTINGS_OPERATIONAL_PERM_KEYS,
-  defaultOperationalTemplateBase,
-  type SettingsOperationalPermKey,
-} from './settingsPermissionRows';
+import type { SettingsOperationalPermKey } from './settingsPermissionRows';
 
 export type { SettingsOperationalPermKey };
 
@@ -27,11 +23,8 @@ export const PERMISSION_MATRIX_KEYS = [
   'profile_readonly',
 ] as const;
 
-export type PermissionMatrixKey = (typeof PERMISSION_MATRIX_KEYS)[number];
-
 /** Schede aggiuntive in dashboard (oltre alla matrice da 6). */
 export const DASHBOARD_TAB_FEATURE_KEYS = ['home_tab', 'ferie_tab', 'admin_tab', 'timesheet_tab'] as const;
-export type DashboardTabFeatureKey = (typeof DASHBOARD_TAB_FEATURE_KEYS)[number];
 
 export const ENABLED_FEATURE_KEYS = [
   ...PERMISSION_MATRIX_KEYS,
@@ -240,21 +233,6 @@ export function getCodeDefaultsForTemplateGroup(group: RoleTemplateGroup): Enabl
   return { ...getDefaultEnabledFeatures('waiter') } as EnabledFeatures;
 }
 
-/** Stato effettivo per l’editor (default codice + file salvato). */
-export function buildMergedTemplateForAdminEditor(
-  group: RoleTemplateGroup,
-  disk: RoleFeatureTemplatesOnDisk | null
-): EnabledFeatures {
-  const base = getCodeDefaultsForTemplateGroup(group);
-  const partial = disk?.[group];
-  if (!partial) return base;
-  const out = { ...base };
-  for (const k of ENABLED_FEATURE_KEYS) {
-    if (typeof partial[k] === 'boolean') out[k] = partial[k];
-  }
-  return out;
-}
-
 /** Default template "visibile in tabellone" per gruppo. true = visibile. */
 export function getTemplateGroupTeamScheduleVisible(
   group: RoleTemplateGroup,
@@ -273,41 +251,6 @@ export function getTemplateDefaultTeamScheduleVisible(role: string): boolean {
   const grp = getRolePermissionGroup(role);
   if (grp === 'admin') return true;
   return getTemplateGroupTeamScheduleVisible(grp, disk);
-}
-
-/** Permessi operativi (DB) nel template: ferie/timbratura on di default; flag gestionali off; merge da file. */
-export function buildMergedOperationalTemplateForGroup(
-  group: RoleTemplateGroup,
-  disk: RoleFeatureTemplatesOnDisk | null
-): Record<SettingsOperationalPermKey, boolean> {
-  const base = defaultOperationalTemplateBase();
-  const partial = disk?.[group];
-  if (!partial) return base;
-  const out = { ...base };
-  for (const k of SETTINGS_OPERATIONAL_PERM_KEYS) {
-    if (typeof partial[k] === 'boolean') out[k] = partial[k];
-  }
-  return out;
-}
-
-/** Serializza features + team_schedule_visible + permessi operativi per il JSON su Storage. */
-export function serializeTemplateGroupForDisk(
-  state: EnabledFeatures,
-  teamScheduleVisible = true,
-  operational?: Record<SettingsOperationalPermKey, boolean>
-): Record<string, boolean> {
-  const out: Record<string, boolean> = Object.fromEntries(
-    ENABLED_FEATURE_KEYS.map((k) => [k, state[k] === true])
-  ) as Record<string, boolean>;
-  out[TEMPLATE_TEAM_SCHEDULE_KEY] = teamScheduleVisible;
-  if (operational) {
-    for (const k of SETTINGS_OPERATIONAL_PERM_KEYS) {
-      out[k] = operational[k] === true;
-    }
-  }
-  /** La dashboard è sempre in barra; il JSON non può spegnerla (allineato a `RoleFeatureSectionsBlock` lock). */
-  out.home_tab = true;
-  return out;
 }
 
 /**
@@ -383,11 +326,6 @@ function mergeUserFeatureOverrides(
     if (typeof o[k] === 'boolean') out[k] = o[k];
   }
   return out;
-}
-
-/** Scheda Admin / Impostazioni nella dashboard: solo ruolo `admin`. */
-export function isAdminSettingsTabEnabled(user: { role: string; enabled_features?: unknown }): boolean {
-  return user.role === 'admin';
 }
 
 /** Default per Manager/Assistant Manager: tutte le funzioni Impostazioni attive. */

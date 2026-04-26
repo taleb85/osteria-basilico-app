@@ -72,7 +72,3 @@ export function getShiftHistory(shiftId: string): HistoryEntry[] {
 export function getHistory(): HistoryEntry[] {
   return load();
 }
-
-export function clearHistory() {
-  localStorage.removeItem(HISTORY_KEY);
-}

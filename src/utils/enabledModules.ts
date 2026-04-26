@@ -75,10 +75,6 @@ export function getEnabledModules(user: { role: string; enabled_modules?: unknow
   return getDefaultEnabledModules(user.role);
 }
 
-export function isModuleEnabled(user: { role: string; enabled_modules?: unknown }, module: EnabledModule): boolean {
-  return getEnabledModules(user).includes(module);
-}
-
 /**
  * Tab management: matrice permessi (`getEnabledFeatures`) + flag globali (stessi su web, mobile, PWA).
  * `featureFlags` da `useApp()`; se omesso, i gate globali non si applicano (solo test).
@@ -90,21 +86,6 @@ function isTimesheetNavTabEnabled(user: UnifiedNavUser, feat: ReturnType<typeof 
     return isUserPermissionEffective(user as User, 'can_punch_from_app');
   }
   return false;
-}
-
-export function getVisibleManagementTabs(
-  user: UnifiedNavUser,
-  featureFlags?: FeatureFlags | null
-): string[] {
-  const tabs = new Set<string>();
-  const merged = getEnabledFeatures(user);
-  if (merged.home_tab) tabs.add('home');
-  if (merged.team_view) tabs.add('turni');
-  if (merged.view_stats) tabs.add('reports');
-  if (isTimesheetNavTabEnabled(user, merged)) tabs.add('timesheet');
-  if (merged.ferie_tab && isStaffRequestsFeatureEnabled(featureFlags)) tabs.add('ferie');
-  if (merged.admin_tab) tabs.add('settings');
-  return Array.from(tabs);
 }
 
 /** Tab staff: stessa logica ovunque (browser / installato). */
@@ -192,19 +173,4 @@ export function getBottomNavTabsForMainApp(
   
   const set = new Set(all);
   return STAFF_BOTTOM_NAV_ORDER.filter((id) => set.has(id));
-}
-
-const APP_NAV_TAB_IDS: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'reports', 'profile', 'settings'];
-
-export function isTabEnabledForUser(
-  user: UnifiedNavUser,
-  tabId: string,
-  isManagement: boolean,
-  featureFlags?: FeatureFlags | null
-): boolean {
-  if (APP_NAV_TAB_IDS.includes(tabId as AppNavTab)) {
-    return getUnifiedNavTabs(user, isManagement, featureFlags).includes(tabId as AppNavTab);
-  }
-  const visible = isManagement ? getVisibleManagementTabs(user, featureFlags) : getVisibleStaffTabs(user, featureFlags);
-  return visible.includes(tabId);
 }

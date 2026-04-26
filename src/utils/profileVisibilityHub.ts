@@ -3,7 +3,6 @@
  * `enabled_features` contiene solo override; chiavi assenti = eredita dal template.
  */
 import type { User } from '../types';
-import type { FeatureFlags } from './featureFlags';
 import {
   getEnabledFeatures,
   DASHBOARD_TAB_FEATURE_KEYS,
@@ -14,7 +13,6 @@ import {
   getEnabledModules,
   ENABLED_MODULES,
   type EnabledModule,
-  getUnifiedNavTabs,
   MODULE_TO_TAB_MANAGEMENT,
   MODULE_TO_TAB_STAFF,
   type AppNavTab,
@@ -65,15 +63,6 @@ export function featureKeyToPreviewTab(key: EnabledFeatureKey): AppNavTab {
     default:
       return 'settings';
   }
-}
-
-/** Schede nell’anteprima admin: identiche alla bottom bar reale. */
-export function getProfileHubTabs(
-  user: User,
-  isManagement: boolean,
-  featureFlags?: FeatureFlags | null
-): AppNavTab[] {
-  return getUnifiedNavTabs(user, isManagement, featureFlags);
 }
 
 export function staffModuleToPreviewTab(mod: EnabledModule, isManagement: boolean): AppNavTab {

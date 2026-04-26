@@ -10,30 +10,6 @@ type NavigatorBadge = Navigator & {
   clearAppBadge?: () => Promise<void>;
 };
 
-export function isStandalonePwa(): boolean {
-  if (typeof window === 'undefined') return false;
-  const nav = window.navigator as Navigator & { standalone?: boolean };
-  if (nav.standalone === true) return true;
-  try {
-    return window.matchMedia('(display-mode: standalone)').matches;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Solo da handler sincrono (tap): su iOS il prompt deve partire nello stesso turno del click.
- * Dopo la risposta utente ricalcola il badge.
- */
-export function requestNotificationPermissionForBadgeOnUserGesture(): void {
-  if (typeof Notification === 'undefined') return;
-  if (Notification.permission !== 'default') return;
-  if (!isStandalonePwa()) return;
-  void Notification.requestPermission().then(() => {
-    window.dispatchEvent(new CustomEvent('app-badge-recheck'));
-  });
-}
-
 export async function setAppLauncherBadgeUnreadCountAsync(count: number): Promise<void> {
   if (typeof navigator === 'undefined' || !globalThis.isSecureContext) return;
   const nav = navigator as NavigatorBadge;
@@ -54,9 +30,4 @@ export async function setAppLauncherBadgeUnreadCountAsync(count: number): Promis
   } catch {
     /* iOS senza permesso notifiche, non installata, ecc. */
   }
-}
-
-/** Wrapper fire-and-forget per effetti React. */
-export function setAppLauncherBadgeUnreadCount(count: number): void {
-  void setAppLauncherBadgeUnreadCountAsync(count);
 }

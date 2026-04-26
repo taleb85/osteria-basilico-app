@@ -100,33 +100,6 @@ function audioClick(
   }
 }
 
-export type AudioHapticType = 'light' | 'click' | 'medium' | 'success' | 'warning' | 'heavy' | 'error';
-
-export function audioHapticByType(type: AudioHapticType): void {
-  switch (type) {
-    case 'light':
-      return audioClick(380, 190, 16, 0.12);
-    case 'click':
-      return audioClick(440, 220, 22, 0.18);
-    case 'medium':
-      return audioClick(500, 250, 28, 0.22);
-    case 'heavy':
-      return audioClick(300, 120, 35, 0.28);
-    case 'success':
-      audioClick(440, 660, 20, 0.18);
-      setTimeout(() => audioClick(550, 770, 18, 0.15), 55);
-      return;
-    case 'warning':
-      audioClick(350, 200, 25, 0.20);
-      setTimeout(() => audioClick(350, 200, 20, 0.16), 50);
-      return;
-    case 'error':
-      audioClick(280, 140, 30, 0.25);
-      setTimeout(() => audioClick(240, 120, 25, 0.20), 40);
-      return;
-  }
-}
-
 export { hapticLight as lightHaptic, hapticHeavy as heavyHaptic } from './haptics';
 
 /** Vibrate + ascending double-beep: usato per clock-in riuscito. */

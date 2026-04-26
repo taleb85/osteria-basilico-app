@@ -8,19 +8,6 @@ function hhmmParts(t: string): [number, number] {
   return [(Number.isFinite(h) ? h : 0), (Number.isFinite(m) ? m : 0)];
 }
 
-export function calculateShiftHours(startTime: string, endTime: string): number {
-  const [startHour, startMin] = hhmmParts(startTime);
-  const [endHour, endMin] = hhmmParts(endTime);
-
-  let totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
-
-  if (totalMinutes < 0) {
-    totalMinutes += 24 * 60;
-  }
-
-  return totalMinutes / 60;
-}
-
 /** Arrotonda per eccesso al multiplo di 5 minuti successivo. Es: 16:03->16:05, 16:07->16:10, 16:11->16:15. Se già multiplo di 5, invariato. */
 export function roundToNext5Minutes(timeString: string): string {
   if (!timeString || timeString.trim() === '') return timeString;
@@ -42,17 +29,6 @@ export interface ShiftMinutesOptions {
   deductBreak?: boolean;
   /** Minuti di pausa da detrarre dal lordo. Formula: (End - Start) - breakMinutes = netto. */
   breakMinutes?: number;
-}
-
-/** Calcola i minuti tra start_time e end_time. Restituisce 0 se start/end sono vuoti o se il risultato è NaN. */
-export function calculateShiftMinutesSafe(
-  startTime: string,
-  endTime: string,
-  options?: ShiftMinutesOptions
-): number {
-  if (!startTime || !endTime || startTime.trim() === '' || endTime.trim() === '') return 0;
-  const mins = calculateShiftMinutes(startTime, endTime, options);
-  return Number.isFinite(mins) ? mins : 0;
 }
 
 /** Calcola i minuti lordi (senza detrazione pause) tra start e end. */
@@ -97,12 +73,6 @@ export function formatMinutesToHoursAndMinutes(totalMinutes: number): string {
   const h = Math.floor(totalMinutes / 60);
   const m = totalMinutes % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
-
-export function formatHours(hours: number): string {
-  const h = Math.floor(hours);
-  const m = Math.round((hours - h) * 60);
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- _shiftStartTime reserved for future shift-aware rounding

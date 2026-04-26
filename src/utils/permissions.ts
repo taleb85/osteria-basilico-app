@@ -119,12 +119,6 @@ export function canViewAllTeamHours(user: User | null): boolean {
   return isManagementRole(user.role);
 }
 
-/** Modifica PIN altrui: Admin o `can_edit_staff_pins`. */
-export function canEditOtherStaffPins(user: User | null): boolean {
-  if (!user) return false;
-  return user.role === 'admin' || user.can_edit_staff_pins === true;
-}
-
 /**
  * Manager / Assistant manager: scheda Impostazioni limitata (solo dipendenti operativi:
  * elenco profilo in lettura, creazione, sospensione). L’admin resta su vista completa.

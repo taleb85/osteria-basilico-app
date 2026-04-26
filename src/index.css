@@ -205,7 +205,7 @@ body {
 
   /**
    * `data-viewport-class` è impostato da `LayoutPresetProvider` + script in `index.html`.
-   * Per scheda: `html[data-viewport-class='phone'] .tua-root` oppure `useLayoutPreset().viewportClass`.
+   * Per scheda: `html[data-viewport-class='phone'] .tua-root` (o il valore su `document.documentElement`).
    */
 
   html {

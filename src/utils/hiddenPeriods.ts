@@ -28,11 +28,3 @@ export function toggleHiddenDate(date: string): Set<string> {
   save(next);
   return new Set(next);
 }
-
-export function isDateHidden(date: string): boolean {
-  return load().includes(date);
-}
-
-export function clearHiddenDates() {
-  localStorage.removeItem(KEY);
-}

@@ -338,15 +338,3 @@ export function getShiftViolations(
 
   return violations;
 }
-
-/** Colore badge in base alla severità. */
-export function violationColor(violations: ShiftViolation[]): string {
-  if (violations.some((v) => v.severity === 'error')) return 'text-red-500';
-  if (violations.some((v) => v.severity === 'warn')) return 'text-amber-500';
-  return '';
-}
-
-/** Testo tooltip con tutte le violazioni. */
-export function violationTooltip(violations: ShiftViolation[]): string {
-  return violations.map((v) => `⚠ ${v.message}`).join('\n');
-}

@@ -62,14 +62,6 @@ export function getBreakRules(): BreakRule[] {
   }
 }
 
-export function saveBreakRules(rules: BreakRule[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(rules));
-  } catch {
-    // ignore
-  }
-}
-
 /** Carica break rules da Supabase Storage. Fallback a localStorage se non disponibile. */
 export async function loadBreakRulesFromSupabase(): Promise<BreakRule[] | null> {
   if (import.meta.env.VITE_APP_CONFIG_STORAGE_ENABLED === 'false') return null;
@@ -183,29 +175,6 @@ export function getPlannedBreakDeductionLines(
   }
 
   return lines;
-}
-
-export function calculateBreakDeductions(
-  shift: { start_time: string; end_time: string; date: string },
-  user: { department?: string | null; role: string },
-  rules: BreakRule[]
-): number {
-  return getPlannedBreakDeductionLines(shift, user, rules).reduce((sum, l) => sum + l.minutes, 0);
-}
-
-/**
- * Versione sicura: restituisce 0 su qualsiasi errore.
- */
-export function calculateBreakDeductionsSafe(
-  shift: { start_time: string; end_time: string; date: string },
-  user: { department?: string | null; role: string },
-  rules: BreakRule[]
-): number {
-  try {
-    return calculateBreakDeductions(shift, user, rules);
-  } catch {
-    return 0;
-  }
 }
 
 /** Durata pausa predefinita per turni > 6 ore (minuti). */

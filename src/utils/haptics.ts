@@ -94,8 +94,4 @@ export const haptic = (style: HapticStyle = 'light') => {
 }
 
 export const hapticLight   = () => haptic('light')
-export const hapticMedium  = () => haptic('medium')
 export const hapticHeavy   = () => haptic('heavy')
-export const hapticSuccess = () => haptic('success')
-export const hapticError   = () => haptic('error')
-export const hapticWarning = () => haptic('warning')

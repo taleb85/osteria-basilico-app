@@ -10,15 +10,12 @@
  */
 import { supabase } from '../lib/supabase';
 import type { WorkRules } from './workRules';
-import { DEFAULT_WORK_RULES } from './workRules';
 import type { BreakRule } from './breakRules';
 import type { GeofenceConfig } from './geofencePunch';
-import { parseGeofenceFile } from './geofenceConfigStorage';
 import type { FeatureFlags } from './featureFlags';
 import type { RoleFeatureTemplatesOnDisk } from './roleFeatureTemplates';
 import type { AdminModulesGlobalOnDisk } from './adminModulesGlobal';
 import type { PresenceVerificationConfig } from './presenceVerificationConfigStorage';
-import { parsePresenceVerificationFile } from './presenceVerificationConfigStorage';
 import { isAppCloudSyncEnabled } from './appCloudSync';
 
 export const GLOBAL_SETTINGS_BUNDLE_PATH = 'config/settings_bundle.json';
@@ -26,7 +23,7 @@ export const GLOBAL_SETTINGS_SCHEMA_VERSION = 1;
 
 const BUCKET = 'app-config';
 
-/** Dopo un errore “tabella assente”, non richiamiamo più REST/Realtime per questa funzione (niente GET 404 ripetuti). Si rimuove al primo bump riuscito o con `clearAppSettingsSyncSignalUnavailableFlag()`. */
+/** Dopo un errore “tabella assente”, non richiamiamo più REST/Realtime per questa funzione (niente GET 404 ripetuti). Si rimuove al primo bump riuscito o cancellando `osteria_app_settings_sync_signal_unavailable` in localStorage. */
 const LS_SYNC_SIGNAL_UNAVAILABLE = 'osteria_app_settings_sync_signal_unavailable';
 
 try {
@@ -64,11 +61,6 @@ function clearAppSettingsSyncSignalUnavailableStorage(): void {
   } catch {
     /* ignore */
   }
-}
-
-/** Dopo aver applicato la migrazione `app_settings_sync_signal` su Supabase, chiama questo (o cancella la chiave localStorage sopra) per riattivare bump + subscribe. */
-export function clearAppSettingsSyncSignalUnavailableFlag(): void {
-  clearAppSettingsSyncSignalUnavailableStorage();
 }
 
 /** `true` se bump/subscribe REST per il segnale sono disattivati (env o tabella assente rilevata). */
@@ -125,43 +117,6 @@ export interface AppGlobalSettingsBundle {
 
 function storageEnabled(): boolean {
   return import.meta.env.VITE_APP_CONFIG_STORAGE_ENABLED !== 'false';
-}
-
-export function parseGlobalSettingsBundle(raw: unknown): AppGlobalSettingsBundle | null {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
-  const o = raw as Record<string, unknown>;
-  const schemaVersion = Number(o.schemaVersion);
-  if (schemaVersion !== GLOBAL_SETTINGS_SCHEMA_VERSION) return null;
-  const updatedAt = typeof o.updatedAt === 'string' && o.updatedAt ? o.updatedAt : new Date().toISOString();
-  const out: AppGlobalSettingsBundle = { schemaVersion, updatedAt };
-
-  if (o.workRules && typeof o.workRules === 'object' && !Array.isArray(o.workRules)) {
-    out.workRules = { ...DEFAULT_WORK_RULES, ...(o.workRules as Partial<WorkRules>) };
-  }
-  if (Array.isArray(o.breakRules)) {
-    out.breakRules = o.breakRules as BreakRule[];
-  }
-  if (o.geofence === null) {
-    out.geofence = null;
-  } else if (o.geofence !== undefined) {
-    const g = parseGeofenceFile(o.geofence);
-    if (g) out.geofence = g;
-  }
-  if (o.featureFlags && typeof o.featureFlags === 'object' && !Array.isArray(o.featureFlags)) {
-    out.featureFlags = o.featureFlags as FeatureFlags;
-  }
-  if (o.roleFeatureTemplates && typeof o.roleFeatureTemplates === 'object' && !Array.isArray(o.roleFeatureTemplates)) {
-    out.roleFeatureTemplates = o.roleFeatureTemplates as RoleFeatureTemplatesOnDisk;
-  }
-  if (o.adminModulesGlobal && typeof o.adminModulesGlobal === 'object' && !Array.isArray(o.adminModulesGlobal)) {
-    out.adminModulesGlobal = o.adminModulesGlobal as AdminModulesGlobalOnDisk;
-  }
-  if (o.presenceVerification && typeof o.presenceVerification === 'object' && !Array.isArray(o.presenceVerification)) {
-    const p = parsePresenceVerificationFile(o.presenceVerification);
-    if (p) out.presenceVerification = p;
-  }
-
-  return out;
 }
 
 /**

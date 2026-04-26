@@ -32,8 +32,3 @@ export function translateRole(role: string, lang: Language = 'it'): string {
       return role || '';
   }
 }
-
-/** @deprecated Usa translateRole(role, lang) per supporto multilingua */
-export function getRoleLabel(role: string): string {
-  return translateRole(role, 'it');
-}
