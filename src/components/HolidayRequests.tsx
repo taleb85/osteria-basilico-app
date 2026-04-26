@@ -200,6 +200,7 @@ export default function HolidayRequests() {
   return (
     <div className="pb-content pt-2 w-full max-w-full font-sans min-h-[calc(100dvh-140px)] flex flex-col">
       <motion.div
+        className="flex flex-col flex-1 min-h-0"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
