@@ -83,6 +83,11 @@ import {
   getBreakMinutesForShift,
   getActiveBreakRules,
 } from '../utils/breakRules';
+import {
+  mergeShiftsDeductExclusionsFromLocal,
+  setLocalDeductExcludedRuleIds,
+  clearLocalDeductExcludedRuleIds,
+} from '../utils/shiftDeductExclusionsLocal';
 import { loadTimesheetPeriodFromSupabase, applyRemoteTimesheetPeriod } from '../utils/timesheetPeriodSupabase';
 import { PwaGate } from '../components/PwaGate';
 import i18n from '../utils/i18n';
@@ -712,7 +717,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         database.punchRecords.getAll().catch(() => []),
         database.availability.getAll().catch(() => []),
       ]);
-        setShifts(loadedShifts);
+        setShifts(mergeShiftsDeductExclusionsFromLocal(loadedShifts));
         setHolidays(loadedHolidays);
         setPunchRecords(loadedPunchRecords);
         setAvailability(loadedAvailability);
@@ -1002,10 +1007,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
           });
         }
       } else if (res) {
+        if ('deduct_excluded_rule_ids' in updates) {
+          clearLocalDeductExcludedRuleIds(id);
+        }
         setShifts((prev) => prev.map((s) => (s.id === id ? { ...res, ...updates } : s)));
         markManagementDataTouched();
       }
     } catch (err) {
+      const updateKeys = Object.keys(updates).filter(
+        (k) => (updates as Record<string, unknown>)[k] !== undefined
+      );
+      const onlyDeductExclusion =
+        !isAbsentUpdate &&
+        updateKeys.length === 1 &&
+        updateKeys[0] === 'deduct_excluded_rule_ids' &&
+        Array.isArray(updates.deduct_excluded_rule_ids);
+      if (onlyDeductExclusion) {
+        setLocalDeductExcludedRuleIds(id, updates.deduct_excluded_rule_ids!);
+        markManagementDataTouched();
+        return;
+      }
       if (!isAbsentUpdate) {
         setShifts((prev) => prev.map((s) => (s.id === id ? existing : s)));
       }
@@ -2016,7 +2037,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ]);
 
         if (loadedUsers !== null) setUsers(loadedUsers);
-        if (loadedShifts !== null) setShifts(loadedShifts);
+        if (loadedShifts !== null) setShifts(mergeShiftsDeductExclusionsFromLocal(loadedShifts));
         if (loadedHolidays !== null) setHolidays(loadedHolidays);
         if (loadedPunchRecords !== null) setPunchRecords(loadedPunchRecords);
         if (loadedAvailability !== null) setAvailability(loadedAvailability);
@@ -2430,7 +2451,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       setSyncStage('Applicazione aggiornamenti…');
       setUsers(loadedUsers);
-      setShifts(loadedShifts);
+      setShifts(mergeShiftsDeductExclusionsFromLocal(loadedShifts));
       setPunchRecords(loadedPunchRecords);
       setHolidays(loadedHolidays);
       setAvailability(loadedAvailability);
@@ -2521,7 +2542,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         database.availability.getAll().catch(() => []),
       ]);
       setUsers(loadedUsers);
-      setShifts(loadedShifts);
+      setShifts(mergeShiftsDeductExclusionsFromLocal(loadedShifts));
       setHolidays(loadedHolidays);
       setPunchRecords(loadedPunchRecords);
       setAvailability(loadedAvailability);
