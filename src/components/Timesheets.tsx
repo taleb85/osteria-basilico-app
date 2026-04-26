@@ -3001,12 +3001,12 @@ export default function Timesheets() {
                   }`}
                   style={{ background: isActive ? 'rgba(59,130,246,0.20)' : 'rgba(15, 35, 90, 0.82)' }}
                 >
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
-                    <Icon className={`h-4.5 w-4.5 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
+                  <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
+                    <Icon className={`h-3.5 w-3.5 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-2xl font-bold text-white leading-none tabular-nums">{value}</p>
-                    <p className="text-[11px] text-white/75 mt-1 leading-tight pr-1">{label}</p>
+                    <p className="text-xl font-bold text-white leading-none tabular-nums">{value}</p>
+                    <p className="text-[10px] text-white/75 mt-0.5 leading-tight pr-1">{label}</p>
                   </div>
                   {isActive
                     ? <span className="text-[10px] font-bold text-accent shrink-0">× Filtro</span>
