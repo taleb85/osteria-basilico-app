@@ -18,8 +18,8 @@ export interface FlowLogoSvgProps {
   color?: FlowLogoSvgColor;
   className?: string;
   /**
-   * Solo `full`: colore testo FLOW / sottotitolo sotto l’icona
-   * (`onLight` = scuro su sfondo chiaro dietro l’SVG, come nel campione).
+   * Solo `full`: testo sotto l’icona — default bianco come asset ufficiale;
+   * `onLight` = testo scuro su sfondo chiaro dietro l’SVG.
    */
   wordmark?: 'onLight' | 'onDark';
   /** Rendi il wrapper `header` con sfondo scuro e testo bianco (come blocco “header” del mockup). */
@@ -33,7 +33,7 @@ export default function FlowLogoSvg({
   variant = 'full',
   color = 'orange',
   className = '',
-  wordmark = 'onLight',
+  wordmark = 'onDark',
   headerBar = false,
 }: FlowLogoSvgProps) {
   const rawId = useId().replace(/:/g, '');
@@ -41,7 +41,7 @@ export default function FlowLogoSvg({
   const selected = COLORS[color] ?? COLORS.orange;
   const wordDark = wordmark === 'onLight';
   const flowFill = wordDark ? '#1A263E' : '#FFFFFF';
-  const subFill = wordDark ? 'rgba(26, 38, 62, 0.7)' : 'rgba(255, 255, 255, 0.7)';
+  const subFill = wordDark ? 'rgba(26, 38, 62, 0.8)' : '#FFFFFF';
 
   const BarsInIcon = () => (
     <>
@@ -53,7 +53,14 @@ export default function FlowLogoSvg({
 
   const Defs = () => (
     <defs>
-      <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
+      <linearGradient
+        id={gradId}
+        x1="45"
+        y1="0"
+        x2="155"
+        y2="0"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop offset="0%" stopColor={selected.primary} />
         <stop offset="80%" stopColor={selected.secondary} />
       </linearGradient>
@@ -95,12 +102,15 @@ export default function FlowLogoSvg({
     );
   }
 
-  // full: viewBox 0 0 200 280 — icona 200×200 + testi nel SVG
+  // full: viewBox 0 0 200 280 — come asset (testo bianco sotto; su sfondo chiaro usare wordmark="onLight")
   return (
     <svg
+      width={200}
+      height={280}
       viewBox="0 0 200 280"
       className={className}
       fill="none"
+      xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-labelledby={`${rawId}-title`}
       style={{ maxWidth: '100%', height: 'auto' }}
@@ -111,25 +121,25 @@ export default function FlowLogoSvg({
       <BarsInIcon />
       <text
         x="100"
-        y="245"
+        y="240"
         fill={flowFill}
-        fontFamily="system-ui, -apple-system, Arial, sans-serif"
+        fontFamily="Arial, sans-serif"
         fontWeight="bold"
-        fontSize="32"
+        fontSize="28"
         textAnchor="middle"
-        letterSpacing="4px"
+        letterSpacing="4"
       >
         FLOW
       </text>
       <text
         x="100"
-        y="270"
+        y="265"
         fill={subFill}
-        fontFamily="system-ui, -apple-system, Arial, sans-serif"
-        fontSize="11"
+        fontFamily="Arial, sans-serif"
+        fontSize="10"
         textAnchor="middle"
-        letterSpacing="3px"
-        opacity={wordDark ? 1 : 0.85}
+        letterSpacing="2"
+        opacity={wordDark ? 1 : 0.8}
       >
         WORK IN MOTION
       </text>
