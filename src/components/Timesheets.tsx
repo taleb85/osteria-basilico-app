@@ -21,6 +21,7 @@ import {
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations, getDateLocale, formatTrans } from '../utils/translations';
 import {
   calculateShiftMinutesGross,
@@ -507,7 +508,7 @@ export default function Timesheets() {
     departmentsRevision,
     isSessionElevated,
   } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const locale = getDateLocale(effectiveLanguage) ?? it;
 
   const canTeamTimesheetOps = currentUser ? canOperateTeamSchedule(currentUser) : false;

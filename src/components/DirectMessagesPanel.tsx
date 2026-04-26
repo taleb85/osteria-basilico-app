@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Send, Plus, X, Loader2, MessageCircle } from 'lucide-react';
 import { useMessages, groupIntoConversations } from '../hooks/useMessages';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { isManagementRole, isPurelyManagementRole } from '../utils/permissions';
 import { translateRole } from '../utils/roles';
 import type { User, Language } from '../types';
@@ -491,7 +492,7 @@ function ConversationList({
 // ─── Main export ──────────────────────────────────────────────────────────────
 export function DirectMessagesPanel({ onClose }: { onClose?: () => void } = {}) {
   const { currentUser, users, effectiveLanguage } = useApp();
-  const t = getTranslations(effectiveLanguage as 'it' | 'en' | 'es' | 'fr');
+  const t = useT();
   const intlLocale = getIntlLocale(effectiveLanguage);
   const { messages, sendMessage, markAsRead, isLoading } = useMessages(
     currentUser?.id,

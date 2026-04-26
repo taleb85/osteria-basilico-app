@@ -4,7 +4,8 @@ import { X } from 'lucide-react';
 import { User as UserType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { getTranslations, formatTrans } from '../utils/translations';
+import { useT } from '../hooks/useT';
+import { formatTrans } from '../utils/translations';
 import { findActiveUserWithSamePin } from '../utils/loginIdentifier';
 import { ProfileFormAdmin, type ProfileFormAdminData } from './UserProfile';
 import { OPERATIONAL_STAFF_ROLES_FOR_DELEGATE } from '../utils/operationalStaffRoles';
@@ -64,7 +65,7 @@ export default function CreateStaffModal({
 }: CreateStaffModalProps) {
   useBodyScrollLock(isOpen);
   const { createUser, currentUser, effectiveLanguage, showError, users } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const [formData, setFormData] = useState<ProfileFormAdminData>(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -92,9 +93,8 @@ export default function CreateStaffModal({
     const other = findActiveUserWithSamePin(users, pinDigits);
     if (!other) return null;
     const name = `${other.first_name ?? ''} ${other.last_name ?? ''}`.trim() || other.email;
-    const tr = getTranslations(effectiveLanguage);
-    return formatTrans(tr.employee_pin_taken_by_active, { name });
-  }, [users, formData.pin, effectiveLanguage]);
+    return formatTrans(t.employee_pin_taken_by_active, { name });
+  }, [users, formData.pin, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

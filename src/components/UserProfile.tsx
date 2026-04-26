@@ -8,6 +8,7 @@
 import { useMemo, useCallback, useState, useRef } from 'react';
 import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone, Calendar, Smartphone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations, formatTrans } from '../utils/translations';
 import { buildShortInviteLink } from '../config/appPaths';
 import type { User as UserType, Language, Department } from '../types';
@@ -92,7 +93,7 @@ export function ProfileFormSelf({
 }) {
   const { effectiveLanguage, setLanguage, currentUser, departmentsRevision } = useApp();
   void departmentsRevision;
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
 
   const _applyLanguage = (l: Language) => {
     if (readOnly) return;
@@ -337,7 +338,7 @@ export function ProfileFormSelf({
 /** Solo admin: limita la griglia Presenze dell’utente ai soli orari pianificati pubblicati/confermati. */
 export function AdminTimesheetGridPrivacyEditor({ user }: { user: UserType }) {
   const { updateUser, effectiveLanguage, showSuccess, showError } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   const plannedOnly = getTimesheetGridPrivacyMode(user) === 'planned_only';
   const [busy, setBusy] = useState(false);
@@ -451,7 +452,7 @@ export function ProfileFormAdmin({
 }) {
   const { effectiveLanguage, showSuccess, showError, departmentsRevision, users, isSessionElevated } = useApp();
   void departmentsRevision;
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   // Translations in the employee's own language (for share messages sent to them)
   const rawLang = (user as { language?: string }).language ?? effectiveLanguage;

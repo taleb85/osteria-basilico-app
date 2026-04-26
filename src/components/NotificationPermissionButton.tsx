@@ -1,20 +1,17 @@
 import { Bell, BellOff, Loader2, AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import { usePushNotifications } from '../hooks/usePushNotifications';
-import type { Language } from '../types';
-import { getTranslations } from '../utils/translations';
+import { useT } from '../hooks/useT';
 
 interface NotificationPermissionButtonProps {
-  effectiveLanguage?: string;
   compact?: boolean;
   userId?: string;
 }
 
 export function NotificationPermissionButton({
-  effectiveLanguage,
   compact = false,
   userId,
 }: NotificationPermissionButtonProps) {
-  const t = getTranslations((effectiveLanguage ?? 'it') as Language);
+  const t = useT();
   const {
     notificationPermission,
     isSubscribed,

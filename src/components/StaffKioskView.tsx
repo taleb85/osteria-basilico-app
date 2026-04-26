@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, CheckCircle, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { User, Shift } from '../types';
 import { format, isValid, parseISO } from 'date-fns';
 import { calculateRoundedPunchTime } from '../utils/timeCalculations';
@@ -14,7 +15,7 @@ interface StaffKioskViewProps {
 
 export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
   const { shifts, punchRecords, effectiveLanguage, addPunchRecord, showError } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const [showSuccess, setShowSuccess] = useState(false);
   const [punchedTime, setPunchedTime] = useState('');
   const [calculatedTime, setCalculatedTime] = useState('');

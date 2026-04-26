@@ -16,7 +16,8 @@ import {
   Bell,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { getTranslations, getFeatureStrings, formatTrans } from '../utils/translations';
+import { useT } from '../hooks/useT';
+import { getFeatureStrings, formatTrans } from '../utils/translations';
 import { isAdminOnly } from '../utils/permissions';
 import { translateRole } from '../utils/roles';
 import { FEATURE_DEFINITIONS } from '../utils/featureFlags';
@@ -159,7 +160,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     logout,
     isSessionElevated,
   } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const [_howOpen, _setHowOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState<Record<string, boolean>>({});
   const [showAdvancedFlags, setShowAdvancedFlags] = useState(false);
@@ -175,9 +176,8 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
   }, []);
 
   const handleNotifyTeam = useCallback(async () => {
-    const tr = getTranslations(effectiveLanguage);
     if (!supabase || !currentUser?.id) {
-      showError?.(tr.admin_notify_team_error);
+      showError?.(t.admin_notify_team_error);
       return;
     }
     setTeamNotifyLoading(true);
@@ -186,7 +186,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
         body: { operator_user_id: currentUser.id },
       });
       if (error) {
-        showError?.(error.message || tr.admin_notify_team_error);
+        showError?.(error.message || t.admin_notify_team_error);
         return;
       }
       if (data && typeof data === 'object' && 'error' in data && data.error) {
@@ -198,10 +198,10 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
       const ws = String((data as { week_start?: string }).week_start ?? '');
       const we = String((data as { week_end?: string }).week_end ?? '');
       if (rec === 0) {
-        showSuccess?.(tr.admin_notify_team_none);
+        showSuccess?.(t.admin_notify_team_none);
       } else {
         showSuccess?.(
-          formatTrans(tr.admin_notify_team_success, {
+          formatTrans(t.admin_notify_team_success, {
             count: rec,
             sent,
             week_start: ws,
@@ -210,11 +210,11 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
         );
       }
     } catch {
-      showError?.(getTranslations(effectiveLanguage).admin_notify_team_error);
+      showError?.(t.admin_notify_team_error);
     } finally {
       setTeamNotifyLoading(false);
     }
-  }, [currentUser?.id, effectiveLanguage, showError, showSuccess]);
+  }, [currentUser?.id, t, supabase, showError, showSuccess]);
 
 
 

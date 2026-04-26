@@ -2,6 +2,7 @@ import FlowWaveIcon from './ui/FlowWaveIcon';
 import { type ReactNode } from 'react';
 import { LogOut, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations, getDateLocale } from '../utils/translations';
 // import { getRoleScopeHint } from '../utils/roleScopeHint'; // unused
 import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
@@ -83,7 +84,7 @@ export default function MobileProfileHeader({
   }, []);
   const dateLabel = format(now, 'EEE d MMM · HH:mm', { locale: getDateLocale(effectiveLanguage) ?? itLocale });
 
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   if (!currentUser) return null;
 
   const _pageTitle = getAppNavTabTitle(t, activeTab);

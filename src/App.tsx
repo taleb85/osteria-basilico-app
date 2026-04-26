@@ -20,7 +20,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import { ProfileLeaveGuardRefContext, type ProfileLeaveGuard } from './context/ProfileLeaveGuardContext';
 import { LayoutPresetProvider } from './context/LayoutPresetContext';
 import { applyUnauthenticatedDocumentTheme } from './utils/theme';
-import { getTranslations } from './utils/translations';
+import { useT } from './hooks/useT';
 import TopTabBar from './components/TopTabBar';
 import MobileProfileHeader from './components/MobileProfileHeader';
 import FlowWaveIcon from './components/ui/FlowWaveIcon';
@@ -228,7 +228,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     setIsSessionElevated,
   } = useApp();
 
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const isMobileViewport = useIsMobileViewport();
   const staffMobileCompactHeader = !isManagement && isMobileViewport;
@@ -350,8 +350,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const handleTabChange = useCallback(
     (id: AppNavTab) => {
       void (async () => {
-        const tr = getTranslations(effectiveLanguage);
-        const tv = tr as Record<string, string>;
+        const tv = t as Record<string, string>;
         if (activeTab === 'profile' && id !== 'profile') {
           const g = profileLeaveGuardRef.current;
           if (g?.isDirty()) {
@@ -369,7 +368,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         applyTabChange(id);
       })();
     },
-    [activeTab, effectiveLanguage, applyTabChange]
+    [activeTab, t, applyTabChange]
   );
 
   useEffect(() => {
@@ -519,8 +518,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       const anchor = ce.detail?.anchor;
       if (!tab || !visibleNavTabs.includes(tab)) return;
       void (async () => {
-        const tr = getTranslations(effectiveLanguage);
-        const tv = tr as Record<string, string>;
+        const tv = t as Record<string, string>;
         if (activeTab === 'profile' && tab !== 'profile') {
           const g = profileLeaveGuardRef.current;
           if (g?.isDirty()) {
@@ -547,7 +545,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     };
     window.addEventListener('osteria-navigate', onNavigate as EventListener);
     return () => window.removeEventListener('osteria-navigate', onNavigate as EventListener);
-  }, [visibleNavTabs, activeTab, effectiveLanguage]);
+  }, [visibleNavTabs, activeTab, t]);
 
   const now = useMemo(() => new Date(), []);
   const isSynced = !!featureFlags && Object.keys(featureFlags).length > 0;
@@ -863,7 +861,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           )}
           {noNavTabs ? (
             <div className="rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-10 pb-content text-center text-sm text-amber-950 max-w-lg mx-auto">
-              {(getTranslations(effectiveLanguage) as Record<string, string>).app_all_nav_tabs_disabled}
+              {(t as Record<string, string>).app_all_nav_tabs_disabled}
             </div>
           ) : isManagement ? (
             <AnimatePresence mode="wait" custom={tabNavDirection.current}>
@@ -918,7 +916,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
               </motion.div>
               <div className="flex flex-col items-center gap-1 min-h-[40px]">
                 <p className="text-white/70 text-xs font-semibold uppercase tracking-widest">
-                  {getTranslations(effectiveLanguage).sync_total_in_progress}
+                  {t.sync_total_in_progress}
                 </p>
                 {syncStage ? (
                   <p className="text-white/90 text-sm font-medium">{syncStage}</p>
@@ -946,14 +944,15 @@ function ProtectedApp() {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, isLoading: appIsLoading, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, featureFlags, showError, effectiveLanguage, setIsSessionElevated } = useApp();
+  const t = useT();
 
   useEffect(() => {
     const state = location.state as { accessDenied?: boolean } | null;
     if (state?.accessDenied) {
-      showError?.(getTranslations(effectiveLanguage).app_access_denied);
+      showError?.(t.app_access_denied);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, location.pathname, navigate, showError, effectiveLanguage]);
+  }, [location.state, location.pathname, navigate, showError, t]);
 
   const handleLogout = () => {
     applyUnauthenticatedDocumentTheme();

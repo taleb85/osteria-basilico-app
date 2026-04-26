@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, ChevronDown, ChevronUp, Shield, Save, RotateCcw, Eye } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { translateRole } from '../utils/roles';
 import { getEnabledFeatures, type EnabledFeatureKey } from '../utils/enabledFeatures';
 import RoleFeatureSectionsBlock from './RoleFeatureSectionsBlock';
@@ -13,7 +14,7 @@ const ACCENT = 'var(--brand)';
 
 export default function GestioneProfiliPage() {
   const { users, currentUser, effectiveLanguage, updateUser, showSuccess, showError } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Record<string, 'permissions' | 'grid' | 'visibility'>>({});

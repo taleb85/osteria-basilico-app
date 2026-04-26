@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Send, Loader2, AlertCircle, Users, User } from 'lucide-react';
 import { User as UserType } from '../types';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations } from '../utils/translations';
 
 interface MessageWriterProps {
@@ -26,7 +27,7 @@ export function MessageWriter({
   compact = false,
 }: MessageWriterProps) {
   const { effectiveLanguage } = useApp();
-  const t = getTranslations(effectiveLanguage as 'it' | 'en' | 'es' | 'fr');
+  const t = useT();
   const [messageType, setMessageType] = useState<'broadcast' | 'private'>('broadcast');
   const [selectedRecipientId, setSelectedRecipientId] = useState<string>('');
   const [subject, setSubject] = useState('');

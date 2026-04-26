@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useT } from '../hooks/useT';
 import { Bell, Loader2 } from 'lucide-react';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { getTranslations } from '../utils/translations';
@@ -10,7 +11,7 @@ type Props = {
 };
 
 export function StaffPushNotificationPromptBanner({ userId, effectiveLanguage }: Props) {
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const [perm, setPerm] = useState<NotificationPermission>(() =>
     typeof Notification !== 'undefined' ? Notification.permission : 'denied'
   );

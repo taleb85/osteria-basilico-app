@@ -5,6 +5,7 @@ import { database } from '../lib/database';
 import { it } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu, ClipboardCopy, ClipboardPaste, Calendar, RotateCcw, FileDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { useTenant } from '../context/TenantContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
@@ -638,7 +639,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     else if (isAdminWst && currentUser?.department) setLocalFilterDepartment(currentUser.department);
     else if (!isAdminWst) setLocalFilterDepartment('');
   }, [lockedDeptWst, isAdminWst, currentUser?.department]);
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
@@ -6122,7 +6123,7 @@ interface CreateShiftModalProps {
 
 function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError, onClose, isOpenShift = false }: CreateShiftModalProps) {
   const { users, addShift, showSuccess, effectiveLanguage, breakRules, featureFlags } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const rawDefault = (defaultTime || '').trim().slice(0, 5);
   const defaultHour = rawDefault ? parseInt(rawDefault.split(':')[0], 10) : 10;
   const isEveningDefault = defaultHour >= 16;

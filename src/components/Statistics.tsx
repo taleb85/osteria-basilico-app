@@ -19,6 +19,7 @@ import {
 } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations, getDateLocale, formatTrans } from '../utils/translations';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
 import {
@@ -83,7 +84,7 @@ export default function Statistics() {
     showError,
     departmentsRevision,
   } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
     [featureFlags]

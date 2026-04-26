@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { ChevronUp, ChevronDown, Edit2, Trash2, UserX, UserCheck, Download, Upload, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { User } from '../types';
 import { canUserEdit, isAdminOnly, canViewSuspended } from '../utils/permissions';
 import { exportToJSON } from '../utils/exportData';
@@ -23,7 +24,7 @@ export default function AdminPanel() {
 
   if (!currentUser) return null;
 
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
 
   const canEdit = canUserEdit(currentUser);
   const adminOnly = isAdminOnly(currentUser);

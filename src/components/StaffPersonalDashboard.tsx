@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Download, X, Share, ChevronRight, ChevronLeft, LogOut, Shield, Calendar } from 'lucide-react';
 import { database } from '../lib/database';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { User as UserType, Shift, HolidayRequest, PunchRecord } from '../types';
 import { format, isToday, isFuture, startOfWeek, endOfWeek, addWeeks, addDays, startOfMonth, endOfMonth, parseISO, isWithinInterval, startOfDay, endOfDay, getISOWeek } from 'date-fns';
 import { it as itLocale } from 'date-fns/locale';
@@ -417,7 +418,7 @@ export default function StaffPersonalDashboard({
   const [loading, setLoading] = useState(true);
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
   const [seedingDemoProfile, setSeedingDemoProfile] = useState(false);
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const now = useWallAlignedMinuteClock();
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw, Save, Loader2, Users, Info } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { canEditRoleFeatureTemplates } from '../utils/permissions';
 import {
   ADMIN_MODULE_KEYS,
@@ -75,7 +76,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
     updateUser,
     isSessionElevated,
   } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const permRows = useMemo(() => buildSettingsPermissionRows(t as Record<string, string>), [t]);
 
   // ─── Utenti non-admin attivi come colonne ────────────────────────────────

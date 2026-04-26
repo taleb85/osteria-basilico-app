@@ -1940,9 +1940,18 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
 
   useEffect(() => {
     if (!supabase || !selectedTenantId) return;
-    supabase.from('users').select('id,first_name,last_name').eq('tenant_id', selectedTenantId).eq('status', 'active')
-      .then(({ data }: { data: any }) => setTenantUsers((data ?? []) as { id: string; first_name: string; last_name?: string }[]))
-      .catch((err) => console.error('[SuperAdminPanel] users fetch error', err));
+    void (async () => {
+      try {
+        const { data } = await supabase
+          .from('users')
+          .select('id,first_name,last_name')
+          .eq('tenant_id', selectedTenantId)
+          .eq('status', 'active');
+        setTenantUsers((data ?? []) as { id: string; first_name: string; last_name?: string }[]);
+      } catch (err) {
+        console.error('[SuperAdminPanel] users fetch error', err);
+      }
+    })();
     void loadHistory(selectedTenantId);
   }, [selectedTenantId]);
 

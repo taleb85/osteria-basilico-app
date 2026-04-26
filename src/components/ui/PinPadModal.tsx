@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Lock, ShieldCheck, Delete, Fingerprint, Loader2, Smartphone } from 'lucide-react';
 import React, { ReactNode, useEffect, useState, useCallback } from 'react';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { useT } from '../../hooks/useT';
 import {
   supportsPinUnlockWebAuthn,
   hasPinUnlockCredential,
@@ -45,8 +46,8 @@ export function PinPadModal({
   onCancel,
   error,
   isLoading = false,
-  confirmLabel = 'Conferma',
-  cancelLabel = 'Annulla',
+  confirmLabel,
+  cancelLabel,
   leftActionButton,
   backdropClass,
   userId,
@@ -54,6 +55,9 @@ export function PinPadModal({
   userEmail,
   onBiometricSuccess,
 }: PinPadModalProps) {
+  const t = useT();
+  const confirmText = confirmLabel ?? t.confirm;
+  const cancelText = cancelLabel ?? t.cancel;
   useBodyScrollLock(true);
 
   // ── Biometrica interna (solo se leftActionButton non è fornito) ─────────────
@@ -232,11 +236,11 @@ export function PinPadModal({
       <div className="flex gap-3 px-8 pb-10 sm:pb-6 mt-4">
         <button type="button" onClick={onCancel}
           className="flex-1 h-14 rounded-2xl font-bold text-sm text-white/60 hover:text-white active:scale-95 transition-all"
-          style={btnBase}>{cancelLabel}</button>
+          style={btnBase}>{cancelText}</button>
         <button type="button" disabled={pin.length !== 4 || isLoading} onClick={onConfirm}
           className="flex-1 h-14 rounded-2xl text-white font-bold text-sm disabled:opacity-35 active:scale-95 transition-all flex items-center justify-center gap-2"
           style={btnBase}>
-          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : confirmLabel}
+          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : confirmText}
         </button>
       </div>
     </>

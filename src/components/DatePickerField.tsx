@@ -13,6 +13,7 @@ import { DayPicker, type Matcher } from 'react-day-picker';
 import { Calendar, ChevronDown } from 'lucide-react';
 import { it } from 'date-fns/locale';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import 'react-day-picker/style.css';
@@ -60,7 +61,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
   ref
 ) {
   const { effectiveLanguage } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   const locale = getDateLocale(effectiveLanguage) ?? it;
   const clearLabel = (t as { date_picker_clear?: string }).date_picker_clear ?? 'Cancella';

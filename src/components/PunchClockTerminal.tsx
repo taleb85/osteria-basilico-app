@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { format } from 'date-fns';
 import { getTranslations } from '../utils/translations';
 import { usePunchPresenceVerification } from '../hooks/usePunchPresenceVerification';
@@ -18,7 +19,7 @@ export default function PunchClockTerminal({ isOpen, onClose }: PunchClockTermin
   const [isLoading, setIsLoading] = useState(false);
   const { users, addPunchRecord, effectiveLanguage, showError } = useApp();
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(effectiveLanguage);
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
 
   const handleSubmit = async () => {
     setIsLoading(true);

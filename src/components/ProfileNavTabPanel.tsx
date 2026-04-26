@@ -4,7 +4,7 @@ import { Camera, ChevronRight, Trash2, Settings2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useProfileLeaveGuardRef } from '../context/ProfileLeaveGuardContext';
-import { getTranslations } from '../utils/translations';
+import { useT } from '../hooks/useT';
 import { getDeviceUiLanguage, readStoredUiLanguage } from '../utils/uiLanguagePreference';
 import { NotificationPermissionButton } from './NotificationPermissionButton';
 
@@ -49,7 +49,7 @@ export default function ProfileNavTabPanel({
   const { currentUser, effectiveLanguage, setLanguage, clearLanguage, updateUser, showError, isSessionElevated } = useApp();
   const profileLeaveGuardRef = useProfileLeaveGuardRef();
   const navigate = useNavigate();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   const [formData, setFormData] = useState<ProfileFormSelfData>({
     first_name: '',
@@ -521,7 +521,7 @@ export default function ProfileNavTabPanel({
               {expanded === 'notif' && (
                 <motion.div key="notif-body" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }} className="overflow-hidden">
                   <div style={{ borderTop: '1px solid rgba(15, 35, 90, 0.82)' }} className="px-4 py-3">
-                    <NotificationPermissionButton effectiveLanguage={effectiveLanguage} userId={currentUser?.id} />
+                    <NotificationPermissionButton userId={currentUser?.id} />
                   </div>
                 </motion.div>
               )}

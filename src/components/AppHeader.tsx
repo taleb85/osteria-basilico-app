@@ -5,7 +5,8 @@ import { LogOut, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTenant } from '../context/TenantContext';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
-import { getDateLocale, getTranslations } from '../utils/translations';
+import { getDateLocale } from '../utils/translations';
+import { useT } from '../hooks/useT';
 import UserAvatarMenu from './UserAvatarMenu';
 import NotificationCenter from './NotificationCenter';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
@@ -35,7 +36,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
     return () => document.removeEventListener('pointerdown', handler);
   }, [langOpen]);
 
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const locale = getDateLocale(effectiveLanguage) ?? it;
   const langLabels: Record<string, string> = { it: 'IT', en: 'EN', es: 'ES', fr: 'FR' };
   const langFlags: Record<string, string> = { it: '🇮🇹', en: '🇬🇧', es: '🇪🇸', fr: '🇫🇷' };

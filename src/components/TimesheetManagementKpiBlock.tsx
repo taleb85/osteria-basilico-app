@@ -4,6 +4,7 @@ import { it } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, TrendingUp } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import type { Language } from '../types';
 import { getTranslations } from '../utils/translations';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
@@ -32,7 +33,7 @@ type Props = {
  */
 export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetailPanels }: Props) {
   const { users, shifts, currentUser, effectiveLanguage, breakRules, featureFlags, punchRecords } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   const [activeWidget, _setActiveWidget] = useState<'approved' | 'pending' | null>(null);
 

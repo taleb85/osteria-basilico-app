@@ -1,3 +1,8 @@
+/**
+ * Dizionari per lingua (`it`, `en`, `es`, `fr`) e helper `getTranslations` / `formatTrans`.
+ * Per stringhe UI nel tree React usa `useT()` in `../hooks/useT.ts` (stessa sorgente di `effectiveLanguage` da `AppContext`).
+ * Usa `getTranslations(lang)` solo dove serve una lingua esplicita (login, anteprime, util non legati al contesto app).
+ */
 import type { Language } from '../types';
 import type { AdminModuleKey } from './enabledFeatures';
 import { it, enUS, es, fr } from 'date-fns/locale';

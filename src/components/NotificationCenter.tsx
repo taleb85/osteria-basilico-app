@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Bell, BellOff, X, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { getTranslations } from '../utils/translations';
 import {
   generateNotifications,
@@ -21,7 +22,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
   const [isOpen, setIsOpen] = useState(false);
   // Tick incrementato dopo markAllSeen per forzare re-lettura seenIds da localStorage
   const [seenTick, setSeenTick] = useState(0);
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
 
   // Generazione e sincronizzazione feed
   const feed = useMemo(() => {

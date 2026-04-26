@@ -5,6 +5,7 @@ import {
   ArrowRight, ChevronRight,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import { format, isToday, isTomorrow, isValid, parseISO, addDays, startOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -91,7 +92,7 @@ export default function HomePage({
   activeTab: activeTabProp,
 }: HomePageProps) {
   const { currentUser, shifts, holidays, users, punchRecords, updatePunchRecord, approveShift, effectiveLanguage, showSuccess, showError, breakRules, featureFlags } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const shiftsListRef = useRef<HTMLDivElement>(null);
   const now = useWallAlignedMinuteClock();
 

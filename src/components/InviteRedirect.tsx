@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
 import { buildUserInviteSlug, buildProfiloAccessLink, PATH_PROFILO } from '../config/appPaths';
 import { getTranslations } from '../utils/translations';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 
 function cleanSlug(s: string | null | undefined): string {
   return (s ?? '')
@@ -37,7 +38,7 @@ export default function InviteRedirect() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('verifying');
   const { effectiveLanguage } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
 
   useEffect(() => {
     if (!slug) {

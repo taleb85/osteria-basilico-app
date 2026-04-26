@@ -17,10 +17,11 @@ import {
 import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
 import DatePickerField from './DatePickerField';
 import { useApp } from '../context/AppContext';
+import { useT } from '../hooks/useT';
 import { useTenant } from '../context/TenantContext';
 import type { User, UserRole } from '../types';
 import { translateRole } from '../utils/roles';
-import { getAdminModuleLabel, getTranslations, formatTrans, getFeatureStrings } from '../utils/translations';
+import { getAdminModuleLabel, formatTrans, getFeatureStrings } from '../utils/translations';
 import {
   canUserEdit,
   isAdminOnly,
@@ -84,7 +85,7 @@ function DepartmentColorPicker({
   title: string;
 }) {
   const { effectiveLanguage } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const tv = t as Record<string, string>;
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -186,7 +187,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
     isSessionElevated,
   } = useApp();
   const { tenant } = useTenant();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
 
   const [pullSyncBusy, setPullSyncBusy] = useState(false);
   const [pushSyncBusy, setPushSyncBusy] = useState(false);
@@ -2615,7 +2616,7 @@ function BreakRuleModal({
   onClose: () => void;
 }) {
   const { effectiveLanguage } = useApp();
-  const t = getTranslations(effectiveLanguage);
+  const t = useT();
   const weekdayOptions = useMemo(() => {
     const labelByDay: Record<DayOfWeek, string> = {
       0: t.settings_weekday_short_0,
