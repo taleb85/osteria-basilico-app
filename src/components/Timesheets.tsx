@@ -2795,7 +2795,7 @@ export default function Timesheets() {
   return (
     <>
       <div
-        className="pb-content pt-6 w-full max-w-7xl mx-auto font-sans"
+        className="pb-content pt-6 w-full font-sans"
         role="region"
         aria-label={t.timesheet_title ?? 'Presenze'}
       >
