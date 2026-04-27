@@ -337,6 +337,8 @@ export function getBreakDeductionDisplayItems(
     break_minutes?: number;
     is_auto_break?: boolean;
     deduct_excluded_rule_ids?: string[];
+    /** Congelato in contabilità: allinea il readout a getBreakMinutesForShift (un solo importo su DB, non 2 fasce pranzo/cena ricalcolate). */
+    approved_at?: string | null;
   },
   grossMinutes: number,
   user: { department?: string | null; role: string } | null | undefined,
@@ -353,6 +355,17 @@ export function getBreakDeductionDisplayItems(
     const d = shift.date ?? '';
     if (!st || !en || !d) return [];
     return getPlannedBreakDeductionLines({ start_time: st, end_time: en, date: d }, user, active);
+  }
+  /** Stesso criterio di getBreakMinutesForShift (importo fissato su DB): niente 2 righe fasce se il congelato ha un solo `break_minutes`. */
+  if (
+    shift.approved_at &&
+    shift.is_auto_break === true &&
+    shift.break_minutes != null &&
+    shift.break_minutes >= 0
+  ) {
+    const m = Math.max(0, shift.break_minutes);
+    if (m <= 0) return [];
+    return [{ title: i18n.fromShift, minutes: m }];
   }
   const startStr = (options?.breakRuleWindow?.start ?? shift.start_time ?? '').slice(0, 5);
   const endStr = (options?.breakRuleWindow?.end ?? shift.end_time ?? '').slice(0, 5);
