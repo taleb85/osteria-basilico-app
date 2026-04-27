@@ -5,3 +5,6 @@
  * `tenantSlug` (Option B single-URL): serve a caricare il tenant prima del ripristino sessione su `/app`.
  */
 export const APP_SESSION_STORAGE_KEY = 'app_session';
+
+/** Login: nome precompilato dopo link invito `/i/:slug` → «Apri senza installare». */
+export const FLOW_INVITE_NAME_STORAGE_KEY = 'flow-invite-name';

@@ -1,16 +1,16 @@
 /**
- * Risolve un link breve /i/:slug → cerca il dipendente globalmente su tutti i tenant
- * → redirige a /profilo?t=<token-con-tenantSlug>.
- *
- * Mostra una schermata elegante con progress steps mentre risolve lo slug.
+ * Risolve /i/:slug → dipendente e tenant, salva il nome per il login, mostra
+ * istruzioni PWA per il dispositivo corrente e link «Apri senza installare».
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { buildUserInviteSlug, buildProfiloAccessLink, PATH_PROFILO } from '../config/appPaths';
+import { buildUserInviteSlug, PATH_PROFILO } from '../config/appPaths';
 import { useT } from '../hooks/useT';
+import { formatTrans } from '../utils/translations';
+import { FLOW_INVITE_NAME_STORAGE_KEY } from '../constants/appSession';
 
 function cleanSlug(s: string | null | undefined): string {
   return (s ?? '')
@@ -29,13 +29,50 @@ type SlimUser = {
   tenant_id?: string | null;
 };
 
-type Step = 'verifying' | 'verified' | 'redirecting';
+type ResolveState =
+  | { kind: 'loading' }
+  | { kind: 'ready'; user: SlimUser }
+  | { kind: 'notfound' };
+
+function getDeviceKind(): 'ios' | 'android' | 'mac' | 'windows' | 'other' {
+  if (typeof navigator === 'undefined') return 'other';
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/.test(ua)) return 'ios';
+  if (/Android/.test(ua)) return 'android';
+  if (/Mac/.test(ua) && !/iPhone|iPad|iPod/.test(ua)) return 'mac';
+  if (/Windows/.test(ua)) return 'windows';
+  return 'other';
+}
+
+function getInstallStepKeys(
+  k: 'ios' | 'android' | 'mac' | 'windows' | 'other'
+): [string, string, string] {
+  if (k === 'ios') {
+    return ['invite_install_ios_1', 'invite_install_ios_2', 'invite_install_ios_3'];
+  }
+  if (k === 'android') {
+    return [
+      'invite_install_android_1',
+      'invite_install_android_2',
+      'invite_install_android_3',
+    ];
+  }
+  if (k === 'mac') {
+    return ['invite_install_mac_1', 'invite_install_mac_2', 'invite_install_mac_3'];
+  }
+  return ['invite_install_win_1', 'invite_install_win_2', 'invite_install_win_3'];
+}
 
 export default function InviteRedirect() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>('verifying');
-  const t = useT();
+  const [state, setState] = useState<ResolveState>({ kind: 'loading' });
+  const t = useT() as Record<string, string>;
+  const tr = (key: string) => t[key] ?? key;
+
+  const deviceKind = useMemo(() => getDeviceKind(), []);
+  const installKeys = useMemo(() => getInstallStepKeys(deviceKind), [deviceKind]);
+  const stepCount = 3;
 
   useEffect(() => {
     if (!slug) {
@@ -43,28 +80,23 @@ export default function InviteRedirect() {
       return;
     }
 
+    let cancelled = false;
+
     async function resolve() {
       try {
         if (!supabase) {
-          navigate(PATH_PROFILO, { replace: true });
+          if (!cancelled) setState({ kind: 'notfound' });
           return;
         }
 
-        const [usersRes, tenantsRes] = await Promise.all([
-          supabase
-            .from('users')
-            .select('id, first_name, last_name, pin, tenant_id')
-            .eq('status', 'active'),
-          supabase
-            .from('tenants')
-            .select('id, slug')
-            .eq('is_active', true),
-        ]);
+        const usersRes = await supabase
+          .from('users')
+          .select('id, first_name, last_name, pin, tenant_id')
+          .eq('status', 'active');
+
+        if (cancelled) return;
 
         const allUsers: SlimUser[] = usersRes.data ?? [];
-        const tenantSlugMap = new Map<string, string>(
-          (tenantsRes.data ?? []).map((t: { id: string; slug: string }) => [t.id, t.slug])
-        );
 
         const usersByTenant = new Map<string, SlimUser[]>();
         for (const u of allUsers) {
@@ -74,50 +106,113 @@ export default function InviteRedirect() {
         }
 
         let matched: SlimUser | undefined;
-        let matchedTenantSlug = '';
 
-        for (const [tenantId, tenantUsers] of usersByTenant) {
+        for (const [, tenantUsers] of usersByTenant) {
           const found = tenantUsers.find(
             (u) => buildUserInviteSlug(u, tenantUsers) === cleanSlug(slug)
           );
           if (found) {
             matched = found;
-            matchedTenantSlug = tenantSlugMap.get(tenantId) ?? '';
             break;
           }
         }
 
         if (!matched) {
-          navigate(PATH_PROFILO, { replace: true });
+          if (!cancelled) setState({ kind: 'notfound' });
           return;
         }
 
-        // Invito trovato — aggiorna gli step visivi
-        setStep('verified');
-        await new Promise((r) => setTimeout(r, 700));
-        setStep('redirecting');
-        await new Promise((r) => setTimeout(r, 800));
+        const loginName = `${matched.first_name ?? ''} ${matched.last_name ?? ''}`.trim();
+        if (loginName) {
+          try {
+            localStorage.setItem(FLOW_INVITE_NAME_STORAGE_KEY, loginName);
+          } catch {
+            /* ignore */
+          }
+        }
 
-        const link = buildProfiloAccessLink(matched.id, undefined, {
-          displayName: `${matched.first_name ?? ''} ${matched.last_name ?? ''}`.trim(),
-          pin: matched.pin ?? '',
-          tenantSlug: matchedTenantSlug,
-        });
-
-        const url = new URL(link, window.location.origin);
-        navigate(url.pathname + url.search, { replace: true });
+        if (!cancelled) setState({ kind: 'ready', user: matched });
       } catch {
-        navigate(PATH_PROFILO, { replace: true });
+        if (!cancelled) setState({ kind: 'notfound' });
       }
     }
 
-    resolve();
+    void resolve();
+    return () => {
+      cancelled = true;
+    };
   }, [slug, navigate]);
 
-  const stepsDone = {
-    verified: step === 'verified' || step === 'redirecting',
-    redirecting: step === 'redirecting',
-  };
+  useEffect(() => {
+    if (state.kind === 'notfound') {
+      navigate(PATH_PROFILO, { replace: true });
+    }
+  }, [state.kind, navigate]);
+
+  if (state.kind === 'notfound') {
+    return null;
+  }
+
+  if (state.kind === 'loading') {
+    return (
+      <div
+        className="min-h-screen min-h-[100dvh] w-full flex flex-col items-center justify-center px-6 font-sans"
+        style={{ background: 'transparent' }}
+      >
+        <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-10 w-full max-w-[320px] rounded-3xl overflow-hidden"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.10)',
+              backdropFilter: 'blur(24px)',
+              boxShadow:
+                '0 32px 64px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset',
+            }}
+          >
+            <div className="flex flex-col items-center pt-10 pb-6 px-6">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.15, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                className="mb-5"
+              >
+                <img
+                  src="/icon-flow-final.png"
+                  alt="FLOW"
+                  draggable={false}
+                  style={{ width: 84, height: 84, borderRadius: 20, objectFit: 'contain' }}
+                />
+              </motion.div>
+              <h1 className="text-[1.25rem] font-bold text-white tracking-tight mb-1.5 text-center">
+                {tr('invite_welcome_title')}
+              </h1>
+              <p className="text-[0.8rem] text-white/45 text-center leading-relaxed">
+                {tr('invite_verifying')}
+              </p>
+            </div>
+            <div className="mx-5 h-px bg-white/[0.07]" />
+            <div className="px-5 py-5">
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <Loader2 className="w-4 h-4 text-[#6699FF] animate-spin" strokeWidth={2.5} />
+                </div>
+                <span className="text-[0.8rem] font-medium text-white/65">{tr('invite_verifying')}</span>
+              </div>
+            </div>
+            <div className="pb-6" />
+          </motion.div>
+          <p className="mt-8 text-white/20 text-xs font-semibold tracking-[0.2em] uppercase select-none">FLOW</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { user } = state;
+  const firstName = (user.first_name ?? '').trim();
 
   return (
     <div
@@ -125,159 +220,74 @@ export default function InviteRedirect() {
       style={{ background: 'transparent' }}
     >
       <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center">
-      {/* Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-[320px] rounded-3xl overflow-hidden"
-        style={{
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.10)',
-          backdropFilter: 'blur(24px)',
-          boxShadow: '0 32px 64px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset',
-        }}
-      >
-        {/* App icon */}
-        <div className="flex flex-col items-center pt-10 pb-6 px-6">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.15, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-5"
-          >
-            <img
-              src="/icon-flow-final.png"
-              alt="FLOW"
-              draggable={false}
-              style={{ width: 84, height: 84, borderRadius: 20, objectFit: 'contain' }}
-            />
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 0.4 }}
-            className="text-[1.25rem] font-bold text-white tracking-tight mb-1.5 text-center"
-          >
-            {t.invite_title}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.35, duration: 0.4 }}
-            className="text-[0.8rem] text-white/45 text-center leading-relaxed"
-          >
-            {t.invite_subtitle}
-          </motion.p>
-        </div>
-
-        {/* Divider */}
-        <div className="mx-5 h-px bg-white/[0.07]" />
-
-        {/* Steps */}
-        <div className="px-5 py-5 space-y-3">
-          <StepRow
-            label={t.invite_verifying}
-            doneLabel={t.invite_verified}
-            done={stepsDone.verified}
-            active={step === 'verifying'}
-            delay={0.45}
-          />
-          <StepRow
-            label={t.invite_redirecting}
-            doneLabel={t.invite_redirecting}
-            done={false}
-            active={step === 'redirecting'}
-            delay={0.55}
-            hidden={step === 'verifying'}
-          />
-        </div>
-
-        {/* Bottom padding */}
-        <div className="pb-6" />
-      </motion.div>
-
-      {/* Logo sotto */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6, duration: 0.5 }}
-        className="mt-8 text-white/20 text-xs font-semibold tracking-[0.2em] uppercase select-none"
-      >
-        FLOW
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 24, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="relative z-10 w-full max-w-[320px] rounded-3xl overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.10)',
+            backdropFilter: 'blur(24px)',
+            boxShadow:
+              '0 32px 64px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset',
+          }}
+        >
+          <div className="flex flex-col items-center pt-10 pb-4 px-6">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.15, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-5"
+            >
+              <img
+                src="/icon-flow-final.png"
+                alt="FLOW"
+                draggable={false}
+                style={{ width: 84, height: 84, borderRadius: 20, objectFit: 'contain' }}
+              />
+            </motion.div>
+            <h1 className="text-[1.25rem] font-bold text-white tracking-tight mb-1.5 text-center">
+              {tr('invite_welcome_title')}
+            </h1>
+            <p className="text-[0.8rem] text-white/45 text-center leading-relaxed">
+              {formatTrans(tr('invite_follow_n_steps'), { n: stepCount })}
+            </p>
+          </div>
+          <div className="mx-5 h-px bg-white/[0.07]" />
+          <ol className="px-5 py-5 space-y-3 list-decimal list-outside pl-7 pr-2 text-left marker:text-white/40">
+            {installKeys.map((key) => (
+              <li key={key} className="text-[0.8rem] font-medium text-white/80 leading-relaxed">
+                {tr(key)}
+              </li>
+            ))}
+          </ol>
+          <div className="px-5 pb-2">
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = '/';
+              }}
+              className="w-full rounded-2xl py-3 text-sm font-bold text-center transition-colors"
+              style={{
+                background: 'rgba(102,153,255,0.2)',
+                border: '1px solid rgba(102,153,255,0.4)',
+                color: 'rgb(199, 210, 255)',
+              }}
+            >
+              {tr('invite_open_without_install')}
+            </button>
+          </div>
+          {firstName ? (
+            <p className="px-5 pb-6 text-center text-[0.8rem] text-white/50 font-medium">
+              {formatTrans(tr('invite_account_ready'), { name: firstName })}
+            </p>
+          ) : (
+            <div className="pb-6" />
+          )}
+        </motion.div>
+        <p className="mt-8 text-white/20 text-xs font-semibold tracking-[0.2em] uppercase select-none">FLOW</p>
       </div>
     </div>
-  );
-}
-
-function StepRow({
-  label,
-  doneLabel,
-  done,
-  active,
-  delay,
-  hidden = false,
-}: {
-  label: string;
-  doneLabel: string;
-  done: boolean;
-  active: boolean;
-  delay: number;
-  hidden?: boolean;
-}) {
-  if (hidden) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay, duration: 0.35 }}
-      className="flex items-center gap-3"
-    >
-      {/* Icona stato */}
-      <div className="relative flex-shrink-0 w-5 h-5">
-        <AnimatePresence mode="wait">
-          {done ? (
-            <motion.div
-              key="check"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.5, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="w-5 h-5 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(51,204,102,0.25)', border: '1px solid rgba(51,204,102,0.5)' }}
-            >
-              <Check className="w-3 h-3 text-emerald-400" strokeWidth={2.5} />
-            </motion.div>
-          ) : active ? (
-            <motion.div
-              key="spinner"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-5 h-5 flex items-center justify-center"
-            >
-              <Loader2 className="w-4 h-4 text-[#6699FF] animate-spin" strokeWidth={2} />
-            </motion.div>
-          ) : (
-            <div
-              key="idle"
-              className="w-5 h-5 rounded-full"
-              style={{ border: '1.5px solid rgba(255,255,255,0.15)' }}
-            />
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Label */}
-      <span
-        className="text-[0.8rem] font-medium transition-colors duration-300"
-        style={{ color: done ? 'rgba(255,255,255,0.85)' : active ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.3)' }}
-      >
-        {done ? doneLabel : label}
-      </span>
-    </motion.div>
   );
 }

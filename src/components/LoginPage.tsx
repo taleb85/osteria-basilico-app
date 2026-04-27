@@ -8,7 +8,7 @@ import { userRowToSessionUser } from '../utils/staffPermissionDefaults';
 import { getTranslations } from '../utils/translations';
 import { applyUnauthenticatedDocumentTheme } from '../utils/theme';
 import { decodeProfiloAccessToken } from '../config/appPaths';
-import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
+import { APP_SESSION_STORAGE_KEY, FLOW_INVITE_NAME_STORAGE_KEY } from '../constants/appSession';
 import { getDeviceUiLanguage } from '../utils/uiLanguagePreference';
 import {
   findUserByNameAndPinAnyStatus,
@@ -136,6 +136,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
     if (invitePinFromUrl) setPassword(invitePinFromUrl);
   }, [inviteUserId, inviteNameFromUrl, invitePinFromUrl, linkedUser]);
+
+  useEffect(() => {
+    if (inviteUserId || inviteNameFromUrl || invitePinFromUrl) return;
+    try {
+      const stored = localStorage.getItem(FLOW_INVITE_NAME_STORAGE_KEY);
+      if (stored) {
+        setStaffName(stored.toUpperCase());
+        localStorage.removeItem(FLOW_INVITE_NAME_STORAGE_KEY);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [inviteUserId, inviteNameFromUrl, invitePinFromUrl]);
 
   /**
    * Quando il form diventa visibile (dopo "Tap to start"), sposta il focus sull'input giusto.
