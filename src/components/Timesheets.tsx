@@ -4575,7 +4575,7 @@ export default function Timesheets() {
               : 'max-w-sm md:max-w-2xl lg:max-w-4xl'
           }
           maxHeightClass="max-h-[92dvh] lg:max-h-[630px]"
-          overlayZClass="z-[200]"
+          overlayZClass="z-[10050]"
           ariaLabel={drawerData ? `${drawerData.employeeName} · ${drawerData.dateStr}` : t.ts_shift_detail_modal_aria}
           panelClassName="!overflow-hidden flex flex-col p-0"
           markDatePickerPortal

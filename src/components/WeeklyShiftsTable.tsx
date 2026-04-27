@@ -3151,7 +3151,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
       {/* Modale Storico schedule */}
       {showHistoryModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => setShowHistoryModal(false)}>
+        <div className="fixed inset-0 z-[10050] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => setShowHistoryModal(false)}>
           <div className="modal-glass-panel flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
               <div className="flex items-center gap-2">
@@ -3203,7 +3203,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
       {/* Modale Periodi nascosti */}
       {showHiddenPeriodsModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => setShowHiddenPeriodsModal(false)}>
+        <div className="fixed inset-0 z-[10050] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => setShowHiddenPeriodsModal(false)}>
           <div className="modal-glass-panel flex max-h-[70vh] w-full max-w-sm flex-col overflow-hidden rounded-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
               <div className="flex items-center gap-2">
@@ -3247,7 +3247,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
 
       {/* Modale elenco nomi nella tabella turni */}
       {showEditViewModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => { setShowEditViewModal(false); setEditingNameUserId(null); setDraggingEditViewUserId(null); setDropTargetEditViewIdx(null); }}>
+        <div className="fixed inset-0 z-[10050] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => { setShowEditViewModal(false); setEditingNameUserId(null); setDraggingEditViewUserId(null); setDropTargetEditViewIdx(null); }}>
           <div className="modal-glass-panel flex max-h-[80vh] min-h-0 w-full max-w-sm flex-col overflow-hidden rounded-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 px-4 py-3">
               <h3 className="text-sm font-bold text-white">{t.names_list_title}</h3>
@@ -4972,7 +4972,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         panelRef={shiftDetailModalPanelRef}
         maxWidthClass="max-w-sm"
         maxHeightClass="max-h-[min(92dvh,820px)]"
-        overlayZClass="z-[200]"
         reserveHeaderOffset
         ariaLabel={t.edit_shift}
         panelClassName="!overflow-hidden flex flex-col p-0"
@@ -5811,9 +5810,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           };
           return (
             <>
-              <div className="fixed inset-0 z-[300]" onClick={() => { setSlotRemapPicker(null); setSlotPickerEditMode(false); }} />
+              <div className="fixed inset-0 z-[10050]" onClick={() => { setSlotRemapPicker(null); setSlotPickerEditMode(false); }} />
               <div
-                className="fixed z-[300] rounded-2xl shadow-2xl border flex flex-col"
+                className="fixed z-[10060] rounded-2xl shadow-2xl border flex flex-col"
                 style={{
                   left: Math.min(slotRemapPicker.x, window.innerWidth - 240),
                   top: Math.min(slotRemapPicker.y, window.innerHeight - 380),
@@ -5926,13 +5925,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         <>
           {/* Backdrop invisibile per chiudere */}
           <div
-            className="fixed inset-0 z-[300]"
+            className="fixed inset-0 z-[10050]"
             onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }}
             onClick={() => setContextMenu(null)}
           />
           {/* Menu */}
           <div
-            className="fixed z-[200] min-w-[172px] rounded-xl border border-white/15 shadow-xl py-1 font-sans text-sm overflow-hidden"
+            className="fixed z-[10060] min-w-[172px] rounded-xl border border-white/15 shadow-xl py-1 font-sans text-sm overflow-hidden"
             style={{
               background: '#152848',
               left: Math.min(contextMenu.x, window.innerWidth - 192),
@@ -6291,7 +6290,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed left-0 right-0 bottom-0 top-[var(--app-sticky-header-offset,5rem)] z-[220] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm overflow-y-auto"
+        className="fixed left-0 right-0 bottom-0 top-[var(--app-sticky-header-offset,5rem)] z-[10050] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm overflow-y-auto"
         onClick={onClose}
       >
         <motion.form

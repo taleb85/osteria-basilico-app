@@ -47,7 +47,8 @@ export function CenteredModalPortal({
   panelClassName = '',
   panelStyle,
   markDatePickerPortal = false,
-  overlayZClass = 'z-[200]',
+  /** Stesso strato del layout app: sotto non va o l’header `z-[10040]` resta sopra l’overlay. */
+  overlayZClass = 'z-[10050]',
   disableBackdropClose = true,
   reserveHeaderOffset = false,
 }: CenteredModalPortalProps) {
