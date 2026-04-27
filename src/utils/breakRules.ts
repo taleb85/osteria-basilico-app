@@ -191,6 +191,27 @@ export function flowMealExclusionId(meal: 'lunch' | 'dinner'): string {
 /** Soglia turno per pausa automatica: 6 ore in minuti. */
 export const AUTO_BREAK_THRESHOLD_MINUTES = 6 * 60;
 
+/**
+ * Orari effettivi del drawer non devono ricalcolare pranzo+cena sopra l’importo contabile:
+ * stesso criterio usato in `approveShift` / congelamento.
+ */
+function getPayrollLockedBreakMinutes(shift: {
+  approved_at?: string | null;
+  is_auto_break?: boolean;
+  break_minutes?: number | null;
+}): number | null {
+  if (!shift.approved_at) return null;
+  if (shift.is_auto_break === false) {
+    if (shift.break_minutes != null && shift.break_minutes > 0) return shift.break_minutes;
+    return null;
+  }
+  // `is_auto_break` true o assente: minuti sigillati in contabilità (inclusi record senza `is_auto_break`)
+  if (shift.break_minutes != null && shift.break_minutes >= 0) {
+    return Math.max(0, shift.break_minutes);
+  }
+  return null;
+}
+
 /** Solo regole con `enabled !== false` (default = attiva). */
 export function getActiveBreakRules(rules: BreakRule[] | null | undefined): BreakRule[] {
   if (!rules?.length) return [];
@@ -215,7 +236,11 @@ export type BreakMinutesComputeOptions = {
 /**
  * Restituisce i minuti di pausa da detrarre per un turno.
  *
- * **Regole attive:** con almeno una regola `enabled !== false` e un `user`, l’importo è **solo** quello dalle regole
+ * **Approvato/congelato** (`approved_at` + `break_minutes` di sigillo): importo **da DB**, non ricalcolato
+ * sulle regole pranzo/cena rispetto alle timbrature effettive.
+ *
+ * **Regole attive** (bozze o turni non ancora sigillati in contabilità): con almeno una regola
+ * `enabled !== false` e un `user`, l’importo è **solo** quello dalle regole
  * (anche 0 se nessuna finestra admin copre il turno, es. turno 18:00 con pause 11:30–12 e 17:00–17:30).
  * Non si applicano `break_minutes` sul turno né il fallback automatico ≥6h (evita −30′ indebiti).
  *
@@ -246,6 +271,9 @@ export function getBreakMinutesForShift(
   const deductBreak = shift.deduct_break !== false;
   if (!deductBreak) return 0;
 
+  const locked = getPayrollLockedBreakMinutes(shift);
+  if (locked !== null) return locked;
+
   const activeRules = getActiveBreakRules(rules);
   if (user && activeRules.length > 0) {
     const w = options?.breakRuleWindow;
@@ -268,10 +296,6 @@ export function getBreakMinutesForShift(
   /* Pausa manuale sul turno: rispetta `break_minutes` solo se non è la pausa automatica persistita. */
   if (shift.break_minutes != null && shift.break_minutes > 0 && shift.is_auto_break !== true) {
     return shift.break_minutes;
-  }
-  /** Dopo congelamento: l’importo auto è fissato su DB (`is_auto_break === true` in sigillatura). */
-  if (shift.approved_at && shift.is_auto_break === true && shift.break_minutes != null && shift.break_minutes >= 0) {
-    return Math.max(0, shift.break_minutes);
   }
   const startStr = (options?.breakRuleWindow?.start ?? shift.start_time ?? '').slice(0, 5);
   const endStr   = (options?.breakRuleWindow?.end   ?? shift.end_time   ?? '').slice(0, 5);
@@ -347,6 +371,11 @@ export function getBreakDeductionDisplayItems(
   i18n: { fromShift: string; auto: string; lunch: string; dinner: string }
 ): BreakDeductionLine[] {
   if (shift.deduct_break === false) return [];
+  const locked = getPayrollLockedBreakMinutes(shift);
+  if (locked !== null) {
+    if (locked <= 0) return [];
+    return [{ title: i18n.fromShift, minutes: locked }];
+  }
   const active = getActiveBreakRules(rules);
   if (user && active.length > 0) {
     const w = options?.breakRuleWindow;
@@ -354,18 +383,13 @@ export function getBreakDeductionDisplayItems(
     const en = (w?.end ?? shift.end_time ?? '').slice(0, 5);
     const d = shift.date ?? '';
     if (!st || !en || !d) return [];
-    return getPlannedBreakDeductionLines({ start_time: st, end_time: en, date: d }, user, active);
-  }
-  /** Senza regole admin: dopo congelamento uguale a getBreakMinutesForShift (riga 272+). */
-  if (
-    shift.approved_at &&
-    shift.is_auto_break === true &&
-    shift.break_minutes != null &&
-    shift.break_minutes >= 0
-  ) {
-    const m = Math.max(0, shift.break_minutes);
-    if (m <= 0) return [];
-    return [{ title: i18n.fromShift, minutes: m }];
+    const adminLines = getPlannedBreakDeductionLines(
+      { start_time: st, end_time: en, date: d },
+      user,
+      active
+    );
+    const ex = new Set(shift.deduct_excluded_rule_ids ?? []);
+    return adminLines.filter((l) => !l.ruleId || !ex.has(l.ruleId));
   }
   const startStr = (options?.breakRuleWindow?.start ?? shift.start_time ?? '').slice(0, 5);
   const endStr = (options?.breakRuleWindow?.end ?? shift.end_time ?? '').slice(0, 5);
