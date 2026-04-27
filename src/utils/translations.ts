@@ -883,6 +883,9 @@ const baseIt = {
 
   // Timesheets page
   ts_period_week: 'Settimana',
+  tab_attendance: 'Presenze',
+  tab_statistics: 'Statistiche',
+  tab_grid: 'Griglia',
   tab_period: 'Periodo',
   ts_period_custom: 'Periodo',
   ts_label_from: 'Da',
@@ -1628,6 +1631,9 @@ const baseIt = {
 
 const baseEn: Record<string, string> = {
   ...baseIt,
+  tab_attendance: 'Attendance',
+  tab_statistics: 'Statistics',
+  tab_grid: 'Grid',
   version: 'Version',
   home: 'Home',
   theme: 'Theme',
@@ -3182,6 +3188,9 @@ const baseEn: Record<string, string> = {
 
 const baseEs: Record<string, string> = {
   ...baseIt,
+  tab_attendance: 'Presencias',
+  tab_statistics: 'Estadísticas',
+  tab_grid: 'Cuadrícula',
   version: 'Versión',
   home: 'Inicio',
   theme: 'Tema',
@@ -3488,7 +3497,7 @@ const baseEs: Record<string, string> = {
   copies: 'Copias',
   admin_note: 'Nota interna',
   admin_note_placeholder: 'Nota visible solo para managers…',
-  timesheet_title: 'Hoja de presencia',
+  timesheet_title: 'Presencias',
   timesheet_approve_all: 'Aprobar todos',
   timesheet_my_week: 'Tu semana',
   week_hours: 'Horas semana',
@@ -3920,7 +3929,7 @@ const baseEs: Record<string, string> = {
   home_no_requests: 'Sin solicitudes',
   home_board_empty: 'Sin avisos para el equipo — clic para añadir',
   home_board_placeholder: 'Escribe un mensaje para todo el equipo...',
-  home_dashboard_title: 'Panorama',
+  home_dashboard_title: 'Vista general',
   home_btn_manage_shifts: 'Gestionar Turnos',
   home_btn_attendance: 'Asistencia',
   home_stat_in_shift: 'En turno ahora',
@@ -4735,6 +4744,9 @@ const baseEs: Record<string, string> = {
 /** Francese: le chiavi non elencate usano l’inglese (`baseEn`), non l’italiano. */
 const baseFr: Record<string, string> = {
   ...baseEn,
+  tab_attendance: 'Présences',
+  tab_statistics: 'Statistiques',
+  tab_grid: 'Grille',
   version: 'Version',
   home: 'Accueil',
   theme: 'Thème',

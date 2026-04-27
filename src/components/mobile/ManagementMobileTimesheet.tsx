@@ -26,6 +26,12 @@ interface Props {
   currentUserId: string;
   language: string;
   plannedOnly?: boolean;
+  /**
+   * `embedded`: sotto StaffPersonalDashboard il toggle PRESENZE|STATISTICHE è nel padre;
+   * qui solo griglia + periodo (niente doppia tab né secondo blocco KPI).
+   * `standalone`: vista gestione da App (tab Timesheet) con sottovista completa.
+   */
+  variant?: 'standalone' | 'embedded';
 }
 
 type NavMode = 'week' | 'period';
@@ -515,7 +521,15 @@ function TeamTimesheetSection({
 }
 
 /* ── Componente principale ─────────────────────────────────────────────── */
-export default function ManagementMobileTimesheet({ shifts, punchRecords, users, currentUserId, language, plannedOnly }: Props) {
+export default function ManagementMobileTimesheet({
+  shifts,
+  punchRecords,
+  users,
+  currentUserId,
+  language,
+  plannedOnly,
+  variant = 'standalone',
+}: Props) {
   const locale = getLocale(language);
   const t = getTranslations(language as 'it' | 'en' | 'es') as Record<string, string>;
   const dayLetters = getDayLetters(locale);
@@ -523,6 +537,7 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
   const [navMode, _setNavMode] = useState<NavMode>('period');
   const [navOffset, setNavOffset] = useState(0);
   const [tsView, setTsView] = useState<'presence' | 'stats'>('presence');
+  const embedded = variant === 'embedded';
 
   const getRange = useCallback((mode: NavMode, offset: number): { start: Date; end: Date } => {
     const today = new Date();
@@ -583,58 +598,61 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
     return { weekMins, monthMins, monthDaysWorked: monthDays.size };
   }, [shifts, currentUserId]);
 
+  const showPresenceBody = embedded || tsView === 'presence';
+
   return (
     <div className="flex flex-col pb-content pt-1">
 
-      {/* ── Sub-tab: Presenze | Statistiche ── */}
-      <div className="flex items-center gap-1.5 mb-4 px-4">
-        {(['presence', 'stats'] as const).map((v) => {
-          const label = v === 'presence' ? (t.tab_attendance ?? 'Presenze') : (t.tab_statistics ?? 'Statistiche');
-          const active = tsView === v;
-          return (
-            <button
-              key={v}
-              type="button"
-              onClick={() => setTsView(v)}
-              className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
-                active
-                  ? 'bg-accent text-white shadow-sm'
-                  : 'bg-white/8 border border-white/20 text-white/60 hover:border-white/35 hover:text-white/90'
-              } active:text-white/90'`}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Statistiche view ── */}
-      {tsView === 'stats' && (
-        <div className="min-h-0 overflow-y-auto pb-1">
-          <Suspense fallback={null}>
-            <Statistics />
-          </Suspense>
-        </div>
+      {!embedded && (
+        <>
+          <div className="flex items-center gap-1.5 mb-4 px-4">
+            {(['presence', 'stats'] as const).map((v) => {
+              const label = v === 'presence' ? (t.tab_attendance ?? 'Presenze') : (t.tab_statistics ?? 'Statistiche');
+              const active = tsView === v;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setTsView(v)}
+                  className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
+                    active
+                      ? 'bg-accent text-white shadow-sm'
+                      : 'bg-white/8 border border-white/20 text-white/60 hover:border-white/35 hover:text-white/90'
+                  } active:text-white/90`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {tsView === 'stats' && (
+            <div className="min-h-0 overflow-y-auto pb-1">
+              <Suspense fallback={null}>
+                <Statistics />
+              </Suspense>
+            </div>
+          )}
+        </>
       )}
 
-      {/* ── Presenze view ── */}
-      {tsView === 'presence' && (
+      {showPresenceBody && (
         <>
-          {/* Stats cards SEMANA / MES */}
-          <div className="px-4 mb-4">
-            <MobileStatsCards
-              weekWorkedMins={statsData.weekMins}
-              weekCapMins={40 * 60}
-              monthWorkedMins={statsData.monthMins}
-              monthDaysWorked={statsData.monthDaysWorked}
-              labels={{
-                title: t.tab_statistics ?? 'Statistiche',
-                week: t.ts_period_week ?? 'Settimana',
-                month: t.ts_period_month ?? 'Mese',
-                daysWorked: (t as Record<string,string>).mobile_dash_days_worked ?? 'Giorni lavorati',
-              }}
-            />
-          </div>
+          {!embedded && (
+            <div className="px-4 mb-4">
+              <MobileStatsCards
+                weekWorkedMins={statsData.weekMins}
+                weekCapMins={40 * 60}
+                monthWorkedMins={statsData.monthMins}
+                monthDaysWorked={statsData.monthDaysWorked}
+                labels={{
+                  title: t.tab_statistics ?? 'Statistiche',
+                  week: t.ts_period_week ?? 'Settimana',
+                  month: t.ts_period_month ?? 'Mese',
+                  daysWorked: (t as Record<string, string>).mobile_dash_days_worked ?? 'Giorni lavorati',
+                }}
+              />
+            </div>
+          )}
 
       {/* Barra navigazione periodo */}
       <div className="flex items-center gap-2 mb-5 px-4">

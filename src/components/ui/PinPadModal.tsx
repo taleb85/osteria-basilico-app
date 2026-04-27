@@ -141,7 +141,6 @@ export function PinPadModal({
 
   const filledCount = pin.length;
 
-  const BG = 'transparent';
   const border = '1px solid rgba(255,255,255,0.30)';
   const btnBase = { background: 'transparent', border } as React.CSSProperties;
 
@@ -252,8 +251,8 @@ export function PinPadModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.22 }}
-      className="fixed inset-0 z-[500] flex flex-col items-center justify-center overflow-hidden"
-      style={{ background: BG, backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }}
+      className="fixed inset-0 z-[500] flex flex-col items-center justify-center overflow-hidden bg-black/35 supports-[backdrop-filter]:bg-black/25"
+      style={{ backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
       {/* Card centrata — mobile e desktop */}

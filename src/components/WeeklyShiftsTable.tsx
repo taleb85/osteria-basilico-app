@@ -1246,6 +1246,20 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     return () => document.removeEventListener('mousedown', handleOutside);
   }, [showPeriodPopover]);
 
+  useLayoutEffect(() => {
+    if (!showPeriodPopover || !wstPeriodTriggerRef.current) return;
+    const el = wstPeriodTriggerRef.current;
+    const rect = el.getBoundingClientRect();
+    const panelW = 256;
+    const maxPopoverH = Math.min(window.innerHeight * 0.6, 400);
+    let left = Math.min(rect.left, window.innerWidth - panelW - 8);
+    left = Math.max(8, left);
+    let top = rect.bottom + 4;
+    if (top + maxPopoverH > window.innerHeight - 8) {
+      top = Math.max(8, rect.top - maxPopoverH - 4);
+    }
+    setPeriodPopoverPos({ top, left });
+  }, [showPeriodPopover, periodPopoverYear]);
 
   const applyAndSavePeriodWst = useCallback((cfg: PeriodConfig) => {
     setPeriodConfig(cfg);
@@ -2113,7 +2127,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       {wTurniToolbar && (
       <>
       {/* Toolbar: navigazione + pubblica + ☰ */}
-      <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto relative z-[1000] mb-2">
+      <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex flex-row flex-wrap lg:flex-nowrap items-center justify-start gap-x-2 gap-y-2 overflow-x-auto relative z-40 mb-2">
         {/* ── Sinistra: navigazione periodo / vista ── */}
         <div className="ui-toolbar-row-tight min-w-0 shrink-0 !gap-2">
           {/* Wrapper compatto: nav + chip data sempre vicini */}
@@ -2221,13 +2235,10 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    const next = !showPeriodPopover;
-                    if (next) {
-                      const rect = wstPeriodTriggerRef.current?.getBoundingClientRect();
-                      if (rect) setPeriodPopoverPos({ top: rect.bottom + 4, left: rect.left });
+                    if (!showPeriodPopover) {
                       setPeriodPopoverYear(new Date().getFullYear());
                     }
-                    setShowPeriodPopover(next);
+                    setShowPeriodPopover((v) => !v);
                   }}
                   className={`ui-toolbar-tab !px-4 lg:!px-5 !text-[11px] lg:!text-sm shrink-0 ${
                     showPeriodPopover ? 'bg-accent/8 text-accent' : 'text-white/85 hover:bg-white/10'
@@ -2268,7 +2279,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     <div
                       ref={wstPeriodPopoverRef}
                       style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999, background: 'var(--bg-surface-solid)', border: '1px solid rgba(255,255,255,0.15)' }}
-                      className="w-64 rounded-xl overflow-hidden shadow-2xl"
+                      className="w-64 max-h-[min(60vh,28rem)] rounded-xl overflow-hidden shadow-2xl flex flex-col"
                     >
                       <div className="flex items-center justify-between border-b border-cyan-600/15 px-3 py-2 bg-cyan-600/5">
                         <button
@@ -2291,7 +2302,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           <ChevronRight className="h-3.5 w-3.5" aria-hidden />
                         </button>
                       </div>
-                      <div className="max-h-[340px] overflow-y-auto py-1">
+                      <div className="min-h-0 max-h-[min(60vh,22rem)] overflow-y-auto py-1">
                         {twelveMonths.map(({ cfg, s, e, isActive, isCurrentMonth, monthIdx }) => (
                           <button
                             key={monthIdx}
@@ -4962,6 +4973,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         maxWidthClass="max-w-sm"
         maxHeightClass="max-h-[min(92dvh,820px)]"
         overlayZClass="z-[200]"
+        reserveHeaderOffset
         ariaLabel={t.edit_shift}
         panelClassName="!overflow-hidden flex flex-col p-0"
       >
@@ -6279,7 +6291,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+        className="fixed left-0 right-0 bottom-0 top-[var(--app-sticky-header-offset,5rem)] z-[220] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm overflow-y-auto"
         onClick={onClose}
       >
         <motion.form

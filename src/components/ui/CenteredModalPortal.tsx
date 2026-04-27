@@ -27,6 +27,8 @@ type CenteredModalPortalProps = {
   overlayZClass?: string;
   /** Se true, il click sul backdrop NON chiude il modale. */
   disableBackdropClose?: boolean;
+  /** Se true, l’overlay inizia sotto l’header app (`--app-sticky-header-offset`) così la toolbar non resta sotto al dialog. */
+  reserveHeaderOffset?: boolean;
 };
 
 /**
@@ -47,6 +49,7 @@ export function CenteredModalPortal({
   markDatePickerPortal = false,
   overlayZClass = 'z-[200]',
   disableBackdropClose = true,
+  reserveHeaderOffset = false,
 }: CenteredModalPortalProps) {
   useBodyScrollLock(open);
 
@@ -60,7 +63,11 @@ export function CenteredModalPortal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className={`fixed inset-0 ${overlayZClass} flex items-center justify-center overflow-hidden overscroll-none p-4 font-sans`}
+          className={
+            reserveHeaderOffset
+              ? `fixed left-0 right-0 bottom-0 top-[var(--app-sticky-header-offset,5rem)] ${overlayZClass} flex items-center justify-center overflow-hidden overscroll-none p-4 font-sans`
+              : `fixed inset-0 ${overlayZClass} flex items-center justify-center overflow-hidden overscroll-none p-4 font-sans`
+          }
           role="presentation"
           {...(markDatePickerPortal ? { 'data-osteria-date-picker-portal': '' } : {})}
         >

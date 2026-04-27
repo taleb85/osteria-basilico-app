@@ -1021,7 +1021,7 @@ export default function StaffPersonalDashboard({
                               active
                                 ? 'bg-accent text-white shadow-sm'
                                 : 'bg-white/8 border border-white/20 text-white/60 hover:border-white/35 hover:text-white/90'
-                            } active:text-white/90'`}
+                            } active:text-white/90`}
                           >
                             {label}
                           </button>
@@ -1049,7 +1049,7 @@ export default function StaffPersonalDashboard({
                               monthWorkedMins={mobileStatsData.monthWorkedMins}
                               monthDaysWorked={mobileStatsData.monthDaysWorked}
                               labels={{
-                                title: t.tab_statistics ?? 'Statistiche',
+                                title: t.mobile_dash_numbers ?? 'I miei numeri',
                                 week: t.ts_period_week ?? 'Settimana',
                                 month: t.ts_period_month ?? 'Mese',
                                 daysWorked:
@@ -1060,6 +1060,7 @@ export default function StaffPersonalDashboard({
                         )}
                         {isMobile ? (
                           <ManagementMobileTimesheet
+                            variant="embedded"
                             shifts={mobileTimesheetFiltered}
                             punchRecords={punchRecords}
                             users={users}
