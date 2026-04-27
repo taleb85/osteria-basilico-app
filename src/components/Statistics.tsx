@@ -7,6 +7,7 @@ import {
   startOfWeek,
   endOfWeek,
   addWeeks,
+  subWeeks,
   format,
   isWithinInterval,
   eachWeekOfInterval,
@@ -46,6 +47,7 @@ import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { exportAttendancePdfFromGrid } from '../utils/timesheetPdfFromRange';
 import { translateDepartmentValue } from '../utils/departmentLabels';
 import { getDeptColor, getDepartments, deptMatchesFilterKey } from '../utils/departments';
+import { exportToCsv } from '../utils/exportCsv';
 
 function toDateOnly(d: Date): string {
   return format(d, 'yyyy-MM-dd');
@@ -356,7 +358,88 @@ export default function Statistics() {
     return Object.values(byWeek).reduce((a, b) => a + b, 0);
   }, [currentUser, minutesByUserByWeek]);
 
+  const todayStrKpi = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
+
+  const kpiMonthTotalMins = useMemo(() => {
+    const m0 = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+    const m1 = format(endOfMonth(new Date()), 'yyyy-MM-dd');
+    let sum = 0;
+    for (const u of filteredUsers) {
+      const byDay = minutesByUserByDay[u.id] ?? {};
+      for (const [d, mins] of Object.entries(byDay)) {
+        if (d >= m0 && d <= m1) sum += mins;
+      }
+    }
+    return sum;
+  }, [filteredUsers, minutesByUserByDay]);
+
+  const kpiPresentAbsent = useMemo(() => {
+    const m0 = startOfMonth(new Date());
+    const m1 = endOfMonth(new Date());
+    let pres = 0;
+    let abs = 0;
+    for (const s of shifts) {
+      if (!filteredUsers.some((u) => u.id === s.user_id)) continue;
+      const sd = parseShiftLocalDate(s.date);
+      if (Number.isNaN(sd.getTime()) || !isWithinInterval(sd, { start: m0, end: m1 })) continue;
+      if (s.approval_status === 'absent') abs += 1;
+      else if (s.approval_status === 'approved' || s.approval_status === 'confirmed') pres += 1;
+    }
+    return { pres, abs };
+  }, [filteredUsers, shifts]);
+
+  const kpiAvgWeeklyMins = useMemo(() => {
+    const n = weeksInRange.length;
+    if (n < 1) return 0;
+    return Math.round(totalMinutesFiltered / n);
+  }, [totalMinutesFiltered, weeksInRange.length]);
+
+  const kpiActiveToday = useMemo(() => {
+    return filteredUsers.filter((u) =>
+      shifts.some(
+        (s) =>
+          s.user_id === u.id &&
+          s.date === todayStrKpi &&
+          s.approval_status !== 'absent' &&
+          (s.approval_status === 'approved' ||
+            s.approval_status === 'confirmed' ||
+            s.approval_status === 'draft')
+      )
+    ).length;
+  }, [filteredUsers, shifts, todayStrKpi]);
+
+  const eightWeekTrend = useMemo(() => {
+    const out: { key: string; label: string; minutes: number }[] = [];
+    const anchor = new Date();
+    for (let back = 7; back >= 0; back -= 1) {
+      const wStart = startOfWeek(subWeeks(anchor, back), { weekStartsOn: 1 });
+      const wk = getISOWeek(wStart);
+      const y = getISOWeekYear(wStart);
+      const key = `${y}-W${String(wk).padStart(2, '0')}` as WeekKey;
+      let mins = 0;
+      for (const u of filteredUsers) {
+        mins += minutesByUserByWeek[u.id]?.[key] ?? 0;
+      }
+      out.push({ key, label: `S${wk}`, minutes: mins });
+    }
+    return out;
+  }, [filteredUsers, minutesByUserByWeek]);
+
   const hasDataInRange = totalMinutesAll > 0;
+
+  const handleExportStatsCsv = useCallback(() => {
+    const rows: Record<string, unknown>[] = filteredUsers.map((u) => {
+      const byWeek = minutesByUserByWeek[u.id] ?? {};
+      const total = Object.values(byWeek).reduce((a, b) => a + b, 0);
+      return {
+        nome: `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim(),
+        reparto: u.department ?? '',
+        minuti_periodo: total,
+        ore_periodo: formatMinutesToHoursAndMinutes(total),
+      };
+    });
+    exportToCsv(`statistiche-${format(new Date(), 'yyyy-MM-dd')}`, rows);
+  }, [filteredUsers, minutesByUserByWeek]);
 
 
   if (!currentUser) return null;
@@ -600,6 +683,131 @@ export default function Statistics() {
               </div>
              </div>
           </>
+        )}
+
+        {showManagementStatsChrome && (
+          <div className="mb-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-bold uppercase tracking-widest text-white/70">
+                {tv.stats_analytics_title ?? 'Analytics'}
+              </p>
+              <button
+                type="button"
+                onClick={handleExportStatsCsv}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-white/15"
+              >
+                <FileDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                {tv.stats_export_csv ?? 'Export CSV'}
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <div
+                className="rounded-2xl border border-white/12 px-3 py-3"
+                style={{ background: 'rgba(255,255,255,0.06)' }}
+              >
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">
+                  {tv.stats_kpi_month_hours ?? 'Ore mese (calendario)'}
+                </p>
+                <p className="mt-1 text-lg font-bold tabular-nums text-white">
+                  {formatMinutesToHoursAndMinutes(kpiMonthTotalMins)}
+                </p>
+              </div>
+              <div
+                className="rounded-2xl border border-white/12 px-3 py-3"
+                style={{ background: 'rgba(255,255,255,0.06)' }}
+              >
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">
+                  {tv.stats_kpi_present_absent ?? 'Presenze / assenze (mese)'}
+                </p>
+                <p className="mt-1 text-lg font-bold tabular-nums text-white">
+                  {kpiPresentAbsent.pres} / {kpiPresentAbsent.abs}
+                </p>
+              </div>
+              <div
+                className="rounded-2xl border border-white/12 px-3 py-3"
+                style={{ background: 'rgba(255,255,255,0.06)' }}
+              >
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">
+                  {tv.stats_kpi_avg_week ?? 'Media ore / sett. (vista)'}
+                </p>
+                <p className="mt-1 text-lg font-bold tabular-nums text-white">
+                  {formatMinutesToHoursAndMinutes(kpiAvgWeeklyMins)}
+                </p>
+              </div>
+              <div
+                className="rounded-2xl border border-white/12 px-3 py-3"
+                style={{ background: 'rgba(255,255,255,0.06)' }}
+              >
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">
+                  {tv.stats_kpi_active_today ?? 'Dipendenti con turno oggi'}
+                </p>
+                <p className="mt-1 text-lg font-bold tabular-nums text-white">{kpiActiveToday}</p>
+              </div>
+            </div>
+            <div
+              className="rounded-2xl border border-white/12 p-4"
+              style={{ background: 'rgba(255,255,255,0.05)' }}
+            >
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-white/50">
+                {tv.stats_trend_8w ?? 'Trend ultime 8 settimane'}
+              </p>
+              {(() => {
+                const w = 1000;
+                const h = 120;
+                const pad = 12;
+                const maxM = Math.max(1, ...eightWeekTrend.map((t) => t.minutes));
+                const n = eightWeekTrend.length;
+                const pts = eightWeekTrend.map((t, i) => {
+                  const x = n <= 1 ? w / 2 : pad + (i / (n - 1)) * (w - 2 * pad);
+                  const y = h - pad - (t.minutes / maxM) * (h - 2 * pad);
+                  return [x, y] as const;
+                });
+                const lineD =
+                  pts.length === 0
+                    ? ''
+                    : `M ${pts[0]![0]} ${pts[0]![1]}` +
+                      pts
+                        .slice(1)
+                        .map((p) => ` L ${p[0]} ${p[1]}`)
+                        .join('');
+                const areaD =
+                  pts.length > 1
+                    ? `${lineD} L ${pts[pts.length - 1]![0]} ${h} L ${pts[0]![0]} ${h} Z`
+                    : '';
+                return (
+                  <svg
+                    viewBox={`0 0 ${w} ${h}`}
+                    className="h-32 w-full"
+                    role="img"
+                    aria-label={tv.stats_trend_8w ?? 'Trend ore'}
+                  >
+                    <defs>
+                      <linearGradient id="statsLine" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="rgb(0 82 255)" stopOpacity="0.35" />
+                        <stop offset="100%" stopColor="rgb(0 82 255)" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    {areaD ? <path d={areaD} fill="url(#statsLine)" /> : null}
+                    {lineD ? (
+                      <path
+                        d={lineD}
+                        fill="none"
+                        stroke="rgb(0 120 255)"
+                        strokeWidth="2.5"
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                      />
+                    ) : null}
+                  </svg>
+                );
+              })()}
+              <div className="mt-1 flex justify-between text-[9px] font-semibold text-white/40">
+                {eightWeekTrend.map((t) => (
+                  <span key={t.key}>{t.label}</span>
+                ))}
+              </div>
+            </div>
+          </div>
         )}
 
         {showManagementStatsChrome && payrollForCalendarMonth && uiW('stats.table') && (

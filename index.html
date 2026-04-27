@@ -11,8 +11,15 @@
     </script>
     <script>
       (function(){
-        /* Tema fisso: solo Light. Rimuove classe dark e pulisce preferenze precedenti. */
-        document.documentElement.classList.remove('dark');
+        /* Tema: flow-theme in localStorage (allineato a useTheme in React) */
+        var th = 'dark';
+        try {
+          var s = localStorage.getItem('flow-theme');
+          if (s === 'light' || s === 'dark') th = s;
+        } catch (e) {}
+        document.documentElement.setAttribute('data-theme', th);
+        if (th === 'dark') document.documentElement.classList.add('dark');
+        else document.documentElement.classList.remove('dark');
         try { localStorage.removeItem('userTheme'); localStorage.removeItem('theme'); } catch(e){}
 
         /* Cache-bust: `__INJECTED_CACHE_VERSION__` sostituito da Vite in build (vedi inject-version-meta) */

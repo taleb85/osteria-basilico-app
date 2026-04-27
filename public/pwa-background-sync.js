@@ -8,7 +8,7 @@
   var MSG = 'OSTERIA_BACKGROUND_SYNC';
 
   self.addEventListener('sync', function (event) {
-    if (event.tag === TAG) {
+    if (event.tag === TAG || event.tag === 'punch-queue') {
       event.waitUntil(notifyClients());
     }
   });

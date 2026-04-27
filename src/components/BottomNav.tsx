@@ -267,6 +267,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
 
   return (
     <nav
+      data-tour="nav"
       ref={navRef}
       className={`fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none font-sans ${navClassName ?? ''}`}
       style={{
@@ -302,6 +303,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                 <button
                   key={id}
                   type="button"
+                  data-tour={id === 'profile' ? 'profile' : undefined}
                   onClick={() => { triggerHapticFeedback('click'); onTabChange(id); }}
                   onMouseDown={() => handleLongPressStart(id)}
                   onMouseUp={handleLongPressEnd}

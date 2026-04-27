@@ -18,6 +18,7 @@ import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase'
 import DatePickerField from './DatePickerField';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
+import { useTheme } from '../hooks/useTheme';
 import { useTenant } from '../context/TenantContext';
 import type { User, UserRole } from '../types';
 import { translateRole } from '../utils/roles';
@@ -187,6 +188,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
   } = useApp();
   const { tenant } = useTenant();
   const t = useT();
+  const { theme, toggle: toggleFlowTheme } = useTheme();
 
   const [pullSyncBusy, setPullSyncBusy] = useState(false);
   const [pushSyncBusy, setPushSyncBusy] = useState(false);
@@ -674,6 +676,21 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             </motion.div>
           )}
         </AnimatePresence>
+
+        <section className="mb-6">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2">
+            {t.theme ?? 'Tema'}
+          </p>
+          <button
+            type="button"
+            onClick={toggleFlowTheme}
+            aria-label={theme === 'dark' ? 'Passa a tema chiaro' : 'Passa a tema scuro'}
+            className="inline-flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/15 active:scale-[0.99]"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}{' '}
+            {theme === 'dark' ? (t.light ?? 'Tema chiaro') : (t.dark ?? 'Tema scuro')}
+          </button>
+        </section>
 
         {/* ── SEZIONE: Gestione Profili ── */}
         <div style={view === 'regole' ? { display: 'none' } : undefined}>

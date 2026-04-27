@@ -534,6 +534,13 @@ const baseIt = {
   stats_team_hours_period: 'Ore totali team nel periodo',
   /** Scheda Ore — vista gestione: riepilogo solo dell’utente connesso (manager, assistant, admin, …). */
   stats_mgmt_personal_hours_period: 'Le tue ore nel periodo',
+  stats_analytics_title: 'Analytics',
+  stats_export_csv: 'Export CSV',
+  stats_kpi_month_hours: 'Ore totali mese (calendario)',
+  stats_kpi_present_absent: 'Presenze / assenze (mese)',
+  stats_kpi_avg_week: 'Media ore / settimana (vista)',
+  stats_kpi_active_today: 'Dipendenti con turno oggi',
+  stats_trend_8w: 'Trend ultime 8 settimane',
 
   // Sidebar tabs
   sidebar_dashboard: 'Dashboard',
@@ -2079,6 +2086,13 @@ const baseEn: Record<string, string> = {
   stats_period_total_label: 'Total hours in range',
   stats_team_hours_period: 'Total team hours in range',
   stats_mgmt_personal_hours_period: 'Your hours in the period',
+  stats_analytics_title: 'Analytics',
+  stats_export_csv: 'Export CSV',
+  stats_kpi_month_hours: 'Total month hours (calendar)',
+  stats_kpi_present_absent: 'Present / absent (month)',
+  stats_kpi_avg_week: 'Avg. hours / week (view)',
+  stats_kpi_active_today: 'Employees with a shift today',
+  stats_trend_8w: 'Last 8 weeks trend',
 
   // Sidebar tabs EN
   sidebar_dashboard: 'Dashboard',
@@ -3630,6 +3644,13 @@ const baseEs: Record<string, string> = {
   stats_period_total_label: 'Horas totales en el periodo',
   stats_team_hours_period: 'Horas totales del equipo en el periodo',
   stats_mgmt_personal_hours_period: 'Tus horas en el periodo',
+  stats_analytics_title: 'Analítica',
+  stats_export_csv: 'Exportar CSV',
+  stats_kpi_month_hours: 'Horas totales del mes (calendario)',
+  stats_kpi_present_absent: 'Presencias / ausencias (mes)',
+  stats_kpi_avg_week: 'Media horas / semana (vista)',
+  stats_kpi_active_today: 'Empleados con turno hoy',
+  stats_trend_8w: 'Tendencia últimas 8 semanas',
 
   // Sidebar ES
   sidebar_dashboard: 'Dashboard',
@@ -4909,6 +4930,13 @@ const baseFr: Record<string, string> = {
   statistics_nav: 'Heures',
   stats_title: 'Heures',
   mod_stats_hours: 'Heures',
+  stats_analytics_title: 'Analytique',
+  stats_export_csv: 'Exporter CSV',
+  stats_kpi_month_hours: 'Heures totales du mois (calendrier)',
+  stats_kpi_present_absent: 'Présences / absences (mois)',
+  stats_kpi_avg_week: 'Moy. heures / semaine (vue)',
+  stats_kpi_active_today: 'Employés avec un shift aujourd’hui',
+  stats_trend_8w: 'Tendance sur 8 semaines',
   profile_hourly_rate_label: 'Taux horaire (€/h)',
   profile_hourly_rate_placeholder: 'ex. 12,50',
   profile_hourly_rate_hint:

@@ -158,7 +158,7 @@ export default function MobileHome({
       </div>
 
       {/* ── Il tuo turno oggi ──────────────────────────────────────────── */}
-      <section className="shift-card-ultra px-4 py-4">
+      <section className="shift-card-ultra px-4 py-4" data-tour="punch">
         {/* Header row: label + stato badge */}
         <div className="flex items-center justify-between mb-3">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50">

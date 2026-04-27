@@ -44,27 +44,26 @@ test.describe('Smoke Test', () => {
     expect(typeof hasInstallOrBypass).toBe('boolean');
   });
 
-  test('no service role key in bundle', async ({ page }) => {
-    // Naviga e cattura tutti i network requests per JS bundles
+  test('no service role key in bundle', async ({ page }, testInfo) => {
     const jsRequests: string[] = [];
-    
-    page.on('request', req => {
+    page.on('request', (req) => {
       if (req.resourceType() === 'script') {
         jsRequests.push(req.url());
       }
     });
-    
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    
-    // Scarica tutti i JS chunk e verifica che non contengano service role key patterns
+    if (jsRequests.some((u) => u.includes('/src/'))) {
+      testInfo.skip(
+        'Vite dev serializza tutte le VITE_* in import.meta.env; il controllo reale è `node scripts/verify-dist-no-service-role.mjs` post-build (CI).'
+      );
+      return;
+    }
     for (const url of jsRequests) {
       if (url.includes('node_modules') || url.includes('vite/dist')) continue;
-      
+      if (!/\/assets\/.+\.js(\?|$)/.test(new URL(url).pathname)) continue;
       const response = await page.request.get(url);
       const content = await response.text();
-      
-      // Pattern che indicano presenza di service role key
       expect(content).not.toContain('service_role');
       expect(content).not.toContain('SUPABASE_SERVICE_ROLE_KEY');
       expect(content).not.toContain('supabaseAdmin');

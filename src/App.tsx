@@ -47,6 +47,8 @@ import {
   getAppRootScrollY,
 } from './utils/mainAppViewRestore';
 import { useIsMobileViewport } from './hooks/useIsMobileViewport';
+import { useOnboarding } from './hooks/useOnboarding';
+import { OnboardingTour } from './components/OnboardingTour';
 import { isAdminOnly, isManagementRole } from './utils/permissions';
 import { getTimesheetGridPrivacyMode } from './utils/timesheetGridPrivacy';
 import AdminGate from './components/AdminGate';
@@ -241,6 +243,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
   // ── Modal permessi (notifiche + posizione) al primo accesso ─────────────────
   const [showPermissions, setShowPermissions] = useState(false);
+  const { showTour, completeTour } = useOnboarding();
   useEffect(() => {
     if (!currentUser || showOnboarding) return;
     shouldShowPermissionModal().then(show => { if (show) setShowPermissions(true); });
@@ -677,6 +680,9 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         <Suspense fallback={null}><PermissionRequestModal key="perm-modal" onDone={() => setShowPermissions(false)} /></Suspense>
       )}
     </AnimatePresence>
+    {currentUser && !showOnboarding && !showPermissions && showTour && (
+      <OnboardingTour onComplete={completeTour} />
+    )}
     <div className="min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
       <a
         href="#main-content"

@@ -87,8 +87,14 @@ export default defineConfig(({ command }) => {
       },
     },
     VitePWA({
-      /** In dev niente SW: evita cache / navigate che sembrano “/app non funziona” su 127.0.0.1:5173. */
-      devOptions: { enabled: false },
+      /**
+       * In dev di solito niente SW; con PLAYWRIGHT=1 (E2E) abilitiamo PWA+SW per pwa.spec.ts.
+       * Evita cache / navigate che sembrano “/app non funziona” su 127.0.0.1:5173.
+       */
+      devOptions: {
+        /** E2E webServer imposta PLAYWRIGHT=1; in CI (GitHub Actions) `CI` è set anche senza quello. */
+        enabled: process.env.PLAYWRIGHT === '1' || process.env.CI === 'true',
+      },
       registerType: 'autoUpdate',
       includeAssets: [
         'favicon.ico', 'apple-touch-icon.png', 'og-image.png',
@@ -169,6 +175,19 @@ export default defineConfig(({ command }) => {
          * (navigate: offline → ancora index precachato, vedi sotto e navigateFallback)
          */
         runtimeCaching: [
+          // Background sync per richieste timbrature offline (coda lato client Workbox)
+          {
+            urlPattern: /\/api\/punch/,
+            handler: 'NetworkOnly',
+            options: {
+              backgroundSync: {
+                name: 'punch-queue',
+                options: {
+                  maxRetentionTime: 24 * 60,
+                },
+              },
+            },
+          },
           {
             urlPattern: /\/app-version\.txt(?:\?.*)?$/i,
             handler: 'NetworkOnly',
