@@ -2075,7 +2075,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   return (
     <div
       ref={tableContainerRef}
-      className="pb-content pt-6 w-full max-w-7xl mx-auto font-sans"
+      className="pb-content pt-6 w-full font-sans"
       role="region"
       aria-label={t.sidebar_shifts ?? 'Turni'}
     >
