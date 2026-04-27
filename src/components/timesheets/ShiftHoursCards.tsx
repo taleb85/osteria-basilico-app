@@ -34,6 +34,7 @@ interface ShiftHoursCardsProps {
     is_auto_break?: boolean;
     break_minutes?: number;
     deduct_excluded_rule_ids?: string[];
+    approved_at?: string | null;
   } | null;
   
   /** Classi CSS per card pianificato */
@@ -127,6 +128,21 @@ export function ShiftHoursCards({
   deductBreakLineItems,
 }: ShiftHoursCardsProps) {
   const ruleExclusion = new Set(deductExcludedRuleIds ?? []);
+  const excludedRuleIdsMerged = new Set<string>([
+    ...(deductExcludedRuleIds ?? []),
+    ...(Array.isArray(fullShift?.deduct_excluded_rule_ids) ? fullShift.deduct_excluded_rule_ids : []),
+  ]);
+  const frozenDeductLineItems = (deductBreakLineItems ?? []).filter(
+    (it) => !it.ruleId || !excludedRuleIdsMerged.has(it.ruleId)
+  );
+  const frozenReadoutLines =
+    frozenDeductLineItems.length > 0
+      ? frozenDeductLineItems
+      : fullShift != null &&
+          (fullShift.break_minutes ?? 0) > 0 &&
+          fullShift.approved_at
+        ? [{ title: t.ts_deduct_break_from_shift, minutes: fullShift.break_minutes as number }]
+        : [];
   const hasPerRuleSwitches = !!(
     onDeductPerRuleChange &&
     fullShift &&
@@ -277,21 +293,20 @@ export function ShiftHoursCards({
         </div>
       </div>
 
-      {/* Congelato: solo lettura (stesso dato del netto) — niente doppia fascia vs DB */}
+      {/* Congelato: solo lettura — stesse voci del netto (esclude ruleId in deduct_excluded_rule_ids) */}
       {!isEmployeeWeekReviewSheet &&
         isFrozen &&
         fullShift &&
         fullShift.deduct_break !== false &&
         !isAbsent &&
-        deductBreakLineItems &&
-        deductBreakLineItems.length > 0 && (
+        frozenReadoutLines.length > 0 && (
         <div className="mt-5 space-y-2 rounded-xl border border-white/12 bg-white/6 px-3 py-3">
           <p className="text-xs font-semibold text-white/85">{t.deduct_break_label}</p>
-          {deductBreakLineItems.length > 1 ? (
+          {frozenReadoutLines.length > 1 ? (
             <p className="text-[11px] leading-snug text-white/50">{t.wst_drawer_breaks_deducted_list_intro}</p>
           ) : null}
           <ul className="list-none space-y-1.5 pl-0">
-            {deductBreakLineItems.map((it) => (
+            {frozenReadoutLines.map((it) => (
               <li
                 key={`${it.title}-${it.minutes}-${it.ruleId ?? ''}`}
                 className="flex flex-wrap items-baseline justify-between gap-x-2 text-[11px] tabular-nums text-white/75"

@@ -269,7 +269,7 @@ export function getBreakMinutesForShift(
   if (shift.break_minutes != null && shift.break_minutes > 0 && shift.is_auto_break !== true) {
     return shift.break_minutes;
   }
-  /** Dopo congelamento: l’importo auto è fissato su DB; evita −60′ se `deduct_excluded_rule_ids` non è persistito. */
+  /** Dopo congelamento: l’importo auto è fissato su DB (`is_auto_break === true` in sigillatura). */
   if (shift.approved_at && shift.is_auto_break === true && shift.break_minutes != null && shift.break_minutes >= 0) {
     return Math.max(0, shift.break_minutes);
   }
@@ -356,7 +356,7 @@ export function getBreakDeductionDisplayItems(
     if (!st || !en || !d) return [];
     return getPlannedBreakDeductionLines({ start_time: st, end_time: en, date: d }, user, active);
   }
-  /** Stesso criterio di getBreakMinutesForShift (importo fissato su DB): niente 2 righe fasce se il congelato ha un solo `break_minutes`. */
+  /** Senza regole admin: dopo congelamento uguale a getBreakMinutesForShift (riga 272+). */
   if (
     shift.approved_at &&
     shift.is_auto_break === true &&
