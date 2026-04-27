@@ -2426,6 +2426,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showError,
     markManagementDataTouched,
     beginDepartmentsOwnPushGracePeriod,
+    currentUser?.id,
   ]);
 
   const notifyDepartmentsChanged = useCallback(async () => {
@@ -2626,7 +2627,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     postRefreshLockedRef.current = false;
     setPostRefreshLocked(false);
     return true;
-  }, [pendingOrderIds, pendingPublishWeekStart, shifts, effectiveLanguage, showError, showSuccess, silentRefreshData]);
+  }, [pendingOrderIds, pendingPublishWeekStart, shifts, effectiveLanguage, showError, showSuccess, silentRefreshData, markManagementDataTouched]);
 
   const unlockAfterRefresh = useCallback(
     async (pin: string): Promise<boolean> => {

@@ -140,7 +140,7 @@ export default function HeaderTodayCoworkersCard() {
       return aStart.localeCompare(bStart);
     });
     return out;
-  }, [currentUser, shifts, users]);
+  }, [currentUser, shifts, users, isVisibleByAdmin]);
 
   const getPunchForShift = (shiftId: string, userId: string, dateStr: string, isLunchShift: boolean) => {
     const punchIn = punchRecords.find((p) => {

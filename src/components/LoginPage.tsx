@@ -330,7 +330,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       return;
     }
     finalizeSession(user, () => setIsLoading(false));
-  }, [staffName, password, isLoading, users, finalizeSession, t, loadTenantBySlug]);
+  }, [staffName, password, isLoading, users, finalizeSession, t, loadTenantBySlug, setIsSessionElevated]);
 
   const handleDeviceLogin = useCallback(async () => {
     if (!webAuthnOk || deviceLoading || isLoading || linkDeviceLoading) return;

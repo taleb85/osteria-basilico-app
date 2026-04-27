@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- context file: exports provider, hooks, and brand/PWA utilities by design */
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { setDatabaseTenant } from '../lib/database';

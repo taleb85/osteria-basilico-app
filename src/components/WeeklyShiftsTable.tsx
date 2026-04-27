@@ -1304,7 +1304,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       return (a.sort_order ?? 0) - (b.sort_order ?? 0);
     });
     return list;
-  }, [users, filterUserId, localFilterUserId, userOrderOverride, localFilterDepartment, shifts]);
+  }, [users, filterUserId, localFilterUserId, userOrderOverride, localFilterDepartment, shifts, viewMode, weekStart]);
 
   // Holiday lookup: Set of "userId_yyyy-MM-dd" for approved holiday days
   const approvedHolidayDates = useMemo(() => {
@@ -1444,7 +1444,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [viewMode, maxWeekIndex, displayPeriodConfig.numWeeks]);
+  }, [viewMode, maxWeekIndex, displayPeriodConfig.numWeeks, deleteConfirmPending, pasteMode]);
 
   useEffect(() => {
     const handleClickOutside = (e: PointerEvent) => {
@@ -2053,6 +2053,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     showSuccess,
     showError,
     t,
+    tenant?.name,
   ]);
 
   if (!currentUser) return null;

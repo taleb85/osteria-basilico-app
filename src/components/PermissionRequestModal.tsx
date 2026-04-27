@@ -5,15 +5,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, MapPin, CheckCircle, ChevronRight } from 'lucide-react';
-
-const STORAGE_KEY = 'app:permissions_requested';
-
-function alreadyAsked(): boolean {
-  try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
-}
-function markAsked() {
-  try { localStorage.setItem(STORAGE_KEY, '1'); } catch { /* ignore */ }
-}
+import { markPermissionModalAsked } from './permissionModalEligibility';
 
 function _isPermissionNeeded(p: NotificationPermission | PermissionState | undefined) {
   return p === 'default' || p === 'prompt' || p === undefined;
@@ -58,7 +50,7 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
   };
 
   const handleContinua = () => {
-    markAsked();
+    markPermissionModalAsked();
     onDone();
   };
 
@@ -166,19 +158,4 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
       </motion.div>
     </div>
   );
-}
-
-/** Ritorna true se il modal va mostrato (prima volta e almeno un permesso da chiedere) */
-export async function shouldShowPermissionModal(): Promise<boolean> {
-  if (alreadyAsked()) return false;
-  // Controlla se c'è almeno un permesso non ancora deciso
-  const notifPending = 'Notification' in window && Notification.permission === 'default';
-  let locPending = true;
-  try {
-    if (navigator.permissions) {
-      const r = await navigator.permissions.query({ name: 'geolocation' });
-      locPending = r.state === 'prompt';
-    }
-  } catch { /* ignore */ }
-  return notifPending || locPending;
 }

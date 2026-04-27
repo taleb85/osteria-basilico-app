@@ -58,7 +58,8 @@ const ProfileNavTabPanel = lazy(() => import('./components/ProfileNavTabPanel'))
 const AdminLayout = lazy(() => import('./components/AdminLayout'));
 const OnboardingSetupModal = lazy(() => import('./components/OnboardingSetupModal'));
 const PermissionRequestModal = lazy(() => import('./components/PermissionRequestModal').then(m => ({ default: m.default })));
-const shouldShowPermissionModal = () => import('./components/PermissionRequestModal').then(m => m.shouldShowPermissionModal()).catch(() => false);
+const shouldShowPermissionModal = () =>
+  import('./components/permissionModalEligibility').then((m) => m.shouldShowPermissionModal()).catch(() => false);
 
 const WeeklyShiftsTable = lazy(() => import('./components/WeeklyShiftsTable'));
 const HolidayRequests = lazy(() => import('./components/HolidayRequests'));
@@ -341,7 +342,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       prevTabRef.current = id;
       setActiveTab(id);
     },
-    [currentUser, isManagement, navigate]
+    [currentUser, navigate, isSessionElevated]
   );
 
   const handleTabChange = useCallback(
@@ -996,6 +997,7 @@ function ProtectedApp() {
     currentUser?.id,
     currentUser?.language,
     setCurrentUser,
+    setIsSessionElevated,
     navigate,
   ]);
 

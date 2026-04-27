@@ -148,7 +148,7 @@ export default function MobileStaffDashboard({
     } finally {
       setClosingLoading(false);
     }
-  }, [closeModal, clockOutInput, todayStr, updatePunchRecord, showSuccess, showError, t, checkGeofence]);
+  }, [closeModal, clockOutInput, todayStr, updatePunchRecord, showSuccess, showError, t, checkGeofence, featureFlags, user.role]);
 
   const statsLabels = {
     title: tv.mobile_dash_numbers ?? 'I miei numeri',

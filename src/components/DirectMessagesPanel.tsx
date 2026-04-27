@@ -223,7 +223,7 @@ function ChatView({
       (m) => !m.is_read && m.sender_id === contactId
     );
     unread.forEach((m) => markAsRead(m.id));
-  }, [contactId]); // intentionally only on mount / contact change
+  }, [contactId, threadMessages, markAsRead]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -243,7 +243,7 @@ function ChatView({
       result[result.length - 1].msgs.push(msg);
     }
     return result;
-  }, [threadMessages]);
+  }, [threadMessages, intlLocale, t?.messages_today, t?.messages_yesterday]);
 
   const handleSend = useCallback(async () => {
     const body = text.trim();

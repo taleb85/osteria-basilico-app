@@ -567,7 +567,7 @@ export default function Timesheets() {
   };
 
   /** Applica un PeriodConfig precalcolato (prev/next/today) salvandolo subito. */
-  const applyAndSavePeriod = (cfg: PeriodConfig) => {
+  const applyAndSavePeriod = useCallback((cfg: PeriodConfig) => {
     setPeriodStart(cfg.startDate);
     setPeriodNumWeeks(cfg.numWeeks);
     persistPeriodConfig(cfg);
@@ -578,7 +578,7 @@ export default function Timesheets() {
     void saveTimesheetPeriodToSupabase(cfg).catch(() => {
       showError?.(t.ts_period_cloud_failed);
     });
-  };
+  }, [showError, t]);
 
   /** Allinea stato UI al periodo salvato in localStorage (altri profili, altre schede, evento globale). */
   const applyPeriodFromStorage = useCallback(() => {
@@ -670,6 +670,9 @@ export default function Timesheets() {
       const stored = readStoredWeekIndex(periodConfig.startDate, periodConfig.numWeeks);
       if (stored !== weekIndex) setWeekIndex(stored);
     }
+    // dayOffset è letto per confrontarlo con oggi ma non va nelle dipendenze: a ogni cambio di offset
+    // rieseguire l'effetto riallineerebbe al «oggi» e annullerebbe la navigazione giorno-per-giorno.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- vedi sopra
   }, [periodConfig, drawerData, drawerReviewQueue, weekIndex]);
 
   // Rilegge weekIndex da sessionStorage quando la tab Presenze viene attivata
@@ -1042,12 +1045,15 @@ export default function Timesheets() {
     [periodStartStr, periodEndStr]
   );
 
-  const weekDays =
-    viewMode === 'day'
-      ? [addDays(periodStartDate, dayOffset)]
-      : viewMode === 'week'
-        ? allPeriodDays.slice(weekIndex * 7, weekIndex * 7 + 7)
-        : allPeriodDays; // 'month': mostra solo i giorni del periodo configurato
+  const weekDays = useMemo(
+    () =>
+      viewMode === 'day'
+        ? [addDays(periodStartDate, dayOffset)]
+        : viewMode === 'week'
+          ? allPeriodDays.slice(weekIndex * 7, weekIndex * 7 + 7)
+          : allPeriodDays, // 'month': mostra solo i giorni del periodo configurato
+    [viewMode, periodStartDate, dayOffset, allPeriodDays, weekIndex]
+  );
   const weekStart = weekDays[0] ?? periodStartDate;
   const lastDay = weekDays[weekDays.length - 1] ?? periodEndDate;
   const weekStr = format(weekStart, 'yyyy-MM-dd');
@@ -1084,7 +1090,7 @@ export default function Timesheets() {
               onNext: () => setWeekIndex((i) => Math.min(maxWeekIndex, i + 1)),
             }
           : undefined,
-    [viewMode, weekIndex, maxWeekIndex]
+    [viewMode, weekIndex, maxWeekIndex, dayOffset, maxDayOffset]
   );
 
   /** Griglia presenze: larghezze fisse (px) — nome | ogni giorno | colonna totale. */
@@ -1102,7 +1108,7 @@ export default function Timesheets() {
     if (todayStr < startDate || todayStr > endDate) return false;
     const target = weekIndexForDateInPeriod(periodConfig, new Date());
     return weekIndex === target;
-  }, [viewMode, periodNavOffset, todayStr, periodConfig.startDate, periodConfig.numWeeks, weekIndex]);
+  }, [viewMode, periodNavOffset, todayStr, periodConfig, weekIndex]);
 
   const goToToday = useCallback(() => {
     const cfg = loadPeriodConfig();
@@ -1133,7 +1139,7 @@ export default function Timesheets() {
       /* ignore */
     }
     setWeekIndex(wIdx);
-  }, [applyPeriodFromStorage, todayStr]);
+  }, [applyPeriodFromStorage, todayStr, applyAndSavePeriod]);
 
 
   useEffect(() => {
@@ -1567,7 +1573,7 @@ export default function Timesheets() {
         punchAuditEntries: fresh.punchInId ? punchAudits[fresh.punchInId] ?? [] : [],
       };
     });
-  }, [timesheetData, punchAudits, drawerData?.shift.id, drawerData?.userId, drawerData?.dateStr, visibleUsers]);
+  }, [timesheetData, punchAudits, drawerData, visibleUsers]);
 
   useEffect(() => {
     if (drawerData?.shift?.id) setDrawerShiftEditsExpanded(true);
@@ -1815,7 +1821,7 @@ export default function Timesheets() {
     } finally {
       setEmployeeWeekFreezeBusy(false);
     }
-  }, [employeeWeekFreezeBatch, pinGateModal, shifts, approveShift, showSuccess, showError, t]);
+  }, [employeeWeekFreezeBatch, pinGateModal, shifts, approveShift, showError, t]);
 
   const submitTimbraturePinGate = useCallback(
     async (pinOrVerifier: string | User) => {
@@ -1911,6 +1917,8 @@ export default function Timesheets() {
         setPinGateUnlocking(false);
       }
     },
+    // openDrawer è dichiarato sotto: metterlo nelle dipendenze qui darebbe TDZ; approveShift da context.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       pinGateModal,
       currentUser,
@@ -1925,6 +1933,7 @@ export default function Timesheets() {
       t,
       unlockDrawer,
       unlockDrawerSession,
+      approveShift,
     ]
   );
 
