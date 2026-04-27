@@ -5168,8 +5168,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             </span>
                           )}
                           {isAbsent && (
-                            <span className="flex items-center gap-1 text-[11px] font-bold text-rose-300 bg-rose-500/20 border border-rose-500/30 px-2.5 py-1 rounded-full">
-                              <UserX className="w-3 h-3" /> {t.status_absent}
+                            <span
+                              className="inline-flex h-7 w-7 shrink-0 items-center justify-center text-rose-300 bg-rose-500/20 border border-rose-500/30 rounded-full"
+                              title={t.status_absent}
+                              aria-label={t.status_absent}
+                            >
+                              <UserX className="w-3.5 h-3.5" aria-hidden />
                             </span>
                           )}
                           </div>
