@@ -3938,11 +3938,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 const isAbs = flatVariant === 'absent';
                                 const flatActual = getActualShiftTime(shift, punchRecords);
                                 const { start: flatDispS, end: flatDispE } = getResolvedStartEndForHours(shift, punchRecords);
-                                const flatLabel = isAbs
-                                  ? (t.status_absent ?? '—')
-                                  : shift.approved_at && shift.approved_start_time && shift.approved_end_time
-                                    ? `${toShortTime(flatDispS)}–${toShortTime(flatDispE)}`
-                                    : `${toShortTime(flatActual.startTime || shift.start_time || '')}–${toShortTime(flatActual.endTime || shift.end_time || '')}`;
+                                const flatLabel = shift.approved_at && shift.approved_start_time && shift.approved_end_time
+                                  ? `${toShortTime(flatDispS)}–${toShortTime(flatDispE)}`
+                                  : `${toShortTime(flatActual.startTime || shift.start_time || '')}–${toShortTime(flatActual.endTime || shift.end_time || '')}`;
                                 const flatBorderCls = isAbs
                                   ? 'border-2 border-dashed border-rose-500'
                                   : flatVariant === 'approved'
@@ -3979,7 +3977,17 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     ) : (
                                       <span className="shrink-0 w-2.5" />
                                     )}
-                                    <span className="flex-1 text-center">{flatLabel}</span>
+                                    {isAbs ? (
+                                      <span
+                                        className="flex flex-1 items-center justify-center"
+                                        title={t.status_absent}
+                                        aria-label={t.status_absent}
+                                      >
+                                        <UserX className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                                      </span>
+                                    ) : (
+                                      <span className="flex-1 text-center">{flatLabel}</span>
+                                    )}
                                     {isLate ? (
                                       <span
                                         className="shrink-0 w-1 self-stretch rounded-full bg-orange-400"
