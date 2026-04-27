@@ -5688,112 +5688,117 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
         />
       )}
 
-      {/* PIN modal per sblocco modifica turno */}
-      {panelPinModalOpen && (
-        <PinPadModal
-          title="Sblocca modifica"
-          subtitle="Inserisci il PIN di un manager per modificare questo turno"
-          pinLabel="PIN"
-          pin={panelPin}
-          onPinChange={(p) => { setPanelPin(p); setPanelPinError(''); }}
-          onConfirm={() => {
-            const verifier = findFreezeVerifierByPin(users, panelPin);
-            if (!verifier) {
-              setPanelPinError('PIN non valido o permessi insufficienti');
-              return;
-            }
-            const targetId = panelPinTargetShiftId;
-            const pendingAction = contextPinPendingAction;
-            setPanelPinUnlocked(targetId);
-            setPanelPinModalOpen(false);
-            setPanelPin('');
-            setPanelPinError('');
-            setContextPinPendingAction(null);
-            // Esegui l'azione del context menu pendente
-            if (pendingAction === 'edit' && targetId) {
-              const shiftForEdit = contextMenu?.shift;
-              const dateForEdit = contextMenu?.date;
-              if (shiftForEdit && dateForEdit) {
-                setSelectedShiftIds([shiftForEdit.id]);
-                setSidebarDay(dateForEdit);
-                setSidebarOpen(true);
-                setContextMenu(null);
-              }
-            } else if (pendingAction === 'delete' && targetId) {
-              const shiftForDelete = contextMenu?.shift;
-              if (shiftForDelete) {
-                const snapshot = { ...shiftForDelete };
-                pushUndo(`Ripristina turno ${snapshot.start_time}–${snapshot.end_time}`, async () => {
-                  await addShift({
-                    user_id: snapshot.user_id,
-                    date: snapshot.date,
-                    start_time: snapshot.start_time,
-                    end_time: snapshot.end_time,
-                    type: snapshot.type,
-                    approval_status: 'draft',
-                    notes: snapshot.notes,
-                    deduct_break: snapshot.deduct_break ?? true,
-                  });
-                });
-                setContextMenu(null);
-                void deleteShifts([targetId]);
-              }
-            }
-          }}
-          onCancel={() => {
-            setPanelPinModalOpen(false);
-            setPanelPin('');
-            setPanelPinError('');
-            setContextPinPendingAction(null);
-          }}
-          error={panelPinError}
-          confirmLabel="Sblocca"
-          cancelLabel="Annulla"
-          backdropClass="bg-black/35 backdrop-blur-sm"
-          userId={currentUser?.id}
-          userDisplayName={[currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(' ')}
-          userEmail={currentUser?.email ?? ''}
-          onBiometricSuccess={() => {
-            const verifier = findFreezeVerifierById(users, currentUser?.id ?? '');
-            if (!verifier) { setPanelPinError('Ruolo insufficiente per lo sblocco'); return; }
-            const targetId = panelPinTargetShiftId;
-            const pendingAction = contextPinPendingAction;
-            setPanelPinUnlocked(targetId);
-            setPanelPinModalOpen(false);
-            setPanelPin('');
-            setPanelPinError('');
-            setContextPinPendingAction(null);
-            if (pendingAction === 'edit' && targetId) {
-              const shiftForEdit = contextMenu?.shift;
-              const dateForEdit = contextMenu?.date;
-              if (shiftForEdit && dateForEdit) {
-                setSelectedShiftIds([shiftForEdit.id]);
-                setSidebarDay(dateForEdit);
-                setSidebarOpen(true);
-                setContextMenu(null);
-              }
-            } else if (pendingAction === 'delete' && targetId) {
-              const shiftForDelete = contextMenu?.shift;
-              if (shiftForDelete) {
-                const snapshot = { ...shiftForDelete };
-                pushUndo(`Ripristina turno ${snapshot.start_time}–${snapshot.end_time}`, async () => {
-                  await addShift({
-                    user_id: snapshot.user_id,
-                    date: snapshot.date,
-                    start_time: snapshot.start_time,
-                    end_time: snapshot.end_time,
-                    type: snapshot.type,
-                    approval_status: 'draft',
-                    notes: snapshot.notes,
-                    deduct_break: snapshot.deduct_break ?? true,
-                  });
-                });
-                setContextMenu(null);
-                void deleteShifts([targetId]);
-              }
-            }
-          }}
-        />
+      {/* PIN sblocco turno: portal su document.body (come Timesheets) così non resta sotto al drawer */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {panelPinModalOpen && (
+            <PinPadModal
+              title="Sblocca modifica"
+              subtitle="Inserisci il PIN di un manager per modificare questo turno"
+              pinLabel="PIN"
+              pin={panelPin}
+              onPinChange={(p) => { setPanelPin(p); setPanelPinError(''); }}
+              onConfirm={() => {
+                const verifier = findFreezeVerifierByPin(users, panelPin);
+                if (!verifier) {
+                  setPanelPinError('PIN non valido o permessi insufficienti');
+                  return;
+                }
+                const targetId = panelPinTargetShiftId;
+                const pendingAction = contextPinPendingAction;
+                setPanelPinUnlocked(targetId);
+                setPanelPinModalOpen(false);
+                setPanelPin('');
+                setPanelPinError('');
+                setContextPinPendingAction(null);
+                // Esegui l'azione del context menu pendente
+                if (pendingAction === 'edit' && targetId) {
+                  const shiftForEdit = contextMenu?.shift;
+                  const dateForEdit = contextMenu?.date;
+                  if (shiftForEdit && dateForEdit) {
+                    setSelectedShiftIds([shiftForEdit.id]);
+                    setSidebarDay(dateForEdit);
+                    setSidebarOpen(true);
+                    setContextMenu(null);
+                  }
+                } else if (pendingAction === 'delete' && targetId) {
+                  const shiftForDelete = contextMenu?.shift;
+                  if (shiftForDelete) {
+                    const snapshot = { ...shiftForDelete };
+                    pushUndo(`Ripristina turno ${snapshot.start_time}–${snapshot.end_time}`, async () => {
+                      await addShift({
+                        user_id: snapshot.user_id,
+                        date: snapshot.date,
+                        start_time: snapshot.start_time,
+                        end_time: snapshot.end_time,
+                        type: snapshot.type,
+                        approval_status: 'draft',
+                        notes: snapshot.notes,
+                        deduct_break: snapshot.deduct_break ?? true,
+                      });
+                    });
+                    setContextMenu(null);
+                    void deleteShifts([targetId]);
+                  }
+                }
+              }}
+              onCancel={() => {
+                setPanelPinModalOpen(false);
+                setPanelPin('');
+                setPanelPinError('');
+                setContextPinPendingAction(null);
+              }}
+              error={panelPinError}
+              confirmLabel="Sblocca"
+              cancelLabel="Annulla"
+              backdropClass="bg-black/35 backdrop-blur-sm"
+              userId={currentUser?.id}
+              userDisplayName={[currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(' ')}
+              userEmail={currentUser?.email ?? ''}
+              onBiometricSuccess={() => {
+                const verifier = findFreezeVerifierById(users, currentUser?.id ?? '');
+                if (!verifier) { setPanelPinError('Ruolo insufficiente per lo sblocco'); return; }
+                const targetId = panelPinTargetShiftId;
+                const pendingAction = contextPinPendingAction;
+                setPanelPinUnlocked(targetId);
+                setPanelPinModalOpen(false);
+                setPanelPin('');
+                setPanelPinError('');
+                setContextPinPendingAction(null);
+                if (pendingAction === 'edit' && targetId) {
+                  const shiftForEdit = contextMenu?.shift;
+                  const dateForEdit = contextMenu?.date;
+                  if (shiftForEdit && dateForEdit) {
+                    setSelectedShiftIds([shiftForEdit.id]);
+                    setSidebarDay(dateForEdit);
+                    setSidebarOpen(true);
+                    setContextMenu(null);
+                  }
+                } else if (pendingAction === 'delete' && targetId) {
+                  const shiftForDelete = contextMenu?.shift;
+                  if (shiftForDelete) {
+                    const snapshot = { ...shiftForDelete };
+                    pushUndo(`Ripristina turno ${snapshot.start_time}–${snapshot.end_time}`, async () => {
+                      await addShift({
+                        user_id: snapshot.user_id,
+                        date: snapshot.date,
+                        start_time: snapshot.start_time,
+                        end_time: snapshot.end_time,
+                        type: snapshot.type,
+                        approval_status: 'draft',
+                        notes: snapshot.notes,
+                        deduct_break: snapshot.deduct_break ?? true,
+                      });
+                    });
+                    setContextMenu(null);
+                    void deleteShifts([targetId]);
+                  }
+                }
+              }}
+            />
+          )}
+        </AnimatePresence>,
+        document.body
       )}
 
       {/* ── Picker orari preimpostati (cross-slot drag) ── */}
