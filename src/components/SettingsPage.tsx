@@ -84,7 +84,6 @@ function DepartmentColorPicker({
   onChange: (hex: string) => void;
   title: string;
 }) {
-  const { effectiveLanguage } = useApp();
   const t = useT();
   const tv = t as Record<string, string>;
   const [open, setOpen] = useState(false);

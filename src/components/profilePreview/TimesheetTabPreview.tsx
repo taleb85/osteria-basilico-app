@@ -3,9 +3,6 @@ import type { User, Language } from '../../types';
 import { getTranslations } from '../../utils/translations';
 import { uiWidgetKeyAppliesToUser } from '../../utils/uiScreenWidgets';
 import { WidgetChrome } from './WidgetChrome';
-import { useApp } from '../../context/appContextCore';
-import { addDays, startOfWeek } from 'date-fns';
-
 export default function TimesheetTabPreview({
   previewUser,
   language,
@@ -22,15 +19,6 @@ export default function TimesheetTabPreview({
   const hiddenBadge = tv.profile_visibility_ui_hidden_badge ?? 'Nascosto';
   const role = previewUser.role;
   const show = (key: string) => uiWidgetKeyAppliesToUser(role, key);
-
-
-  // Access context data
-  const { shifts, punchRecords } = useApp();
-
-  // Calculate current week days (Mon-Thu for preview)
-  const today = new Date();
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-  const days = Array.from({ length: 4 }, (_, i) => addDays(weekStart, i));
 
   // DATI DIMOSTRATIVI FISSI PER ANTEPRIMA
   const dailyHours = ['10:00–16:00', '18:00–23:00', '12:00–18:00', ''];

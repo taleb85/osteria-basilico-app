@@ -1,10 +1,9 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Settings, LayoutList } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { isAdminOnly, canEditRoleFeatureTemplates } from '../utils/permissions';
-import { getTranslations } from '../utils/translations';
 import SettingsPage from './SettingsPage';
 import ImpostazioniPage from './ImpostazioniPage';
 
@@ -16,7 +15,7 @@ const adminHeaderCardClass =
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const { currentUser, silentRefreshData, effectiveLanguage, isSessionElevated } = useApp();
+  const { currentUser, silentRefreshData, isSessionElevated } = useApp();
   const t = useT();
   // Accesso completo: admin puro OPPURE sessione elevata via PIN secondario
   const fullAdminNav = !!(currentUser && (isAdminOnly(currentUser) || isSessionElevated || currentUser.elevated_role));

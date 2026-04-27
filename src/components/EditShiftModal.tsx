@@ -6,7 +6,6 @@ import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { Shift } from '../types';
 import { format, addDays, parseISO } from 'date-fns';
-import { getTranslations } from '../utils/translations';
 import { hasShiftConflictSameDay, normalizeTimeInputToHHmm as toHHmm } from '../utils/timeCalculations';
 import { TimeInputField } from './ui/TimeInputField';
 
@@ -17,7 +16,7 @@ interface EditShiftModalProps {
 
 export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) {
   useBodyScrollLock(true);
-  const { users, shifts, updateShift, deleteShift, copyShift, effectiveLanguage, showError } = useApp();
+  const { users, shifts, updateShift, deleteShift, copyShift, showError } = useApp();
   const t = useT();
   const [tempShifts, setTempShifts] = useState({
     start_time: (shift.start_time || '').trim().slice(0, 5),

@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 import { LogOut, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { getTranslations, getDateLocale } from '../utils/translations';
+import { getDateLocale } from '../utils/translations';
 // import { getRoleScopeHint } from '../utils/roleScopeHint'; // unused
 import { getAppNavTabTitle, type AppNavTab } from '../utils/enabledModules';
 import { UnifiedBellButton } from './UnifiedBellButton';

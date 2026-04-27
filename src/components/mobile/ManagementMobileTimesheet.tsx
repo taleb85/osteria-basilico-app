@@ -76,35 +76,6 @@ function punchLabel(pr: PunchRecord): string {
   try { return format(parseISO(t), 'HH:mm'); } catch { return '–'; }
 }
 
-type DayStatus = 'worked' | 'late' | 'absent' | 'no_punch' | 'empty';
-
-function getDayStatus(dayShifts: Shift[], dayPunches: PunchRecord[]): DayStatus {
-  if (!dayShifts.length) return 'empty';
-  if (dayShifts.some(s => s.approval_status === 'absent')) return 'absent';
-  if (!dayPunches.length) return 'no_punch';
-  // check delay: if punch_in > shift start + 5 min
-  const punchIn = dayPunches.find(p => p.type === 'in');
-  if (punchIn) {
-    const shift = dayShifts[0];
-    if (shift.start_time) {
-      const [sh, sm] = shift.start_time.split(':').map(Number);
-      const scheduled = sh * 60 + sm;
-      const pTime = parseISO(punchIn.calculated_time ?? punchIn.timestamp);
-      const actual = pTime.getHours() * 60 + pTime.getMinutes();
-      if (actual > scheduled + 5) return 'late';
-    }
-  }
-  return 'worked';
-}
-
-const dayStatusCfg: Record<DayStatus, { block: string; dot?: string }> = {
-  worked:   { block: 'bg-emerald-500/[0.15] border border-emerald-500/[0.30]', dot: 'bg-emerald-500' },
-  late:     { block: 'bg-amber-500/[0.15] border border-amber-500/[0.30]',   dot: 'bg-amber-400' },
-  absent:   { block: 'bg-red-500/[0.08] border border-red-500/[0.18]',       dot: 'bg-red-500' },
-  no_punch: { block: 'bg-[#60a5fa]/[0.12] border border-[#60a5fa]/[0.25]',  dot: 'bg-[#60a5fa]' },
-  empty:    { block: 'border border-white/10 bg-white/4' },
-};
-
 function ShiftStatusBadge({ shift, t }: { shift: Shift; t: Record<string, string> }) {
   const isAbsent = shift.approval_status === 'absent';
   const isDraft  = shift.approval_status === 'draft';
@@ -549,7 +520,7 @@ export default function ManagementMobileTimesheet({ shifts, punchRecords, users,
   const t = getTranslations(language as 'it' | 'en' | 'es') as Record<string, string>;
   const dayLetters = getDayLetters(locale);
 
-  const [navMode, setNavMode] = useState<NavMode>('period');
+  const [navMode, _setNavMode] = useState<NavMode>('period');
   const [navOffset, setNavOffset] = useState(0);
   const [tsView, setTsView] = useState<'presence' | 'stats'>('presence');
 

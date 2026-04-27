@@ -6,7 +6,6 @@ import { CheckCircle2, AlertCircle, TrendingUp } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import type { Language } from '../types';
-import { getTranslations } from '../utils/translations';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
 import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';

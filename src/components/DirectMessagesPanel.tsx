@@ -8,7 +8,7 @@ import { isManagementRole, isPurelyManagementRole } from '../utils/permissions';
 import { translateRole } from '../utils/roles';
 import type { User, Language } from '../types';
 import { readProfileAvatarFromStorage } from '../utils/profilePhotoStorage';
-import { getTranslations, getIntlLocale } from '../utils/translations';
+import { getIntlLocale } from '../utils/translations';
 
 const BRAND = '#0052FF';
 

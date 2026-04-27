@@ -8,12 +8,12 @@ import { canUserEdit, isAdminOnly, canViewSuspended } from '../utils/permissions
 import { exportToJSON } from '../utils/exportData';
 import { importDataToSupabase, clearAllData } from '../utils/importData';
 import { translateRole } from '../utils/roles';
-import { getTranslations } from '../utils/translations';
 import EditStaffModal from './EditStaffModal';
 import CreateStaffModal from './CreateStaffModal';
 
 export default function AdminPanel() {
-  const { users, shifts, punchRecords, holidays, currentUser, updateUser, deleteUser, reorderUsers, effectiveLanguage } = useApp();
+  const { users, shifts, punchRecords, holidays, currentUser, updateUser, deleteUser, reorderUsers } = useApp();
+  const t = useT();
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showCreateStaff, setShowCreateStaff] = useState(false);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
@@ -23,8 +23,6 @@ export default function AdminPanel() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!currentUser) return null;
-
-  const t = useT();
 
   const canEdit = canUserEdit(currentUser);
   const adminOnly = isAdminOnly(currentUser);

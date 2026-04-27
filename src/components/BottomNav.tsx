@@ -30,7 +30,7 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClassName }: BottomNavProps) {
   const navRef = useRef<HTMLElement>(null);
-  const { effectiveLanguage, currentUser, users, setCurrentUser, setIsSessionElevated, isSessionElevated, featureFlags, setImpersonating, silentRefreshData } = useApp();
+  const { currentUser, users, setCurrentUser, setIsSessionElevated, isSessionElevated, featureFlags, setImpersonating, silentRefreshData } = useApp();
   const { triggerHapticFeedback } = useMultisensorialFeedback();
   /** Contenuto che scorre sotto la nav fissa → vetro trasparente; altrimenti tinta piena FLOW blue. */
   const [_navOverContent, _setNavOverContent] = useState(false);

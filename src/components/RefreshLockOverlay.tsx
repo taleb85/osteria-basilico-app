@@ -3,7 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Smartphone, Fingerprint, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { getTranslations, formatTrans } from '../utils/translations';
+import { formatTrans } from '../utils/translations';
 import { supportsPinUnlockWebAuthn, hasPlatformBiometricAuthenticator } from '../utils/pinUnlockWebAuthn';
 import { PinPadModal } from './ui/PinPadModal';
 
@@ -17,7 +17,6 @@ export default function RefreshLockOverlay() {
     cancelRefreshLock,
     pendingOrderIds,
     pendingPublishWeekStart,
-    effectiveLanguage,
     showSuccess,
   } = useApp();
   const [pin, setPin] = useState('');

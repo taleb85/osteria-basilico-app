@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Check, Lock, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { formatTrans } from '../../utils/translations';
 import type { PunchRecordSource } from '../../types';
 
@@ -101,11 +101,11 @@ interface ShiftHoursCardsProps {
 export function ShiftHoursCards({
   shift: s,
   fullShift,
-  plannedCardBoxClass,
-  plannedCardLabelCls,
-  plannedCardMainCls,
-  plannedCardSubCls,
-  deltaColor,
+  plannedCardBoxClass: _plannedCardBoxClass,
+  plannedCardLabelCls: _plannedCardLabelCls,
+  plannedCardMainCls: _plannedCardMainCls,
+  plannedCardSubCls: _plannedCardSubCls,
+  deltaColor: _deltaColor,
   isEmployeeWeekReviewSheet,
   canTeamTimesheetOps,
   isFrozen,

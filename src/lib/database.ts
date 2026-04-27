@@ -842,7 +842,7 @@ export const database = {
 
     async insert(request: Omit<HolidayRequest, 'id' | 'created_at'>) {
       // requester_email is a frontend-only field; strip it before sending to DB
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       const { requester_email: _ignored, ...dbPayload } = request as typeof request & { requester_email?: string };
       const { data, error } = await supabase!
         .from('holiday_requests')

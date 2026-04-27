@@ -126,18 +126,6 @@ export default function MobileStaffDashboard({
   const canStart = !!shiftForStart && !punchBusy;
   const canEnd = !!inProgress && !inProgress.actualEnd && !punchBusy;
 
-  const openDinnerClose = useCallback(() => {
-    if (!inProgress?.punchIn || !inProgress.actualStart) return;
-    lightHaptic();
-    setClockOutInput((inProgress.shift.end_time || '').slice(0, 5));
-    setCloseModal({
-      shiftId: inProgress.shift.id,
-      punchInId: inProgress.punchIn.id,
-      plannedEnd: (inProgress.shift.end_time || '').slice(0, 5),
-      actualStart: inProgress.actualStart,
-    });
-  }, [inProgress]);
-
   const handleConfirmClose = useCallback(async () => {
     if (!closeModal || !clockOutInput) return;
     if (featureFlags['maintenance_mode'] === true && user.role !== 'admin') {

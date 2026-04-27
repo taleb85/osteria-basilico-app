@@ -27,7 +27,7 @@ import {
   type PunchRecordLike,
 } from '../utils/shiftResolvedClockTimes';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
-import { getTranslations, getDateLocale, getIntlLocale, formatTrans } from '../utils/translations';
+import { getDateLocale, getIntlLocale, formatTrans } from '../utils/translations';
 import { translateRole } from '../utils/roles';
 import { getShiftViolations, DEFAULT_WORK_RULES } from '../utils/workRules';
 import { getBreakMinutesForShift, getNetShiftMinutes } from '../utils/breakRules';
@@ -574,7 +574,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     );
     observer.observe(el);
     return () => observer.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   // Compensazione scroll sincrona: evita il salto visivo quando il mirror header appare/scompare

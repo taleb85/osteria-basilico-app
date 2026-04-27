@@ -42,9 +42,8 @@ function minsLabel(m: number): string {
   return m % 60 > 0 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${Math.floor(m / 60)}h`;
 }
 
-function StatusBadge({ shift, t }: { shift: Shift; t: Record<string, string> }) {
+function StatusBadge({ shift, t: _t }: { shift: Shift; t: Record<string, string> }) {
   const isAbsent = shift.approval_status === 'absent';
-  const isDraft  = shift.approval_status === 'draft';
   
   if (isAbsent) {
     return <span className="shift-status-off">OFF</span>;
@@ -143,7 +142,6 @@ function MyShiftsSection({
         const restDays = weekDays.filter(d =>
           !(byDay[format(d, 'yyyy-MM-dd')] ?? []).some(s => s.approval_status !== 'absent')
         ).length;
-        const isDayInThisWeek = selectedDayKey !== null && weekDays.some(d => format(d, 'yyyy-MM-dd') === selectedDayKey);
         const isCurrentWeek = wIdx === currentWeekIdx;
         // Current week: expanded by default (unless user collapsed it)
         // Other weeks: collapsed by default (unless user expanded them)

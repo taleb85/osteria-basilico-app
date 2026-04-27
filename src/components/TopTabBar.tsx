@@ -1,7 +1,5 @@
 import { useRef } from 'react';
-import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { getTranslations } from '../utils/translations';
 import type { AppNavTab } from '../utils/enabledModules';
 
 interface TopTabBarProps {
@@ -11,7 +9,6 @@ interface TopTabBarProps {
 }
 
 export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTabBarProps) {
-  const { effectiveLanguage } = useApp();
   const t = useT();
   const tv = t as Record<string, string>;
   const activeRef = useRef<HTMLButtonElement | null>(null);

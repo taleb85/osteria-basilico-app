@@ -49,7 +49,7 @@ export function PinPadModal({
   confirmLabel,
   cancelLabel,
   leftActionButton,
-  backdropClass,
+  backdropClass: _backdropClass,
   userId,
   userDisplayName,
   userEmail,

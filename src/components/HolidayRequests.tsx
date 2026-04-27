@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Check, X, Palmtree, Trash2 } from 'lucide-react';
-import { getTranslations } from '../utils/translations';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
@@ -15,7 +14,7 @@ import { safeFormatDate } from '../utils/safeDateFormat';
 // STATUS_CONFIG is built inside the component to use translations
 
 export default function HolidayRequests() {
-  const { currentUser, holidays, users, addHolidayRequest, updateHolidayStatus, deleteHolidayRequest, showSuccess, silentRefreshData, effectiveLanguage, featureFlags } = useApp();
+  const { currentUser, holidays, users, addHolidayRequest, updateHolidayStatus, deleteHolidayRequest, showSuccess, silentRefreshData, featureFlags } = useApp();
 
   /**
    * Aggiorna turni/ferie/timbrature da DB aprendo la scheda.
@@ -33,9 +32,9 @@ export default function HolidayRequests() {
   const [endDate, setEndDate]         = useState('');
   const [reason, setReason]           = useState('');
 
-  if (!currentUser) return null;
-
   const t = useT();
+
+  if (!currentUser) return null;
 
   const STATUS_CONFIG = {
     approved: {

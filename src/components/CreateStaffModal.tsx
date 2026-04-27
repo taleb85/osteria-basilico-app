@@ -64,7 +64,7 @@ export default function CreateStaffModal({
   operationalRolesOnly = false,
 }: CreateStaffModalProps) {
   useBodyScrollLock(isOpen);
-  const { createUser, currentUser, effectiveLanguage, showError, users } = useApp();
+  const { createUser, currentUser, showError, users } = useApp();
   const t = useT();
   const [formData, setFormData] = useState<ProfileFormAdminData>(emptyForm);
   const [isSaving, setIsSaving] = useState(false);

@@ -337,7 +337,7 @@ export function ProfileFormSelf({
 
 /** Solo admin: limita la griglia Presenze dell’utente ai soli orari pianificati pubblicati/confermati. */
 export function AdminTimesheetGridPrivacyEditor({ user }: { user: UserType }) {
-  const { updateUser, effectiveLanguage, showSuccess, showError } = useApp();
+  const { updateUser, showSuccess, showError } = useApp();
   const t = useT();
   const tv = t as Record<string, string>;
   const plannedOnly = getTimesheetGridPrivacyMode(user) === 'planned_only';

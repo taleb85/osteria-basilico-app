@@ -14,7 +14,7 @@ import { Calendar, ChevronDown } from 'lucide-react';
 import { it } from 'date-fns/locale';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { getTranslations, getDateLocale } from '../utils/translations';
+import { getDateLocale } from '../utils/translations';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import 'react-day-picker/style.css';
 

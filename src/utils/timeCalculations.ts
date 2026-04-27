@@ -75,7 +75,7 @@ export function formatMinutesToHoursAndMinutes(totalMinutes: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- _shiftStartTime reserved for future shift-aware rounding
+ 
 export function calculateRoundedPunchTime(actualTime: Date, _shiftStartTime?: string): Date {
   const minutes = actualTime.getMinutes();
   const roundedMinutes = Math.round(minutes / 10) * 10;

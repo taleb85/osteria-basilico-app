@@ -16,7 +16,7 @@ import {
   ChevronRight, ChevronLeft, Check, AlertTriangle, X,
   Clock, History, ShieldAlert, LogOut, Lock, Unlock,
   Users, UserCheck, AlertCircle, ArrowRight, Calendar, Moon,
-  ChevronDown, FileDown, UserX, Trash2, Filter, Save, RotateCcw,
+  ChevronDown, UserX, Trash2, Filter, Save, RotateCcw,
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +26,6 @@ import { getTranslations, getDateLocale, formatTrans } from '../utils/translatio
 import {
   calculateShiftMinutesGross,
   formatMinutesToHoursAndMinutes,
-  hasShiftConflictSameDay,
   normalizeTimeInputToHHmm,
 } from '../utils/timeCalculations';
 import {
@@ -71,12 +70,11 @@ import {
 import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
 import type { PunchAuditEntry, PunchRecord, PunchRecordSource, Shift, User } from '../types';
 import { getResolvedStartEndForHours, shiftPastPlannedEndWithoutClockIn } from '../utils/shiftResolvedClockTimes';
-import { HorizontalScrollArea, type HorizontalScrollNavState } from './HorizontalScrollArea';
+import { HorizontalScrollArea } from './HorizontalScrollArea';
 // import DatePickerField from './DatePickerField'; // unused
 import TimesheetManagementKpiBlock from './TimesheetManagementKpiBlock';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
-import { exportAttendancePdfFromGrid } from '../utils/timesheetPdfFromRange';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
 import { getDeptColor, getDepartments, deptMatchesFilterKey } from '../utils/departments';
 // import { translateDepartmentValue } from '../utils/departmentLabels'; // unused
@@ -119,10 +117,6 @@ function _departmentChipStyle(hex: string): CSSProperties {
 function toMinutesFromMidnight(hhmm: string): number {
   const [h, m] = (hhmm || '00:00').slice(0, 5).split(':').map(Number);
   return (h || 0) * 60 + (m || 0);
-}
-
-function normalizedApprovalStatus(status: Shift['approval_status'] | undefined | null): string {
-  return (status ?? '').toString().trim().toLowerCase();
 }
 
 /**
@@ -787,7 +781,6 @@ export default function Timesheets() {
   const weekApproveBtnRef = useRef<HTMLButtonElement | null>(null);
   const weekApprovePortalRef = useRef<HTMLDivElement | null>(null);
   const [showPeriodPopover, setShowPeriodPopover] = useState(false);
-  const [gridScrollNav, setGridScrollNav] = useState<HorizontalScrollNavState | null>(null);
   const [periodPopoverYear, setPeriodPopoverYear] = useState<number>(() => new Date().getFullYear());
   const [periodPopoverPos, setPeriodPopoverPos] = useState<{ top: number; left: number } | null>(null);
   const periodPopoverRef = useRef<HTMLDivElement | null>(null);
@@ -917,12 +910,6 @@ export default function Timesheets() {
     return () => { clearTimeout(t); window.removeEventListener('click', onClick); };
   }, [showPeriodPopover]);
 
-  type TimbraturePinGateMode =
-    | 'unlock_frozen'
-    | 'enable_timbrature'
-    | 'unlock_shift_edits'
-    | 'delete_punches'
-    | 'enable_planned_times_edit';
   const [pinGatePin, setPinGatePin] = useState('');
   const [pinGateError, setPinGateError] = useState('');
   const [pinGateUnlocking, setPinGateUnlocking] = useState(false);
@@ -974,9 +961,8 @@ export default function Timesheets() {
   const [markAbsentSaving, setMarkAbsentSaving] = useState(false);
   const [drawerShiftEditsExpanded, setDrawerShiftEditsExpanded] = useState(false);
   const [deductBreakSaving, setDeductBreakSaving] = useState(false);
-  const [drawerPlannedTimeStart, setDrawerPlannedTimeStart] = useState('');
-  const [drawerPlannedTimeEnd, setDrawerPlannedTimeEnd] = useState('');
-  const [plannedTimesSaving, setPlannedTimesSaving] = useState(false);
+  const [, setDrawerPlannedTimeStart] = useState('');
+  const [, setDrawerPlannedTimeEnd] = useState('');
 
   const closeTimesheetShiftDrawer = useCallback(() => {
     setDrawerData(null);
@@ -1587,49 +1573,6 @@ export default function Timesheets() {
     if (drawerData?.shift?.id) setDrawerShiftEditsExpanded(true);
   }, [drawerData?.shift?.id]);
 
-  const handleExportTimesheetPdf = useCallback(async (mode: 'WEEK' | 'PERIOD' = 'WEEK') => {
-    if (!currentUser || !isFeatureEnabled(currentUser, 'export_pdf')) return;
-    try {
-      const daysToExport = mode === 'WEEK' ? weekDays : allPeriodDays;
-      
-      const result = await exportAttendancePdfFromGrid({
-        weekDays: daysToExport,
-        visibleUsers,
-        shifts,
-        punchRecords,
-        breakRules,
-        breakComputeOpts,
-        locale,
-        t: t as Record<string, string>,
-        formatTrans,
-        fmtHM,
-        onlyConfirmedOrApproved: true, // FILTRO RIGOROSO: Solo turni congelati/approvati
-      });
-      if (result === 'no_days' || result === 'no_users') {
-        showError?.(t.ts_pdf_no_data);
-        return;
-      }
-      showSuccess?.((t as { mod_pdf_export?: string }).mod_pdf_export ?? 'PDF presenze esportato');
-    } catch (e) {
-      showError?.(e instanceof Error ? e.message : 'Export PDF non riuscito');
-    }
-  }, [
-    currentUser,
-    visibleUsers,
-    weekDays,
-    allPeriodDays,
-    shifts,
-    punchRecords,
-    breakRules,
-    breakComputeOpts,
-    locale,
-    t,
-    formatTrans,
-    fmtHM,
-    showSuccess,
-    showError,
-  ]);
-
   // ── Indicatori Presenze: settimana visualizzata (in turno = solo se oggi è in quella settimana) ──
   const weekViewStats = useMemo(() => {
     const visibleUserIds = new Set(visibleUsers.map((u) => u.id));
@@ -2053,9 +1996,6 @@ export default function Timesheets() {
     openSource: 'name' | 'date' | 'turno' | null = null,
     keepPinSession = false
   ) => {
-    // Mantieni la sessione PIN se: flag esplicito, stessa review employee_week, o PIN già sbloccato in questa sessione
-    const sameReviewSession = keepPinSession || (reviewQueue?.reviewScope === 'employee_week' && drawerReviewQueue?.reviewScope === 'employee_week') || !!drawerSessionId || !!globalPinSessionId;
-
     // PIN come primo passo: se richiesto e sessione non già sbloccata, chiedi PIN prima di aprire
     const needsPinFirst = canTeamTimesheetOps &&
       featureFlags['unlock_with_pin'] !== false &&
@@ -2105,7 +2045,6 @@ export default function Timesheets() {
     // il drawerSessionId rimane attivo durante la navigazione nella review session
     setDrawerPlannedTimeStart(shift.plannedStart);
     setDrawerPlannedTimeEnd((shift.plannedEnd || '').slice(0, 5));
-    setPlannedTimesSaving(false);
     setDrawerShiftEditsExpanded(false);
     // Collassa il form se le timbrature esistono già; espandilo solo se mancano
     setDrawerManualPunchFormExpanded(!shift.punched);
@@ -2313,55 +2252,6 @@ export default function Timesheets() {
       setManualPunchOutDate(resolved);
     }
   }, [drawerData, manualPunchOutDate, manualPunchIn, manualPunchOut]);
-
-  const handleSaveDrawerPlannedTimes = async () => {
-    if (!drawerData) return;
-    const shiftRow = drawerData.shift;
-    const startNorm = normalizeTimeInputToHHmm(drawerPlannedTimeStart.trim());
-    const endNorm = normalizeTimeInputToHHmm(drawerPlannedTimeEnd.trim());
-    if (!startNorm || !/^\d{2}:\d{2}$/.test(startNorm)) {
-      showError?.(t.enter_valid_time_example);
-      return;
-    }
-    if (!endNorm || !/^\d{2}:\d{2}$/.test(endNorm)) {
-      showError?.(t.shift_end_time_required);
-      return;
-    }
-    const others = shifts.filter(
-      (sh) =>
-        sh.id !== shiftRow.id &&
-        sh.user_id === drawerData.userId &&
-        sh.date === drawerData.dateStr
-    );
-    if (hasShiftConflictSameDay(others, { start_time: startNorm, end_time: endNorm }, shiftRow.id)) {
-      showError?.(t.shift_overlap_same_day);
-      return;
-    }
-    const curEnd = (shiftRow.plannedEnd || '').slice(0, 5);
-    if (startNorm === shiftRow.plannedStart && endNorm === curEnd) {
-      return;
-    }
-    // Push undo per modifica orari
-    const origStart = shiftRow.plannedStart;
-    const origEnd = (shiftRow.plannedEnd || '').slice(0, 5);
-    pushTsUndo(`Annulla modifica ${origStart}–${origEnd}`, async () => {
-      await updateShift(shiftRow.id, { start_time: origStart, end_time: origEnd });
-    });
-    setPlannedTimesSaving(true);
-    try {
-      await updateShift(shiftRow.id, { start_time: startNorm, end_time: endNorm });
-      showSuccess?.(t.ts_toast_shift_time_updated);
-      
-      // Se sei in una review queue, avanza al prossimo turno
-      if (drawerReviewQueue) {
-        advanceDrawerReviewAfterStep();
-      }
-    } catch {
-      showError?.(t.save_error);
-    } finally {
-      setPlannedTimesSaving(false);
-    }
-  };
 
   const handleDrawerDeductBreakChange = useCallback(
     async (shiftId: string, checked: boolean) => {
@@ -4287,8 +4177,6 @@ export default function Timesheets() {
                                 const punchAuditCount = s.punchInId ? (punchAudits[s.punchInId]?.length ?? 0) : 0;
                                 const boardShift = shifts.find((sh) => sh.id === s.id) ?? null;
                                 const { border, bg, ring, dot } = getShiftCardStyle(s, punchAuditCount, dateStr, boardShift);
-                                const punchMissingCell =
-                                  !!boardShift && shiftPastPlannedEndWithoutClockIn(boardShift, punchRecords);
                                 const publishedCell = s.status === 'confirmed' || s.status === 'approved';
                                 const showPlannedTimesInCell =
                                   showFullTimesheetGrid || (plannedOnlyTimesheetGrid && publishedCell);
@@ -4297,8 +4185,6 @@ export default function Timesheets() {
 
                                 // Logica per determinare se mostrare l'orario pianificato come "effettivo" in assenza di timbrature
                                 const showPlannedAsActual = !s.punched && publishedCell;
-                                const displayActualStart = showPlannedAsActual ? s.plannedStart : s.actualStart;
-                                const displayActualEnd = showPlannedAsActual ? s.plannedEnd : s.actualEnd;
                                 const displayActualMins = showPlannedAsActual ? s.plannedMins : s.actualMins;
                                 const displayDeltaMins = showPlannedAsActual ? 0 : s.deltaMins;
 
@@ -4792,33 +4678,19 @@ export default function Timesheets() {
           const isAbsentDraw = permissions.isAbsent;
           const canClose = permissions.canClose;
           const canMarkAbsentTimesheet = permissions.canMarkAbsent;
-          const pinRequiredForTimbrature = permissions.pinRequiredForTimbrature;
-          const timbratureEditorEligible = permissions.timbratureEditorEligible;
-          const canTimbratureInsert = permissions.canTimbratureInsert;
-          const canTimbratureEditExisting = permissions.canTimbratureEdit;
           const showTimbratureEditForm = permissions.showTimbratureForm;
           const timbraturePinGateTarget = permissions.timbraturePinGateActive;
-          const pinRequiredForShiftEdits = permissions.pinRequiredForHistory;
           const shiftEditsRevealUnlocked = permissions.historyUnlocked;
-          const pinRequiredForPlannedTimesEdit = permissions.pinRequiredForPlannedTimes;
-          const showPublishedPlannedTimesEditor = permissions.showPlannedTimesEditor;
-          const showPublishedPlannedTimesPinButton = permissions.showPlannedTimesPinButton;
           
           const punchAuditEntries = drawerData.punchAuditEntries;
           const shiftEdits = drawerData.shiftEdits;
           const drawerHistoryTotalCount = shiftEdits.length + punchAuditEntries.length;
-          const drawerHistoryCardTitle =
-            shiftEdits.length > 0 && punchAuditEntries.length > 0
-              ? `${t.ts_drawer_shift_edits} · ${t.ts_drawer_punch_edits}`
-              : shiftEdits.length > 0
-                ? t.ts_drawer_shift_edits
-                : t.ts_drawer_punch_edits;
           const hasUnsavedPunchChanges =
             showTimbratureEditForm &&
             drawerManualPunchFormExpanded &&
             (manualPunchIn !== (s.actualStart ?? s.plannedStart) ||
               manualPunchOut !== (s.actualEnd ?? s.plannedEnd ?? ''));
-          const { dot, border, bg, ring, label, labelCls } = getShiftCardStyle(
+          const { border, bg, ring, label, labelCls } = getShiftCardStyle(
             s,
             punchAuditEntries.length,
             drawerData.dateStr,
@@ -4828,7 +4700,6 @@ export default function Timesheets() {
             s.deltaMins > 5 ? 'text-accent' : s.deltaMins < -5 ? 'text-red-400' : 'text-white/50';
           const isEmployeeWeekReviewSheet = drawerReviewQueue?.reviewScope === 'employee_week';
 
-          const plannedPublishedCard = s.status === 'confirmed' || s.status === 'approved';
           const plannedApprovedCard = s.status === 'approved';
           const plannedConfirmedCard = s.status === 'confirmed';
           const plannedDraftCard = s.status === 'draft';
@@ -5570,8 +5441,6 @@ export default function Timesheets() {
                                     manualPunchOut === s.plannedEnd && 
                                     manualPunchOutDate === drawerData.dateStr;
 
-                                  const showApprovePlannedBtn = !s.punched && (s.status === 'confirmed' || s.status === 'draft');
-
                                   return (
                                     <div
                                       className={
@@ -6084,7 +5953,6 @@ export default function Timesheets() {
               );
             })()}
             {employeeWeekFreezeBatch && (() => {
-              const batch = employeeWeekFreezeBatch;
               const tv = t as Record<string, string>;
               return (
                 <PinPadModal

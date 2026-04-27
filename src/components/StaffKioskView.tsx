@@ -6,15 +6,13 @@ import { useT } from '../hooks/useT';
 import { User, Shift } from '../types';
 import { format, isValid, parseISO } from 'date-fns';
 import { calculateRoundedPunchTime } from '../utils/timeCalculations';
-import { getTranslations } from '../utils/translations';
-
 interface StaffKioskViewProps {
   user: User;
   onClose: () => void;
 }
 
 export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
-  const { shifts, punchRecords, effectiveLanguage, addPunchRecord, showError } = useApp();
+  const { shifts, punchRecords, addPunchRecord, showError } = useApp();
   const t = useT();
   const [showSuccess, setShowSuccess] = useState(false);
   const [punchedTime, setPunchedTime] = useState('');

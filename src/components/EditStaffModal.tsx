@@ -31,7 +31,7 @@ interface EditStaffModalProps {
 
 export default function EditStaffModal({ isOpen, onClose, user, readOnly = false }: EditStaffModalProps) {
   useBodyScrollLock(isOpen);
-  const { updateUser, currentUser, effectiveLanguage, showError, users } = useApp();
+  const { updateUser, currentUser, showError, users } = useApp();
   const t = useT();
   const hourlyStr =
     user.hourly_rate_eur != null && Number.isFinite(user.hourly_rate_eur)

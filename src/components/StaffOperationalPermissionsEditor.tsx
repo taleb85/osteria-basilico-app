@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback, useRef } from 'react';
 import type { User } from '../types';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { getTranslations, formatTrans } from '../utils/translations';
+import { formatTrans } from '../utils/translations';
 import { canUserEdit, isAdminOnly } from '../utils/permissions';
 import { isUserPermissionEffective, toggledPermissionDbValue } from '../utils/staffPermissionDefaults';
 import { buildSettingsPermissionRows, type SettingsOperationalPermKey } from '../utils/settingsPermissionRows';
@@ -19,7 +19,7 @@ type Props = {
  * I flag `adminOnly` sono editabili solo da Admin; gli altri anche da Manager/Assistente/Capo.
  */
 export default function StaffOperationalPermissionsEditor({ user, currentUser }: Props) {
-  const { updateUser, effectiveLanguage, showSuccess, showError } = useApp();
+  const { updateUser, showSuccess, showError } = useApp();
   const t = useT();
   const tv = t as Record<string, string>;
   const rows = useMemo(() => buildSettingsPermissionRows(t), [t]);

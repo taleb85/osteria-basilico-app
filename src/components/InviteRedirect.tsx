@@ -10,8 +10,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { buildUserInviteSlug, buildProfiloAccessLink, PATH_PROFILO } from '../config/appPaths';
-import { getTranslations } from '../utils/translations';
-import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 
 function cleanSlug(s: string | null | undefined): string {
@@ -37,7 +35,6 @@ export default function InviteRedirect() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('verifying');
-  const { effectiveLanguage } = useApp();
   const t = useT();
 
   useEffect(() => {

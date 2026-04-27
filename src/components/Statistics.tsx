@@ -20,7 +20,7 @@ import {
 import { it } from 'date-fns/locale';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { getTranslations, getDateLocale, formatTrans } from '../utils/translations';
+import { getDateLocale, formatTrans } from '../utils/translations';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
 import {
   loadPeriodConfig,

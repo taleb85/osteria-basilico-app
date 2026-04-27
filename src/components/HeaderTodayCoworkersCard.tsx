@@ -3,7 +3,7 @@ import { format, isValid } from 'date-fns';
 import { Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { getTranslations, formatTrans } from '../utils/translations';
+import { formatTrans } from '../utils/translations';
 import { isUserVisibleOnTeamSchedule } from '../utils/permissions';
 import {
   readProfileAvatarFromStorage,
@@ -104,7 +104,7 @@ function shiftTimeCaption(shifts: Shift[], multiLabel: string): string {
  * Striscia sotto l’header: titolo e subito dopo l’elenco orizzontale colleghi in turno oggi.
  */
 export default function HeaderTodayCoworkersCard() {
-  const { currentUser, shifts, users, punchRecords, effectiveLanguage, featureFlags } = useApp();
+  const { currentUser, shifts, users, punchRecords, featureFlags } = useApp();
   const t = useT();
   const tv = t as Record<string, string>;
 

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { format } from 'date-fns';
-import { getTranslations } from '../utils/translations';
 import { usePunchPresenceVerification } from '../hooks/usePunchPresenceVerification';
 import { PinPadModal } from './ui/PinPadModal';
 import { AnimatePresence } from 'framer-motion';

@@ -22,7 +22,7 @@ import {
   type RoleTemplateGroup,
 } from '../utils/roleFeatureTemplates';
 import { serializeAdminModulesForDisk } from '../utils/adminModulesGlobal';
-import { getAdminModuleLabel, getTranslations } from '../utils/translations';
+import { getAdminModuleLabel } from '../utils/translations';
 import { buildSettingsPermissionRows, defaultOperationalTemplateBase } from '../utils/settingsPermissionRows';
 import {
   TIMESHEET_GRID_PLANNED_ONLY_KEY,
@@ -66,7 +66,6 @@ function initials(user: User): string {
 export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   const {
     currentUser,
-    effectiveLanguage,
     saveRoleFeatureTemplates,
     saveAdminModulesGlobal,
     showSuccess,

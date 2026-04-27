@@ -10,7 +10,7 @@ import { TrendingUp } from 'lucide-react';
 import { translateRole } from '../utils/roles';
 import { isPurelyManagementRole, isManagementRole, isUserVisibleOnTeamSchedule, canViewAllTeamHours } from '../utils/permissions';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
-import { getTranslations, getDateLocale, formatTrans } from '../utils/translations';
+import { getDateLocale, formatTrans } from '../utils/translations';
 import { it } from 'date-fns/locale';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
 import { safeFormatDate } from '../utils/safeDateFormat';
@@ -21,8 +21,8 @@ export default function MonthlySummaryTable() {
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
     [featureFlags]
   );
-  if (!currentUser) return null;
   const t = useT();
+  if (!currentUser) return null;
   const hasManagementAccess =
     isManagementRole(currentUser.role) && canViewAllTeamHours(currentUser);
   const getLocale = () => getDateLocale(effectiveLanguage) ?? it;

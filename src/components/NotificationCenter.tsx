@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback } from 'react';
 import { Bell, BellOff, X, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { getTranslations } from '../utils/translations';
 import {
   generateNotifications,
   syncNotificationFeed,

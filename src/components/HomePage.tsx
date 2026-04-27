@@ -20,7 +20,7 @@ import {
   canApproveShiftActions,
 } from '../utils/permissions';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getTranslations, getDateLocale } from '../utils/translations';
+import { getDateLocale } from '../utils/translations';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import type { Shift } from '../types';

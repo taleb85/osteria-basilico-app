@@ -131,7 +131,7 @@ export async function seedTenantFromTemplate(
   const weekStart = getWeekStart();
   const weekEnd   = addDays(weekStart, 6);
 
-  let { data: templateShifts, error: shiftsErr } = await supabase
+  const { data: templateShiftsData, error: shiftsErr } = await supabase
     .from('shifts')
     .select('*')
     .eq('tenant_id', tpl.id)
@@ -139,6 +139,8 @@ export async function seedTenantFromTemplate(
     .lte('date', weekEnd);
 
   if (shiftsErr) throw new Error(`Errore fetch turni: ${shiftsErr.message}`);
+
+  let templateShifts = templateShiftsData;
 
   // Fallback: ultimi 14 giorni → remap al giorno della settimana corrente
   if (!templateShifts || templateShifts.length === 0) {

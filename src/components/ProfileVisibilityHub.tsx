@@ -18,7 +18,6 @@ import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import type { User } from '../types';
 import type { EnabledFeatures } from '../utils/enabledFeatures';
-import { getTranslations } from '../utils/translations';
 import { translateRole } from '../utils/roles';
 import { isAdminOnly, isManagementRole } from '../utils/permissions';
 import { FEATURE_LABELS, type EnabledFeatureKey } from '../utils/enabledFeatures';

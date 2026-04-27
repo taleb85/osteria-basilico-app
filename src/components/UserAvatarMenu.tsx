@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, LogOut } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { getTranslations } from '../utils/translations';
 import { ProfileFormSelf, type ProfileFormSelfData } from './UserProfile';
 import { splitPhoneForForm, joinPhone, DEFAULT_PHONE_PREFIX } from '../utils/phonePrefix';
 import type { Language } from '../types';
@@ -27,7 +26,7 @@ export default function UserAvatarMenu({
   onLogout,
   openRequestId,
 }: UserAvatarMenuProps) {
-  const { currentUser, updateUser, effectiveLanguage } = useApp();
+  const { currentUser, updateUser } = useApp();
   const t = useT();
   const _isManagement = currentUser ? isManagementRole(currentUser.role) : false;
   const [isOpen, setIsOpen] = useState(false);

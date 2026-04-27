@@ -2,9 +2,7 @@ import { useState, useRef } from 'react';
 import { Send, Loader2, Users, User } from 'lucide-react';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
-import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { getTranslations } from '../utils/translations';
 
 interface MessageComposerProps {
   userId: string;
@@ -27,7 +25,6 @@ export function MessageComposer({
 }: MessageComposerProps) {
   const { sendMessage } = useMessages(userId);
   const { triggerHapticFeedback } = useMultisensorialFeedback();
-  const { effectiveLanguage } = useApp();
   const t = useT();
 
   const [messageType, setMessageType] = useState<'broadcast' | 'private'>('broadcast');

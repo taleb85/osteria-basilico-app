@@ -6,7 +6,6 @@ import { useT } from '../hooks/useT';
 import { translateRole } from '../utils/roles';
 import { getEnabledFeatures, type EnabledFeatureKey } from '../utils/enabledFeatures';
 import RoleFeatureSectionsBlock from './RoleFeatureSectionsBlock';
-import { getTranslations } from '../utils/translations';
 import AdminRow from './ui/AdminRow';
 import ProfileVisibilityHub from './ProfileVisibilityHub';
 

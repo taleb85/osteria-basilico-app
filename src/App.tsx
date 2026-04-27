@@ -1,9 +1,6 @@
 import { useState, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback, useRef } from 'react';
 import { unlockAudioContext } from './utils/hapticFeedbackCore';
 
-import { format } from 'date-fns';
-import { it } from 'date-fns/locale';
-import { getDateLocale } from './utils/translations';
 import SwUpdateOverlay from './components/SwUpdateOverlay';
 import AdminSyncOverlay from './components/AdminSyncOverlay';
 /**
@@ -41,7 +38,7 @@ import { lockBodyScroll, unlockBodyScroll } from './utils/bodyScrollLock';
 import { persistStoredUiLanguage } from './utils/uiLanguagePreference';
 import { PATH_PROFILO } from './config/appPaths';
 import { APP_SESSION_STORAGE_KEY } from './constants/appSession';
-import { getUnifiedNavTabs, getBottomNavTabsForMainApp, getAppNavTabTitle, type AppNavTab } from './utils/enabledModules';
+import { getUnifiedNavTabs, getBottomNavTabsForMainApp, type AppNavTab } from './utils/enabledModules';
 import {
   readMainViewState,
   writeMainViewState,
@@ -547,7 +544,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     return () => window.removeEventListener('osteria-navigate', onNavigate as EventListener);
   }, [visibleNavTabs, activeTab, t]);
 
-  const now = useMemo(() => new Date(), []);
   const isSynced = !!featureFlags && Object.keys(featureFlags).length > 0;
   const [isRefreshing, setIsRefreshing] = useState(false);
   const handleHardRefresh = useCallback(async () => {
@@ -951,7 +947,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 function ProtectedApp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, isLoading: appIsLoading, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, featureFlags, showError, effectiveLanguage, setIsSessionElevated } = useApp();
+  const { currentUser, isLoading: appIsLoading, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, featureFlags, showError, setIsSessionElevated } = useApp();
   const t = useT();
 
   useEffect(() => {
