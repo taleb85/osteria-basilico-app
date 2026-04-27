@@ -16,6 +16,19 @@ const MARGIN = 8;
 const NAME_W = 22;
 const TOT_W = 14;
 const HEADER_ROW = 9;
+/** pt → mm (jsPDF `unit: 'mm'`, `fontSize` in pt). */
+const PT_TO_MM = 0.352778;
+function lineHeightMm(fontSizePt: number): number {
+  return fontSizePt * PT_TO_MM;
+}
+/**
+ * Y della baseline per centrare verticalmente una riga in [yTop, yBottom] (mm, Y verso il basso).
+ * Evita di mettere "solo pranzo" in alto e "solo cena" in basso: stessa altezza visiva tra colonne.
+ */
+function vCenterBaselineInBand(yTop: number, yBottom: number, fontSizePt: number): number {
+  const mid = (yTop + yBottom) / 2;
+  return mid + lineHeightMm(fontSizePt) * 0.28;
+}
 
 function getHour(shift: Shift): number {
   const t = (shift.start_time || '').trim();
@@ -206,16 +219,21 @@ export async function exportSchedulePDF(
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(shiftFontSize);
         doc.setTextColor(...BLACK);
+        const yMid = cellY + rowHeight / 2;
         if (morning && evening) {
-          doc.text(formatShift(morning, punchRecords), centerX, cellY + 3, { align: 'center' });
+          const yM = vCenterBaselineInBand(cellY, yMid, shiftFontSize);
+          doc.text(formatShift(morning, punchRecords), centerX, yM, { align: 'center' });
           doc.setDrawColor(...SEP_MID);
           doc.setLineWidth(0.2);
-          doc.line(cellX, cellY + rowHeight / 2, cellX + dayCol, cellY + rowHeight / 2);
-          doc.text(formatShift(evening, punchRecords), centerX, cellY + rowHeight - 2, { align: 'center' });
+          doc.line(cellX, yMid, cellX + dayCol, yMid);
+          const yE = vCenterBaselineInBand(yMid, cellY + rowHeight, shiftFontSize);
+          doc.text(formatShift(evening, punchRecords), centerX, yE, { align: 'center' });
         } else if (morning) {
-          doc.text(formatShift(morning, punchRecords), centerX, cellY + 3, { align: 'center' });
+          const y = vCenterBaselineInBand(cellY, cellY + rowHeight, shiftFontSize);
+          doc.text(formatShift(morning, punchRecords), centerX, y, { align: 'center' });
         } else if (evening) {
-          doc.text(formatShift(evening, punchRecords), centerX, cellY + rowHeight - 2, { align: 'center' });
+          const y = vCenterBaselineInBand(cellY, cellY + rowHeight, shiftFontSize);
+          doc.text(formatShift(evening, punchRecords), centerX, y, { align: 'center' });
         }
 
         const shown = (morning ? 1 : 0) + (evening ? 1 : 0);
@@ -241,7 +259,7 @@ export async function exportSchedulePDF(
         doc.setTextColor(...BLACK);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(shiftFontSize);
-        const vert = cellY + rowHeight / 2 + shiftFontSize * 0.3;
+        const vert = vCenterBaselineInBand(cellY, cellY + rowHeight, shiftFontSize);
         doc.text(weekTotal, totColumnLeftX + TOT_W / 2, vert, { align: 'center' });
       }
 
