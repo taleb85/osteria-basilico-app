@@ -6,6 +6,7 @@
   --bg-surface:            rgba(50, 90, 170, 0.55);
   --bg-surface-hover:      rgba(50, 90, 170, 0.65);
   --bg-surface-solid:      rgba(45, 80, 155, 0.80);
+  --bg-popover-solid:      rgb(21, 40, 72);
   --bg-surface-secondary:  rgba(50, 90, 170, 0.45);
   --surface:               rgba(50, 90, 170, 0.55);
   --surface-card:          rgba(50, 90, 170, 0.60);

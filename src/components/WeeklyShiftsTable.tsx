@@ -2278,25 +2278,33 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   return (
                     <div
                       ref={wstPeriodPopoverRef}
-                      style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999, background: 'var(--bg-surface-solid)', border: '1px solid rgba(255,255,255,0.15)' }}
-                      className="w-64 max-h-[min(60vh,28rem)] rounded-xl overflow-hidden shadow-2xl flex flex-col"
+                      style={{
+                        position: 'fixed',
+                        top: periodPopoverPos.top,
+                        left: periodPopoverPos.left,
+                        zIndex: 99999,
+                        background: 'var(--bg-popover-solid, rgb(5, 14, 60))',
+                        color: '#f1f5f9',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                      }}
+                      className="w-64 max-h-[min(60vh,28rem)] flex flex-col overflow-hidden rounded-xl text-slate-50 shadow-2xl"
                     >
-                      <div className="flex items-center justify-between border-b border-cyan-600/15 px-3 py-2 bg-cyan-600/5">
+                      <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-3 py-2">
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y - 1); }}
-                          className="flex h-6 w-6 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-cyan-600/12 active:bg-cyan-600/80"
+                          className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 active:bg-white/15"
                           aria-label={t.wst_period_popover_year_prev}
                         >
                           <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
                         </button>
-                        <span className="text-[11px] font-extrabold text-cyan-300 tabular-nums">
+                        <span className="text-[11px] font-extrabold tabular-nums text-white">
                           {listYear}
                         </span>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y + 1); }}
-                          className="flex h-6 w-6 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-cyan-600/12 active:bg-cyan-600/80"
+                          className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 active:bg-white/15"
                           aria-label={t.wst_period_popover_year_next}
                         >
                           <ChevronRight className="h-3.5 w-3.5" aria-hidden />
@@ -2310,29 +2318,29 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             onClick={() => { applyAndSavePeriodWst(cfg); setShowPeriodPopover(false); }}
                             className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors ${
                               isActive
-                                ? 'bg-cyan-600/10'
-                                : 'hover:bg-cyan-600/5'
-                            } active:bg-cyan-600/5'/80`}
+                                ? 'bg-accent/15'
+                                : 'hover:bg-white/8'
+                            } active:bg-white/10`}
                           >
                             <span className={`text-[12px] font-bold capitalize ${
                               isActive
-                                ? 'text-cyan-300'
+                                ? 'text-accent'
                                 : isCurrentMonth
                                   ? 'text-white'
                                   : 'text-white/70'
                             }`}>
-                              {format(s, 'MMMM', { locale: getDateLocale(effectiveLanguage) ?? it })}
+                              {format(new Date(listYear, monthIdx, 1), 'MMMM', { locale: getDateLocale(effectiveLanguage) ?? it })}
                               {listYear !== nowYear && (
                                 <span className="ml-1 text-[11px] font-normal text-white/40">{listYear}</span>
                               )}
                               {isCurrentMonth && !isActive && (
-                                <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-cyan-600 align-middle" />
+                                <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-cyan-400 align-middle" />
                               )}
                             </span>
                             <span className={`shrink-0 text-[11px] tabular-nums ${
                               isActive
-                                ? 'text-cyan-300 font-bold'
-                                : 'text-white/40'
+                                ? 'font-bold text-accent'
+                                : 'text-white/45'
                             }`}>
                               {format(s, 'dd/MM', { locale: getDateLocale(effectiveLanguage) ?? it })}–{format(e, 'dd/MM', { locale: getDateLocale(effectiveLanguage) ?? it })}
                               <span className={`ml-1 font-extrabold ${cfg.numWeeks === 5 ? 'text-cyan-300' : ''}`}>
@@ -2399,7 +2407,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     exit={{ opacity: 0, y: 4, scale: 0.95 }}
                     transition={{ duration: 0.1 }}
                     className="hidden lg:block absolute right-0 lg:left-auto top-full z-[300] mt-1 w-48 rounded-xl p-1 shadow-xl"
-                    style={{ background: 'var(--bg-surface-solid)', border: '1px solid rgba(255,255,255,0.15)', isolation: 'isolate' }}
+                    style={{ background: 'var(--bg-popover-solid)', border: '1px solid rgba(255,255,255,0.15)', isolation: 'isolate' }}
                   >
                     <div className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white/40 border-b border-white/10 mb-1">
                       {t.department_filter_label}
@@ -6378,7 +6386,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-white/15 active:bg-white/80"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-white/15 active:bg-white/20"
               >
                 <X className="h-4 w-4 text-white/80" />
               </button>
@@ -6458,9 +6466,9 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                           transition={{ duration: 0.18, ease: 'easeOut' }}
                           className={`rounded-lg px-2.5 py-1 text-[12px] font-bold tabular-nums transition-colors ${
                               isActive
-                              ? 'bg-accent text-white shadow-sm'
-                              : 'bg-white/15 text-white hover:bg-white/20'
-                          } active:bg-white/20'/80`}
+                              ? 'bg-accent text-white shadow-sm active:bg-accent-hover/80'
+                              : 'bg-white/15 text-white hover:bg-white/20 active:bg-white/25'
+                          }`}
                         >
                           {start}–{end}
                         </motion.button>
@@ -6490,7 +6498,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                     deductBreak
                       ? 'border-accent/60 bg-accent/5 hover:bg-accent/10'
                       : 'border-white/20 bg-white/8 hover:bg-white/10'
-                  } active:bg-accent/10'/80`}>
+                  } active:bg-accent/20`}>
                     <div className="relative shrink-0 mt-0.5">
                       <input
                         id={wstF.deduct}
@@ -6552,7 +6560,11 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               <button
                 type="submit"
                 disabled={saving}
-                className={`flex-1 px-4 py-3 rounded-xl font-bold text-sm transition-colors font-sans flex items-center justify-center gap-2 ${isOpenShift ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-accent hover:bg-accent-hover text-white'} disabled:opacity-60 active:bg-amber-600/80`}
+                className={`flex-1 px-4 py-3 rounded-xl font-bold text-sm transition-colors font-sans flex items-center justify-center gap-2 disabled:opacity-60 ${
+                  isOpenShift
+                    ? 'bg-amber-500 text-white hover:bg-amber-600 active:bg-amber-700'
+                    : 'bg-accent text-white hover:bg-accent-hover active:bg-accent-hover/80'
+                }`}
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 {t.create_shift}
@@ -6560,7 +6572,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl bg-white/10 px-4 py-3 font-sans text-sm font-bold text-white transition-colors hover:bg-white/15 active:bg-white/80"
+                className="rounded-xl bg-white/10 px-4 py-3 font-sans text-sm font-bold text-white transition-colors hover:bg-white/15 active:bg-white/20"
               >
                 {t.cancel}
               </button>

@@ -165,6 +165,8 @@ body {
     --bg-surface: rgba(5, 14, 60, 0.45);
     --bg-surface-hover: rgba(5, 14, 60, 0.58);
     --bg-surface-solid: rgba(5, 14, 60, 0.52);
+    /** Menu/popover su `body` (portal): stessa tinta senza alpha così testo e righe restano leggibili sulla griglia sotto. */
+    --bg-popover-solid: rgb(5, 14, 60);
     --bg-surface-secondary: rgba(5, 14, 60, 0.38);
     --border-color: rgba(255, 255, 255, 0.20);
     --text-primary: #ffffff;
@@ -402,9 +404,13 @@ body {
    * DARK THEME: solid dark background per modali
    */
   .modal-glass-panel {
-    @apply text-slate-50 shadow-2xl backdrop-blur-2xl;
-    background: var(--bg-surface-solid);
+    @apply text-slate-50 shadow-2xl;
+    /* Tinta piena: `--bg-surface-solid` (alpha ~0.5) in WebView / iOS dava pannelli “vuoti” e testo invisibile. */
+    background: var(--bg-popover-solid, rgb(5, 14, 60));
+    color: #f1f5f9;
     border: 1px solid var(--border-color);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     /* Impedisce il rimbalzo verso la pagina quando si scorre al limite della modale */
     overscroll-behavior-y: none;
   }

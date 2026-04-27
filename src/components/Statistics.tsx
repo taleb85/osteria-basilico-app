@@ -460,9 +460,9 @@ export default function Statistics() {
         {/* eslint-disable-next-line no-constant-binary-expression */}
         {true && (
           <>
-            <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto relative z-[1000] mb-5">
-              <div className="flex min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-2 overflow-visible relative z-[1001]">
-                <div className="ui-toolbar-row-tight min-w-0 shrink-0 md:gap-2">
+            <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 w-full max-w-full relative z-[1000] mb-5">
+              <div className="relative z-[1001] flex min-h-0 w-full min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto overscroll-x-contain [scrollbar-gutter:stable]">
+                <div className="ui-toolbar-row-tight min-w-0 flex-1 md:gap-2">
                   {/* ── MOBILE: stile semplificato (PERIODO pill + ← date →) ── */}
                   <div className="flex sm:hidden shrink-0 flex-nowrap items-center gap-2">
                     <span className="h-9 inline-flex items-center px-3 rounded-2xl bg-accent text-white text-xs font-extrabold uppercase tracking-wider shrink-0 shadow-sm">
@@ -515,7 +515,7 @@ export default function Statistics() {
                         statsTab === 'current_week'
                           ? 'bg-accent text-white font-extrabold'
                           : 'hover:bg-white/10'
-                      } active:bg-white/10'/80`}
+                      } active:bg-white/15`}
                       style={statsTab !== 'current_week' ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     >
                       {t.view_week}
@@ -527,7 +527,7 @@ export default function Statistics() {
                         statsTab === 'period' && navOffset === 0
                           ? 'bg-accent text-white font-extrabold'
                           : 'hover:bg-white/10'
-                      } active:bg-white/10'/80`}
+                      } active:bg-white/15`}
                       style={!(statsTab === 'period' && navOffset === 0) ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     >
                       {t.view_month}
@@ -570,8 +570,8 @@ export default function Statistics() {
               </div>
 
               {/* PDF + Filtro reparto — lato destro */}
-              <div className="flex justify-end md:contents">
-                <div className="relative md:ml-auto flex min-h-9 lg:min-h-10 items-center gap-1">
+              <div className="flex w-full min-w-0 shrink-0 flex-wrap items-center justify-end sm:w-auto sm:flex-nowrap md:contents">
+                <div className="relative flex min-h-9 w-full min-w-0 items-center justify-end gap-1 sm:w-auto md:ml-auto lg:min-h-10">
                   {showManagementStatsChrome && isFeatureEnabled(currentUser, 'export_pdf') && (
                     <div className="ui-toolbar-group">
                       <button
@@ -595,7 +595,7 @@ export default function Statistics() {
                       onClick={() => setShowDeptMenu(prev => !prev)}
                       className={`ui-toolbar-tab !px-2.5 !text-xs shrink-0 ${
                         showDeptMenu ? 'bg-accent/8 text-accent' : 'hover:bg-white/10'
-                      } ${deptFilter !== 'all' ? 'font-extrabold' : ''} active:bg-white/10'/80`}
+                      } ${deptFilter !== 'all' ? 'font-extrabold' : ''} active:bg-white/15`}
                       style={!showDeptMenu ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     >
                       <Filter className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
@@ -616,13 +616,18 @@ export default function Statistics() {
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
                             transition={{ duration: 0.1 }}
                             className="hidden lg:block absolute right-0 top-full z-[300] mt-1 w-48 rounded-xl p-1 shadow-xl"
-                            style={{ background: '#152848', border: '1px solid rgba(255,255,255,0.15)', isolation: 'isolate' }}
+                            style={{
+                              background: 'var(--bg-popover-solid, rgb(21, 40, 72))',
+                              color: '#f1f5f9',
+                              border: '1px solid rgba(255,255,255,0.15)',
+                              isolation: 'isolate',
+                            }}
                           >
                             <div className="px-2 py-1.5 text-xs font-bold uppercase tracking-wider text-white/60 border-b border-white/10 mb-1">
                               {t.department_filter_label}
                             </div>
                             <button type="button" onClick={() => { setDeptFilter('all'); setShowDeptMenu(false); }}
-                              className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/10'}/80`}>
+                              className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/15`}>
                               <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                 <Check className={`h-3 w-3 ${deptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
                               </div>
@@ -632,7 +637,7 @@ export default function Statistics() {
                             <div className="my-1 h-px bg-white/10" />
                             {departments.map((d) => (
                               <button key={d.value} type="button" onClick={() => { setDeptFilter(d.value); setShowDeptMenu(false); }}
-                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/10'}/80`}>
+                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/15`}>
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                   <span className={`h-2.5 w-2.5 rounded-full shadow-sm ${deptFilter === d.value ? 'bg-white' : ''}`}
                                     style={deptFilter !== d.value ? { backgroundColor: d.color ?? getDeptColor(d.value) } : {}} />
@@ -645,7 +650,17 @@ export default function Statistics() {
 
                           {/* Mobile Modal */}
                           <div className="lg:hidden">
-                            <CenteredModalPortal open={showDeptMenu} onClose={() => setShowDeptMenu(false)} maxWidthClass="max-w-[280px]" panelClassName="p-1" disableBackdropClose>
+                            <CenteredModalPortal
+                              open={showDeptMenu}
+                              onClose={() => setShowDeptMenu(false)}
+                              maxWidthClass="max-w-[280px]"
+                              panelClassName="p-1 !text-slate-50"
+                              panelStyle={{
+                                background: 'var(--bg-popover-solid, rgb(21, 40, 72))',
+                                color: '#f1f5f9',
+                              }}
+                              disableBackdropClose
+                            >
                               <div className="flex items-center justify-between px-2 py-1.5 border-b border-white/10 mb-1">
                                 <span className="text-xs font-bold uppercase tracking-wider text-white/45">{t.department_filter_label}</span>
                                 <button type="button" onClick={() => setShowDeptMenu(false)} className="rounded-lg p-1 text-white/45 transition-colors hover:bg-white/10 hover:text-white/70 active:text-white/70" aria-label={t.close}>
@@ -653,7 +668,7 @@ export default function Statistics() {
                                 </button>
                               </div>
                               <button type="button" onClick={() => { setDeptFilter('all'); setShowDeptMenu(false); }}
-                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/10'}/80`}>
+                                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === 'all' ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/15`}>
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                   <Check className={`h-3 w-3 ${deptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
                                 </div>
@@ -663,7 +678,7 @@ export default function Statistics() {
                               <div className="my-1 h-px bg-white/10" />
                               {departments.map((d) => (
                                 <button key={d.value} type="button" onClick={() => { setDeptFilter(d.value); setShowDeptMenu(false); }}
-                                  className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/10'}/80`}>
+                                  className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[11px] font-bold transition-all ${deptFilter === d.value ? 'bg-accent text-white shadow-md' : 'text-white/80 hover:bg-white/10'} active:bg-white/15`}>
                                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                     <span className={`h-2.5 w-2.5 rounded-full shadow-sm ${deptFilter === d.value ? 'bg-white' : ''}`}
                                       style={deptFilter !== d.value ? { backgroundColor: d.color ?? getDeptColor(d.value) } : {}} />

@@ -3051,12 +3051,17 @@ export default function Timesheets() {
 
           {/* ── Toolbar presenze: sopra la griglia ── */}
           {uiW('timesheet.header') && (
-          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto sticky top-0 z-[1000]">
-            <div className="flex min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-2 overflow-visible relative z-[1001]">
-              <div className="ui-toolbar-row-tight min-w-0 shrink-0 md:gap-2">
+          <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 w-full max-w-full sticky top-0 z-[1000]">
+            {/**
+             * Niente `flex-nowrap` forzato qui: la variante `presences` è `col` sotto `lg` (niente
+             * sovrapposizione) e su desktop `min-w-0` + `overflow-x-auto` evita che le chip coprano
+             * PDF / reparto a destra.
+             */}
+            <div className="relative z-[1001] flex min-h-0 w-full min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto overscroll-x-contain [scrollbar-gutter:stable]">
+              <div className="ui-toolbar-row-tight min-w-0 flex-1 md:gap-2">
 
-                {/* Wrapper compatto: nav + chip data sempre vicini */}
-                <div className="flex shrink-0 flex-nowrap items-center gap-2">
+                {/* Wrapper compatto: nav + chip data — scroll orizzontale se stretto */}
+                <div className="flex min-w-0 max-w-full flex-nowrap items-center gap-2">
                 {/* Gruppo unificato: ◀ Prec. | Settimana | Mese | ▶ Pros. */}
                 <div className="ui-toolbar-group">
                   {/* ◀ Prec. — settimana in week mode, periodo in month mode */}
@@ -3083,7 +3088,7 @@ export default function Timesheets() {
                       viewMode === 'week'
                         ? 'bg-accent text-white font-extrabold'
                         : 'hover:bg-white/10'
-                    } active:bg-white/10'/80`}
+                    } active:bg-white/15`}
                     style={viewMode !== 'week' ? { color: 'rgba(255,255,255,0.80)' } : {}}
                   >
                     {t.ts_period_week}
@@ -3097,7 +3102,7 @@ export default function Timesheets() {
                       viewMode === 'month' && periodNavOffset === 0
                         ? 'bg-accent text-white font-extrabold'
                         : 'hover:bg-white/10'
-                    } active:bg-white/10'/80`}
+                    } active:bg-white/15`}
                     style={!(viewMode === 'month' && periodNavOffset === 0) ? { color: 'rgba(255,255,255,0.80)' } : {}}
                     title={monthTabTitle}
                   >
@@ -3189,7 +3194,7 @@ export default function Timesheets() {
                     }}
                     className={`ui-toolbar-tab !px-4 lg:!px-5 !text-[11px] lg:!text-sm shrink-0 ${
                       showPeriodPopover ? 'bg-accent/10 text-accent' : 'text-white/80 hover:bg-white/10'
-                    } ${!periodSaved ? 'font-extrabold' : ''} active:bg-white/10'/80`}
+                    } ${!periodSaved ? 'font-extrabold' : ''} active:bg-white/15`}
                     title="Seleziona periodo"
                   >
                     <span className="text-[12px] lg:text-sm font-bold tabular-nums capitalize text-white">
@@ -3226,15 +3231,22 @@ export default function Timesheets() {
                       return (
                         <div
                           ref={periodPopoverRef}
-                          style={{ position: 'fixed', top: periodPopoverPos.top, left: periodPopoverPos.left, zIndex: 99999, background: '#152848' }}
-                          className="w-64 rounded-xl border border-white/15 shadow-2xl overflow-hidden"
+                          style={{
+                            position: 'fixed',
+                            top: periodPopoverPos.top,
+                            left: periodPopoverPos.left,
+                            zIndex: 99999,
+                            background: 'var(--bg-popover-solid, rgb(5, 14, 60))',
+                            color: '#f1f5f9',
+                          }}
+                          className="w-64 rounded-xl border border-white/15 shadow-2xl overflow-hidden text-slate-50"
                         >
                           {/* Header anno con navigazione */}
                           <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 bg-white/5">
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y - 1); }}
-                              className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 active:bg-white/80"
+                              className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 active:bg-white/15"
                             >
                               <ChevronLeft className="h-3.5 w-3.5" />
                             </button>
@@ -3244,7 +3256,7 @@ export default function Timesheets() {
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setPeriodPopoverYear(y => y + 1); }}
-                              className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 active:bg-white/80"
+                              className="flex h-6 w-6 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 active:bg-white/15"
                             >
                               <ChevronRight className="h-3.5 w-3.5" />
                             </button>
@@ -3260,7 +3272,7 @@ export default function Timesheets() {
                                   isActive
                                     ? 'bg-accent/15'
                                     : 'hover:bg-white/8'
-                                } active:bg-white/8'/80`}
+                                } active:bg-white/10`}
                               >
                                 <span className={`text-[12px] font-bold capitalize ${
                                   isActive
@@ -3269,7 +3281,7 @@ export default function Timesheets() {
                                       ? 'text-white'
                                       : 'text-white/70'
                                 }`}>
-                                  {format(s, 'MMMM', { locale })}
+                                  {format(new Date(listYear, monthIdx, 1), 'MMMM', { locale })}
                                   {listYear !== nowYear && (
                                     <span className="ml-1 text-[11px] font-normal text-white/40">{listYear}</span>
                                   )}
@@ -3301,8 +3313,8 @@ export default function Timesheets() {
 
             </div>
 
-            <div className="flex min-h-9 lg:min-h-10 shrink-0 items-center justify-start gap-1 self-stretch md:ml-auto md:justify-end md:self-center">
-              <div className="flex items-center gap-1">
+            <div className="flex min-h-9 w-full min-w-0 shrink-0 flex-wrap items-center justify-start gap-1 self-stretch sm:w-auto sm:flex-nowrap sm:justify-start md:ml-auto md:justify-end md:self-center">
+              <div className="flex flex-wrap items-center gap-1 sm:flex-nowrap">
                 {/* Undo button presenze */}
                 {tsUndoStack.length > 0 && (
                   <button
@@ -3412,7 +3424,7 @@ export default function Timesheets() {
                               exit={{ opacity: 0, y: 4, scale: 0.95 }}
                               className="fixed z-[10050] max-h-[min(70vh,420px)] w-64 overflow-y-auto rounded-xl border border-white/15 p-1 shadow-xl"
                               style={{
-                                background: '#152848',
+                                background: 'var(--bg-popover-solid)',
                                 top: weekApproveDesktopPos.top,
                                 left: weekApproveDesktopPos.left,
                                 isolation: 'isolate',
@@ -3512,7 +3524,7 @@ export default function Timesheets() {
                                       w.fullWeekComplete
                                         ? 'text-white/85 hover:bg-white/10'
                                         : 'cursor-not-allowed text-white/30 opacity-60'
-                                    } active:bg-white/10'/80`}
+                                    } active:bg-white/15`}
                                   >
                                     <Users className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
                                     <span className="flex-1">Settimana intera (tutti)</span>
@@ -3536,7 +3548,7 @@ export default function Timesheets() {
                                         complete
                                           ? 'text-white/85 hover:bg-white/10'
                                           : 'cursor-not-allowed text-white/30 opacity-60'
-                                      } active:bg-white/10'/80`}
+                                      } active:bg-white/15`}
                                     >
                                       <UserCheck className="h-3.5 w-3.5 shrink-0 text-white/40" aria-hidden />
                                       <span className="flex-1 truncate" title={name}>{name}</span>
@@ -3655,7 +3667,7 @@ export default function Timesheets() {
                                               w.fullWeekComplete
                                                 ? 'text-white/85 hover:bg-white/10'
                                                 : 'cursor-not-allowed text-white/30 opacity-60'
-                                            } active:bg-white/10'/80`}
+                                            } active:bg-white/15`}
                                           >
                                             <Users className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                                             Settimana intera (tutti)
@@ -3673,7 +3685,7 @@ export default function Timesheets() {
                                                 complete
                                                   ? 'text-white/85 hover:bg-white/10'
                                                   : 'cursor-not-allowed text-white/30 opacity-60'
-                                              } active:bg-white/10'/80`}
+                                              } active:bg-white/15`}
                                             >
                                               <UserCheck className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
                                               {name}
@@ -3720,7 +3732,7 @@ export default function Timesheets() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
                             className="hidden lg:block absolute left-0 lg:right-0 lg:left-auto top-full z-[300] mt-1 w-48 rounded-xl border border-white/15 p-1 shadow-xl"
-                            style={{ background: '#152848', isolation: 'isolate' }}
+                            style={{ background: 'var(--bg-popover-solid)', isolation: 'isolate' }}
                           >
                             <button
                               type="button"
@@ -3729,7 +3741,7 @@ export default function Timesheets() {
                                 pdfDeptFilter === 'all' 
                                   ? 'bg-accent text-white shadow-md' 
                                   : 'text-white/80 hover:bg-white/10'
-                              } active:bg-white/10'/80`}
+                              } active:bg-white/15`}
                             >
                               <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                 <Check className={`h-3 w-3 ${pdfDeptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
@@ -3750,7 +3762,7 @@ export default function Timesheets() {
                                   pdfDeptFilter === dept.value 
                                     ? 'bg-accent text-white shadow-md' 
                                     : 'text-white/70 hover:bg-white/10'
-                                } active:bg-white/10'/80`}
+                                } active:bg-white/15`}
                               >
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                   <span
@@ -3793,7 +3805,7 @@ export default function Timesheets() {
                                   pdfDeptFilter === 'all' 
                                     ? 'bg-accent text-white shadow-md' 
                                     : 'text-white/70 hover:bg-white/10'
-                                } active:bg-white/10'/80`}
+                                } active:bg-white/15`}
                               >
                                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                   <Check className={`h-3 w-3 ${pdfDeptFilter === 'all' ? 'text-white' : 'text-accent'}`} strokeWidth={3} />
@@ -3814,7 +3826,7 @@ export default function Timesheets() {
                                     pdfDeptFilter === dept.value 
                                       ? 'bg-accent text-white shadow-md' 
                                       : 'text-white/70 hover:bg-white/10'
-                                  } active:bg-white/10'/80`}
+                                  } active:bg-white/15`}
                                 >
                                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
                                     <span
@@ -5087,7 +5099,7 @@ export default function Timesheets() {
                                   : punchComplete
                                   ? 'bg-brand-deep/10 ring-brand-deep/25'
                                   : 'bg-white/8 ring-amber-400/40'
-                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''} active:bg-amber-500/20'/80`}
+                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''} active:bg-amber-500/30`}
                           >
                             <p className={`mb-0.5 text-[11px] font-semibold uppercase tracking-wide ${!s.actualStart ? 'text-red-400' : punchCrossDay ? 'text-red-300/80' : punchComplete ? 'text-blue-300/80' : 'text-amber-300/80'}`}>
                               {t.ts_drawer_manual_punch_in}
@@ -5115,7 +5127,7 @@ export default function Timesheets() {
                                   : punchComplete
                                   ? 'bg-brand-deep/10 ring-brand-deep/25'
                                   : 'bg-white/8 ring-amber-400/40'
-                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''} active:bg-amber-500/20'/80`}
+                            } ${showTimbratureEditForm ? 'cursor-pointer hover:bg-amber-500/20' : ''} active:bg-amber-500/30`}
                           >
                             <p className={`mb-0.5 text-[11px] sm:text-[11px] font-semibold uppercase tracking-wide ${!s.actualEnd ? 'text-red-400' : punchCrossDay ? 'text-red-300/80' : punchComplete ? 'text-blue-300/80' : 'text-amber-300/80'}`}>
                               {t.ts_drawer_manual_punch_out}
@@ -5360,7 +5372,7 @@ export default function Timesheets() {
                                   : !hasValidOut
                                   ? 'bg-amber-500 text-white hover:bg-amber-600'
                                   : 'bg-accent text-white hover:bg-accent-hover'
-                              } ${reviewQueueSaving || manualPunchSaving || drawerJustOpened ? 'opacity-50' : ''} active:bg-amber-600'/80`}
+                              } ${reviewQueueSaving || manualPunchSaving || drawerJustOpened ? 'opacity-50' : ''} active:bg-amber-700`}
                             >
                               {isLast ? 'SALVA E CHIUDI' : t.ts_drawer_manual_punches_save}
                             </button>
