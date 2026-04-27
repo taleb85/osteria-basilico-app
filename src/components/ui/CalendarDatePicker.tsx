@@ -236,9 +236,11 @@ interface DatePickerInputProps {
   inputClassName?: string;
   minDate?: string;
   maxDate?: string;
+  /** Per associare un `<label htmlFor>` al trigger. */
+  id?: string;
 }
 
-export function DatePickerInput({ value, onChange, inputClassName, minDate, maxDate }: DatePickerInputProps) {
+export function DatePickerInput({ value, onChange, inputClassName, minDate, maxDate, id }: DatePickerInputProps) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -272,6 +274,7 @@ export function DatePickerInput({ value, onChange, inputClassName, minDate, maxD
       {/* Trigger */}
       <button
         type="button"
+        id={id}
         onClick={() => setOpen(v => !v)}
         className={`flex w-full items-center gap-2 rounded-xl border border-white/35 bg-white/15 px-3 py-2.5 text-base font-semibold text-white shadow-sm transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 ${inputClassName ?? ''}`}
       >

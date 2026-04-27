@@ -329,6 +329,8 @@ export function ShiftHoursCards({
                   it.ruleId && onDeductPerRuleChange ? (
                     <label
                       key={it.ruleId}
+                      htmlFor={`wst-deduct-rule-${s.id}-${it.ruleId}`}
+                      aria-label={it.title}
                       className={`flex min-h-[40px] cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 transition-colors ${
                         deductBreakSaving ? 'pointer-events-none opacity-50' : ''
                       } ${
@@ -339,6 +341,7 @@ export function ShiftHoursCards({
                     >
                       <div className="relative shrink-0">
                         <input
+                          id={`wst-deduct-rule-${s.id}-${it.ruleId}`}
                           type="checkbox"
                           className="peer sr-only"
                           checked={!ruleExclusion.has(it.ruleId)}

@@ -101,10 +101,11 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
 
           <div className="p-6 space-y-4">
             <div>
-              <label className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
+              <label htmlFor="edit-shift-date" className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
                 Data
               </label>
               <input
+                id="edit-shift-date"
                 type="date"
                 value={tempShifts.date}
                 onChange={(e) => setTempShifts((s) => ({ ...s, date: e.target.value }))}
@@ -115,10 +116,11 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
+                <label htmlFor="edit-shift-start" className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
                   {t.start}
                 </label>
                 <TimeInputField
+                  id="edit-shift-start"
                   value={tempShifts.start_time}
                   onChange={(next) => setTempShifts((s) => ({ ...s, start_time: next }))}
                   aria-label={t.start}
@@ -127,10 +129,11 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
               </div>
 
               <div>
-                <label className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
+                <label htmlFor="edit-shift-end" className="text-white/70 text-xs uppercase tracking-[0.2em] font-bold mb-2 block">
                   Fine {!tempShifts.end_time && <span className="text-amber-400">(da completare)</span>}
                 </label>
                 <TimeInputField
+                  id="edit-shift-end"
                   value={tempShifts.end_time}
                   onChange={(next) => setTempShifts((s) => ({ ...s, end_time: next }))}
                   aria-label={t.end}

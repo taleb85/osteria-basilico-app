@@ -69,4 +69,13 @@ if (!rootEl) {
       </RootErrorBoundary>
     </StrictMode>
   );
+
+  if (import.meta.env.DEV) {
+    void (async () => {
+      const { default: axe } = await import('@axe-core/react');
+      const React = (await import('react')).default;
+      const ReactDOM = (await import('react-dom')).default;
+      axe(React, ReactDOM, 1000);
+    })();
+  }
 }

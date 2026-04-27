@@ -410,42 +410,43 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-white/55">Nome *</label>
-                  <input value={form.first_name} onChange={(e) => setF('first_name', e.target.value)} placeholder="Mario"
+                  <label htmlFor="sa-dip-first" className="text-[11px] font-semibold text-white/55">Nome *</label>
+                  <input id="sa-dip-first" value={form.first_name} onChange={(e) => setF('first_name', e.target.value)} placeholder="Mario"
                     className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-white/55">Cognome</label>
-                  <input value={form.last_name ?? ''} onChange={(e) => setF('last_name', e.target.value)} placeholder="Rossi"
+                  <label htmlFor="sa-dip-last" className="text-[11px] font-semibold text-white/55">Cognome</label>
+                  <input id="sa-dip-last" value={form.last_name ?? ''} onChange={(e) => setF('last_name', e.target.value)} placeholder="Rossi"
                     className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-white/55">Email</label>
-                <input type="email" value={form.email} onChange={(e) => setF('email', e.target.value)} placeholder="mario@email.com"
+                <label htmlFor="sa-dip-email" className="text-[11px] font-semibold text-white/55">Email</label>
+                <input id="sa-dip-email" type="email" value={form.email} onChange={(e) => setF('email', e.target.value)} placeholder="mario@email.com"
                   className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-white/55">Ruolo *</label>
-                  <select value={form.role} onChange={(e) => setF('role', e.target.value as UserRole)}
+                  <label htmlFor="sa-dip-role" className="text-[11px] font-semibold text-white/55">Ruolo *</label>
+                  <select id="sa-dip-role" value={form.role} onChange={(e) => setF('role', e.target.value as UserRole)}
                     className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40">
                     {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-white/55">Reparto</label>
-                  <input value={form.department ?? ''} onChange={(e) => setF('department', e.target.value)} placeholder="sala, bar, cucina…"
+                  <label htmlFor="sa-dip-dept" className="text-[11px] font-semibold text-white/55">Reparto</label>
+                  <input id="sa-dip-dept" value={form.department ?? ''} onChange={(e) => setF('department', e.target.value)} placeholder="sala, bar, cucina…"
                     className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-white/55">PIN (4 cifre) *</label>
+                <label htmlFor="sa-dip-pin" className="text-[11px] font-semibold text-white/55">PIN (4 cifre) *</label>
                 <div className="relative">
                   <input
+                    id="sa-dip-pin"
                     type={showPin ? 'text' : 'password'}
                     value={form.pin}
                     onChange={(e) => setF('pin', e.target.value.replace(/\D/g, '').slice(0, 4))}
@@ -854,8 +855,9 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
               <div className="space-y-3 pt-1">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-white/55">Latitudine</label>
+                    <label htmlFor="sa-geo-lat" className="text-xs font-semibold text-white/55">Latitudine</label>
                     <input
+                      id="sa-geo-lat"
                       type="number" step="0.000001"
                       value={settings.geofence.lat}
                       onChange={(e) => set('geofence', { ...settings.geofence!, lat: parseFloat(e.target.value) || 0 })}
@@ -864,8 +866,9 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-white/55">Longitudine</label>
+                    <label htmlFor="sa-geo-lng" className="text-xs font-semibold text-white/55">Longitudine</label>
                     <input
+                      id="sa-geo-lng"
                       type="number" step="0.000001"
                       value={settings.geofence.lng}
                       onChange={(e) => set('geofence', { ...settings.geofence!, lng: parseFloat(e.target.value) || 0 })}
@@ -875,8 +878,9 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-white/55">Raggio (metri)</label>
+                  <label htmlFor="sa-geo-radius" className="text-xs font-semibold text-white/55">Raggio (metri)</label>
                   <input
+                    id="sa-geo-radius"
                     type="number" min={10} max={5000}
                     value={settings.geofence.radiusM}
                     onChange={(e) => set('geofence', { ...settings.geofence!, radiusM: parseInt(e.target.value) || 100 })}
@@ -898,8 +902,9 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
             <p className="text-[11px] text-white/40">Lingua predefinita e fuso orario della sede.</p>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-white/70">Lingua predefinita</label>
+              <label htmlFor="sa-locale-lang" className="text-xs font-semibold text-white/70">Lingua predefinita</label>
               <select
+                id="sa-locale-lang"
                 value={settings.defaultLanguage ?? 'it'}
                 onChange={(e) => set('defaultLanguage', e.target.value as 'it' | 'en' | 'es' | 'fr')}
                 className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
@@ -909,8 +914,9 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-white/70">Fuso orario</label>
+              <label htmlFor="sa-locale-tz" className="text-xs font-semibold text-white/70">Fuso orario</label>
               <select
+                id="sa-locale-tz"
                 value={settings.timezone ?? 'Europe/Rome'}
                 onChange={(e) => set('timezone', e.target.value)}
                 className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
@@ -1059,8 +1065,9 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
 
       {/* Nome */}
       <div className="space-y-1">
-        <label className="text-xs font-semibold text-white/70">Nome sede *</label>
+        <label htmlFor="sa-tenant-name" className="text-xs font-semibold text-white/70">Nome sede *</label>
         <input
+          id="sa-tenant-name"
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -1071,9 +1078,10 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
 
       {/* Slug */}
       <div className="space-y-1">
-        <label className="text-xs font-semibold text-white/70">Slug (sottodominio) *</label>
+        <label htmlFor="sa-tenant-slug" className="text-xs font-semibold text-white/70">Slug (sottodominio) *</label>
         <div className="flex gap-2 items-center">
           <input
+            id="sa-tenant-slug"
             required
             value={slug}
             onChange={(e) => { setSlug(slugify(e.target.value)); setSlugManual(true); }}
@@ -2163,8 +2171,8 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
       </div>
 
       <div className="space-y-1">
-        <label className="text-[11px] font-semibold text-white/55 uppercase tracking-wider">Sede di destinazione</label>
-        <select value={selectedTenantId} onChange={(e) => { setSelectedTenantId(e.target.value); setRows([]); setImportResult(null); }}
+        <label htmlFor="sa-import-tenant" className="text-[11px] font-semibold text-white/55 uppercase tracking-wider">Sede di destinazione</label>
+        <select id="sa-import-tenant" value={selectedTenantId} onChange={(e) => { setSelectedTenantId(e.target.value); setRows([]); setImportResult(null); }}
           className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-amber-400/40">
           {tenants.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>

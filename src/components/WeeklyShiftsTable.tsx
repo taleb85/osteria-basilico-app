@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { format, startOfWeek, endOfWeek, addDays, differenceInCalendarDays, parseISO, isToday, eachDayOfInterval, getDay } from 'date-fns';
 import { database } from '../lib/database';
@@ -6150,6 +6150,15 @@ interface CreateShiftModalProps {
 function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError, onClose, isOpenShift = false }: CreateShiftModalProps) {
   const { users, addShift, showSuccess, effectiveLanguage, breakRules, featureFlags } = useApp();
   const t = useT();
+  const fId = useId();
+  const wstF = {
+    date: `${fId}-date`,
+    start: `${fId}-start`,
+    end: `${fId}-end`,
+    deduct: `${fId}-deduct`,
+    notes: `${fId}-notes`,
+    notify: `${fId}-notify`,
+  };
   const rawDefault = (defaultTime || '').trim().slice(0, 5);
   const defaultHour = rawDefault ? parseInt(rawDefault.split(':')[0], 10) : 10;
   const isEveningDefault = defaultHour >= 16;
@@ -6368,8 +6377,9 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
           <div className="space-y-4 px-5 pb-5 pt-4" style={{ background: 'rgba(255, 255, 255, 0.12)' }}>
             {/* ── Data ── */}
             <div>
-              <label className={labelClass}>Data</label>
+              <label htmlFor={wstF.date} className={labelClass}>Data</label>
               <DatePickerInput
+                id={wstF.date}
                 value={selectedDate}
                 onChange={(val) => setSelectedDate(val)}
               />
@@ -6377,8 +6387,9 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
             {/* ── Time inputs side by side ── */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelClass}>{t.start_time}</label>
+                <label htmlFor={wstF.start} className={labelClass}>{t.start_time}</label>
                 <TimeInputField
+                  id={wstF.start}
                   value={tempShifts.start_time}
                   onChange={(next) => setTempShifts((s) => ({ ...s, start_time: next }))}
                   aria-label={t.start_time}
@@ -6391,18 +6402,24 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                 />
               </div>
               <div>
-                <label className={labelClass}>{t.end_time}</label>
                 {isOpenEndShift ? (
-                  <p className="text-white/40 text-xs pt-2.5 font-sans">{t.manual_close_dinner}</p>
+                  <>
+                    <div className={labelClass}>{t.end_time}</div>
+                    <p className="text-white/40 text-xs pt-2.5 font-sans">{t.manual_close_dinner}</p>
+                  </>
                 ) : (
-                  <TimeInputField
-                    value={tempShifts.end_time}
-                    onChange={(next) => setTempShifts((s) => ({ ...s, end_time: next }))}
-                    aria-label={t.end_time}
-                    className="w-full font-sans shadow-sm"
-                    hourInputRef={endTimeHourRef}
-                    onMinutesEnter={() => formRef.current?.requestSubmit()}
-                  />
+                  <>
+                    <label htmlFor={wstF.end} className={labelClass}>{t.end_time}</label>
+                    <TimeInputField
+                      id={wstF.end}
+                      value={tempShifts.end_time}
+                      onChange={(next) => setTempShifts((s) => ({ ...s, end_time: next }))}
+                      aria-label={t.end_time}
+                      className="w-full font-sans shadow-sm"
+                      hourInputRef={endTimeHourRef}
+                      onMinutesEnter={() => formRef.current?.requestSubmit()}
+                    />
+                  </>
                 )}
               </div>
             </div>
@@ -6455,13 +6472,17 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               </button>
               {showAdvanced && (
                 <div className="mt-2 space-y-4">
-                  <label className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 shadow-sm transition-colors ${
+                  <label
+                    htmlFor={wstF.deduct}
+                    aria-label={t.deduct_break_label}
+                    className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 shadow-sm transition-colors ${
                     deductBreak
                       ? 'border-accent/60 bg-accent/5 hover:bg-accent/10'
                       : 'border-white/20 bg-white/8 hover:bg-white/10'
                   } active:bg-accent/10'/80`}>
                     <div className="relative shrink-0 mt-0.5">
                       <input
+                        id={wstF.deduct}
                         type="checkbox"
                         className="peer sr-only"
                         checked={deductBreak}
@@ -6479,8 +6500,9 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                   </label>
 
                   <div>
-                    <label className={labelClass}>{t.notes_label} <span className="font-normal normal-case tracking-normal" style={{ color: 'rgba(255,255,255,0.60)' }}>{t.notes_optional_paren}</span></label>
+                    <label htmlFor={wstF.notes} className={labelClass}>{t.notes_label} <span className="font-normal normal-case tracking-normal" style={{ color: 'rgba(255,255,255,0.60)' }}>{t.notes_optional_paren}</span></label>
                     <input
+                      id={wstF.notes}
                       type="text"
                       value={publicNote}
                       onChange={(e) => setPublicNote(e.target.value)}
@@ -6489,9 +6511,14 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                     />
                   </div>
 
-                  <label className="flex items-start gap-3 cursor-pointer">
+                  <label
+                    htmlFor={wstF.notify}
+                    aria-label={'Avvisa il dipendente'}
+                    className="flex items-start gap-3 cursor-pointer"
+                  >
                     <div className="relative flex-shrink-0 mt-0.5">
                       <input
+                        id={wstF.notify}
                         type="checkbox"
                         checked={notifyEmployee}
                         onChange={(e) => setNotifyEmployee(e.target.checked)}
