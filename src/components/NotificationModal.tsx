@@ -5,6 +5,7 @@ import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { DirectMessagesPanel } from './DirectMessagesPanel';
 import type { Message } from '../hooks/useMessages';
+import type { User } from '../types';
 
 interface NotificationModalProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ interface NotificationModalProps {
   userId?: string;
   userName?: string;
   onRefresh?: () => void;
-  currentUser?: any;
+  currentUser?: User;
   sendMessage?: (subject: string, body: string, recipientId?: string) => Promise<boolean>;
   deleteMessage?: (messageId: string) => Promise<boolean>;
 }

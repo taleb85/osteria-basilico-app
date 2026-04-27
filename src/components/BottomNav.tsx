@@ -1,9 +1,10 @@
 import { useLayoutEffect, useRef, useState, useCallback, useEffect, useMemo } from 'react';
-import { Home, Calendar, ClipboardList, ShieldCheck, Palmtree, User, Search, X, Fingerprint, Settings } from 'lucide-react';
+import { Home, Calendar, ClipboardList, ShieldCheck, Palmtree, User as UserIcon, Search, X, Fingerprint, Settings } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { formatTrans } from '../utils/translations';
 import { useT } from '../hooks/useT';
+import type { User } from '../types';
 import type { AppNavTab } from '../utils/enabledModules';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 import {
@@ -38,7 +39,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
   // Stato per il cambio rapido utente
   const [isQuickSwitchOpen, setIsQuickSwitchOpen] = useState(false);
   const [quickSwitchSearch, setQuickSwitchSearch] = useState('');
-  const [pendingSwitchUser, setPendingSwitchUser] = useState<any>(null);
+  const [pendingSwitchUser, setPendingSwitchUser] = useState<User | null>(null);
   const [switchPin, setSwitchPin] = useState('');
   const [switchError, setSwitchError] = useState('');
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -70,7 +71,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     }
   }, []);
 
-  const handleSelectUserForSwitch = (user: any) => {
+  const handleSelectUserForSwitch = (user: User) => {
     const actor = switchingFromUser ?? currentUser;
     const isAdminActor = isAdminOnly(actor);
     const isKioskMode = featureFlags['kiosk_active'] === true;
@@ -251,7 +252,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     { id: 'timesheet', icon: ClipboardList, label: t.sidebar_attendance },
     // 'reports' removed — Statistiche now lives as sub-tab inside 'timesheet'
     { id: 'ferie', icon: Palmtree, label: t.sidebar_holidays },
-    { id: 'profile', icon: User, label: tv.bottom_nav_profile_short ?? t.sidebar_profile },
+    { id: 'profile', icon: UserIcon, label: tv.bottom_nav_profile_short ?? t.sidebar_profile },
     {
       id: 'settings' as AppNavTab,
       icon: (isAdminOnly(currentUser) || isSessionElevated || !!currentUser?.elevated_role) ? ShieldCheck : Settings,

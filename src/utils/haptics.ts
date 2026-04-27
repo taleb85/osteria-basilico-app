@@ -8,7 +8,8 @@
 export type HapticStyle = 'light' | 'click' | 'medium' | 'heavy' | 'success' | 'error' | 'warning'
 
 const isIOS = () =>
-  /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+  /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+  !(window as Window & { MSStream?: unknown }).MSStream
 
 const isAndroid = () => /Android/.test(navigator.userAgent)
 
@@ -17,7 +18,8 @@ let audioCtx: AudioContext | null = null
 const getAudioContext = (): AudioContext | null => {
   try {
     if (!audioCtx || audioCtx.state === 'closed') {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+      const w = window as Window & { webkitAudioContext?: typeof AudioContext }
+      const AudioCtx = window.AudioContext || w.webkitAudioContext
       if (!AudioCtx) return null
       audioCtx = new AudioCtx()
     }

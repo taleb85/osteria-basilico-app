@@ -4,7 +4,8 @@ import { Clock, Download, X, Share, ChevronRight, ChevronLeft, LogOut, Shield, C
 import { database } from '../lib/database';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { User as UserType, Shift, HolidayRequest, PunchRecord } from '../types';
+import { User as UserType, Shift, HolidayRequest, PunchRecord, type Language } from '../types';
+import type { BreakRule, BreakMinutesComputeOptions } from '../utils/breakRules';
 import { format, isToday, isFuture, startOfWeek, endOfWeek, addWeeks, addDays, startOfMonth, endOfMonth, parseISO, isWithinInterval, startOfDay, endOfDay, getISOWeek } from 'date-fns';
 import { it as itLocale } from 'date-fns/locale';
 import { loadPeriodConfig, getPeriodDateRange, prevPeriodConfig, nextPeriodConfig, type PeriodConfig } from '../utils/periodConfig';
@@ -49,7 +50,7 @@ import ProfileNavTabPanel from './ProfileNavTabPanel';
 import { StaffPushNotificationPromptBanner } from './StaffPushNotificationPromptBanner';
 
 // ─── Desktop grid view for staff shifts ───────────────────────────────────────
-function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; language?: import('../types').Language }) {
+function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: Shift[]; language?: Language }) {
   const locale = getDateLocale(language) ?? itLocale;
   const t = getTranslations(language);
   const _STATUS_CFG = {
@@ -61,7 +62,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
 
   const weeks = useMemo(() => {
     const sorted = [...shifts].sort((a, b) => a.date.localeCompare(b.date));
-    const map: { start: Date; end: Date; shifts: any[] }[] = [];
+    const map: { start: Date; end: Date; shifts: Shift[] }[] = [];
     sorted.forEach(shift => {
       const d = parseISO(shift.date);
       const s = startOfWeek(d, { weekStartsOn: 1 });
@@ -90,7 +91,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
     <div className="flex flex-col gap-11 pb-8">
       {weeks.map((week, wIdx) => {
         const weekDays = eachDayOfInterval({ start: week.start, end: week.end });
-        const byDay = new Map<string, any[]>();
+        const byDay = new Map<string, Shift[]>();
         weekDays.forEach(d => byDay.set(format(d, 'yyyy-MM-dd'), []));
         week.shifts.forEach(s => {
           const k = format(parseISO(s.date), 'yyyy-MM-dd');
@@ -137,7 +138,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
             <div className="grid grid-cols-7">
               {weekDays.map((day, dIdx) => {
                 const dateStr = format(day, 'yyyy-MM-dd');
-                const dayShifts = (byDay.get(dateStr) ?? []).sort((a: any, b: any) => a.start_time.localeCompare(b.start_time));
+                const dayShifts = (byDay.get(dateStr) ?? []).sort((a, b) => a.start_time.localeCompare(b.start_time));
                 const _isWeekend = dIdx >= 5;
                 const today = isToday(day);
 
@@ -162,7 +163,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
                         <div className="flex-1 flex items-center justify-center">
                           <span className="w-1 h-1 rounded-full bg-slate-200" />
                         </div>
-                      ) : dayShifts.map((shift: any) => {
+                      ) : dayShifts.map((shift) => {
                         const isAbsent = shift.approval_status === 'absent';
                         const isDraft = shift.approval_status === 'draft';
 
@@ -215,7 +216,12 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: any[]; langua
 function StaffDesktopTimesheet({
   shifts, punchRecords, user, breakRules, breakComputeOpts, language = 'it',
 }: {
-  shifts: any[]; punchRecords: any[]; user: any; breakRules: any;   breakComputeOpts: any; language?: import('../types').Language;
+  shifts: Shift[];
+  punchRecords: PunchRecord[];
+  user: UserType;
+  breakRules: BreakRule[];
+  breakComputeOpts: BreakMinutesComputeOptions;
+  language?: Language;
 }) {
   const locale = getDateLocale(language) ?? itLocale;
   const t = getTranslations(language);
@@ -245,7 +251,7 @@ function StaffDesktopTimesheet({
   }
 
   // Group by week
-  const weeks: { start: Date; end: Date; shifts: any[] }[] = [];
+  const weeks: { start: Date; end: Date; shifts: Shift[] }[] = [];
   history.forEach(shift => {
     const sd = new Date(shift.date);
     const s = startOfWeek(sd, { weekStartsOn: 1 });
@@ -272,7 +278,7 @@ function StaffDesktopTimesheet({
         const weekDays = eachDayOfInterval({ start: week.start, end: week.end });
 
         // Map date → shifts
-        const dayMap = new Map<string, any[]>();
+        const dayMap = new Map<string, Shift[]>();
         week.shifts.forEach(shift => {
           const arr = dayMap.get(shift.date) ?? [];
           arr.push(shift);
@@ -311,7 +317,7 @@ function StaffDesktopTimesheet({
             <div className="grid grid-cols-7">
               {weekDays.map((day, dIdx) => {
                 const dateStr = format(day, 'yyyy-MM-dd');
-                const dayShifts = (dayMap.get(dateStr) ?? []).sort((a: any, b: any) => a.start_time.localeCompare(b.start_time));
+                const dayShifts = (dayMap.get(dateStr) ?? []).sort((a, b) => a.start_time.localeCompare(b.start_time));
                 const _isWeekend = dIdx >= 5;
                 const today = isToday(day);
 
@@ -336,7 +342,7 @@ function StaffDesktopTimesheet({
                         <div className="flex-1 flex items-center justify-center">
                           <span className="w-1 h-1 rounded-full bg-slate-200" />
                         </div>
-                      ) : dayShifts.map((shift: any) => {
+                      ) : dayShifts.map((shift) => {
                         const isAbsent = shift.approval_status === 'absent';
                         const isDraft = shift.approval_status === 'draft';
                         const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
@@ -753,7 +759,8 @@ export default function StaffPersonalDashboard({
       }
     }
 
-    const weekCapMins = ((displayUser as any).hours_per_week ?? 40) * 60;
+    const weekCapMins =
+      ((displayUser as UserType & { hours_per_week?: number }).hours_per_week ?? 40) * 60;
 
     return { weekWorkedMins, weekCapMins, monthWorkedMins, monthDaysWorked: monthWorkedDays.size };
   }, [visibleShifts, punchRecords, displayUser, breakRules, breakComputeOpts]);
@@ -1045,7 +1052,8 @@ export default function StaffPersonalDashboard({
                                 title: t.tab_statistics ?? 'Statistiche',
                                 week: t.ts_period_week ?? 'Settimana',
                                 month: t.ts_period_month ?? 'Mese',
-                                daysWorked: (t as any).mobile_dash_days_worked ?? 'Giorni lavorati',
+                                daysWorked:
+                                  (t as Record<string, string>).mobile_dash_days_worked ?? 'Giorni lavorati',
                               }}
                             />
                           </div>

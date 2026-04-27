@@ -26,7 +26,7 @@ export function usePunchPresenceVerification(language: Language) {
       // Regola di base: la scansione QR è SEMPRE obbligatoria per i dipendenti
       return true;
     },
-    [currentUser, effectiveToken]
+    [currentUser]
   );
 
   const requestProof = useCallback(

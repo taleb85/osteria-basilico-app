@@ -1055,7 +1055,8 @@ function IosSafariInstallBanner() {
     const isIos = /iphone|ipad|ipod/i.test(ua);
     const isSafari = /safari/i.test(ua) && !/chrome|fxios|crios/i.test(ua);
     const isStandalone =
-      ('standalone' in window.navigator && (window.navigator as any).standalone === true) ||
+      ('standalone' in window.navigator &&
+        (window.navigator as Navigator & { standalone?: boolean }).standalone === true) ||
       window.matchMedia('(display-mode: standalone)').matches;
     const dismissed = sessionStorage.getItem('ios_install_banner_dismissed') === '1';
     return isIos && isSafari && !isStandalone && !dismissed;

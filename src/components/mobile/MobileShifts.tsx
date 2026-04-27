@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { format, startOfWeek, endOfWeek, isSameWeek, eachDayOfInterval, isToday, parseISO } from 'date-fns';
 import { it, es, enUS } from 'date-fns/locale';
 import { Calendar } from 'lucide-react';
-import type { Shift } from '../../types';
+import type { Language, Shift } from '../../types';
 import { translateDepartmentValue } from '../../utils/departmentLabels';
 import { getTranslations } from '../../utils/translations';
 
@@ -186,7 +186,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                             </p>
                             {shift.department && (
                               <p className="text-[11px] font-bold uppercase tracking-widest text-white/50 mt-0.5">
-                                {translateDepartmentValue(shift.department, language as any)}
+                                {translateDepartmentValue(shift.department, language as Language)}
                               </p>
                             )}
                           </div>

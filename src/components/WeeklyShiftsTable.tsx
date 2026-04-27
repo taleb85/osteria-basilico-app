@@ -10,7 +10,7 @@ import { useTenant } from '../context/TenantContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
-import { Shift, type ApprovalStatus, type PunchAuditEntry, type ShiftType } from '../types';
+import { Shift, User, type ApprovalStatus, type PunchAuditEntry, type ShiftType } from '../types';
 import {
   calculateShiftMinutesGross,
   getActualShiftTime,
@@ -1284,7 +1284,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     }
     list = [...list].sort((a, b) => {
       // Priorità reparto: Sala e Bar, poi Sala, poi Bar, poi Cucina, poi altri
-      const getDeptPriority = (u: any) => {
+      const getDeptPriority = (u: User) => {
         const d = (u.department || '').toLowerCase();
         if (d === 'sala_bar') return 1;
         if (d === 'sala') return 2;
@@ -1795,7 +1795,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
     trackSave,
     t,
     closeShiftDetailPanel,
-    formatTrans,
   ]);
 
   /** Salva solo orari e timbrature dal drawer (nessun PIN, nessun congelamento). */

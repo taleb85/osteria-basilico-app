@@ -41,8 +41,9 @@ export default tseslint.config(
     rules: {
       ...jsxA11y.configs.recommended.rules,
       'jsx-a11y/no-autofocus': 'off',
-      'jsx-a11y/click-events-have-key-events': 'warn',
-      'jsx-a11y/no-static-element-interactions': 'warn',
+      // Round 14: disattivate (troppi falsi positivi su wrapper/pattern UI esistenti); preferire <button> nei nuovi componenti
+      'jsx-a11y/click-events-have-key-events': 'off',
+      'jsx-a11y/no-static-element-interactions': 'off',
     },
   }
 );

@@ -15,6 +15,18 @@ import StaffHolidaysPreview from './profilePreview/StaffHolidaysPreview';
 import StatisticsTabPreview from './profilePreview/StatisticsTabPreview';
 import SettingsTabPreview from './profilePreview/SettingsTabPreview';
 import MobileTimesheet from './mobile/MobileTimesheet';
+import type { Language, Shift, User } from '../types';
+
+const PREVIEW_USER_ID = 'preview-staff';
+/** Turni dimostrativi per MobileTimesheet nelle anteprime (IDs fittizi). */
+const MOCK_TIMESHEET_SHIFTS: Shift[] = [
+  { id: 's1', user_id: PREVIEW_USER_ID, date: '2026-03-29', start_time: '10:00:00', end_time: '16:00:00', approval_status: 'confirmed', type: 'lunch' },
+  { id: 's2', user_id: PREVIEW_USER_ID, date: '2026-03-28', start_time: '10:00:00', end_time: '16:00:00', approval_status: 'confirmed', type: 'lunch' },
+  { id: 's3', user_id: PREVIEW_USER_ID, date: '2026-03-28', start_time: '18:00:00', end_time: '23:00:00', approval_status: 'confirmed', type: 'dinner' },
+  { id: 's4', user_id: PREVIEW_USER_ID, date: '2026-03-27', start_time: '18:00:00', end_time: '23:00:00', approval_status: 'confirmed', type: 'dinner' },
+  { id: 's5', user_id: PREVIEW_USER_ID, date: '2026-03-26', start_time: '10:00:00', end_time: '16:00:00', approval_status: 'confirmed', type: 'lunch' },
+  { id: 's6', user_id: PREVIEW_USER_ID, date: '2026-03-26', start_time: '18:00:00', end_time: '23:00:00', approval_status: 'confirmed', type: 'dinner' },
+];
 
 /* ── Frame helper ─────────────────────────────────────────────────── */
 const FW = 390; const FH = 760;
@@ -1174,15 +1186,15 @@ const TABS = [...SYSTEM_TABS, ...APP_TABS];
 
 function screenFor(id: ScreenId, dark: boolean) {
   // Mock data for management previews
-  const mockAdmin = { 
-    id: 'preview-admin', 
-    first_name: 'Admin', 
+  const mockAdmin = {
+    id: 'preview-admin',
+    first_name: 'Admin',
     last_name: 'Osteria',
     role: 'admin',
     department: 'Direzione',
     status: 'active',
-    email: 'admin@osteria.local'
-  } as any;
+    email: 'admin@osteria.local',
+  } as User;
 
   const mockStaff = {
     id: 'preview-staff',
@@ -1191,10 +1203,10 @@ function screenFor(id: ScreenId, dark: boolean) {
     role: 'waiter',
     department: 'Sala',
     status: 'active',
-    email: 'marco@osteria.local'
-  } as any;
+    email: 'marco@osteria.local',
+  } as User;
 
-  const mockLang = 'it' as any;
+  const mockLang: Language = 'it';
 
   switch (id) {
     case 'boot':         return <BootMock dark={dark} />;
@@ -1316,14 +1328,7 @@ function screenFor(id: ScreenId, dark: boolean) {
             <h2 className={`text-lg font-bold ${dark ? 'text-white' : 'text-slate-800'}`}>7. Presenze Staff</h2>
             <div data-theme={dark ? undefined : 'light'} className="rounded-2xl overflow-hidden border border-white/10 shadow-lg" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
               <MobileTimesheet
-                shifts={[
-                  { id: 's1', date: '2026-03-29', start_time: '10:00:00', end_time: '16:00:00', approval_status: 'confirmed', type: 'lunch' },
-                  { id: 's2', date: '2026-03-28', start_time: '10:00:00', end_time: '16:00:00', approval_status: 'confirmed', type: 'lunch' },
-                  { id: 's3', date: '2026-03-28', start_time: '18:00:00', end_time: '23:00:00', approval_status: 'confirmed', type: 'dinner' },
-                  { id: 's4', date: '2026-03-27', start_time: '18:00:00', end_time: '23:00:00', approval_status: 'confirmed', type: 'dinner' },
-                  { id: 's5', date: '2026-03-26', start_time: '10:00:00', end_time: '16:00:00', approval_status: 'confirmed', type: 'lunch' },
-                  { id: 's6', date: '2026-03-26', start_time: '18:00:00', end_time: '23:00:00', approval_status: 'confirmed', type: 'dinner' },
-                ] as any}
+                shifts={MOCK_TIMESHEET_SHIFTS}
                 punchRecords={[]}
                 user={mockStaff}
                 breakRules={[]}
@@ -1414,14 +1419,7 @@ function screenFor(id: ScreenId, dark: boolean) {
       return (
         <div data-theme={dark ? undefined : 'light'} className="h-full overflow-y-auto p-4" style={{ background: dark ? '#0a0a0a' : '#f8fafc' }}>
           <MobileTimesheet
-            shifts={[
-              { id: 's1', date: '2026-03-29', start_time: '10:00:00', end_time: '16:00:00', approval_status: 'confirmed', type: 'lunch' },
-              { id: 's2', date: '2026-03-28', start_time: '10:00:00', end_time: '16:00:00', approval_status: 'confirmed', type: 'lunch' },
-              { id: 's3', date: '2026-03-28', start_time: '18:00:00', end_time: '23:00:00', approval_status: 'confirmed', type: 'dinner' },
-              { id: 's4', date: '2026-03-27', start_time: '18:00:00', end_time: '23:00:00', approval_status: 'confirmed', type: 'dinner' },
-              { id: 's5', date: '2026-03-26', start_time: '10:00:00', end_time: '16:00:00', approval_status: 'confirmed', type: 'lunch' },
-              { id: 's6', date: '2026-03-26', start_time: '18:00:00', end_time: '23:00:00', approval_status: 'confirmed', type: 'dinner' },
-            ] as any}
+            shifts={MOCK_TIMESHEET_SHIFTS}
             punchRecords={[]}
             user={mockStaff}
             breakRules={[]}

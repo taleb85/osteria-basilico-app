@@ -54,7 +54,8 @@ export function useMultisensorialFeedback() {
     if (!isSoundEnabled) return;
 
     try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const w = window as Window & { webkitAudioContext?: typeof AudioContext };
+      const AudioCtx = window.AudioContext || w.webkitAudioContext;
       const audioContext = new AudioCtx();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();

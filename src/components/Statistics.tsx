@@ -282,7 +282,7 @@ export default function Statistics() {
         return true;
       })
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-  }, [users, currentUser, shifts]);
+  }, [users, currentUser]);
 
   const statsLocForPdf = getDateLocale(effectiveLanguage) ?? it;
   const handleExportStatsPdf = useCallback(async () => {

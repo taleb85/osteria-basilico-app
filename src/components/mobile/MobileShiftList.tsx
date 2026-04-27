@@ -1,6 +1,6 @@
 import { it } from 'date-fns/locale';
 import { Calendar, Clock } from 'lucide-react';
-import type { Shift } from '../../types';
+import type { Language, Shift } from '../../types';
 import { safeFormatDate } from '../../utils/safeDateFormat';
 import { translateDepartmentValue } from '../../utils/departmentLabels';
 
@@ -49,7 +49,7 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
               
               {shift.department && (
                 <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-[11px] font-black uppercase tracking-wider border border-white/15">
-                  {translateDepartmentValue(shift.department, language as any)}
+                  {translateDepartmentValue(shift.department, language as Language)}
                 </span>
               )}
             </div>

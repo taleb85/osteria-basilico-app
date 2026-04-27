@@ -23,7 +23,7 @@ export default function ElevatedAccessPanel() {
       await updateUser(userId, {
         elevated_role: currentlyEnabled ? null : 'manager',
         secondary_pin: null,
-      } as any);
+      });
     } finally {
       setSaving((prev) => ({ ...prev, [userId]: false }));
     }

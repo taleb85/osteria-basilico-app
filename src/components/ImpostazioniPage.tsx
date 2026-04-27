@@ -214,7 +214,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     } finally {
       setTeamNotifyLoading(false);
     }
-  }, [currentUser?.id, t, supabase, showError, showSuccess]);
+  }, [currentUser?.id, t, showError, showSuccess]);
 
 
 

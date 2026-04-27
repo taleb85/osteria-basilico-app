@@ -471,7 +471,6 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
       users,
       t.punch_error,
       t.punch_save_error,
-      t.punch_dinner_exit_contact_manager,
       t.punch_presence_cancelled,
     ]
   );

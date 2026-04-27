@@ -157,7 +157,7 @@ export function UnifiedBellButton({
         userId={userId}
         userName={currentUser?.first_name}
         onRefresh={handleRefresh}
-        currentUser={currentUser}
+        currentUser={currentUser ?? undefined}
         sendMessage={sendMessage}
         deleteMessage={deleteMessage}
       />

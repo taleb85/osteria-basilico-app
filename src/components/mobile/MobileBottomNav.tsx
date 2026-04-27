@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from 'react';
 import { Home, Calendar, Palmtree, ClipboardList, Clock, User } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { AppNavTab } from '../../utils/enabledModules';
 import { useApp } from '../../context/AppContext';
 
@@ -49,7 +50,7 @@ export default function MobileBottomNav({ activeTab, onNavigate, visibleTabs, la
   const profileDisplayName = (currentUser?.first_name?.trim() || currentUser?.email?.split('@')[0] || 'Utente').toUpperCase();
 
   // Ordine rigoroso: Home, Turni, Ferie, Ore, Presenze, Profilo
-  const items: { tab: AppNavTab; icon: any; label: string; feature?: string }[] = [
+  const items: { tab: AppNavTab; icon: LucideIcon; label: string; feature?: string }[] = [
     { tab: 'home', icon: Home, label: labels.home },
     { tab: 'turni', icon: Calendar, label: labels.calendar },
     { tab: 'ferie', icon: Palmtree, label: labels.coffee, feature: 'staff_requests' },

@@ -141,7 +141,7 @@ export default function HomePage({
         setApprovingId(null);
       }
     },
-    [approveShift, showSuccess, showError, shifts, users, currentUser, t]
+    [approveShift, showSuccess, shifts, users, t]
   );
 
   const breakComputeOpts = useMemo(

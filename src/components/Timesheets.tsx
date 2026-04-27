@@ -1194,7 +1194,7 @@ export default function Timesheets() {
       // Applica lo stesso ordinamento della scheda Turni (WeeklyShiftsTable)
       list = [...list].sort((a, b) => {
         // Priorità reparto: Sala e Bar, poi Sala, poi Bar, poi Cucina, poi altri
-        const getDeptPriority = (u: any) => {
+        const getDeptPriority = (u: User) => {
           const d = (u.department || '').toLowerCase();
           if (d === 'sala_bar') return 1;
           if (d === 'sala') return 2;
@@ -3907,7 +3907,7 @@ export default function Timesheets() {
                                     key={s.id}
                                     onClick={shiftClickBlocked ? undefined : (e) => {
                                       e.stopPropagation();
-                                      openDrawer(s, user as any, dateStr, null, 'turno');
+                                      openDrawer(s, user, dateStr, null, 'turno');
                                     }}
                                     className={`flex w-full items-center justify-between rounded-lg border-l-4 ${border} ${bg} ${ring} p-2 text-left ${shiftClickBlocked ? 'cursor-default' : 'cursor-pointer transition-transform active:scale-[0.98]'}`}
                                   >
@@ -5335,12 +5335,11 @@ export default function Timesheets() {
                                   } else if (!isInReviewQueue && canNext) {
                                     const next = navItems[idx + 1];
                                     if (!next) return;
-                                    openDrawer(
-                                      next.shift,
-                                      { id: drawerData.userId, first_name: drawerData.employeeName, department: drawerData.department } as any,
-                                      next.dateStr,
-                                      null
-                                    );
+                                    openDrawer(next.shift, {
+                                      id: drawerData.userId,
+                                      first_name: drawerData.employeeName,
+                                      department: drawerData.department,
+                                    }, next.dateStr, null);
                                   }
                                 })();
                               }}

@@ -2,7 +2,8 @@ import type React from 'react';
 import { format, startOfWeek, endOfWeek, isSameWeek } from 'date-fns';
 import { it, es, enUS } from 'date-fns/locale';
 import { Clock, CheckCircle2, AlertCircle, XCircle, Calendar } from 'lucide-react';
-import type { Shift, PunchRecord } from '../../types';
+import type { Shift, PunchRecord, User } from '../../types';
+import type { BreakRule, BreakMinutesComputeOptions } from '../../utils/breakRules';
 import { safeFormatDate } from '../../utils/safeDateFormat';
 import { getResolvedStartEndForHours } from '../../utils/shiftResolvedClockTimes';
 import { getNetShiftMinutes } from '../../utils/breakRules';
@@ -11,9 +12,9 @@ import { getTranslations } from '../../utils/translations';
 interface MobileTimesheetProps {
   shifts: Shift[];
   punchRecords: PunchRecord[];
-  user: any;
-  breakRules: any;
-  breakComputeOpts: any;
+  user: User;
+  breakRules: BreakRule[];
+  breakComputeOpts: BreakMinutesComputeOptions;
   language?: string;
 }
 

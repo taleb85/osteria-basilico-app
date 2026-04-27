@@ -31,7 +31,7 @@ export default function GestioneProfiliPage() {
     setActiveTab(prev => ({ ...prev, [userId]: tab }));
   };
 
-  const handleToggleFeature = (userId: string, key: EnabledFeatureKey, currentFeatures: any) => {
+  const handleToggleFeature = (userId: string, key: EnabledFeatureKey, currentFeatures: Record<string, boolean>) => {
     setLocalOverrides((prev) => {
       const userPrev = prev[userId] || (currentFeatures as Record<string, boolean>);
       return {

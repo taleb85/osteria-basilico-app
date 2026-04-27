@@ -2,6 +2,8 @@ import { Play, LogOut, ChevronRight, Clock, RotateCcw } from 'lucide-react';
 import HeaderTodayCoworkersCard from '../HeaderTodayCoworkersCard';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { startOfWeek, addDays, format, isToday, type Locale } from 'date-fns';
+import type { Shift } from '../../types';
+import type { EnrichedShift } from '../../hooks/useSmartPunchAction';
 
 export interface MobileHomeProps {
   onRefresh?: () => Promise<void> | void;
@@ -17,7 +19,7 @@ export interface MobileHomeProps {
   monthlyMinutes: number;
   monthDaysWorked: number;
   weekCapMinutes: number;
-  inProgress: any;
+  inProgress: EnrichedShift | null;
   elapsedLabel: string | null;
   todayWorkShiftsCount: number;
   noShiftsHint: string;
@@ -36,10 +38,10 @@ export interface MobileHomeProps {
   onStart: () => void;
   onEnd: () => void;
   onNavigateToTimesheet?: () => void;
-  todayWorkShifts: any[];
+  todayWorkShifts: Shift[];
   detailLabel?: string;
   /** Full list of user shifts — used to build the weekly preview */
-  myShifts?: any[];
+  myShifts?: Shift[];
   locale?: Locale;
 }
 
