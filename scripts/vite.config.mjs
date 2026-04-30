@@ -258,7 +258,8 @@ export default defineConfig(({ command }) => {
      */
     host: '0.0.0.0',
     port: 5173,
-    strictPort: false,
+    /** Evita salto silenzioso a 5174+ se la porta è occupata. */
+    strictPort: true,
   },
   };
 });
