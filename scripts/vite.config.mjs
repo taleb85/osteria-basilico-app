@@ -88,12 +88,12 @@ export default defineConfig(({ command }) => {
     },
     VitePWA({
       /**
-       * In dev di solito niente SW; con PLAYWRIGHT=1 (E2E) abilitiamo PWA+SW per pwa.spec.ts.
-       * Evita cache / navigate che sembrano “/app non funziona” su 127.0.0.1:5173.
+       * `devOptions.enabled` deve essere true in dev: se è false, AssetsPlugin di vite-plugin-pwa resta nel ramo
+       * che fa `await pwaAssetsGenerator` su index.html e il server può non rispondere (timeout / pagina bianca).
        */
       devOptions: {
-        /** E2E webServer imposta PLAYWRIGHT=1; in CI (GitHub Actions) `CI` è set anche senza quello. */
-        enabled: process.env.PLAYWRIGHT === '1' || process.env.CI === 'true',
+        enabled: true,
+        type: 'classic',
       },
       registerType: 'autoUpdate',
       includeAssets: [
