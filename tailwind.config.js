@@ -1,7 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
-  darkMode: false,
+  /** `class` = allinea a `document.documentElement.classList.toggle('dark')` nell’app (non `media`). */
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
