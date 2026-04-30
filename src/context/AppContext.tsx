@@ -517,14 +517,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Aspetta che TenantContext abbia caricato il tenant e impostato _tenantId
-    // in database.ts, altrimenti le query partono senza filtro tenant_id.
-    // In modalità single-URL (Option B), tenantId è null finché LoginPage chiama
-    // loadTenantBySlug → il tenant carica → tenantIsLoading torna false con tenantId valido.
+    // Aspetta che TenantContext abbia finito il primo caricamento (slug da env/subdomain/path).
     if (tenantIsLoading) return;
-    if (!tenantId) return; // nessun tenant ancora — aspetta loadTenantBySlug
-    loadInitialData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- si vuole eseguire quando il tenant è pronto
+    if (tenantId) {
+      void loadInitialData();
+      return;
+    }
+    // Single-URL (Option B): nessun tenant finché LoginPage non chiama loadTenantBySlug — non bloccare l’UI:
+    // prima si fixava `isLoading` a true per sempre → pagina bianca.
+    setIsLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- si vuole eseguire quando il tenant è pronto o assente
   }, [tenantIsLoading, tenantId]);
 
   /** Sessioni salvate senza tenantSlug (pre-fix): recupera slug da Supabase e chiama loadTenantBySlug. */
