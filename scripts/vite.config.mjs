@@ -251,8 +251,12 @@ export default defineConfig(({ command }) => {
     exclude: ['lucide-react'],
   },
   server: {
-    // `true` = ascolta su tutte le interfacce: anteprima Cursor / Simple Browser e tunnel porte funzionano meglio che con solo 127.0.0.1
-    host: true,
+    /**
+     * Su macOS + Node recenti, `host: true` può bindare solo IPv6 (`*:port`): richieste via
+     * `127.0.0.1` restano senza risposta (browser/curl “non caricano”). `0.0.0.0` espone IPv4
+     * su tutte le interfacce (LAN + Simple Browser); per IPv6 usare il Network URL mostrato da Vite.
+     */
+    host: '0.0.0.0',
     port: 5173,
     strictPort: false,
   },
