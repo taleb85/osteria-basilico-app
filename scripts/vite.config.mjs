@@ -258,8 +258,8 @@ export default defineConfig(({ command }) => {
      */
     host: '0.0.0.0',
     port: 5173,
-    /** Evita salto silenzioso a 5174+ se la porta è occupata. */
-    strictPort: true,
+    /** Se 5173 è occupata, Vite usa la successiva (evita crash all’avvio). */
+    strictPort: false,
   },
   };
 });
