@@ -4,7 +4,7 @@
   "version": "1.1.10",
   "type": "module",
   "scripts": {
-    "dev": "vite --config scripts/vite.config.mjs",
+    "dev": "NODE_OPTIONS=--dns-result-order=ipv4first vite --config scripts/vite.config.mjs",
     "prebuild": "node scripts/generate-icons.mjs || echo 'Skipping icon gen'",
     "build": "npm run lint && npm run typecheck && vite build --config scripts/vite.config.mjs",
     "postbuild": "node scripts/verify-dist-no-service-role.mjs",

@@ -22,11 +22,15 @@
         else document.documentElement.classList.remove('dark');
         try { localStorage.removeItem('userTheme'); localStorage.removeItem('theme'); } catch(e){}
 
-        /* Cache-bust: `__INJECTED_CACHE_VERSION__` sostituito da Vite in build (vedi inject-version-meta) */
+        /* Cache-bust: `__INJECTED_CACHE_VERSION__` sostituito da Vite (inject-version-meta). Se resta il placeholder,
+           non fare reload: oscillerebbe con /app-version.txt e la pagina “non carica”. */
         var CURRENT_VERSION = '__INJECTED_CACHE_VERSION__';
         try {
           var savedVersion = localStorage.getItem('app_cache_version');
-          if (savedVersion !== CURRENT_VERSION) {
+          if (
+            CURRENT_VERSION !== '__INJECTED_CACHE_VERSION__' &&
+            savedVersion !== CURRENT_VERSION
+          ) {
             localStorage.setItem('app_cache_version', CURRENT_VERSION);
             /* Cancella cache SW + HTTP cache API */
             Promise.all([
