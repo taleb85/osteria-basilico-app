@@ -681,7 +681,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       )}
     </AnimatePresence>
     {currentUser && !showOnboarding && !showPermissions && showTour && (
-      <OnboardingTour onComplete={completeTour} />
+      <OnboardingTour onComplete={completeTour} includeManagerSteps={isManagement} />
     )}
     <div className="min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
       <a

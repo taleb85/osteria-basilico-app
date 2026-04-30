@@ -2810,6 +2810,7 @@ export default function Timesheets() {
                 <button
                   key={v}
                   type="button"
+                  data-tour={v === 'stats' ? 'stats' : undefined}
                   onClick={() => setTsView(v)}
                   className={`h-9 px-5 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all ${
                     active

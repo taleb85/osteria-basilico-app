@@ -38,6 +38,7 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTa
 
   return (
     <nav
+      data-tour="nav"
       className="top-tabbar flex items-center scrollbar-none"
       aria-label={t.nav_primary_tabs}
     >
@@ -49,6 +50,7 @@ export default function TopTabBar({ activeTab, onTabChange, visibleTabs }: TopTa
               key={id}
               ref={isActive ? activeRef : null}
               type="button"
+              data-tour={id === 'profile' ? 'profile' : id === 'turni' ? 'shifts' : undefined}
               onClick={() => onTabChange(id)}
               className="top-tab whitespace-nowrap"
               style={{
