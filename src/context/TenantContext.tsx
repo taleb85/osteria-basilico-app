@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- context file: exports provider, hooks, and brand/PWA utilities by design */
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import type { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { setDatabaseTenant } from '../lib/database';
 import type { Tenant, TenantSettings } from '../types';
@@ -518,16 +519,18 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const { data, error: err } = await withTimeout(
+        const tenantQuery = Promise.resolve(
           supabase
             .from('tenants')
             .select('*')
             .eq('slug', slug)
             .eq('is_active', true)
-            .maybeSingle(),
-          22_000,
-          'tenant'
+            .maybeSingle()
         );
+        const { data, error: err } = (await withTimeout(tenantQuery, 22_000, 'tenant')) as {
+          data: Tenant | null;
+          error: PostgrestError | null;
+        };
 
         if (cancelled) return;
         if (err) throw err;
