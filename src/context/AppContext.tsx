@@ -24,6 +24,7 @@ import { hasShiftConflictSameDay, computeEffectivePunchIn, calculateShiftMinutes
 import { AnimatePresence } from 'framer-motion';
 import Toast from '../components/Toast';
 import FlowWaveIcon from '../components/ui/FlowWaveIcon';
+import { DevMissingEnvBanner } from '../components/DevMissingEnvBanner';
 import { formatTrans, getTranslations } from '../utils/translations';
 import { countUnreadNotifications } from '../utils/notifications';
 import { setAppLauncherBadgeUnreadCountAsync } from '../utils/appIconBadge';
@@ -2772,6 +2773,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         <PwaGate>{children}</PwaGate>
       )}
 
+
+      <DevMissingEnvBanner />
 
       <AnimatePresence mode="sync">
         {toastMessage && (
