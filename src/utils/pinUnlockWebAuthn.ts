@@ -1,6 +1,7 @@
 /**
- * WebAuthn (passkey piattaforma) per sbloccare il PIN lock dopo refresh / pubblicazione.
- * La credenziale resta sul dispositivo; nessun server verifica la firma (stesso modello di rischio del client-only PIN).
+ * WebAuthn (passkey piattaforma): sblocco PIN, login senza digitare PIN (stesso storage),
+ * e registrazione dopo primo login con PIN sul dispositivo.
+ * La credenziale resta sul client; nessun server verifica la firma (stesso modello di rischio del PIN-only).
  */
 
 const STORAGE_KEY = 'osteria_pin_unlock_webauthn_v1';

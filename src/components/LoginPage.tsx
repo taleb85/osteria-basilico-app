@@ -77,6 +77,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const pinInputRef = useRef<HTMLInputElement>(null);
   const staffNameInputRef = useRef<HTMLInputElement>(null);
   const loginBtnRef = useRef<HTMLButtonElement>(null);
+  /** Un solo tentativo di login biometrico silenzioso per apertura form (device già registrato). */
+  const autoBiometricAttemptedRef = useRef(false);
   /** /profilo: lingua da browser/OS (navigator.languages), non ultimo profilo in localStorage */
   const [loginLang, setLoginLang] = useState<LangType>(() => getDeviceUiLanguage());
   const t = getTranslations(loginLang);
@@ -194,6 +196,21 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     document.documentElement.lang = loginLang === 'en' ? 'en' : loginLang === 'es' ? 'es' : loginLang === 'fr' ? 'fr' : 'it';
   }, [loginLang]);
 
+  const maybeRegisterDeviceAfterPinLogin = useCallback(
+    async (user: UserType) => {
+      if (!webAuthnOk || !hasBiometric) return;
+      if (hasPinUnlockCredential(user.id)) return;
+      const displayName =
+        `${user.first_name} ${user.last_name ?? ''}`.trim() || user.email || user.id;
+      try {
+        await registerPinUnlockCredential(user.id, displayName, user.email ?? '');
+      } catch {
+        /* annullo Face ID / Touch ID o errore runtime */
+      }
+    },
+    [webAuthnOk, hasBiometric]
+  );
+
   const finalizeSession = useCallback(
     (user: UserType, clearLoading: () => void) => {
       const userLang = (user.language || loginLang) as LangType;
@@ -228,16 +245,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   // NOTA: deve stare DOPO la dichiarazione di finalizeSession per evitare TDZ
   useEffect(() => {
     if (!pendingCreds || users.length === 0) return;
-    const user = findUserByNameAndPinAnyStatus(users, pendingCreds.name, pendingCreds.pin);
+    const creds = pendingCreds;
     setPendingCreds(null);
     setIsLoading(false);
+    const user = findUserByNameAndPinAnyStatus(users, creds.name, creds.pin);
     if (user && user.status === 'active') {
       setError('');
-      finalizeSession(user, () => {});
+      void (async () => {
+        await maybeRegisterDeviceAfterPinLogin(user);
+        finalizeSession(user, () => {});
+      })();
     } else {
       setError('PIN non corretto. Riprova.');
     }
-  }, [users, pendingCreds, finalizeSession]);
+  }, [users, pendingCreds, finalizeSession, maybeRegisterDeviceAfterPinLogin]);
 
   const handleLogin = useCallback(async () => {
     if (!staffName.trim() || !password.trim() || isLoading) return;
@@ -342,33 +363,68 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       }, 600);
       return;
     }
-    finalizeSession(user, () => setIsLoading(false));
-  }, [staffName, password, isLoading, users, finalizeSession, t, loadTenantBySlug, setIsSessionElevated]);
+    void (async () => {
+      await maybeRegisterDeviceAfterPinLogin(user);
+      finalizeSession(user, () => setIsLoading(false));
+    })();
+  }, [
+    staffName,
+    password,
+    isLoading,
+    users,
+    finalizeSession,
+    t,
+    loadTenantBySlug,
+    setIsSessionElevated,
+    maybeRegisterDeviceAfterPinLogin,
+  ]);
 
-  const handleDeviceLogin = useCallback(async () => {
-    if (!webAuthnOk || deviceLoading || isLoading || linkDeviceLoading) return;
-    setError('');
-    setDeviceSuccess('');
-    setDeviceLoading(true);
-    try {
-      const userId = await authenticatePinUnlockAndResolveUserId();
-      if (!userId) {
-        setError(t.login_device_failed);
-        setDeviceLoading(false);
-        return;
+  const runBiometricLogin = useCallback(
+    async (opts?: { silent?: boolean }): Promise<boolean> => {
+      const silent = opts?.silent ?? false;
+      if (!webAuthnOk || deviceLoading || isLoading || linkDeviceLoading) return false;
+      if (!silent) {
+        setError('');
+        setDeviceSuccess('');
       }
-      const user = users.find((u) => u.id === userId && u.status === 'active');
-      if (!user) {
-        setError(t.login_device_no_user);
+      setDeviceLoading(true);
+      try {
+        const userId = await authenticatePinUnlockAndResolveUserId();
+        if (!userId) {
+          if (!silent) setError(t.login_device_failed);
+          setDeviceLoading(false);
+          return false;
+        }
+        const user = users.find((u) => u.id === userId && u.status === 'active');
+        if (!user) {
+          if (!silent) setError(t.login_device_no_user);
+          setDeviceLoading(false);
+          return false;
+        }
+        finalizeSession(user, () => setDeviceLoading(false));
+        return true;
+      } catch {
+        if (!silent) setError(t.login_device_failed);
         setDeviceLoading(false);
-        return;
+        return false;
       }
-      finalizeSession(user, () => setDeviceLoading(false));
-    } catch {
-      setError(t.login_device_failed);
-      setDeviceLoading(false);
-    }
-  }, [webAuthnOk, deviceLoading, isLoading, linkDeviceLoading, users, finalizeSession, t]);
+    },
+    [webAuthnOk, deviceLoading, isLoading, linkDeviceLoading, users, finalizeSession, t]
+  );
+
+  const handleDeviceLogin = useCallback(() => runBiometricLogin({ silent: false }), [runBiometricLogin]);
+
+  useEffect(() => {
+    if (!showForm) autoBiometricAttemptedRef.current = false;
+  }, [showForm]);
+
+  useEffect(() => {
+    if (!showForm || !webAuthnOk || !hasBiometric || !hasDeviceLogin || isInviteLink) return;
+    if (users.length === 0) return;
+    if (autoBiometricAttemptedRef.current) return;
+    autoBiometricAttemptedRef.current = true;
+    void runBiometricLogin({ silent: true });
+  }, [showForm, webAuthnOk, hasBiometric, hasDeviceLogin, isInviteLink, users.length, runBiometricLogin]);
 
   const handleLinkDevice = useCallback(async () => {
     if (!webAuthnOk || !resolvedUser || !pinMatches || linkDeviceLoading || isLoading || deviceLoading) return;
