@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { setDatabaseTenant } from '../lib/database';
 import type { Tenant, TenantSettings } from '../types';
 import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
+import { withTimeout, TimeoutError } from '../utils/promiseTimeout';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -517,12 +518,16 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const { data, error: err } = await supabase
-          .from('tenants')
-          .select('*')
-          .eq('slug', slug)
-          .eq('is_active', true)
-          .maybeSingle();
+        const { data, error: err } = await withTimeout(
+          supabase
+            .from('tenants')
+            .select('*')
+            .eq('slug', slug)
+            .eq('is_active', true)
+            .maybeSingle(),
+          22_000,
+          'tenant'
+        );
 
         if (cancelled) return;
         if (err) throw err;
@@ -535,7 +540,13 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
         applyTenant(data as Tenant);
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Errore caricamento sede.');
+        if (!cancelled) {
+          if (e instanceof TimeoutError) {
+            setError('Connessione lenta o assente: impossibile caricare la sede. Ricarica o controlla la rete.');
+          } else {
+            setError(e instanceof Error ? e.message : 'Errore caricamento sede.');
+          }
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }

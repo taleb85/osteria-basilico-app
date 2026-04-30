@@ -37,7 +37,7 @@ interface LoginPageProps {
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const { users, setCurrentUser, setLanguage, setIsSessionElevated, featureFlags } = useApp();
   const _kioskEnabled = featureFlags['kiosk_active'] !== false;
-  const { tenant, loadTenantBySlug } = useTenant();
+  const { tenant, loadTenantBySlug, error: tenantBootstrapError } = useTenant();
   const [searchParams] = useSearchParams();
 
   // Nuovo formato: ?t=<base64 JSON> con tenantSlug — retrocompatibile con vecchi ?u=&n=&p=
@@ -406,6 +406,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         bottom: '-60px',
       }}
     >
+      {tenantBootstrapError ? (
+        <div
+          role="alert"
+          className="pointer-events-none absolute left-4 right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 rounded-xl border border-amber-400/35 bg-black/50 px-3 py-2 text-center text-[13px] leading-snug text-amber-100 backdrop-blur-sm"
+        >
+          {tenantBootstrapError}
+        </div>
+      ) : null}
+
       {/* F watermark di sfondo */}
       <div
         aria-hidden

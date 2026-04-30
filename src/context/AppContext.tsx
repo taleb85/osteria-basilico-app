@@ -23,6 +23,7 @@ import { supabase } from '../lib/supabase';
 import { hasShiftConflictSameDay, computeEffectivePunchIn, calculateShiftMinutesGross } from '../utils/timeCalculations';
 import { AnimatePresence } from 'framer-motion';
 import Toast from '../components/Toast';
+import FlowWaveIcon from '../components/ui/FlowWaveIcon';
 import { formatTrans, getTranslations } from '../utils/translations';
 import { countUnreadNotifications } from '../utils/notifications';
 import { setAppLauncherBadgeUnreadCountAsync } from '../utils/appIconBadge';
@@ -2754,8 +2755,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
         impersonatingAs, originalAdminUser, setImpersonating,
       } satisfies AppContextType}
     >
-      {/* Children montano solo quando il caricamento è completato */}
-      {!isLoading && <PwaGate>{children}</PwaGate>}
+      {/* Splash durante boot: senza questo `#root` resta vuoto → “pagina bianca”. */}
+      {isLoading ? (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center font-sans"
+          style={{
+            background:
+              'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.22) 0%, transparent 55%), #000B18',
+          }}
+          aria-busy
+          aria-label="Caricamento"
+        >
+          <FlowWaveIcon size={120} radius={34} />
+        </div>
+      ) : (
+        <PwaGate>{children}</PwaGate>
+      )}
 
 
       <AnimatePresence mode="sync">
