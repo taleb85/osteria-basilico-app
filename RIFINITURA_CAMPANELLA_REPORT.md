@@ -195,7 +195,7 @@ Dropdown (click):
 
 ## 🚀 Production Status
 
-**URL**: https://osteria-basilico-app.vercel.app  
+**URL**: https://flow-workinmotion.pages.dev  
 **Status**: ✅ LIVE  
 **Deployment ID**: dpl_6oT2NzkJV6Y5qdkcGedhveVWnVyz  
 

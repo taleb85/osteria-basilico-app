@@ -196,11 +196,10 @@ export const AUTO_BREAK_THRESHOLD_MINUTES = 6 * 60;
  * stesso criterio usato in `approveShift` / congelamento.
  */
 function getPayrollLockedBreakMinutes(shift: {
-  approved_at?: string | null;
   is_auto_break?: boolean;
   break_minutes?: number | null;
 }): number | null {
-  if (!shift.approved_at) return null;
+  // approved rimosso
   if (shift.is_auto_break === false) {
     if (shift.break_minutes != null && shift.break_minutes > 0) return shift.break_minutes;
     return null;
@@ -236,7 +235,7 @@ export type BreakMinutesComputeOptions = {
 /**
  * Restituisce i minuti di pausa da detrarre per un turno.
  *
- * **Approvato/congelato** (`approved_at` + `break_minutes` di sigillo): importo **da DB**, non ricalcolato
+ * **Turno completato**: i minuti pausa vengono dal campo break_minutes o calcolati sulle regle
  * sulle regole pranzo/cena rispetto alle timbrature effettive.
  *
  * **Regole attive** (bozze o turni non ancora sigillati in contabilità): con almeno una regola
@@ -255,8 +254,7 @@ export function getBreakMinutesForShift(
     start_time?: string;
     end_time?: string;
     date?: string;
-    approved_at?: string | null;
-    deduct_break?: boolean;
+      deduct_break?: boolean;
     break_minutes?: number;
     /** Se `false`, non applicare la pausa automatica (≥6h) quando non si usano `break_minutes` né le regole. */
     is_auto_break?: boolean;
@@ -327,8 +325,7 @@ export function getNetShiftMinutes(
     start_time?: string;
     end_time?: string;
     date?: string;
-    approved_at?: string | null;
-    deduct_break?: boolean;
+      deduct_break?: boolean;
     break_minutes?: number;
     is_auto_break?: boolean;
   },
@@ -361,8 +358,6 @@ export function getBreakDeductionDisplayItems(
     break_minutes?: number;
     is_auto_break?: boolean;
     deduct_excluded_rule_ids?: string[];
-    /** Congelato in contabilità: allinea il readout a getBreakMinutesForShift (un solo importo su DB, non 2 fasce pranzo/cena ricalcolate). */
-    approved_at?: string | null;
   },
   grossMinutes: number,
   user: { department?: string | null; role: string } | null | undefined,

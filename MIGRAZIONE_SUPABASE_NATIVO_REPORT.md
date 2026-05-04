@@ -258,7 +258,7 @@ catch (err) {
 
 ## 🚀 Production Status
 
-**URL**: https://osteria-basilico-app.vercel.app  
+**URL**: https://flow-workinmotion.pages.dev  
 **Status**: ✅ LIVE  
 **Deployment ID**: dpl_ETHBNsScMfpYVsFpPUVzgZjftn58  
 **Build**: 1,348.22 KB (gzip: 379.51 KB)

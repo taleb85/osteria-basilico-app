@@ -1,8 +1,13 @@
 import type { Shift } from '../types';
 
-/** Turno chiuso in contabilità: `approved` congelato oppure `absent` sigillato con `approved_at`. */
+/**
+ * Verifica se un turno è congelato per la gestione stipendi/payroll.
+ * Un turno è congelato se è stato approvato (approval_status === 'approved')
+ * o se è confermato (approval_status === 'confirmed') con un timestamp di approvazione.
+ */
 export function isShiftPayrollFrozen(shift: Pick<Shift, 'approval_status' | 'approved_at'>): boolean {
-  if (!shift.approved_at) return false;
-  const s = String(shift.approval_status || '').toLowerCase();
-  return s === 'approved' || s === 'absent';
+  return (
+    shift.approval_status === 'approved' ||
+    (shift.approval_status === 'confirmed' && !!shift.approved_at)
+  );
 }

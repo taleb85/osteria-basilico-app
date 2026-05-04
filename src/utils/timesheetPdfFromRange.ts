@@ -133,7 +133,7 @@ function computeTimesheetGridForPdf(
 
           const hasMissingOut = !!(punchIn && !punchActualEnd);
 
-          const frozen = !!(s.approved_at && s.approved_start_time && s.approved_end_time);
+          const frozen = false; // approved rimosso
           let displayActualStart = punchActualStart;
           let displayActualEnd = punchActualEnd;
           let grossActualMins = 0;
@@ -313,7 +313,7 @@ export async function exportAttendancePdfFromGrid(
   );
   if (onlyConfirmedOrApproved) {
     weekShifts = weekShifts.filter(
-      (s) => s.approval_status === 'confirmed' || s.approval_status === 'approved'
+      (s) => s.approval_status === 'confirmed'
     );
   }
 
@@ -341,8 +341,6 @@ export async function exportAttendancePdfFromGrid(
 
   const weekShiftsMeta = weekShifts.map((s) => ({
     approval_status: s.approval_status,
-    approved_by: s.approved_by ?? null,
-    approved_at: s.approved_at ?? null,
   }));
 
   await exportTimesheetPdfToFile({

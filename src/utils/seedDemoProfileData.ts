@@ -65,7 +65,7 @@ export function buildDemoProfileData(now: Date, userId: string): DemoProfileBuil
     type: 'lunch' | 'dinner';
     start: string;
     end: string;
-    approval_status: 'approved' | 'confirmed';
+    approval_status: 'confirmed';
     punch?: boolean;
     freeze?: boolean;
     notes?: string;
@@ -74,16 +74,16 @@ export function buildDemoProfileData(now: Date, userId: string): DemoProfileBuil
   const entries: Entry[] = [
     /* Oggi (data locale di `now`): un turno confermato, senza timbrature precaricate — prova IN/OUT da dispositivo. */
     { offset: 0, type: 'lunch', start: '10:00', end: '22:00', approval_status: 'confirmed' },
-    { offset: -18, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'approved', punch: true, freeze: true },
+    { offset: -18, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'confirmed', punch: true },
     { offset: -17, type: 'dinner', start: '18:00', end: '23:30', approval_status: 'confirmed', punch: true },
     { offset: -15, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'confirmed', punch: true },
-    { offset: -14, type: 'dinner', start: '18:00', end: '23:00', approval_status: 'approved', freeze: true, notes: 'Chiusura anticipata sala' },
+    { offset: -14, type: 'dinner', start: '18:00', end: '23:00', approval_status: 'confirmed', notes: 'Chiusura anticipata sala' },
     { offset: -12, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'confirmed' },
     { offset: -11, type: 'dinner', start: '18:00', end: '23:30', approval_status: 'confirmed', punch: true },
-    { offset: -10, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'approved', punch: true, freeze: true },
+    { offset: -10, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'confirmed', punch: true },
     { offset: -8, type: 'dinner', start: '18:00', end: '23:30', approval_status: 'confirmed' },
     { offset: -7, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'confirmed', punch: true },
-    { offset: -5, type: 'dinner', start: '18:00', end: '23:30', approval_status: 'approved', freeze: true },
+    { offset: -5, type: 'dinner', start: '18:00', end: '23:30', approval_status: 'confirmed' },
     { offset: -4, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'confirmed' },
     { offset: -3, type: 'dinner', start: '18:00', end: '23:30', approval_status: 'confirmed', punch: true },
     { offset: -1, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'confirmed', punch: true },
@@ -93,7 +93,6 @@ export function buildDemoProfileData(now: Date, userId: string): DemoProfileBuil
     { offset: 6, type: 'lunch', start: '11:30', end: '15:00', approval_status: 'confirmed' },
   ];
 
-  const approvedAt = new Date(now.getTime() - 86400000).toISOString();
   const shifts: Omit<Shift, 'id'>[] = [];
   const punchSpecs: DemoPunchSpec[] = [];
 
@@ -110,12 +109,6 @@ export function buildDemoProfileData(now: Date, userId: string): DemoProfileBuil
       deduct_break: true,
     };
     if (e.notes) row.notes = e.notes;
-    if (e.freeze && e.approval_status === 'approved') {
-      row.approved_at = approvedAt;
-      row.approved_by = 'Demo · Manager';
-      row.approved_start_time = e.start;
-      row.approved_end_time = e.end;
-    }
     shifts.push(row);
     if (e.punch) {
       punchSpecs.push({

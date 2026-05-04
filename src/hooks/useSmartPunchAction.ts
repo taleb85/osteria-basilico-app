@@ -117,7 +117,7 @@ export function useSmartPunchAction({
 
   const enriched = useMemo<EnrichedShift[]>(() => {
     return todayShifts
-      .filter((s) => s.approval_status === 'confirmed' || s.approval_status === 'approved')
+      .filter((s) => s.approval_status === 'confirmed')
       .sort((a, b) => a.start_time.localeCompare(b.start_time))
       .map((s) => {
         const isLunchSlot = s.type === 'lunch' || timeToMins(s.start_time) < 16 * 60;

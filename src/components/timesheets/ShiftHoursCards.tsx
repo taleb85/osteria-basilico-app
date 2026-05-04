@@ -34,7 +34,7 @@ interface ShiftHoursCardsProps {
     is_auto_break?: boolean;
     break_minutes?: number;
     deduct_excluded_rule_ids?: string[];
-    approved_at?: string | null;
+    // approved_at removed
   } | null;
   
   /** Classi CSS per card pianificato */

@@ -223,7 +223,7 @@
 ## 🔐 Sicurezza & Privacy
 
 ```
-✓ HTTPS obbligatorio (già in produzione su Vercel)
+✓ HTTPS obbligatorio (già in produzione su Cloudflare)
 ✓ VAPID keys per autenticazione server
 ✓ Crittografia end-to-end via Web Push Protocol
 ✓ Token univoco per dispositivo (non espone identità)
@@ -245,7 +245,7 @@
 - [x] Manifest configured
 - [x] Vite PWA plugin setup
 - [x] Build green
-- [x] Deployed to Vercel
+- [x] Deployed to Cloudflare Pages
 
 ### Backend ⏳ (To do)
 - [ ] VAPID keys generated

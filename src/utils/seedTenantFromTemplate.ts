@@ -177,7 +177,7 @@ export async function seedTenantFromTemplate(
         is_auto_break:   s.is_auto_break ?? false,
         department:      s.department ?? null,
         skills:          s.skills ?? null,
-        // Non copiare: approved_at, approved_by, approved_start/end_time, admin_note
+        // Non copiare: admin_note
       };
     });
 

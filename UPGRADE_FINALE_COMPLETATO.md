@@ -203,7 +203,7 @@ L'applicazione è **PRONTA PER IL DEPLOY**.
 
 ### Per il deploy:
 1. Configurare variabili ambiente produzione
-2. Deploy su piattaforma hosting (Vercel)
+2. Deploy su Cloudflare Pages
 3. Verificare connessione Supabase
 4. Testare tutte le funzionalità in produzione
 

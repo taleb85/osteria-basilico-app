@@ -49,10 +49,9 @@ function StatusBadge({ shift, t: _t }: { shift: Shift; t: Record<string, string>
     return <span className="shift-status-off">OFF</span>;
   }
   
-  // ULTRA-CLEAN: solo check discreto per approved, niente per confirmed/draft
-  if (shift.approval_status === 'approved') {
-    return <span className="text-xs text-white">✓</span>;
-  }
+  // Semplificazione: solo check per completato (entrata+uscita presenti)
+  // Non esiste più lo stato 'approved'
+
   
   // Draft: niente badge visibile, il grigio del testo è sufficiente
   return null;

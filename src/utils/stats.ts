@@ -28,7 +28,7 @@ export function calculateUserStats(
   const monthDaysSet = new Set<string>();
 
   const visibleShifts = shifts.filter(
-    (s) => s.approval_status === 'approved' || s.approval_status === 'confirmed' || s.approval_status === 'absent'
+    (s) => s.approval_status === 'confirmed' || s.approval_status === 'absent'
   );
 
   for (const shift of visibleShifts) {

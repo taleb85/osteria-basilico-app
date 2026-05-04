@@ -228,7 +228,7 @@ export VAPID_PUBLIC_KEY="..."
 export VAPID_PRIVATE_KEY="..."
 
 # 4. Deploy della nuova versione dell'app
-npm run build && npx vercel --prod
+npm run build npm run build && npx vercel --prodnpm run build && npx vercel --prod npm run deploy
 ```
 
 ## Troubleshooting
@@ -262,4 +262,4 @@ Assicurati che le variabili di ambiente siano configurate:
 - `VAPID_PRIVATE_KEY`
 - `VAPID_SUBJECT`
 
-In Vercel: Settings → Environment Variables
+In Cloudflare: Settings → Environment Variables

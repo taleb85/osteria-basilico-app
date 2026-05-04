@@ -1,0 +1,22 @@
+sleep: invalid time interval: echosleep: invalid time interval: echo
+sleep: invalid time interval: === TEST ===
+sleep: invalid time interval: curl
+sleep: invalid time interval: -s
+sleep: invalid time interval: -o
+sleep: invalid time interval: /dev/null
+sleep: invalid time interval: -w
+sleep: invalid time interval: HTTP %{http_code}
+sleep: invalid time interval: http://localhost:5173/
+usage: sleep number[unit] [...]
+Unit can be 's' (seconds, the default), m (minutes), h (hours), or d (days).
+
+sleep: invalid time interval: === TEST ===
+sleep: invalid time interval: curl
+sleep: invalid time interval: -s
+sleep: invalid time interval: -o
+sleep: invalid time interval: /dev/null
+sleep: invalid time interval: -w
+sleep: invalid time interval: HTTP %{http_code}
+sleep: invalid time interval: http://localhost:5173/
+usage: sleep number[unit] [...]
+Unit can be 's' (seconds, the default), m (minutes), h (hours), or d (days).

@@ -58,7 +58,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
     return shifts
       .filter(
         (s) =>
-          s.approval_status === 'approved' &&
+          s.approval_status === 'confirmed' &&
           isWithinInterval(new Date(s.date), { start: rangeStart, end: rangeEnd })
       )
       .reduce((sum, s) => {
@@ -84,7 +84,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
     return shifts
       .filter(
         (s) =>
-          s.approval_status === 'approved' &&
+          s.approval_status === 'confirmed' &&
           isWithinInterval(new Date(s.date), { start: rangeStart, end: rangeEnd })
       )
       .sort((a, b) => a.date.localeCompare(b.date));

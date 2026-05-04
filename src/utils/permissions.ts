@@ -70,37 +70,10 @@ export function canEditTeamShifts(user: User | null): boolean {
   return user.can_create_shifts === true;
 }
 
-/** Approvazione turni (freeze) e ferie: Admin o `can_approve_shifts`. */
+/** Approvazione ferie: Admin o `can_approve_shifts`. */
 export function canApproveShiftActions(user: User | null): boolean {
   if (!user) return false;
   return user.role === 'admin' || user.can_approve_shifts === true;
-}
-
-const FREEZE_PIN_ROLES = new Set(['admin', 'manager', 'assistant_manager']);
-
-/**
- * PIN inserito per congelare il turno: deve corrispondere a un utente attivo con permesso di approvazione
- * e ruolo manager / assistant manager / admin.
- */
-export function findFreezeVerifierByPin(users: User[], pin: string): User | null {
-  const p = (pin || '').trim();
-  if (!p) return null;
-  const u = users.find((x) => x.pin === p && x.status === 'active');
-  if (!u || !canApproveShiftActions(u)) return null;
-  if (!FREEZE_PIN_ROLES.has(u.role)) return null;
-  return u;
-}
-
-/**
- * Verifica tramite biometrica: restituisce l'utente se è attivo e ha ruolo sufficiente.
- * Usato quando l'impronta digitale sostituisce il PIN.
- */
-export function findFreezeVerifierById(users: User[], userId: string): User | null {
-  if (!userId) return null;
-  const u = users.find((x) => x.id === userId && x.status === 'active');
-  if (!u || !canApproveShiftActions(u)) return null;
-  if (!FREEZE_PIN_ROLES.has(u.role)) return null;
-  return u;
 }
 
 /** Pubblicazione settimana / bozze → confermati: Admin o `can_manage_drafts`. */
@@ -186,4 +159,33 @@ export function wouldLeaveNoActiveAdmin(
   }).length;
 
   return activeAdminsAfter < 1;
+}
+
+/**
+ * Cerca un utente di management (admin, manager, assistant_manager) attivo che abbia il PIN indicato.
+ * Usato per lo sblocco modifica/eliminazione turni congelati/pubblicati.
+ * Restituisce l'utente se trovato, altrimenti null.
+ */
+export function findFreezeVerifierByPin(users: User[], pin: string): User | null {
+  if (!pin || pin.trim() === '') return null;
+  const trimmedPin = pin.trim();
+  return users.find(
+    (u) =>
+      u.status === 'active' &&
+      isManagementRole(u.role) &&
+      u.pin === trimmedPin
+  ) ?? null;
+}
+
+/**
+ * Cerca un utente di management attivo per ID.
+ * Restituisce l'utente se trovato e con ruolo gestionale, altrimenti null.
+ */
+export function findFreezeVerifierById(users: User[], userId: string): User | null {
+  if (!userId) return null;
+  const user = users.find((u) => u.id === userId);
+  if (!user) return null;
+  if (user.status !== 'active') return null;
+  if (!isManagementRole(user.role)) return null;
+  return user;
 }

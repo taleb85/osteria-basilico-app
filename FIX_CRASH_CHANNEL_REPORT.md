@@ -246,7 +246,7 @@ const isDisabled = isLoading || !!error;
 - [x] Supabase validation funziona
 - [x] JSON parsing validato
 - [x] Resto app continua a funzionare
-- [x] Deploy su Vercel completato
+- [x] Deploy su Cloudflare Pages completato
 
 ---
 
@@ -265,7 +265,7 @@ const isDisabled = isLoading || !!error;
 
 ## 🚀 Production Status
 
-**URL**: https://osteria-basilico-app.vercel.app  
+**URL**: https://flow-workinmotion.pages.dev  
 **Status**: ✅ LIVE  
 **Deployment ID**: dpl_mzt8XsCQD5uZWPMMTJ7YDRkvRMRi  
 **Bundle Size**: 1,347.62 KB (gzip: 379.43 KB)

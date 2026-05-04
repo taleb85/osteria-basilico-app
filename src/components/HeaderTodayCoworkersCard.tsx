@@ -117,7 +117,7 @@ export default function HeaderTodayCoworkersCard() {
     for (const s of shifts) {
       if (s.date !== todayStr) continue;
       if (s.approval_status === 'absent') continue;
-      if (s.approval_status !== 'approved' && s.approval_status !== 'confirmed') continue;
+      if (s.approval_status !== 'confirmed') continue;
       if (s.notes?.startsWith('__OPEN__')) continue;
       if (s.user_id === currentUser.id) continue;
       const u = users.find((x) => x.id === s.user_id);

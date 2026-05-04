@@ -30,7 +30,7 @@ import { countUnreadNotifications } from '../utils/notifications';
 import { setAppLauncherBadgeUnreadCountAsync } from '../utils/appIconBadge';
 import { logHistory, logShiftEdit } from '../utils/scheduleHistory';
 import { useTenant } from './TenantContext';
-import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
+
 import {
   canOperateTeamSchedule,
   canEditTeamShifts,
@@ -941,10 +941,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ...existing,
             ...updates,
             approval_status: 'absent' as const,
-            approved_at: null,
-            approved_by: null,
-            approved_start_time: null,
-            approved_end_time: null,
+            // approved_* fields removed
+
           }
         : { ...existing, ...updates };
 
@@ -1041,191 +1039,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [shifts, showError, computePersistedAutoBreak, effectiveLanguage, markManagementDataTouched]);
 
-  /**
-   * Approva definitivamente un turno.
-   * Scrive approved_at + approved_by sul record, e crea un entry audit per
-   * il punch_record di entrata collegato (tracciabilità completa).
-   */
-  const approveShiftSoft = useCallback(async (shiftId: string) => {
-    const op = currentUserRef.current;
-    if (!op || !canApproveShiftActions(op)) return;
-    const existing = shifts.find((s) => s.id === shiftId);
-    if (!existing || existing.approval_status === 'approved' || existing.approval_status === 'absent') return;
-    await updateShift(shiftId, { approval_status: 'approved' });
-  }, [shifts, updateShift]);
+  // approveShiftSoft rimosso (semplificazione - approvazione automatica via timbrature)
 
-  const approveShift = useCallback(async (
-    shiftId: string,
-    opts?: {
-      approvedStart?: string;
-      approvedEnd?: string;
-      actorOverride?: User;
-      promoteFromDraft?: boolean;
-    }
-  ) => {
-    const actor = opts?.actorOverride ?? currentUserRef.current;
-    if (!actor || !canApproveShiftActions(actor)) return;
-    let existing = shifts.find((s) => s.id === shiftId);
-    if (!existing || existing.approved_at) return;
+  // approveShift rimosso (semplificazione - approvazione automatica via timbrature)
+  const approveShift = async (shiftId: string, opts?: any) => {
+    // Non serve più - i turni sono completati in base alla presenza di punch_records
+    console.log('approveShift chiamato ma ignorato (semplificazione)', shiftId);
+  };
 
-    /** Assenza: sigilla con `approved_at` senza cambiare stato (resta `absent`). */
-    if (existing.approval_status === 'absent') {
-      const approvedAt = new Date().toISOString();
-      const approvedBy = `${actor.first_name} ${actor.last_name ?? ''}`.trim() || 'Manager';
-      const startHH = (existing.start_time || '').slice(0, 5);
-      const endHH = (existing.end_time || '').slice(0, 5);
-      const ab = mergeShiftDeductExclusionsFromLocal(existing);
-      const absentFreezePayload: Record<string, unknown> = {
-        approved_at: approvedAt,
-        approved_by: approvedBy,
-        approved_start_time: startHH,
-        approved_end_time: endHH,
-        deduct_break: ab.deduct_break !== false,
-        ...(ab.break_minutes !== undefined ? { break_minutes: ab.break_minutes } : {}),
-        ...(ab.is_auto_break !== undefined ? { is_auto_break: ab.is_auto_break } : {}),
-        ...(Array.isArray(ab.deduct_excluded_rule_ids) ? { deduct_excluded_rule_ids: ab.deduct_excluded_rule_ids } : {}),
-      };
-      try {
-        const res = await database.shifts.update(shiftId, absentFreezePayload);
-        const nextRow = (res ? { ...existing, ...res } : { ...existing, ...absentFreezePayload }) as Shift;
-        setShifts((prev) => prev.map((s) => (s.id === shiftId ? nextRow : s)));
-        markManagementDataTouched();
-        if (Array.isArray(ab.deduct_excluded_rule_ids)) clearLocalDeductExcludedRuleIds(shiftId);
-        logShiftEdit({
-          shiftId,
-          actorName: approvedBy,
-          field: 'Stato',
-          oldValue: 'absent',
-          newValue: 'Assenza congelata',
-          description: `${existing.date} — assenza sigillata`,
-        });
-      } catch {
-        throw new Error('Impossibile congelare il turno (database).');
-      }
-      return;
-    }
-
-    if (existing.approval_status === 'draft') {
-      if (!opts?.promoteFromDraft) return;
-      try {
-        const res = await database.shifts.update(shiftId, { approval_status: 'confirmed' });
-        if (res) {
-          existing = { ...existing, ...res };
-          setShifts((prev) => prev.map((s) => (s.id === shiftId ? { ...s, ...res } : s)));
-        } else {
-          existing = { ...existing, approval_status: 'confirmed' };
-          setShifts((prev) =>
-            prev.map((s) => (s.id === shiftId ? { ...s, approval_status: 'confirmed' as const } : s))
-          );
-        }
-        markManagementDataTouched();
-      } catch {
-        return;
-      }
-    }
-
-    if (!existing) return;
-    if (existing.approval_status !== 'confirmed' && existing.approval_status !== 'approved') return;
-
-    const approvedAt = new Date().toISOString();
-    const approvedBy = `${actor.first_name} ${actor.last_name ?? ''}`.trim() || 'Manager';
-
-    let startHH = opts?.approvedStart?.trim().slice(0, 5) ?? '';
-    let endHH = opts?.approvedEnd?.trim().slice(0, 5) ?? '';
-    if (!startHH || !endHH) {
-      const def = getDefaultApprovalClockHHMM(existing, punchRecordsRef.current);
-      startHH = def.start;
-      endHH = def.end;
-    }
-
-    const mb = mergeShiftDeductExclusionsFromLocal(existing);
-    const userForFreeze = users.find((u) => u.id === existing.user_id);
-    const grossFreeze = calculateShiftMinutesGross(startHH, endHH);
-    const breakOpts = {
-      autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false,
-      breakRuleWindow: { start: startHH, end: endHH },
-    };
-    const isManualFixedBreak =
-      mb.break_minutes != null && mb.break_minutes > 0 && mb.is_auto_break === false;
-    let breakMinsFreeze: number;
-    let isAutoFreeze: boolean;
-    if (mb.deduct_break === false) {
-      breakMinsFreeze = 0;
-      isAutoFreeze = false;
-    } else if (isManualFixedBreak) {
-      breakMinsFreeze = mb.break_minutes as number;
-      isAutoFreeze = false;
-    } else {
-      breakMinsFreeze = getBreakMinutesForShift(
-        { ...mb, start_time: startHH, end_time: endHH, date: existing.date },
-        grossFreeze,
-        userForFreeze ?? null,
-        breakRules,
-        breakOpts
-      );
-      isAutoFreeze = true;
-    }
-
-    /** Non usare `updateShift`: dopo promote da bozza lo stato React in chiusura può essere obsoleto e il guard su `confirmed` blocca il congelamento. */
-    const freezePayload: Record<string, unknown> = {
-      approval_status: 'approved' as const,
-      approved_at: approvedAt,
-      approved_by: approvedBy,
-      approved_start_time: startHH,
-      approved_end_time: endHH,
-      deduct_break: mb.deduct_break !== false,
-      break_minutes: breakMinsFreeze,
-      is_auto_break: isAutoFreeze,
-      ...(Array.isArray(mb.deduct_excluded_rule_ids) ? { deduct_excluded_rule_ids: mb.deduct_excluded_rule_ids } : {}),
-    };
-
-    try {
-      const res = await database.shifts.update(shiftId, freezePayload);
-      const fromRes = (res || {}) as Partial<Shift>;
-      const nextRow = {
-        ...existing,
-        ...freezePayload,
-        ...fromRes,
-        deduct_excluded_rule_ids:
-          fromRes.deduct_excluded_rule_ids !== undefined
-            ? fromRes.deduct_excluded_rule_ids
-            : mb.deduct_excluded_rule_ids,
-        break_minutes: fromRes.break_minutes != null ? fromRes.break_minutes : breakMinsFreeze,
-        is_auto_break: fromRes.is_auto_break != null ? fromRes.is_auto_break : isAutoFreeze,
-      } as Shift;
-      setShifts((prev) => prev.map((s) => (s.id === shiftId ? nextRow : s)));
-      markManagementDataTouched();
-      if (Array.isArray(mb.deduct_excluded_rule_ids)) clearLocalDeductExcludedRuleIds(shiftId);
-      logShiftEdit({
-        shiftId,
-        actorName: approvedBy,
-        field: 'Stato',
-        oldValue: existing.approval_status,
-        newValue: 'Approvato (congelato)',
-        description: `${existing.date} — turno congelato`,
-      });
-    } catch {
-      throw new Error('Impossibile congelare il turno (database).');
-    }
-
-    const punchIn = punchRecordsRef.current.find(
-      (p) => p.type === 'in' && (p.shift_id === shiftId || p.user_id === existing.user_id)
-    );
-    if (punchIn) {
-      try {
-        await database.punchAuditLog.insert({
-          punch_record_id: punchIn.id,
-          actor_id: actor.id,
-          actor_name: approvedBy,
-          field: 'approvazione_turno',
-          old_value: 'confirmed',
-          new_value: `approved @ ${approvedAt}`,
-        });
-      } catch {
-        // audit log non bloccante
-      }
-    }
-  }, [shifts, punchRecordsRef, markManagementDataTouched, users, breakRules, featureFlags]);
 
   const deleteShift = useCallback(async (id: string) => {
     const op = currentUserRef.current;
@@ -1234,7 +1055,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     const existing = shifts.find(s => s.id === id);
-    if (existing && isShiftPayrollFrozen(existing)) {
+    if (existing && existing.approval_status === 'absent') {
       showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
       return;
     }
@@ -1264,7 +1085,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     const blockedFrozen = ids.some((id) => {
       const s = shifts.find((x) => x.id === id);
-      return s ? isShiftPayrollFrozen(s) : false;
+      return s ? s.approval_status === 'absent' : false;
     });
     if (blockedFrozen) {
       showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
@@ -2740,7 +2561,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         isLoading,
         currentUser, setCurrentUser, users, shifts, holidays, punchRecords, availability, toggleAvailability,
-        addShift, updateShift, approveShift, approveShiftSoft, deleteShift, deleteShifts, copyShift, bulkCopyPreviousWeek,
+        addShift, updateShift, deleteShift, deleteShifts, copyShift, bulkCopyPreviousWeek,
         publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, deleteHolidayRequest, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
         updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, clearLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing, syncStage, dataSyncInProgress,
         postRefreshLocked, postUnlockReloadPending, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest, logout, globalPinSessionId, setGlobalPinSessionId,

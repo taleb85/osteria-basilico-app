@@ -83,24 +83,6 @@ export interface AppContextType {
   toggleAvailability: (userId: string, date: string) => Promise<void>;
   addShift: (shift: Omit<Shift, 'id'>) => Promise<Shift | null>;
   updateShift: (id: string, shift: Partial<Shift>) => void;
-  /**
-   * Approva definitivamente un turno (congelo):
-   * - approval_status = 'approved' + approved_at + approved_by + approved_start_time/end_time
-   * - se già soft-approved, aggiunge solo congelo (approved_at + orari congelati)
-   * - scrive punch_audit_log per tracciabilità
-   */
-  approveShift: (
-    shiftId: string,
-    opts?: {
-      approvedStart?: string;
-      approvedEnd?: string;
-      actorOverride?: User;
-      /** Se il turno è in bozza, pubblicalo (confirmed) prima del congelo. */
-      promoteFromDraft?: boolean;
-    }
-  ) => Promise<void>;
-  /** Approva il turno senza congelarlo (nessun approved_at/approved_by). Il congelo avviene da «Salva, approva e congela» + PIN. */
-  approveShiftSoft: (shiftId: string) => Promise<void>;
   deleteShift: (id: string) => void;
   deleteShifts: (ids: string[]) => void;
   copyShift: (shift: Shift, newDate: string) => void;

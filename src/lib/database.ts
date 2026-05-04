@@ -788,7 +788,7 @@ export const database = {
           return null;
         }
         return data as PunchAuditEntry | null;
-      } catch {
+      } catch (_e) {
         return null;
       }
     },
@@ -803,7 +803,7 @@ export const database = {
           .order('changed_at', { ascending: true });
         if (error) { console.warn('punch_audit_log.getByPunchId error:', error.message); return []; }
         return (data || []) as PunchAuditEntry[];
-      } catch { return []; }
+      } catch (_e) { return []; }
     },
 
     /** Carica in batch tutti gli audit entries per una lista di punch_record_id. */
@@ -817,7 +817,7 @@ export const database = {
           .order('changed_at', { ascending: true });
         if (error) { console.warn('punch_audit_log.getByPunchIds error:', error.message); return []; }
         return (data || []) as PunchAuditEntry[];
-      } catch { return []; }
+      } catch (_e) { return []; }
     },
   },
 
@@ -948,7 +948,7 @@ export const database = {
     // 4. Notifications (se la tabella esiste)
     try {
       await supabase!.from('notifications').delete().neq('id', neverMatch);
-    } catch {
+    } catch (_e) {
       // Tabella assente o altro: ignoro
     }
 
@@ -977,7 +977,7 @@ export const database = {
         .filter((u) => u.id !== userId && isUserVisibleOnTeamSchedule(u))
         .slice(0, 4);
       coworkerShiftsBuilt = buildDemoCoworkerShiftsToday(new Date(), coworkers.map((c) => c.id));
-    } catch {
+    } catch (_e) {
       /* nessun elenco utenti: solo turni del profilo demo */
     }
     const shiftsToInsert = [...built.shifts, ...coworkerShiftsBuilt];
@@ -1012,7 +1012,7 @@ export const database = {
     };
     try {
       insertedShifts = await runInsert(shiftRowsFull);
-    } catch {
+    } catch (_e) {
       try {
         const noNotes = shiftRowsFull.map((r) => {
           const { notes: _n, ...rest } = r;
@@ -1020,7 +1020,7 @@ export const database = {
           return rest;
         });
         insertedShifts = await runInsert(noNotes);
-      } catch {
+      } catch (_e) {
         insertedShifts = await runInsert(shiftRowsMinimal);
       }
     }
@@ -1038,7 +1038,7 @@ export const database = {
           approved_start_time: orig.approved_start_time ?? null,
           approved_end_time: orig.approved_end_time ?? null,
         });
-      } catch {
+      } catch (_e) {
         /* DB senza colonne approved_*: il turno resta comunque creato */
       }
     }

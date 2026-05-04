@@ -148,14 +148,14 @@ TOTALE MODIFICHE                           -23 linee blu, +23 linee verdi
 - [x] Hover states corretti
 - [x] Indicatori mute visibili
 - [x] Badge numero notifiche visibile
-- [x] Deploy su Vercel completato
+- [x] Deploy su Cloudflare Pages completato
 - [x] Production URL attiva
 
 ---
 
 ## 🚀 Production
 
-**URL**: https://osteria-basilico-app.vercel.app  
+**URL**: https://flow-workinmotion.pages.dev  
 **Status**: ✅ LIVE  
 **Deployment ID**: dpl_BHZJdHGgbwvqJDkLLXNssTdzqNwD  
 

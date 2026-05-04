@@ -1,11 +1,5 @@
 /**
  * Config Vite CANONICA (dev/build/preview). In `scripts/` per evitare `.timestamp-*` in root (EPERM).
- * 
- * CRITICAL: Questa è l'UNICA config. Se serve modificare PWA manifest, farlo QUI.
- * `package.json` punta qui con `--config scripts/vite.config.mjs` in tutti gli script.
- * 
- * Se lanci `npx vite` senza flag, Vite cercherebbe un config in root che NON esiste più:
- * fallisce con errore — comportamento intenzionale per prevenire config divergenti.
  */
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -18,32 +12,18 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, '..');
 const pkg = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf-8'));
 
-// https://vitejs.dev/config/
-/**
- * Ogni `vite build` cambia l’etichetta anche se `package.json` no: altrimenti PWA/Workbox
- * non vede “nuova versione” (app-version + localStorage restano "1.2.0-light" identici al deploy).
- */
 export default defineConfig(({ command }) => {
+  const isDev = command === 'serve';
   const cacheVersionLabel =
     command === 'build' ? `${pkg.version}-light+${Date.now()}` : `${pkg.version}-light`;
 
   return {
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
-    /**
-     * Cache-bust string incorporata nel bundle JS: cambia il content-hash di ogni chunk,
-     * garantendo che i browser scarichino i nuovi asset (es. CSS senza dark mode).
-     */
     __CACHE_BUST__: JSON.stringify(`v${cacheVersionLabel}`),
-    /** Inietta versione in window global per uso in inline script cache-bust */
     'window.__APP_CACHE_VERSION__': JSON.stringify(cacheVersionLabel),
   },
   plugins: [
-    /**
-     * In dev, senza file fisico, Vite cade nello “SPA fallback” e /app-version.txt risponde 200 con
-     * l’intero index.html: lo script di confronto versione pensa sia una nuova build e entra in loop
-     * di reload. Intercettare PRIMA e servire testo pieno, come in produzione.
-     */
     {
       name: 'app-version-dev',
       apply: 'serve',
@@ -77,7 +57,6 @@ export default defineConfig(({ command }) => {
     {
       name: 'emit-app-version',
       apply: 'build',
-      /** File letto a runtime: confronto con localStorage se l’index è servito da cache (PWA) */
       generateBundle() {
         this.emitFile({
           type: 'asset',
@@ -87,12 +66,8 @@ export default defineConfig(({ command }) => {
       },
     },
     VitePWA({
-      /**
-       * `devOptions.enabled` deve essere true in dev: se è false, AssetsPlugin di vite-plugin-pwa resta nel ramo
-       * che fa `await pwaAssetsGenerator` su index.html e il server può non rispondere (timeout / pagina bianca).
-       */
       devOptions: {
-        enabled: true,
+        enabled: !isDev,
         type: 'classic',
       },
       registerType: 'autoUpdate',
@@ -147,37 +122,16 @@ export default defineConfig(({ command }) => {
           { src: '/icons/icon-1024.png', sizes: '1024x1024', type: 'image/png' },
         ],
         shortcuts: [
-          {
-            name: 'Timbratura',
-            short_name: 'Timbratura',
-            url: '/timbratura',
-            description: 'Terminale timbrature (solo entrata/uscita)',
-          },
-          {
-            name: 'Area profili',
-            short_name: 'Profili',
-            url: '/profilo',
-            description: 'Login staff e manager',
-          },
+          { name: 'Timbratura', short_name: 'Timbratura', url: '/timbratura', description: 'Terminale timbrature' },
+          { name: 'Area profili', short_name: 'Profili', url: '/profilo', description: 'Login staff e manager' },
         ],
       },
       workbox: {
-        /**
-         * Senza skipWaiting il nuovo SW resta in "waiting" finché non chiudi tutte le schede:
-         * su PWA iOS sembra "bloccata" e l’unica via è disinstallare. clientsClaim fa prendere
-         * il controllo subito; il client (workbox-window) ricarica su `activated` in autoUpdate.
-         */
         skipWaiting: true,
         clientsClaim: true,
-        /** Rimuove entry precache obsoletti dopo un deploy (nuova revisione SW). */
         cleanupOutdatedCaches: true,
-        /** Background Sync: evento `sync` → postMessage alle finestre (`src/utils/backgroundSync.ts`). */
         importScripts: ['pwa-background-sync.js', 'pwa-push-notifications.js'],
-        // Precache: icone/manifest + index.html (obbligatorio se navigateFallback punta a index.html,
-        // altrimenti Workbox lancia non-precached-url). NO js/css: evita cache stale sui chunk.
         globPatterns: ['**/*.{ico,png,svg,webmanifest}', 'index.html'],
-
-        // SPA fallback: tutte le rotte tornano a index.html
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [
           /^\/rest\//,
@@ -186,23 +140,12 @@ export default defineConfig(({ command }) => {
           /^\/realtime\//,
           /^\/assets\//,
         ],
-
-        /**
-         * /app-version.txt: sempre rete, mai cache SW (allinea deploy anche con index in precache).
-         * (navigate: offline → ancora index precachato, vedi sotto e navigateFallback)
-         */
         runtimeCaching: [
-          // Background sync per richieste timbrature offline (coda lato client Workbox)
           {
             urlPattern: /\/api\/punch/,
             handler: 'NetworkOnly',
             options: {
-              backgroundSync: {
-                name: 'punch-queue',
-                options: {
-                  maxRetentionTime: 24 * 60,
-                },
-              },
+              backgroundSync: { name: 'punch-queue', options: { maxRetentionTime: 24 * 60 } },
             },
           },
           {
@@ -219,7 +162,6 @@ export default defineConfig(({ command }) => {
             },
           },
           {
-            // Google Fonts → CacheFirst: raramente cambiano
             urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
@@ -249,16 +191,12 @@ export default defineConfig(({ command }) => {
   },
   optimizeDeps: {
     exclude: ['lucide-react'],
+    /** Evita che esbuild scansioni file non necessari che causano errori */
+    entries: ['src/**/*.{ts,tsx}', 'index.html'],
   },
   server: {
-    /**
-     * Su macOS + Node recenti, `host: true` può bindare solo IPv6 (`*:port`): richieste via
-     * `127.0.0.1` restano senza risposta (browser/curl “non caricano”). `0.0.0.0` espone IPv4
-     * su tutte le interfacce (LAN + Simple Browser); per IPv6 usare il Network URL mostrato da Vite.
-     */
     host: '0.0.0.0',
     port: 5173,
-    /** Se 5173 è occupata, Vite usa la successiva (evita crash all’avvio). */
     strictPort: false,
   },
   };

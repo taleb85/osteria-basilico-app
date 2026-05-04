@@ -514,7 +514,7 @@ export default function StaffPersonalDashboard({
     : ((t as { department_none?: string }).department_none ?? 'Nessuno');
 
   const visibleShifts = shifts.filter(
-    (s) => s.approval_status === 'approved' || s.approval_status === 'confirmed' || s.approval_status === 'absent'
+    (s) => s.approval_status === 'confirmed' || s.approval_status === 'absent'
   );
   const todayShifts = visibleShifts.filter((shift) => isToday(new Date(shift.date)));
   const upcomingShifts = visibleShifts.filter((shift) => isFuture(new Date(shift.date)));
@@ -615,7 +615,7 @@ export default function StaffPersonalDashboard({
     const mStart = startOfMonth(now);
     const mEnd = endOfMonth(now);
     const weekOk = (s: Shift) =>
-      s.approval_status === 'approved' || s.approval_status === 'confirmed' || s.approval_status === 'absent';
+      s.approval_status === 'confirmed' || s.approval_status === 'absent';
     const thisWeekShifts = visibleShifts.filter((s) => {
       const d = parseISO(s.date);
       return d >= weekStart && d < weekEnd && weekOk(s);

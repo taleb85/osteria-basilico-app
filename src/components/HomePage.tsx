@@ -24,7 +24,7 @@ import { getDateLocale } from '../utils/translations';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import type { Shift } from '../types';
-import ApproveShiftModal from './ApproveShiftModal';
+// ApproveShiftModal rimosso (semplificazione)
 import { getResolvedStartEndForHours, shiftPastPlannedEndWithoutClockIn } from '../utils/shiftResolvedClockTimes';
 import { safeFormatDate } from '../utils/safeDateFormat';
 import { TimeInputField } from './ui/TimeInputField';
@@ -1134,16 +1134,8 @@ export default function HomePage({
         })()}
       </AnimatePresence>
 
-      {approveModal && currentUser && (
-        <ApproveShiftModal
-          shift={approveModal.shift}
-          punchRecords={punchRecords}
-          userName={approveModal.userName}
-          currentUser={currentUser}
-          onClose={() => setApproveModal(null)}
-          onApprove={(id, st, en) => handleApproveFromModal(id, st, en)}
-        />
-      )}
+      {/* ApproveShiftModal rimosso (semplificazione) */}
+      {false && null}
     </>
   );
 }

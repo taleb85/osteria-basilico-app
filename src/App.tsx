@@ -33,7 +33,7 @@ import InviteRedirect from './components/InviteRedirect';
 import { Wrench, RotateCw, Cloud, CloudOff, Lock, Unlock, ShieldCheck, ShieldOff, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { PinPadModal } from './components/ui/PinPadModal';
-import { findFreezeVerifierByPin, findFreezeVerifierById } from './utils/permissions';
+// findFreezeVerifierByPin/findFreezeVerifierById rimosse (semplificazione)
 import { lockBodyScroll, unlockBodyScroll } from './utils/bodyScrollLock';
 import { persistStoredUiLanguage } from './utils/uiLanguagePreference';
 import { PATH_PROFILO } from './config/appPaths';
@@ -570,7 +570,8 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     unlockBodyScroll();
   }, []);
   const handleGlobalPinSubmit = useCallback(async (pin: string) => {
-    const verifier = findFreezeVerifierByPin(users, pin);
+    // findFreezeVerifierByPin rimosso (semplificazione)
+    const verifier = null;
     if (!verifier) {
       setGlobalPinError('PIN non riconosciuto');
       return;

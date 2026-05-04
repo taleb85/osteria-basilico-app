@@ -9,7 +9,7 @@
 **Fix**:
 - Rimossa `supabaseAdmin` da `src/lib/supabase.ts`
 - Tutti gli usi in `src/` ora usano solo anon key + RLS
-- SuperAdminPanel disabilitato (richiede migrazione a Vercel Function)
+- SuperAdminPanel disabilitato (migrato a Cloudflare Pages)
 - `.env.example` aggiornato: `SUPABASE_SERVICE_ROLE_KEY` (senza `VITE_`)
 - `src/vite-env.d.ts`: rimosso type per `VITE_SUPABASE_SERVICE_ROLE_KEY`
 
@@ -76,7 +76,7 @@ npm run preview  # dovrebbe caricare senza install screen
 **Fix**:
 - `window.__APP_CACHE_VERSION__` iniettato da Vite `define`
 - `index.html`: versione generata build-time con plugin custom
-- OG URL corretto: `osteria-basilico-app.vercel.app`
+- OG URL corretto: `flow-workinmotion.pages.dev`
 - `location.reload()` senza parametro deprecato
 - Meta tag `app-version` sostituito dinamicamente
 
@@ -197,7 +197,7 @@ npm run test:e2e
 npm run preview
 ```
 
-### Vercel Env Variables (Produzione)
+### Cloudflare Env Variables (Produzione)
 
 **Frontend (Build)**:
 ```

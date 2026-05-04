@@ -1,5 +1,6 @@
 import { format, isValid } from 'date-fns';
 import type { Shift } from '../types';
+import { isShiftComplete } from './isShiftComplete';
 
 export type PunchRecordLike = {
   id?: string;
@@ -23,8 +24,8 @@ export function punchTimeHHMM(ts: string | null | undefined): string | null {
 }
 
 /**
- * Allinea IN/OUT allo stesso criterio di Presenze / Home: pranzo vs cena da ora pianificata,
- * match per shift_id se presente, altrimenti stesso user + data.
+ * Trova la coppia di timbrature (entrata/uscita) per un turno.
+ * Match per shift_id se presente, altrimenti stesso user + data + fascia (pranzo/cena).
  */
 export function getPunchPairForShift(
   shift: { id: string; user_id: string; date: string; start_time?: string; end_time?: string },
@@ -53,17 +54,20 @@ export function getPunchPairForShift(
     return isLunch ? pDate.getHours() < 16 : pDate.getHours() >= 16;
   });
 
-  const punchOut = punchRecords.find((p) => {
-    if (p.type !== 'out') return false;
-    if (shift.id && p.shift_id) return p.shift_id === shift.id;
-    if (p.user_id !== shift.user_id) return false;
-    const pDate = new Date(p.timestamp);
-    if (!isValid(pDate)) return false;
-    if (format(pDate, 'yyyy-MM-dd') !== dateStr) return false;
-    return isLunch ? pDate.getHours() < 16 : pDate.getHours() >= 16;
-  });
-
+  // clock_out_time sul record di entrata, oppure record 'out' separato
   const clockOutRaw = punchIn?.clock_out_time ?? null;
+  const punchOut = clockOutRaw
+    ? undefined
+    : punchRecords.find((p) => {
+        if (p.type !== 'out') return false;
+        if (shift.id && p.shift_id) return p.shift_id === shift.id;
+        if (p.user_id !== shift.user_id) return false;
+        const pDate = new Date(p.timestamp);
+        if (!isValid(pDate)) return false;
+        if (format(pDate, 'yyyy-MM-dd') !== dateStr) return false;
+        return isLunch ? pDate.getHours() < 16 : pDate.getHours() >= 16;
+      });
+
   const actualEndRaw = clockOutRaw ?? punchOut?.timestamp ?? null;
 
   const actualStart = punchIn
@@ -75,17 +79,16 @@ export function getPunchPairForShift(
 }
 
 /**
- * Evidenza gialla tabellone: è passata l’ora di fine pianificata del turno
- * e non risulta alcuna timbratura di entrata (nessun record IN collegato).
+ * Evidenza gialla tabellone: è passata l'ora di fine pianificata del turno
+ * e non risulta alcuna timbratura di entrata.
  */
 export function shiftPastPlannedEndWithoutClockIn(
-  shift: Pick<Shift, 'id' | 'user_id' | 'date' | 'start_time' | 'end_time' | 'notes' | 'approval_status' | 'approved_at'>,
+  shift: Pick<Shift, 'id' | 'user_id' | 'date' | 'start_time' | 'end_time' | 'notes' | 'approval_status'>,
   punchRecords: PunchRecordLike[],
   now: Date = new Date()
 ): boolean {
   if ((shift.approval_status ?? '').toString().trim().toLowerCase() === 'absent') return false;
   if (shift.approval_status === 'draft') return false;
-  if (shift.approval_status === 'approved' && shift.approved_at) return false;
   const n = shift.notes ?? '';
   if (n.startsWith('__OPEN__') || n.startsWith('__OPEN_REQ__')) return false;
 
@@ -106,26 +109,23 @@ export function shiftPastPlannedEndWithoutClockIn(
   return !punchIn;
 }
 
-export type ResolvedClockSource = 'frozen' | 'punch' | 'planned';
+export type ResolvedClockSource = 'punch' | 'planned';
 
 /**
- * Orari usati per ore nette / confronti: dopo congelamento solo approved_* + approved_at;
- * altrimenti timbrature se complete, altrimenti pianificato.
+ * Orari usati per ore nette / confronti.
+ * Se il turno ha timbrature complete (entrata+uscita) usa quelle,
+ * altrimenti usa gli orari pianificati.
  */
 export function getResolvedStartEndForHours(
-  shift: Shift,
+  shift: Pick<Shift, 'id' | 'user_id' | 'date' | 'start_time' | 'end_time' | 'approval_status'>,
   punchRecords: PunchRecordLike[]
 ): { start: string; end: string; source: ResolvedClockSource } {
   if ((shift.approval_status ?? '').toString().trim().toLowerCase() === 'absent') {
     return { start: '', end: '', source: 'planned' };
   }
-  const aS = shift.approved_start_time?.trim();
-  const aE = shift.approved_end_time?.trim();
-  if (shift.approved_at && aS && aE) {
-    return { start: aS.slice(0, 5), end: aE.slice(0, 5), source: 'frozen' };
-  }
 
   const { actualStart, actualEnd, plannedStart, plannedEnd } = getPunchPairForShift(shift, punchRecords);
+  
   if (actualStart && actualEnd) {
     return { start: actualStart, end: actualEnd, source: 'punch' };
   }
@@ -136,17 +136,5 @@ export function getResolvedStartEndForHours(
     start: plannedStart,
     end: plannedEnd || plannedStart,
     source: 'planned',
-  };
-}
-
-/** Valori default per il modale di approvazione: timbrature se ci sono, altrimenti pianificato. */
-export function getDefaultApprovalClockHHMM(
-  shift: Shift,
-  punchRecords: PunchRecordLike[]
-): { start: string; end: string } {
-  const { actualStart, actualEnd, plannedStart, plannedEnd } = getPunchPairForShift(shift, punchRecords);
-  return {
-    start: (actualStart ?? plannedStart).slice(0, 5),
-    end: (actualEnd ?? plannedEnd ?? plannedStart).slice(0, 5),
   };
 }

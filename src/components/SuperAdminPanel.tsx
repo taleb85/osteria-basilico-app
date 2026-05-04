@@ -1912,7 +1912,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
         .from('shifts')
         .select('admin_note,date')
         .eq('tenant_id', tenantId)
-        .eq('approved_by', 'import_storico')
+        
         .not('admin_note', 'is', null)
         .order('date', { ascending: false });
       // Se la colonna admin_note non esiste ancora (400), mostriamo lista vuota silenziosamente
@@ -1952,7 +1952,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
         .from('shifts')
         .delete()
         .eq('tenant_id', selectedTenantId)
-        .eq('approved_by', 'import_storico')
+        
         .eq('admin_note', adminNote);
       if (error) throw error;
       setImportHistory((prev) => prev.filter((b) => b.adminNote !== adminNote));
@@ -2116,10 +2116,8 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
         end_time: r.endTime,
         type: r.type,
         approval_status: 'approved' as const,
-        approved_at: approvedAt,
-        approved_start_time: r.startTime,
-        approved_end_time: r.endTime,
-        approved_by: 'import_storico',
+        // approved_* fields removed
+
         admin_note: importNote,
       }));
       let adminNoteSupported = true;

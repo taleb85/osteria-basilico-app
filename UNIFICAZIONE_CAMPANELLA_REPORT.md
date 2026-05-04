@@ -207,7 +207,7 @@ Click campanella per leggere
 ## 🚀 Deployment Info
 
 **Production URL:**
-https://osteria-basilico-app.vercel.app
+https://flow-workinmotion.pages.dev
 
 **Build Statistics:**
 - Total size: 1,346.55 kB (gzipped: 379.04 kB)
@@ -262,7 +262,7 @@ Tracciare:
 ✅ **Design**: Verde Basilico, badge rosso, indicatore mute  
 ✅ **Accessibilità**: Touch target 44px, aria-labels, tooltip  
 ✅ **Performance**: Build size stabile, no console errors  
-✅ **Production**: Deployed su Vercel  
+✅ **Production**: Deployed su Cloudflare Pages  
 
 ---
 

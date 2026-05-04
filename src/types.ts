@@ -66,7 +66,7 @@ export type UserStatus = 'active' | 'suspended' | 'inactive';
 
 export type ShiftType = 'lunch' | 'dinner';
 
-export type ApprovalStatus = 'draft' | 'approved' | 'confirmed' | 'absent';
+export type ApprovalStatus = 'draft' | 'confirmed' | 'absent';
 
 export type HolidayStatus = 'pending' | 'approved' | 'rejected';
 
@@ -160,13 +160,6 @@ export interface Shift {
   department?: Department;
   /** Competenze/task richieste per questo turno (es. "sommelier,cassa") */
   skills?: string;
-  /** Timestamp di quando il turno è stato approvato (ISO string); null per svuotare in update */
-  approved_at?: string | null;
-  /** Nome del manager che ha approvato; null per svuotare in update */
-  approved_by?: string | null;
-  /** Orari congelati alla approvazione definitiva (HH:mm), distinti dal pianificato su start_time/end_time */
-  approved_start_time?: string | null;
-  approved_end_time?: string | null;
 }
 
 export interface HolidayRequest {
@@ -201,21 +194,4 @@ export interface PunchRecord {
   source?: PunchRecordSource | null;
   /** ID admin che ha eseguito il quick-switch prima di questa timbratura (audit impersonazione). */
   impersonated_by?: string | null;
-}
-
-/**
- * Audit log entry per ogni modifica manuale a un punch_record effettuata da un Admin/Manager.
- * Persistito nella tabella Supabase `punch_audit_log`.
- */
-export interface PunchAuditEntry {
-  id: string;
-  tenant_id?: string;
-  punch_record_id: string;
-  actor_id?: string;
-  actor_name: string;
-  /** Campo modificato: 'timestamp' | 'calculated_time' | 'clock_out_time' */
-  field: string;
-  old_value?: string;
-  new_value?: string;
-  changed_at: string;
 }

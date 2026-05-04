@@ -236,7 +236,7 @@ export const supabase: SupabaseClient | null = ...
 
 ## 🚀 Production Status
 
-**URL**: https://osteria-basilico-app.vercel.app  
+**URL**: https://flow-workinmotion.pages.dev  
 **Status**: ✅ LIVE  
 **Deployment ID**: dpl_8b5hGYBW9WCXnNTKnsDUv4EBwnCw  
 

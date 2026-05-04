@@ -235,11 +235,11 @@ INVIA → Supabase → Badge istantaneo per destinatari
 
 ## Deployment
 
-Build testato e pronto per Vercel:
+Build testato e pronto per Cloudflare Pages:
 ```bash
 npm run build  # ✅ Success
 npm run preview
-npx vercel --prod --yes  # Deploy quando richiesto
+npm run deploy  # Deploy quando richiesto
 ```
 
 ---

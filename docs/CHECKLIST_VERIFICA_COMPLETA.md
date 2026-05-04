@@ -131,7 +131,7 @@ Apri l’URL di produzione su Pages (o dominio custom).
 ## Riferimenti nel repo
 
 - Deploy e checklist generale: [DEPLOY.md](../DEPLOY.md)  
-- Git + Cloudflare Pages: [CONNESSIONE_GIT_VERCEL.md](./CONNESSIONE_GIT_VERCEL.md) (nome file storico)  
+- Git + Cloudflare Pages: [CONNESSIONE_GIT_CLOUDFLARE.md](./CONNESSIONE_GIT_CLOUDFLARE.md) (nome file storico)  
 - Stato sintetico: [STATO_PROGETTO.md](./STATO_PROGETTO.md)  
 - Variabili esempio: [`.env.example`](../.env.example)  
 - Storage bucket `app-config`: [SUPABASE_STORAGE_APP_CONFIG.md](./SUPABASE_STORAGE_APP_CONFIG.md)  

@@ -383,7 +383,7 @@ export default function Statistics() {
       const sd = parseShiftLocalDate(s.date);
       if (Number.isNaN(sd.getTime()) || !isWithinInterval(sd, { start: m0, end: m1 })) continue;
       if (s.approval_status === 'absent') abs += 1;
-      else if (s.approval_status === 'approved' || s.approval_status === 'confirmed') pres += 1;
+      else if (s.approval_status === 'confirmed') pres += 1;
     }
     return { pres, abs };
   }, [filteredUsers, shifts]);

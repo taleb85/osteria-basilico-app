@@ -94,8 +94,8 @@ function isShiftDraftLike(shift: Pick<Shift, 'approval_status'>): boolean {
   return s === 'draft' || s === '';
 }
 
-function isShiftFrozenRecord(shift: Pick<Shift, 'approval_status' | 'approved_at'>): boolean {
-  return isShiftPayrollFrozen(shift);
+function isShiftFrozenRecord(_shift: Pick<Shift, 'approval_status' | 'approved_at'>): boolean {
+  return false;
 }
 
 function isShiftAbsentRecord(shift: Pick<Shift, 'approval_status'>): boolean {

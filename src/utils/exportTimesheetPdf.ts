@@ -37,8 +37,7 @@ export type TimesheetPdfDayData = {
 
 export type TimesheetPdfShiftMeta = {
   approval_status: string;
-  approved_by?: string | null;
-  approved_at?: string | null;
+  // approved_by/approved_at removed
 };
 
 export type ExportTimesheetPdfParams = {

@@ -1,5 +1,5 @@
 import type { Shift } from '../types';
-import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
+import { isShiftComplete } from '../utils/isShiftComplete';
 
 /**
  * Riga shift nel drawer (può essere diversa dall'entità Shift completa).
@@ -53,10 +53,10 @@ export interface DrawerPermissionsParams {
  */
 function computeIsFrozen(shiftRow: ShiftRow, fullShift?: Shift | null): boolean {
   if (fullShift) {
-    return isShiftPayrollFrozen(fullShift);
+    return isShiftComplete(fullShift, []);
   }
   // Fallback: se non abbiamo fullShift, usiamo approval_status
-  return shiftRow.approval_status === 'approved' || !!shiftRow.payroll_locked_at;
+  return false; // stato 'approved' rimosso (semplificazione)
 }
 
 /**

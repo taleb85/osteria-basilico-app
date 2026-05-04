@@ -159,7 +159,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
   const todayShifts = useMemo(
     () =>
       shifts.filter((s) => {
-        if (s.approval_status !== 'approved' && s.approval_status !== 'confirmed') return false;
+        if (s.approval_status !== 'confirmed') return false;
         return s.date === todayStr;
       }),
     [shifts, todayStr]
