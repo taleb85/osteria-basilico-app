@@ -1,15 +1,12 @@
 import { useState, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback, useRef } from 'react';
-import { unlockAudioContext } from './utils/hapticFeedbackCore';
 
 import SwUpdateOverlay from './components/SwUpdateOverlay';
 import AdminSyncOverlay from './components/AdminSyncOverlay';
+import DeepAuroraShell from './components/DeepAuroraShell';
 /**
  * SuperAdminPanel — accessibile solo sul dominio super-admin, protetto da PIN.
  */
 const SuperAdminPanel = lazy(() => import('./components/SuperAdminPanel'));
-const AnimPreview = lazy(() => import('./components/AnimPreview'));
-const LoadingPreview = lazy(() => import('./components/LoadingPreview'));
-const ScreensPreview = lazy(() => import('./components/ScreensPreview'));
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -21,19 +18,16 @@ import { useT } from './hooks/useT';
 import TopTabBar from './components/TopTabBar';
 import MobileProfileHeader from './components/MobileProfileHeader';
 import FlowWaveIcon from './components/ui/FlowWaveIcon';
-// import HeaderTodayCoworkersCard from './components/HeaderTodayCoworkersCard'; // unused
 import RefreshLockOverlay from './components/RefreshLockOverlay';
 import PostUnlockRestartOverlay from './components/PostUnlockRestartOverlay';
 import BodyPullToRefresh from './components/BodyPullToRefresh';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
-// import PWAInstallRequired from './components/PWAInstallRequired'; // unused (rendered by PwaGate)
-// import { isPWAStandalone } from './utils/pwaStandalone'; // unused
 import InviteRedirect from './components/InviteRedirect';
-import { Wrench, RotateCw, Cloud, CloudOff, Lock, Unlock, ShieldCheck, ShieldOff, X } from 'lucide-react';
+import InstallPage from './components/InstallPage';
+import { RotateCw, Cloud, CloudOff, Lock, Unlock, ShieldCheck, ShieldOff, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { PinPadModal } from './components/ui/PinPadModal';
-// findFreezeVerifierByPin/findFreezeVerifierById rimosse (semplificazione)
 import { lockBodyScroll, unlockBodyScroll } from './utils/bodyScrollLock';
 import { persistStoredUiLanguage } from './utils/uiLanguagePreference';
 import { PATH_PROFILO } from './config/appPaths';
@@ -49,12 +43,11 @@ import {
 import { useIsMobileViewport } from './hooks/useIsMobileViewport';
 import { useOnboarding } from './hooks/useOnboarding';
 import { OnboardingTour } from './components/OnboardingTour';
-import { isAdminOnly, isManagementRole } from './utils/permissions';
+import { isAdminOnly, isManagementRole, findFreezeVerifierById } from './utils/permissions';
 import { getTimesheetGridPrivacyMode } from './utils/timesheetGridPrivacy';
 import AdminGate from './components/AdminGate';
 import { PwaGate } from './components/PwaGate';
 
-const PunchInKiosk = lazy(() => import('./components/PunchInKiosk'));
 const StaffPersonalDashboard = lazy(() => import('./components/StaffPersonalDashboard'));
 const ProfileNavTabPanel = lazy(() => import('./components/ProfileNavTabPanel'));
 const AdminLayout = lazy(() => import('./components/AdminLayout'));
@@ -65,7 +58,6 @@ const shouldShowPermissionModal = () =>
 
 const WeeklyShiftsTable = lazy(() => import('./components/WeeklyShiftsTable'));
 const HolidayRequests = lazy(() => import('./components/HolidayRequests'));
-// const Statistics = lazy(() => import('./components/Statistics')); // unused in App.tsx (rendered via routing in AdminLayout)
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
 const Timesheets = lazy(() => import('./components/Timesheets'));
 const ManagementMobileShifts = lazy(() => import('./components/mobile/ManagementMobileShifts'));
@@ -90,79 +82,7 @@ function MaintenancePage() {
   );
 }
 
-// ─── Kiosk Route (disabilitata — /kiosk reindirizza a /profilo) ──────────────
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function KioskRoute() {
-  const navigate = useNavigate();
-  const { currentUser, featureFlags } = useApp();
-
-  useEffect(() => {
-    const prevLang = document.documentElement.lang;
-    document.documentElement.lang = 'en';
-    return () => {
-      document.documentElement.lang = prevLang;
-    };
-  }, []);
-
-  // Feedback visivo via JS (event delegation) — più affidabile di CSS :active su iOS
-  // Sblocca anche AudioContext al primo tocco
-  useEffect(() => {
-    let audioUnlocked = false;
-
-    const onTouchStart = (e: TouchEvent) => {
-      // Sblocca audio al primo tocco
-      if (!audioUnlocked) {
-        unlockAudioContext();
-        audioUnlocked = true;
-      }
-      // Trova il bottone più vicino e aggiunge classe tap-active
-      const target = e.target as HTMLElement | null;
-      const btn = target?.closest('button, [role="button"]') as HTMLElement | null;
-      if (btn) {
-        btn.classList.add('tap-active');
-      }
-    };
-
-    const onTouchEnd = (e: TouchEvent) => {
-      const target = e.target as HTMLElement | null;
-      const btn = target?.closest('button, [role="button"]') as HTMLElement | null;
-      if (btn) {
-        // Piccolo delay per rendere l'animazione visibile
-        setTimeout(() => btn.classList.remove('tap-active'), 100);
-      }
-    };
-
-    document.addEventListener('touchstart', onTouchStart, { passive: true });
-    document.addEventListener('touchend', onTouchEnd, { passive: true });
-    document.addEventListener('touchcancel', onTouchEnd, { passive: true });
-
-    return () => {
-      document.removeEventListener('touchstart', onTouchStart);
-      document.removeEventListener('touchend', onTouchEnd);
-      document.removeEventListener('touchcancel', onTouchEnd);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (currentUser) navigate('/app', { replace: true });
-  }, [currentUser, navigate]);
-
-  // Kiosk disabilitato → reindirizza alla login/dashboard
-  useEffect(() => {
-    if (featureFlags['kiosk_active'] === false) {
-      navigate(currentUser ? '/app' : PATH_PROFILO, { replace: true });
-    }
-  }, [featureFlags, currentUser, navigate]);
-
-  if (featureFlags['kiosk_active'] === false) return null;
-
-  return (
-    <div className="min-h-screen w-full flex flex-col safe-area-pad bg-app-bg font-sans antialiased text-white">
-      <Suspense fallback={null}><PunchInKiosk onGoToLogin={() => navigate(PATH_PROFILO)} /></Suspense>
-    </div>
-  );
-}
-
+// NOTA: KioskRoute rimosso — /kiosk reindirizza sempre a /profilo in AppContent
 /** Dopo login: torna a `/app`, `/admin`, ecc. solo se path interno (no open redirect). */
 function safeInternalRedirectPath(state: unknown, fallback = '/app'): string {
   const pathname = (state as { from?: { pathname?: string } } | null)?.from?.pathname;
@@ -570,15 +490,18 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     unlockBodyScroll();
   }, []);
   const handleGlobalPinSubmit = useCallback(async (pin: string) => {
-    // findFreezeVerifierByPin rimosso (semplificazione)
-    const verifier = null;
-    if (!verifier) {
-      setGlobalPinError('PIN non riconosciuto');
+    if (!currentUser) {
+      setGlobalPinError('Sessione non disponibile');
       return;
     }
-    setGlobalPinSessionId(Date.now().toString());
-    closePinMenu();
-  }, [users, setGlobalPinSessionId, closePinMenu]);
+    // Verifica PIN dell'utente corrente (admin/manager) per sbloccare la sessione
+    if (pin === currentUser.pin) {
+      setGlobalPinSessionId(Date.now().toString());
+      closePinMenu();
+    } else {
+      setGlobalPinError('PIN non riconosciuto');
+    }
+  }, [currentUser, setGlobalPinSessionId, closePinMenu]);
   useEffect(() => {
     if (showPinMenu) lockBodyScroll();
     else unlockBodyScroll();
@@ -663,6 +586,9 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
   return (
     <ProfileLeaveGuardRefContext.Provider value={profileLeaveGuardRef}>
+    {/* Sfondo decorativo con glow effects */}
+    <DeepAuroraShell />
+
     {/* Overlay aggiornamento dati admin: mostrato su tutti i dispositivi non-admin */}
     <AnimatePresence>
       {adminSyncPending && (
@@ -684,7 +610,16 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     {currentUser && !showOnboarding && !showPermissions && showTour && (
       <OnboardingTour onComplete={completeTour} includeManagerSteps={isManagement} />
     )}
-    <div className="min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col">
+    <div
+      className="min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col"
+      style={{
+        backgroundImage: 'url(/reference/IMG_1976.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[600] focus:px-4 focus:py-2 focus:bg-white focus:text-app-bg focus:rounded focus:font-medium"
@@ -736,8 +671,8 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         }`}
         style={{
           top: impersonatingAs ? 40 : 0,
-          /* Stessa tonalità header-tab (un solo layer: brand + top-tabbar) */
-          background: 'var(--surface-header-slab, rgba(14, 34, 88, 0.86))',
+          /* Vetro trasparente per tutto l'header (brand + top-tabbar) */
+          background: 'transparent',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
@@ -909,9 +844,11 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         </div>
       </main>
 
+      {/* Sovrapposizione viola/indaco durante refresh globale */}
       {isGlobalRefreshing && (() => {
+        // Sfondo loading: glass scuro molto trasparente per far intravedere IMG_1976 sotto
         return (
-          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.22) 0%, transparent 55%), #000B18' }}>
+          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'rgba(2, 6, 23, 0.70)' }}>
             <div className="flex flex-col items-center gap-6">
               <motion.div
                 animate={{
@@ -1018,8 +955,8 @@ function ProtectedApp() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.35 }}
         className="fixed inset-0 flex items-center justify-center font-sans"
-        style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.22) 0%, transparent 55%), #000B18' }}
-      >
+        style={{ background: 'rgba(2, 6, 23, 0.80)' }}
+  >
         <motion.div
           initial={{ scale: 0.82, opacity: 0 }}
           animate={{
@@ -1055,89 +992,36 @@ function ProtectedApp() {
   return <MainApp onLogout={handleLogout} />;
 }
 
-// ─── Banner "Aggiungi a Home" per Safari iOS (non-standalone) ─────────────────
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function IosSafariInstallBanner() {
-  const [visible, setVisible] = useState(() => {
-    // Mostra solo su Safari iOS fuori dalla modalità standalone
-    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-    const isIos = /iphone|ipad|ipod/i.test(ua);
-    const isSafari = /safari/i.test(ua) && !/chrome|fxios|crios/i.test(ua);
-    const isStandalone =
-      ('standalone' in window.navigator &&
-        (window.navigator as Navigator & { standalone?: boolean }).standalone === true) ||
-      window.matchMedia('(display-mode: standalone)').matches;
-    const dismissed = sessionStorage.getItem('ios_install_banner_dismissed') === '1';
-    return isIos && isSafari && !isStandalone && !dismissed;
-  });
-
-  if (!visible) return null;
-
-  return (
-    <div
-      className="fixed top-0 left-0 right-0 z-[400] flex items-center justify-between gap-3 px-4 py-2.5 font-sans"
-      style={{
-        background: 'rgba(0,26,128,0.96)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(15, 35, 90, 0.82)',
-      }}
-    >
-      <p className="text-[12px] text-white/90 leading-snug flex-1">
-        Tocca{' '}
-        <span className="inline-flex items-center gap-0.5 font-semibold text-[#6699FF]">
-          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M10 2v11M6 6l4-4 4 4"/><rect x="3" y="13" width="14" height="6" rx="2"/></svg>
-          Condividi
-        </span>
-        {' '}poi{' '}
-        <span className="font-semibold text-white">«Aggiungi a Home»</span>
-        {' '}per l'esperienza completa.
-      </p>
-      <button
-        type="button"
-        onClick={() => {
-          sessionStorage.setItem('ios_install_banner_dismissed', '1');
-          setVisible(false);
-        }}
-        aria-label="Chiudi"
-        className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors active:text-white"
-      >
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg>
-      </button>
-    </div>
-  );
-}
-
 // Esporta per uso in routing
 export { LoginRoute, ProtectedApp };
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 function AppContent() {
   return (
-    <PwaGate>
-    <Routes>
-      <Route path="/" element={<Navigate to={PATH_PROFILO} replace />} />
+    <>
+      {/* Rotte pubbliche — accessibili senza PWA */}
+      <Routes>
+        <Route path="/i/:slug" element={<InviteRedirect />} />
+        <Route path="/install" element={<InstallPage />} />
+      </Routes>
 
-      <Route path="/i/:slug" element={<InviteRedirect />} />
-      <Route path="/kiosk" element={<Navigate to={PATH_PROFILO} replace />} />
-      <Route path="/timbratura" element={<Navigate to={PATH_PROFILO} replace />} />
-      <Route path={PATH_PROFILO} element={<LoginRoute />} />
-      <Route path="/login" element={<Navigate to={PATH_PROFILO} replace />} />
-      <Route path="/app" element={<ProtectedApp />} />
-      <Route path="/app/*" element={<ProtectedApp />} />
-      <Route path="/admin" element={<AdminGate><Suspense fallback={null}><AdminLayout /></Suspense></AdminGate>} />
-      <Route path="/admin/*" element={<AdminGate><Suspense fallback={null}><AdminLayout /></Suspense></AdminGate>} />
-      <Route path="/anim-preview" element={<Suspense fallback={null}><AnimPreview /></Suspense>} />
-      <Route path="/loading-preview" element={<Suspense fallback={null}><LoadingPreview /></Suspense>} />
-      <Route path="/screens-preview" element={
-        <AppProvider>
-          <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-app-bg text-white/30 font-sans uppercase tracking-widest text-xs">Caricamento anteprime...</div>}>
-            <ScreensPreview />
-          </Suspense>
-        </AppProvider>
-      } />
-      <Route path="*" element={<Navigate to={PATH_PROFILO} replace />} />
-    </Routes>
-    </PwaGate>
+      {/* Rotte protette — richiedono PWA */}
+      <PwaGate>
+      <Routes>
+        <Route path="/" element={<Navigate to={PATH_PROFILO} replace />} />
+        <Route path="/kiosk" element={<Navigate to={PATH_PROFILO} replace />} />
+        <Route path="/timbratura" element={<Navigate to={PATH_PROFILO} replace />} />
+        <Route path={PATH_PROFILO} element={<LoginRoute />} />
+        <Route path="/login" element={<Navigate to={PATH_PROFILO} replace />} />
+        <Route path="/app" element={<ProtectedApp />} />
+        <Route path="/app/*" element={<ProtectedApp />} />
+        <Route path="/admin" element={<AdminGate><Suspense fallback={null}><AdminLayout /></Suspense></AdminGate>} />
+        <Route path="/admin/*" element={<AdminGate><Suspense fallback={null}><AdminLayout /></Suspense></AdminGate>} />
+        {/* AnimPreview, LoadingPreview, ScreensPreview routes removed */}
+        <Route path="*" element={<Navigate to={PATH_PROFILO} replace />} />
+      </Routes>
+      </PwaGate>
+    </>
   );
 }
 
@@ -1186,7 +1070,7 @@ function App() {
               <SuperAdminPanel />
             </Suspense>
           : <div className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
-              <div className="rounded-2xl border border-white/15 p-8 max-w-sm" style={{ background: 'rgba(255, 255, 255, 0.16)', backdropFilter: 'blur(16px)' }}>
+              <div className="rounded-2xl border border-white/15 p-8 max-w-sm" style={{ background: 'rgba(255, 255, 255, 0.16)', backdropFilter: 'blur(9px)' }}>
                 <h1 className="text-2xl font-bold mb-2">SuperAdmin</h1>
                 <p className="text-white/50 text-sm">Se il Super Admin è su un host dedicato, apri l’indirizzo configurato in produzione (stesso build o sottodominio in Cloudflare)</p>
               </div>
