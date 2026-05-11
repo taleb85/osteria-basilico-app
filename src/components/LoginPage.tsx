@@ -456,6 +456,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
       onClick={() => { if (!showForm) setShowForm(true); }}
+      role="main"
+      aria-label="Login"
       className="fixed inset-0 z-20 w-full flex flex-col items-center justify-center p-6 safe-area-pad font-sans antialiased text-neutral-100 overflow-hidden"
       style={{
         background: 'transparent',

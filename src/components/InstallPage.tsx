@@ -11,6 +11,7 @@ import { Loader2, Smartphone, Monitor, Apple, Download } from 'lucide-react';
 import { useT } from '../hooks/useT';
 import { formatTrans } from '../utils/translations';
 import { PATH_PROFILO } from '../config/appPaths';
+import FlowLogoSvg from './FlowLogoSvg';
 
 type InstallView = 'choose' | 'ios' | 'android';
 
@@ -89,12 +90,7 @@ export default function InstallPage() {
         transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className="mb-6"
       >
-        <img
-          src="/icon-flow-final.png"
-          alt="FLOW"
-          draggable={false}
-          style={{ width: 80, height: 80, borderRadius: 18, objectFit: 'contain' }}
-        />
+        <FlowLogoSvg variant="icon-only" color="orange" style={{ width: 80, height: 80, borderRadius: 18 }} />
       </motion.div>
 
       <h1 className="text-xl font-bold text-white tracking-tight mb-1.5 text-center">
@@ -168,12 +164,7 @@ export default function InstallPage() {
         transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className="mb-6"
       >
-        <img
-          src="/icon-flow-final.png"
-          alt="FLOW"
-          draggable={false}
-          style={{ width: 80, height: 80, borderRadius: 18, objectFit: 'contain' }}
-        />
+        <FlowLogoSvg variant="icon-only" color="orange" style={{ width: 80, height: 80, borderRadius: 18 }} />
       </motion.div>
 
       <h1 className="text-xl font-bold text-white tracking-tight mb-1.5 text-center">
@@ -243,12 +234,7 @@ export default function InstallPage() {
         transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className="mb-6"
       >
-        <img
-          src="/icon-flow-final.png"
-          alt="FLOW"
-          draggable={false}
-          style={{ width: 80, height: 80, borderRadius: 18, objectFit: 'contain' }}
-        />
+        <FlowLogoSvg variant="icon-only" color="orange" style={{ width: 80, height: 80, borderRadius: 18 }} />
       </motion.div>
 
       <h1 className="text-xl font-bold text-white tracking-tight mb-1.5 text-center">
@@ -287,7 +273,7 @@ export default function InstallPage() {
   );
 
   return (
-    <div
+    <div role="main"
       className="min-h-screen min-h-[100dvh] w-full flex flex-col items-center justify-center px-6 font-sans"
       style={{ background: 'transparent' }}
     >
@@ -300,7 +286,6 @@ export default function InstallPage() {
           style={{
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(255,255,255,0.10)',
-            backdropFilter: 'blur(24px)',
             boxShadow:
               '0 32px 64px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset',
           }}

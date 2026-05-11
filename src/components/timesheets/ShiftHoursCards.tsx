@@ -149,19 +149,12 @@ export function ShiftHoursCards({
     (deductBreakLineItems?.some((it) => Boolean(it.ruleId)) ?? false)
   );
   return (
-    <div className="border-b border-white/10 px-5 py-7 sm:px-6 sm:py-8 shrink-0"
-      style={{
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-      }}
-    >
+    <div className="border-b border-white/10 px-5 py-7 sm:px-6 sm:py-8 shrink-0">
       <div className="mb-6 grid grid-cols-2 gap-6 items-stretch">
         {/* Card Pianificato (GLASSMORPHISM PREMIUM) */}
         <div className="rounded-2xl min-h-[130px] px-4 py-4"
           style={{ 
             background: 'var(--bg-surface)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
             border: '1px solid var(--border-color)',
             boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.3)',
           }}
@@ -202,8 +195,6 @@ export function ShiftHoursCards({
           }`}
           style={s.punched && !s.isCrossDay ? { 
             background: 'var(--bg-surface)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
             border: '1px solid var(--border-color)',
             boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.3)',
           } : {

@@ -117,7 +117,7 @@ function RingIcon({
       </svg>
 
       {/* ── ICONA in primo piano ── */}
-      <img src="/icon-flow-final.png" alt="FLOW" className={`${iconClass} object-cover relative z-10`} draggable={false} />
+      <FlowLogoSvg variant="icon-only" color="orange" style={{ width: 80, height: 80, borderRadius: 18 }} />
     </div>
   );
 }

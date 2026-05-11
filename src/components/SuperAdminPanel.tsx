@@ -106,7 +106,7 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
             key={i}
             className="w-3 h-3 rounded-full transition-all duration-150"
             style={i < digits.length
-              ? { background: error ? '#f87171' : 'linear-gradient(110deg, rgb(51, 102, 204), rgb(0, 26, 128))', boxShadow: error ? '0 0 8px rgba(248,113,113,0.5)' : '0 0 8px rgba(51,102,204,0.55)' }
+              ? { background: '#0d3b6e', boxShadow: error ? '0 0 8px rgba(248,113,113,0.5)' : '0 0 8px rgba(51,102,204,0.55)' }
               : { background: 'rgba(15, 35, 90, 0.85)' }
             }
           />
@@ -126,9 +126,9 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
                 isDelete ? 'bg-transparent text-white/40 hover:text-white/70' : 'text-white'
               }`}
               style={isDelete ? undefined : {
-                background: 'linear-gradient(160deg, rgba(6,100,140,0.50) 0%, rgba(0,40,120,0.65) 100%)',
-                border: '1px solid rgba(51,102,204,0.25)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07)',
+                background: '#0d3b6e',
+                border: '1px solid rgba(255,255,255,0.10)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
               }}
               onMouseEnter={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(51,102,204,0.55)'; }}
               onMouseLeave={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(51,102,204,0.25)'; }}
@@ -1456,7 +1456,7 @@ function SuperAdminPanelInner() {
             <button
               onClick={() => { setShowForm(true); setEditingTenant(null); setShowImport(false); }}
               className="flex items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold text-white active:scale-95 transition"
-              style={{ background: 'linear-gradient(110deg, rgb(51, 102, 204), rgb(0, 26, 128))' }}
+              style={{ background: '#0d3b6e' }}
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Nuova sede</span>

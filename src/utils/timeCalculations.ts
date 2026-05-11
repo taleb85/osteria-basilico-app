@@ -1,6 +1,6 @@
 /** Estrae ore e minuti da "HH:mm" o "HH:mm:ss"; segmenti mancanti → 0 (evita NaN su end_time vuoto o malformato). */
 function hhmmParts(t: string): [number, number] {
-  const s = (t || '').trim().slice(0, 8);
+  const s = String(t || '').trim().slice(0, 8);
   if (!s) return [0, 0];
   const [a, b] = s.split(':');
   const h = parseInt(a ?? '0', 10);
@@ -94,7 +94,7 @@ export function getActualShiftTime(
     return { startTime: '00:00', endTime: shift?.end_time ?? '00:00', isActual: false, isCompleted: false };
   }
   const shiftDate = shift.date;
-  const startParts = shift.start_time.split(':');
+  const startParts = String(shift.start_time).split(':');
   const shiftHour = parseInt(startParts[0], 10);
   const isLunchShift = !isNaN(shiftHour) && shiftHour < 16;
 
@@ -141,10 +141,10 @@ export function getPunchDelayMinutes(
   punchRecords: Array<{ shift_id?: string; user_id?: string; timestamp: string; type: 'in' | 'out' }>
 ): number | null {
   if (!shift?.start_time || !shift?.date) return null;
-  const [sh, sm] = shift.start_time.split(':').map((x) => parseInt(String(x), 10) || 0);
+  const [sh, sm] = String(shift.start_time).split(':').map((x) => parseInt(String(x), 10) || 0);
   const plannedStartM = sh * 60 + sm;
 
-  const startParts = shift.start_time.split(':');
+  const startParts = String(shift.start_time).split(':');
   const shiftHour = parseInt(startParts[0], 10);
   const isLunchShift = !isNaN(shiftHour) && shiftHour < 16;
 
@@ -183,7 +183,7 @@ export function computeEffectivePunchIn(
     const punchDate = new Date(rawTimestamp);
     const punchMins = punchDate.getHours() * 60 + punchDate.getMinutes();
 
-    const [sh, sm] = shift.start_time.split(':').map((x) => parseInt(String(x), 10) || 0);
+    const [sh, sm] = String(shift.start_time).split(':').map((x) => parseInt(String(x), 10) || 0);
     const scheduledMins = sh * 60 + sm;
 
     if (punchMins < scheduledMins) {
@@ -202,7 +202,7 @@ export function computeEffectivePunchIn(
 
 /** Converte HH:mm in minuti da mezzanotte. */
 function toMinutes(t: string): number {
-  const parts = (t || '').slice(0, 5).split(':');
+  const parts = String(t || '').slice(0, 5).split(':');
   return (parseInt(parts[0] ?? '0', 10) || 0) * 60 + (parseInt(parts[1] ?? '0', 10) || 0);
 }
 

@@ -17,61 +17,73 @@ export default function UnifiedShiftsPage() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full max-w-[1400px] mx-auto px-4 pb-8 pt-4 font-sans"
+      className="w-full max-w-[1400px] mx-auto px-4 pb-6 pt-3 font-sans"
     >
-      {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
+      {/* Page header — compatto */}
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-xl font-black text-white tracking-tight">
+          <h1 className="text-base font-black text-white tracking-tight">
             {t.unified_grid_title ?? 'Pianificazione & Presenze'}
           </h1>
-          <p className="text-sm text-white/40 mt-0.5">
-            {t.unified_grid_subtitle ?? 'Turni, timbrature e confronto in un\'unica griglia'}
-          </p>
         </div>
         <div className="flex items-center gap-2">
           {isSessionElevated && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-3 py-1 text-[10px] font-bold text-amber-300 uppercase tracking-wider">
-              <Users className="h-3 w-3" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2 py-0.5 text-[9px] font-bold text-amber-300 uppercase tracking-wider">
+              <Users className="h-2.5 w-2.5" />
               Admin
             </span>
           )}
         </div>
       </div>
 
-      {/* Quick summary cards */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <LayoutGrid className="h-3.5 w-3.5 text-cyan-400" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">{t.unified_planning ?? 'Planning'}</span>
+      {/* Quick summary — interattive: clicca per cambiare modalità */}
+      <div className="grid grid-cols-3 gap-2 mb-3">
+        <button type="button" onClick={() => setGridMode('planning')}
+          className={`rounded-lg border p-2 text-left transition-all ${
+            gridMode === 'planning'
+              ? 'border-cyan-400/40 bg-cyan-500/10'
+              : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08]'
+          }`}>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <LayoutGrid className="h-3 w-3 text-cyan-400" />
+            <span className="text-[9px] font-bold uppercase tracking-wider text-white/40">{t.unified_planning ?? 'Planning'}</span>
           </div>
-          <p className="text-lg font-black text-white tabular-nums">
+          <p className="text-xs font-bold text-white/70">
             {t.unified_planning_desc ?? 'Crea e modifica turni'}
           </p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Clock className="h-3.5 w-3.5 text-accent" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">{t.unified_realtime ?? 'Real-time'}</span>
+        </button>
+        <button type="button" onClick={() => setGridMode('realtime')}
+          className={`rounded-lg border p-2 text-left transition-all ${
+            gridMode === 'realtime'
+              ? 'border-accent/40 bg-accent/10'
+              : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08]'
+          }`}>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <Clock className="h-3 w-3 text-accent" />
+            <span className="text-[9px] font-bold uppercase tracking-wider text-white/40">{t.unified_realtime ?? 'Real-time'}</span>
           </div>
-          <p className="text-lg font-black text-white tabular-nums">
+          <p className="text-xs font-bold text-white/70">
             {t.unified_realtime_desc ?? 'Timbrature e presenze'}
           </p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <BarChart3 className="h-3.5 w-3.5 text-emerald-400" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">{t.unified_comparison ?? 'Confronto'}</span>
+        </button>
+        <button type="button" onClick={() => setGridMode('comparison')}
+          className={`rounded-lg border p-2 text-left transition-all ${
+            gridMode === 'comparison'
+              ? 'border-emerald-400/40 bg-emerald-500/10'
+              : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08]'
+          }`}>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <BarChart3 className="h-3 w-3 text-emerald-400" />
+            <span className="text-[9px] font-bold uppercase tracking-wider text-white/40">{t.unified_comparison ?? 'Confronto'}</span>
           </div>
-          <p className="text-lg font-black text-white tabular-nums">
+          <p className="text-xs font-bold text-white/70">
             {t.unified_comparison_desc ?? 'Delta pianificato vs reale'}
           </p>
-        </div>
+        </button>
       </div>
 
       {/* Unified Grid */}
-      <div className="rounded-2xl border border-white/10 bg-[#0a1628]/80 p-4">
+      <div className="rounded-xl border border-white/10 bg-transparent p-3">
         <UnifiedShiftGrid
           mode={gridMode}
           onModeChange={setGridMode}

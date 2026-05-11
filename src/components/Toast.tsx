@@ -37,8 +37,6 @@ export default function Toast({ message, type = 'error', onClose, duration = 600
       style={{
         top: 'calc(env(safe-area-inset-top, 0px) + 16px)',
         background: 'rgba(24,24,30,0.96)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
         border: `1px solid ${accentColor}66`,
         boxShadow: `0 8px 32px rgba(0,0,0,0.50), 0 0 0 1px rgba(255,255,255,0.06)`,
       }}

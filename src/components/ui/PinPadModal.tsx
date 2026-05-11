@@ -252,7 +252,7 @@ export function PinPadModal({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.22 }}
       className="fixed inset-0 z-[10060] flex flex-col items-center justify-center overflow-hidden bg-black/35 supports-[backdrop-filter]:bg-black/25"
-      style={{ backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }}
+      style={{ }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
       {/* Card centrata — mobile e desktop */}

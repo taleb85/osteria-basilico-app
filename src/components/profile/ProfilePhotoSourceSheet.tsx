@@ -40,7 +40,7 @@ export default function ProfilePhotoSourceSheet({
       id={menuId}
       role="menu"
       aria-label={labels.sheetAria}
-      className="absolute right-0 top-[calc(100%+4px)] z-[80] min-w-[10.25rem] max-w-[min(14rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-slate-200/90 bg-white/95 py-0.5 shadow-lg backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150"
+      className="absolute right-0 top-[calc(100%+4px)] z-[80] min-w-[10.25rem] max-w-[min(14rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-slate-200/90 bg-white/95 py-0.5 shadow-lg backdrop-blur-xl"
     >
       <li role="none">
         <button

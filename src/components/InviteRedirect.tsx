@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { buildUserInviteSlug } from '../config/appPaths';
+import FlowLogoSvg from './FlowLogoSvg';
 import { useT } from '../hooks/useT';
 import { FLOW_INVITE_NAME_STORAGE_KEY } from '../constants/appSession';
 
@@ -121,7 +122,7 @@ export default function InviteRedirect() {
 
   // Schermata di caricamento
   return (
-    <div
+    <main
       className="min-h-screen min-h-[100dvh] w-full flex flex-col items-center justify-center px-6 font-sans"
       style={{ background: 'transparent' }}
     >
@@ -134,7 +135,6 @@ export default function InviteRedirect() {
           style={{
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(255,255,255,0.10)',
-            backdropFilter: 'blur(24px)',
             boxShadow:
               '0 32px 64px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset',
           }}
@@ -146,12 +146,7 @@ export default function InviteRedirect() {
               transition={{ delay: 0.15, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
               className="mb-5"
             >
-              <img
-                src="/icon-flow-final.png"
-                alt="FLOW"
-                draggable={false}
-                style={{ width: 84, height: 84, borderRadius: 20, objectFit: 'contain' }}
-              />
+              <FlowLogoSvg variant="icon-only" color="orange" style={{ width: 84, height: 84, borderRadius: 20 }} />
             </motion.div>
             <h1 className="text-[1.25rem] font-bold text-white tracking-tight mb-1.5 text-center">
               {tr('invite_welcome_title')}
@@ -173,6 +168,6 @@ export default function InviteRedirect() {
         </motion.div>
         <p className="mt-8 text-white/20 text-xs font-semibold tracking-[0.2em] uppercase select-none">FLOW</p>
       </div>
-    </div>
+    </main>
   );
 }

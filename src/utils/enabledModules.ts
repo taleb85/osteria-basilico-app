@@ -111,13 +111,12 @@ export function getAppNavTabTitle(t: Record<string, string>, tab: AppNavTab): st
     case 'home':
       return t.home_dashboard_title;
     case 'turni':
-      return t.sidebar_shifts;
+    case 'timesheet':
+      return t.tab_planning_or_timesheet ?? 'Pianificazione';
     case 'ferie':
       return t.sidebar_holidays;
     case 'reports':
       return t.sidebar_statistics;
-    case 'timesheet':
-      return t.timesheet_title;
     case 'settings':
       return (t as Record<string, string>).bottom_nav_settings_title ?? 'Impostazioni';
     case 'profile':
@@ -125,13 +124,13 @@ export function getAppNavTabTitle(t: Record<string, string>, tab: AppNavTab): st
   }
 }
 
-/** Ordine bottom bar / PWA: allineato all’anteprima “Cosa vede chi”. */
-const UNIFIED_NAV_ORDER: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'profile', 'settings'];
+/** Ordine bottom bar / PWA: 'timesheet' unifica planning + presenze. */
+const UNIFIED_NAV_ORDER: AppNavTab[] = ['home', 'timesheet', 'ferie', 'profile', 'settings'];
 
 /**
- * Staff mobile: ordine richiesto [Home] [Turni] [Ferie] [Ore] [Presenze] [Profilo]
+ * Staff mobile: [Home] [Pianificazione] [Ferie] [Profilo]
  */
-const STAFF_BOTTOM_NAV_ORDER: AppNavTab[] = ['home', 'turni', 'ferie', 'timesheet', 'profile'];
+const STAFF_BOTTOM_NAV_ORDER: AppNavTab[] = ['home', 'timesheet', 'ferie', 'profile'];
 
 /**
  * Voci bottom bar: stessa struttura per tutti i profili (come PWA).
@@ -148,7 +147,6 @@ export function getUnifiedNavTabs(
   const out: AppNavTab[] = [];
   for (const id of UNIFIED_NAV_ORDER) {
     if (id === 'home' && feat.home_tab) out.push('home');
-    else if (id === 'turni' && feat.team_view) out.push('turni');
     else if (id === 'ferie' && ferieOk) out.push('ferie');
     else if (id === 'timesheet' && timesheetOk) out.push('timesheet');
     // 'reports' removed from nav — Statistics is now a sub-tab inside 'timesheet'

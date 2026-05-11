@@ -13,7 +13,7 @@ import { getIntlLocale } from '../utils/translations';
 const BRAND = '#0052FF';
 
 function formatTime(iso: string, locale?: string) {
-  return new Date(iso).toLocaleTimeString(locale ?? 'it-IT', { hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleTimeString(locale ?? 'it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 function formatDateLabel(iso: string, todayLabel: string, yesterdayLabel: string, locale?: string) {

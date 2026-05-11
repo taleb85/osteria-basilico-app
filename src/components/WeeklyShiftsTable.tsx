@@ -28,6 +28,7 @@ import {
 } from '../utils/shiftResolvedClockTimes';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
 import { getDateLocale, getIntlLocale, formatTrans } from '../utils/translations';
+import { TimeInputField } from './ui/TimeInputField';
 import { translateRole } from '../utils/roles';
 import { getShiftViolations, DEFAULT_WORK_RULES } from '../utils/workRules';
 import { getBreakMinutesForShift, getNetShiftMinutes } from '../utils/breakRules';
@@ -3197,7 +3198,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-xs font-semibold text-white" title={entry.description}>{entry.description}</p>
                       <p className="text-[11px] text-white/40 mt-0.5">
-                        {entry.actorName} · {new Date(entry.timestamp).toLocaleString(getIntlLocale(effectiveLanguage), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                        {entry.actorName} · {new Date(entry.timestamp).toLocaleString(getIntlLocale(effectiveLanguage), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
                       </p>
                     </div>
                   </div>
@@ -5885,7 +5886,6 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   maxHeight: 420,
                   background: isDark ? 'rgba(18,22,30,0.97)' : 'rgba(255,255,255,0.98)',
                   borderColor: isDark ? 'rgba(255,255,255,0.10)' : '#e2e8f0',
-                  backdropFilter: 'blur(16px)',
                 }}
               >
                 {/* Header */}
@@ -5936,23 +5936,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   <div className="border-t px-3 py-2.5 shrink-0" style={{ borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0' }}>
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-white/40 mb-1.5">Aggiungi orario</p>
                     <div className="flex items-center gap-1.5 mb-2">
-                      <input
-                        type="time"
-                        value={slotPickerNewStart}
-                        onChange={(e) => setSlotPickerNewStart(e.target.value)}
-                        placeholder="00:00"
-                        className="flex-1 rounded-lg px-2 py-1 text-base font-mono border text-white"
-                        style={{ background: isDark ? 'rgba(255, 255, 255, 0.14)' : '#f8fafc', borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0' }}
-                      />
+                      <TimeInputField value={slotPickerNewStart} onChange={setSlotPickerNewStart} size="md" className="flex-1" />
                       <span className="text-[11px] text-white/40">–</span>
-                      <input
-                        type="time"
-                        value={slotPickerNewEnd}
-                        onChange={(e) => setSlotPickerNewEnd(e.target.value)}
-                        placeholder="00:00"
-                        className="flex-1 rounded-lg px-2 py-1 text-base font-mono border text-white"
-                        style={{ background: isDark ? 'rgba(255, 255, 255, 0.14)' : '#f8fafc', borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0' }}
-                      />
+                      <TimeInputField value={slotPickerNewEnd} onChange={setSlotPickerNewEnd} size="md" className="flex-1" />
                     </div>
                     <button
                       type="button"

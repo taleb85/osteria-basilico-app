@@ -773,7 +773,7 @@ export default function StaffPersonalDashboard({
       </span>
 
       {/* Frecce + chip data a destra */}
-      <div className="flex items-center border border-slate-100 rounded-2xl overflow-hidden flex-1 supports-[backdrop-filter]:backdrop-blur-md" style={{ background: 'transparent', boxShadow: 'none' }}>
+      <div className="flex items-center border border-slate-100 rounded-2xl overflow-hidden flex-1" style={{ background: 'transparent', boxShadow: 'none' }}>
         <button
           type="button"
           onClick={() => setMobileNavOffset(o => o - 1)}
@@ -965,8 +965,6 @@ export default function StaffPersonalDashboard({
               <div className="rounded-2xl px-4 py-3 text-center"
                 style={{ 
                   background: 'rgba(15, 35, 90, 0.82)',
-                  backdropFilter: 'blur(14px)',
-                  WebkitBackdropFilter: 'blur(14px)',
                   border: '1px solid rgba(255,255,255,0.18)',
                 }}
               >
@@ -976,8 +974,6 @@ export default function StaffPersonalDashboard({
               <div className="rounded-2xl px-4 py-3 text-center"
                 style={{ 
                   background: 'rgba(15, 35, 90, 0.82)',
-                  backdropFilter: 'blur(14px)',
-                  WebkitBackdropFilter: 'blur(14px)',
                   border: '1px solid rgba(255,255,255,0.18)',
                 }}
               >

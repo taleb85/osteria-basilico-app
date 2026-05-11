@@ -691,7 +691,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.18, type: 'spring', stiffness: 280, damping: 22 }}
               className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl text-4xl font-bold text-white shadow-xl shadow-black/40"
-              style={{ background: 'linear-gradient(135deg, rgb(0, 82, 255) 0%, #1a3785 100%)' }}
+              style={{ background: '#0d3b6e' }}
             >
               {selectedUser.first_name[0].toUpperCase()}
             </motion.div>

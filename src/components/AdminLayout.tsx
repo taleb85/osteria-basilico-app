@@ -11,7 +11,7 @@ type AdminTab = 'profili' | 'regole' | 'impostazioni';
 
 /** `overflow-visible` così il pannello del menu hamburger non viene tagliato dal bordo arrotondato. */
 const adminHeaderCardClass =
-  'w-full rounded-2xl border border-white/12 overflow-visible supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150';
+  'w-full rounded-2xl border border-white/12 overflow-visible';
 
 export default function AdminLayout() {
   const navigate = useNavigate();

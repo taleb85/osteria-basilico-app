@@ -62,8 +62,6 @@ export function HomeManagementShiftCard({ e, style, isManager, onClose, onApprov
       className={`rounded-xl border-l-4 ${style.border}`}
       style={{
         background: 'rgba(255, 255, 255, 0.07)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
         border: '1px solid rgba(255, 255, 255, 0.10)',
         borderLeft: `4px solid`,
         borderLeftColor: style.border.includes('emerald') ? '#10b981'

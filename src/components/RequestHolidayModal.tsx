@@ -173,7 +173,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
             exit={{ opacity: 0, y: 16 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
             onSubmit={handleSubmit}
-            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden" style={{ background: 'rgba(8,18,52,0.88)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
+            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden" style={{ background: 'rgba(8,18,52,0.88)' }}
           >
             <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))]">
               <h3 className="text-lg font-bold text-white">{title}</h3>

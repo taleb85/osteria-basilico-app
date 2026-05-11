@@ -83,7 +83,7 @@ function NeonIcon({ progress = 1 }: { progress?: number }) {
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={SW} />
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#prev-s)" strokeWidth={SW} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} strokeLinecap="round" transform={rot} />
       </svg>
-      <img src="/icon-flow-final.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
+      <FlowLogoSvg variant="icon-only" color="orange" style={{ width: 80, height: 80, borderRadius: 18 }} />
     </div>
   );
 }
@@ -109,7 +109,7 @@ function LightRing({ progress = 1 }: { progress?: number }) {
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth={SW} />
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#prev-sl)" strokeWidth={SW} strokeDasharray="1" pathLength={1} strokeDashoffset={dashoffset} strokeLinecap="round" transform={rot} />
       </svg>
-      <img src="/icon-flow-final.png" alt="FLOW" className="w-28 h-28 rounded-3xl object-cover absolute inset-0 z-10" draggable={false} />
+      <FlowLogoSvg variant="icon-only" color="orange" style={{ width: 80, height: 80, borderRadius: 18 }} />
     </div>
   );
 }
@@ -811,7 +811,7 @@ function DesktopShell({ dark, active, children }: { dark: boolean; active: strin
         style={{ width: SIDEBAR_W }}>
         {/* Logo */}
         <div className={`flex items-center gap-3 px-5 py-5 border-b ${dark ? 'border-white/8' : 'border-slate-100'}`}>
-          <img src="/icon-flow-final.png" alt="FLOW" className="w-8 h-8 rounded-xl object-cover" draggable={false} />
+          <FlowLogoSvg variant="icon-only" color="orange" style={{ width: 80, height: 80, borderRadius: 18 }} />
           <div>
             <p className={`text-xs font-black tracking-[0.18em] uppercase leading-none ${dark ? 'text-white' : 'text-slate-800'}`}>FLOW</p>
             <p className={`text-[9px] tracking-wider ${dark ? 'text-white/40' : 'text-slate-400'}`}>Work in Motion</p>
@@ -1604,7 +1604,7 @@ export default function ScreensPreview() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
+          style={{ background: 'rgba(0,0,0,0.85)' }}
           onClick={() => setOpen(null)}
         >
           <motion.div

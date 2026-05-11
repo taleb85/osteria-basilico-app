@@ -529,7 +529,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
 
     {previewUser && createPortal(
         <div
-          className="fixed inset-0 z-[10060] flex touch-manipulation flex-col overscroll-contain bg-slate-100/95 backdrop-blur-md supports-[backdrop-filter]:backdrop-saturate-125"
+          className="fixed inset-0 z-[10060] flex touch-manipulation flex-col overscroll-contain bg-slate-100/95 backdrop-blur-md"
           role="dialog"
           aria-modal="true"
           aria-labelledby="profile-visibility-fs-title"

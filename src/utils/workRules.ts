@@ -153,7 +153,7 @@ function dailyMinutes(
   return allShifts
     .filter((s) => s.user_id === userId && s.date === dateStr && !s.notes?.startsWith('__OPEN__'))
     .reduce((sum, s) => {
-      const gross = calculateShiftMinutesGross((s.start_time || '').slice(0, 5), (s.end_time || '').slice(0, 5));
+      const gross = calculateShiftMinutesGross(String(s.start_time || '').slice(0, 5), String(s.end_time || '').slice(0, 5));
       const breakMins = getBreakMinutesForShift(s, gross, user ?? undefined, breakRules ?? null, breakOpts);
       return sum + Math.max(0, gross - breakMins);
     }, 0);
@@ -180,7 +180,7 @@ export function weeklyMinutes(
         String(s.approval_status ?? '').toLowerCase() !== 'absent'
     )
     .reduce((sum, s) => {
-      const gross = calculateShiftMinutesGross((s.start_time || '').slice(0, 5), (s.end_time || '').slice(0, 5));
+      const gross = calculateShiftMinutesGross(String(s.start_time || '').slice(0, 5), String(s.end_time || '').slice(0, 5));
       const breakMins = getBreakMinutesForShift(s, gross, user ?? undefined, breakRules ?? null, breakOpts);
       return sum + Math.max(0, gross - breakMins);
     }, 0);

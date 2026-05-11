@@ -351,8 +351,6 @@ export default function MobileHome({
       <div className="rounded-2xl overflow-hidden border border-white/10"
         style={{
           background: 'rgba(255, 255, 255, 0.16)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
         }}
       >
         <HeaderTodayCoworkersCard />

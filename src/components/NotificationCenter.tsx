@@ -73,7 +73,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
       </button>
 
       <CenteredModalPortal open={isOpen} onClose={() => setIsOpen(false)}>
-          <div className="flex h-full max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/10 shadow-2xl" style={{ background: 'rgba(15,20,40,0.95)', backdropFilter: 'blur(20px)' }}>
+          <div className="flex h-full max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/10 shadow-2xl" style={{ background: 'rgba(15,20,40,0.95)' }}>
           <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
             <h3 className="text-lg font-bold text-white">{t.profile_notifications}</h3>
             <button

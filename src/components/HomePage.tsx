@@ -604,8 +604,6 @@ export default function HomePage({
                   <div key={s.id} className={`rounded-2xl border-l-4 p-4 shadow-sm ${punched ? 'border-l-slate-300' : 'border-l-amber-400 bg-amber-900/20'}`}
                     style={punched ? { 
                       background: 'var(--bg-surface)',
-                      backdropFilter: 'blur(16px)',
-                      WebkitBackdropFilter: 'blur(16px)',
                       border: '1px solid var(--border-color)',
                       borderLeft: '4px solid rgb(203 213 225)',
                       boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.3)',
@@ -754,7 +752,7 @@ export default function HomePage({
           {uiW('home_mgmt.team_board') && (
           <AnimatePresence>
             <motion.div key="board" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'border-amber-400/30 bg-amber-500/10' : 'surface-header-slab border-dashed border-white/15'}`}>
+              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'border-amber-400/30 bg-amber-500/10' : 'border border-dashed border-white/15'}`}>
               <div className="flex items-start gap-3">
                 <Megaphone size={15} className={`mt-0.5 shrink-0 ${boardNote ? 'text-amber-600' : 'text-white/55'}`} />
                 <div className="flex-1 min-w-0">
@@ -844,7 +842,6 @@ export default function HomePage({
               <div
                 key={label}
                 className={`group w-full rounded-xl border px-3 py-2.5 flex items-center gap-2.5 text-left ${border}`}
-                style={{ background: 'rgba(15, 35, 90, 0.82)' }}
               >
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${border} ${iconWell}`}>
                   <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} strokeWidth={2} aria-hidden />

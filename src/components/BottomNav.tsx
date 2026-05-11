@@ -411,10 +411,10 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
         ariaLabel="Cambio rapido utente"
         maxWidthClass="max-w-md"
         panelClassName="p-0"
-        panelStyle={{ background: 'rgba(17,34,64,0.95)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.12)' }}
+        panelStyle={{ background: 'rgba(17,34,64,0.95)', border: '1px solid rgba(255,255,255,0.12)' }}
       >
         <div className="flex flex-col h-full max-h-[80vh]">
-          <div className="p-4 border-b border-white/10 sticky top-0 z-10 rounded-t-2xl" style={{ background: 'rgba(255, 255, 255, 0.16)', backdropFilter: 'blur(12px)' }}>
+          <div className="p-4 border-b border-white/10 sticky top-0 z-10 rounded-t-2xl" style={{ background: 'rgba(255, 255, 255, 0.16)' }}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-semibold text-white uppercase tracking-tight">
                 {tv.quick_switch_title ?? 'Cambio rapido utente'}

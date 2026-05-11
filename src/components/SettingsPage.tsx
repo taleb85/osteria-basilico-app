@@ -2021,7 +2021,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   onClick={saveHolidayEmail}
                   disabled={holidayEmailDraft.trim() === holidayEmail}
                   className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]"
-                  style={{ background: 'linear-gradient(110deg, rgb(51, 102, 204), rgb(0, 26, 128))' }}
+                  style={{ background: '#0d3b6e' }}
                 >
                   {holidayEmailSaved ? (
                     <><Check className="h-3.5 w-3.5" />Salvata</>

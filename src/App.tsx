@@ -7,6 +7,7 @@ import DeepAuroraShell from './components/DeepAuroraShell';
  * SuperAdminPanel — accessibile solo sul dominio super-admin, protetto da PIN.
  */
 const SuperAdminPanel = lazy(() => import('./components/SuperAdminPanel'));
+import DesignAuditPreview from './components/DesignAuditPreview';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -643,6 +644,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       {/* ── Header fisso unificato: topbar + tabbar ── */}
       <header
         ref={appStickyHeaderRef}
+        aria-label="Navigazione principale"
         className={`fixed left-0 right-0 z-[10040] shrink-0 transition-[visibility,opacity,top] duration-150 ${
           overlayOpen ? 'invisible opacity-0 pointer-events-none' : ''
         } ${
@@ -652,8 +654,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           top: impersonatingAs ? 40 : 0,
           /* Vetro trasparente per tutto l'header (brand + top-tabbar) */
           background: 'transparent',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -721,6 +721,8 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
       <main
         id="main-content"
+        role="main"
+        aria-label="Contenuto principale"
         className={`w-full flex flex-col shrink-0 ${isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''}`}
         style={{ paddingTop: 'var(--app-sticky-header-offset, 80px)' }}
       >
@@ -995,6 +997,7 @@ function AppContent() {
         <Route path="/app" element={<ProtectedApp />} />
         <Route path="/app/*" element={<ProtectedApp />} />
         <Route path="/admin" element={<AdminGate><Suspense fallback={null}><AdminLayout /></Suspense></AdminGate>} />
+        <Route path="/design-audit" element={<DesignAuditPreview />} />
         <Route path="/admin/*" element={<AdminGate><Suspense fallback={null}><AdminLayout /></Suspense></AdminGate>} />
         {/* AnimPreview, LoadingPreview, ScreensPreview routes removed */}
         <Route path="*" element={<Navigate to={PATH_PROFILO} replace />} />
@@ -1049,7 +1052,7 @@ function App() {
               <SuperAdminPanel />
             </Suspense>
           : <div className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
-              <div className="rounded-2xl border border-white/15 p-8 max-w-sm" style={{ background: 'rgba(255, 255, 255, 0.16)', backdropFilter: 'blur(9px)' }}>
+              <div className="rounded-2xl border border-white/15 p-8 max-w-sm" style={{ background: 'rgba(255, 255, 255, 0.16)' }}>
                 <h1 className="text-2xl font-bold mb-2">SuperAdmin</h1>
                 <p className="text-white/50 text-sm">Se il Super Admin è su un host dedicato, apri l’indirizzo configurato in produzione (stesso build o sottodominio in Cloudflare)</p>
               </div>

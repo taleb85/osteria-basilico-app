@@ -829,8 +829,6 @@ export default function Statistics() {
           <div className="mb-4 rounded-2xl px-4 py-3.5 text-sm"
             style={{
               background: 'rgba(255,255,255,0.11)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
               border: '1px solid rgba(255,255,255,0.18)',
             }}
           >

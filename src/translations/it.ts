@@ -342,6 +342,7 @@ const baseIt = {
   admin_note: 'Nota interna',
   admin_note_placeholder: 'Nota visibile solo ai manager…',
   timesheet_title: 'Presenze',
+  tab_planning_or_timesheet: 'Pianificazione',
   timesheet_approve_all: 'Approva tutti',
   timesheet_my_week: 'La tua settimana',
 

@@ -1542,7 +1542,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
               </colgroup>
               <thead ref={timesheetTheadRef}>
                 <tr className="border-b border-white/15">
-                  <th className="sticky left-0 z-10 box-border py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/50 border-r border-r-white/15 md:py-1.5 md:pl-3 md:pr-2" style={{ background: 'rgba(30, 55, 120, 0.80)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'none' }}>
+                  <th className="sticky left-0 z-10 box-border py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/50 border-r border-r-white/15 md:py-1.5 md:pl-3 md:pr-2" style={{ background: 'rgba(30, 55, 120, 0.80)', boxShadow: 'none' }}>
                     {t.employee}
                   </th>
                   {weekDays.map((day, dayIdx) => {
@@ -1625,7 +1625,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                             style={{ background: userIdx % 2 === 0 ? 'rgba(20,45,110,0.60)' : 'rgba(20,45,110,0.70)' }}
                           >
                       {/* Nome dipendente — click → revisione settimana (coda turni) */}
-                      <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-white/10 z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: userIdx % 2 === 0 ? 'rgba(30, 55, 120, 0.80)' : 'rgba(30, 55, 120, 0.70)', boxShadow: 'none', backdropFilter: 'blur(8px)' }}>
+                      <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-white/10 z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: userIdx % 2 === 0 ? 'rgba(30, 55, 120, 0.80)' : 'rgba(30, 55, 120, 0.70)', boxShadow: 'none' }}>
                         {canTeamTimesheetOps ? (
                           <div className="flex flex-col gap-1 justify-center">
                             <button
@@ -1912,7 +1912,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
               {canTeamTimesheetOps && (
                 <tfoot>
                   <tr className="bg-brand-mid/5 border-t-2 border-brand-mid/35">
-                    <td className="sticky left-0 pl-4 pr-3 py-3 text-accent font-bold text-xs uppercase border-r-2 border-r-white/15 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[11px]" style={{ background: 'rgba(30, 55, 120, 0.80)', backdropFilter: 'blur(8px)' }}>
+                    <td className="sticky left-0 pl-4 pr-3 py-3 text-accent font-bold text-xs uppercase border-r-2 border-r-white/15 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[11px]" style={{ background: 'rgba(30, 55, 120, 0.80)' }}>
                       {t.stats_total}
                     </td>
                     {weekDays.map((day, dayIdx) => {
