@@ -225,28 +225,36 @@ function sessionUserFromLoadedUsersList(prev: User | null, loadedUsers: User[]):
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  return (
+    <ToastProvider>
+      <SessionProvider>
+        <AppProviderInner>{children}</AppProviderInner>
+      </SessionProvider>
+    </ToastProvider>
+  );
+}
+
+function AppProviderInner({ children }: { children: ReactNode }) {
+  const { showError, showSuccess, toastMessage, toastType, clearToast } = useToast();
+  const {
+    currentUser, setCurrentUser, users, setUsers,
+    isSessionElevated, setIsSessionElevated,
+    impersonatingAs, originalAdminUser, setImpersonating,
+    forceLogoutRequested, clearForceLogoutRequest, logout,
+    globalPinSessionId, setGlobalPinSessionId,
+  } = useSession();
   const { isLoading: tenantIsLoading, tenantId, tenantSettings, tenant, loadTenantBySlug } = useTenant();
   const tenantSettingsRef = useRef(tenantSettings);
   const tenantRef = useRef(tenant);
   useEffect(() => {
     tenantRef.current = tenant;
   }, [tenant]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const currentUserRef = useRef<User | null>(null);
   useEffect(() => { currentUserRef.current = currentUser; }, [currentUser]);
-  const [isSessionElevated, setIsSessionElevated] = useState(false);
 
-  // ── Impersonazione (Cambio Rapido Admin) ────────────────────────────────────
-  const [impersonatingAs, setImpersonatingAs] = useState<User | null>(null);
-  const [originalAdminUser, setOriginalAdminUser] = useState<User | null>(null);
   const originalAdminUserRef = useRef<User | null>(null);
   useEffect(() => { originalAdminUserRef.current = originalAdminUser; }, [originalAdminUser]);
 
-  const setImpersonating = useCallback((targetUser: User | null, adminUser: User | null) => {
-    setImpersonatingAs(targetUser);
-    setOriginalAdminUser(adminUser);
-  }, []);
   const [appLanguage, setAppLanguage] = useState<Language>(() => {
     const stored = readStoredUiLanguage();
     if (stored) return stored;
@@ -288,12 +296,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [postRefreshLocked]);
   const [pendingOrderIds, setPendingOrderIds] = useState<string[] | null>(null);
   const [pendingPublishWeekStart, setPendingPublishWeekStart] = useState<string | null>(null);
-  const [forceLogoutRequested, setForceLogoutRequested] = useState(false);
-  const [globalPinSessionId, setGlobalPinSessionId] = useState<string | null>(null);
   /** Forza ricalcolo credenziale WebAuthn PIN lock (localStorage) dopo registrazione. */
   const [pinUnlockDeviceTick, setPinUnlockDeviceTick] = useState(0);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [toastType, setToastType] = useState<'error' | 'success'>('error');
   const [managementDataTouchedSinceLastSync, setManagementDataTouchedSinceLastSync] = useState(false);
   const markManagementDataTouched = useCallback(() => {
     setManagementDataTouchedSinceLastSync(true);
@@ -448,16 +452,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = effectiveLanguage;
   }, [effectiveLanguage]);
-
-  const showError = useCallback((message: string) => {
-    setToastType('error');
-    setToastMessage(message);
-  }, []);
-
-  const showSuccess = useCallback((message: string) => {
-    setToastType('success');
-    setToastMessage(message);
-  }, []);
 
   const saveRoleFeatureTemplates = useCallback(async (data: RoleFeatureTemplatesOnDisk) => {
     const previous = getRoleFeatureTemplatesCache();
@@ -2603,7 +2597,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             key={`${toastType}:${toastMessage.slice(0, 80)}`}
             message={toastMessage}
             type={toastType}
-            onClose={() => setToastMessage(null)}
+            onClose={clearToast}
           />
         )}
       </AnimatePresence>

@@ -1365,10 +1365,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
       allWeekDays.forEach((day, di) => {
         const dayStr = format(day, 'yyyy-MM-dd');
         const dayShifts = regularVisibleShifts.filter((s) => s.user_id === u.id && s.date === dayStr);
-        const dayShift = dayShifts.find((s) => parseInt(s.start_time.split(':')[0], 10) < 16);
-        const eveningShift = dayShifts.find((s) => parseInt(s.start_time.split(':')[0], 10) >= 16);
-        if (dayShift) m.set(dayShift.id, { userIdx: ui, dayIdx: di, slotIdx: 0 });
-        if (eveningShift) m.set(eveningShift.id, { userIdx: ui, dayIdx: di, slotIdx: 1 });
+        dayShifts.forEach((s, i) => {
+          m.set(s.id, { userIdx: ui, dayIdx: di, slotIdx: i });
+        });
       });
     });
     return m;
@@ -3846,8 +3845,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         className="px-4"
                         style={{ borderTop: cellBorder, borderRight: cellBorder, verticalAlign: 'middle', paddingTop: '22px', paddingBottom: '22px' }}
                       >
-                        <span className="text-[12px] font-semibold truncate" style={{ color: '#ffffff', fontWeight: 500 }} title={user.first_name}>{user.first_name}
-                        </span>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[12px] font-semibold truncate" style={{ color: '#ffffff', fontWeight: 500 }} title={user.first_name}>{user.first_name}
+                          </span>
+                          <span className="text-[11px] font-bold text-accent/70 tabular-nums shrink-0">
+                            {formatMinutesToHoursAndMinutes(weeklyMinutesScheduledByUser[user.id] ?? 0)}
+                          </span>
+                        </div>
                       </td>
                       {allWeekDays.map((day, dayIdx) => {
                         const dayStr = format(day, 'yyyy-MM-dd');
@@ -3930,8 +3934,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             }}
                           >
                             {(() => {
-                              const lunchShift = flatShifts.find((s) => parseInt((s.start_time || '').split(':')[0] || '0', 10) < 16);
-                              const eveningShift = flatShifts.find((s) => parseInt((s.start_time || '').split(':')[0] || '0', 10) >= 16);
+                              const lunchShiftsFlat = flatShifts.filter((s) => parseInt((s.start_time || '').split(':')[0] || '0', 10) < 16);
+                              const eveningShiftsFlat = flatShifts.filter((s) => parseInt((s.start_time || '').split(':')[0] || '0', 10) >= 16);
+                              const lunchShift = lunchShiftsFlat[0] ?? null;
+                              const eveningShift = eveningShiftsFlat[0] ?? null;
+                              const extraLunchFlat = lunchShiftsFlat.length - 1;
+                              const extraEveningFlat = eveningShiftsFlat.length - 1;
                               const renderBadge = (shift: Shift) => {
                                 const flatVariant = getShiftColorVariant(shift);
                                 const fv = VARIANT_CLASSES[flatVariant];
@@ -4058,7 +4066,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       ...slotHighlight('lunch'),
                                     }}
                                   >
-                                    {lunchShift ? renderBadge(lunchShift) : emptySlot('10:00')}
+                                    {lunchShift ? (
+                                      <div className="flex items-center gap-0.5 w-full">
+                                        <div className="flex-1 min-w-0">{renderBadge(lunchShift)}</div>
+                                        {extraLunchFlat > 0 && (
+                                          <span className="shrink-0 text-[9px] font-bold text-accent bg-accent/20 rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-0.5 leading-none">
+                                            +{extraLunchFlat}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : emptySlot('10:00')}
                                   </div>
                                   <div
                                     className="flex items-center"
@@ -4070,7 +4087,16 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       ...slotHighlight('evening'),
                                     }}
                                   >
-                                    {eveningShift ? renderBadge(eveningShift) : emptySlot('18:00')}
+                                    {eveningShift ? (
+                                      <div className="flex items-center gap-0.5 w-full">
+                                        <div className="flex-1 min-w-0">{renderBadge(eveningShift)}</div>
+                                        {extraEveningFlat > 0 && (
+                                          <span className="shrink-0 text-[9px] font-bold text-accent bg-accent/20 rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-0.5 leading-none">
+                                            +{extraEveningFlat}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : emptySlot('18:00')}
                                   </div>
                                 </div>
                               );
@@ -4178,8 +4204,12 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           (s) => s.user_id === user.id && s.date === dayStr
                         );
 
-                        const dayShift = dayShifts.find((s) => parseInt(s.start_time.split(':')[0]) < 16);
-                        const eveningShift = dayShifts.find((s) => parseInt(s.start_time.split(':')[0]) >= 16);
+                        const lunchShifts = dayShifts.filter((s) => parseInt(s.start_time.split(':')[0]) < 16);
+                        const eveningShifts = dayShifts.filter((s) => parseInt(s.start_time.split(':')[0]) >= 16);
+                        const dayShift = lunchShifts[0] ?? null;
+                        const eveningShift = eveningShifts[0] ?? null;
+                        const extraLunchCount = lunchShifts.length - 1;
+                        const extraEveningCount = eveningShifts.length - 1;
                         /** Stesso criterio di `getShiftViolations` (overlap). */
                         const hasOverlap =
                           violationChromeEnabled &&
@@ -4496,6 +4526,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     </button>
                                   </div>
                                 )}
+                              {extraLunchCount > 0 && (
+                                <span className="absolute bottom-0.5 right-0.5 text-[9px] font-bold text-white bg-accent/80 rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-0.5 leading-none shadow-sm">
+                                  +{extraLunchCount}
+                                </span>
+                              )}
                               </div>
 
                               {/* Slot Inferiore - Turno Serale */}
@@ -4691,6 +4726,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     </button>
                                   </div>
                                 )}
+                              {extraEveningCount > 0 && (
+                                <span className="absolute bottom-0.5 right-0.5 text-[9px] font-bold text-white bg-accent/80 rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-0.5 leading-none shadow-sm">
+                                  +{extraEveningCount}
+                                </span>
+                              )}
                               </div>
                             </div>{/* chiude relative grid grid-rows-2 */}
                           </td>

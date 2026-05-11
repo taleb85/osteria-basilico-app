@@ -85,6 +85,9 @@ export interface TimesheetDayDrawerContext {
   handleDrawerAutoBreakChange: (v: boolean) => Promise<void>;
   handleDrawerDeductRuleExclusionChange: (ruleId: string, exclude: boolean) => Promise<void>;
   advanceDrawerReviewAfterStep: () => void;
+  handleDrawerMarkAbsent: () => Promise<void>;
+  handleDrawerFreeze: () => Promise<void>;
+  handleDrawerUnfreeze: () => Promise<void>;
 
   shifts: Shift[];
   users: User[];
@@ -128,6 +131,7 @@ export default function TimesheetDayDrawer({ ctx, updateShift }: TimesheetDayDra
     handleSaveAndFreeze, handleSavePunchIn,
     handleDrawerDeductBreakChange, handleDrawerAutoBreakChange,
     handleDrawerDeductRuleExclusionChange, advanceDrawerReviewAfterStep,
+    handleDrawerMarkAbsent, handleDrawerFreeze, handleDrawerUnfreeze,
     shifts, users, breakRules, breakComputeOpts,
     currentUser, canTimesheetApprove, canTeamTimesheetOps,
     effectiveLanguage, globalPinSessionId, featureFlags,
@@ -270,9 +274,9 @@ export default function TimesheetDayDrawer({ ctx, updateShift }: TimesheetDayDra
           hasUnsavedChanges={needsSave}
           onCloseRequest={closeTimesheetShiftDrawer}
           onShowCloseConfirm={() => setShowCloseConfirm(true)}
-          onMarkAbsent={() => {}}
-          onUnlockFrozen={() => {}}
-          onFreezeShift={() => {}}
+          onMarkAbsent={handleDrawerMarkAbsent}
+          onUnlockFrozen={handleDrawerUnfreeze}
+          onFreezeShift={handleDrawerFreeze}
           t={t as any}
         />
         {showCloseConfirm && (

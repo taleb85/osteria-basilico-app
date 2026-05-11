@@ -1,8 +1,9 @@
-import { it } from 'date-fns/locale';
+import { it as itLocale } from 'date-fns/locale';
 import { Calendar, Clock } from 'lucide-react';
 import type { Language, Shift } from '../../types';
 import { safeFormatDate } from '../../utils/safeDateFormat';
 import { translateDepartmentValue } from '../../utils/departmentLabels';
+import { getDateLocale } from '../../utils/translations';
 
 interface MobileShiftListProps {
   shifts: Shift[];
@@ -10,7 +11,7 @@ interface MobileShiftListProps {
 }
 
 export default function MobileShiftList({ shifts, language }: MobileShiftListProps) {
-  const locale = it; // Default to Italian for now as per project style
+  const locale = getDateLocale(language) ?? itLocale;
 
   if (shifts.length === 0) {
     return (

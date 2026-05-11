@@ -165,14 +165,6 @@ export default function ImportStorico({ tenants, onClose }: { tenants: Tenant[];
     URL.revokeObjectURL(url);
   };
 
-  const downloadTemplate = () => {
-    const m = raw.match(/^(\d{2})\/(\d{2})\/(\d{4}|\d{2})$/);
-    if (!m) return null;
-    let y = parseInt(m[3], 10);
-    if (y < 100) y += 2000;
-    return `${y}-${String(m[1]).padStart(2, '0')}-${String(m[2]).padStart(2, '0')}`;
-  };
-
   const parseTime = (raw: string): string | null => {
     const m = raw.match(/^(\d{1,2})[:.](\d{2})$/);
     if (!m) return null;

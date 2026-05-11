@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { captureException } from '../utils/monitoring';
 
 /** Evita pagina bianca se un componente lancia in render: messaggio + log console. */
 export class RootErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -10,6 +11,7 @@ export class RootErrorBoundary extends Component<{ children: ReactNode }, { erro
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('[RootErrorBoundary]', error, info.componentStack);
+    captureException(error, { componentStack: info.componentStack });
   }
 
   render() {

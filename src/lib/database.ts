@@ -9,6 +9,19 @@ let _tenantId: string | null = null;
 /** Chiamato da TenantProvider appena il tenant è stato caricato. */
 export function setDatabaseTenant(tenantId: string): void {
   _tenantId = tenantId;
+  // Sincronizza la sessione RLS lato database (se RLS è attiva)
+  supabase?.rpc('set_session_tenant', { p_tenant_id: tenantId }).catch(() => {});
+}
+
+/** Chiamato dopo il login per sincronizzare utente con RLS session. */
+export function setDatabaseUser(userId: string): void {
+  supabase?.rpc('set_session_user', { p_user_id: userId }).catch(() => {});
+}
+
+/** Resetta la sessione RLS (logout). */
+export function clearDatabaseSession(): void {
+  _tenantId = null;
+  supabase?.rpc('clear_app_session').catch(() => {});
 }
 
 /** Aggiunge il filtro tenant_id alla query se il tenant è stato impostato. */

@@ -6,6 +6,10 @@ export interface TenantSettings {
   timezone?: string;
   /** Lingua predefinita per i nuovi utenti */
   defaultLanguage?: 'it' | 'en' | 'es' | 'fr';
+  /** Paese / regulatory framework (it_ccnl_ristorazione, eu_generic, uk_generic, us_generic, custom) */
+  regulatory_framework?: string;
+  /** Valuta predefinita (EUR, GBP, USD, CHF, …) */
+  currency?: string;
   /** Feature flag attivi/disattivi per questa sede */
   featureFlags?: Record<string, boolean>;
   /** Regole lavoro predefinite */

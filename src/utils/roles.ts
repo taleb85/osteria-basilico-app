@@ -1,5 +1,5 @@
 import type { Language } from '../types';
-import { translations, FORCE_ITALIAN } from './translations';
+import { translations } from './translations';
 
 /**
  * Traduzione centralizzata dei ruoli nella lingua selezionata.
@@ -7,8 +7,7 @@ import { translations, FORCE_ITALIAN } from './translations';
  */
 export function translateRole(role: string, lang: Language = 'it'): string {
   const r = role?.toLowerCase().trim();
-  const effectiveLang = FORCE_ITALIAN ? 'it' : lang;
-  const t = translations[effectiveLang] ?? translations.it;
+  const t = translations[lang] ?? translations.en;
   switch (r) {
     case 'admin':
       return t.role_admin;

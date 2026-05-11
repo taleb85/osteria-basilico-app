@@ -4625,12 +4625,61 @@ export default function Timesheets() {
             globalPinSessionId,
             timesheetShiftDetailPanelRef,
             todayStr,
+            handleDrawerMarkAbsent: async () => {
+              if (!drawerData) return;
+              if (!window.confirm(t.shift_mark_absent_confirm)) return;
+              setMarkAbsentSaving(true);
+              try {
+                const shiftRow = drawerData.shift;
+                await updateShift(shiftRow.id, { approval_status: 'absent' });
+                showSuccess?.(t.shift_marked_absent_toast);
+                closeTimesheetShiftDrawer();
+              } catch {
+                showError?.(t.save_error);
+              } finally { setMarkAbsentSaving(false); }
+            },
+            handleDrawerFreeze: async () => {
+              if (!drawerData) return;
+              const shiftRow = drawerData.shift;
+              if (shiftRow.status === 'approved') return;
+              try {
+                setApprovingShiftId(shiftRow.id);
+                await approveShift(shiftRow.id);
+                showSuccess?.(t.ts_toast_shift_updated);
+                closeTimesheetShiftDrawer();
+              } catch {
+                showError?.(t.ts_toast_approve_freeze_error);
+              } finally { setApprovingShiftId(null); }
+            },
+            handleDrawerUnfreeze: async () => {
+              if (!drawerData || !currentUser) return;
+              try {
+                await applyPayrollUnlock(drawerData.shift.id, currentUser);
+                showSuccess?.(t.ts_toast_shift_updated);
+              } catch {
+                showError?.(t.save_error);
+              }
+            },
             clockOutTime: '',
             closingLoading: false,
             approvingShiftId: null,
             setClockOutTime: (v: string) => {},
             setClosingShift: (v: any) => {},
-            handleSaveAndFreeze: async () => {},
+            handleSaveAndFreeze: async () => {
+              if (!drawerData) return;
+              const ok = await handleDrawerSaveTimbratures({ silentToast: true });
+              if (!ok) return;
+              const shiftRow = drawerData.shift;
+              if (shiftRow.status !== 'approved') {
+                try {
+                  await approveShift(shiftRow.id);
+                } catch {
+                  showError?.(t.ts_toast_approve_freeze_error);
+                  return;
+                }
+              }
+              closeTimesheetShiftDrawer();
+            },
           }}
           updateShift={updateShift}
         />

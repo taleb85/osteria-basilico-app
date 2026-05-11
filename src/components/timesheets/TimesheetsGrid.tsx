@@ -234,7 +234,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
   const {
     currentUser, shifts, users, punchRecords, breakRules, breakComputeOpts,
     canTimesheetApprove, canTeamTimesheetOps, effectiveLanguage, locale,
-    featureFlags, t, tv,
+    featureFlags, t,
     tsView, setTsView, showStatsSubTab, viewMode, setViewMode,
     dates, weekDays, todayStr, isShowingTodayWeek,
     kpiItems, periodConfig, periodEndDate, periodStartDate, periodNumWeeks,
@@ -1642,6 +1642,9 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                                 <div className="text-[11px] text-white/40 mt-0.5 md:text-[11px] uppercase">{user.department}</div>
                               )}
                             </button>
+                            <div className="text-[11px] font-bold text-accent/70 tabular-nums text-right">
+                              {formatMinutesToHoursAndMinutes(totals?.actualMins ?? totals?.plannedMins ?? 0)}
+                            </div>
                           </div>
                         ) : (
                           <div className="text-right">
@@ -1649,6 +1652,9 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                             {user.department && (
                               <div className="text-[11px] text-white/40 mt-0.5 md:text-[11px] uppercase">{user.department}</div>
                             )}
+                            <div className="text-[11px] font-bold text-accent/70 tabular-nums">
+                              {formatMinutesToHoursAndMinutes(totals?.actualMins ?? totals?.plannedMins ?? 0)}
+                            </div>
                           </div>
                         )}
                       </td>
