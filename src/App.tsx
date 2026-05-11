@@ -60,6 +60,7 @@ const WeeklyShiftsTable = lazy(() => import('./components/WeeklyShiftsTable'));
 const HolidayRequests = lazy(() => import('./components/HolidayRequests'));
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
 const Timesheets = lazy(() => import('./components/Timesheets'));
+const UnifiedShiftsPage = lazy(() => import('./components/UnifiedShiftsPage'));
 const ManagementMobileShifts = lazy(() => import('./components/mobile/ManagementMobileShifts'));
 const ManagementMobileTimesheet = lazy(() => import('./components/mobile/ManagementMobileTimesheet'));
 
@@ -527,39 +528,17 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           />
         );
       case 'turni':
-        return isMobileViewport ? (
+      case 'timesheet':
+        return (
           <Suspense fallback={null}>
-            <ManagementMobileShifts
-              shifts={shifts}
-              users={users}
-              currentUserId={currentUser?.id ?? ''}
-              language={effectiveLanguage}
-            />
+            <UnifiedShiftsPage />
           </Suspense>
-        ) : (
-          <WeeklyShiftsTable />
         );
       case 'ferie':
         return <HolidayRequests />;
       case 'reports':
-        // 'reports' is no longer a standalone tab — redirect to timesheet which hosts Statistiche as sub-tab
         void handleTabChange('timesheet');
         return null;
-      case 'timesheet':
-        return isMobileViewport ? (
-          <Suspense fallback={null}>
-            <ManagementMobileTimesheet
-              shifts={shifts}
-              punchRecords={punchRecords}
-              users={users}
-              currentUserId={currentUser?.id ?? ''}
-              language={effectiveLanguage}
-              plannedOnly={getTimesheetGridPrivacyMode(currentUser) === 'planned_only'}
-            />
-          </Suspense>
-        ) : (
-          <Timesheets />
-        );
       case 'settings':
         return <SettingsPage />;
       case 'profile':
