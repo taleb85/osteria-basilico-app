@@ -19,22 +19,15 @@ export default function UnifiedShiftsPage() {
       transition={{ duration: 0.3 }}
       className="w-full max-w-[1400px] mx-auto px-4 pb-6 pt-3 font-sans"
     >
-      {/* Page header — compatto */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-base font-black text-white tracking-tight">
-            {t.unified_grid_title ?? 'Pianificazione & Presenze'}
-          </h1>
+      {/* Admin badge */}
+      {isSessionElevated && (
+        <div className="flex items-center gap-2 mb-4">
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2 py-0.5 text-[9px] font-bold text-amber-300 uppercase tracking-wider">
+            <Users className="h-2.5 w-2.5" />
+            Admin
+          </span>
         </div>
-        <div className="flex items-center gap-2">
-          {isSessionElevated && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2 py-0.5 text-[9px] font-bold text-amber-300 uppercase tracking-wider">
-              <Users className="h-2.5 w-2.5" />
-              Admin
-            </span>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* Quick summary — interattive: clicca per cambiare modalità */}
       <div className="grid grid-cols-3 gap-2 mb-3">

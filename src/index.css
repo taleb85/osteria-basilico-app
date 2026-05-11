@@ -161,13 +161,13 @@ body {
     --slate-neutral: #475569; /* Grigio ardesia per stati neutri */
     
     /* ═══ DARK THEME GLOBAL TOKENS ═══ */
-    --bg-primary: #2a4a8a;
-    --bg-surface: rgba(5, 14, 60, 0.45);
-    --bg-surface-hover: rgba(5, 14, 60, 0.58);
-    --bg-surface-solid: rgba(5, 14, 60, 0.52);
+    --bg-primary: #0a0a0c;
+    --bg-surface: transparent;
+    --bg-surface-hover: rgba(255, 255, 255, 0.06);
+    --bg-surface-solid: rgba(255, 255, 255, 0.04);
     /** Menu/popover su `body` (portal): stessa tinta senza alpha così testo e righe restano leggibili sulla griglia sotto. */
-    --bg-popover-solid: rgb(5, 14, 60);
-    --bg-surface-secondary: rgba(5, 14, 60, 0.38);
+    --bg-popover-solid: rgb(10, 10, 12);
+    --bg-surface-secondary: transparent;
     --border-color: rgba(255, 255, 255, 0.20);
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.75);

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   CalendarDays, AlertTriangle, Check, Lock, Plus, Clock,
   ChevronLeft, ChevronRight, Copy, Send, Filter, Info, FileDown,
-  Trash2, Save, X, ShieldAlert, ChevronDown, RotateCw,
+  Trash2, Save, X, ShieldAlert, ChevronDown, RotateCw, Unlock,
 } from 'lucide-react';
 import type { Shift, PunchRecord, User } from '../types';
 import type { BreakRule } from '../utils/breakRules';
@@ -19,8 +19,10 @@ import { exportSchedulePDF } from '../utils/exportSchedulePDF';
 import { TimeInputField } from './ui/TimeInputField';
 import { database } from '../lib/database';
 import { useApp } from '../context/AppContext';
-import { isManagementRole, canEditTeamShifts, canPublishScheduleDrafts, canApproveShiftActions } from '../utils/permissions';
+import { isManagementRole, isPurelyManagementRole, canEditTeamShifts, canPublishScheduleDrafts, canApproveShiftActions, findFreezeVerifierByPin } from '../utils/permissions';
 import { getShiftViolations, DEFAULT_WORK_RULES } from '../utils/workRules';
+import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
+import { PinPadModal } from './ui/PinPadModal';
 import {
   loadPeriodConfig, savePeriodConfig, getPeriodStartDate, getPeriodEndDate,
   nextPeriodConfig, prevPeriodConfig, periodConfigForMonth,
@@ -43,6 +45,9 @@ interface DayShiftGroup {
   violations?: ReturnType<typeof getShiftViolations>;
 }
 
+function isFrozen(shift: Shift) {
+  return (shift as any).approval_status === 'approved' || ((shift as any).approval_status === 'confirmed' && !!(shift as any).approved_at);
+}
 type ShiftDetailTab = 'details' | 'punches' | 'history' | 'breaks';
 const MONTHS_IT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
 
@@ -73,14 +78,18 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today, { weekStartsOn: 1 }));
   const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
   const effectivePeriod = periodNavOffset === 0 ? periodConfig
     : periodNavOffset > 0
       ? Array.from({ length: periodNavOffset }, () => null).reduce((p) => nextPeriodConfig(p), periodConfig)
       : Array.from({ length: -periodNavOffset }, () => null).reduce((p) => prevPeriodConfig(p), periodConfig);
+
   const periodStart = getPeriodStartDate(effectivePeriod);
   const periodEnd = getPeriodEndDate(effectivePeriod);
+
+  const weekDays = viewMode === 'period'
+    ? eachDayOfInterval({ start: periodStart, end: periodEnd })
+    : eachDayOfInterval({ start: weekStart, end: weekEnd });
 
   const [showPeriodPopover, setShowPeriodPopover] = useState(false);
   const [periodPopoverYear, setPeriodPopoverYear] = useState(today.getFullYear());
@@ -152,6 +161,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [showTemplateMenu, setShowTemplateMenu] = useState(false);
 
+  // ── Freeze / PinPad state ──
+  const [panelPinModalOpen, setPanelPinModalOpen] = useState(false);
+  const [panelPinTargetShiftId, setPanelPinTargetShiftId] = useState<string | null>(null);
+  const [panelPinError, setPanelPinError] = useState('');
+  const [panelPin, setPanelPin] = useState('');
+
   useEffect(() => {
     try {
       if (typeof database !== 'undefined' && database?.shiftTemplates?.listAll) {
@@ -171,7 +186,9 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
 
   const visibleUsers = filterUserId
     ? users.filter(u => u.id === filterUserId)
-    : users.filter(u => u.status === 'active').filter(u => !deptFilter || u.department === deptFilter);
+    : users.filter(u => u.status === 'active')
+      .filter(u => !isPurelyManagementRole(u.role))
+      .filter(u => !deptFilter || u.department === deptFilter);
 
   const weekDateStrings = weekDays.map(d => format(d, 'yyyy-MM-dd'));
   const weekShifts = allShifts.filter(s => weekDateStrings.includes(s.date) && (!filterUserId || s.user_id === filterUserId));
@@ -179,10 +196,15 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const departments = [...new Set(users.filter(u => u.department).map(u => u.department as string))];
 
   function getPunchForShift(shift: Shift) {
-    const sp = weekPunchRecords.filter(
-      pr => pr.shift_id === shift.id || (pr.user_id === shift.user_id && pr.timestamp?.startsWith(shift.date))
+    const exact = weekPunchRecords.filter(pr => pr.shift_id === shift.id);
+    if (exact.length > 0) {
+      const sorted = [...exact].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      return { in: sorted.find(p => p.type === 'in'), out: [...sorted].reverse().find(p => p.type === 'out') };
+    }
+    const fallback = weekPunchRecords.filter(
+      pr => !pr.shift_id && pr.user_id === shift.user_id && pr.timestamp?.startsWith(shift.date)
     ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-    return { in: sp.find(p => p.type === 'in'), out: [...sp].reverse().find(p => p.type === 'out') };
+    return { in: fallback.find(p => p.type === 'in'), out: [...fallback].reverse().find(p => p.type === 'out') };
   }
 
   function getDayGroup(userId: string, dateStr: string): DayShiftGroup[] {
@@ -201,6 +223,13 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
         isAbsent: shift.approval_status === 'absent', isMissingPunch: !punchIn && shiftPastPlannedEndWithoutClockIn(shift, allPunchRecords),
         breakMinutes: breakMins, netMinutes: plannedNet, violations,
       };
+    }).sort((a, b) => {
+      const startA = a.shift.start_time?.slice(0, 5) ?? '00:00';
+      const startB = b.shift.start_time?.slice(0, 5) ?? '00:00';
+      const pre16A = startA < '16:00' ? 0 : 1;
+      const pre16B = startB < '16:00' ? 0 : 1;
+      if (pre16A !== pre16B) return pre16A - pre16B;
+      return startA.localeCompare(startB);
     });
   }
 
@@ -253,6 +282,34 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     catch { showError(t.error_generic ?? 'Errore.'); }
   }, [approveShift, showSuccess, showError, t]);
 
+  const handleFreezeShift = useCallback(async (shift: Shift) => {
+    requestAnimationFrame(() => {
+      setPanelPinTargetShiftId(shift.id);
+      setPanelPinError('');
+      setPanelPinModalOpen(true);
+    });
+  }, []);
+
+  const handleUnfreezeWithPin = useCallback(async () => {
+    if (!panelPinTargetShiftId) return;
+    setSaving(true);
+    try {
+      const verifier = findFreezeVerifierByPin(users, panelPin);
+      if (!verifier) {
+        setPanelPinError(t.wst_unfreeze_pin_invalid ?? 'PIN non valido');
+        setSaving(false);
+        return;
+      }
+      await updateShift(panelPinTargetShiftId, { approval_status: 'confirmed' } as any);
+      showSuccess(t.wst_unfreeze_success ?? 'Turno sbloccato.');
+      setPanelPinModalOpen(false);
+      setPanelPinTargetShiftId(null);
+      setPanelPin('');
+      setPanelPinError('');
+    } catch { showError(t.error_generic ?? 'Errore.'); }
+    finally { setSaving(false); }
+  }, [panelPinTargetShiftId, panelPin, users, updateShift, showSuccess, showError, t]);
+
   const handleSaveManualPunch = useCallback(async () => {
     if (!selectedShift) return;
     setSaving(true);
@@ -261,10 +318,18 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       const todayStr = today.toISOString().slice(0, 10);
       const punchDate = shift.date <= todayStr ? shift.date : todayStr;
       if (editIn) {
-        await addPunchRecord(shift.id + '_in_' + Date.now(), shift.user_id, shift.id, `${punchDate}T${editIn}:00`, 'in', 'manual');
+        await addPunchRecord(shift.user_id, 'in', {
+          shift_id: shift.id,
+          timestamp: `${punchDate}T${editIn}:00`,
+          source: 'manual',
+        });
       }
       if (editOut) {
-        await addPunchRecord(shift.id + '_out_' + Date.now(), shift.user_id, shift.id, `${punchDate}T${editOut}:00`, 'out', 'manual');
+        await addPunchRecord(shift.user_id, 'out', {
+          shift_id: shift.id,
+          timestamp: `${punchDate}T${editOut}:00`,
+          source: 'manual',
+        });
       }
       showSuccess(t.punch_saved ?? 'Timbratura salvata.');
       setEditIn(''); setEditOut('');
@@ -309,16 +374,22 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     if (selectedShiftIds.size === 0) return;
     setSaving(true);
     try {
+      let skipped = 0;
       for (const id of selectedShiftIds) {
         const updates: any = {};
         if (bulkEditStatus) updates.approval_status = bulkEditStatus;
-        if (Object.keys(updates).length > 0) await updateShift(id, updates);
+        if (Object.keys(updates).length > 0) {
+          const s = allShifts.find(x => x.id === id);
+          if (s && isFrozen(s)) { skipped++; continue; }
+          await updateShift(id, updates);
+        }
       }
-      showSuccess(t.bulk_edit_done ?? 'Modifiche applicate.');
+      if (skipped > 0) showError((t.n_shifts_skipped_frozen ?? '{n} turni congelati saltati.').replace('{n}', String(skipped)));
+      else showSuccess(t.bulk_edit_done ?? 'Modifiche applicate.');
       setBulkEditOpen(false); setSelectedShiftIds(new Set());
     } catch { showError(t.error_generic ?? 'Errore.'); }
     finally { setSaving(false); }
-  }, [selectedShiftIds, bulkEditStatus, updateShift, showSuccess, showError, t]);
+  }, [selectedShiftIds, bulkEditStatus, updateShift, allShifts, showSuccess, showError, t]);
 
   const handleSaveTemplate = useCallback(async () => {
     if (!saveTemplateName.trim() || !database.shiftTemplates?.save) return;
@@ -353,8 +424,8 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     setDetailTab('details');
     setEditStartTime(String(shift.start_time ?? '').slice(0, 5));
     setEditEndTime(String(shift.end_time ?? '').slice(0, 5));
-    setEditIn(punchIn ? punchIn.timestamp?.slice(11, 16) ?? '' : '');
-    setEditOut(punchOut ? punchOut.timestamp?.slice(11, 16) ?? '' : '');
+    setEditIn(punchIn ? punchIn.timestamp?.slice(11, 16) ?? '' : String(shift.start_time ?? '').slice(0, 5));
+    setEditOut(punchOut ? punchOut.timestamp?.slice(11, 16) ?? '' : String(shift.end_time ?? '').slice(0, 5));
     setDeductBreak(shift.deduct_break !== false);
     setIsAutoBreak(shift.is_auto_break !== false);
     setDrawerOpen(true);
@@ -426,14 +497,45 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
             className="flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-[11px] font-bold text-white/60 hover:text-white transition-colors uppercase tracking-wider">
             <FileDown className="h-3 w-3" />PDF
           </button>
+
+          {/* Template button */}
+          {canEdit && (
+            <div className="relative">
+              <button type="button" onClick={() => setShowTemplateMenu(o => !o)}
+                className="flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-[11px] font-bold text-white/60 hover:text-white transition-colors uppercase tracking-wider">
+                {t.templates ?? 'Template'} <ChevronDown className="h-3 w-3 ml-0.5" />
+              </button>
+              {showTemplateMenu && (
+                <div className="absolute right-0 top-full mt-1 z-50 rounded-xl border border-white/10 p-3 w-52 shadow-2xl" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+                  <div className="flex items-center gap-1 mb-2">
+                    <input value={saveTemplateName} onChange={e => setSaveTemplateName(e.target.value)} placeholder={t.save_current_as ?? 'Salva come...'}
+                      className="flex-1 bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-[11px] font-bold text-white outline-none placeholder:text-white/30" />
+                    <button type="button" onClick={handleSaveTemplate}
+                      className="rounded-lg bg-accent px-2 py-1 text-[10px] font-bold text-white">
+                      <Save className="h-3 w-3" />
+                    </button>
+                  </div>
+                  {templatesList.map(name => (
+                    <div key={name} className="flex items-center justify-between py-1 border-b border-white/10 last:border-0">
+                      <button type="button" onClick={() => handleApplyTemplate(name)}
+                        className="text-[11px] font-bold text-white/70 hover:text-white truncate flex-1 text-left">{name}</button>
+                    </div>
+                  ))}
+                  {templatesList.length === 0 && (
+                    <p className="text-[10px] text-white/40 text-center py-2">{t.no_templates ?? 'Nessun template'}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* ── Period Popover ── */}
       {showPeriodPopover && createPortal(
-        <div ref={periodPopoverRef}
-          className="fixed z-[10050] mt-1 rounded-2xl border border-white/10 bg-[#0d3b6e] p-4 w-[340px]"
-          style={{ top: periodPopoverStyle.top, left: periodPopoverStyle.left, transform: 'translateX(-50%)' }}>
+          <div ref={periodPopoverRef}
+            className="fixed z-[10050] mt-1 rounded-2xl border border-white/10 p-4 w-[340px]"
+            style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', top: periodPopoverStyle.top, left: periodPopoverStyle.left, transform: 'translateX(-50%)' }}>
           <div className="flex items-center justify-between mb-3">
             <button type="button" onClick={() => setPeriodPopoverYear(y => y - 1)}
               className="rounded-lg bg-white/10 px-2 py-1 text-white/60 hover:text-white transition-colors"><ChevronLeft className="h-3.5 w-3.5" /></button>
@@ -463,6 +565,53 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
         </div>,
         document.body
       )}
+
+      {/* ── Legend ── */}
+      <div className="mb-2 flex items-center gap-4 text-[10px] text-white/40">
+        {/* Left: legend items */}
+        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-dashed border-blue-500/60" /> {t.shift_draft ?? 'Draft'}</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-solid border-cyan-400/60" /> {t.shift_published ?? 'Published'}</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-solid border-emerald-400/60" /> {t.shift_approved ?? 'Approved'}</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-solid border-amber-400/60" /> {t.shift_missing_punch ?? 'No entry'}</span>
+        <Info className="h-3 w-3 text-white/30" /> {t.hours_net_after_break ?? 'Ore nette dopo pausa'}
+
+        {/* Right: selection + template actions */}
+        <span className="ml-auto flex items-center gap-2">
+          {selectedShiftIds.size > 0 && (
+            <>
+              <span className="text-[10px] text-white/50 font-semibold">{selectedShiftIds.size} selezionati</span>
+              {!bulkEditOpen ? (
+                <button type="button" onClick={() => setBulkEditOpen(true)}
+                  className="rounded-lg bg-accent/20 px-2.5 py-1 text-[10px] font-bold text-accent hover:bg-accent/30 transition-colors uppercase tracking-wider">
+                  {t.bulk_edit ?? 'Modifica'}
+                </button>
+              ) : (
+                <>
+                  <select value={bulkEditStatus} onChange={e => setBulkEditStatus(e.target.value)}
+                    className="bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold text-white/70 uppercase outline-none">
+                    <option value="">{t.status ?? 'Stato'}</option>
+                    <option value="draft">Draft</option>
+                    <option value="confirmed">Confermato</option>
+                    <option value="approved">Approvato</option>
+                  </select>
+                  <button type="button" onClick={handleBulkEdit}
+                    className="rounded-lg bg-emerald-600/20 px-2.5 py-1 text-[10px] font-bold text-emerald-300 hover:bg-emerald-600/30 transition-colors uppercase tracking-wider">
+                    <Check className="h-3 w-3 inline-block mr-0.5" />{t.apply ?? 'Applica'}
+                  </button>
+                  <button type="button" onClick={() => { setBulkEditOpen(false); setBulkEditStatus(''); }}
+                    className="rounded-lg bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/50 hover:text-white transition-colors uppercase tracking-wider">
+                    <X className="h-3 w-3" />
+                  </button>
+                </>
+              )}
+              <button type="button" onClick={() => { selectedShiftIds.forEach(id => { const s = allShifts.find(x => x.id === id); if (s && !isFrozen(s)) deleteShift(id).catch(() => {}); }); setSelectedShiftIds(new Set()); }}
+                className="rounded-lg bg-rose-600/20 px-2.5 py-1 text-[10px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors uppercase tracking-wider">
+                <Trash2 className="h-3 w-3 inline-block mr-0.5" />{t.delete ?? 'Elimina'}
+              </button>
+            </>
+          )}
+        </span>
+      </div>
 
       {/* ── Grid ── */}
       <div className="overflow-x-auto rounded-2xl border border-white/10" style={{ maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' }}>
@@ -540,7 +689,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                                       {g.shift.start_time?.slice(0, 5) || '--'}-{g.shift.end_time?.slice(0, 5) || '--'}
                                     </span>
                                     <div className="flex items-center gap-0.5">
-                                      {isApproved && <Lock className="h-2.5 w-2.5 text-emerald-400" />}
+                                      {isFrozen(g.shift) ? <Lock className="h-2.5 w-2.5 text-amber-400" /> : isApproved ? <Lock className="h-2.5 w-2.5 text-emerald-400" /> : null}
                                       {isConfirmed && <Check className="h-2.5 w-2.5 text-cyan-300" />}
                                       {g.isMissingPunch && <AlertTriangle className="h-2.5 w-2.5 text-amber-400" />}
                                     </div>
@@ -583,86 +732,11 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
         </table>
       </div>
 
-      {/* ── Legend ── */}
-      <div className="mt-3 flex flex-wrap items-center gap-4 text-[10px] text-white/40">
-        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-dashed border-blue-500/60" /> {t.shift_draft ?? 'Draft'}</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-solid border-cyan-400/60" /> {t.shift_published ?? 'Published'}</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-solid border-emerald-400/60" /> {t.shift_approved ?? 'Approved'}</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-solid border-amber-400/60" /> {t.shift_missing_punch ?? 'No entry'}</span>
-        <Info className="h-3 w-3 text-white/30" /> {t.hours_net_after_break ?? 'Ore nette dopo pausa'}
-
-        {/* Selection actions */}
-        {selectedShiftIds.size > 0 && (
-          <span className="ml-auto flex items-center gap-2">
-            <span className="text-[10px] text-white/50 font-semibold">{selectedShiftIds.size} selezionati</span>
-            {!bulkEditOpen ? (
-              <button type="button" onClick={() => setBulkEditOpen(true)}
-                className="rounded-lg bg-accent/20 px-2.5 py-1 text-[10px] font-bold text-accent hover:bg-accent/30 transition-colors uppercase tracking-wider">
-                {t.bulk_edit ?? 'Modifica'}
-              </button>
-            ) : (
-              <>
-                <select value={bulkEditStatus} onChange={e => setBulkEditStatus(e.target.value)}
-                  className="bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold text-white/70 uppercase outline-none">
-                  <option value="">{t.status ?? 'Stato'}</option>
-                  <option value="draft">Draft</option>
-                  <option value="confirmed">Confermato</option>
-                  <option value="approved">Approvato</option>
-                </select>
-                <button type="button" onClick={handleBulkEdit}
-                  className="rounded-lg bg-emerald-600/20 px-2.5 py-1 text-[10px] font-bold text-emerald-300 hover:bg-emerald-600/30 transition-colors uppercase tracking-wider">
-                  <Check className="h-3 w-3 inline-block mr-0.5" />{t.apply ?? 'Applica'}
-                </button>
-                <button type="button" onClick={() => { setBulkEditOpen(false); setBulkEditStatus(''); }}
-                  className="rounded-lg bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/50 hover:text-white transition-colors uppercase tracking-wider">
-                  <X className="h-3 w-3" />
-                </button>
-              </>
-            )}
-            <button type="button" onClick={() => { selectedShiftIds.forEach(id => deleteShift(id).catch(() => {})); setSelectedShiftIds(new Set()); }}
-              className="rounded-lg bg-rose-600/20 px-2.5 py-1 text-[10px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors uppercase tracking-wider">
-              <Trash2 className="h-3 w-3 inline-block mr-0.5" />{t.delete ?? 'Elimina'}
-            </button>
-          </span>
-        )}
-
-        {/* Template menu */}
-        {canEdit && (
-          <span className="ml-2 relative">
-            <button type="button" onClick={() => setShowTemplateMenu(o => !o)}
-              className="rounded-lg bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/60 hover:text-white transition-colors uppercase tracking-wider">
-              {t.templates ?? 'Template'} <ChevronDown className="h-2.5 w-2.5 inline-block ml-0.5" />
-            </button>
-            {showTemplateMenu && (
-              <div className="absolute bottom-full mb-2 left-0 z-50 rounded-xl border border-white/10 bg-[#0d3b6e] p-3 w-52 shadow-2xl">
-                <div className="flex items-center gap-1 mb-2">
-                  <input value={saveTemplateName} onChange={e => setSaveTemplateName(e.target.value)} placeholder={t.save_current_as ?? 'Salva come...'}
-                    className="flex-1 bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-[11px] font-bold text-white outline-none placeholder:text-white/30" />
-                  <button type="button" onClick={handleSaveTemplate}
-                    className="rounded-lg bg-accent px-2 py-1 text-[10px] font-bold text-white">
-                    <Save className="h-3 w-3" />
-                  </button>
-                </div>
-                {templatesList.map(name => (
-                  <div key={name} className="flex items-center justify-between py-1 border-b border-white/10 last:border-0">
-                    <button type="button" onClick={() => handleApplyTemplate(name)}
-                      className="text-[11px] font-bold text-white/70 hover:text-white truncate flex-1 text-left">{name}</button>
-                  </div>
-                ))}
-                {templatesList.length === 0 && (
-                  <p className="text-[10px] text-white/40 text-center py-2">{t.no_templates ?? 'Nessun template'}</p>
-                )}
-              </div>
-            )}
-          </span>
-        )}
-      </div>
-
       {/* ── Detail Drawer ── */}
       {drawerOpen && selectedShift && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" onClick={() => setDrawerOpen(false)}>
           <div className="fixed inset-0 bg-black/40" />
-          <div className="relative w-full max-w-lg rounded-2xl border border-white/20 bg-[#0d3b6e] p-5 shadow-2xl max-h-[85vh] overflow-y-auto z-10" onClick={e => e.stopPropagation()}>
+          <div className="relative w-full max-w-lg rounded-2xl border border-white/20 p-5 shadow-2xl max-h-[85vh] overflow-y-auto z-10" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-sm font-bold text-white">{selectedUser?.first_name ?? ''} {selectedUser?.last_name ?? ''}</h3>
@@ -682,7 +756,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
             {/* Details tab */}
             {detailTab === 'details' && (
               <div className="space-y-3">
-                {canEdit && (
+                {canEdit && !isFrozen(selectedShift) && (
                   <div className="rounded-xl bg-white/5 p-3 space-y-2">
                     <div>
                       <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">{t.start_time ?? 'Inizio'}</label>
@@ -701,7 +775,9 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                 <div className="rounded-xl bg-white/5 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">{t.status ?? 'Stato'}</span>
-                    <span className={`text-[11px] font-bold uppercase tracking-wider ${selectedShift.approval_status === 'approved' ? 'text-emerald-400' : selectedShift.approval_status === 'confirmed' ? 'text-cyan-300' : 'text-white/70'}`}>{selectedShift.approval_status}</span>
+                    <span className={`text-[11px] font-bold uppercase tracking-wider ${isFrozen(selectedShift) ? 'text-amber-400' : selectedShift.approval_status === 'approved' ? 'text-emerald-400' : selectedShift.approval_status === 'confirmed' ? 'text-cyan-300' : 'text-white/70'}`}>
+                      {isFrozen(selectedShift) ? (t.wst_frozen_badge ?? 'Congelato') : selectedShift.approval_status}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">{t.department ?? 'Reparto'}</span>
@@ -709,16 +785,28 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {canEdit && selectedShift.approval_status === 'draft' && (
+                  {canEdit && !isShiftPayrollFrozen(selectedShift) && selectedShift.approval_status === 'draft' && (
                     <button type="button" onClick={() => handleApproveShift(selectedShift)}
                       className="flex items-center gap-1.5 rounded-lg bg-emerald-600/20 px-3 py-2 text-[11px] font-bold text-emerald-300 hover:bg-emerald-600/30 transition-colors">
                       <Check className="h-3.5 w-3.5" />{t.approve ?? 'Approva'}
                     </button>
                   )}
-                  {canEdit && selectedShift.approval_status !== 'approved' && (
+                  {canEdit && !isShiftPayrollFrozen(selectedShift) && (
                     <button type="button" onClick={() => handleDeleteShift(selectedShift)}
                       className="flex items-center gap-1.5 rounded-lg bg-rose-600/20 px-3 py-2 text-[11px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors">
                       <Trash2 className="h-3.5 w-3.5" />{t.delete ?? 'Elimina'}
+                    </button>
+                  )}
+                  {canEdit && !isShiftPayrollFrozen(selectedShift) && selectedShift.approval_status === 'confirmed' && (
+                    <button type="button" onClick={() => handleFreezeShift(selectedShift)}
+                      className="flex items-center gap-1.5 rounded-lg bg-amber-600/20 px-3 py-2 text-[11px] font-bold text-amber-300 hover:bg-amber-600/30 transition-colors">
+                      <Lock className="h-3.5 w-3.5" />{t.wst_freeze_btn ?? 'Congela'}
+                    </button>
+                  )}
+                  {canEdit && isShiftPayrollFrozen(selectedShift) && (
+                    <button type="button" onClick={() => handleFreezeShift(selectedShift)}
+                      className="flex items-center gap-1.5 rounded-lg bg-accent/20 px-3 py-2 text-[11px] font-bold text-accent hover:bg-accent/30 transition-colors">
+                      <Unlock className="h-3.5 w-3.5" />{t.wst_unfreeze_btn ?? 'Sblocca'}
                     </button>
                   )}
                 </div>
@@ -729,6 +817,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
             {detailTab === 'punches' && selectedShift && (() => {
               const { in: punchIn, out: punchOut } = getPunchForShift(selectedShift);
               const hasIn = !!punchIn; const hasOut = !!punchOut;
+              const showEditFields = canEdit && !isFrozen(selectedShift);
               return (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2">
@@ -742,24 +831,42 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                     )}
                   </div>
                   <div className="rounded-xl bg-white/5 p-3 space-y-3">
-                    <div>
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">
-                        {t.punch_in ?? 'Entrata'}
-                        <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.start_time?.slice(0, 5)})</span>
-                      </label>
-                      <TimeInputField value={editIn} onChange={setEditIn} size="md" className={`w-full ${hasIn ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">
-                        {t.punch_out ?? 'Uscita'}
-                        <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.end_time?.slice(0, 5)})</span>
-                      </label>
-                      <TimeInputField value={editOut} onChange={setEditOut} size="md" className={`w-full ${hasOut ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
-                    </div>
-                    <button type="button" onClick={handleSaveManualPunch} disabled={saving || (!editIn && !editOut)}
-                      className="w-full rounded-lg bg-accent px-4 py-2.5 text-[11px] font-bold text-white hover:bg-accent-hover disabled:opacity-40 transition-all uppercase tracking-wider">
-                      {saving ? (t.saving ?? 'Salvataggio...') : <><Save className="h-3.5 w-3.5 inline-block mr-1.5" />{t.save_punches ?? 'Salva timbrature'}</>}
-                    </button>
+                    {showEditFields ? (
+                      <>
+                        <div>
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">
+                            {t.punch_in ?? 'Entrata'}
+                            <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.start_time?.slice(0, 5)})</span>
+                          </label>
+                          <TimeInputField value={editIn} onChange={setEditIn} size="md" onMinutesEnter={handleSaveManualPunch} className={`w-full ${hasIn ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">
+                            {t.punch_out ?? 'Uscita'}
+                            <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.end_time?.slice(0, 5)})</span>
+                          </label>
+                          <TimeInputField value={editOut} onChange={setEditOut} size="md" onMinutesEnter={handleSaveManualPunch} className={`w-full ${hasOut ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
+                        </div>
+                        <button type="button" onClick={handleSaveManualPunch} disabled={saving || (!editIn && !editOut)}
+                          className="w-full rounded-lg bg-accent px-4 py-2.5 text-[11px] font-bold text-white hover:bg-accent-hover disabled:opacity-40 transition-all uppercase tracking-wider">
+                          {saving ? (t.saving ?? 'Salvataggio...') : <><Save className="h-3.5 w-3.5 inline-block mr-1.5" />{t.save_punches ?? 'Salva timbrature'}</>}
+                        </button>
+                      </>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{t.punch_in ?? 'Entrata'}</span>
+                          <span className="text-[11px] font-bold text-white tabular-nums">{editIn || '—'}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{t.punch_out ?? 'Uscita'}</span>
+                          <span className="text-[11px] font-bold text-white tabular-nums">{editOut || '—'}</span>
+                        </div>
+                        {isFrozen(selectedShift) && (
+                          <p className="text-[10px] text-amber-400/70 text-center pt-2">{t.wst_frozen_readonly_hint ?? 'Turno congelato — sola lettura'}</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -770,7 +877,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               const grossMins = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
               const breakMins = getBreakMinutesForShift(selectedShift, grossMins, selectedUser ?? null, breakRules);
               const netMins = Math.max(0, grossMins - breakMins);
-              const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES;
+              const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
               return (
                 <div className="space-y-3">
                   <div className="rounded-xl bg-white/5 p-3 space-y-2">
@@ -787,6 +894,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                       <span className="text-sm font-black text-emerald-400 tabular-nums">{formatMinutesToHoursAndMinutes(netMins)}</span>
                     </div>
                   </div>
+                  {!isFrozen(selectedShift) && (
                   <div className="rounded-xl bg-white/5 p-3 space-y-2">
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input type="checkbox" checked={deductBreak} onChange={handleDeductBreakToggle}
@@ -801,12 +909,13 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                         <input type="checkbox" checked={isAutoBreak} onChange={handleAutoBreakToggle}
                           className="w-4 h-4 rounded border-white/30 bg-white/10 accent-accent" />
                         <div>
-                          <span className="text-[10px] font-bold text-white/70">{t.auto_break_label ?? 'Pausa automatica (≥6h)'}</span>
+                          <span className="text-[10px] font-bold text-amber-400 animate-pulse">{t.auto_break_label ?? 'Pausa automatica (≥6h)'}</span>
                           <p className="text-[8px] text-white/40">{t.auto_break_hint ?? 'Turni di almeno 6 ore: -30 min per fascia pasto'}</p>
                         </div>
                       </label>
                     )}
                   </div>
+                  )}
                 </div>
               );
             })()}
@@ -825,7 +934,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       {createModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={() => setCreateModal(null)}>
           <div className="fixed inset-0 bg-black/40" />
-          <div className="relative w-full max-w-sm rounded-2xl border border-white/20 bg-[#0d3b6e] p-5 shadow-2xl z-10" onClick={e => e.stopPropagation()}>
+          <div className="relative w-full max-w-sm rounded-2xl border border-white/20 p-5 shadow-2xl z-10" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} onClick={e => e.stopPropagation()}>
             <h3 className="text-sm font-bold text-white mb-4">{t.create_shift ?? 'Nuovo turno'}</h3>
             <div className="space-y-3 mb-4">
               <div>
@@ -847,6 +956,23 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── PinPad Modal per sbloccare turno congelato ── */}
+      {panelPinModalOpen && (
+        <PinPadModal
+          title={t.wst_freeze_pin_title ?? 'Sblocca turno'}
+          subtitle={t.wst_freeze_pin_subtitle ?? 'Inserisci il PIN del manager/assistant per sbloccare il turno'}
+          pinLabel={t.wst_pin_label ?? 'PIN'}
+          pin={panelPin}
+          onPinChange={setPanelPin}
+          onConfirm={handleUnfreezeWithPin}
+          onCancel={() => { setPanelPinModalOpen(false); setPanelPinTargetShiftId(null); setPanelPin(''); setPanelPinError(''); }}
+          error={panelPinError}
+          isLoading={saving}
+          confirmLabel={t.confirm ?? 'Conferma'}
+          cancelLabel={t.cancel ?? 'Annulla'}
+        />
       )}
     </div>
   );

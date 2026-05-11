@@ -21,6 +21,7 @@ import { format, addDays, parseISO, isValid } from 'date-fns';
 import { database, formatSupabaseError } from '../lib/database';
 import { supabase } from '../lib/supabase';
 import { hasShiftConflictSameDay, computeEffectivePunchIn, calculateShiftMinutesGross } from '../utils/timeCalculations';
+import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
 import { AnimatePresence } from 'framer-motion';
 import Toast from '../components/Toast';
 import FlowWaveIcon from '../components/ui/FlowWaveIcon';
@@ -900,6 +901,13 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     const existing = shifts.find((s) => s.id === id);
     if (!existing) return;
 
+    // Blocca modifica su turni congelati (salvo sblocco esplicito)
+    const isUnfreezeOp = Object.keys(updates).length === 1 && updates.approval_status === 'confirmed';
+    if (isShiftPayrollFrozen(existing) && !isUnfreezeOp) {
+      showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
+      return;
+    }
+
     const finalUserId = updates.user_id ?? existing.user_id;
     const finalDate = updates.date ?? existing.date;
 
@@ -1055,6 +1063,10 @@ function AppProviderInner({ children }: { children: ReactNode }) {
       showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
       return;
     }
+    if (existing && isShiftPayrollFrozen(existing)) {
+      showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
+      return;
+    }
     const isFullPrivilegeOp = op.role === 'admin' || op.role === 'manager' || op.role === 'assistant_manager';
     if (existing && !isFullPrivilegeOp) {
       const st = String(existing.approval_status ?? '').trim().toLowerCase();
@@ -1081,7 +1093,8 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     }
     const blockedFrozen = ids.some((id) => {
       const s = shifts.find((x) => x.id === id);
-      return s ? s.approval_status === 'absent' : false;
+      if (!s) return false;
+      return s.approval_status === 'absent' || isShiftPayrollFrozen(s);
     });
     if (blockedFrozen) {
       showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
@@ -1325,6 +1338,16 @@ function AppProviderInner({ children }: { children: ReactNode }) {
       const actor = currentUserRef.current;
       const managerPunchingForSomeoneElse =
         !!(actor && actor.id !== userId && canOperateTeamSchedule(actor));
+
+      // Blocca timbratura manuale su turni congelati
+      if (options?.shift_id && options?.source === 'manual') {
+        const shift = shifts.find(s => s.id === options.shift_id);
+        if (shift && isShiftPayrollFrozen(shift)) {
+          punchInFlightRef.current = false;
+          setIsPunching(false);
+          return { error: t.shift_delete_blocked_frozen };
+        }
+      }
 
       const resolvedSource: PunchRecordSource =
         options?.source ?? (managerPunchingForSomeoneElse ? 'manager' : 'kiosk');

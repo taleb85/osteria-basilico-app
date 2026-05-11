@@ -141,7 +141,7 @@ export function PinPadModal({
 
   const filledCount = pin.length;
 
-  const border = '1px solid rgba(255,255,255,0.30)';
+  const border = '1px solid rgba(255,255,255,0.12)';
   const btnBase = { background: 'transparent', border } as React.CSSProperties;
 
   /* ── Contenuto condiviso mobile/desktop ─────────────────────────── */
@@ -163,7 +163,7 @@ export function PinPadModal({
           <span className="text-[11px] font-bold uppercase tracking-widest">{pinLabel}</span>
         </div>
         <div className="w-full h-14 rounded-2xl flex items-center justify-center relative"
-          style={{ background: 'transparent', border: '1.5px solid rgba(255,255,255,0.30)' }}>
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.12)' }}>
           <div className="flex items-center gap-6">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="relative flex items-center justify-center">
@@ -251,7 +251,7 @@ export function PinPadModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.22 }}
-      className="fixed inset-0 z-[10060] flex flex-col items-center justify-center overflow-hidden bg-black/35 supports-[backdrop-filter]:bg-black/25"
+      className="fixed inset-0 z-[10060] flex flex-col items-center justify-center overflow-hidden bg-black/50 supports-[backdrop-filter]:bg-black/40"
       style={{ }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
@@ -262,7 +262,7 @@ export function PinPadModal({
         exit={{ opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 360, damping: 30, mass: 0.9 }}
         className="flex flex-col w-full max-w-[340px] mx-4 rounded-3xl overflow-hidden"
-        style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.28)', boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(11,53,115,0.5)' }}
+        style={{ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06)' }}
         onClick={e => e.stopPropagation()}
       >
         {content}

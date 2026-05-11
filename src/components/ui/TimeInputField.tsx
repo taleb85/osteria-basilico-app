@@ -129,10 +129,8 @@ export function TimeInputField({
     if (e.key === 'Enter') {
       e.preventDefault();
       flush();
-      requestAnimationFrame(() => {
-        minuteInputRef.current?.focus();
-        minuteInputRef.current?.select();
-      });
+      (e.target as HTMLInputElement).blur();
+      onMinutesEnter?.();
       return;
     }
     onKeyDown?.(e);
