@@ -4,7 +4,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync, renameSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -63,6 +63,17 @@ export default defineConfig(({ command }) => {
           fileName: 'app-version.txt',
           source: cacheVersionLabel,
         });
+      },
+    },
+    {
+      name: 'vite-plugin-rename-index',
+      apply: 'build',
+      closeBundle() {
+        const distIndex = join(projectRoot, 'dist', 'index.html');
+        const distApp = join(projectRoot, 'dist', 'app.html');
+        if (existsSync(distIndex)) {
+          renameSync(distIndex, distApp);
+        }
       },
     },
     VitePWA({
@@ -131,8 +142,8 @@ export default defineConfig(({ command }) => {
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         importScripts: ['pwa-background-sync.js', 'pwa-push-notifications.js'],
-        globPatterns: ['**/*.{ico,png,svg,webmanifest}', 'index.html'],
-        navigateFallback: 'index.html',
+        globPatterns: ['**/*.{ico,png,svg,webmanifest}', 'app.html'],
+        navigateFallback: 'app.html',
         navigateFallbackDenylist: [
           /^\/rest\//,
           /^\/auth\//,

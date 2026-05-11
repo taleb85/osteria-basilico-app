@@ -39,3 +39,4 @@ Untitled
 *_BACKUP.tsx
 supabase/.temp/
 Users/
+.env*.local

@@ -16,13 +16,13 @@ const FAQS: FaqItem[] = [
   { category: 'timbratura', q: 'Il GPS è obbligatorio?', a: 'No, il geofencing è configurabile dall\'admin. Puoi attivarlo solo per alcuni dipendenti o reparti, o disattivarlo completamente.' },
   { category: 'ferie', q: 'Come richiedo ferie?', a: 'Vai su "Ferie" nella navigazione, clicca "Nuova richiesta", seleziona date e tipo. Il manager riceve la richiesta e può approvarla o rifiutarla.' },
   { category: 'ferie', q: 'Come funziona l\'accumulo ferie?', a: 'Le ferie maturano automaticamente in base al contratto. Puoi vedere il saldo disponibile nella schermata ferie.' },
-  { category: 'account', q: 'Come si accede?', a: 'Vai su https://flow-workinmotion.pages.dev/profilo, seleziona il tuo nome e inserisci il PIN. Non serve email o password.' },
+  { category: 'account', q: 'Come si accede?', a: 'Vai su https://flow-workinmotion.vercel.app/profilo, seleziona il tuo nome e inserisci il PIN. Non serve email o password.' },
   { category: 'account', q: 'Ho dimenticato il PIN. Cosa faccio?', a: 'Chiedi a un manager di resettare il PIN dal pannello di amministrazione. Il PIN è sempre gestito dal personale autorizzato.' },
   { category: 'account', q: 'Posso accedere con Face ID o impronta?', a: 'Sì, se il tuo dispositivo lo supporta. Dopo il primo login con PIN, puoi abilitare lo sblocco biometrico dalle impostazioni del profilo.' },
   { category: 'pagine', q: 'Come vengono calcolate le ore?', a: 'Le ore vengono calcolate dalle timbrature effettive (entrata/uscita), con detrazione automatica della pausa secondo le regole configurate per il tuo paese.' },
   { category: 'pagine', q: 'Come esportare i dati per le paghe?', a: 'Dalla sezione Statistiche o Timesheet, usa il pulsante "Esporta". Puoi scegliere CSV per Excel/contabilità o PDF firmato.' },
   { category: 'pagine', q: 'Esiste un\'API per integrazioni?', a: 'Sì, FLOW espone un\'API REST pubblica. Contatta il supporto per ricevere la tua API key e la documentazione completa.' },
-  { category: 'supporto', q: 'Come contattare il supporto?', a: 'Scrivi a support@flow-workinmotion.pages.dev. Il supporto è gratuito e il team risponde in meno di 10 minuti negli orari lavorativi.' },
+  { category: 'supporto', q: 'Come contattare il supporto?', a: 'Scrivi a support@flow-workinmotion.vercel.app. Il supporto è gratuito e il team risponde in meno di 10 minuti negli orari lavorativi.' },
   { category: 'supporto', q: 'Ci sono guide o tutorial?', a: 'Sì, nella sezione "Risorse" trovi guide passo-passo, video tutorial e template per iniziare subito.' },
 ];
 
