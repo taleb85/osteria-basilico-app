@@ -1,5 +1,0 @@
-# Landing page at root
-/    /landing    200
-
-# SPA fallback — tutti i percorsi interni (app, profilo, admin, …)
-/*    /index.html    200
