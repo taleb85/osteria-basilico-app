@@ -88,7 +88,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: U
     const dayShifts = weekShifts.filter(s => s.user_id === userId && s.date === dateStr);
     return dayShifts.map(shift => {
       const { in: punchIn, out: punchOut } = getPunchForShift(shift);
-      const plannedMins = calculateShiftMinutesGross(shift);
+      const plannedMins = calculateShiftMinutesGross(shift.start_time ?? '', shift.end_time ?? '');
       const actualMins = punchIn && punchOut
         ? (new Date(punchOut.timestamp).getTime() - new Date(punchIn.timestamp).getTime()) / 60000
         : 0;
@@ -163,7 +163,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: U
             {visibleUsers.map((user, uIdx) => {
               const totalPlanned = weekDateStrings.reduce((acc, ds) => {
                 const groups = getDayGroup(user.id, ds);
-                return acc + groups.reduce((s, g) => s + calculateShiftMinutesGross(g.shift), 0);
+                return acc + groups.reduce((s, g) => s + calculateShiftMinutesGross(g.shift.start_time ?? '', g.shift.end_time ?? ''), 0);
               }, 0);
               const totalActual = weekDateStrings.reduce((acc, ds) => {
                 const groups = getDayGroup(user.id, ds);
