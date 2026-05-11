@@ -240,7 +240,7 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     currentUser, setCurrentUser, users, setUsers,
     isSessionElevated, setIsSessionElevated,
     impersonatingAs, originalAdminUser, setImpersonating,
-    forceLogoutRequested, clearForceLogoutRequest, logout,
+    forceLogoutRequested, clearForceLogoutRequest,
     globalPinSessionId, setGlobalPinSessionId,
   } = useSession();
   const { isLoading: tenantIsLoading, tenantId, tenantSettings, tenant, loadTenantBySlug } = useTenant();
@@ -2529,10 +2529,6 @@ function AppProviderInner({ children }: { children: ReactNode }) {
       setForceLogoutRequested(true);
     }
   }, [pendingOrderIds, pendingPublishWeekStart]);
-
-  const clearForceLogoutRequest = useCallback(() => {
-    setForceLogoutRequested(false);
-  }, []);
 
   const logout = useCallback(() => {
     const u = currentUserRef.current;
