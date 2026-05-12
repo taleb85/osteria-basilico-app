@@ -85,7 +85,7 @@ export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) 
           <div className="bg-accent p-6 relative">
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors active:bg-white/80"
+              className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center hover:bg-white transition-colors active:bg-white/80"
             >
               <X className="w-5 h-5 text-white" />
             </button>

@@ -4,6 +4,9 @@ import { ArrowLeft, Users, Settings } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { isAdminOnly } from '../utils/permissions';
+import { getStoredTheme, getThemeById } from '../utils/backgroundThemes';
+import type { BackgroundTheme } from '../utils/backgroundThemes';
+import DeepAuroraShell from './DeepAuroraShell';
 import SettingsPage from './SettingsPage';
 import ImpostazioniPage from './ImpostazioniPage';
 
@@ -24,6 +27,13 @@ export default function AdminLayout() {
   const t = useT();
   const fullAdminNav = !!(currentUser && (isAdminOnly(currentUser) || isSessionElevated || currentUser.elevated_role));
   const [activeTab, setActiveTab] = useState<AdminTab>('profili');
+  const [bgTheme, setBgTheme] = useState<BackgroundTheme>(() => getStoredTheme(currentUser?.id));
+
+  useEffect(() => {
+    const handler = (e: Event) => setBgTheme(getThemeById((e as CustomEvent<string>).detail));
+    window.addEventListener('flow-bg-change', handler);
+    return () => window.removeEventListener('flow-bg-change', handler);
+  }, []);
 
   const handleTabChange = useCallback((tab: AdminTab) => {
     setActiveTab(tab);
@@ -61,7 +71,8 @@ export default function AdminLayout() {
   ], [t]);
 
   return (
-    <div className="min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased flex flex-col safe-area-pad overflow-x-clip page-depth-bg">
+    <div className="relative min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased flex flex-col safe-area-pad overflow-x-clip page-depth-bg" style={{ background: bgTheme.appBg }}>
+      <DeepAuroraShell theme={bgTheme} />
       <header className="sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2">
         <div className={`${adminHeaderCardClass}`}>
           <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2">

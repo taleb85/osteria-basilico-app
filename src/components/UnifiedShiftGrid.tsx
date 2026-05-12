@@ -146,6 +146,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const [saving, setSaving] = useState(false);
   const [deductBreak, setDeductBreak] = useState(true);
   const [isAutoBreak, setIsAutoBreak] = useState(true);
+  const editOutHourRef = useRef<HTMLInputElement>(null);
 
   // ── Department filter ──
   const [deptFilter, setDeptFilter] = useState<string | null>(null);
@@ -648,12 +649,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                     const dateStr = format(day, 'yyyy-MM-dd');
                     const groups = getDayGroup(user.id, dateStr);
                     return (
-                      <td key={dIdx} className={`px-1.5 py-1 border-b border-white/5 align-top ${isToday(day) ? 'bg-accent/[0.04]' : ''}`}>
+                      <td key={dIdx} className={`px-1.5 py-1 border-b border-white/5 align-top group ${isToday(day) ? 'bg-accent/[0.04]' : ''}`}>
                         {groups.length === 0 ? (
                           <div className="flex items-center justify-center h-full min-h-[48px]">
                             {canEdit ? (
                               <button type="button" onClick={() => setCreateModal({ userId: user.id, date: dateStr })}
-                                className="rounded-lg border border-dashed border-white/20 px-3 py-2 text-[10px] font-bold text-white/30 hover:text-white/60 hover:border-white/40 transition-all">
+                                className="rounded-lg border border-dashed border-white/20 px-3 py-2 text-[10px] font-bold text-white/30 hover:text-white/60 hover:border-white/40 transition-all opacity-0 group-hover:opacity-100">
                                 <Plus className="h-3 w-3 inline-block mr-1" />{t.add_shift ?? 'Aggiungi'}
                               </button>
                             ) : (
@@ -666,18 +667,18 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                               const isDraft = g.shift.approval_status === 'draft';
                               const isApproved = g.shift.approval_status === 'approved';
                               const isConfirmed = g.shift.approval_status === 'confirmed';
-                              let borderColor = 'border-l-cyan-400/70';
+                              let borderColor = 'border-cyan-400/50';
                               let bgColor = 'bg-white/[0.06]';
                               let glow = '';
-                              if (isDraft) { borderColor = 'border-l-blue-500/50'; bgColor = 'bg-white/[0.03]'; }
-                              if (isApproved) { borderColor = 'border-l-emerald-400'; bgColor = 'bg-emerald-500/10'; }
-                              if (g.isAbsent) { borderColor = 'border-l-rose-400/60'; bgColor = 'bg-rose-500/10'; }
-                              if (g.isMissingPunch) { borderColor = 'border-l-amber-400'; bgColor = 'bg-amber-500/10'; }
+                              if (isDraft) { borderColor = 'border-blue-400/60'; bgColor = 'bg-white/[0.08]'; }
+                              if (isApproved) { borderColor = 'border-emerald-400/60'; bgColor = 'bg-emerald-500/10'; }
+                              if (g.isAbsent) { borderColor = 'border-rose-400/60'; bgColor = 'bg-rose-500/10'; }
+                              if (g.isMissingPunch) { borderColor = 'border-amber-400/60'; bgColor = 'bg-amber-500/10'; }
                               if (g.violations?.length && g.violations.length > 0) glow = 'ring-1 ring-rose-400/40';
                               return (
                                 <button key={gIdx} type="button" onClick={() => handleOpenDrawer(g.shift)}
                                   onContextMenu={(e) => { e.preventDefault(); handleDeleteShift(g.shift); }}
-                                  className={`w-full text-left rounded-lg border-l-[3px] ${borderColor} ${bgColor} ${glow} px-2 py-1.5 hover:brightness-125 transition-all ${isDraft ? 'border-dashed opacity-60' : ''}`}>
+                                  className={`w-full text-left rounded-lg border-2 ${borderColor} ${bgColor} ${glow} px-2 py-1.5 hover:brightness-125 transition-all ${isDraft ? 'border-dashed' : ''}`}>
                                   <div className="flex items-center gap-1.5">
                                     <input type="checkbox" checked={selectedShiftIds.has(g.shift.id)} onChange={() => setSelectedShiftIds(prev => { const n = new Set(prev); n.has(g.shift.id) ? n.delete(g.shift.id) : n.add(g.shift.id); return n; })}
                                       className="w-3 h-3 rounded border-white/30 accent-accent shrink-0" onClick={e => e.stopPropagation()} />
@@ -731,8 +732,8 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       {/* ── Detail Drawer ── */}
       {drawerOpen && selectedShift && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" onClick={() => setDrawerOpen(false)}>
-          <div className="fixed inset-0 bg-black/40" />
-          <div className="relative w-full max-w-lg rounded-2xl border border-white/20 p-5 shadow-2xl max-h-[85vh] overflow-y-auto z-10" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="relative w-full max-w-lg rounded-2xl border border-white/15 p-5 shadow-2xl max-h-[85vh] overflow-y-auto z-10 bg-white/[0.04]" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }} onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-sm font-bold text-white">{selectedUser?.first_name ?? ''} {selectedUser?.last_name ?? ''}</h3>
@@ -834,14 +835,14 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                             {t.punch_in ?? 'Entrata'}
                             <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.start_time?.slice(0, 5)})</span>
                           </label>
-                          <TimeInputField value={editIn} onChange={setEditIn} size="md" onMinutesEnter={handleSaveManualPunch} className={`w-full ${hasIn ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
+                          <TimeInputField value={editIn} onChange={setEditIn} size="md" onMinutesEnter={() => { editOutHourRef.current?.focus(); editOutHourRef.current?.select(); }} className={`w-full ${editIn ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
                         </div>
                         <div>
                           <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">
                             {t.punch_out ?? 'Uscita'}
                             <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.end_time?.slice(0, 5)})</span>
                           </label>
-                          <TimeInputField value={editOut} onChange={setEditOut} size="md" onMinutesEnter={handleSaveManualPunch} className={`w-full ${hasOut ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
+                          <TimeInputField value={editOut} onChange={setEditOut} size="md" hourInputRef={editOutHourRef} onMinutesEnter={handleSaveManualPunch} className={`w-full ${editOut ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
                         </div>
                         <button type="button" onClick={handleSaveManualPunch} disabled={saving || (!editIn && !editOut)}
                           className="w-full rounded-lg bg-accent px-4 py-2.5 text-[11px] font-bold text-white hover:bg-accent-hover disabled:opacity-40 transition-all uppercase tracking-wider">
@@ -871,7 +872,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
             {/* Breaks tab */}
             {detailTab === 'breaks' && selectedShift && (() => {
               const grossMins = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
-              const breakMins = getBreakMinutesForShift(selectedShift, grossMins, selectedUser ?? null, breakRules);
+              const breakMins = getBreakMinutesForShift({ ...selectedShift, deduct_break: deductBreak }, grossMins, selectedUser ?? null, breakRules);
               const netMins = Math.max(0, grossMins - breakMins);
               const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
               return (
@@ -929,8 +930,8 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       {/* ── Create Shift Modal ── */}
       {createModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={() => setCreateModal(null)}>
-          <div className="fixed inset-0 bg-black/40" />
-          <div className="relative w-full max-w-sm rounded-2xl border border-white/20 p-5 shadow-2xl z-10" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="relative w-full max-w-sm rounded-2xl border border-white/15 p-5 shadow-2xl z-10 bg-white/[0.04]" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }} onClick={e => e.stopPropagation()}>
             <h3 className="text-sm font-bold text-white mb-4">{t.create_shift ?? 'Nuovo turno'}</h3>
             <div className="space-y-3 mb-4">
               <div>

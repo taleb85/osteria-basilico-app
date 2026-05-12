@@ -16,9 +16,9 @@ import {
 } from '../utils/periodConfig';
 import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
 import DatePickerField from './DatePickerField';
+import BackgroundGallery from './BackgroundGallery';
 import { useApp } from '../context/AppContext';
 import { useT } from '../hooks/useT';
-import { useTheme } from '../hooks/useTheme';
 import { useTenant } from '../context/TenantContext';
 import type { User, UserRole } from '../types';
 import { translateRole } from '../utils/roles';
@@ -188,7 +188,6 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
   } = useApp();
   const { tenant } = useTenant();
   const t = useT();
-  const { theme, toggle: toggleFlowTheme } = useTheme();
 
   const [pullSyncBusy, setPullSyncBusy] = useState(false);
   const [pushSyncBusy, setPushSyncBusy] = useState(false);
@@ -681,15 +680,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
           <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2">
             {t.theme ?? 'Tema'}
           </p>
-          <button
-            type="button"
-            onClick={toggleFlowTheme}
-            aria-label={theme === 'dark' ? 'Passa a tema chiaro' : 'Passa a tema scuro'}
-            className="inline-flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/15 active:scale-[0.99]"
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}{' '}
-            {theme === 'dark' ? (t.light ?? 'Tema chiaro') : (t.dark ?? 'Tema scuro')}
-          </button>
+          <BackgroundGallery userId={currentUser?.id} />
         </section>
 
         {/* ── SEZIONE: Gestione Profili ── */}
@@ -1099,7 +1090,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             title={t.settings_departments_section_title}
             defaultOpen={false}
           >
-            <div className="p-4 rounded-xl space-y-4 border border-white/10" style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <div className="p-4 rounded-xl space-y-4 border border-neutral-500" style={{ background: 'transparent' }}>
               <p className="text-[11px] text-white/55 leading-snug">{t.settings_departments_cloud_hint}</p>
               {/* Lista reparti */}
               <div className="flex flex-wrap gap-2">
@@ -1183,7 +1174,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
 
               {/* Reparti built-in nascosti — pulsante ripristino */}
               {hiddenBuiltins.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
+                <div className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 group/missing">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-white/40">
                     Nascosti
                   </span>
@@ -1201,7 +1192,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           setHiddenBuiltins(getHiddenBuiltinValues());
                           void notifyDepartmentsChanged();
                         }}
-                        className="flex items-center gap-1.5 rounded-xl border border-dashed border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/55 transition-colors hover:border-accent/50 hover:text-accent active:text-accent"
+                        className="flex items-center gap-1.5 rounded-xl border border-dashed border-white/20 px-3 py-1.5 text-xs font-semibold text-white/55 transition-all opacity-0 group-hover/missing:opacity-100 hover:bg-white/10 hover:border-accent/50 hover:text-accent active:text-accent"
                       >
                         <span
                           className="h-2.5 w-2.5 shrink-0 rounded-full"

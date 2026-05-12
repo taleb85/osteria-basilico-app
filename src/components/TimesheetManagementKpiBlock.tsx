@@ -124,7 +124,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
           className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-left transition-all select-none"
-          style={{ background: 'rgba(30, 55, 120, 0.80)', border: '1px solid rgba(255,255,255,0.18)' }}
+          style={{ background: 'transparent', border: '1.5px solid rgba(255,255,255,0.35)' }}
         >
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/20 ring-1 ring-inset ring-accent/40">
             <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
@@ -148,7 +148,7 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
             className={`flex items-center gap-2 rounded-lg px-3 py-1.5 ${
               estimatedCostStats.shiftsWithRate === 0 ? 'opacity-75' : ''
             }`}
-            style={{ background: 'rgba(30, 55, 120, 0.80)', border: '1px solid rgba(255,255,255,0.18)' }}
+            style={{ background: 'transparent', border: '1.5px solid rgba(255,255,255,0.35)' }}
           >
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-inset ring-accent/25">
               <TrendingUp className="h-3.5 w-3.5 text-accent" />
@@ -179,8 +179,8 @@ export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetai
           transition={{ delay: 0.15 }}
           className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-left transition-all select-none`}
           style={{
-            background: pendingCount > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(30, 55, 120, 0.80)',
-            border: pendingCount > 0 ? '1px solid rgba(245,158,11,0.30)' : '1px solid rgba(255,255,255,0.18)',
+            background: pendingCount > 0 ? 'rgba(245,158,11,0.12)' : 'transparent',
+            border: pendingCount > 0 ? '1.5px solid rgba(245,158,11,0.30)' : '1.5px solid rgba(255,255,255,0.35)',
           }}
         >
           <div

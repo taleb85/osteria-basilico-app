@@ -596,18 +596,22 @@ body {
 
   /** Pulsante primario compatto in toolbar (accent) */
   .ui-toolbar-accent {
-    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg bg-accent px-2.5 text-center text-[13px] font-semibold leading-none text-white shadow-sm transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg px-2.5 text-center text-[13px] font-semibold leading-none text-white shadow-sm transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60;
+    background: transparent !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.50) !important;
   }
 
   /** Pulsante secondario bordo (CSV, outline) */
   .ui-toolbar-outline {
     @apply inline-flex h-[22px] items-center justify-center gap-1.5 rounded-lg px-2.5 text-center text-[13px] font-semibold leading-none shadow-none transition-colors;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    background: transparent;
+    background: transparent !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.50) !important;
     color: rgba(255, 255, 255, 0.75);
   }
   .ui-toolbar-outline:hover {
-    background: rgba(15, 35, 90, 0.82);
+    background: rgba(255, 255, 255, 0.04) !important;
     color: #ffffff;
   }
 
@@ -698,7 +702,11 @@ body {
     box-shadow: none;
   }
   .ui-toolbar-page-band-presences .ui-toolbar-accent {
-    @apply inline-flex h-9 lg:h-10 items-center justify-center gap-1.5 rounded-xl bg-accent px-3 lg:px-3.5 text-sm font-semibold leading-none text-white shadow-sm transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex h-9 lg:h-10 items-center justify-center gap-1.5 rounded-xl px-3 lg:px-3.5 text-sm font-semibold leading-none text-white shadow-sm transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60;
+    background: transparent !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.50) !important;
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -752,16 +760,23 @@ body {
 
 /* ── Accent solido su tutti i bottoni primari ─────────────────────────── */
 [class~="bg-accent"]:not([class*="bg-accent/"]):not([class*="bg-accent-"]) {
-  background: #6b6b6b !important;
+  background: transparent !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.50) !important;
 }
 .ui-toolbar-accent,
 .ui-toolbar-page-band-presences .ui-toolbar-accent {
-  background: #6b6b6b !important;
+  background: transparent !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.50) !important;
 }
 [class~="bg-accent"]:hover:not([class*="bg-accent/"]):not([class*="bg-accent-"]),
 [class~="hover:bg-accent-hover"]:hover {
-  background: #858585 !important;
-  filter: brightness(1.04);
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
 
 @layer utilities {
@@ -1036,6 +1051,37 @@ html.no-motion *::after {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
+   BACKGROUND TEXTURES — noise + dot grid
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Noise texture: grana sottile su tutto lo sfondo */
+.bg-noise::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Griglia di punti molto sottile */
+.bg-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Griglia di linee — effetto quaderno */
+.bg-grid-lines {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    ULTRA-CLEAN MINIMALISTA — BIANCO E NERO
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -1220,7 +1266,7 @@ input[type="tel"],
 input[type="url"],
 textarea,
 select {
-  background: rgba(15, 35, 90, 0.82) !important;
+  background: transparent !important;
   border: 1px solid rgba(255, 255, 255, 0.22) !important;
   color: #ffffff !important;
   transition: border-color 0.2s, background 0.2s;
@@ -1239,7 +1285,7 @@ textarea::placeholder {
 input:focus,
 textarea:focus,
 select:focus {
-  background: rgba(255, 255, 255, 0.16) !important;
+  background: transparent !important;
   border-color: var(--accent-blue) !important;
   outline: none;
 }
@@ -1553,7 +1599,7 @@ input[type="file"] {
 /* Input "Nome template..." */
 .ui-toolbar-drawer input,
 [class*="drawer"] input[type="text"] {
-  background: rgba(15, 35, 90, 0.82) !important;
+  background: transparent !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   color: #ffffff !important;
 }
@@ -1657,20 +1703,35 @@ thead th {
 
 /* Background overrides — white/light → dark surfaces */
 [data-theme="dark"] .bg-white:not(input):not(textarea):not(select):not([class*="modal"]):not([class*="pin"]):not([class*="kiosk"]) {
-  background-color: rgba(255, 255, 255, 0.13) !important;
+  background: transparent !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
-[data-theme="dark"] .bg-slate-50:not(input):not(textarea):not(select) { background-color: rgba(255, 255, 255, 0.07) !important; }
-[data-theme="dark"] .bg-gray-50:not(input):not(textarea):not(select)  { background-color: rgba(255, 255, 255, 0.07) !important; }
-[data-theme="dark"] .bg-slate-100:not(input):not(textarea):not(select){ background-color: rgba(255, 255, 255, 0.11) !important; }
-[data-theme="dark"] .bg-gray-100:not(input):not(textarea):not(select) { background-color: rgba(255, 255, 255, 0.11) !important; }
-[data-theme="dark"] .bg-slate-200:not(input):not(textarea):not(select){ background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .bg-white\/15,
+[data-theme="dark"] .bg-white\/\[0\.15\] {
+  background: transparent !important;
+}
+[data-theme="dark"] .bg-slate-50:not(input):not(textarea):not(select),
+[data-theme="dark"] .bg-gray-50:not(input):not(textarea):not(select),
+[data-theme="dark"] .bg-slate-100:not(input):not(textarea):not(select),
+[data-theme="dark"] .bg-gray-100:not(input):not(textarea):not(select),
+[data-theme="dark"] .bg-slate-200:not(input):not(textarea):not(select),
+[data-theme="dark"] .bg-gray-200:not(input):not(textarea):not(select) {
+  background: transparent !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
 
 /* Hover state overrides */
-[data-theme="dark"] .hover\:bg-slate-50:hover { background-color: rgba(15, 35, 90, 0.82) !important; }
-[data-theme="dark"] .hover\:bg-gray-50:hover  { background-color: rgba(15, 35, 90, 0.82) !important; }
-[data-theme="dark"] .hover\:bg-white:hover    { background-color: rgba(15, 35, 90, 0.82) !important; }
-[data-theme="dark"] .hover\:bg-slate-100:hover{ background-color: rgba(15, 35, 90, 0.82) !important; }
-[data-theme="dark"] .hover\:bg-gray-100:hover { background-color: rgba(15, 35, 90, 0.82) !important; }
+[data-theme="dark"] .hover\:bg-slate-50:hover,
+[data-theme="dark"] .hover\:bg-gray-50:hover,
+[data-theme="dark"] .hover\:bg-white:hover,
+[data-theme="dark"] .hover\:bg-slate-100:hover,
+[data-theme="dark"] .hover\:bg-gray-100:hover {
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
 
 /* Border overrides — light borders → dark equivalents */
 [data-theme="dark"] .border-slate-200 { border-color: rgba(255, 255, 255, 0.22) !important; }
@@ -1679,15 +1740,154 @@ thead th {
 [data-theme="dark"] .border-gray-100  { border-color: rgba(255, 255, 255, 0.16) !important; }
 [data-theme="dark"] .border-slate-300 { border-color: rgba(255, 255, 255, 0.28) !important; }
 [data-theme="dark"] .border-gray-300  { border-color: rgba(255, 255, 255, 0.28) !important; }
-[data-theme="dark"] .divide-slate-200 > * + * { border-color: rgba(255, 255, 255, 0.22) !important; }
-[data-theme="dark"] .divide-gray-200  > * + * { border-color: rgba(255, 255, 255, 0.22) !important; }
+/* ── Tutti i p bianchi ── */
+[data-theme="dark"] p {
+  color: #ffffff !important;
+}
 
-/* bg-white with opacity variants */
+/* ── main, table, thead, tbody, tr, th, td: sempre trasparenti ── */
+[data-theme="dark"] main,
+[data-theme="dark"] table,
+[data-theme="dark"] thead,
+[data-theme="dark"] tbody,
+[data-theme="dark"] tfoot,
+[data-theme="dark"] tr,
+[data-theme="dark"] th,
+[data-theme="dark"] td {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* ── input, textarea, select: bordi arrotondati ── */
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="tel"],
+[data-theme="dark"] input[type="url"],
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  border-radius: 0.75rem !important;
+}
+
+/* ── Tutti i container con bordo: trasparenti con bordi bianchi ── */
+[data-theme="dark"] .rounded-xl.border-neutral-500,
+[data-theme="dark"] .rounded-2xl.border-neutral-500,
+[data-theme="dark"] .border-neutral-500 {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.50) !important;
+  border-width: 2px !important;
+}
+[data-theme="dark"] .rounded-xl.border-neutral-500 {
+  box-shadow:
+    0 4px 16px -4px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+[data-theme="dark"] .rounded-xl.border-neutral-500.cursor-pointer:hover {
+  box-shadow:
+    0 8px 24px -6px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: scale(1.01);
+}
+[data-theme="dark"] .rounded-2xl.border-neutral-500 {
+  box-shadow:
+    0 4px 16px -4px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+[data-theme="dark"] .rounded-2xl.border-neutral-500.cursor-pointer:hover {
+  box-shadow:
+    0 8px 24px -6px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: scale(1.01);
+}
+
+/* Divisori interni: linea bianca sottile con fade ai lati */
+[data-theme="dark"] .border-b.border-neutral-500 {
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.20) !important;
+}
+[data-theme="dark"] .border-t.border-neutral-500 {
+  border-top: 1.5px solid rgba(255, 255, 255, 0.20) !important;
+}
+[data-theme="dark"] .divide-neutral-500,
+[data-theme="dark"] .divide-neutral-500\/20 {
+  border-color: rgba(255, 255, 255, 0.20) !important;
+}
+
+/* Barre di progresso: track visibile e fill sempre bianco */
+[data-theme="dark"] .h-2.rounded-full.overflow-hidden { background: rgba(255, 255, 255, 0.20) !important; }
+[data-theme="dark"] .h-2.rounded-full.overflow-hidden .h-full.rounded-full { background: #ffffff !important; }
+
+/* Outline button hover rosso — bordo e sfondo trasparente con blur */
+[data-theme="dark"] .ui-toolbar-outline.hover\:border-red-200:hover {
+  border-color: rgba(239, 68, 68, 0.60) !important;
+  background: rgba(239, 68, 68, 0.06) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* ── PATTERN SPECIFICI SELEZIONATI: bordo bianco + sfondo trasparente ── */
 [data-theme="dark"] .bg-white\/95 { background-color: rgba(13, 31, 60, 0.97) !important; }
 [data-theme="dark"] .bg-white\/90 { background-color: rgba(15, 35, 90, 0.82) !important; }
-[data-theme="dark"] .bg-white\/80 { background-color: rgba(255, 255, 255, 0.13) !important; }
-[data-theme="dark"] .bg-white\/70 { background-color: rgba(255, 255, 255, 0.11) !important; }
-[data-theme="dark"] .bg-white\/60 { background-color: rgba(15, 35, 90, 0.82) !important; }
+
+[data-theme="dark"] [class*="bg-white/"]:where([class*="0.04"], [class*="0.08"]) {
+  background: transparent !important;
+}
+
+/* Bottoni riga profilo (Impostazioni, Notifiche, Lingua) */
+[data-theme="dark"] [class*="w-full"][class*="flex"][class*="px-4"][class*="py-3"] {
+  background: transparent !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+  border-radius: 0.75rem;
+}
+
+/* Contenitore "Sfondo" nel profilo */
+[data-theme="dark"] [class*="px-4"][class*="py-3"] > span:first-child {
+  background: transparent !important;
+}
+
+/* Chip toolbar (Template, PDF, Copia) — solo quelli con uppercase tracking-wider */
+[data-theme="dark"] button[class*="uppercase"][class*="tracking-wider"][class*="bg-white/"] {
+  background: transparent !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Pubblica settimana — hover */
+[data-theme="dark"] [class*="hover:bg-emerald"]:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Periodo/Settimana toggle — solo quelli senza bg-color */
+[data-theme="dark"] button[class*="rounded-md"][class*="px-"][class*="bg-white/"] {
+  background: transparent !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Chevron nav — solo quelli senza bg-color */
+[data-theme="dark"] button[class*="rounded-lg"][class*="chevron"][class*="bg-white/"] {
+  background: transparent !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Pulsante Oggi — solo senza bg-color */
+[data-theme="dark"] button[class*="Oggi"][class*="bg-white/"] {
+  background: transparent !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Header tabella (th) */
+[data-theme="dark"] th[class*="bg-transparent"] {
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Selettore data (10px) */
+[data-theme="dark"] button[class*="rounded-lg"][class*="px-"][class*="text-["] {
+  background: transparent !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+}
 
 /* divide colors */
 [data-theme="dark"] .divide-\[#F1F5F9\] > * + * { border-color: rgba(255, 255, 255, 0.15) !important; }

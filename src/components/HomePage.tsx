@@ -980,7 +980,7 @@ export default function HomePage({
               </div>
               <div className="space-y-3">
                 {[
-                  { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-white/30' },
+                  { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-white' },
                   { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-white/20' },
                 ].map(({ label, pct, color }) => (
                   <div key={label}>

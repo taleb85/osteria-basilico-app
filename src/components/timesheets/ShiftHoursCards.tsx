@@ -205,7 +205,7 @@ export function ShiftHoursCards({
           <div className="flex items-center justify-between mb-2">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50">{t.ts_label_punched}</p>
             {(s.punched && !s.actualEnd) || !s.punched ? (
-              <span className="flex h-2 w-2 rounded-full bg-white/30 animate-pulse" title={t.data_missing} />
+              <span className="flex h-2 w-2 rounded-full bg-white animate-pulse" title={t.data_missing} />
             ) : null}
           </div>
           {s.punched ? (

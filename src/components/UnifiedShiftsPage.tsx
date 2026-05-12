@@ -34,7 +34,7 @@ export default function UnifiedShiftsPage() {
         <button type="button" onClick={() => setGridMode('planning')}
           className={`rounded-lg border p-2 text-left transition-all ${
             gridMode === 'planning'
-              ? 'border-cyan-400/40 bg-cyan-500/10'
+              ? 'border-cyan-400/40 bg-cyan-500/10 backdrop-blur-sm'
               : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08]'
           }`}>
           <div className="flex items-center gap-1.5 mb-0.5">
@@ -48,7 +48,7 @@ export default function UnifiedShiftsPage() {
         <button type="button" onClick={() => setGridMode('realtime')}
           className={`rounded-lg border p-2 text-left transition-all ${
             gridMode === 'realtime'
-              ? 'border-accent/40 bg-accent/10'
+              ? 'border-accent/40 bg-accent/10 backdrop-blur-sm'
               : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08]'
           }`}>
           <div className="flex items-center gap-1.5 mb-0.5">
@@ -62,7 +62,7 @@ export default function UnifiedShiftsPage() {
         <button type="button" onClick={() => setGridMode('comparison')}
           className={`rounded-lg border p-2 text-left transition-all ${
             gridMode === 'comparison'
-              ? 'border-emerald-400/40 bg-emerald-500/10'
+              ? 'border-emerald-400/40 bg-emerald-500/10 backdrop-blur-sm'
               : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08]'
           }`}>
           <div className="flex items-center gap-1.5 mb-0.5">
@@ -76,7 +76,13 @@ export default function UnifiedShiftsPage() {
       </div>
 
       {/* Unified Grid */}
-      <div className="rounded-xl border border-white/10 bg-transparent p-3">
+      <div className={`rounded-xl border bg-transparent p-3 transition-colors ${
+        gridMode === 'planning'
+          ? 'border-cyan-400/40'
+          : gridMode === 'realtime'
+            ? 'border-accent/40'
+            : 'border-emerald-400/40'
+      }`}>
         <UnifiedShiftGrid
           mode={gridMode}
           onModeChange={setGridMode}

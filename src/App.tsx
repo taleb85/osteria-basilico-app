@@ -3,6 +3,8 @@ import { useState, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallb
 import SwUpdateOverlay from './components/SwUpdateOverlay';
 import AdminSyncOverlay from './components/AdminSyncOverlay';
 import DeepAuroraShell from './components/DeepAuroraShell';
+import { getStoredTheme, getThemeById } from './utils/backgroundThemes';
+import type { BackgroundTheme } from './utils/backgroundThemes';
 /**
  * SuperAdminPanel — accessibile solo sul dominio super-admin, protetto da PIN.
  */
@@ -105,19 +107,29 @@ function LoginRoute() {
   const location = useLocation();
   const { currentUser } = useApp();
   const postAuthPath = useMemo(() => safeInternalRedirectPath(location.state), [location.state]);
+  const [bgTheme, setBgTheme] = useState<BackgroundTheme>(getStoredTheme);
 
   useEffect(() => {
     if (currentUser) navigate(postAuthPath, { replace: true });
   }, [currentUser, navigate, postAuthPath]);
+
+  useEffect(() => {
+    const handler = (e: Event) => setBgTheme(getThemeById((e as CustomEvent<string>).detail));
+    window.addEventListener('flow-bg-change', handler);
+    return () => window.removeEventListener('flow-bg-change', handler);
+  }, []);
 
   const handleLogin = () => navigate(postAuthPath, { replace: true });
   const handleBack = () => navigate(PATH_PROFILO, { replace: true });
 
   return (
     <>
-      <AnimatePresence mode="wait">
-        <LoginPage key="login" onLogin={handleLogin} onBack={handleBack} />
-      </AnimatePresence>
+      <div className="relative min-h-screen min-h-[100dvh] w-full" style={{ background: bgTheme.appBg }}>
+        <DeepAuroraShell theme={bgTheme} />
+        <AnimatePresence mode="wait">
+          <LoginPage key="login" onLogin={handleLogin} onBack={handleBack} />
+        </AnimatePresence>
+      </div>
     </>
   );
 }
@@ -149,6 +161,13 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     setCurrentUser: setCtxCurrentUser,
     setIsSessionElevated,
   } = useApp();
+  const [bgTheme, setBgTheme] = useState<BackgroundTheme>(() => getStoredTheme(currentUser?.id));
+
+  useEffect(() => {
+    const handler = (e: Event) => setBgTheme(getThemeById((e as CustomEvent<string>).detail));
+    window.addEventListener('flow-bg-change', handler);
+    return () => window.removeEventListener('flow-bg-change', handler);
+  }, []);
 
   const t = useT();
   const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
@@ -566,9 +585,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
   return (
     <ProfileLeaveGuardRefContext.Provider value={profileLeaveGuardRef}>
-    {/* Sfondo decorativo con glow effects */}
-    <DeepAuroraShell />
-
     {/* Overlay aggiornamento dati admin: mostrato su tutti i dispositivi non-admin */}
     <AnimatePresence>
       {adminSyncPending && (
@@ -591,15 +607,10 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       <OnboardingTour onComplete={completeTour} includeManagerSteps={isManagement} />
     )}
     <div
-      className="min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col"
-      style={{
-        backgroundImage: 'url(/reference/IMG_1976.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        backgroundRepeat: 'no-repeat',
-      }}
+      className="relative min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col"
+      style={{ background: bgTheme.appBg }}
     >
+      <DeepAuroraShell theme={bgTheme} />
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[600] focus:px-4 focus:py-2 focus:bg-white focus:text-app-bg focus:rounded focus:font-medium"
@@ -827,7 +838,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 
       {/* Sovrapposizione viola/indaco durante refresh globale */}
       {isGlobalRefreshing && (() => {
-        // Sfondo loading: glass scuro molto trasparente per far intravedere IMG_1976 sotto
+        // Sfondo loading: glass scuro molto trasparente per far intravedere lo sfondo sotto
         return (
           <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 font-sans text-center px-4" style={{ background: 'rgba(2, 6, 23, 0.70)' }}>
             <div className="flex flex-col items-center gap-6">

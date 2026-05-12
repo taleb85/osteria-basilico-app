@@ -1450,7 +1450,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
             <div
               ref={timesheetMirrorHeaderRef}
               className="hidden md:block sticky z-[200] rounded-b-xl overflow-hidden border-x border-b border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
-              style={{ top: 'var(--app-sticky-header-offset)', background: 'rgba(30, 55, 120, 0.80)' }}
+              style={{ top: 'var(--app-sticky-header-offset)', background: 'transparent' }}
             >
               <div ref={timesheetHeaderScrollRef} className="overflow-x-hidden">
                 <table
@@ -1465,8 +1465,8 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                     <col style={{ width: timesheetGridTotalColPx }} />
                   </colgroup>
                   <thead>
-                    <tr className="border-b border-white/20" style={{ background: 'rgba(30, 55, 120, 0.80)' }}>
-                      <th className="sticky left-0 z-10 box-border py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white border-r border-r-white/20 md:py-2.5 md:pl-3 md:pr-2" style={{ background: 'rgba(30, 55, 120, 0.80)' }}>
+                    <tr className="border-b border-white/20" style={{ background: 'transparent' }}>
+                      <th className="sticky left-0 z-10 box-border py-3.5 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white border-r border-r-white/20 md:py-2.5 md:pl-3 md:pr-2" style={{ background: 'transparent' }}>
                         {t.employee}
                       </th>
                       {weekDays.map((day, dayIdx) => {
@@ -1488,7 +1488,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                             className={`box-border px-2 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1.5 ${
                               weekEndCol ? 'border-r-2 border-r-white/20' : 'border-r border-r-white/10'
                             } ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''} active:bg-white/80`}
-                            style={{ background: payrollHighlight ? 'rgba(51,102,204,0.35)' : todayDate ? 'rgba(51,102,204,0.25)' : 'rgba(30, 55, 120, 0.80)' }}
+                            style={{ background: payrollHighlight ? 'transparent' : todayDate ? 'transparent' : 'transparent' }}
                           >
                             <div className={todayDate && inP ? 'text-cyan-300' : 'text-white/70'}>
                               {format(day, 'EEE', { locale })}
@@ -1509,7 +1509,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                           </th>
                         );
                       })}
-                      <th className="box-border border-l border-l-white/20 px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-white md:px-2 md:py-2" style={{ background: 'rgba(30, 55, 120, 0.80)' }}>
+                      <th className="box-border border-l border-l-white/20 px-3 py-3.5 text-center text-[11px] font-semibold uppercase tracking-wider text-white md:px-2 md:py-2" style={{ background: 'transparent' }}>
                         {t.stats_total}
                       </th>
                     </tr>
@@ -1542,7 +1542,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
               </colgroup>
               <thead ref={timesheetTheadRef}>
                 <tr className="border-b border-neutral-500">
-                  <th className="sticky left-0 z-10 box-border py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/50 border-r border-r-white/15 md:py-1.5 md:pl-3 md:pr-2" style={{ background: 'rgba(30, 55, 120, 0.80)', boxShadow: 'none' }}>
+                  <th className="sticky left-0 z-10 box-border py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/50 border-r border-r-white/15 md:py-1.5 md:pl-3 md:pr-2" style={{ background: 'transparent', boxShadow: 'none' }}>
                     {t.employee}
                   </th>
                   {weekDays.map((day, dayIdx) => {
@@ -1571,7 +1571,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                         className={`box-border px-2 py-1.5 text-center text-[11px] font-semibold whitespace-nowrap transition-colors md:px-1 md:py-1 ${
                           weekEndCol ? 'border-r-2 border-r-white/15' : 'border-r border-r-white/10'
                         } ${viewMode === 'month' && !inP ? 'opacity-40' : ''} ${canReview ? 'cursor-pointer hover:bg-white/10 group' : ''} active:bg-white/80`}
-                        style={{ background: payrollHighlight ? 'rgba(51,102,204,0.35)' : todayDate ? 'rgba(51,102,204,0.25)' : 'rgba(30, 55, 120, 0.80)' }}
+                        style={{ background: payrollHighlight ? 'rgba(51,102,204,0.35)' : todayDate ? 'rgba(0,82,255,0.08)' : 'transparent' }}
                       >
                         <div
                           className={`text-[11px] font-bold uppercase tracking-widest mb-0.5 ${
@@ -1625,7 +1625,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                             style={{ background: userIdx % 2 === 0 ? 'rgba(20,45,110,0.60)' : 'rgba(20,45,110,0.70)' }}
                           >
                       {/* Nome dipendente — click → revisione settimana (coda turni) */}
-                      <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-white/10 z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: userIdx % 2 === 0 ? 'rgba(30, 55, 120, 0.80)' : 'rgba(30, 55, 120, 0.70)', boxShadow: 'none' }}>
+                      <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-white/10 z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: 'transparent', boxShadow: 'none' }}>
                         {canTeamTimesheetOps ? (
                           <div className="flex flex-col gap-1 justify-center">
                             <button
@@ -1912,7 +1912,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
               {canTeamTimesheetOps && (
                 <tfoot>
                   <tr className="bg-brand-mid/5 border-t-2 border-brand-mid/35">
-                    <td className="sticky left-0 pl-4 pr-3 py-3 text-accent font-bold text-xs uppercase border-r-2 border-r-white/15 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[11px]" style={{ background: 'rgba(30, 55, 120, 0.80)' }}>
+                    <td className="sticky left-0 pl-4 pr-3 py-3 text-accent font-bold text-xs uppercase border-r-2 border-r-white/15 z-10 md:py-2 md:pl-3 md:pr-2 md:text-[11px]" style={{ background: 'transparent' }}>
                       {t.stats_total}
                     </td>
                     {weekDays.map((day, dayIdx) => {

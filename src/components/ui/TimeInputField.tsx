@@ -17,6 +17,8 @@ export type TimeInputFieldProps = {
   onMinutesEnter?: () => void;
   /** Chiamato quando il focus esce dall'intero componente (dopo flush). Utile per auto-save. */
   onBlurCommit?: () => void;
+  /** Ref al campo minuti — usato per auto-advance da ore a minuti */
+  minuteInputRef?: React.Ref<HTMLInputElement>;
   style?: React.CSSProperties;
   autoFocus?: boolean;
 };
@@ -54,9 +56,22 @@ export function TimeInputField({
   const { h: h0, m: m0 } = splitIncoming(value);
   const [h, setH] = useState(h0);
   const [m, setM] = useState(m0);
-  const minuteInputRef = useRef<HTMLInputElement | null>(null);
+  const minuteInputInternalRef = useRef<HTMLInputElement | null>(null);
   /** Sempre valorizzato: serve per focus da click su bordo / “:” / padding. */
   const hourLocalRef = useRef<HTMLInputElement | null>(null);
+
+  const setMinuteInputEl = useCallback(
+    (node: HTMLInputElement | null) => {
+      minuteInputInternalRef.current = node;
+      if (minuteInputRef == null) return;
+      if (typeof minuteInputRef === 'function') {
+        minuteInputRef(node);
+      } else {
+        (minuteInputRef as React.MutableRefObject<HTMLInputElement | null>).current = node;
+      }
+    },
+    [minuteInputRef]
+  );
 
   const setHourInputEl = useCallback(
     (node: HTMLInputElement | null) => {
@@ -201,8 +216,8 @@ export function TimeInputField({
           setH(next);
           if (next.length === 2 && prevLen < 2) {
             requestAnimationFrame(() => {
-              minuteInputRef.current?.focus();
-              minuteInputRef.current?.select();
+              minuteInputInternalRef.current?.focus();
+              minuteInputInternalRef.current?.select();
             });
           }
         }}
@@ -216,7 +231,7 @@ export function TimeInputField({
         :
       </span>
       <input
-        ref={minuteInputRef}
+        ref={setMinuteInputEl}
         type="text"
         inputMode="numeric"
         autoComplete="off"
@@ -225,7 +240,15 @@ export function TimeInputField({
         aria-label={ariaLabel ? `${ariaLabel} — minuti` : 'Minuti'}
         disabled={disabled}
         value={m}
-        onChange={(e) => setM(digitsOnly(e.target.value, 2))}
+        onChange={(e) => {
+          const next = digitsOnly(e.target.value, 2);
+          const prevLen = m.length;
+          setM(next);
+          if (next.length === 2 && prevLen < 2) {
+            flush();
+            onMinutesEnter?.();
+          }
+        }}
         onBlur={flush}
         onFocus={(e) => e.target.select()}
         onKeyDown={handleMinuteKeyDown}

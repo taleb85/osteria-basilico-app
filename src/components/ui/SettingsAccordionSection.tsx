@@ -52,11 +52,11 @@ export function SettingsAccordionSection({
         onClick={toggle}
         className="-ml-1 mb-3 flex w-full items-center justify-between gap-2 rounded-xl py-2 pl-3 pr-3 text-left transition-all"
         style={{
-          background: 'rgba(15, 35, 90, 0.82)',
-          border: `1px solid ${accentBorder ?? 'rgba(255,255,255,0.18)'}`,
+          background: 'transparent',
+          border: `1.5px solid ${accentBorder ?? 'rgba(255,255,255,0.35)'}`,
         }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.14)'; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.10)'; }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backdropFilter = 'blur(12px)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.backdropFilter = ''; }}
         aria-expanded={open}
       >
         <div className="min-w-0 flex-1">
