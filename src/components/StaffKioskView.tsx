@@ -102,7 +102,7 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="surface-glass p-12 text-center"
+              className="rounded-xl border border-neutral-500 p-12 text-center"
             >
               <p className="text-2xl font-bold text-white mb-6">
                 {t.no_shift_today}
@@ -127,7 +127,7 @@ export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="surface-glass p-8"
+                    className="rounded-xl border border-neutral-500 p-8"
                   >
                     <div className="flex items-center justify-between">
                       <div>

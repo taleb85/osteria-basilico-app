@@ -176,7 +176,7 @@ export default function TimesheetApprovals(props: TimesheetApprovalsProps) {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="w-full max-w-sm rounded-2xl border border-white/15 bg-gray-900 p-6 shadow-2xl"
+            className="w-full max-w-sm rounded-2xl border border-neutral-500 bg-gray-900 p-6 shadow-2xl"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}

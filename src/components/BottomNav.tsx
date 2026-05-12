@@ -462,7 +462,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-sm transition-transform duration-200 ${
                     currentUser?.id === u.id
                       ? 'border border-accent/40 bg-accent/15 text-accent ring-1 ring-accent/30'
-                      : 'border border-white/15'
+                      : 'border border-neutral-500'
                   }`}
                   style={currentUser?.id !== u.id ? { background: 'rgba(15, 35, 90, 0.82)', color: 'rgba(255,255,255,0.7)' } : undefined}
                   >

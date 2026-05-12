@@ -14,7 +14,7 @@ import { withTimeout, TimeoutError } from '../utils/promiseTimeout';
 /** Slug di fallback — usato solo se VITE_TENANT_SLUG è impostato o se c'è sottodominio/path.
  *  In modalità Option B (single-URL) rimane null finché LoginPage chiama loadTenantBySlug. */
 const DEFAULT_SLUG: string | null = null;
-const DEFAULT_ACCENT = '#001A80';
+const DEFAULT_ACCENT = '#6b6b6b';
 
 /**
  * Legge lo slug dal env var, sottodominio, o path URL.
@@ -50,22 +50,20 @@ function hexToHsl(hex: string): [number, number, number] {
   return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
 }
 
-/** Override FLOW: forza il brand blu indipendentemente dal colore del tenant. */
-const FLOW_BRAND_COLOR = '#001A80';
+/** Override FLOW: forza il brand grigio neutro indipendentemente dal colore del tenant. */
+const FLOW_BRAND_COLOR = '#6b6b6b';
 
 /**
- * Shell PWA: unico colore con html/body/manifest (safe area / striscia iOS sotto l’indicatore home).
+ * Shell PWA: colore scuro neutro per safe area.
  */
-const FLOW_PWA_SURFACE_COLOR = '#0d1f3c';
+const FLOW_PWA_SURFACE_COLOR = '#0a0a0c';
 
 /**
- * Variante brand per dark mode: blu più chiaro per garantire contrasto su sfondo scuro.
- * Usata da text-accent, border-accent, bg-accent/* (tinte).
- * I pulsanti bg-accent solidi rimangono #0052FF grazie all'override !important nel CSS.
+ * Variante brand per dark mode: grigio chiaro neutro per garantire contrasto su sfondo scuro.
  */
-const FLOW_BRAND_DARK = '#6699FF';
-const FLOW_BRAND_DARK_RGB = '102 153 255';
-const FLOW_BRAND_DARK_HOVER = '#7AABFF';
+const FLOW_BRAND_DARK = '#9c9c9c';
+const FLOW_BRAND_DARK_RGB = '156 156 156';
+const FLOW_BRAND_DARK_HOVER = '#b0b0b0';
 
 /** Riferimento al MutationObserver per il tema — istanziato una sola volta. */
 let _themeObserver: MutationObserver | null = null;
@@ -86,7 +84,7 @@ function syncBrandToTheme(): void {
     root.style.setProperty('--flow-primary', FLOW_BRAND_DARK);
     root.style.setProperty('--brand-hover',  FLOW_BRAND_DARK_HOVER);
     root.style.setProperty('--accent-hover', FLOW_BRAND_DARK_HOVER);
-    root.style.setProperty('--brand-muted',  'rgb(102 153 255 / 0.12)');
+    root.style.setProperty('--brand-muted',  'rgb(156 156 156 / 0.12)');
   } else {
     const { r, g, b } = hexToRgb(FLOW_BRAND_COLOR);
     const [hue, sat] = hexToHsl(FLOW_BRAND_COLOR);
@@ -105,7 +103,7 @@ function syncBrandToTheme(): void {
 
 /** Applica le CSS variables del brand al documento — genera tutte le varianti shade + nav + shadow. */
 export function applyTenantBrand(_accent: string): void {
-  const accent = FLOW_BRAND_COLOR; // FLOW rebranding — usa sempre il blu elettrico
+  const accent = FLOW_BRAND_COLOR; // FLOW rebranding — usa sempre grigio neutro
   const root = document.documentElement;
   const { r, g, b } = hexToRgb(accent);
   const [hue, sat] = hexToHsl(accent);

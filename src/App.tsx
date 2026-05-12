@@ -77,7 +77,7 @@ function MaintenancePage() {
         L'app è temporaneamente in manutenzione.
       </p>
       <p className="text-white/50 text-sm mb-8">Torneremo attivi tra poco. 👨‍🍳</p>
-      <div className="surface-glass-sm px-4 py-2 text-[11px] text-white/60">
+      <div className="rounded-xl border border-neutral-500 px-4 py-2 text-[11px] text-white/60">
         Per assistenza contatta il responsabile.
       </div>
     </div>
@@ -1052,7 +1052,7 @@ function App() {
               <SuperAdminPanel />
             </Suspense>
           : <div className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
-              <div className="rounded-2xl border border-white/15 p-8 max-w-sm" style={{ background: 'rgba(255, 255, 255, 0.16)' }}>
+              <div className="rounded-2xl border border-neutral-500 p-8 max-w-sm" style={{ background: 'rgba(255, 255, 255, 0.16)' }}>
                 <h1 className="text-2xl font-bold mb-2">SuperAdmin</h1>
                 <p className="text-white/50 text-sm">Se il Super Admin è su un host dedicato, apri l’indirizzo configurato in produzione (stesso build o sottodominio in Cloudflare)</p>
               </div>

@@ -348,7 +348,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
   const builtinValues = new Set(BUILTIN_DEPARTMENTS.map((d) => d.value));
 
   const deptPermissionCategorySelectClass =
-    'w-full min-w-[10rem] max-w-[16rem] rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
+    'w-full min-w-[10rem] max-w-[16rem] rounded-xl border border-neutral-500 bg-white/10 px-3 py-2 text-sm text-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
 
   const updateWorkRule = useCallback(<K extends keyof WorkRules>(key: K, value: WorkRules[K]) => {
     const next = { ...workRules, [key]: value };
@@ -500,14 +500,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="rounded-xl border border-white/15 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
+                  className="rounded-xl border border-neutral-500 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateStaff(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-500 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
                 >
                   <UserPlus className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   {t.admin_add_employee}
@@ -560,7 +560,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               showError?.((t as { copy_failed?: string }).copy_failed ?? 'Copia non riuscita.');
                             }
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-500 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
                         >
                           <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
                           Link accesso
@@ -568,7 +568,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         <button
                           type="button"
                           onClick={() => setEditingUser(user)}
-                          className="rounded-lg border border-white/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
+                          className="rounded-lg border border-neutral-500 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
                         >
                           {t.settings_delegated_view_profile}
                         </button>
@@ -588,7 +588,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                 <button
                                   type="button"
                                   onClick={() => setDeleteConfirmUserId(null)}
-                                  className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/55 hover:bg-white/10 active:bg-white/80"
+                                  className="rounded-lg border border-neutral-500 px-2 py-1 text-[11px] font-semibold text-white/55 hover:bg-white/10 active:bg-white/80"
                                 >
                                   {t.cancel ?? 'Annulla'}
                                 </button>
@@ -685,7 +685,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             type="button"
             onClick={toggleFlowTheme}
             aria-label={theme === 'dark' ? 'Passa a tema chiaro' : 'Passa a tema scuro'}
-            className="inline-flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/15 active:scale-[0.99]"
+            className="inline-flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/15 active:scale-[0.99]"
           >
             {theme === 'dark' ? '☀️' : '🌙'}{' '}
             {theme === 'dark' ? (t.light ?? 'Tema chiaro') : (t.dark ?? 'Tema scuro')}
@@ -715,7 +715,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowCreateStaff(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-500 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
                 >
                   <UserPlus className="w-3.5 h-3.5" aria-hidden />
                   {t.admin_add_employee}
@@ -725,7 +725,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="rounded-xl border border-white/15 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
+                  className="rounded-xl border border-neutral-500 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>
@@ -783,7 +783,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                 e.stopPropagation();
                                 setShareMenuUserId(shareMenuUserId === user.id ? null : user.id);
                               }}
-                              className={`p-1.5 rounded-md border transition-all ${shareMenuUserId === user.id ? 'text-accent border-accent/30 bg-accent/5' : 'text-white/40 border-white/15 hover:text-accent hover:border-accent/30 hover:bg-accent/5'} active:text-accent`}
+                              className={`p-1.5 rounded-md border transition-all ${shareMenuUserId === user.id ? 'text-accent border-accent/30 bg-accent/5' : 'text-white/40 border-neutral-500 hover:text-accent hover:border-accent/30 hover:bg-accent/5'} active:text-accent`}
                             >
                               <Link2 className="w-3.5 h-3.5" />
                             </button>
@@ -801,7 +801,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.92, y: -4 }}
                                     transition={{ duration: 0.13 }}
-                                    className="absolute right-0 top-full mt-1.5 z-[61] w-52 rounded-xl border border-white/15 bg-white/10 shadow-lg overflow-hidden"
+                                    className="absolute right-0 top-full mt-1.5 z-[61] w-52 rounded-xl border border-neutral-500 bg-white/10 shadow-lg overflow-hidden"
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     {/* Copia link accesso */}
@@ -889,7 +889,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                                   <button
                                     type="button"
                                     onClick={() => setDeleteConfirmUserId(null)}
-                                    className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/55 hover:bg-white/10 active:bg-white/80"
+                                    className="rounded-lg border border-neutral-500 px-2 py-1 text-[11px] font-semibold text-white/55 hover:bg-white/10 active:bg-white/80"
                                   >
                                     {t.cancel ?? 'Annulla'}
                                   </button>
@@ -1256,7 +1256,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                               void notifyDepartmentsChanged();
                             }
                           }}
-                          className="min-w-0 flex-1 rounded-xl border border-white/15 px-3 py-2 text-base text-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 sm:min-w-[12rem]"
+                          className="min-w-0 flex-1 rounded-xl border border-neutral-500 px-3 py-2 text-base text-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 sm:min-w-[12rem]"
                         />
                         {!builtinValues.has(editingDeptValue) && (
                           <div>
@@ -1302,7 +1302,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           <button
                             type="button"
                             onClick={() => setEditingDeptValue(null)}
-                            className="surface-glass-sm px-3 py-2 text-xs font-semibold text-white/70 surface-ghost-interactive"
+                            className="rounded-xl border border-neutral-500 px-3 py-2 text-xs font-semibold text-white/70 surface-ghost-interactive"
                           >
                             {t.cancel}
                           </button>
@@ -1340,7 +1340,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       }
                     }}
                     placeholder={t.settings_new_dept_placeholder}
-                    className="min-w-[8rem] flex-1 px-3 py-2 rounded-xl border border-white/15 bg-transparent text-base text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+                    className="min-w-[8rem] flex-1 px-3 py-2 rounded-xl border border-neutral-500 bg-transparent text-base text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
                   />
                   <button
                     type="button"
@@ -1398,7 +1398,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {/* Critico */}
-              <div className="surface-glass-sm depth-card flex flex-col gap-3 p-4">
+              <div className="rounded-xl border border-neutral-500 depth-card flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
                   <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-100">
                     <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
@@ -1429,7 +1429,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
                         placeholder="0"
-                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-neutral-500 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                     <div>
@@ -1441,7 +1441,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         value={workRules.minRestHours}
                         onChange={(e) => updateWorkRule('minRestHours', Math.max(6, Math.min(24, +e.target.value || 11)))}
                         placeholder="0"
-                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-neutral-500 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                   </div>
@@ -1449,7 +1449,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               </div>
 
               {/* Attenzione */}
-              <div className="surface-glass-sm depth-card flex flex-col gap-3 p-4">
+              <div className="rounded-xl border border-neutral-500 depth-card flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
                   <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/15">
                     <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
@@ -1480,7 +1480,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         value={workRules.maxDailyHours}
                         onChange={(e) => updateWorkRule('maxDailyHours', Math.max(4, Math.min(14, +e.target.value || 9)))}
                         placeholder="0"
-                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-neutral-500 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                     <div>
@@ -1492,7 +1492,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         value={workRules.maxWeeklyHours}
                         onChange={(e) => updateWorkRule('maxWeeklyHours', Math.max(20, Math.min(60, +e.target.value || 48)))}
                         placeholder="0"
-                        className="w-full rounded-xl border border-white/15 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="w-full rounded-xl border border-neutral-500 px-2 py-1 text-base font-semibold text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                       />
                     </div>
                   </div>
@@ -1500,7 +1500,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               </div>
 
               {/* Sovrapposizione */}
-              <div className="surface-glass-sm depth-card flex flex-col gap-3 p-4">
+              <div className="rounded-xl border border-neutral-500 depth-card flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
                   <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/15 shadow-[0_0_6px_rgba(239,68,68,0.3)]">
                     <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
@@ -1549,7 +1549,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 return (
                   <div
                     key={rule.id}
-                    className={`surface-glass flex flex-col gap-3 p-4 transition-all ${
+                    className={`rounded-xl border border-neutral-500 flex flex-col gap-3 p-4 transition-all ${
                       isEnabled
                         ? ''
                         : 'border-white/10 opacity-70 bg-white/5'
@@ -1605,7 +1605,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               <button
                 type="button"
                 onClick={() => setCreatingBreakRule(true)}
-                className="surface-glass surface-ghost-interactive flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/15/90 p-4 text-white/55 transition-colors hover:border-accent hover:bg-accent/5 hover:text-accent active:text-accent"
+                className="rounded-xl border border-neutral-500 surface-ghost-interactive flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-neutral-500/90 p-4 text-white/55 transition-colors hover:border-accent hover:bg-accent/5 hover:text-accent active:text-accent"
               >
                 <Plus className="w-6 h-6" />
                 <span className="text-xs font-semibold">{t.settings_break_new_rule}</span>
@@ -1661,7 +1661,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     return (
                       <div
                         key={tmpl.name}
-                        className="surface-glass-sm rounded-lg p-3 flex items-start gap-3"
+                        className="rounded-xl border border-neutral-500 rounded-lg p-3 flex items-start gap-3"
                       >
                         <div className="flex-shrink-0 w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center">
                           <BookTemplate className="h-4 w-4 text-blue-500" />
@@ -1710,7 +1710,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             })()}
             defaultOpen={false}
           >
-            <div className="surface-glass depth-card p-4 space-y-4">
+            <div className="rounded-xl border border-neutral-500 depth-card p-4 space-y-4">
 
               {/* Periodo attivo + bozza */}
               <div className="grid grid-cols-2 gap-3">
@@ -1788,7 +1788,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
                       periodRuleMode === 'last_sunday'
                         ? 'border-accent bg-accent/8'
-                        : 'border-white/15 bg-white/8 hover:border-white/20'
+                        : 'border-neutral-500 bg-white/8 hover:border-white/20'
                     } active:brightness-95`}
                   >
                     <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'last_sunday' ? 'text-accent' : 'text-white/70'}`}>
@@ -1809,7 +1809,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     className={`flex flex-col items-start gap-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
                       periodRuleMode === 'fixed_start'
                         ? 'border-brand-deep bg-brand-deep/8'
-                        : 'border-white/15 bg-white/8 hover:border-white/20'
+                        : 'border-neutral-500 bg-white/8 hover:border-white/20'
                     } active:brightness-95`}
                   >
                     <span className={`text-[11px] font-extrabold uppercase tracking-wide ${periodRuleMode === 'fixed_start' ? 'text-brand-deep' : 'text-white/70'}`}>
@@ -1840,7 +1840,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     allowClear={false}
                     compact
                     aria-label="Primo giorno del periodo"
-                    className="mb-3 w-full !border-white/15 !bg-white/8"
+                    className="mb-3 w-full !border-neutral-500 !bg-white/8"
                   />
                   {/* Preview periodo calcolato dalla data scelta */}
                   {(() => {
@@ -1893,7 +1893,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             subtitle={t.settings_presence_accordion_subtitle}
             defaultOpen={true}
           >
-            <div className="surface-glass depth-card p-4">
+            <div className="rounded-xl border border-neutral-500 depth-card p-4">
               <p className="text-[11px] text-white/55 mb-3 leading-snug">{t.settings_presence_section_hint}</p>
               {(() => {
                 const effectiveTok = resolveEffectiveVerificationToken(presenceVerificationConfig);
@@ -1901,7 +1901,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 const preview =
                   effectiveTok.length > 20 ? `${effectiveTok.slice(0, 20)}…` : effectiveTok || '—';
                 return (
-                  <div className="surface-glass-sm mb-3 space-y-1.5 px-3 py-2">
+                  <div className="rounded-xl border border-neutral-500 mb-3 space-y-1.5 px-3 py-2">
                     <p className="text-[11px] leading-snug text-white/80">
                       {effectiveTok
                         ? formatTrans(t.settings_presence_effective_token_preview, { preview })
@@ -1913,7 +1913,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   </div>
                 );
               })()}
-              <div className="surface-glass-sm mb-3 flex items-center justify-between gap-3 px-3 py-2.5">
+              <div className="rounded-xl border border-neutral-500 mb-3 flex items-center justify-between gap-3 px-3 py-2.5">
                 <span className="text-xs font-semibold text-white">{t.settings_presence_require_label}</span>
                 <button
                   type="button"
@@ -1989,7 +1989,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             subtitle={holidayEmail ? holidayEmail : 'Nessuna email configurata'}
             defaultOpen={false}
           >
-            <div className="surface-glass depth-card p-4 space-y-4">
+            <div className="rounded-xl border border-neutral-500 depth-card p-4 space-y-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-brand-mid/10 text-[#2255BB]">
                   <Mail className="h-4 w-4" />
@@ -2021,7 +2021,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                   onClick={saveHolidayEmail}
                   disabled={holidayEmailDraft.trim() === holidayEmail}
                   className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]"
-                  style={{ background: '#0d3b6e' }}
+                  style={{ background: '#0a0a0c' }}
                 >
                   {holidayEmailSaved ? (
                     <><Check className="h-3.5 w-3.5" />Salvata</>
@@ -2086,7 +2086,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                         ? enabled
                           ? 'border-red-500/40 bg-red-500/15 shadow-[0_0_0_3px_rgba(239,68,68,0.15)]'
                           : 'border-amber-500/30 bg-amber-500/10'
-                        : 'surface-glass shadow-none'
+                        : 'rounded-xl border border-neutral-500 shadow-none'
                     }`}
                   >
                     {/* Card top */}
@@ -2165,7 +2165,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
               })}
             </div>
 
-            <div className="surface-glass mt-4 bg-white/5 p-4">
+            <div className="rounded-xl border border-neutral-500 mt-4 bg-white/5 p-4">
               <div className="mb-2 flex items-center gap-2">
                 <MapPin className="h-4 w-4 flex-shrink-0 text-accent" />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -2195,7 +2195,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     inputMode="decimal"
                     value={geoLat}
                     onChange={(e) => setGeoLat(e.target.value)}
-                    className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-base text-white"
+                    className="rounded-xl border border-neutral-500 bg-white/10 px-3 py-2 text-base text-white"
                     placeholder="45.123456"
                   />
                 </label>
@@ -2206,7 +2206,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     inputMode="decimal"
                     value={geoLng}
                     onChange={(e) => setGeoLng(e.target.value)}
-                    className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-base text-white"
+                    className="rounded-xl border border-neutral-500 bg-white/10 px-3 py-2 text-base text-white"
                     placeholder="9.123456"
                   />
                 </label>
@@ -2217,7 +2217,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     inputMode="numeric"
                     value={geoRadius}
                     onChange={(e) => setGeoRadius(e.target.value)}
-                    className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-base text-white"
+                    className="rounded-xl border border-neutral-500 bg-white/10 px-3 py-2 text-base text-white"
                     placeholder="120"
                   />
                 </label>
@@ -2248,7 +2248,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       setGeoAcquiring(false);
                     }
                   }}
-                  className="inline-flex min-h-[40px] items-center justify-center gap-2 surface-glass-sm px-4 text-xs font-bold uppercase tracking-wider text-white/80 surface-ghost-interactive disabled:opacity-60"
+                  className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border border-neutral-500 px-4 text-xs font-bold uppercase tracking-wider text-white/80 surface-ghost-interactive disabled:opacity-60"
                 >
                   <LocateFixed className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                   {geoAcquiring ? t.ui_ellipsis : t.settings_geofence_acquire_gps}
@@ -2290,13 +2290,13 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             title={t.settings_advanced_tools_admin}
             defaultOpen={false}
           >
-            <div className="surface-glass-sm overflow-hidden">
+            <div className="rounded-xl border border-neutral-500 overflow-hidden">
               <div className="space-y-3 p-4">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-white/40">{t.settings_backup_data_section}</p>
 
                 {dataToolsLocked ? (
                   /* ── Stato bloccato ── */
-                  <div className="flex flex-col items-center gap-3 rounded-xl border border-white/15 bg-white/5/80 py-5 px-4">
+                  <div className="flex flex-col items-center gap-3 rounded-xl border border-neutral-500 bg-white/5/80 py-5 px-4">
                     <Lock className="h-7 w-7 text-white/40" />
                     <p className="text-[12px] text-center text-white/55 leading-snug">
                       Sezione protetta.<br/>Inserisci il tuo PIN per sbloccare.
@@ -2329,14 +2329,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                       <button
                         type="button"
                         onClick={handleImportClick}
-                        className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-white/70 surface-ghost-interactive"
+                        className="rounded-lg rounded-xl border border-neutral-500 px-3 py-2 text-xs font-medium uppercase text-white/70 surface-ghost-interactive"
                       >
                         {t.restore}
                       </button>
                       <button
                         type="button"
                         onClick={() => exportToJSON({ users, shifts, punchRecords, holidays })}
-                        className="rounded-lg surface-glass-sm px-3 py-2 text-xs font-medium uppercase text-white/70 surface-ghost-interactive"
+                        className="rounded-lg rounded-xl border border-neutral-500 px-3 py-2 text-xs font-medium uppercase text-white/70 surface-ghost-interactive"
                       >
                         {t.backup_json}
                       </button>
@@ -2383,7 +2383,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             subtitle="Abilita il tab Admin nella navigazione del profilo"
             defaultOpen={false}
           >
-            <div className="surface-glass-sm overflow-hidden">
+            <div className="rounded-xl border border-neutral-500 overflow-hidden">
               <div className="p-4">
                 <ElevatedAccessPanel />
               </div>
@@ -2514,7 +2514,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                     {affected.map(u => {
                       const initials = ((u.first_name?.[0] ?? '') + (u.last_name?.[0] ?? '')).toUpperCase() || '?';
                       return (
-                        <div key={u.id} className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2">
+                        <div key={u.id} className="flex items-center gap-2 rounded-xl border border-neutral-500 bg-white/10 px-3 py-2">
                           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-[11px] font-bold text-accent">
                             {initials}
                           </div>
@@ -2523,7 +2523,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                           <select
                             value={reassignMap[u.id] ?? ''}
                             onChange={e => setReassignMap(m => ({ ...m, [u.id]: e.target.value }))}
-                            className="min-w-0 max-w-[130px] shrink rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-base font-semibold text-white/80 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/30"
+                            className="min-w-0 max-w-[130px] shrink rounded-lg border border-neutral-500 bg-white/5 px-2 py-1 text-base font-semibold text-white/80 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/30"
                           >
                             <option value="">— nessun reparto —</option>
                             {departments
@@ -2687,12 +2687,12 @@ function BreakRuleModal({
   const labelClass =
     'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/55';
   const inputClass =
-    'w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2.5 text-base font-semibold text-white transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20';
+    'w-full rounded-xl border border-neutral-500 bg-white/10 px-3 py-2.5 text-base font-semibold text-white transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20';
   const chipClass = (active: boolean) =>
     `cursor-pointer px-2.5 py-1 text-xs font-semibold transition-colors ${
       active
         ? 'rounded-full border border-accent bg-accent text-white'
-        : 'surface-glass-sm !rounded-full text-white/70 surface-ghost-interactive hover:border-accent hover:text-accent'
+        : 'rounded-xl border border-neutral-500 !rounded-full text-white/70 surface-ghost-interactive hover:border-accent hover:text-accent'
     }`;
 
   return (
@@ -2750,7 +2750,7 @@ function BreakRuleModal({
                     value={breakStart}
                     onChange={setBreakStart}
                     aria-label={t.settings_break_label_start}
-                    className="w-full border-white/15 bg-white/8"
+                    className="w-full border-neutral-500 bg-white/8"
                   />
                 </div>
                 <div>
@@ -2759,7 +2759,7 @@ function BreakRuleModal({
                     value={breakEnd}
                     onChange={setBreakEnd}
                     aria-label={t.settings_break_label_end}
-                    className="w-full border-white/15 bg-white/8"
+                    className="w-full border-neutral-500 bg-white/8"
                   />
                 </div>
               </div>
@@ -2789,13 +2789,13 @@ function BreakRuleModal({
                     <button
                       type="button"
                       onClick={() => setMinHours((h) => Math.max(0.5, Math.round((h - 0.5) * 10) / 10))}
-                      className="flex h-8 w-8 items-center justify-center surface-glass-sm font-bold text-white/80 surface-ghost-interactive"
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-neutral-500 font-bold text-white/80 surface-ghost-interactive"
                     >−</button>
                     <span className="w-16 text-center text-sm font-bold text-white">{minHours}h</span>
                     <button
                       type="button"
                       onClick={() => setMinHours((h) => Math.min(12, Math.round((h + 0.5) * 10) / 10))}
-                      className="flex h-8 w-8 items-center justify-center surface-glass-sm font-bold text-white/80 surface-ghost-interactive"
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-neutral-500 font-bold text-white/80 surface-ghost-interactive"
                     >+</button>
                   </div>
                 )}

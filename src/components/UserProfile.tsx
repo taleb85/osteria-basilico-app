@@ -244,7 +244,7 @@ export function ProfileFormSelf({
         const scope = getRoleScopeHint(formData.role, tv);
         if (!scope) return null;
         return (
-          <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2.5">
+          <div className="rounded-xl border border-neutral-500 bg-white/8 px-3 py-2.5">
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/45 mb-1">
               {tv.profile_role_scope_label}
             </p>
@@ -369,7 +369,7 @@ export function AdminTimesheetGridPrivacyEditor({ user }: { user: UserType }) {
   };
 
   return (
-    <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-3">
+    <div className="rounded-xl border border-neutral-500 bg-white/8 px-3 py-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-white">
@@ -497,7 +497,7 @@ export function ProfileFormAdmin({
   return (
     <>
       {readOnly && (
-        <p className="mb-4 rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-[11px] text-white/70 font-sans">
+        <p className="mb-4 rounded-xl border border-neutral-500 bg-white/8 px-3 py-2 text-[11px] text-white/70 font-sans">
           {(t as { settings_delegated_readonly_hint?: string }).settings_delegated_readonly_hint ??
             'Solo lettura. Per modifiche contatta un amministratore.'}
         </p>
@@ -623,7 +623,7 @@ export function ProfileFormAdmin({
           const scope = getRoleScopeHint(formData.role, tv);
           if (!scope) return null;
           return (
-            <div className="rounded-xl border border-white/15 bg-white/8 px-3 py-2.5">
+            <div className="rounded-xl border border-neutral-500 bg-white/8 px-3 py-2.5">
               <p className="text-[11px] font-bold uppercase tracking-wider text-white/45 mb-1">
                 {tv.profile_role_scope_label}
               </p>
@@ -754,13 +754,13 @@ export function ProfileFormAdmin({
         </div>
 
         {variant === 'edit' && !isPurelyManagementRole(layoutRole) && !readOnly && canUserEdit(currentUser) && (
-          <div className="surface-glass-sm bg-white/8 p-4">
+          <div className="rounded-xl border border-neutral-500 bg-white/8 p-4">
             <StaffOperationalPermissionsEditor user={user} currentUser={currentUser} />
           </div>
         )}
 
         {variant === 'edit' && (!readOnly || isManagementRole(currentUser.role)) && (
-          <div className="surface-glass-sm space-y-2 bg-white/8 p-3">
+          <div className="rounded-xl border border-neutral-500 space-y-2 bg-white/8 p-3">
             <p className="flex gap-1.5 text-[11px] leading-snug text-white/70 font-sans">
               <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/45" aria-hidden />
               <span>{tv.admin_employee_access_link_hint ?? ''}</span>
@@ -848,7 +848,7 @@ ${accessLink}
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 surface-glass-sm px-4 py-2 text-sm font-semibold text-white/80 surface-ghost-interactive font-sans"
+            className="flex-1 rounded-xl border border-neutral-500 px-4 py-2 text-sm font-semibold text-white/80 surface-ghost-interactive font-sans"
           >
             {readOnly ? t.close ?? t.cancel : t.cancel}
           </button>

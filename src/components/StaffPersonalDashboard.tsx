@@ -824,7 +824,7 @@ export default function StaffPersonalDashboard({
   const renderProfile = () => (
     <div className="space-y-4">
       {uiW('staff_profile.panel') && (
-      <div className="surface-glass">
+      <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500">
         <div className="px-5 py-4 border-b border-slate-100">
           <h3 className="ui-section-title text-white/70">{(t as { profile_settings?: string }).profile_settings ?? 'Impostazioni profilo'}</h3>
         </div>
@@ -916,7 +916,7 @@ export default function StaffPersonalDashboard({
   if (isPurelyManagementRole(displayUser.role)) {
     return (
       <div className="min-h-screen text-white/90 font-sans antialiased flex flex-col items-center justify-center px-6 safe-area-pad" style={{ background: 'transparent' }}>
-        <div className="surface-glass max-w-sm p-8 text-center">
+        <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 max-w-sm p-8 text-center">
           <Shield className="w-14 h-14 text-white/60 mx-auto mb-4" strokeWidth={1.5} />
           <h2 className="text-lg font-bold text-white/90 mb-2">Profilo Gestionale</h2>
           <p className="text-white/60 text-sm">Nessun turno assegnato</p>
@@ -960,11 +960,11 @@ export default function StaffPersonalDashboard({
 
       {activeTab === 'home' && !holidaysFocus && uiW('staff_home.header_kpi') && showHomeKpiStrip && (
         <div className="hidden md:block pb-4 pt-1">
-          <div className="surface-glass p-4">
+          <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl px-4 py-3 text-center"
                 style={{ 
-                  background: 'rgba(15, 35, 90, 0.82)',
+                  background: 'rgba(255, 255, 255, 0.08)',
                   border: '1px solid rgba(255,255,255,0.18)',
                 }}
               >
@@ -973,7 +973,7 @@ export default function StaffPersonalDashboard({
               </div>
               <div className="rounded-2xl px-4 py-3 text-center"
                 style={{ 
-                  background: 'rgba(15, 35, 90, 0.82)',
+                  background: 'rgba(255, 255, 255, 0.08)',
                   border: '1px solid rgba(255,255,255,0.18)',
                 }}
               >

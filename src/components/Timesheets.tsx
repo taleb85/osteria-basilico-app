@@ -95,7 +95,7 @@ import { mergeShiftDeductExclusionsFromLocal } from '../utils/shiftDeductExclusi
 /** Pill reparto: sfondo colore reparto, testo bianco (scurisce il rgb se troppo chiaro per il contrasto). */
 function _departmentChipStyle(hex: string): CSSProperties {
   const raw = hex.replace('#', '').trim();
-  const six = raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw) ? raw : '001A80';
+  const six = raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw) ? raw : '6b6b6b';
   let r = parseInt(six.slice(0, 2), 16);
   let g = parseInt(six.slice(2, 4), 16);
   let b = parseInt(six.slice(4, 6), 16);
@@ -3242,7 +3242,7 @@ export default function Timesheets() {
                             background: 'var(--bg-popover-solid, rgb(5, 14, 60))',
                             color: '#f1f5f9',
                           }}
-                          className="w-64 rounded-xl border border-white/15 shadow-2xl overflow-hidden text-slate-50"
+                          className="w-64 rounded-xl border border-neutral-500 shadow-2xl overflow-hidden text-slate-50"
                         >
                           {/* Header anno con navigazione */}
                           <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 bg-white/5">
@@ -3327,7 +3327,7 @@ export default function Timesheets() {
                       setTsUndoStack(rest);
                       await top.fn();
                     }}
-                    className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold text-white/80 shadow-sm transition-all hover:bg-white/10 active:bg-white/80"
+                    className="inline-flex h-9 max-h-9 min-h-9 lg:h-10 lg:max-h-10 lg:min-h-10 shrink-0 items-center gap-1 rounded-lg border border-neutral-500 px-2 lg:px-2.5 text-[11px] lg:text-xs font-semibold text-white/80 shadow-sm transition-all hover:bg-white/10 active:bg-white/80"
                     style={{ background: 'rgba(255, 255, 255, 0.14)' }}
                     title={tsUndoStack[0]?.label ?? 'Annulla ultima azione'}
                   >
@@ -3425,7 +3425,7 @@ export default function Timesheets() {
                               initial={{ opacity: 0, y: 4, scale: 0.95 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                              className="fixed z-[10050] max-h-[min(70vh,420px)] w-64 overflow-y-auto rounded-xl border border-white/15 p-1 shadow-xl"
+                              className="fixed z-[10050] max-h-[min(70vh,420px)] w-64 overflow-y-auto rounded-xl border border-neutral-500 p-1 shadow-xl"
                               style={{
                                 background: 'var(--bg-popover-solid)',
                                 top: weekApproveDesktopPos.top,
@@ -3734,7 +3734,7 @@ export default function Timesheets() {
                             initial={{ opacity: 0, y: 4, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                            className="hidden lg:block absolute left-0 lg:right-0 lg:left-auto top-full z-[300] mt-1 w-48 rounded-xl border border-white/15 p-1 shadow-xl"
+                            className="hidden lg:block absolute left-0 lg:right-0 lg:left-auto top-full z-[300] mt-1 w-48 rounded-xl border border-neutral-500 p-1 shadow-xl"
                             style={{ background: 'var(--bg-popover-solid)', isolation: 'isolate' }}
                           >
                             <button
@@ -3865,7 +3865,7 @@ export default function Timesheets() {
               });
 
               return (
-                <div key={user.id} className="surface-glass rounded-2xl p-4 shadow-sm border border-white/15 overflow-hidden">
+                <div key={user.id} className="rounded-xl border border-neutral-500 rounded-2xl p-4 shadow-sm border border-neutral-500 overflow-hidden">
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h4 className="font-bold text-lg text-white">{user.first_name}</h4>
@@ -3970,7 +3970,7 @@ export default function Timesheets() {
             >
               <div ref={timesheetHeaderScrollRef} className="overflow-x-hidden">
                 <table
-                  className="w-full table-fixed border-collapse [&_th]:border-white/15"
+                  className="w-full table-fixed border-collapse [&_th]:border-neutral-500"
                   style={{ minWidth: timesheetGridMinWidthPx }}
                 >
                   <colgroup>
@@ -4057,7 +4057,7 @@ export default function Timesheets() {
                 <col style={{ width: timesheetGridTotalColPx }} />
               </colgroup>
               <thead ref={timesheetTheadRef}>
-                <tr className="border-b border-white/15">
+                <tr className="border-b border-neutral-500">
                   <th className="sticky left-0 z-10 box-border py-2 pl-4 pr-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/50 border-r border-r-white/15 md:py-1.5 md:pl-3 md:pr-2" style={{ background: 'rgba(30, 55, 120, 0.80)', boxShadow: 'none' }}>
                     {t.employee}
                   </th>

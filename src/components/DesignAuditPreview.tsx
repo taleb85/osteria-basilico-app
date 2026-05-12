@@ -4,13 +4,13 @@ import FlowWaveIcon from './ui/FlowWaveIcon';
 import { FlowNeonIcon } from './ui/FlowNeonIcon';
 
 const BG_OVERLAYS = [
-  { id: 'splash', label: 'Splash boot / Update / Restart', gradient: 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.22) 0%, transparent 55%), #0d3b6e' },
-  { id: 'install', label: 'Installa PWA', gradient: 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.18) 0%, transparent 60%)' },
-  { id: 'app-bg', label: 'bg-app-bg', color: '#0d3b6e' },
-  { id: 'admin-card', label: 'Admin card', gradient: 'linear-gradient(110deg, rgb(51, 102, 204), rgb(0, 26, 128))' },
-  { id: 'kiosk-btn', label: 'Kiosk button', gradient: 'linear-gradient(135deg, rgb(0, 82, 255), #1a3785)' },
-  { id: 'mobile-home', label: 'MobileHome card', gradient: 'linear-gradient(120deg, #93c5fd, #60a5fa, #3b82f6)' },
-  { id: 'table-header', label: 'Tabella header', gradient: 'linear-gradient(135deg, #1a56db, #0b3573)' },
+  { id: 'splash', label: 'Splash boot / Update / Restart', gradient: 'radial-gradient(ellipse at 50% 30%, rgba(107,107,107,0.15) 0%, transparent 55%), #0a0a0c' },
+  { id: 'install', label: 'Installa PWA', gradient: 'radial-gradient(ellipse at 50% 30%, rgba(107,107,107,0.12) 0%, transparent 60%)' },
+  { id: 'app-bg', label: 'bg-app-bg', color: '#0a0a0c' },
+  { id: 'admin-card', label: 'Admin card', gradient: 'linear-gradient(110deg, rgb(82, 82, 82), rgb(55, 65, 81))' },
+  { id: 'kiosk-btn', label: 'Kiosk button', gradient: 'linear-gradient(135deg, rgb(107, 107, 107), rgb(55, 65, 81))' },
+  { id: 'mobile-home', label: 'MobileHome card', gradient: 'linear-gradient(120deg, #9c9c9c, #6b6b6b, #525252)' },
+  { id: 'table-header', label: 'Tabella header', gradient: 'linear-gradient(135deg, #525252, #374151)' },
   { id: 'table-green', label: 'Riga approvata', gradient: 'linear-gradient(90deg, #e8f4e8, #f0faf0)' },
   { id: 'surface-glass', label: 'surface-glass', css: 'rgba(5,14,60,0.45)' },
   { id: 'popover-solid', label: 'bg-popover-solid', color: 'rgb(21,40,72)' },

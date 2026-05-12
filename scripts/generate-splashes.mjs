@@ -1,6 +1,6 @@
 /**
  * Generates iOS-style splash PNGs. Uses sharp (devDep) to rasterize SVG.
- * Visual: bg #0d3b6e, stacked-bar icon, FLOW, WORK IN MOTION.
+ * Visual: bg #0a0a0c, stacked-bar icon, FLOW, WORK IN MOTION.
  */
 import sharp from 'sharp';
 import { mkdirSync, writeFileSync } from 'fs';
@@ -58,7 +58,7 @@ async function generateSplash(w, h) {
 
   const svg = `
   <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="${w}" height="${h}" fill="#0d3b6e"/>
+    <rect width="${w}" height="${h}" fill="#0a0a0c"/>
     <image href="data:image/svg+xml;base64,${Buffer.from(iconSvg).toString('base64')}"
       x="${Math.round((w - iconSize) / 2)}" y="${iconY}"
       width="${iconSize}" height="${iconSize}"/>

@@ -223,7 +223,7 @@ function PwaIosMock({ dark }: { dark: boolean }) {
       </div>
       <div className="w-full flex flex-col gap-3">
         {steps.map((s, i) => (
-          <div key={i} className={`flex items-center gap-4 rounded-2xl px-4 py-3 backdrop-blur-sm ${dark ? 'bg-white/8 border border-white/15' : 'bg-white/70 border border-white shadow-sm'}`}>
+          <div key={i} className={`flex items-center gap-4 rounded-2xl px-4 py-3 backdrop-blur-sm ${dark ? 'bg-white/8 border border-neutral-500' : 'bg-white/70 border border-white shadow-sm'}`}>
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0 ${dark ? 'bg-white/15 text-white border border-white/20' : 'bg-blue-100 text-blue-700'}`}>{s.icon}</div>
             <div>
               <p className={`font-semibold text-sm ${dark ? 'text-white' : 'text-slate-800'}`}>{s.title}</p>
@@ -232,7 +232,7 @@ function PwaIosMock({ dark }: { dark: boolean }) {
           </div>
         ))}
       </div>
-      <div className={`flex items-center gap-2 rounded-full px-4 py-2 ${dark ? 'bg-white/8 border border-white/15' : 'bg-white/60 border border-white'}`}>
+      <div className={`flex items-center gap-2 rounded-full px-4 py-2 ${dark ? 'bg-white/8 border border-neutral-500' : 'bg-white/60 border border-white'}`}>
         <Smartphone size={14} className={dark ? 'text-white/60' : 'text-slate-400'} />
         <span className={`text-xs ${dark ? 'text-white/60' : 'text-slate-500'}`}>Safari su iPhone / iPad</span>
       </div>
@@ -257,7 +257,7 @@ function PwaAndroidMock({ dark }: { dark: boolean }) {
       </div>
       <div className="w-full flex flex-col gap-3">
         {items.map((s, i) => (
-          <div key={i} className={`flex items-center gap-4 rounded-2xl px-4 py-3 backdrop-blur-sm ${dark ? 'bg-white/8 border border-white/15' : 'bg-white/70 border border-white shadow-sm'}`}>
+          <div key={i} className={`flex items-center gap-4 rounded-2xl px-4 py-3 backdrop-blur-sm ${dark ? 'bg-white/8 border border-neutral-500' : 'bg-white/70 border border-white shadow-sm'}`}>
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0 ${dark ? 'bg-white/15 text-white border border-white/20' : 'bg-blue-100 text-blue-700'}`}>{s.icon}</div>
             <div>
               <p className={`font-semibold text-sm ${dark ? 'text-white' : 'text-slate-800'}`}>{s.title}</p>
@@ -492,7 +492,7 @@ function PwaDesktopMock({ dark }: { dark: boolean }) {
       </div>
       <div className="w-full flex flex-col gap-3">
         {steps.map((s, i) => (
-          <div key={i} className={`flex items-center gap-4 rounded-2xl px-4 py-3 backdrop-blur-sm ${dark ? 'bg-white/8 border border-white/15' : 'bg-white/70 border border-white shadow-sm'}`}>
+          <div key={i} className={`flex items-center gap-4 rounded-2xl px-4 py-3 backdrop-blur-sm ${dark ? 'bg-white/8 border border-neutral-500' : 'bg-white/70 border border-white shadow-sm'}`}>
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0 ${dark ? 'bg-white/15 text-white border border-white/20' : 'bg-blue-100 text-blue-700'}`}>{s.icon}</div>
             <div>
               <p className={`font-semibold text-sm ${dark ? 'text-white' : 'text-slate-800'}`}>{s.title}</p>
@@ -501,7 +501,7 @@ function PwaDesktopMock({ dark }: { dark: boolean }) {
           </div>
         ))}
       </div>
-      <div className={`flex items-center gap-2 rounded-full px-4 py-2 ${dark ? 'bg-white/8 border border-white/15' : 'bg-white/60 border border-white'}`}>
+      <div className={`flex items-center gap-2 rounded-full px-4 py-2 ${dark ? 'bg-white/8 border border-neutral-500' : 'bg-white/60 border border-white'}`}>
         <Monitor size={14} className={dark ? 'text-white/60' : 'text-slate-400'} />
         <span className={`text-xs ${dark ? 'text-white/60' : 'text-slate-500'}`}>Chrome / Edge / Brave su PC</span>
       </div>
@@ -631,7 +631,7 @@ function TurniMock({ dark }: { dark: boolean }) {
               <span className={`text-[8px] font-bold ${dark ? 'text-white/35' : 'text-slate-400'}`}>{d}</span>
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold ${i === 1 ? 'bg-brand-mid text-white' : (dark ? 'text-white/60' : 'text-slate-600')}`}>{nums[i]}</div>
               <div className={`w-full h-10 rounded-lg flex items-center justify-center ${shifts[i] ? (dark ? 'bg-brand-mid/25 border border-brand-mid/40' : 'bg-blue-50 border border-blue-100') : (dark ? 'bg-white/[0.03]' : 'bg-slate-50')}`}>
-                {shifts[i] && <span className={`text-[7px] font-bold text-center leading-tight ${dark ? 'text-[#93c5fd]' : 'text-blue-700'}`}>{shifts[i]}</span>}
+                {shifts[i] && <span className={`text-[7px] font-bold text-center leading-tight ${dark ? 'text-white/70' : 'text-blue-700'}`}>{shifts[i]}</span>}
               </div>
             </div>
           ))}
@@ -734,7 +734,7 @@ function FerieMock({ dark }: { dark: boolean }) {
             </Card>
           ))}
         </div>
-        <button className={`w-full rounded-2xl py-3 text-[11px] font-bold flex items-center justify-center gap-1.5 pointer-events-none ${dark ? 'bg-[#4361EE]/30 border border-[#4361EE]/40 text-[#93c5fd]' : 'bg-blue-600 text-white'}`}>
+        <button className={`w-full rounded-2xl py-3 text-[11px] font-bold flex items-center justify-center gap-1.5 pointer-events-none ${dark ? 'bg-[#4361EE]/30 border border-[#4361EE]/40 text-white/70' : 'bg-blue-600 text-white'}`}>
           + Richiedi ferie
         </button>
       </div>
@@ -749,14 +749,14 @@ function ProfiloMock({ dark }: { dark: boolean }) {
   return (
     <div data-theme={dark ? undefined : 'light'} className="h-full flex flex-col font-sans" style={{ background: bg }}>
       <div className={`shrink-0 px-5 pt-10 pb-5 flex flex-col items-center gap-3 border-b ${dark ? 'border-white/8' : 'border-black/5'}`}>
-        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black ${dark ? 'bg-white/12 text-white border border-white/15' : 'bg-blue-100 text-blue-600'}`}>M</div>
+        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black ${dark ? 'bg-white/12 text-white border border-neutral-500' : 'bg-blue-100 text-blue-600'}`}>M</div>
         <div className="flex flex-col items-center gap-0.5">
           <p className={`text-sm font-bold ${dark ? 'text-white' : 'text-slate-800'}`}>Marco Rossi</p>
           <p className={`text-[9px] ${dark ? 'text-white/40' : 'text-slate-400'}`}>Staff · Cucina</p>
         </div>
         <div className="flex gap-2">
           {['Manager', 'Attivo'].map((l, i) => (
-            <span key={i} className={`text-[8px] font-bold px-2.5 py-0.5 rounded-full ${dark ? 'bg-white/10 border border-white/15 text-white/60' : 'bg-slate-100 text-slate-600'}`}>{l}</span>
+            <span key={i} className={`text-[8px] font-bold px-2.5 py-0.5 rounded-full ${dark ? 'bg-white/10 border border-neutral-500 text-white/60' : 'bg-slate-100 text-slate-600'}`}>{l}</span>
           ))}
         </div>
       </div>
@@ -823,7 +823,7 @@ function DesktopShell({ dark, active, children }: { dark: boolean; active: strin
             <div key={item.id}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                 item.id === active
-                  ? (dark ? 'bg-[#4361EE]/25 text-[#93c5fd] border border-[#4361EE]/30' : 'bg-blue-600 text-white')
+                  ? (dark ? 'bg-[#4361EE]/25 text-white/70 border border-[#4361EE]/30' : 'bg-blue-600 text-white')
                   : (dark ? 'text-white/50 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-50')
               } active:bg-white/5'/80`}>
               <div className={`w-4 h-4 rounded ${item.id === active ? '' : (dark ? 'bg-white/20' : 'bg-slate-200')}`} />
@@ -956,12 +956,12 @@ function DTurniMock({ dark }: { dark: boolean }) {
             <div key={si} className={`grid border-b last:border-0 ${dark ? 'border-white/[0.06]' : 'border-slate-50'}`}
               style={{ gridTemplateColumns: `140px repeat(7, 1fr)` }}>
               <div className={`flex items-center gap-2 px-4 py-2 ${dark ? 'bg-white/[0.02]' : 'bg-slate-50/50'}`}>
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${dark ? 'bg-brand-mid/30 text-[#93c5fd]' : 'bg-blue-100 text-blue-600'}`}>{s[0]}</div>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${dark ? 'bg-brand-mid/30 text-white/70' : 'bg-blue-100 text-blue-600'}`}>{s[0]}</div>
                 <span className={`text-[10px] font-semibold ${dark ? 'text-white/70' : 'text-slate-700'}`}>{s}</span>
               </div>
               {grid[si].map((cell, ci) => (
                 <div key={ci} className="px-1 py-2 flex items-center justify-center">
-                  {cell && <div className={`w-full rounded-lg py-1 text-center text-[9px] font-bold ${dark ? 'bg-brand-mid/20 text-[#93c5fd] border border-brand-mid/30' : 'bg-blue-50 text-blue-700 border border-blue-100'}`}>{cell}</div>}
+                  {cell && <div className={`w-full rounded-lg py-1 text-center text-[9px] font-bold ${dark ? 'bg-brand-mid/20 text-white/70 border border-brand-mid/30' : 'bg-blue-50 text-blue-700 border border-blue-100'}`}>{cell}</div>}
                 </div>
               ))}
             </div>
@@ -1060,7 +1060,7 @@ function DFerieMock({ dark }: { dark: boolean }) {
                   <span className={`text-xs font-bold ${dark ? 'text-white/60' : 'text-slate-500'}`}>Seleziona…</span>
                 </div>
               ))}
-              <button className={`w-full rounded-xl py-2.5 text-xs font-bold mt-1 pointer-events-none ${dark ? 'bg-[#4361EE]/30 border border-[#4361EE]/40 text-[#93c5fd]' : 'bg-blue-600 text-white'}`}>
+              <button className={`w-full rounded-xl py-2.5 text-xs font-bold mt-1 pointer-events-none ${dark ? 'bg-[#4361EE]/30 border border-[#4361EE]/40 text-white/70' : 'bg-blue-600 text-white'}`}>
                 Invia richiesta
               </button>
             </div>
@@ -1078,14 +1078,14 @@ function DProfiloMock({ dark }: { dark: boolean }) {
         {/* Sidebar profilo */}
         <div className="flex flex-col gap-4">
           <Card dark={dark} className="flex flex-col items-center gap-3 py-5">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black ${dark ? 'bg-white/12 text-white border border-white/15' : 'bg-blue-100 text-blue-600'}`}>M</div>
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black ${dark ? 'bg-white/12 text-white border border-neutral-500' : 'bg-blue-100 text-blue-600'}`}>M</div>
             <div className="text-center">
               <p className={`text-sm font-bold ${dark ? 'text-white' : 'text-slate-800'}`}>Marco Rossi</p>
               <p className={`text-xs ${dark ? 'text-white/40' : 'text-slate-400'}`}>Staff · Cucina</p>
             </div>
             <div className="flex gap-2">
               {['Manager', 'Attivo'].map((l, i) => (
-                <span key={i} className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${dark ? 'bg-white/10 border border-white/15 text-white/60' : 'bg-slate-100 text-slate-600'}`}>{l}</span>
+                <span key={i} className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${dark ? 'bg-white/10 border border-neutral-500 text-white/60' : 'bg-slate-100 text-slate-600'}`}>{l}</span>
               ))}
             </div>
           </Card>
@@ -1618,7 +1618,7 @@ export default function ScreensPreview() {
             {/* Label + toggle dark/light */}
             <div className="flex items-center gap-3">
               <p className="text-white/50 text-xs font-bold uppercase tracking-widest">{openTab?.label}</p>
-              <div className="flex rounded-full overflow-hidden border border-white/15 text-xs font-semibold">
+              <div className="flex rounded-full overflow-hidden border border-neutral-500 text-xs font-semibold">
                 <button
                   onClick={() => setIsDark(true)}
                   className={`px-3 py-1 transition-all ${isDark ? 'bg-neutral-700 text-white' : 'text-white/40 hover:text-white/60'} active:text-white/60'}`}

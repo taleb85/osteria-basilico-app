@@ -37,7 +37,7 @@ export type RoleFeatureTemplatesPanelVariant = 'page' | 'embedded';
 type Props = { variant?: RoleFeatureTemplatesPanelVariant };
 
 function roleColor(role: string): string {
-  if (role === 'manager') return '#0052FF';
+  if (role === 'manager') return '#6b6b6b';
   if (role === 'assistant_manager') return '#0284C7';
   return '#059669';
 }
@@ -362,7 +362,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.12 }}
                 style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 99999 }}
-                className="rounded-2xl border border-white/15 bg-[#0d1f3c]/95 shadow-xl p-3 w-[280px] font-sans"
+                className="rounded-2xl border border-neutral-500 bg-[#0d1f3c]/95 shadow-xl p-3 w-[280px] font-sans"
               >
                 <p className="text-[9px] font-bold uppercase tracking-wider text-white/50 mb-2">
                   Anteprima — {previewTitle}
@@ -386,7 +386,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
       className={`rounded-lg border px-2.5 py-2 text-[10px] leading-tight space-y-0.5 flex-1 ${
         active
           ? 'border-accent/40 bg-accent/[0.06] text-white/85'
-          : 'border-white/15 bg-white/8 text-white/50'
+          : 'border-neutral-500 bg-white/8 text-white/50'
       }`}
     >
       {label && (
@@ -550,7 +550,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
         className={`rounded-lg border px-2.5 py-2 text-[10px] leading-tight space-y-0.5 transition-all ${
           active
             ? 'border-accent/40 bg-accent/[0.06]'
-            : 'border-white/15 bg-white/8'
+            : 'border-neutral-500 bg-white/8'
         }`}
         style={{ minWidth: 110 }}
       >
@@ -656,7 +656,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
                 exit={{ opacity: 0, y: 4, scale: 0.97 }}
                 transition={{ duration: 0.15 }}
                 style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 99999 }}
-                className="rounded-2xl border border-white/15 bg-[#0d1f3c]/95 shadow-xl p-3 w-[280px] font-sans"
+                className="rounded-2xl border border-neutral-500 bg-[#0d1f3c]/95 shadow-xl p-3 w-[280px] font-sans"
               >
                 <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-2">
                   Anteprima cella presenze
@@ -703,7 +703,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   );
 
   const renderMobileView = () => (
-    <div className="sm:hidden surface-glass-sm overflow-hidden rounded-2xl">
+    <div className="sm:hidden rounded-xl border border-neutral-500 overflow-hidden rounded-2xl">
       {/* User chips */}
       <div className="overflow-x-auto flex gap-2 px-3 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.14)' }}>
         {nonAdminUsers.map(u => {
@@ -714,7 +714,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
               key={u.id}
               type="button"
               onClick={() => setMobileSelectedUserId(u.id)}
-              className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl border transition-all ${isSelected ? 'border-accent/40 bg-accent/8' : 'border-white/15 bg-white/8'}`}
+              className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl border transition-all ${isSelected ? 'border-accent/40 bg-accent/8' : 'border-neutral-500 bg-white/8'}`}
             >
               <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-[11px] font-bold" style={{ backgroundColor: color }}>
                 {initials(u)}
@@ -813,7 +813,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
   );
 
   const renderMatrix = () => (
-    <div className="hidden sm:block surface-glass-sm overflow-hidden rounded-2xl">
+    <div className="hidden sm:block rounded-xl border border-neutral-500 overflow-hidden rounded-2xl">
       <div className="overflow-x-auto">
         <table className="border-collapse text-sm" style={{ minWidth: `${Math.max(640, 200 + nonAdminUsers.length * 90)}px`, width: '100%' }}>
 

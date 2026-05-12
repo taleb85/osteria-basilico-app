@@ -561,7 +561,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
             {/* Invite banner */}
             {isInviteLink && (
-              <div className="rounded-xl px-3 py-2.5 text-xs text-white/80 space-y-1" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}>
+              <div className="rounded-xl px-3 py-2.5 text-xs text-white/80 space-y-1" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid #525252' }}>
                 <p className="font-semibold text-white">{t.login_invite_banner}</p>
                 {inviteUserId && !linkedUser && users.length > 0 && (
                   <p className="text-xs text-amber-300">
@@ -591,7 +591,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 aria-label={t.login_name_label}
                 autoComplete="name"
                 className="w-full pl-10 pr-4 py-3.5 rounded-2xl text-white text-base uppercase placeholder:normal-case placeholder:text-white/35 placeholder:text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 transition-all"
-                style={{ background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' }}
+                style={{ background: 'rgba(255,255,255,0.09)', border: '1px solid #525252' }}
               />
             </div>
 
@@ -617,8 +617,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 placeholder={t.login_password_label ?? 'Password'}
                 aria-label={t.login_password_label}
                 style={!showPassword
-                  ? ({ WebkitTextSecurity: 'disc', background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' } as CSSProperties)
-                  : { background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.10)' }}
+                  ? ({ WebkitTextSecurity: 'disc', background: 'rgba(255,255,255,0.09)', border: '1px solid #525252' } as CSSProperties)
+                  : { background: 'rgba(255,255,255,0.09)', border: '1px solid #525252' }}
                 className="w-full pl-10 pr-10 py-3.5 rounded-2xl text-white text-base placeholder:text-white/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 transition-all"
               />
               <button
@@ -662,8 +662,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               type="button"
               onClick={handleLogin}
               disabled={!staffName.trim() || !password.trim() || isLoading || deviceLoading || linkDeviceLoading}
-              className="w-full py-3.5 rounded-2xl text-white font-semibold text-sm active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-blue-900/40"
-              style={{ background: 'rgb(0, 82, 255)', border: '1px solid rgba(120,170,255,0.28)' }}
+              className="w-full py-3.5 rounded-2xl text-white font-semibold text-sm active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+              style={{ background: '#525252', border: '1px solid #6b6b6b' }}
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -690,7 +690,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     onClick={handleDeviceLogin}
                     disabled={deviceLoading || isLoading || linkDeviceLoading}
                     className="w-full py-3.5 rounded-2xl text-white/75 font-medium text-sm active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.11)' }}
+                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid #525252' }}
                   >
                     {deviceLoading ? (
                       <Loader2 className="w-4.5 h-4.5 animate-spin" />
@@ -708,7 +708,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     disabled={linkDeviceLoading || isLoading || deviceLoading}
                     title={t.login_device_link_title}
                     className="w-full py-2.5 rounded-xl text-white/45 text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                    style={{ background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    style={{ background: 'rgba(255, 255, 255, 0.12)', border: '1px solid #525252' }}
                   >
                     {linkDeviceLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                     {t.login_device_link_btn}

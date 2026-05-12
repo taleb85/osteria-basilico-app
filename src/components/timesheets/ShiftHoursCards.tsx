@@ -258,7 +258,7 @@ export function ShiftHoursCards({
                   </>
                 )}
               </p>
-              <div className="mt-2 space-y-0.5 border-t border-white/15 pt-2">
+              <div className="mt-2 space-y-0.5 border-t border-neutral-500 pt-2">
                 <p className="text-[11px] leading-snug text-white/55">
                   <span className="font-semibold text-white/45">{t.ts_punch_source_row_in}</span>{' '}
                   {punchSourceLabel(s.punchInSource, t)}

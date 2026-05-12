@@ -215,7 +215,7 @@ export default function HeaderTodayCoworkersCard() {
                   className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 text-center"
                 >
                   <div
-                    className="relative shrink-0 rounded-xl surface-glass-sm"
+                    className="relative shrink-0 rounded-xl rounded-xl border border-neutral-500"
                     title={`${ringTitle}${timeCaption ? ` · ${timeCaption}` : ''}`}
                   >
                     <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-slate-50">

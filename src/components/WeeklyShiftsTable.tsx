@@ -2227,7 +2227,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           </div>{/* end wrapper nav+chip */}
 
           {/* ── Chip selettore periodo (come in Presenze) ── */}
-          <div className="hidden w-full min-w-0 flex-nowrap items-center justify-start gap-1 border-t border-white/15 pt-2 md:flex md:w-auto md:border-none md:border-t-0 md:pl-0 md:pt-0">
+          <div className="hidden w-full min-w-0 flex-nowrap items-center justify-start gap-1 border-t border-neutral-500 pt-2 md:flex md:w-auto md:border-none md:border-t-0 md:pl-0 md:pt-0">
             <div className="relative">
               <div className="ui-toolbar-group">
                 <button
@@ -2658,7 +2658,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             active ? 'bg-accent/10 text-accent font-semibold' : 'text-white/85 hover:bg-white/10'
                           } active:bg-white/10'/80`}
                         >
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-white/8">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-neutral-500 bg-white/8">
                             <Icon className={`h-3.5 w-3.5 ${active ? 'text-accent' : 'text-white/50'}`} strokeWidth={2.25} />
                           </span>
                           {label}
@@ -2674,7 +2674,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         }}
                         className="w-full px-2 py-1.5 text-left text-[11px] text-white/50 hover:bg-white/10 flex items-center gap-2 border-t border-white/10 active:bg-white/80"
                       >
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-white/8">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-neutral-500 bg-white/8">
                           <X className="h-3.5 w-3.5 text-white/50" strokeWidth={2.25} />
                         </span>
                         {t.filter_all}
@@ -2782,7 +2782,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         ].map(({ ringCls, dot, label, sub }) => (
                           <div key={label} className="flex items-center gap-3 px-3 py-2">
                             <span
-                              className={`flex h-8 w-[3.25rem] shrink-0 items-center justify-center surface-glass-sm ${ringCls}`}
+                              className={`flex h-8 w-[3.25rem] shrink-0 items-center justify-center rounded-xl border border-neutral-500 ${ringCls}`}
                             >
                               <span className={`h-2.5 w-2.5 rounded-full ${dot} shadow-sm`} />
                             </span>
@@ -2812,7 +2812,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         }}
                         allowClear={false}
                         aria-label={t.ts_period_start}
-                        className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 surface-glass-sm px-2 text-[13px] text-white surface-ghost-interactive [&_svg]:h-3 [&_svg]:w-3"
+                        className="!h-[34px] !min-h-[34px] !max-h-[34px] w-full justify-between gap-2 rounded-xl border border-neutral-500 px-2 text-[13px] text-white surface-ghost-interactive [&_svg]:h-3 [&_svg]:w-3"
                       />
                       <div className="mt-2 flex gap-1">
                         <button
@@ -3229,7 +3229,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               ) : (
                 <ul className="space-y-2">
                   {[...hiddenDates].sort().map((date) => (
-                    <li key={date} className="flex items-center justify-between rounded-xl border border-white/15 bg-white/8 px-3 py-2">
+                    <li key={date} className="flex items-center justify-between rounded-xl border border-neutral-500 bg-white/8 px-3 py-2">
                       <span className="text-sm font-semibold text-white/85">
                         {new Date(date + 'T12:00:00').toLocaleDateString(getIntlLocale(effectiveLanguage), { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
                       </span>
@@ -3402,11 +3402,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   )}
                 </ul>
                 {canUseShiftManagementChrome && (
-                  <div className="flex items-center justify-end gap-3 px-4 py-3 border-t border-white/15 bg-white/10 flex-shrink-0 rounded-b-xl">
+                  <div className="flex items-center justify-end gap-3 px-4 py-3 border-t border-neutral-500 bg-white/10 flex-shrink-0 rounded-b-xl">
                     <button
                       type="button"
                       onClick={() => { setShowEditViewModal(false); setEditingNameUserId(null); setDraggingEditViewUserId(null); setDropTargetEditViewIdx(null); }}
-                      className="surface-glass-sm px-4 py-2 text-xs font-semibold uppercase text-white/70 surface-ghost-interactive transition-colors"
+                      className="rounded-xl border border-neutral-500 px-4 py-2 text-xs font-semibold uppercase text-white/70 surface-ghost-interactive transition-colors"
                     >
                       {t.cancel}
                     </button>
@@ -3456,7 +3456,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               <button
                 type="button"
                 onClick={() => setPeriodPanOffsetWeeks((p) => p - displayPeriodConfig.numWeeks)}
-                className="shrink-0 w-8 flex items-center justify-center border-r border-white/15 bg-transparent text-white/50 transition-colors hover:bg-white/10 active:bg-white/15"
+                className="shrink-0 w-8 flex items-center justify-center border-r border-neutral-500 bg-transparent text-white/50 transition-colors hover:bg-white/10 active:bg-white/15"
                 aria-label={t.wst_month_prev_aria}
               >
                 <ChevronLeft className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -3470,7 +3470,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
               <button
                 type="button"
                 onClick={() => setPeriodPanOffsetWeeks((p) => p + displayPeriodConfig.numWeeks)}
-                className="shrink-0 w-8 flex items-center justify-center border-l border-white/15 bg-transparent text-white/50 transition-colors hover:bg-white/10 active:bg-white/15"
+                className="shrink-0 w-8 flex items-center justify-center border-l border-neutral-500 bg-transparent text-white/50 transition-colors hover:bg-white/10 active:bg-white/15"
                 aria-label={t.wst_month_next_aria}
               >
                 <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -3483,7 +3483,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2 }}
                     exit={{ opacity: 0, scale: 0.9 }}
-                    className="flex items-center gap-1 px-1.5 flex-shrink-0 border-l border-white/15"
+                    className="flex items-center gap-1 px-1.5 flex-shrink-0 border-l border-neutral-500"
                   >
                     {pendingSaves > 0 ? (
                       <>
@@ -3522,30 +3522,30 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         ? `${format(day, 'EEEE d MMMM yyyy', { locale: getDateLocale(effectiveLanguage) ?? it })} — ${trBar.ts_payroll_day_abbr ?? 'Paga'}`
                         : '';
                       const dateBarTitle = payrollTitleBar || undefined;
-                      const dayBarCellClass = `flex-1 flex h-[30px] min-h-[30px] max-h-[30px] min-w-0 items-center justify-center gap-0.5 sm:gap-1 snap-center whitespace-nowrap font-inherit rounded-md border-2 border-slate-300 ${
+                      const dayBarCellClass = `flex-1 flex h-[30px] min-h-[30px] max-h-[30px] min-w-0 items-center justify-center gap-0.5 sm:gap-1 snap-center whitespace-nowrap font-inherit rounded-md border-2 border-neutral-500 ${
                         hiddenDates.has(dayStr)
                           ? 'bg-white/15'
                           : isPayrollDayBar
                             ? 'bg-cyan-600/8 ring-1 ring-inset ring-cyan-600/25'
                             : isTodayDate
-                              ? 'bg-accent/10 ring-1 ring-inset ring-accent/45'
+                              ? 'bg-white/20 ring-1 ring-inset ring-white/35'
                               : ''
-                      } ${sidebarOpen && sidebarDay === dayStr ? 'ring-2 ring-inset ring-accent/50' : ''} ${isManagement ? 'select-none' : ''}`;
+                      } ${sidebarOpen && sidebarDay === dayStr ? 'ring-2 ring-inset ring-white/40' : ''} ${isManagement ? 'select-none' : ''}`;
                       const dayBarInner = (
                         <span className="inline-flex min-h-0 max-h-full items-center justify-center gap-0.5 sm:gap-1">
                           {canShiftOps && hiddenDates.has(dayStr) && (
                             <EyeOff className="h-3 w-3 shrink-0 text-white/40" />
                           )}
                           <span
-                            className={`shrink-0 text-[11px] sm:text-[11px] font-bold uppercase tabular-nums leading-none ${hiddenDates.has(dayStr) ? 'text-white/30' : isTodayDate ? 'text-accent' : 'text-white/60'}`}
+                            className={`shrink-0 text-[11px] sm:text-[11px] font-bold uppercase tabular-nums leading-none ${hiddenDates.has(dayStr) ? 'text-white/30' : isTodayDate ? 'text-white' : 'text-white/60'}`}
                           >
                             {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it }).toUpperCase()}
                           </span>
                           <span
-                            className={`shrink-0 text-center font-extrabold tabular-nums leading-none ${hiddenDates.has(dayStr) ? 'text-[11px] sm:text-[11px] text-white/25' : isTodayDate ? 'text-[11px] sm:text-[11px] text-accent' : 'text-[11px] sm:text-[11px] text-white/80'}`}
+                            className={`shrink-0 text-center font-extrabold tabular-nums leading-none ${hiddenDates.has(dayStr) ? 'text-[11px] sm:text-[11px] text-white/25' : isTodayDate ? 'text-[11px] sm:text-[11px] text-white' : 'text-[11px] sm:text-[11px] text-white/80'}`}
                           >
                             {format(day, 'd')}
-                            <span className={`font-semibold ${hiddenDates.has(dayStr) ? 'text-white/25' : isTodayDate ? 'text-accent/70' : 'text-white/40'}`}>
+                            <span className={`font-semibold ${hiddenDates.has(dayStr) ? 'text-white/25' : isTodayDate ? 'text-white/60' : 'text-white/40'}`}>
                               /{format(day, 'M')}
                             </span>
                           </span>
@@ -3584,7 +3584,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2 }}
                     exit={{ opacity: 0, scale: 0.9 }}
-                    className="pointer-events-none absolute right-8 top-1/2 z-40 flex h-5 -translate-y-1/2 items-center gap-0.5 rounded-full border border-white/15 bg-white/8 py-0 pl-1 pr-1.5 text-[11px] shadow-sm backdrop-blur-sm"
+                    className="pointer-events-none absolute right-8 top-1/2 z-40 flex h-5 -translate-y-1/2 items-center gap-0.5 rounded-full border border-neutral-500 bg-white/8 py-0 pl-1 pr-1.5 text-[11px] shadow-sm backdrop-blur-sm"
                   >
                     {pendingSaves > 0 ? (
                       <>
@@ -3652,7 +3652,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           >
           <div className="min-w-[640px] overflow-hidden rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255,255,255,0.12)' }}>
             {/* Intestazione giorni settimana */}
-            <div className="grid grid-cols-7 border-b border-white/15" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
+            <div className="grid grid-cols-7 border-b border-neutral-500" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
               {allWeekDays.slice(0, 7).map((d, i) => (
                 <div
                   key={d.toString()}
@@ -3753,7 +3753,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           {flatHeaderSticky && (
             <div
               ref={flatMirrorHeaderRef}
-              className="sticky z-[200] rounded-b-xl overflow-hidden border-x border-b border-white/15 mb-1"
+              className="sticky z-[200] rounded-b-xl overflow-hidden border-x border-b border-neutral-500 mb-1"
               style={{ top: 'var(--app-sticky-header-offset)', background: 'rgba(42, 74, 138, 0.55)' }}
             >
               <div ref={flatHeaderScrollRef} className="overflow-x-hidden">
@@ -3763,9 +3763,9 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                     {allWeekDays.map((_, ci) => <col key={ci} />)}
                   </colgroup>
                   <thead>
-                    <tr style={{ background: 'rgba(42, 74, 138, 0.55)' }}>
-                      <th className="text-left px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white border-r border-white/20"
-                        style={{ background: 'rgba(42, 74, 138, 0.55)' }}>
+                    <tr style={{ background: 'rgba(255, 255, 255, 0.08)' }}>
+                      <th className="text-left px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white/70 border-r border-white/20"
+                        style={{ background: 'rgba(255, 255, 255, 0.08)' }}>
                         Staff
                       </th>
                       {allWeekDays.map((day, di) => {
@@ -3773,13 +3773,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         return (
                           <th key={di} className="text-center px-2 py-2"
                             style={{
-                              background: isTodayDH ? 'rgba(51,102,204,0.25)' : 'rgba(42, 74, 138, 0.55)',
+                              background: isTodayDH ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.08)',
                               borderRight: di < allWeekDays.length - 1 ? '1px solid rgba(255, 255, 255, 0.15)' : undefined,
                             }}>
-                            <div className={`text-[11px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-cyan-300' : 'text-white/50'}`}>
+                            <div className={`text-[11px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-white' : 'text-white/50'}`}>
                               {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it })}
                             </div>
-                            <div className={`text-[13px] font-black tabular-nums ${isTodayDH ? 'text-white' : 'text-white'}`}>
+                            <div className={`text-[13px] font-black tabular-nums text-white`}>
                               {format(day, 'd/MM')}
                             </div>
                           </th>
@@ -3794,7 +3794,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           <div
             ref={flatBodyScrollRef}
             className="overflow-hidden rounded-2xl"
-            style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(42, 74, 138, 0.55)' }}
+            style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255, 255, 255, 0.06)' }}
           >
             {(() => {
               const _isDarkGrid = true;
@@ -3823,13 +3823,13 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         style={{
                           borderBottom: headBorder,
                           borderRight: di < allWeekDays.length - 1 ? cellBorder : undefined,
-                          background: isTodayDH ? 'rgba(0, 82, 255, 0.25)' : undefined,
+                          background: isTodayDH ? 'rgba(255, 255, 255, 0.12)' : undefined,
                         }}
                       >
-                        <div className={`text-[11px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-accent/70' : 'text-white/40'}`}>
+                        <div className={`text-[11px] font-bold uppercase tracking-widest mb-0.5 ${isTodayDH ? 'text-white/80' : 'text-white/40'}`}>
                           {format(day, 'EEE', { locale: getDateLocale(effectiveLanguage) ?? it })}
                         </div>
-                        <div className={`text-[13px] font-black tabular-nums ${isTodayDH ? 'text-accent' : 'text-white/70'}`}>
+                        <div className={`text-[13px] font-black tabular-nums ${isTodayDH ? 'text-white' : 'text-white/70'}`}>
                           {format(day, 'd/MM')}
                         </div>
                       </th>
@@ -4016,7 +4016,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                       e.stopPropagation();
                                       setCreatingShift({ userId: user.id, date: dayStr, defaultTime });
                                     }}
-                                    className="w-full rounded-md flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity border border-dashed border-slate-300 text-white/40 hover:border-cyan-600/40 hover:text-cyan-300 text-[16px] font-light active:opacity-90"
+                                    className="w-full rounded-md flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity border border-dashed border-neutral-500 text-white/40 hover:border-cyan-600/40 hover:text-cyan-300 text-[16px] font-light active:opacity-90"
                                     style={{ height: '28px' }}
                                   >
                                     +
@@ -4241,7 +4241,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           return (
                             <td
                               key={dayStr}
-                              className="px-0 py-0 min-w-0 snap-start bg-amber-500/10 border-r border-white/15"
+                              className="px-0 py-0 min-w-0 snap-start bg-amber-500/10 border-r border-neutral-500"
                               style={{ width: `calc(100% / ${allWeekDays.length})` }}
                             >
                               <motion.div
@@ -4331,7 +4331,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                 className={`flex flex-col focus:outline-none ${
                                   dayShift
                                     ? dayVariant === 'planned'
-                                      ? 'border-b-2 border-dashed border-slate-300'
+                                      ? 'border-b-2 border-dashed border-neutral-500'
                                       : dayVariant === 'inprogress'
                                         ? 'border-b-2 border-brand-electric/60'
                                         : dayVariant === 'punchMissing'
@@ -5309,7 +5309,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             ? 'border-2 border-l-4 border-cyan-600/25 border-l-brand-electric bg-cyan-600/8'
                             : hasIn
                             ? 'border-2 border-l-4 border-amber-300/80 border-l-review bg-amber-500/10'
-                            : 'border-2 border-l-4 border-white/15 border-l-white/30 bg-white/8';
+                            : 'border-2 border-l-4 border-neutral-500 border-l-white/30 bg-white/8';
                           const labelCls = hasIn && hasOut
                             ? 'text-cyan-300'
                             : hasIn
@@ -5359,7 +5359,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                             ? delta! >= 0
                               ? 'border-2 border-l-4 border-cyan-600/25 border-l-brand-electric bg-cyan-600/8'
                               : 'border-2 border-l-4 border-amber-300/80 border-l-review bg-amber-500/10'
-                            : 'border-2 border-l-4 border-white/15 border-l-white/30 bg-white/8';
+                            : 'border-2 border-l-4 border-neutral-500 border-l-white/30 bg-white/8';
                           const hoursLabelCls = actualNetMins != null && plannedNetMins != null
                             ? delta! >= 0 ? 'text-cyan-300' : 'text-amber-400'
                             : 'text-white/40';
@@ -5400,7 +5400,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         {!isFrozen && !isAbsent && (canManageDrafts || canApproveShifts) && (
                           <div>
                             <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-2">{t.filter_status}</p>
-                            <div className="flex gap-1 rounded-lg border border-white/15 bg-white/8 p-1">
+                            <div className="flex gap-1 rounded-lg border border-neutral-500 bg-white/8 p-1">
                               {[
                                 { st: 'draft' as const, label: t.status_draft, cls: 'text-white/70', need: 'draft' as const },
                                 {
@@ -5425,7 +5425,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     }}
                                     className={`min-h-[36px] flex-1 rounded-md px-2 py-1.5 text-center text-[13px] font-semibold leading-none transition-colors ${
                                       active
-                                        ? 'border border-white/15 bg-white/10 shadow-sm ' + cls
+                                        ? 'border border-neutral-500 bg-white/10 shadow-sm ' + cls
                                         : canClick
                                           ? 'text-white/40 hover:bg-white/10 hover:text-white/70'
                                           : 'cursor-not-allowed text-white/30 opacity-60'
@@ -5448,7 +5448,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                               setPanelPinError('');
                               setPanelPinModalOpen(true);
                             }}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-[11px] font-semibold text-white/70 transition-colors hover:bg-white/10 active:bg-white/80"
+                            className="flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/8 px-3 py-2.5 text-[11px] font-semibold text-white/70 transition-colors hover:bg-white/10 active:bg-white/80"
                           >
                             <Lock className="h-3.5 w-3.5 shrink-0" />
                             Sblocca modifica con PIN
@@ -5529,7 +5529,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                   <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                     <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">
                     {selectedShiftIds.length > 1 && (
-                      <div className="space-y-4 rounded-xl border border-white/15 bg-white/8 p-3.5">
+                      <div className="space-y-4 rounded-xl border border-neutral-500 bg-white/8 p-3.5">
                         <div>
                           <p className="text-sm font-bold leading-snug text-white">
                             {formatTrans(t.wst_bulk_apply_title, { n: selectedShiftIds.length })}
@@ -5567,7 +5567,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                         {canManageDrafts && (
                           <div>
                             <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-white/40">{t.filter_status}</p>
-                            <div className="flex gap-1 rounded-lg border border-white/15 bg-white/8 p-1">
+                            <div className="flex gap-1 rounded-lg border border-neutral-500 bg-white/8 p-1">
                               {bulkStatusSegments.map(({ key, label, activeCls }) => {
                                 const active = bulkEditStatus === key;
                                 return (
@@ -5577,7 +5577,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                                     onClick={() => setBulkEditStatus(key)}
                                     className={`min-h-[36px] min-w-0 flex-1 rounded-md px-1.5 py-1.5 text-center text-[11px] font-semibold leading-tight transition-colors sm:px-2 sm:text-[13px] ${
                                       active
-                                        ? `border border-white/15 bg-white/10 shadow-sm ${activeCls}`
+                                        ? `border border-neutral-500 bg-white/10 shadow-sm ${activeCls}`
                                         : 'text-white/40 hover:bg-white/10 hover:text-white/70'
                                     }`}
                                   >
@@ -5654,7 +5654,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                       const edits = sidebarEdits[shift.id] ?? { start: (shift.start_time || '').slice(0, 5), end: (shift.end_time || '').slice(0, 5) };
                       const rowDraft = isShiftDraftLike(shift);
                       return (
-                        <div key={shift.id} className="space-y-2 rounded-xl border border-white/15 bg-white/8 p-3.5">
+                        <div key={shift.id} className="space-y-2 rounded-xl border border-neutral-500 bg-white/8 p-3.5">
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-sm font-bold text-white">{u?.first_name ?? '-'}</p>
                             <span className="shrink-0 text-[11px] font-semibold text-white/50">{drawerCardStatusLabel(shift.approval_status)}</span>
@@ -5703,7 +5703,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
                           <button
                             type="button"
                             onClick={closeShiftDetailPanel}
-                            className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white/70 transition-colors hover:bg-white/15 active:bg-white/80"
+                            className="rounded-xl border border-neutral-500 bg-white/10 px-4 py-3 text-sm font-semibold text-white/70 transition-colors hover:bg-white/15 active:bg-white/80"
                           >
                             {t.cancel}
                           </button>
@@ -5982,7 +5982,7 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
           />
           {/* Menu */}
           <div
-            className="fixed z-[10060] min-w-[172px] rounded-xl border border-white/15 shadow-xl py-1 font-sans text-sm overflow-hidden"
+            className="fixed z-[10060] min-w-[172px] rounded-xl border border-neutral-500 shadow-xl py-1 font-sans text-sm overflow-hidden"
             style={{
               background: '#152848',
               left: Math.min(contextMenu.x, window.innerWidth - 192),
@@ -6375,7 +6375,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
         >
           {/* ── Header ── */}
           <div
-            className={`flex items-start justify-between gap-3 border-b border-white/15 px-5 pb-4 pt-5 backdrop-blur-md ${
+            className={`flex items-start justify-between gap-3 border-b border-neutral-500 px-5 pb-4 pt-5 backdrop-blur-md ${
               isOpenShift
                 ? 'bg-amber-500/15'
                 : 'bg-white/8'
@@ -6523,7 +6523,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
             })()}
 
             {/* ── Avanzate collapsible ── */}
-            <div className="border-t border-white/15 pt-1">
+            <div className="border-t border-neutral-500 pt-1">
               <button
                 type="button"
                 onClick={() => setShowAdvanced((v) => !v)}

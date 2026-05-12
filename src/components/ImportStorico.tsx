@@ -260,18 +260,18 @@ export default function ImportStorico({ tenants, onClose }: { tenants: Tenant[];
           id="sa-import-tenant"
           value={selectedTenantId}
           onChange={(e) => { setSelectedTenantId(e.target.value); setRows([]); setImportResult(null); }}
-          className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80"
+          className="rounded-xl border border-neutral-500 bg-white/5 px-3 py-2 text-xs text-white/80"
         >
           {tenants.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
         <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
         <button onClick={() => fileRef.current?.click()}
-          className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 hover:bg-white/10">
+          className="rounded-xl border border-neutral-500 bg-white/5 px-3 py-2 text-xs text-white/80 hover:bg-white/10">
           {fileName ? fileName.slice(0, 22) + (fileName.length > 22 ? '…' : '') : 'Carica CSV'}
         </button>
         <button onClick={downloadTemplate}
-          className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/50 hover:text-white/80">
+          className="rounded-xl border border-neutral-500 bg-white/5 px-3 py-2 text-xs text-white/50 hover:text-white/80">
           Template
         </button>
       </div>
@@ -311,7 +311,7 @@ export default function ImportStorico({ tenants, onClose }: { tenants: Tenant[];
             <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-700">✓ {matched.length} turni pronti</span>
             {unmatched.length > 0 && <span className="px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-[11px] font-bold text-red-600">✗ Non riconosciuti: {uniqueUnmatched.join(', ')}</span>}
           </div>
-          <div className="rounded-xl border border-white/15 overflow-hidden">
+          <div className="rounded-xl border border-neutral-500 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-[11px]">
                 <thead><tr className="bg-white/5 text-white/55">
@@ -342,7 +342,7 @@ export default function ImportStorico({ tenants, onClose }: { tenants: Tenant[];
               {importing ? 'Importando…' : `Importa ${matched.length} turni`}
             </button>
             <button onClick={() => { setRows([]); setFileName(''); setImportResult(null); }}
-              className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/50 hover:text-white/80">
+              className="rounded-xl border border-neutral-500 px-3 py-2 text-xs text-white/50 hover:text-white/80">
               Annulla
             </button>
           </div>

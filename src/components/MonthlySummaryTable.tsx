@@ -193,7 +193,7 @@ export default function MonthlySummaryTable() {
           transition={{ delay: 0.3 }}
           className="mt-6 grid grid-cols-2 gap-4 px-4"
         >
-          <div className="surface-glass p-5">
+          <div className="rounded-xl border border-neutral-500 p-5">
             <p className="text-white/60 text-xs uppercase tracking-widest font-bold mb-2">
               {t.total_hours}
             </p>
@@ -202,7 +202,7 @@ export default function MonthlySummaryTable() {
             </p>
           </div>
 
-          <div className="surface-glass p-5">
+          <div className="rounded-xl border border-neutral-500 p-5">
             <p className="text-white/60 text-xs uppercase tracking-widest font-bold mb-2">
               {hasManagementAccess ? t.personnel : t.hours_this_month}
             </p>

@@ -124,7 +124,7 @@ export default function MobileTimesheet({
                 </div>
               </div>
               {totalMins > 0 && (
-                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/15 text-[#93c5fd] border border-[#4361EE]/25">
+                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/15 text-white/70 border border-[#4361EE]/25">
                   {totalLabel}
                 </span>
               )}

@@ -120,7 +120,7 @@ export default function ManagementHomePreview({
             onUiToggle={onUiToggle}
             hiddenBadge={hiddenBadge}
           >
-            <div className="flex items-center gap-3 rounded-2xl border border-white/15 px-4 py-3" style={{ background: 'rgba(255, 255, 255, 0.16)' }}>
+            <div className="flex items-center gap-3 rounded-2xl border border-neutral-500 px-4 py-3" style={{ background: 'rgba(255, 255, 255, 0.16)' }}>
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
                 <Users className="h-4 w-4 text-white/60" />
               </div>
@@ -192,10 +192,10 @@ export default function ManagementHomePreview({
                 label: t.home_stat_approved,
                 value: 2,
                 Icon: UserCheck,
-                iconColor: 'text-accent',
+                iconColor: 'text-white/70',
                 bg: 'bg-white/8',
                 border: 'border-white/10',
-                iconWell: 'bg-accent/10',
+                iconWell: 'bg-white/10',
               },
             ].map(({ label, value, Icon, iconColor, bg, border, iconWell }) => (
               <div key={label} className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 ${border} ${bg} shadow-sm`}>
@@ -249,7 +249,7 @@ export default function ManagementHomePreview({
               <Calendar className="h-4 w-4 text-white/60" />
               <h2 className="text-sm font-bold text-white/90">{t.home_todays_shifts}</h2>
               <span className="ml-1 text-[11px] text-white/50">(2)</span>
-              <span className="ml-auto flex items-center gap-0.5 text-xs font-semibold text-accent">
+              <span className="ml-auto flex items-center gap-0.5 text-xs font-semibold text-white/60">
                 {t.home_see_all_shifts} <ArrowRight className="h-3 w-3" />
               </span>
             </div>
@@ -284,15 +284,15 @@ export default function ManagementHomePreview({
             onUiToggle={onUiToggle}
             hiddenBadge={hiddenBadge}
           >
-            <div className="surface-glass cursor-default p-5">
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-bold text-white/90">{t.home_section_attendance}</h3>
                 <TrendingUp className="h-4 w-4 text-white/50" />
               </div>
               <div className="space-y-3">
                 {[
-                  { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-accent' },
-                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-brand-deep' },
+                  { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-white/30' },
+                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-white/20' },
                 ].map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="mb-1.5 flex justify-between text-xs">
@@ -320,10 +320,10 @@ export default function ManagementHomePreview({
             onUiToggle={onUiToggle}
             hiddenBadge={hiddenBadge}
           >
-            <div className="surface-glass cursor-default p-5">
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="font-bold text-white/90">{t.home_holidays_section}</h3>
-                <Palmtree className="h-4 w-4 text-accent" />
+                <Palmtree className="h-4 w-4 text-white/60" />
               </div>
               {staffRequestsEnabled ? (
                 <p className="py-4 text-center text-xs text-white/50">{t.home_no_requests}</p>
@@ -343,14 +343,14 @@ export default function ManagementHomePreview({
             hiddenBadge={hiddenBadge}
           >
             <div className="flex flex-col gap-3">
-              <div className="surface-glass cursor-default p-4">
+              <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500">
                 <div className="mb-2 flex items-center justify-between">
                   <TrendingUp className="h-4 w-4 text-white/50" />
                   <span className="text-[11px] font-semibold uppercase text-white/50">{t.home_kpi_hours_week}</span>
                 </div>
                 <p className="text-2xl font-bold text-white">{formatMinutesToHoursAndMinutes(weeklyMinutesDemo)}</p>
               </div>
-              <div className="surface-glass cursor-default p-4">
+              <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500">
                 <div className="mb-2 flex items-center justify-between">
                   <Calendar className="h-4 w-4 text-white/50" />
                   <span className="text-[11px] font-semibold uppercase text-white/50">{t.home_kpi_shifts_week}</span>

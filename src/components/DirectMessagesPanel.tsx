@@ -10,7 +10,7 @@ import type { User, Language } from '../types';
 import { readProfileAvatarFromStorage } from '../utils/profilePhotoStorage';
 import { getIntlLocale } from '../utils/translations';
 
-const BRAND = '#0052FF';
+const BRAND = '#525252';
 
 function formatTime(iso: string, locale?: string) {
   return new Date(iso).toLocaleTimeString(locale ?? 'it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -28,7 +28,7 @@ function formatDateLabel(iso: string, todayLabel: string, yesterdayLabel: string
 
 function UserAvatar({ user, size = 40 }: { user?: User; size?: number }) {
   const initial = (user?.first_name?.charAt(0) ?? '?').toUpperCase();
-  const colors = ['#0052FF', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2'];
+  const colors = ['#6b6b6b', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2'];
   const colorIndex = user ? (user.first_name?.charCodeAt(0) ?? 0) : 0;
   const bg = colors[colorIndex % colors.length];
   const radius = Math.round(size * 0.28);
@@ -115,7 +115,7 @@ function NewChatPicker({
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.messages_search_employee ?? 'Cerca dipendente...'}
           aria-label={t.messages_search_employee ?? 'Cerca dipendente'}
-          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-base text-white outline-none focus:border-brand-electric focus-visible:ring-2 focus-visible:ring-white/50 transition-colors"
+          className="w-full rounded-xl border border-neutral-500 bg-white/8 px-3 py-2 text-base text-white outline-none focus:border-brand-electric focus-visible:ring-2 focus-visible:ring-white/50 transition-colors"
         />
       </div>
       <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-2 pb-4 [-webkit-overflow-scrolling:touch]">
@@ -348,7 +348,7 @@ function ChatView({
             placeholder={t.messages_write_placeholder ?? 'Scrivi un messaggio...'}
             aria-label={t.messages_write_placeholder ?? 'Scrivi un messaggio'}
             rows={1}
-            className="flex-1 resize-none rounded-2xl border border-white/15 bg-white/8 px-4 py-2.5 text-base text-white outline-none focus:border-brand-electric focus-visible:ring-2 focus-visible:ring-white/50 transition-colors"
+            className="flex-1 resize-none rounded-2xl border border-neutral-500 bg-white/8 px-4 py-2.5 text-base text-white outline-none focus:border-brand-electric focus-visible:ring-2 focus-visible:ring-white/50 transition-colors"
             style={{ maxHeight: 120, overflowY: 'auto' }}
           />
           <button

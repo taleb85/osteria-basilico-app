@@ -138,7 +138,7 @@ export function HorizontalScrollArea({
             type="button"
             disabled={prevDisabled}
             onClick={onPrevClick}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center surface-glass-sm text-white/70 transition-colors surface-ghost-interactive disabled:pointer-events-none disabled:opacity-35"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-neutral-500 text-white/70 transition-colors surface-ghost-interactive disabled:pointer-events-none disabled:opacity-35"
             aria-label={ariaLabelPrev}
           >
             <ChevronLeft className="h-4 w-4" aria-hidden />
@@ -147,7 +147,7 @@ export function HorizontalScrollArea({
             type="button"
             disabled={nextDisabled}
             onClick={onNextClick}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center surface-glass-sm text-white/70 transition-colors surface-ghost-interactive disabled:pointer-events-none disabled:opacity-35"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-neutral-500 text-white/70 transition-colors surface-ghost-interactive disabled:pointer-events-none disabled:opacity-35"
             aria-label={ariaLabelNext}
           >
             <ChevronRight className="h-4 w-4" aria-hidden />

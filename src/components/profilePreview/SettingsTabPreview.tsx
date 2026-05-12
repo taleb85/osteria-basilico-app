@@ -28,7 +28,7 @@ export default function SettingsTabPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass overflow-hidden">
+        <div className="rounded-xl border border-neutral-500 overflow-hidden">
           <div className="border-b border-slate-100 bg-slate-50 px-4 py-4">
             <div className="flex items-center gap-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15 text-lg font-bold text-accent">
@@ -81,7 +81,7 @@ export function GlobalPopupsPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
+        <div className="rounded-xl border border-neutral-500 flex items-center gap-3 px-4 py-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
             <Users className="h-5 w-5 text-white/60" />
           </div>
@@ -99,7 +99,7 @@ export function GlobalPopupsPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass-sm flex items-center gap-3 px-4 py-3">
+        <div className="rounded-xl border border-neutral-500 flex items-center gap-3 px-4 py-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
             <Bell className="h-5 w-5 text-white/60" />
           </div>

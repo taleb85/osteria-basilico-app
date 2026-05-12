@@ -206,7 +206,7 @@ export default function AdminPanel() {
             </div>
             <div className="p-8 space-y-6 text-center">
               <p className="text-white/70 font-medium">{t.import_warning}</p>
-              <div className="surface-glass-sm p-4">
+              <div className="rounded-xl border border-neutral-500 p-4">
                 <p className="text-white font-sans text-xs break-all text-center">{importFile?.name}</p>
               </div>
               <div className="flex space-x-3 pt-4">

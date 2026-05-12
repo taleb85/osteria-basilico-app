@@ -112,8 +112,8 @@ export default defineConfig(({ command }) => {
         start_url: '/profilo',
         lang: 'it',
         display: 'standalone',
-        background_color: '#0d3b6e',
-        theme_color: '#0d3b6e',
+        background_color: '#0a0a0c',
+        theme_color: '#0a0a0c',
         orientation: 'any',
         scope: '/',
         icons: [

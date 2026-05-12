@@ -2,16 +2,16 @@
 
 /* ── Variabili CSS aggiornate — devono venire DOPO index.css ── */
 :root {
-  --bg-primary:            #3a5fa0;
-  --bg-surface:            rgba(50, 90, 170, 0.55);
-  --bg-surface-hover:      rgba(50, 90, 170, 0.65);
-  --bg-surface-solid:      rgba(45, 80, 155, 0.80);
-  --bg-popover-solid:      rgb(21, 40, 72);
-  --bg-surface-secondary:  rgba(50, 90, 170, 0.45);
-  --surface:               rgba(50, 90, 170, 0.55);
-  --surface-card:          rgba(50, 90, 170, 0.60);
-  --border-color:          rgba(255, 255, 255, 0.24);
-  --app-bg:                #0d3b6e;
+  --bg-primary:            #0a0a0a;
+  --bg-surface:            rgba(20, 20, 20, 0.55);
+  --bg-surface-hover:      rgba(30, 30, 30, 0.65);
+  --bg-surface-solid:      rgba(20, 20, 20, 0.80);
+  --bg-popover-solid:      rgb(10, 10, 10);
+  --bg-surface-secondary:  rgba(20, 20, 20, 0.45);
+  --surface:               rgba(20, 20, 20, 0.55);
+  --surface-card:          rgba(20, 20, 20, 0.60);
+  --border-color:          #525252;
+  --app-bg:                #0a0a0a;
 
   --text-primary:         rgba(255, 255, 255, 0.97);
   --text-secondary:       rgba(255, 255, 255, 0.72);
@@ -19,15 +19,15 @@
   --color-text:           rgba(255, 255, 255, 0.97);
   --color-text-secondary: rgba(255, 255, 255, 0.72);
 
-  --brand:       #3b82f6;
-  --brand-hover: #2563eb;
-  --accent-blue: #3b82f6;
-  --flow-blue:   #3b82f6;
+  --brand:       #6b6b6b;
+  --brand-hover: #858585;
+  --accent-blue: #6b6b6b;
+  --flow-blue:   #6b6b6b;
 }
 
-/* ── Topbar / header: striscia brand più scura sotto il fixed header (MobileProfileHeader) ── */
+/* ── Topbar / header: striscia più scura sotto il fixed header (MobileProfileHeader) ── */
 .flow-brand-header {
-  background: rgba(8, 18, 55, 0.88) !important;
+  background: rgba(10, 10, 10, 0.88) !important;
   box-shadow: none !important;
   border-radius: 0 !important;
 }
@@ -36,7 +36,7 @@
 [class*="tabbar"],
 [class*="tab-bar"],
 [class*="TabBar"] {
-  background: rgba(5, 14, 46, 0.70) !important;
+  background: rgba(10, 10, 10, 0.70) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
@@ -56,7 +56,7 @@
 /* ── Bordi slate-* → bianco semi-trasparente in dark theme ── */
 .border-slate-50, .border-slate-100, .border-slate-200, .border-slate-300, .border-slate-400,
 .divide-slate-50 > * + *, .divide-slate-100 > * + *, .divide-slate-200 > * + * {
-  border-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: #525252 !important;
 }
 
 /* ── scrollbar nascosta per la tab bar ── */
@@ -76,23 +76,23 @@
 .card-factorial,
 .modal-glass-panel,
 .drawer-glass-panel {
-  background: rgba(15, 35, 90, 0.62) !important;
+  background: rgba(10, 10, 10, 0.70) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border: 1px solid #525252 !important;
   border-radius: 12px !important;
 }
 
 /* ── Modal e drawer: glass più visibile ── */
 .modal-glass-panel {
-  background: rgba(8, 20, 60, 0.72) !important;
+  background: rgba(5, 5, 5, 0.78) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border: 1px solid #525252 !important;
 }
 
 .drawer-glass-panel {
-  background: rgba(8, 20, 60, 0.80) !important;
+  background: rgba(5, 5, 5, 0.84) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
@@ -107,12 +107,12 @@
 .modal-glass-panel .bg-slate-50,
 .modal-glass-panel [class*="bg-slate-"] {
   background: rgba(255, 255, 255, 0.09) !important;
-  border-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: #525252 !important;
   color: rgba(255, 255, 255, 0.90) !important;
 }
 .modal-glass-panel .bg-slate-100:hover,
 .modal-glass-panel .bg-slate-200:hover {
-  background: rgba(15, 35, 90, 0.82) !important;
+  background: rgba(10, 10, 10, 0.82) !important;
 }
 
 /* Dropdown panels */
@@ -121,35 +121,35 @@
 [data-radix-popper-content-wrapper] > div,
 [role="listbox"],
 [role="menu"] {
-  background: rgba(8, 20, 60, 0.92) !important;
+  background: rgba(5, 5, 5, 0.92) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 
 .liquid-glass {
-  background: rgba(15, 35, 90, 0.55) !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  background: rgba(10, 10, 10, 0.60) !important;
+  border: 1px solid #525252 !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
 }
 
 .surface-ghost,
 .surface-ghost-sm {
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border: 1px solid #525252 !important;
 }
 
 .surface-ghost-interactive:hover {
-  background: rgba(5, 14, 60, 0.55) !important;
+  background: rgba(10, 10, 10, 0.55) !important;
 }
 
 .card-factorial {
-  background: rgba(5, 14, 60, 0.52) !important;
+  background: rgba(5, 5, 5, 0.55) !important;
 }
 
 /* ── Tailwind bg-white → glass card ── */
 body .bg-white:not(input):not(textarea):not(select):not([class*="modal"]):not([class*="pin"]):not([class*="kiosk"]) {
-  background-color: rgba(15, 35, 90, 0.82) !important;
+  background-color: rgba(10, 10, 10, 0.82) !important;
 }
 body .bg-slate-50:not(input):not(textarea):not(select),
 body .bg-gray-50:not(input):not(textarea):not(select) {
@@ -162,7 +162,7 @@ body .bg-gray-100:not(input):not(textarea):not(select) {
 }
 body .bg-slate-200:not(input):not(textarea):not(select),
 body .bg-gray-200:not(input):not(textarea):not(select) {
-  background-color: rgba(15, 35, 90, 0.82) !important;
+  background-color: rgba(10, 10, 10, 0.82) !important;
 }
 body .bg-slate-300:not(input):not(textarea):not(select),
 body .bg-gray-300:not(input):not(textarea):not(select) {
@@ -172,7 +172,7 @@ body .bg-gray-300:not(input):not(textarea):not(select) {
 input.bg-slate-100, input.bg-slate-200,
 select.bg-slate-100, select.bg-slate-200 {
   background: rgba(255, 255, 255, 0.09) !important;
-  border-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: #525252 !important;
   color: #fff !important;
 }
 
@@ -223,16 +223,16 @@ input[type="url"],
 textarea,
 select {
   background: rgba(255, 255, 255, 0.16) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border: 1px solid #525252 !important;
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-  background: rgba(15, 35, 90, 0.82) !important;
-  border-color: rgba(59, 130, 246, 0.6) !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+  background: rgba(10, 10, 10, 0.82) !important;
+  border-color: rgba(107, 107, 107, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(107, 107, 107, 0.15) !important;
 }
 
 /* ── Section labels stile mockup ── */
@@ -258,7 +258,7 @@ select:focus {
 }
 .ui-toolbar-chip:hover,
 .ui-toolbar-tab:hover {
-  background: rgba(15, 35, 90, 0.82) !important;
+  background: rgba(10, 10, 10, 0.82) !important;
   color: rgba(255, 255, 255, 0.95) !important;
 }
 .ui-toolbar-pill {
@@ -308,14 +308,13 @@ body {
 }
 
 /* ── Override diretto: blocca i background solidi di index.css ── */
-/* index.css applica background: var(--bg-surface-solid) (#152848) su queste classi */
 .surface-glass,
 .surface-glass-sm,
 .shift-card-ultra,
 .panel,
 .card-factorial,
 [class*="surface-"] {
-  background: rgba(15, 35, 90, 0.82) !important;
+  background: rgba(10, 10, 10, 0.82) !important;
 }
 
 /* ── Force all page-level containers transparent + no nested scroll ── */

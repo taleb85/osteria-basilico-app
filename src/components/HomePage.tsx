@@ -507,7 +507,7 @@ export default function HomePage({
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'bg-amber-500/10 border-amber-400/30' : 'border-dashed border-white/15 bg-white/4'}`}
+              className={`rounded-xl border border-neutral-500 px-4 py-3 ${boardNote ? 'bg-amber-500/10 border-amber-400/30' : ''}`}
             >
               <div className="flex items-start gap-3">
                 <Megaphone size={15} className={`mt-0.5 shrink-0 ${boardNote ? 'text-amber-600' : 'text-white/55'}`} />
@@ -631,11 +631,11 @@ export default function HomePage({
           {uiW('home_compact.next_shift') && upcomingShifts.filter((s) => s.date !== todayStr)[0] && (() => {
             const next = upcomingShifts.filter((s) => s.date !== todayStr)[0];
             return (
-              <div className="surface-glass p-5">
+              <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500">
                 <p className="text-[11px] font-bold text-white/55 uppercase tracking-wider mb-2">{t.home_next_shift}</p>
                 <p className="text-lg font-bold text-white mb-1">{getDateLabel(next.date)}</p>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-accent" />
+                  <Clock className="w-4 h-4 text-white/60" />
                   <span className="text-xl font-bold text-white tabular-nums">{next.start_time.slice(0, 5)} → {next.end_time?.slice(0, 5) ?? '…'}</span>
                 </div>
               </div>
@@ -644,10 +644,10 @@ export default function HomePage({
 
           {/* Lista turni */}
           {uiW('home_compact.shift_list') && (
-          <div ref={shiftsListRef} className="surface-glass p-5">
+          <div ref={shiftsListRef} className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs font-bold text-white/55 uppercase tracking-wider">{t.home_my_shifts}</h3>
-              <button type="button" onClick={() => onNavigateToShifts?.()} className="text-xs font-semibold text-accent flex items-center gap-1 hover:underline active:brightness-95">
+              <button type="button" onClick={() => onNavigateToShifts?.()} className="text-xs font-semibold text-white/70 flex items-center gap-1 hover:underline active:brightness-95">
                 {t.home_see_all} <ChevronRight className="w-3 h-3" />
               </button>
             </div>
@@ -665,7 +665,7 @@ export default function HomePage({
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {grouped[dateStr].sort((a, b) => a.start_time.localeCompare(b.start_time)).map((s) => (
-                        <span key={s.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${s.approval_status === 'draft' ? 'bg-white/10 text-white/70 border-slate-400' : 'bg-accent/15 text-white border-accent/50'}`}>
+                        <span key={s.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${s.approval_status === 'draft' ? 'bg-white/10 text-white/70 border-slate-400' : 'bg-white/15 text-white border-white/30'}`}>
                           {s.start_time.slice(0, 5)}–{s.end_time?.slice(0, 5) ?? '…'}
                         </span>
                       ))}
@@ -679,16 +679,16 @@ export default function HomePage({
 
           {/* Ferie approvate */}
           {uiW('home_compact.approved_holidays') && staffRequestsEnabled && myApprovedHolidays.length > 0 && (
-            <div className="surface-glass p-5">
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500">
               <h3 className="text-xs font-bold text-white/55 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <Palmtree className="w-4 h-4 text-accent" /> {t.home_upcoming_holidays}
+                <Palmtree className="w-4 h-4 text-white/60" /> {t.home_upcoming_holidays}
               </h3>
               {myApprovedHolidays.map((h) => (
                 <div key={h.id} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
                   <span className="text-white/70 text-xs font-medium">
                     {safeFormatDate(h.start_date, 'd MMM', { locale })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale })}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-accent/10 text-accent-dark text-xs font-bold border border-accent/20">{t.home_holiday_approved}</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white/10 text-white/70 text-xs font-bold border border-white/20">{t.home_holiday_approved}</span>
                 </div>
               ))}
             </div>
@@ -733,7 +733,7 @@ export default function HomePage({
 
           {/* ── Profilo amministratore (solo Admin) ───────────────────── */}
           {uiW('home_mgmt.admin_banner') && isPurelyManagementRole(currentUser.role) && (
-            <div className="surface-glass flex items-center gap-3 px-4 py-3">
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-slate-200 flex items-center justify-center flex-shrink-0">
                 <Users className="w-4 h-4 text-white/55" />
               </div>
@@ -752,7 +752,7 @@ export default function HomePage({
           {uiW('home_mgmt.team_board') && (
           <AnimatePresence>
             <motion.div key="board" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-              className={`rounded-2xl border px-4 py-3 ${boardNote ? 'border-amber-400/30 bg-amber-500/10' : 'border border-dashed border-white/15'}`}>
+              className={`rounded-xl border border-neutral-500 px-4 py-3 ${boardNote ? 'border-amber-400/30 bg-amber-500/10' : ''}`}>
               <div className="flex items-start gap-3">
                 <Megaphone size={15} className={`mt-0.5 shrink-0 ${boardNote ? 'text-amber-600' : 'text-white/55'}`} />
                 <div className="flex-1 min-w-0">
@@ -810,9 +810,9 @@ export default function HomePage({
                 label: t.home_stat_in_shift,
                 value: inTurnoCount,
                 Icon: Users,
-                iconColor: 'text-accent',
-                border: 'border-accent/25',
-                iconWell: 'bg-accent/15',
+                iconColor: 'text-white/70',
+                border: 'border-neutral-500',
+                iconWell: 'bg-white/10',
               },
               {
                 label: t.home_stat_delays,
@@ -834,9 +834,9 @@ export default function HomePage({
                 label: t.home_stat_approved,
                 value: approvatiCount,
                 Icon: UserCheck,
-                iconColor: 'text-accent',
-                border: 'border-accent/25',
-                iconWell: 'bg-accent/15',
+                iconColor: 'text-white/70',
+                border: 'border-neutral-500',
+                iconWell: 'bg-white/10',
               },
             ].map(({ label, value, Icon, iconColor, border, iconWell }) => (
               <div
@@ -973,15 +973,15 @@ export default function HomePage({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Reports */}
             {uiW('home_mgmt.card_presenze') && (
-            <div className="surface-glass surface-ghost-interactive cursor-pointer p-5" onClick={() => onNavigateToReports?.()}>
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 cursor-pointer" onClick={() => onNavigateToReports?.()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-white">{t.home_section_attendance}</h3>
                 <TrendingUp className="w-4 h-4 text-white/45" />
               </div>
               <div className="space-y-3">
                 {[
-                  { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-accent' },
-                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-brand-deep' },
+                  { label: t.home_attendance_today, pct: attendancePercent, color: 'bg-white/30' },
+                  { label: t.home_hours_this_week, pct: hoursPercent, color: 'bg-white/20' },
                 ].map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="flex justify-between text-xs mb-1.5">
@@ -1000,10 +1000,10 @@ export default function HomePage({
 
             {/* Holidays — nascosto se funzione disattivata globalmente */}
             {uiW('home_mgmt.card_ferie') && staffRequestsEnabled && (
-            <div className="surface-glass surface-ghost-interactive cursor-pointer p-5" onClick={() => onNavigateToHolidays?.()}>
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 cursor-pointer" onClick={() => onNavigateToHolidays?.()}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-white">{t.home_holidays_section}</h3>
-                <Palmtree className="w-4 h-4 text-accent" />
+                <Palmtree className="w-4 h-4 text-white/60" />
               </div>
               {pendingHolidays.length > 0 && (
                 <div className="flex items-center gap-2 mb-3 bg-amber-500/12 border border-amber-400/30 rounded-xl px-3 py-2">
@@ -1017,7 +1017,7 @@ export default function HomePage({
                   return (
                     <div key={h.id} className="flex items-center justify-between py-1 border-b border-white/8 last:border-0">
                       <span className="text-white/70 text-xs font-medium truncate flex-1" title={u?.first_name ?? '?'}>{u?.first_name ?? '?'}</span>
-                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ml-2 ${h.status === 'approved' ? 'bg-accent/15 text-accent border-accent/30' : h.status === 'pending' ? 'bg-amber-500/15 text-amber-300 border-amber-400/30' : 'bg-red-500/15 text-red-300 border-red-400/30'}`}>
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ml-2 ${h.status === 'approved' ? 'bg-white/15 text-white/80 border-white/20' : h.status === 'pending' ? 'bg-amber-500/15 text-amber-300 border-amber-400/30' : 'bg-red-500/15 text-red-300 border-red-400/30'}`}>
                         {h.status === 'approved' ? t.home_holiday_approved : h.status === 'pending' ? t.home_holiday_pending : t.home_holiday_rejected}
                       </span>
                     </div>
@@ -1031,14 +1031,14 @@ export default function HomePage({
             {/* KPI */}
             {uiW('home_mgmt.card_kpi') && (
             <div className="flex flex-col gap-3">
-              <div className="surface-glass surface-ghost-interactive cursor-pointer p-4" onClick={() => onNavigateToShifts?.()}>
+              <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 cursor-pointer" onClick={() => onNavigateToShifts?.()}>
                 <div className="flex items-center justify-between mb-2">
                   <TrendingUp className="w-4 h-4 text-white/45" />
                   <span className="text-[11px] text-white/55 font-semibold uppercase">{t.home_kpi_hours_week}</span>
                 </div>
                 <p className="text-2xl font-bold text-white tabular-nums">{formatMinutesToHoursAndMinutes(weeklyMinutes)}</p>
               </div>
-              <div className="surface-glass surface-ghost-interactive cursor-pointer p-4" onClick={() => onNavigateToShifts?.()}>
+              <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 cursor-pointer" onClick={() => onNavigateToShifts?.()}>
                 <div className="flex items-center justify-between mb-2">
                   <Calendar className="w-4 h-4 text-white/45" />
                   <span className="text-[11px] text-white/55 font-semibold uppercase">{t.home_kpi_shifts_week}</span>
@@ -1117,7 +1117,7 @@ export default function HomePage({
 
                 <div className="flex gap-2">
                   <button type="button" onClick={() => { setCloseModal(null); setClockOutInput(''); }}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-semibold hover:bg-white/12 transition-colors active:bg-white/80">
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-500 text-white/70 text-sm font-semibold hover:bg-white/12 transition-colors active:bg-white/80">
                     {t.cancel}
                   </button>
                   <button type="button" disabled={!clockOutInput || closingLoading} onClick={handleConfirmClose}

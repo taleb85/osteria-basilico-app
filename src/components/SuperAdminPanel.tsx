@@ -106,8 +106,8 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
             key={i}
             className="w-3 h-3 rounded-full transition-all duration-150"
             style={i < digits.length
-              ? { background: '#0d3b6e', boxShadow: error ? '0 0 8px rgba(248,113,113,0.5)' : '0 0 8px rgba(51,102,204,0.55)' }
-              : { background: 'rgba(15, 35, 90, 0.85)' }
+              ? { background: '#0a0a0c', boxShadow: error ? '0 0 8px rgba(248,113,113,0.5)' : '0 0 8px rgba(107,107,107,0.55)' }
+              : { background: 'rgba(10, 10, 12, 0.85)' }
             }
           />
         ))}
@@ -126,12 +126,12 @@ function SuperAdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
                 isDelete ? 'bg-transparent text-white/40 hover:text-white/70' : 'text-white'
               }`}
               style={isDelete ? undefined : {
-                background: '#0d3b6e',
+                background: '#0a0a0c',
                 border: '1px solid rgba(255,255,255,0.10)',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
               }}
-              onMouseEnter={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(51,102,204,0.55)'; }}
-              onMouseLeave={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(51,102,204,0.25)'; }}
+              onMouseEnter={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(107,107,107,0.55)'; }}
+              onMouseLeave={e => { if (!isDelete) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(107,107,107,0.25)'; }}
             >
               {isDelete ? <Delete className="w-5 h-5 mx-auto" /> : key}
             </button>
@@ -412,33 +412,33 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
                 <div className="space-y-1">
                   <label htmlFor="sa-dip-first" className="text-[11px] font-semibold text-white/55">Nome *</label>
                   <input id="sa-dip-first" value={form.first_name} onChange={(e) => setF('first_name', e.target.value)} placeholder="Mario"
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                    className="w-full rounded-lg border border-neutral-500 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
                 <div className="space-y-1">
                   <label htmlFor="sa-dip-last" className="text-[11px] font-semibold text-white/55">Cognome</label>
                   <input id="sa-dip-last" value={form.last_name ?? ''} onChange={(e) => setF('last_name', e.target.value)} placeholder="Rossi"
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                    className="w-full rounded-lg border border-neutral-500 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
               </div>
 
               <div className="space-y-1">
                 <label htmlFor="sa-dip-email" className="text-[11px] font-semibold text-white/55">Email</label>
                 <input id="sa-dip-email" type="email" value={form.email} onChange={(e) => setF('email', e.target.value)} placeholder="mario@email.com"
-                  className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                  className="w-full rounded-lg border border-neutral-500 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <label htmlFor="sa-dip-role" className="text-[11px] font-semibold text-white/55">Ruolo *</label>
                   <select id="sa-dip-role" value={form.role} onChange={(e) => setF('role', e.target.value as UserRole)}
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40">
+                    className="w-full rounded-lg border border-neutral-500 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40">
                     {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label htmlFor="sa-dip-dept" className="text-[11px] font-semibold text-white/55">Reparto</label>
                   <input id="sa-dip-dept" value={form.department ?? ''} onChange={(e) => setF('department', e.target.value)} placeholder="sala, bar, cucina…"
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
+                    className="w-full rounded-lg border border-neutral-500 bg-white/8 px-2.5 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
               </div>
 
@@ -453,7 +453,7 @@ function DipendentiTab({ tenantId }: { tenantId: string }) {
                     placeholder="••••"
                     maxLength={4}
                     inputMode="numeric"
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-2.5 py-2 pr-9 text-base font-mono text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    className="w-full rounded-lg border border-neutral-500 bg-white/8 px-2.5 py-2 pr-9 text-base font-mono text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                   />
                   <button
                     type="button"
@@ -727,7 +727,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
   return (
     <div className="mt-3 rounded-xl border border-white/12 bg-white/5 overflow-hidden">
       {/* Tabs */}
-      <div className="flex border-b border-white/15 overflow-x-auto">
+      <div className="flex border-b border-neutral-500 overflow-x-auto">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -770,7 +770,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
               ))}
             </div>
 
-            <div className="border-t border-white/15 pt-3 space-y-1">
+            <div className="border-t border-neutral-500 pt-3 space-y-1">
               <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2">Funzionalità avanzate</p>
               {FEATURE_DEFS.map((f) => (
                 <div key={f.slug} className="flex items-center justify-between py-1.5">
@@ -821,7 +821,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
               <NumberInput value={wr.lateThresholdMinutes ?? 10} min={0} max={60} onChange={(v) => setWorkRule('lateThresholdMinutes', v)} suffix="min" />
             </RuleRow>
 
-            <div className="border-t border-white/15 pt-3 space-y-2">
+            <div className="border-t border-neutral-500 pt-3 space-y-2">
               <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-1">Alert automatici</p>
               {([
                 { key: 'criticEnabled',    label: 'Alert critico (turno lungo + riposo insufficiente)' },
@@ -862,7 +862,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                       value={settings.geofence.lat}
                       onChange={(e) => set('geofence', { ...settings.geofence!, lat: parseFloat(e.target.value) || 0 })}
                       placeholder="0"
-                      className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      className="w-full rounded-lg border border-neutral-500 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                     />
                   </div>
                   <div className="space-y-1">
@@ -873,7 +873,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                       value={settings.geofence.lng}
                       onChange={(e) => set('geofence', { ...settings.geofence!, lng: parseFloat(e.target.value) || 0 })}
                       placeholder="0"
-                      className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      className="w-full rounded-lg border border-neutral-500 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                     />
                   </div>
                 </div>
@@ -885,7 +885,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                     value={settings.geofence.radiusM}
                     onChange={(e) => set('geofence', { ...settings.geofence!, radiusM: parseInt(e.target.value) || 100 })}
                     placeholder="0"
-                    className="w-full rounded-lg border border-white/15 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    className="w-full rounded-lg border border-neutral-500 bg-white/8 px-3 py-2 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
                   />
                 </div>
                 <p className="text-[11px] text-white/40">
@@ -907,7 +907,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                 id="sa-locale-lang"
                 value={settings.defaultLanguage ?? 'it'}
                 onChange={(e) => set('defaultLanguage', e.target.value as 'it' | 'en' | 'es' | 'fr')}
-                className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                className="w-full rounded-xl border border-neutral-500 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
               >
                 {LANGUAGES.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
@@ -919,7 +919,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
                 id="sa-locale-tz"
                 value={settings.timezone ?? 'Europe/Rome'}
                 onChange={(e) => set('timezone', e.target.value)}
-                className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                className="w-full rounded-xl border border-neutral-500 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
               >
                 {TIMEZONES.map((tz) => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
               </select>
@@ -928,7 +928,7 @@ function SettingsConfigPanel({ tenantId, initial, onSaved }: SettingsConfigPanel
         )}
 
         {/* Salva impostazioni — sempre visibile, disabilitato nel tab Dipendenti (salvataggio inline per-utente) */}
-        <div className="pt-2 border-t border-white/15 space-y-1.5">
+        <div className="pt-2 border-t border-neutral-500 space-y-1.5">
           {dirty && !saving && (
             <p className="text-center text-[11px] font-semibold text-amber-500">
               ● Modifiche non salvate
@@ -1009,7 +1009,7 @@ function NumberInput({ value, min, max, onChange, suffix }: {
         value={value}
         onChange={(e) => onChange(Math.max(min, Math.min(max, parseInt(e.target.value) || min)))}
         placeholder="0"
-        className="w-16 rounded-lg border border-white/15 bg-white/8 px-2 py-1 text-base text-center text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+        className="w-16 rounded-lg border border-neutral-500 bg-white/8 px-2 py-1 text-base text-center text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
       />
       <span className="text-xs text-white/40">{suffix}</span>
     </div>
@@ -1045,7 +1045,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
       name: name.trim(),
       slug: slug.trim(),
       // Branding sempre FLOW — colore e font non configurabili per sede
-      accent_color: '#001A80',
+      accent_color: '#6b6b6b',
       plan: 'basic',
       is_active: initial?.is_active ?? true,
       logo_url: null,
@@ -1059,7 +1059,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 8 }}
       onSubmit={handleSubmit}
-      className="space-y-4 p-5 bg-white/8 rounded-2xl border border-white/15 shadow-sm"
+      className="space-y-4 p-5 bg-white/8 rounded-2xl border border-neutral-500 shadow-sm"
     >
       <p className="text-xs font-bold uppercase tracking-wider text-white/40">{initial?.id ? 'Modifica sede' : 'Nuova sede'}</p>
 
@@ -1072,7 +1072,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Es. Ristorante Mario"
-          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
+          className="w-full rounded-xl border border-neutral-500 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
         />
       </div>
 
@@ -1087,7 +1087,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
             onChange={(e) => { setSlug(slugify(e.target.value)); setSlugManual(true); }}
             placeholder="es-ristorante-mario"
             pattern="[a-z0-9\-]+"
-            className="flex-1 rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base font-mono text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
+            className="flex-1 rounded-xl border border-neutral-500 bg-white/8 px-3 py-2.5 text-base font-mono text-white/90 focus:outline-none focus:ring-2 focus:ring-accent/40 transition"
           />
           <button type="button" onClick={() => { setSlugManual(false); setSlug(slugify(name)); }} className="text-xs text-accent hover:underline shrink-0 active:brightness-95">Auto</button>
         </div>
@@ -1095,7 +1095,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
       </div>
 
       {/* Nota branding — colore e logo fissi FLOW */}
-      <div className="rounded-xl border border-white/15 bg-white/6 px-3.5 py-2.5 flex items-center gap-2.5">
+      <div className="rounded-xl border border-neutral-500 bg-white/6 px-3.5 py-2.5 flex items-center gap-2.5">
         <div className="w-6 h-6 rounded-full bg-brand-deep flex items-center justify-center shrink-0">
           <span className="text-white text-[11px] font-bold">F</span>
         </div>
@@ -1106,7 +1106,7 @@ function TenantForm({ initial, onSave, onCancel, saving, seedDemo = true, onSeed
 
       {/* Dati demo — solo per nuova sede */}
       {!initial?.id && onSeedDemoChange && (
-        <div className="rounded-xl border border-white/15 bg-white/6 px-3.5 py-3 flex items-start gap-3">
+        <div className="rounded-xl border border-neutral-500 bg-white/6 px-3.5 py-3 flex items-start gap-3">
           <Toggle value={seedDemo} onChange={onSeedDemoChange} />
           <div className="min-w-0">
             <p className="text-sm font-semibold text-white/80 leading-snug">
@@ -1149,9 +1149,9 @@ export default function SuperAdminPanel() {
     const root = document.documentElement;
     const prev: Record<string, string> = {};
     const neutralVars: Record<string, string> = {
-      '--brand':       '#001A80',
+      '--brand': '#6b6b6b',
       '--brand-hover': '#003ACC',
-      '--accent':      '#001A80',
+      '--accent': '#6b6b6b',
       '--accent-hover':'#003ACC',
     };
     Object.entries(neutralVars).forEach(([k, v]) => {
@@ -1227,7 +1227,7 @@ function NewAdminCredentialsModal({ creds, onClose }: { creds: NewAdminCredentia
         <div className="flex gap-2">
           <button
             onClick={handleCopy}
-            className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-white/15 py-2.5 text-sm font-semibold text-white/80 hover:bg-white/5 active:bg-white/10 transition"
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-neutral-500 py-2.5 text-sm font-semibold text-white/80 hover:bg-white/5 active:bg-white/10 transition"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
             {copied ? 'Copiato!' : 'Copia'}
@@ -1456,7 +1456,7 @@ function SuperAdminPanelInner() {
             <button
               onClick={() => { setShowForm(true); setEditingTenant(null); setShowImport(false); }}
               className="flex items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-bold text-white active:scale-95 transition"
-              style={{ background: '#0d3b6e' }}
+              style={{ background: '#0a0a0c' }}
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Nuova sede</span>
@@ -1533,7 +1533,7 @@ function SuperAdminPanelInner() {
               <motion.div
                 key={t.id}
                 layout
-                className={`rounded-2xl border shadow-sm ${t.is_active ? 'border-white/15 bg-white/8' : 'border-white/15 bg-white/5 opacity-60'} overflow-hidden`}
+                className={`rounded-2xl border shadow-sm ${t.is_active ? 'border-neutral-500 bg-white/8' : 'border-neutral-500 bg-white/5 opacity-60'} overflow-hidden`}
               >
                 <AnimatePresence mode="wait">
                   {editingTenant?.id === t.id ? (
@@ -2171,14 +2171,14 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
       <div className="space-y-1">
         <label htmlFor="sa-import-tenant" className="text-[11px] font-semibold text-white/55 uppercase tracking-wider">Sede di destinazione</label>
         <select id="sa-import-tenant" value={selectedTenantId} onChange={(e) => { setSelectedTenantId(e.target.value); setRows([]); setImportResult(null); }}
-          className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-amber-400/40">
+          className="w-full rounded-xl border border-neutral-500 bg-white/8 px-3 py-2.5 text-base text-white/90 focus:outline-none focus:ring-2 focus:ring-amber-400/40">
           {tenants.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         <button onClick={downloadTemplate}
-          className="flex items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/8 py-2.5 text-xs font-semibold text-white/55 hover:bg-white/10 hover:text-white/90 transition active:text-white/90">
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-neutral-500 bg-white/8 py-2.5 text-xs font-semibold text-white/55 hover:bg-white/10 hover:text-white/90 transition active:text-white/90">
           <ChevronRight className="w-3.5 h-3.5 -rotate-90" />
           Scarica template CSV
         </button>
@@ -2191,7 +2191,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
       </div>
 
-      <div className="rounded-xl bg-white/5 border border-white/15 p-3 space-y-2">
+      <div className="rounded-xl bg-white/5 border border-neutral-500 p-3 space-y-2">
         <p className="text-[11px] font-bold uppercase tracking-wider text-white/40">Formato A — griglia settimanale (Ore dipendenti)</p>
         <p className="text-[11px] text-white/55 leading-snug">
           Separatore <strong>;</strong>, prima riga con <code className="text-[11px]">DATA:</code> e giorni <code className="text-[11px]">MONDAY 29;;TUESDAY 30;;</code> … Poi una riga per dipendente (nome in maiuscolo) e righe successive senza nome per altri turni nella stessa settimana.
@@ -2227,7 +2227,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
             <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-700">✓ {matched.length} turni pronti</span>
             {unmatched.length > 0 && <span className="px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-[11px] font-bold text-red-600">✗ Non riconosciuti: {unmatched.join(', ')}</span>}
           </div>
-          <div className="rounded-xl border border-white/15 overflow-hidden">
+          <div className="rounded-xl border border-neutral-500 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-[11px]">
                 <thead><tr className="bg-white/5 text-white/55">
@@ -2292,8 +2292,8 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
       </div>
 
       {/* ── Storico importazioni ── */}
-      <div className="rounded-xl border border-white/15 bg-white/8 overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-2.5 bg-white/5 border-b border-white/15">
+      <div className="rounded-xl border border-neutral-500 bg-white/8 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-2.5 bg-white/5 border-b border-neutral-500">
           <p className="text-[11px] font-bold uppercase tracking-wider text-white/55">Storico importazioni</p>
           <button
             onClick={() => void loadHistory(selectedTenantId)}
@@ -2340,7 +2340,7 @@ function ImportStorico({ tenants, onClose }: { tenants: Tenant[]; onClose: () =>
                     </button>
                     <button
                       onClick={() => setConfirmDelete(null)}
-                      className="rounded-lg border border-white/15 px-2 py-1 text-[11px] font-semibold text-white/70 hover:bg-white/5 transition active:bg-white/5/80"
+                      className="rounded-lg border border-neutral-500 px-2 py-1 text-[11px] font-semibold text-white/70 hover:bg-white/5 transition active:bg-white/5/80"
                     >
                       Annulla
                     </button>

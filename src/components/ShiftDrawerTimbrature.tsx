@@ -29,7 +29,7 @@ export default function ShiftDrawerTimbrature({
       ? 'border-2 border-l-4 border-cyan-600/25 border-l-brand-electric bg-cyan-600/8'
       : hasIn
         ? 'border-2 border-l-4 border-amber-300/80 border-l-review bg-amber-500/10'
-        : 'border-2 border-l-4 border-white/15 border-l-white/30 bg-white/8';
+        : 'border-2 border-l-4 border-neutral-500 border-l-white/30 bg-white/8';
   const labelCls =
     hasIn && hasOut
       ? 'text-cyan-300'

@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
   CalendarDays, AlertTriangle, Check, Lock, Plus, Clock,
-  ChevronLeft, ChevronRight, Copy, Send, Filter, Info, FileDown,
+  ChevronLeft, ChevronRight, Copy, Send, Filter, FileDown,
   Trash2, Save, X, ShieldAlert, ChevronDown, RotateCw, Unlock,
 } from 'lucide-react';
 import type { Shift, PunchRecord, User } from '../types';
@@ -62,7 +62,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     currentUser, users, shifts: allShifts, punchRecords: allPunchRecords,
     effectiveLanguage, showSuccess, showError, breakRules,
     deleteShift, approveShift, bulkCopyPreviousWeek, publishWeekShifts,
-    addPunchRecord, addShift, updateShift, featureFlags,
+    addPunchRecord, updatePunchRecord, addShift, updateShift, featureFlags,
   } = useApp();
   const locale = getDateLocale(effectiveLanguage) ?? it;
   const today = new Date();
@@ -317,25 +317,34 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       const shift = selectedShift;
       const todayStr = today.toISOString().slice(0, 10);
       const punchDate = shift.date <= todayStr ? shift.date : todayStr;
+      const existingIn = allPunchRecords.find(pr => pr.shift_id === shift.id && pr.type === 'in');
+      const existingOut = allPunchRecords.find(pr => pr.shift_id === shift.id && pr.type === 'out');
       if (editIn) {
-        await addPunchRecord(shift.user_id, 'in', {
-          shift_id: shift.id,
-          timestamp: `${punchDate}T${editIn}:00`,
-          source: 'manual',
-        });
+        if (existingIn) {
+          await updatePunchRecord(existingIn.id, { timestamp: `${punchDate}T${editIn}:00` });
+        } else {
+          await addPunchRecord(shift.user_id, 'in', {
+            shift_id: shift.id,
+            timestamp: `${punchDate}T${editIn}:00`,
+            source: 'manual',
+          });
+        }
       }
       if (editOut) {
-        await addPunchRecord(shift.user_id, 'out', {
-          shift_id: shift.id,
-          timestamp: `${punchDate}T${editOut}:00`,
-          source: 'manual',
-        });
+        if (existingOut) {
+          await updatePunchRecord(existingOut.id, { timestamp: `${punchDate}T${editOut}:00` });
+        } else {
+          await addPunchRecord(shift.user_id, 'out', {
+            shift_id: shift.id,
+            timestamp: `${punchDate}T${editOut}:00`,
+            source: 'manual',
+          });
+        }
       }
       showSuccess(t.punch_saved ?? 'Timbratura salvata.');
-      setEditIn(''); setEditOut('');
     } catch { showError(t.error_generic ?? 'Errore.'); }
     finally { setSaving(false); }
-  }, [selectedShift, editIn, editOut, addPunchRecord, showSuccess, showError, t]);
+  }, [selectedShift, editIn, editOut, allPunchRecords, addPunchRecord, updatePunchRecord, showSuccess, showError, t]);
 
   const handleCreateShift = useCallback(async () => {
     if (!createModal) return;
@@ -566,52 +575,39 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
         document.body
       )}
 
-      {/* ── Legend ── */}
-      <div className="mb-2 flex items-center gap-4 text-[10px] text-white/40">
-        {/* Left: legend items */}
-        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-dashed border-blue-500/60" /> {t.shift_draft ?? 'Draft'}</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-solid border-cyan-400/60" /> {t.shift_published ?? 'Published'}</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-solid border-emerald-400/60" /> {t.shift_approved ?? 'Approved'}</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-0 border-t-2 border-solid border-amber-400/60" /> {t.shift_missing_punch ?? 'No entry'}</span>
-        <Info className="h-3 w-3 text-white/30" /> {t.hours_net_after_break ?? 'Ore nette dopo pausa'}
-
-        {/* Right: selection + template actions */}
-        <span className="ml-auto flex items-center gap-2">
-          {selectedShiftIds.size > 0 && (
+      {selectedShiftIds.size > 0 && (
+        <div className="mb-2 flex items-center gap-2 text-[10px] text-white/40">
+          <span className="text-[10px] text-white/50 font-semibold">{selectedShiftIds.size} selezionati</span>
+          {!bulkEditOpen ? (
+            <button type="button" onClick={() => setBulkEditOpen(true)}
+              className="rounded-lg bg-accent/20 px-2.5 py-1 text-[10px] font-bold text-accent hover:bg-accent/30 transition-colors uppercase tracking-wider">
+              {t.bulk_edit ?? 'Modifica'}
+            </button>
+          ) : (
             <>
-              <span className="text-[10px] text-white/50 font-semibold">{selectedShiftIds.size} selezionati</span>
-              {!bulkEditOpen ? (
-                <button type="button" onClick={() => setBulkEditOpen(true)}
-                  className="rounded-lg bg-accent/20 px-2.5 py-1 text-[10px] font-bold text-accent hover:bg-accent/30 transition-colors uppercase tracking-wider">
-                  {t.bulk_edit ?? 'Modifica'}
-                </button>
-              ) : (
-                <>
-                  <select value={bulkEditStatus} onChange={e => setBulkEditStatus(e.target.value)}
-                    className="bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold text-white/70 uppercase outline-none">
-                    <option value="">{t.status ?? 'Stato'}</option>
-                    <option value="draft">Draft</option>
-                    <option value="confirmed">Confermato</option>
-                    <option value="approved">Approvato</option>
-                  </select>
-                  <button type="button" onClick={handleBulkEdit}
-                    className="rounded-lg bg-emerald-600/20 px-2.5 py-1 text-[10px] font-bold text-emerald-300 hover:bg-emerald-600/30 transition-colors uppercase tracking-wider">
-                    <Check className="h-3 w-3 inline-block mr-0.5" />{t.apply ?? 'Applica'}
-                  </button>
-                  <button type="button" onClick={() => { setBulkEditOpen(false); setBulkEditStatus(''); }}
-                    className="rounded-lg bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/50 hover:text-white transition-colors uppercase tracking-wider">
-                    <X className="h-3 w-3" />
-                  </button>
-                </>
-              )}
-              <button type="button" onClick={() => { selectedShiftIds.forEach(id => { const s = allShifts.find(x => x.id === id); if (s && !isFrozen(s)) deleteShift(id).catch(() => {}); }); setSelectedShiftIds(new Set()); }}
-                className="rounded-lg bg-rose-600/20 px-2.5 py-1 text-[10px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors uppercase tracking-wider">
-                <Trash2 className="h-3 w-3 inline-block mr-0.5" />{t.delete ?? 'Elimina'}
+              <select value={bulkEditStatus} onChange={e => setBulkEditStatus(e.target.value)}
+                className="bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold text-white/70 uppercase outline-none">
+                <option value="">{t.status ?? 'Stato'}</option>
+                <option value="draft">Draft</option>
+                <option value="confirmed">Confermato</option>
+                <option value="approved">Approvato</option>
+              </select>
+              <button type="button" onClick={handleBulkEdit}
+                className="rounded-lg bg-emerald-600/20 px-2.5 py-1 text-[10px] font-bold text-emerald-300 hover:bg-emerald-600/30 transition-colors uppercase tracking-wider">
+                <Check className="h-3 w-3 inline-block mr-0.5" />{t.apply ?? 'Applica'}
+              </button>
+              <button type="button" onClick={() => { setBulkEditOpen(false); setBulkEditStatus(''); }}
+                className="rounded-lg bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/50 hover:text-white transition-colors uppercase tracking-wider">
+                <X className="h-3 w-3" />
               </button>
             </>
           )}
-        </span>
-      </div>
+          <button type="button" onClick={() => { selectedShiftIds.forEach(id => { const s = allShifts.find(x => x.id === id); if (s && !isFrozen(s)) deleteShift(id).catch(() => {}); }); setSelectedShiftIds(new Set()); }}
+            className="rounded-lg bg-rose-600/20 px-2.5 py-1 text-[10px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors uppercase tracking-wider">
+            <Trash2 className="h-3 w-3 inline-block mr-0.5" />{t.delete ?? 'Elimina'}
+          </button>
+        </div>
+      )}
 
       {/* ── Grid ── */}
       <div className="overflow-x-auto rounded-2xl border border-white/10" style={{ maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' }}>

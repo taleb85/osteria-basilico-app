@@ -6,7 +6,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        'app-bg': '#0d3b6e',
+        'app-bg': '#0a0a0c',
         // Colore brand dinamico — iniettato da TenantContext via CSS custom properties
         accent: {
           DEFAULT: 'var(--brand)',
@@ -51,10 +51,10 @@ export default {
           muted: '#64748b',
         },
         /** Hex brand legacy centralizzati (ex hardcoded in UI) */
-        'brand-deep': '#001A80',
-        'brand-mid': '#3366CC',
-        'brand-navy': '#1a3a6e',
-        'brand-electric': '#0052ff',
+        'brand-deep': '#1a1a1a',
+        'brand-mid': '#525252',
+        'brand-navy': '#404040',
+        'brand-electric': '#6b6b6b',
       },
       fontSize: {
         caption: ['0.75rem', { lineHeight: '1.25rem' }],

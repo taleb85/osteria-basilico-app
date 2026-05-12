@@ -40,7 +40,7 @@ export default function HolidayRequests() {
     approved: {
       label: t.status_approved,
       dot: 'bg-[#60a5fa]',
-      badge: 'bg-[#60a5fa]/15 text-[#93c5fd] border border-[#60a5fa]/30',
+      badge: 'bg-neutral-500/15 text-white/70 border border-neutral-500/40',
     },
     pending: {
       label: t.pending,
@@ -57,8 +57,8 @@ export default function HolidayRequests() {
   if (featureFlags['staff_requests'] === false) {
     return (
       <div className="app-horizontal-pad font-sans mx-auto flex min-h-[40vh] w-full max-w-7xl items-center justify-center pb-content">
-        <div className="surface-glass max-w-md px-6 py-8 text-center">
-          <Palmtree className="w-10 h-10 text-accent mx-auto mb-3 opacity-90" />
+        <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 max-w-md px-6 py-8 text-center">
+          <Palmtree className="w-10 h-10 text-white/60 mx-auto mb-3 opacity-90" />
           <p className="text-white/80 font-semibold text-sm">{t.staff_requests_feature_off}</p>
         </div>
       </div>
@@ -326,7 +326,7 @@ export default function HolidayRequests() {
                 const u = users.find((u) => u.id === selectedH.user_id);
                 return (
                   <>
-                    <div className="surface-glass-sm mb-4 p-4">
+                    <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 mb-4 p-4">
                       <p className="text-white font-semibold text-sm">{u?.first_name} {u?.last_name}</p>
                       <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.75)' }}>
                         {safeFormatDate(selectedH.start_date, 'd MMM', { locale: it })} – {safeFormatDate(selectedH.end_date, 'd MMM yyyy', { locale: it })}
@@ -382,7 +382,7 @@ export default function HolidayRequests() {
         {/* Left: calendar */}
         <div className="md:col-span-1 space-y-4 h-full">
           {uiW('ferie.calendar') && (
-          <div className="surface-glass p-4 h-full" style={{ background: 'rgba(255, 255, 255, 0.16)', border: '1px solid rgba(255, 255, 255, 0.14)' }}>
+          <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 h-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-xl" style={{ color: '#ffffff' }}>
                 {format(now, 'MMMM yyyy', { locale: it })}
@@ -449,11 +449,11 @@ export default function HolidayRequests() {
 
           {/* My requests list (staff only) */}
           {!isAdmin && uiW('ferie.list') && (
-            <div className="surface-glass overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#60a5fa]/15">
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 overflow-hidden">
+              <div className="px-5 py-4 border-b border-neutral-500">
                 <h3 className="text-white font-semibold text-xl">{t.request_holiday}</h3>
               </div>
-              <div className="divide-y divide-[#60a5fa]/10 max-h-80 overflow-y-auto">
+              <div className="divide-y divide-neutral-500/20 max-h-80 overflow-y-auto">
                 {myHolidays.length === 0 ? (
                   <p className="text-white/70 text-sm text-center py-10">{t.no_holidays_yet}</p>
                 ) : myHolidays
@@ -499,12 +499,12 @@ export default function HolidayRequests() {
 
           {/* Pending (manager) */}
           {isAdmin && uiW('ferie.list') && pendingAll.length > 0 && (
-            <div className="surface-glass overflow-hidden h-full">
-              <div className="px-5 py-4 border-b border-[#60a5fa]/15 flex items-center justify-between">
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 overflow-hidden h-full">
+              <div className="px-5 py-4 border-b border-neutral-500 flex items-center justify-between">
                 <h3 className="text-white font-semibold text-xl">{t.pending}</h3>
                 <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200/80">{pendingAll.length}</span>
               </div>
-              <div className="divide-y divide-[#60a5fa]/10">
+              <div className="divide-y divide-neutral-500/20">
                 {pendingAll.map((h) => {
                   const u = users.find((u) => u.id === h.user_id);
                   return (
@@ -559,11 +559,11 @@ export default function HolidayRequests() {
 
           {/* Upcoming approved */}
           {isAdmin && uiW('ferie.list') && approvedFuture.length > 0 && (
-            <div className="surface-glass p-4 overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-50">
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 overflow-hidden">
+              <div className="px-4 py-3 border-b border-neutral-500">
                 <h3 className="text-white font-semibold text-xl">{t.home_upcoming_holidays}</h3>
               </div>
-              <div className="divide-y divide-[#60a5fa]/10 max-h-80 overflow-y-auto">
+              <div className="divide-y divide-neutral-500/20 max-h-80 overflow-y-auto">
                 {approvedFuture
                   .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
                   .map((h) => {
@@ -571,7 +571,7 @@ export default function HolidayRequests() {
                     return (
                       <div key={h.id} className="flex items-center justify-between px-5 py-3.5">
                         <div className="flex items-center gap-3 min-w-0">
-                          <Palmtree className="w-4 h-4 text-accent flex-shrink-0" />
+                          <Palmtree className="w-4 h-4 text-white/60 flex-shrink-0" />
                           <div className="min-w-0">
                             <p className="text-white text-sm font-semibold truncate" title={u?.first_name}>{u?.first_name} {u?.last_name}</p>
                             <p className="text-white/70 text-xs">
@@ -579,7 +579,7 @@ export default function HolidayRequests() {
                             </p>
                           </div>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full bg-[#60a5fa]/15 text-[#93c5fd] text-xs font-semibold uppercase border border-[#60a5fa]/30">
+                        <span className="px-2 py-0.5 rounded-full bg-neutral-500/15 text-white/70 text-xs font-semibold uppercase border border-neutral-500/40">
                           {t.status_approved}
                         </span>
                       </div>
@@ -591,12 +591,12 @@ export default function HolidayRequests() {
 
           {/* Rejected (admin) */}
           {isAdmin && uiW('ferie.list') && rejectedAll.length > 0 && (
-            <div className="surface-glass overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#60a5fa]/15 flex items-center justify-between">
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 overflow-hidden">
+              <div className="px-5 py-4 border-b border-neutral-500 flex items-center justify-between">
                 <h3 className="text-white font-semibold text-xl">{t.rejected}</h3>
                 <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold border border-red-200/80">{rejectedAll.length}</span>
               </div>
-              <div className="divide-y divide-[#60a5fa]/10">
+              <div className="divide-y divide-neutral-500/20">
                 {rejectedAll
                   .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                   .map((h) => {
@@ -626,31 +626,31 @@ export default function HolidayRequests() {
 
           {/* Empty state */}
           {isAdmin && uiW('ferie.list') && pendingAll.length === 0 && approvedFuture.length === 0 && (
-            <div className="surface-glass p-12 flex flex-col items-center justify-center text-center">
-              <Palmtree className="w-10 h-10 text-accent mb-3 opacity-90" />
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 p-12 flex flex-col items-center justify-center text-center">
+              <Palmtree className="w-10 h-10 text-white/60 mb-3 opacity-90" />
               <p className="text-white/70 text-sm">{t.no_holidays_yet}</p>
             </div>
           )}
 
           {/* Staff: my upcoming approved */}
           {!isAdmin && uiW('ferie.list') && myHolidays.filter(h => h.status === 'approved' && new Date(h.end_date) >= new Date()).length > 0 && (
-            <div className="surface-glass overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-100">
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 overflow-hidden">
+              <div className="px-5 py-4 border-b border-neutral-500">
                 <h3 className="text-white font-semibold text-xl">{t.home_upcoming_holidays}</h3>
               </div>
-              <div className="divide-y divide-[#60a5fa]/10">
+              <div className="divide-y divide-neutral-500/20">
                 {myHolidays
                   .filter(h => h.status === 'approved' && new Date(h.end_date) >= new Date())
                   .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
                   .map((h) => (
                     <div key={h.id} className="flex items-center justify-between px-5 py-3.5">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-accent" />
+                        <Calendar className="w-4 h-4 text-white/60" />
                         <span className="text-white text-[12px] font-medium">
                           {safeFormatDate(h.start_date, 'd MMM', { locale: it })} – {safeFormatDate(h.end_date, 'd MMM yyyy', { locale: it })}
                         </span>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full bg-[#60a5fa]/15 text-[#93c5fd] text-xs font-semibold uppercase border border-[#60a5fa]/30">{t.status_approved}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-neutral-500/15 text-white/70 text-xs font-semibold uppercase border border-neutral-500/40">{t.status_approved}</span>
                     </div>
                   ))}
               </div>

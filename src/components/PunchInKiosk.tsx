@@ -604,7 +604,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                   animate="visible"
                   onClick={() => { setSelectedUser(user); setShowWelcome(true); }}
                   whileTap={{ scale: 0.98 }}
-                  className={`surface-glass surface-ghost-interactive flex w-full flex-col border-l-4 px-5 py-3.5 font-sans text-left transition-colors ${borderColor}`}
+                  className={`rounded-xl border border-neutral-500 surface-ghost-interactive flex w-full flex-col border-l-4 px-5 py-3.5 font-sans text-left transition-colors ${borderColor}`}
                 >
                   {/* Riga 1: nome + badge azione */}
                   <div className="flex items-center justify-between gap-2 w-full">
@@ -691,7 +691,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.18, type: 'spring', stiffness: 280, damping: 22 }}
               className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl text-4xl font-bold text-white shadow-xl shadow-black/40"
-              style={{ background: '#0d3b6e' }}
+              style={{ background: '#0a0a0c' }}
             >
               {selectedUser.first_name[0].toUpperCase()}
             </motion.div>
@@ -802,7 +802,7 @@ export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
                               ? 'bg-white/5 border-white/12 cursor-default'
                               : awaitingOut
                                   ? 'bg-amber-500/12 border-amber-500/30 cursor-pointer hover:bg-amber-500/22'
-                                  : 'bg-white/8 border-white/15 hover:bg-white/12 cursor-pointer'
+                                  : 'bg-white/8 border-neutral-500 hover:bg-white/12 cursor-pointer'
                           } ${isSuggested ? 'ring-2 ring-accent/40' : ''} active:bg-amber-500/22'/80`}
                         >
                           <span

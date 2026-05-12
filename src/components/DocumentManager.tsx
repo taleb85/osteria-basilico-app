@@ -112,7 +112,7 @@ export default function DocumentManager({ userId, tenantId }: DocumentManagerPro
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value as DocumentCategory)}
-          className="rounded-lg border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] text-white/80"
+          className="rounded-lg border border-neutral-500 bg-white/5 px-2 py-1.5 text-[11px] text-white/80"
         >
           {CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>{getCategoryLabel(cat)}</option>

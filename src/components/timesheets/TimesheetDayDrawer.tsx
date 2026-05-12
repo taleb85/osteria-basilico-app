@@ -42,7 +42,7 @@ function getShiftCardStyle(s: ShiftRow) {
   if (s.status === 'approved') return { border: 'border-emerald-500/30', bg: 'bg-emerald-500/12', ring: 'ring-emerald-500/30', label: 'Approvato', labelCls: 'text-emerald-300' };
   if (s.status === 'absent') return { border: 'border-rose-500/30', bg: 'bg-rose-500/12', ring: 'ring-rose-500/30', label: 'Assente', labelCls: 'text-rose-300' };
   if (s.status === 'confirmed') return { border: 'border-brand-electric/30', bg: 'bg-brand-electric/10', ring: 'ring-brand-electric/30', label: 'Confermato', labelCls: 'text-blue-300' };
-  return { border: 'border-white/15', bg: 'bg-white/6', ring: 'ring-white/15', label: 'Bozza', labelCls: 'text-white/50' };
+  return { border: 'border-neutral-500', bg: 'bg-white/6', ring: 'ring-white/15', label: 'Bozza', labelCls: 'text-white/50' };
 }
 
 // ── Props ───────────────────────────────────────────────────────────────────
@@ -222,8 +222,8 @@ export default function TimesheetDayDrawer({ ctx, updateShift }: TimesheetDayDra
   const plannedCardBoxClass = plannedApprovedCard ? 'rounded-xl border-2 border-l-4 border-emerald-500/30 border-l-emerald-500 bg-emerald-500/12 p-3'
     : plannedConfirmedCard ? 'rounded-xl border-2 border-l-4 border-brand-electric/30 border-l-brand-electric bg-brand-electric/10 p-3'
     : plannedAbsentCard ? 'rounded-xl border-2 border-l-4 border-rose-500/30 border-l-error bg-rose-500/12 p-3'
-    : plannedDraftCard ? 'rounded-xl border-2 border-l-4 border-white/15 border-l-review bg-white/6 p-3'
-    : 'rounded-xl border-2 border-l-4 border-white/15 border-l-white/30 bg-white/6 p-3';
+    : plannedDraftCard ? 'rounded-xl border-2 border-l-4 border-neutral-500 border-l-review bg-white/6 p-3'
+    : 'rounded-xl border-2 border-l-4 border-neutral-500 border-l-white/30 bg-white/6 p-3';
   const plannedCardLabelCls = plannedApprovedCard ? 'text-emerald-300' : plannedConfirmedCard ? 'text-blue-300' : plannedAbsentCard ? 'text-rose-300' : plannedDraftCard ? 'text-white/50' : 'text-white/40';
   const plannedCardMainCls = plannedApprovedCard ? 'text-white' : plannedConfirmedCard ? 'text-white' : plannedAbsentCard ? 'text-rose-200' : plannedDraftCard ? 'text-white' : 'text-white/85';
   const plannedCardSubCls = plannedApprovedCard ? 'text-emerald-300/90' : plannedConfirmedCard ? 'text-blue-300/80' : plannedAbsentCard ? 'text-rose-300' : plannedDraftCard ? 'text-white/55' : 'text-white/50';

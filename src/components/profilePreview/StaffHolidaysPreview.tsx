@@ -50,7 +50,7 @@ export default function StaffHolidaysPreview({
         onUiToggle={onUiToggle}
         hiddenBadge={hiddenBadge}
       >
-        <div className="surface-glass overflow-hidden">
+        <div className="rounded-xl border border-neutral-500 overflow-hidden">
           <div className="border-b border-slate-100 px-3 py-2 text-xs font-bold text-white/70">
             {t.mod_vacation_requests}
           </div>

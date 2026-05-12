@@ -83,7 +83,7 @@ function NavPreviewBar({
   const iconSz = fs ? 'w-7 h-7 sm:w-8 sm:h-8' : hub ? 'w-[18px] h-[18px] sm:w-5 sm:h-5' : 'w-4 h-4';
   const labelSz = fs ? 'text-[11px] sm:text-xs' : hub ? 'text-[11px] sm:text-[11px]' : 'text-[11px]';
   return (
-    <div className={`rounded-[1.25rem] border border-white/15 shadow-inner ${pad}`} style={{ backgroundColor: ACCENT }}>
+    <div className={`rounded-[1.25rem] border border-neutral-500 shadow-inner ${pad}`} style={{ backgroundColor: ACCENT }}>
       <div className={`flex justify-between items-stretch gap-1 sm:gap-2 ${rowMin}`}>
         {tabs.map((id) => {
           const Icon = PREVIEW_TAB_ICONS[id];
@@ -447,7 +447,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                 className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
                   roleFilter === k
                     ? 'rounded-full border border-accent bg-accent text-white'
-                    : 'surface-glass-sm !rounded-full text-white/70 surface-ghost-interactive hover:border-slate-300'
+                    : 'rounded-xl border border-neutral-500 !rounded-full text-white/70 surface-ghost-interactive hover:border-neutral-500'
                 } active:brightness-95`}
               >
                 {k === 'all'
@@ -463,12 +463,12 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
               type="checkbox"
               checked={showSuspended}
               onChange={(e) => setShowSuspended(e.target.checked)}
-              className="rounded border-slate-300 text-accent focus:ring-accent/30"
+              className="rounded border-neutral-500 text-accent focus:ring-accent/30"
             />
             {tv.profile_visibility_show_suspended ?? 'Mostra sospesi / inattivi'}
           </label>
 
-          <ul className="max-h-[min(52vh,28rem)] divide-y divide-slate-100 overflow-y-auto surface-glass-sm">
+          <ul className="max-h-[min(52vh,28rem)] divide-y divide-slate-100 overflow-y-auto rounded-xl border border-neutral-500">
             {filteredList.length === 0 && (
               <li className="px-4 py-8 text-center text-sm text-white/50">
                 {tv.profile_visibility_empty_list ?? 'Nessun profilo corrisponde ai filtri.'}
@@ -580,7 +580,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
 
           <div className="flex-1 min-h-0 overflow-y-auto app-horizontal-pad py-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
             <div className="mx-auto w-full max-w-7xl space-y-4">
-              <div className="surface-glass-sm overflow-hidden">
+              <div className="rounded-xl border border-neutral-500 overflow-hidden">
                 <div className="border-b border-slate-100 bg-slate-50 px-3 py-2">
                   <p className="text-[11px] font-bold text-white/60 uppercase tracking-wider">
                     {tv.profile_visibility_preview_banner ?? 'Anteprima navigazione'}
@@ -618,7 +618,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                   <button
                     type="button"
                     onClick={handleSmartRestore}
-                    className="inline-flex items-center gap-2 surface-glass-sm px-3 py-2 text-xs font-semibold text-white/70 surface-ghost-interactive hover:text-white active:text-white"
+                    className="inline-flex items-center gap-2 rounded-xl border border-neutral-500 px-3 py-2 text-xs font-semibold text-white/70 surface-ghost-interactive hover:text-white active:text-white"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     {hasUnsavedChanges
@@ -631,7 +631,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                       type="button"
                       onClick={handleDeleteUser}
                       disabled={isDeleting}
-                      className="inline-flex items-center gap-2 surface-glass-sm px-3 py-2 text-xs font-semibold text-red-600 surface-ghost-interactive hover:bg-red-50 active:bg-red-50/80"
+                      className="inline-flex items-center gap-2 rounded-xl border border-neutral-500 px-3 py-2 text-xs font-semibold text-red-600 surface-ghost-interactive hover:bg-red-50 active:bg-red-50/80"
                     >
                       {isDeleting ? (
                         <RotateCcw className="w-3.5 h-3.5 animate-spin" />
@@ -646,7 +646,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
 
               <div className="space-y-4">
                   {activeTabPanelEmpty && (
-                    <div className="surface-glass-sm p-6 text-center">
+                    <div className="rounded-xl border border-neutral-500 p-6 text-center">
                       <p className="text-sm text-white/60">
                         {tv.profile_visibility_tab_empty ??
                           'Nessun permesso o blocco configurabile per questa scheda. Scegli un’altra scheda o attiva prima il permesso della scheda (es. Tabellone team).'}
@@ -670,7 +670,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                             navLabel={navLabels[activeHubTab]}
                           />
                           {staffModulesForActiveTab.length > 0 && (
-                            <div className="space-y-1 border-t border-slate-300/80 pt-1.5">
+                            <div className="space-y-1 border-t border-neutral-500/80 pt-1.5">
                               <p className="px-1 text-[11px] font-bold uppercase tracking-wider text-white/60">
                                 {tv.profile_visibility_tab_staff_modules ?? 'Moduli area personale'}
                               </p>
@@ -681,8 +681,8 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                                     key={mod}
                                     className={`flex min-h-[44px] items-stretch gap-0 rounded-lg border-2 ${
                                       enabled
-                                        ? 'border-slate-200 surface-glass-sm'
-                                        : 'border-dashed border-slate-400/70 bg-slate-300/40'
+                                        ? 'border-slate-200 rounded-xl border border-neutral-500'
+                                        : 'border-dashed border-neutral-500/70 bg-slate-300/40'
                                     }`}
                                   >
                                     <div
@@ -735,7 +735,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                       {featuresForActiveTab.length > 0 && (
                         <details
                           key={`perm-${previewUser.id}-${activeHubTab}`}
-                          className="group surface-glass-sm open:border-slate-300/95 bg-slate-50/50 open:bg-slate-50/80"
+                          className="group rounded-xl border border-neutral-500 open:border-neutral-500/95 bg-slate-50/50 open:bg-slate-50/80"
                           open={permDetailsOpen}
                           onToggle={(e) => setPermDetailsOpen(e.currentTarget.open)}
                         >
@@ -767,7 +767,7 @@ export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }:
                               return (
                                 <AdminRow
                                   key={key}
-                                  className={`rounded-lg surface-glass !border-b-0 !p-2 ${
+                                  className={`rounded-lg border border-neutral-500 !border-b-0 !p-2 ${
                                     key === 'view_estimated_cost'
                                       ? '[&_.font-bold]:border-l-2 [&_.font-bold]:border-accent/30 [&_.font-bold]:pl-2'
                                       : ''

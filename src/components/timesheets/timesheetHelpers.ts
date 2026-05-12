@@ -21,7 +21,7 @@ import type { PunchRecord, PunchRecordSource, Shift, User } from '../../types';
 /** Pill reparto: sfondo colore reparto, testo bianco (scurisce il rgb se troppo chiaro per il contrasto). */
 export function departmentChipStyle(hex: string): CSSProperties {
   const raw = hex.replace('#', '').trim();
-  const six = raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw) ? raw : '001A80';
+  const six = raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw) ? raw : '6b6b6b';
   let r = parseInt(six.slice(0, 2), 16);
   let g = parseInt(six.slice(2, 4), 16);
   let b = parseInt(six.slice(4, 6), 16);

@@ -34,9 +34,15 @@ npm-debug.log*
 .vercel
 .netlify/
 
+# IDE
+.trae/
+
 # Local junk / backups (do not commit)
 Untitled
 *_BACKUP.tsx
 supabase/.temp/
 Users/
 .env*.local
+
+# Temp / timestamp files
+*.timestamp-*

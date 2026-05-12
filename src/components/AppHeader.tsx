@@ -76,7 +76,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
             <button
               type="button"
               onClick={() => setLangOpen((v) => !v)}
-              className="flex min-h-[36px] items-center gap-0.5 surface-glass-sm px-2 py-1 text-xs font-semibold text-white/70 surface-ghost-interactive"
+              className="flex min-h-[36px] items-center gap-0.5 rounded-xl border border-neutral-500 px-2 py-1 text-xs font-semibold text-white/70 surface-ghost-interactive"
             >
               <span>{langFlags[effectiveLanguage]}</span>
               <span className="hidden sm:inline ml-0.5">{langLabels[effectiveLanguage]}</span>
@@ -121,7 +121,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
               type="button"
               onClick={onLogout}
               title={t.header_logout}
-              className="flex min-h-[44px] min-w-[44px] flex-shrink-0 items-center justify-center surface-glass-sm text-white/70 surface-ghost-interactive md:hidden"
+              className="flex min-h-[44px] min-w-[44px] flex-shrink-0 items-center justify-center rounded-xl border border-neutral-500 text-white/70 surface-ghost-interactive md:hidden"
             >
               <LogOut className="w-4 h-4" strokeWidth={2} />
             </button>

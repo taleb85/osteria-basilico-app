@@ -91,7 +91,7 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
                 ? 'bg-emerald-500/20 border-emerald-500/40'
                 : notifDenied
                 ? 'bg-white/5 border-white/10 opacity-50 cursor-not-allowed'
-                : 'bg-white/8 border-white/15 hover:bg-white/12 hover:border-white/25 cursor-pointer'
+                : 'bg-white/8 border-neutral-500 hover:bg-white/12 hover:border-white/25 cursor-pointer'
               }`}
           >
             <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl
@@ -121,7 +121,7 @@ export default function PermissionRequestModal({ onDone }: PermissionRequestModa
                 ? 'bg-emerald-500/20 border-emerald-500/40'
                 : locDenied
                 ? 'bg-white/5 border-white/10 opacity-50 cursor-not-allowed'
-                : 'bg-white/8 border-white/15 hover:bg-white/12 hover:border-white/25 cursor-pointer'
+                : 'bg-white/8 border-neutral-500 hover:bg-white/12 hover:border-white/25 cursor-pointer'
               }`}
           >
             <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl

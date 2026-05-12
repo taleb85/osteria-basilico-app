@@ -121,7 +121,7 @@ export default function NotificationCenter({ denseTrigger = false }: { denseTrig
           <div className="border-t border-white/10 bg-white/5 p-4">
             <button
               onClick={() => setIsOpen(false)}
-              className="w-full rounded-xl py-3 text-sm font-bold text-white/80 transition-transform active:scale-95 surface-glass-sm surface-ghost-interactive"
+              className="w-full rounded-xl py-3 text-sm font-bold text-white/80 transition-transform active:scale-95 rounded-xl border border-neutral-500 surface-ghost-interactive"
             >
               {t.close}
             </button>

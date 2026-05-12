@@ -348,7 +348,7 @@ export default function ProfileNavTabPanel({
     setTimeout(() => setLangSaved(false), 2000);
   };
 
-  const _menuRowBase = 'w-full flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:scale-[0.98] border border-white/15 hover:bg-white/10';
+  const _menuRowBase = 'w-full flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:scale-[0.98] border border-neutral-500 hover:bg-white/10';
   const chevronCls = 'text-white/60';
   const rowLabelCls = 'text-[13px] font-semibold text-white';
 

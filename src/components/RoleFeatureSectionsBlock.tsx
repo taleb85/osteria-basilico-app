@@ -19,7 +19,7 @@ import AdminRow from './ui/AdminRow';
 
 /** Liste permessi: niente overflow-hidden sul contenitore (evita tagli verticali su testi lunghi). */
 export const PERMISSION_SUMMARY_LIST_CLASS =
-  'space-y-0 surface-glass-sm ring-1 ring-slate-100/70';
+  'space-y-0 rounded-xl border border-neutral-500 ring-1 ring-slate-100/70';
 
 function rowLabel(sectionId: RoleTemplateSectionId, key: EnabledFeatureKey): string {
   if (sectionId === 'tabs_nav') return FEATURE_LABELS_TAB_FIRST[key];

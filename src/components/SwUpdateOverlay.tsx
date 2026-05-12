@@ -13,7 +13,7 @@ const STEPS = [
   { label: 'Riavvio…',                  doneAt: null },
 ];
 
-const BG = 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.22) 0%, transparent 55%), #0d3b6e';
+const BG = 'radial-gradient(ellipse at 50% 30%, rgba(107,107,107,0.15) 0%, transparent 55%), #0a0a0c';
 
 function redirectToApp() {
   try {

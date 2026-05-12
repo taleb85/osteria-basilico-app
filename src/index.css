@@ -42,11 +42,10 @@ button:active,
 
 :root {
   color-scheme: dark;
-  --app-bg:   #0d3b6e;
+  --app-bg:   #0a0a0c;
   --card-bg:  #ffffff;
   --text-main: #1a1a1a;
-  /* Header fisso + card allineate (bacheca): leggermente più chiaro per leggere FLOW/tab */
-  --surface-header-slab: rgba(14, 34, 88, 0.86);
+  --surface-header-slab: rgba(10, 10, 12, 0.86);
 }
 
 /* Header brand — rimane blu in entrambi i temi, testo sempre bianco */
@@ -72,7 +71,7 @@ body .top-tabbar {
  */
 html {
   min-height: 100%;
-  background: #0d3b6e;
+  background: #0a0a0c;
   color-scheme: dark;
 }
 
@@ -88,7 +87,7 @@ body,
 }
 
 body {
-  background: #0d3b6e;
+  background: #0a0a0c;
   color-scheme: dark;
 }
 
@@ -103,76 +102,71 @@ body {
 
 @layer base {
   :root {
-    --gray-dark: #001A80;
-    --gray-medium: #475569;
-    --gray-light: #64748b;
+    --gray-dark: #1a1a1a;
+    --gray-medium: #525252;
+    --gray-light: #6b6b6b;
     --gray-lighter: #f1f5f9;
-    /* Brand FLOW — Monocromatico Blu */
-    --flow-blue:     #0052FF;
-    --flow-slate:    #64748b;
-    --flow-border:   #E2E8F0;
-    --flow-bg-light: #F1F5F9;
-    --brand: #0052FF;
-    --brand-from: #0052FF;
-    --brand-to:   #0052FF;
-    --brand-gradient: #0052FF;
-    --brand-rgb: 0 82 255;
-    --brand-50:  hsl(224 100% 97%);
-    --brand-100: hsl(224 100% 93%);
-    --brand-200: hsl(224 100% 85%);
-    --brand-300: hsl(224 100% 73%);
-    --brand-400: hsl(224 100% 62%);
-    --brand-500: hsl(224 100% 50%);
-    --brand-600: hsl(224 100% 40%);
-    --brand-700: hsl(224 100% 30%);
-    --brand-800: hsl(224 100% 20%);
-    --brand-900: hsl(224 100% 12%);
-    --brand-hover: #0042DD;
-    --brand-dark:  #0033BB;
-    --brand-light: hsl(224 80% 92%);
-    --brand-muted: rgb(0 82 255 / 0.10);
-    --brand-nav-from: #0052FF;
-    --brand-nav-to:   #0052FF;
-    --brand-nav-dark-from: #0040CC;
-    --brand-nav-dark-to:   #0040CC;
+    --flow-blue:     #6b6b6b;
+    --flow-slate:    #6b6b6b;
+    --flow-border:   rgba(255, 255, 255, 0.15);
+    --flow-bg-light: rgba(255, 255, 255, 0.06);
+    --brand: #6b6b6b;
+    --brand-from: #6b6b6b;
+    --brand-to:   #6b6b6b;
+    --brand-gradient: #6b6b6b;
+    --brand-rgb: 107 107 107;
+    --brand-50:  hsl(0 0% 97%);
+    --brand-100: hsl(0 0% 93%);
+    --brand-200: hsl(0 0% 85%);
+    --brand-300: hsl(0 0% 73%);
+    --brand-400: hsl(0 0% 62%);
+    --brand-500: hsl(0 0% 50%);
+    --brand-600: hsl(0 0% 40%);
+    --brand-700: hsl(0 0% 30%);
+    --brand-800: hsl(0 0% 20%);
+    --brand-900: hsl(0 0% 12%);
+    --brand-hover: #858585;
+    --brand-dark:  #525252;
+    --brand-light: hsl(0 0% 92%);
+    --brand-muted: rgb(107 107 107 / 0.15);
+    --brand-nav-from: rgba(107, 107, 107, 0.92);
+    --brand-nav-to:   rgba(82, 82, 82, 0.88);
+    --brand-nav-dark-from: rgba(107, 107, 107, 0.88);
+    --brand-nav-dark-to:   rgba(71, 71, 71, 0.84);
     --brand-header-font: 'Inter', system-ui, sans-serif;
-    /* Retrocompatibilita con codice esistente */
     --flow-primary: var(--brand);
-    --accent: var(--deep-blue);
-    --accent-hover: var(--deep-blue-hover);
-    --accent-dark: var(--deep-blue);
-    --accent-light: var(--cyan-action);
-    --color-accent: var(--deep-blue);
-    /* Ombra soft unificata */
+    --accent: var(--brand);
+    --accent-hover: var(--brand-hover);
+    --accent-dark: var(--brand-dark);
+    --accent-light: var(--brand-light);
+    --color-accent: var(--brand);
     --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
-    --shadow-card-accent: 0 4px 16px -4px rgb(var(--brand-rgb) / 0.14), 0 2px 8px -4px rgb(15 23 42 / 0.08);
+    --shadow-card-accent: 0 4px 16px -4px rgb(107 107 107 / 0.14), 0 2px 8px -4px rgb(15 23 42 / 0.08);
     --text-dark: #1a1a1a;
-    --text-secondary: #475569;
-    --text-muted: #64748b;
-    /* B&W Glass Design System - DARK THEME */
-    --text-on-dark-bg: #e2e8f0; /* slate-200 per testi su sfondo scuro */
-    --text-on-glass: #ffffff; /* bianco per testi su card glass dark */
-    --text-on-glass-secondary: rgba(255, 255, 255, 0.65); /* text-secondary per testi secondari su glass */
-    --text-shift-time: #ffffff; /* bianco per orari turni - massima leggibilità su dark */
-    /* Palette Coordinata B&W Glass */
-    --deep-blue: #0B3573; /* Deep blue da top/bottom nav per azioni primarie */
-    --deep-blue-hover: #0d4085;
-    --cyan-action: #7AB9E5; /* Ciano per conferme/azioni positive */
-    --slate-neutral: #475569; /* Grigio ardesia per stati neutri */
+    --text-secondary: #525252;
+    --text-muted: #6b6b6b;
+    --text-on-dark-bg: #e2e8f0;
+    --text-on-glass: #ffffff;
+    --text-on-glass-secondary: rgba(255, 255, 255, 0.65);
+    --text-shift-time: #ffffff;
+    --deep-blue: #525252;
+    --deep-blue-hover: #6b6b6b;
+    --cyan-action: #9c9c9c;
+    --slate-neutral: #6b6b6b;
     
     /* ═══ DARK THEME GLOBAL TOKENS ═══ */
-    --bg-primary: #0a0a0c;
+    --bg-primary: #0a0a0a;
     --bg-surface: transparent;
     --bg-surface-hover: rgba(255, 255, 255, 0.06);
     --bg-surface-solid: rgba(255, 255, 255, 0.04);
     /** Menu/popover su `body` (portal): stessa tinta senza alpha così testo e righe restano leggibili sulla griglia sotto. */
-    --bg-popover-solid: rgb(10, 10, 12);
+    --bg-popover-solid: rgb(10, 10, 10);
     --bg-surface-secondary: transparent;
-    --border-color: rgba(255, 255, 255, 0.20);
+    --border-color: #525252;
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.75);
     --text-muted: rgba(255, 255, 255, 0.50);
-    --accent-blue: #3b82f6;
+    --accent-blue: #6b6b6b;
     --accent-green: #10b981;
     --accent-red: #ef4444;
     --accent-yellow: #f59e0b;
@@ -232,7 +226,7 @@ body {
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: #0d3b6e;
+    background: #0a0a0c;
     color-scheme: dark;
     color: var(--text-primary);
     width: 100%;
@@ -343,7 +337,7 @@ body {
       inset 0 -2px 8px rgba(0,0,0,0.04),
       0 4px 16px -4px rgba(0,0,0,0.10),
       0 1px 4px -2px rgba(0,0,0,0.07),
-      0 12px 32px -8px rgba(0,82,255,0.06);
+      0 12px 32px -8px rgba(0,0,0,0.06);
   }
   /**
    * Superficie ghost — bordo leggero, fill trasparente (stratificato sul bg pagina).
@@ -373,7 +367,7 @@ body {
    * Tabelle: tenere `surface-ghost` sul guscio; celle restano con bg propri.
    */
   .surface-glass {
-    @apply rounded-2xl text-slate-50 transition-colors duration-200;
+    @apply rounded-2xl text-neutral-50 transition-colors duration-200;
     background: var(--bg-surface);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -382,7 +376,7 @@ body {
   }
   /** Vetro con fill allineato alla striscia header (bacheca home, ecc.) */
   .surface-header-slab {
-    @apply rounded-2xl text-slate-50 transition-colors duration-200;
+    @apply rounded-2xl text-neutral-50 transition-colors duration-200;
     background: var(--surface-header-slab);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -390,7 +384,7 @@ body {
     box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.35);
   }
   .surface-glass-sm {
-    @apply rounded-xl text-slate-50 transition-colors duration-200;
+    @apply rounded-xl text-neutral-50 transition-colors duration-200;
     background: var(--bg-surface);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -404,7 +398,7 @@ body {
    * DARK THEME: solid dark background per modali
    */
   .modal-glass-panel {
-    @apply text-slate-50 shadow-2xl;
+    @apply text-neutral-50 shadow-2xl;
     /* Tinta piena: `--bg-surface-solid` (alpha ~0.5) in WebView / iOS dava pannelli “vuoti” e testo invisibile. */
     background: var(--bg-popover-solid, rgb(5, 14, 60));
     color: #f1f5f9;
@@ -739,9 +733,9 @@ body {
     -webkit-backdrop-filter: blur(12px);
   }
 
-  /** Testo gradiente per titoli scheda e data header - contrasto alto su sfondo blu */
+  /** Testo gradiente per titoli scheda e data header - contrasto alto su sfondo scuro */
   .tab-title-gradient {
-    background: linear-gradient(110deg, #ffffff 0%, #e2e8f0 100%);
+    background: linear-gradient(110deg, #ffffff 0%, #f5f5f5 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -756,17 +750,17 @@ body {
   }
 }
 
-/* ── Blu FLOW solido su tutti i bottoni primari ─────────────────────────── */
+/* ── Accent solido su tutti i bottoni primari ─────────────────────────── */
 [class~="bg-accent"]:not([class*="bg-accent/"]):not([class*="bg-accent-"]) {
-  background: #0052FF !important;
+  background: #6b6b6b !important;
 }
 .ui-toolbar-accent,
 .ui-toolbar-page-band-presences .ui-toolbar-accent {
-  background: #0052FF !important;
+  background: #6b6b6b !important;
 }
 [class~="bg-accent"]:hover:not([class*="bg-accent/"]):not([class*="bg-accent-"]),
 [class~="hover:bg-accent-hover"]:hover {
-  background: #0042DD !important;
+  background: #858585 !important;
   filter: brightness(1.04);
 }
 
@@ -912,9 +906,9 @@ body {
 
 /* react-day-picker — calendario custom dark theme */
 .rdp-modern.rdp-root {
-  --rdp-accent-color: #3b82f6;
-  --rdp-accent-background-color: rgba(59, 130, 246, 0.25);
-  --rdp-selected-border: 2px solid #3b82f6;
+  --rdp-accent-color: #6b6b6b;
+    --rdp-accent-background-color: rgba(107, 107, 107, 0.25);
+    --rdp-selected-border: 2px solid #6b6b6b;
   --rdp-day_button-border-radius: 0.5rem;
   --rdp-day-height: 2rem;
   --rdp-day-width: 2rem;
@@ -1018,7 +1012,7 @@ body {
 }
 .ts-shift-highlighted {
   animation: ts-shift-pop 0.9s ease-out 1;
-  outline: 2px solid rgba(0,82,255,0.55);
+  outline: 2px solid rgba(255,255,255,0.55);
   outline-offset: 1px;
   z-index: 2;
   position: relative;
@@ -1098,7 +1092,7 @@ html.no-motion *::after {
 
 /* Bozza: grigio scuro leggero */
 .shift-status-draft {
-  color: #6b7280;
+  color: #6b6b6b;
   font-weight: 400;
 }
 
@@ -1366,28 +1360,28 @@ button[class*="ui-toolbar"].text-slate-600 {
 .ui-toolbar-tab.bg-accent,
 button[class*="ui-toolbar"].bg-accent,
 button[class*="bg-accent"][class*="ui-toolbar"] {
-  background: #3b82f6 !important;
+  background: #6b6b6b !important;
   color: #ffffff !important;
 }
 
 /* Inactive toolbar buttons */
 .ui-toolbar-chip:not(.bg-accent),
 .ui-toolbar-tab:not(.bg-accent) {
-  background: rgba(15, 35, 90, 0.82) !important;
+  background: rgba(20, 20, 22, 0.82) !important;
   color: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* Toolbar hover states */
 .ui-toolbar-chip:hover,
 .ui-toolbar-tab:hover {
-  background: rgba(15, 35, 90, 0.82) !important;
+  background: rgba(30, 30, 32, 0.82) !important;
 }
 
 /* Toolbar dropdown selects */
 .ui-toolbar-chip select,
 .ui-toolbar-page-band select {
   color: #ffffff !important;
-  background: rgba(15, 35, 90, 0.82) !important;
+  background: rgba(20, 20, 22, 0.82) !important;
 }
 
 /* Toolbar icons */
@@ -1497,7 +1491,7 @@ div[class*="rounded-2xl"] .text-slate-600 {
 
 /* Today */
 .calendar-day.today {
-  background: #3b82f6 !important;
+  background: #6b6b6b !important;
   color: #ffffff !important;
   font-weight: 700 !important;
 }

@@ -80,7 +80,7 @@ const FeatureCard = memo(function FeatureCard({
   const Icon = SLUG_ICONS[slug] ?? Zap;
   const hasDetails = detailLines.length > 0;
   return (
-    <div className="surface-glass-sm flex h-full flex-col p-3.5 transition-colors surface-ghost-interactive hover:border-white/20 sm:p-4 active:brightness-95">
+    <div className="rounded-xl border border-neutral-500 flex h-full flex-col p-3.5 transition-colors surface-ghost-interactive hover:border-white/20 sm:p-4 active:brightness-95">
       <div className="flex items-start gap-3 min-w-0">
         <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
           <Icon className="w-[18px] h-[18px] text-accent" />
@@ -124,7 +124,7 @@ const FeatureCard = memo(function FeatureCard({
                     transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
                     className="overflow-hidden"
                   >
-                    <div className="surface-glass-sm mt-2 bg-white/5 px-2.5 py-2">
+                    <div className="rounded-xl border border-neutral-500 mt-2 bg-white/5 px-2.5 py-2">
                       <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-white/60">
                         {detailLabel}
                       </p>
@@ -253,7 +253,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
   if (!hasFullAccess) {
     return (
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">
-        <div className="surface-glass-sm p-4 rounded-xl mb-6">
+        <div className="rounded-xl border border-neutral-500 p-4 rounded-xl mb-6">
           <h2 className="text-lg font-bold mb-1">{t.settings_current_user || 'Utente attuale'}</h2>
           <div className="flex items-center gap-3">
             <span className="font-semibold text-accent">{currentUser.first_name} {currentUser.last_name}</span>
@@ -280,7 +280,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
         className="max-w-5xl"
       >
         {/* Sezione utente attuale */}
-        <div className="surface-glass-sm p-4 rounded-xl mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="rounded-xl border border-neutral-500 p-4 rounded-xl mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-lg font-bold mb-1">{t.settings_current_user || 'Utente attuale'}</h2>
             <div className="flex items-center gap-3">
@@ -301,7 +301,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
 
         {/* Sezione gestione utenti */}
         {onOpenProfilesTab && (
-          <div className="surface-glass-sm p-4 rounded-xl mb-6">
+          <div className="rounded-xl border border-neutral-500 p-4 rounded-xl mb-6">
             <h2 className="text-md font-bold mb-2 flex items-center gap-2"><Users className="w-4 h-4" />{t.impostazioni_open_profiles || 'Gestione utenti'}</h2>
             <button
               type="button"
@@ -314,7 +314,7 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
           </div>
         )}
 
-        <div className="surface-glass-sm p-4 rounded-xl mb-6">
+        <div className="rounded-xl border border-neutral-500 p-4 rounded-xl mb-6">
           <h2 className="text-md font-bold mb-1 flex items-center gap-2">
             <Bell className="w-4 h-4 text-accent" />
             {t.admin_notify_team_title}

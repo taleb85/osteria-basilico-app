@@ -220,7 +220,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`inline-flex shrink-0 items-center text-left font-semibold leading-none tabular-nums text-white/90 transition-colors surface-glass-sm surface-ghost-interactive hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 ${btnSizeClass} ${className} active:brightness-95`}
+        className={`inline-flex shrink-0 items-center text-left font-semibold leading-none tabular-nums text-white/90 transition-colors rounded-xl border border-neutral-500 surface-ghost-interactive hover:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 ${btnSizeClass} ${className} active:brightness-95`}
       >
         <Calendar className={iconClass} aria-hidden />
         <span className="min-w-0 truncate tabular-nums" title={label}>{label}</span>
