@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { isPWAStandalone } from '../utils/pwaStandalone';
+import { isPWAStandalone, isDesktop } from '../utils/pwaStandalone';
 import PWAInstallRequired from '../components/PWAInstallRequired';
 
 /**
@@ -8,8 +8,9 @@ import PWAInstallRequired from '../components/PWAInstallRequired';
  * Comportamento:
  * - Dev mode: sempre pass
  * - VITE_ALLOW_BROWSER_APP=true: sempre pass
+ * - Prod + Desktop (browser): pass — l'utente può usare l'app direttamente senza installarla
  * - Prod + PWA standalone: pass
- * - Prod + browser: mostra install screen
+ * - Prod + Mobile (browser): mostra install screen
  */
 export function PwaGate({ children }: { children: ReactNode }) {
   // Bypass env: permette uso browser senza PWA (dev debug / test)
@@ -19,8 +20,13 @@ export function PwaGate({ children }: { children: ReactNode }) {
   if (import.meta.env.DEV || allowBrowser) {
     return <>{children}</>;
   }
+
+  // Desktop: non bloccare, l'utente usa l'app direttamente nel browser
+  if (isDesktop()) {
+    return <>{children}</>;
+  }
   
-  // Prod: mostra install screen solo se NON è PWA standalone
+  // Prod mobile: mostra install screen solo se NON è PWA standalone
   if (!isPWAStandalone()) {
     return <PWAInstallRequired />;
   }
