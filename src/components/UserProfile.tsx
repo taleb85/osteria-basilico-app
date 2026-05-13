@@ -480,6 +480,11 @@ export function ProfileFormAdmin({
     [user.id, formData.first_name, formData.last_name, users]
   );
 
+  const mobileconfigUrl = useMemo(
+    () => `${PUBLIC_APP_ORIGIN}/Installa_FLOW.mobileconfig`,
+    []
+  );
+
   const handleCopyAccessLink = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(accessLink);
@@ -488,6 +493,35 @@ export function ProfileFormAdmin({
       showError?.(tv.copy_failed ?? 'Copia non riuscita. Seleziona il link manualmente.');
     }
   }, [accessLink, showSuccess, showError, tv.admin_employee_access_link_copied, tv.copy_failed]);
+
+  const canShare = typeof navigator.share === 'function';
+
+  const handleShareMobileconfig = useCallback(async () => {
+    if (canShare) {
+      try {
+        const resp = await fetch(mobileconfigUrl);
+        const blob = await resp.blob();
+        const file = new File([blob], 'Installa_FLOW.mobileconfig', {
+          type: 'application/x-apple.ashen-plist',
+        });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file] });
+        } else {
+          await navigator.share({ url: mobileconfigUrl });
+        }
+        return;
+      } catch {
+        return;
+      }
+    }
+    const a = document.createElement('a');
+    a.href = mobileconfigUrl;
+    a.download = 'Installa_FLOW.mobileconfig';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showSuccess?.(tv.admin_employee_invite_download_started ?? 'Download avviato.');
+  }, [mobileconfigUrl, showSuccess, tv.admin_employee_invite_download_started, canShare]);
 
   const roleSelectDisabled =
     readOnly || (isPurelyManagementRole(user.role) && !isAdminOnly(currentUser));
@@ -766,7 +800,7 @@ export function ProfileFormAdmin({
               <span>{tv.admin_employee_access_link_hint ?? ''}</span>
             </p>
 
-            {/* Pulsante: copia link invito negli appunti */}
+            {/* Pulsante: copia link invito standard */}
             <button
               type="button"
               onClick={handleCopyAccessLink}
@@ -776,10 +810,6 @@ export function ProfileFormAdmin({
               <Copy className="w-5 h-5" aria-hidden />
               <span>{tv.admin_employee_invite_send ?? 'Copia link invito'}</span>
             </button>
-            <p className="flex gap-1.5 text-[11px] leading-snug text-white/70 font-sans">
-              <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/45" aria-hidden />
-              <span>{tv.admin_employee_access_link_hint ?? ''}</span>
-            </p>
             <p className="pl-5 text-[11px] font-medium text-white font-sans">
               {formatTrans(tv.admin_employee_access_link_preview ?? 'Nome al login: {name}', {
                 name: `${formData.first_name} ${formData.last_name ?? ''}`.trim() || '—',
@@ -796,6 +826,29 @@ export function ProfileFormAdmin({
               </p>
             )}
             <p className="text-[11px] text-white/45 font-mono break-all pl-5">{accessLink}</p>
+
+            <div className="border-t border-white/10" />
+
+            {/* Pulsante: condividi/scarica profilo iOS */}
+            <button
+              type="button"
+              onClick={handleShareMobileconfig}
+              className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white font-sans transition-all hover:opacity-95 active:scale-[0.98]"
+              style={{ background: '#5856d6' }}
+            >
+              <Smartphone className="w-5 h-5" aria-hidden />
+              <span>
+                {canShare
+                  ? (tv.admin_employee_invite_send_ios ?? 'Condividi profilo iOS')
+                  : (tv.admin_employee_invite_download_ios ?? 'Scarica profilo iOS')}
+              </span>
+            </button>
+            <p className="text-[11px] text-white/70 font-sans pl-5">
+              {canShare
+                ? (tv.admin_employee_access_link_ios_hint ?? 'Per utenti iPhone: installa direttamente il profilo di configurazione FLOW.')
+                : (tv.admin_employee_access_link_ios_download_hint ?? 'Scarica il file .mobileconfig da inviare ai dipendenti iPhone.')}
+            </p>
+            <p className="text-[11px] text-white/45 font-mono break-all pl-5">{mobileconfigUrl}</p>
           </div>
         )}
 
