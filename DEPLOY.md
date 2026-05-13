@@ -70,7 +70,7 @@ npm run deploy
 ```
 
 Equivale a `npm run build && npx wrangler pages deploy dist --project-name=flow-workinmotion`.  
-URL di default: `https://flow-workinmotion.pages.dev` (override: `VITE_PUBLIC_APP_ORIGIN` al build, vedi `.env.example`).
+URL di default: `https://flow-workinmotion.vercel.app` (override: `VITE_PUBLIC_APP_ORIGIN` al build, vedi `.env.example`).
 
 #### Netlify (deprecato)
 
@@ -78,7 +78,7 @@ Netlify osteria-basilico non è più in uso. Per altri siti legacy: [app.netlify
 
 #### Supabase — URL di produzione (una tantum in dashboard)
 
-In **Supabase** → **Authentication** → **URL Configuration** imposta l’URL pubblico reale (es. `https://flow-workinmotion.pages.dev`, un alias `*.flow-workinmotion.pages.dev`, o dominio custom).
+In **Supabase** → **Authentication** → **URL Configuration** imposta l’URL pubblico reale (es. `https://flow-workinmotion.vercel.app`, o dominio custom).
 
 - **Site URL:** l’indirizzo principale dello staff  
 - **Redirect URLs:** stessa origine e wildcard se servono (es. `https://tuodominio/**`)
@@ -95,7 +95,7 @@ In **Supabase** → **Authentication** → **URL Configuration** imposta l’URL
 ## 3. Dopo il deploy
 
 1. **Test completo** sull’URL di produzione: login con PIN, turni, modifica orari, pubblicazione, ferie, report, sync.
-2. **Link condiviso**: invia il link (es. `*.pages.dev` o dominio custom) ai dipendenti.
+2. **Link condiviso**: invia il link (es. `*.vercel.app` o dominio custom) ai dipendenti.
 3. **HTTPS**: Cloudflare (e il tuo server, se self-hosted) fornisce certificato; con dominio proprio controlla la dashboard del provider.
 4. **Backup**: Supabase fa backup; verifica in Supabase Dashboard le impostazioni di backup del progetto.
 

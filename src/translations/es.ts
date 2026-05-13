@@ -1570,6 +1570,33 @@ const baseEs: Record<string, string> = {
   role_bartender: 'Camarero de barra',
   role_dishwasher: 'Lavavajillas',
   role_capo: 'Jefe de equipo',
+
+  // InstallPage
+  install_no_user: 'Usuario no encontrado.',
+  install_loading: 'Cargando…',
+  install_welcome_name: '¡Bienvenido, {name}!',
+  install_welcome: '¡Bienvenido a FLOW!',
+  install_choose_device: 'Elige tu dispositivo para instalar la app.',
+  install_ios_btn: 'iPhone',
+  install_ios_desc: 'Descargar el perfil de configuración',
+  install_android_btn: 'Android',
+  install_android_desc: 'Sigue los pasos para instalar',
+  install_skip: 'Continuar sin instalar',
+  install_downloading: 'Descargando…',
+  install_downloaded: '✅ Perfil descargado. Ve a Ajustes → Perfil descargado para instalarlo.',
+  install_old_profile_hint: 'Si ya tenías un perfil FLOW instalado, elimínalo primero desde Ajustes → General → VPN y Gestión de Dispositivos.',
+  install_open_app: 'Ir a la app',
+  install_android_title: 'Instalar en Android',
+  install_android_intro: 'Añade FLOW a la pantalla de inicio:',
+  install_android_step1: 'Abre el enlace en Chrome',
+  install_android_step2: 'Toca el menú ☰ → "Añadir a pantalla de inicio"',
+  install_android_step3: 'Encontrarás el icono de FLOW en tu pantalla de inicio',
+  install_ios_title: 'Instalar en iPhone',
+  install_ios_intro: 'Sigue estos pasos para instalar el perfil:',
+  install_ios_step1: 'Ve a Ajustes → "Perfil descargado"',
+  install_ios_step2: 'Toca "Instalar" arriba a la derecha',
+  install_ios_step3: 'Encontrarás el icono de FLOW en tu pantalla de inicio',
+  install_download_again: 'Descargar el perfil de nuevo',
 };
 
 export default baseEs;

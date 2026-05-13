@@ -2,7 +2,7 @@
 
 Usala **in ordine**. Non incollare mai in chat **chiavi, token o `.env`**: se serve aiuto, manda solo **esito** (ok / errore), **nomi** delle variabili presenti, o screenshot con valori oscurati.
 
-**URL di riferimento produzione:** `https://flow-workinmotion.pages.dev` (o `VITE_PUBLIC_APP_ORIGIN` al build)  
+**URL di riferimento produzione:** `https://flow-workinmotion.vercel.app` (o `VITE_PUBLIC_APP_ORIGIN` al build)  
 **Repo:** [taleb85/osteria-basilico-app](https://github.com/taleb85/osteria-basilico-app)
 
 ---
@@ -50,7 +50,7 @@ Usala **in ordine**. Non incollare mai in chat **chiavi, token o `.env`**: se se
 ## B — Supabase (stesso progetto puntato da `VITE_SUPABASE_URL`)
 
 1. **Authentication → URL Configuration**  
-   - [ ] **Site URL** = l’URL Cloudflare o dominio custom ufficiale (es. `https://flow-workinmotion.pages.dev`).  
+   - [ ] **Site URL** = l'URL Vercel o dominio custom ufficiale (es. `https://flow-workinmotion.vercel.app`).  
    - [ ] **Redirect URLs** includono quell’origine (e wildcard se serve, es. `https://tuo.dominio/**`).
 
 2. **Project Settings → API**  

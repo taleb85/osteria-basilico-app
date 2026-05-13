@@ -2,7 +2,7 @@
 
 Applicazione web (React, Vite, Supabase) per turni, ferie, presenze e gestione staff.
 
-**Repository:** [github.com/taleb85/osteria-basilico-app](https://github.com/taleb85/osteria-basilico-app) · **Produzione (default):** [flow-workinmotion.pages.dev](https://flow-workinmotion.pages.dev) — hosting **Cloudflare Pages** (vedi [DEPLOY.md](./DEPLOY.md), override con `VITE_PUBLIC_APP_ORIGIN`).
+**Repository:** [github.com/taleb85/osteria-basilico-app](https://github.com/taleb85/osteria-basilico-app) · **Produzione (default):** [flow-workinmotion.vercel.app](https://flow-workinmotion.vercel.app) — hosting **Vercel** (override con `VITE_PUBLIC_APP_ORIGIN`).
 
 ## Prerequisiti
 

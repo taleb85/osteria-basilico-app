@@ -399,13 +399,11 @@ body {
    */
   .modal-glass-panel {
     @apply text-neutral-50 shadow-2xl;
-    /* Tinta piena: `--bg-surface-solid` (alpha ~0.5) in WebView / iOS dava pannelli “vuoti” e testo invisibile. */
-    background: var(--bg-popover-solid, rgb(5, 14, 60));
+    background: rgba(10, 10, 10, 0.08);
     color: #f1f5f9;
-    border: 1px solid var(--border-color);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    /* Impedisce il rimbalzo verso la pagina quando si scorre al limite della modale */
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
     overscroll-behavior-y: none;
   }
 

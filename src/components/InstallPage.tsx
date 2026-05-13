@@ -13,7 +13,7 @@ import { formatTrans } from '../utils/translations';
 import { PATH_PROFILO } from '../config/appPaths';
 import FlowLogoSvg from './FlowLogoSvg';
 
-type InstallView = 'choose' | 'ios' | 'android';
+type InstallView = 'choose' | 'android';
 
 function getDeviceHint(): 'ios' | 'android' | 'other' {
   if (typeof navigator === 'undefined') return 'other';
@@ -37,22 +37,19 @@ export default function InstallPage() {
 
   const deviceHint = useMemo(() => getDeviceHint(), []);
 
-  // Se l'utente arriva da un device noto, pre-seleziona
+  // Se l'utente arriva da Android, mostra subito le istruzioni
   useEffect(() => {
-    if (deviceHint === 'ios') setView('ios');
-    else if (deviceHint === 'android') setView('android');
+    if (deviceHint === 'android') setView('android');
   }, [deviceHint, userId]);
 
   const handleDownloadiOS = () => {
     setInstalling('downloading');
-    // Scarica il profilo mobileconfig
     const link = document.createElement('a');
     link.href = '/Installa_FLOW.mobileconfig';
     link.download = 'Installa_FLOW.mobileconfig';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    setView('ios');
     setTimeout(() => setInstalling('done'), 1000);
   };
 
@@ -99,6 +96,23 @@ export default function InstallPage() {
       <p className="text-sm text-white/50 text-center leading-relaxed mb-8">
         {tr('install_choose_device')}
       </p>
+
+      {/* Stato download completato */}
+      {installing === 'done' ? (
+        <>
+          <div className="mb-2 px-4 py-3 rounded-xl text-sm text-green-400 text-center" style={{ background: 'rgba(52,199,89,0.1)' }}>
+            {tr('install_downloaded')}
+          </div>
+          <div className="mb-4 px-4 py-2.5 rounded-xl text-xs text-white/50 leading-relaxed" style={{ background: 'rgba(255,255,255,0.04)' }}>
+            {tr('install_old_profile_hint')}
+          </div>
+        </>
+      ) : installing === 'downloading' ? (
+        <div className="mb-4 flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+          <Loader2 className="w-4 h-4 text-[#6699FF] animate-spin" />
+          <span className="text-sm text-white/60">{tr('install_downloading')}</span>
+        </div>
+      ) : null}
 
       {/* Pulsante iOS */}
       <button
@@ -151,76 +165,6 @@ export default function InstallPage() {
         className="w-full text-center text-xs text-white/40 hover:text-white/70 transition-colors mt-6 py-2"
       >
         {tr('install_skip')}
-      </button>
-    </>
-  );
-
-  /* ─── Schermata iOS (dopo download profilo) ─── */
-  const renderiOS = () => (
-    <>
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-6"
-      >
-        <FlowLogoSvg variant="icon-only" color="orange" style={{ width: 80, height: 80, borderRadius: 18 }} />
-      </motion.div>
-
-      <h1 className="text-xl font-bold text-white tracking-tight mb-1.5 text-center">
-        {tr('install_ios_title')}
-      </h1>
-      <p className="text-sm text-white/50 text-center leading-relaxed mb-6">
-        {tr('install_ios_intro')}
-      </p>
-
-      {installing === 'downloading' && (
-        <div className="flex items-center gap-3 mb-6 px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <Loader2 className="w-4 h-4 text-[#6699FF] animate-spin" />
-          <span className="text-sm text-white/60">{tr('install_downloading')}</span>
-        </div>
-      )}
-
-      {installing === 'done' && (
-        <div className="mb-6 px-4 py-3 rounded-xl text-sm text-green-400" style={{ background: 'rgba(52,199,89,0.1)' }}>
-          {tr('install_downloaded')}
-        </div>
-      )}
-
-      {/* Passaggi */}
-      <ol className="space-y-4 list-decimal list-outside pl-5 pr-1 text-left marker:text-white/30">
-        <li className="text-sm text-white/80 leading-relaxed pl-2">
-          {tr('install_ios_step1')}
-        </li>
-        <li className="text-sm text-white/80 leading-relaxed pl-2">
-          {tr('install_ios_step2')}
-        </li>
-        <li className="text-sm text-white/80 leading-relaxed pl-2">
-          {tr('install_ios_step3')}
-        </li>
-      </ol>
-
-      {/* Pulsante per ri-scaricare il profilo */}
-      <button
-        type="button"
-        onClick={handleDownloadiOS}
-        className="w-full flex items-center justify-center gap-2 rounded-2xl py-3 mt-6 text-sm font-semibold transition-all active:scale-[0.98]"
-        style={{
-          background: 'rgba(0,122,255,0.2)',
-          border: '1px solid rgba(0,122,255,0.4)',
-          color: '#66B0FF',
-        }}
-      >
-        <Download className="w-4 h-4" />
-        {tr('install_download_again')}
-      </button>
-
-      <button
-        type="button"
-        onClick={handleContinue}
-        className="w-full text-center text-xs text-white/40 hover:text-white/70 transition-colors mt-4 py-2"
-      >
-        {tr('install_open_app')}
       </button>
     </>
   );
@@ -291,7 +235,6 @@ export default function InstallPage() {
           }}
         >
           {view === 'choose' && renderChoose()}
-          {view === 'ios' && renderiOS()}
           {view === 'android' && renderAndroid()}
         </motion.div>
         <p className="mt-8 text-white/20 text-xs font-semibold tracking-[0.2em] uppercase select-none">FLOW</p>

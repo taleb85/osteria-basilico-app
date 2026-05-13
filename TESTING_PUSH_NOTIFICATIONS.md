@@ -88,7 +88,7 @@ Se il tuo backend è configurato, esegui una richiesta POST:
 
 ```bash
 # Invia una notifica push di test
-curl -X POST https://flow-workinmotion.pages.dev/api/test-push \
+curl -X POST https://flow-workinmotion.vercel.app/api/test-push \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "tuo-user-id",
@@ -197,7 +197,7 @@ fetch('/api/push-subscription')
 
 ### Android
 1. Apri Chrome
-2. Vai a https://flow-workinmotion.pages.dev
+2. Vai a https://flow-workinmotion.vercel.app
 3. Clicca "Attiva Notifiche"
 4. Concedi permesso
 5. Verifica che le notifiche appaiano nel centro notifiche

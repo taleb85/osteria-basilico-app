@@ -236,7 +236,7 @@ export const supabase: SupabaseClient | null = ...
 
 ## 🚀 Production Status
 
-**URL**: https://flow-workinmotion.pages.dev  
+**URL**: https://flow-workinmotion.vercel.app  
 **Status**: ✅ LIVE  
 **Deployment ID**: dpl_8b5hGYBW9WCXnNTKnsDUv4EBwnCw  
 

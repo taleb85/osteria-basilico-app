@@ -76,7 +76,7 @@ npm run preview  # dovrebbe caricare senza install screen
 **Fix**:
 - `window.__APP_CACHE_VERSION__` iniettato da Vite `define`
 - `index.html`: versione generata build-time con plugin custom
-- OG URL corretto: `flow-workinmotion.pages.dev`
+- OG URL corretto: `flow-workinmotion.vercel.app`
 - `location.reload()` senza parametro deprecato
 - Meta tag `app-version` sostituito dinamicamente
 

@@ -56,7 +56,7 @@ git push -u origin main
 
 ## 4. Supabase URL di produzione
 
-In Supabase → **Authentication** → **URL Configuration**, imposta **Site URL** e **Redirect URLs** sull’URL **Cloudflare Pages** (o dominio custom), es. `https://flow-workinmotion.pages.dev`. Dettagli in [DEPLOY.md](../DEPLOY.md).
+In Supabase → **Authentication** → **URL Configuration**, imposta **Site URL** e **Redirect URLs** sull'URL **Vercel** (o dominio custom), es. `https://flow-workinmotion.vercel.app`. Dettagli in [DEPLOY.md](../DEPLOY.md).
 
 ## 5. CI su GitHub
 

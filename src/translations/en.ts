@@ -1572,6 +1572,33 @@ const baseEn: Record<string, string> = {
   role_bartender: 'Bartender',
   role_dishwasher: 'Dishwasher',
   role_capo: 'Head / lead',
+
+  // InstallPage
+  install_no_user: 'User not found.',
+  install_loading: 'Loading…',
+  install_welcome_name: 'Welcome, {name}!',
+  install_welcome: 'Welcome to FLOW!',
+  install_choose_device: 'Choose your device to install the app.',
+  install_ios_btn: 'iPhone',
+  install_ios_desc: 'Download the configuration profile',
+  install_android_btn: 'Android',
+  install_android_desc: 'Follow the steps to install',
+  install_skip: 'Continue without installing',
+  install_downloading: 'Downloading…',
+  install_downloaded: '✅ Profile downloaded! Go to Settings → Downloaded Profile to install.',
+  install_old_profile_hint: 'If you already had a FLOW profile installed, remove it first from Settings → General → VPN & Device Management.',
+  install_open_app: 'Go to app',
+  install_android_title: 'Install on Android',
+  install_android_intro: 'Add FLOW to your Home screen:',
+  install_android_step1: 'Open the link in Chrome',
+  install_android_step2: 'Tap the ☰ menu → "Add to Home screen"',
+  install_android_step3: 'You\'ll find the FLOW icon on your Home screen',
+  install_ios_title: 'Install on iPhone',
+  install_ios_intro: 'Follow these steps to install the profile:',
+  install_ios_step1: 'Go to Settings → "Downloaded Profile"',
+  install_ios_step2: 'Tap "Install" at the top right',
+  install_ios_step3: 'You\'ll find the FLOW icon on your Home screen',
+  install_download_again: 'Download the profile again',
 };
 
 export default baseEn;

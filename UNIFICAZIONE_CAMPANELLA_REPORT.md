@@ -207,7 +207,7 @@ Click campanella per leggere
 ## 🚀 Deployment Info
 
 **Production URL:**
-https://flow-workinmotion.pages.dev
+https://flow-workinmotion.vercel.app
 
 **Build Statistics:**
 - Total size: 1,346.55 kB (gzipped: 379.04 kB)

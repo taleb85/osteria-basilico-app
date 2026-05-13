@@ -265,7 +265,7 @@ const isDisabled = isLoading || !!error;
 
 ## 🚀 Production Status
 
-**URL**: https://flow-workinmotion.pages.dev  
+**URL**: https://flow-workinmotion.vercel.app  
 **Status**: ✅ LIVE  
 **Deployment ID**: dpl_mzt8XsCQD5uZWPMMTJ7YDRkvRMRi  
 **Bundle Size**: 1,347.62 KB (gzip: 379.43 KB)

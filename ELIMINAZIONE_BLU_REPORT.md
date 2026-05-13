@@ -155,7 +155,7 @@ TOTALE MODIFICHE                           -23 linee blu, +23 linee verdi
 
 ## 🚀 Production
 
-**URL**: https://flow-workinmotion.pages.dev  
+**URL**: https://flow-workinmotion.vercel.app  
 **Status**: ✅ LIVE  
 **Deployment ID**: dpl_BHZJdHGgbwvqJDkLLXNssTdzqNwD  
 
