@@ -462,7 +462,7 @@ type DrawerReviewQueue = {
 function shiftRowPayrollFrozen(s: ShiftRow): boolean {
   return isShiftPayrollFrozen({
     approval_status: s.status,
-    approved_at: s.approved_at ?? null,
+    approved_at: s.approved_at ?? undefined,
   });
 }
 
@@ -543,10 +543,8 @@ export default function Timesheets() {
 
     autoApproveRunRef.current = true;
 
-    runAutoApprove(shifts, punchRecords, async (id, updates) => {
-      updateShift(id, updates);
-    }).then(
-      ({ approved }) => {
+    runAutoApprove(shifts, currentUser?.id ?? '').then(
+      (approved) => {
         if (approved > 0) setAutoApprovedCount(approved);
       },
     ).catch(() => {
@@ -1761,6 +1759,7 @@ export default function Timesheets() {
         try {
           await database.punchAuditLog.insert({
             punch_record_id: punchIn.id,
+            changed_by: verifier.id,
             actor_id: verifier.id,
             actor_name: actorName,
             field: 'sblocco_turno',

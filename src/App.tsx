@@ -28,7 +28,7 @@ import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 import InviteRedirect from './components/InviteRedirect';
 import InstallPage from './components/InstallPage';
-import { RotateCw, Cloud, CloudOff, Lock, Unlock, ShieldCheck, ShieldOff, X } from 'lucide-react';
+import { RotateCw, Cloud, CloudOff, Lock, Unlock, ShieldCheck, ShieldOff, X, Wrench } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { PinPadModal } from './components/ui/PinPadModal';
 import { lockBodyScroll, unlockBodyScroll } from './utils/bodyScrollLock';

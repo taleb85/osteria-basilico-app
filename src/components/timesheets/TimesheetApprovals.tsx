@@ -193,10 +193,10 @@ export default function TimesheetApprovals(props: TimesheetApprovalsProps) {
                 <span className="text-sm text-white/70">{t.ts_approve_week_approved}</span>
                 <span className="text-sm font-bold text-emerald-400">{approveWeekSummary.approvedCount}</span>
               </div>
-              {approveWeekSummary.frozenPayrollCount > 0 && (
+              {(approveWeekSummary.frozenPayrollCount ?? 0) > 0 && (
                 <div className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
                   <span className="text-sm text-white/70">{t.ts_approve_week_frozen_payroll}</span>
-                  <span className="text-sm font-bold text-amber-400">{approveWeekSummary.frozenPayrollCount}</span>
+                  <span className="text-sm font-bold text-amber-400">{approveWeekSummary.frozenPayrollCount ?? 0}</span>
                 </div>
               )}
             </div>

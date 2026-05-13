@@ -232,7 +232,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       })();
       const actualNet = Math.max(0, Math.round(actualMins) - actualBreakMins);
       const plannedNet = Math.max(0, plannedMins - breakMins);
-      const violations = violationChromeEnabled ? getShiftViolations(shift, weekShifts, effectiveWorkRules, breakRules, allPunchRecords) : undefined;
+      const violations = violationChromeEnabled ? getShiftViolations(shift, weekShifts, weekDateStrings[0] ?? '', weekDateStrings[weekDateStrings.length - 1] ?? '', effectiveWorkRules, { breakRules }) : undefined;
       return {
         shift, punchIn, punchOut, actualMinutes: actualNet, deltaMinutes: actualNet - plannedNet,
         isAbsent: shift.approval_status === 'absent', isMissingPunch: !punchIn && shiftPastPlannedEndWithoutClockIn(shift, allPunchRecords),
@@ -369,7 +369,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
         user_id: createModal.userId, date: createModal.date,
         start_time: createStart + ':00', end_time: createEnd + ':00',
         type: 'lunch' as const, approval_status: 'draft' as const,
-        department: users.find(u => u.id === createModal.userId)?.department ?? null,
+        department: users.find(u => u.id === createModal.userId)?.department ?? undefined,
       });
       showSuccess(t.shift_created ?? 'Turno creato.'); setCreateModal(null);
     } catch { showError(t.error_generic ?? 'Errore.'); }
@@ -419,7 +419,14 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     if (!saveTemplateName.trim() || !database.shiftTemplates?.save) return;
     setSavingTemplate(true);
     try {
-      await database.shiftTemplates.save(saveTemplateName.trim(), weekStart, weekShifts);
+      const entries = weekShifts.filter(s => s.user_id).map(s => ({
+        day_of_week: new Date(s.date).getDay(),
+        user_id: s.user_id,
+        start_time: s.start_time,
+        end_time: s.end_time,
+        type: s.type,
+      }));
+      await database.shiftTemplates.save(saveTemplateName.trim(), entries);
       const list = await database.shiftTemplates.listAll?.() ?? [];
       if (Array.isArray(list)) setTemplatesList(list);
       setSaveTemplateName(''); setShowTemplateMenu(false);
@@ -622,7 +629,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               </button>
             </>
           )}
-          <button type="button" onClick={() => { selectedShiftIds.forEach(id => { const s = allShifts.find(x => x.id === id); if (s && !isFrozen(s)) deleteShift(id).catch(() => {}); }); setSelectedShiftIds(new Set()); }}
+          <button type="button" onClick={() => { selectedShiftIds.forEach(id => { const s = allShifts.find(x => x.id === id); if (s && !isFrozen(s)) { try { deleteShift(id); } catch {} }; }); setSelectedShiftIds(new Set()); }}
             className="rounded-lg bg-rose-600/20 px-2.5 py-1 text-[10px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors uppercase tracking-wider">
             <Trash2 className="h-3 w-3 inline-block mr-0.5" />{t.delete ?? 'Elimina'}
           </button>

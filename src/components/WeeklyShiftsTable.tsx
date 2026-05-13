@@ -66,7 +66,6 @@ import { safeFormatDate } from '../utils/safeDateFormat';
 import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import DatePickerField from './DatePickerField';
-import { TimeInputField } from './ui/TimeInputField';
 import { DatePickerInput } from './ui/CalendarDatePicker';
 import { isDatePickerPortalClick } from '../utils/datePickerPortal';
 import { HorizontalScrollArea } from './HorizontalScrollArea';
@@ -111,7 +110,7 @@ function punchAuditTouches(
   fields: readonly string[]
 ): boolean {
   if (!punchId) return false;
-  return audits.some((a) => a.punch_record_id === punchId && fields.includes(a.field));
+  return audits.some((a) => a.punch_record_id === punchId && a.field != null && fields.includes(a.field));
 }
 
 /** Dettaglio drawer: orari timbratura effettivi (timestamp dispositivo) o valori congelati; modalità da audit. */

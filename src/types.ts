@@ -70,7 +70,7 @@ export type UserStatus = 'active' | 'suspended' | 'inactive';
 
 export type ShiftType = 'lunch' | 'dinner';
 
-export type ApprovalStatus = 'draft' | 'confirmed' | 'absent';
+export type ApprovalStatus = 'draft' | 'confirmed' | 'absent' | 'approved';
 
 export type HolidayStatus = 'pending' | 'approved' | 'rejected';
 
@@ -164,6 +164,14 @@ export interface Shift {
   department?: Department;
   /** Competenze/task richieste per questo turno (es. "sommelier,cassa") */
   skills?: string;
+  /** Timestamp approvazione (admin/manager che ha approvato il turno) */
+  approved_at?: string;
+  /** ID admin che ha approvato */
+  approved_by?: string;
+  /** Ora inizio approvata (se override) */
+  approved_start_time?: string;
+  /** Ora fine approvata (se override) */
+  approved_end_time?: string;
 }
 
 export interface HolidayRequest {
@@ -198,4 +206,25 @@ export interface PunchRecord {
   source?: PunchRecordSource | null;
   /** ID admin che ha eseguito il quick-switch prima di questa timbratura (audit impersonazione). */
   impersonated_by?: string | null;
+}
+
+/** Traccia le modifiche manuali alle timbrature (chi ha modificato e quando). */
+export interface PunchAuditEntry {
+  id: string;
+  tenant_id?: string;
+  punch_record_id: string;
+  changed_by: string;
+  changed_at: string;
+  /** Campo modificato (es. "timestamp", "calculated_time") */
+  field?: string;
+  /** Vecchio valore */
+  old_value?: string;
+  /** Nuovo valore */
+  new_value?: string;
+  /** Nome visualizzato di chi ha fatto la modifica */
+  actor_name?: string;
+  /** ID utente che ha eseguito la modifica (alias changed_by) */
+  actor_id?: string;
+  /** Descrizione della modifica (es. "orario modificato da 09:00 a 09:15") */
+  change_description?: string;
 }

@@ -1,9 +1,9 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode, type Dispatch, type SetStateAction } from 'react';
 import type { User } from '../types';
 
 interface SessionContextValue {
   currentUser: User | null;
-  setCurrentUser: (user: User | null) => void;
+  setCurrentUser: Dispatch<SetStateAction<User | null>>;
   users: User[];
   setUsers: (users: User[] | ((prev: User[]) => User[])) => void;
   isSessionElevated: boolean;
@@ -12,6 +12,7 @@ interface SessionContextValue {
   originalAdminUser: User | null;
   setImpersonating: (targetUser: User | null, adminUser: User | null) => void;
   forceLogoutRequested: boolean;
+  setForceLogoutRequested: React.Dispatch<React.SetStateAction<boolean>>;
   clearForceLogoutRequest: () => void;
   logout: () => void;
   globalPinSessionId: string | null;
@@ -59,7 +60,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         users, setUsers,
         isSessionElevated, setIsSessionElevated,
         impersonatingAs, originalAdminUser, setImpersonating,
-        forceLogoutRequested, clearForceLogoutRequest, logout,
+        forceLogoutRequested, setForceLogoutRequested, clearForceLogoutRequest, logout,
         globalPinSessionId, setGlobalPinSessionId,
       }}
     >

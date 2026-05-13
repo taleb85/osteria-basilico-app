@@ -7,7 +7,7 @@ import { getDateLocale } from '../../utils/translations';
 
 interface MobileShiftListProps {
   shifts: Shift[];
-  language: string;
+  language: Language;
 }
 
 export default function MobileShiftList({ shifts, language }: MobileShiftListProps) {

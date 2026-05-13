@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Download, Check, Loader2, Fingerprint, LogIn, Smartphone, Monitor, ChevronRight, Lock, ShieldCheck, Delete } from 'lucide-react';
+import FlowLogoSvg from './FlowLogoSvg';
 import ManagementHomePreview from './ManagementHomePreview';
 import TurniMgmtPreview from './profilePreview/TurniMgmtPreview';
 import TimesheetTabPreview from './profilePreview/TimesheetTabPreview';

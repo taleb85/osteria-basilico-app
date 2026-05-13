@@ -452,10 +452,10 @@ export const database = {
         console.warn('[database.shifts.markAbsent] punch cleanup', e);
       }
       const clearFreeze: Partial<Shift> = {
-        approved_at: null,
-        approved_by: null,
-        approved_start_time: null,
-        approved_end_time: null,
+        approved_at: undefined,
+        approved_by: undefined,
+        approved_start_time: undefined,
+        approved_end_time: undefined,
       };
       const { error: clearErr } = await supabase.from('shifts').update(clearFreeze).eq('id', id);
       if (clearErr) console.warn('[database.shifts.markAbsent] clear freeze', clearErr);
@@ -1044,10 +1044,10 @@ export const database = {
       if (!row) continue;
       try {
         await database.shifts.update(row.id, {
-          approved_at: orig.approved_at,
-          approved_by: orig.approved_by,
-          approved_start_time: orig.approved_start_time ?? null,
-          approved_end_time: orig.approved_end_time ?? null,
+          approved_at: orig.approved_at ?? undefined,
+          approved_by: orig.approved_by ?? undefined,
+          approved_start_time: orig.approved_start_time ?? undefined,
+          approved_end_time: orig.approved_end_time ?? undefined,
         });
       } catch (_e) {
         /* DB senza colonne approved_*: il turno resta comunque creato */

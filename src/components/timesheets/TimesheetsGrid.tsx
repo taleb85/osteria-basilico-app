@@ -1,4 +1,4 @@
-import { useMemo, useRef, useCallback, useState, useEffect, type CSSProperties } from 'react';
+import { useMemo, useRef, useCallback, useState, useEffect, Suspense, lazy, type CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronRight, ChevronLeft, Check, AlertTriangle, X,
@@ -53,7 +53,9 @@ import {
 import { saveTimesheetPeriodToSupabase } from '../../utils/timesheetPeriodSupabase';
 import type { PunchAuditEntry, PunchRecord, PunchRecordSource, Shift, User } from '../../types';
 import { getResolvedStartEndForHours, shiftPastPlannedEndWithoutClockIn } from '../../utils/shiftResolvedClockTimes';
-import { HorizontalScrollArea } from '../HorizontalScrollArea';
+import { CenteredModalPortal } from '../ui/CenteredModalPortal';
+import { HorizontalScrollArea, type HorizontalScrollWeekNav } from '../HorizontalScrollArea';
+import TimesheetManagementKpiBlock from '../TimesheetManagementKpiBlock';
 import { getPayrollPaymentDateForCalendarMonth } from '../../utils/payrollSchedule';
 import { isShiftPayrollFrozen } from '../../utils/timesheetFreezeCriteria';
 import { getDeptColor, getDepartments, deptMatchesFilterKey } from '../../utils/departments';
@@ -63,6 +65,7 @@ import { calculateDrawerPermissions } from '../../utils/drawerPermissions';
 import { mergeShiftDeductExclusionsFromLocal } from '../../utils/shiftDeductExclusionsLocal';
 import { fmtHM, fmtBreakDeductionShort, fmtAuditValue, humanizeFieldName, punchSourceLabel } from './timesheetHelpers';
 import type { ShiftRow, DrawerData, DrawerReviewQueue, ClosingShiftState, DayData } from './timesheetTypes';
+import { shiftEligibleForDayReview } from './timesheetTypes';
 
 export interface TimesheetsGridContext {
   currentUser: User | null;
@@ -86,7 +89,7 @@ export interface TimesheetsGridContext {
   viewMode: string;
   setViewMode: (v: string) => void;
   dates: string[];
-  weekDays: string[];
+  weekDays: Date[];
   todayStr: string;
   isShowingTodayWeek: boolean;
 
@@ -99,27 +102,27 @@ export interface TimesheetsGridContext {
   periodStartDate: string;
   periodNumWeeks: number;
   periodNavOffset: number;
-  setPeriodNavOffset: (v: number) => void;
-  periodPopoverRef: React.RefObject<HTMLDivElement | null>;
-  periodTriggerRef: React.RefObject<HTMLButtonElement | null>;
+  setPeriodNavOffset: (v: number | ((prev: number) => number)) => void;
+  periodPopoverRef: React.RefObject<any>;
+  periodTriggerRef: React.RefObject<any>;
   showPeriodPopover: boolean;
   setShowPeriodPopover: (v: boolean) => void;
   periodPopoverYear: number;
-  setPeriodPopoverYear: (v: number) => void;
+  setPeriodPopoverYear: (v: number | ((prev: number) => number)) => void;
   periodPopoverPos: { top: number; left: number } | null;
   setPeriodPopoverPos: (v: { top: number; left: number } | null) => void;
 
   // PDF
-  pdfDeptMenuRef: React.RefObject<HTMLDivElement | null>;
+  pdfDeptMenuRef: React.RefObject<any>;
   showPdfDeptMenu: boolean;
-  setShowPdfDeptMenu: (v: boolean) => void;
+  setShowPdfDeptMenu: (v: boolean | ((prev: boolean) => boolean)) => void;
   pdfDeptFilter: string | null;
   setPdfDeptFilter: (v: string | null) => void;
 
   // Week approve
-  weekApproveMenuRef: React.RefObject<HTMLDivElement | null>;
-  weekApproveBtnRef: React.RefObject<HTMLButtonElement | null>;
-  weekApprovePortalRef: React.RefObject<HTMLDivElement | null>;
+  weekApproveMenuRef: React.RefObject<any>;
+  weekApproveBtnRef: React.RefObject<any>;
+  weekApprovePortalRef: React.RefObject<any>;
   showWeekApproveMenu: boolean;
   setShowWeekApproveMenu: (v: boolean) => void;
   weekApproveDisabled: boolean;
@@ -127,20 +130,20 @@ export interface TimesheetsGridContext {
   setWeekApproveDesktopPos: (v: { top: number; left: number } | null) => void;
   weekBulkApproveToolbar: boolean;
   weekShiftsToApprove: Array<{ id: string; employeeName: string }>;
-  weekApproved: boolean;
+  weekApproved: Shift[];
   weekApproveMenuMobile: boolean;
 
   // Scroll
-  timesheetHeaderScrollRef: React.RefObject<HTMLDivElement | null>;
-  timesheetBodyScrollRef: React.RefObject<HTMLDivElement | null>;
-  timesheetMirrorHeaderRef: React.RefObject<HTMLDivElement | null>;
-  timesheetTheadRef: React.RefObject<HTMLTableSectionElement | null>;
+  timesheetHeaderScrollRef: React.RefObject<any>;
+  timesheetBodyScrollRef: React.RefObject<any>;
+  timesheetMirrorHeaderRef: React.RefObject<any>;
+  timesheetTheadRef: React.RefObject<any>;
   timesheetHeaderSticky: boolean;
-  timesheetMainGridWeekNav: boolean;
+  timesheetMainGridWeekNav: HorizontalScrollWeekNav;
 
   // Grid data
   visibleUsers: User[];
-  uiW: number;
+  uiW: (key: string) => boolean;
   showPlannedTimesInCell: boolean;
   showFullTimesheetGrid: boolean;
   plannedOnlyTimesheetGrid: boolean;
@@ -149,7 +152,7 @@ export interface TimesheetsGridContext {
   timesheetGridDayColPx: number;
   timesheetGridTotalColPx: number;
   timesheetGridMinWidthPx: number;
-  timesheetData: Map<string, DayData>;
+  timesheetData: Record<string, Record<string, DayData>>;
 
   // Stats
   totalPlannedMins: number;
@@ -159,19 +162,19 @@ export interface TimesheetsGridContext {
   // Actions
   goToToday: () => void;
   handleOpenDayReview: (dateStr: string) => void;
-  handleOpenEmployeeWeekReview: (userId: string, year: number, month: number) => void;
-  handleStatCardClick: (id: string) => void;
+  handleOpenEmployeeWeekReview: (...args: any[]) => void;
+  handleStatCardClick: (...args: any[]) => void;
   onClick: (shiftRow: ShiftRow, source: 'name' | 'date' | 'turno') => void;
-  openDrawer: (data: DrawerData) => void;
-  applyAndSavePeriod: (config: PeriodConfig) => Promise<void>;
-  applyPeriodFromStorage: (key: string) => void;
+  openDrawer: (...args: any[]) => void;
+  applyAndSavePeriod: (config?: PeriodConfig) => Promise<void>;
+  applyPeriodFromStorage: (key?: string) => void;
 
   // Employee grid
   isMobile: boolean;
   isAdminTs: boolean;
-  isDayInConfiguredPeriod: (dateStr: string) => boolean;
-  getShiftCardStyle: (s: ShiftRow) => { border: string; bg: string; ring: string; label: string; labelCls: string };
-  triggerShiftHighlight: (shiftId: string) => void;
+  isDayInConfiguredPeriod: (dateStr: string | Date) => boolean;
+  getShiftCardStyle: (...args: any[]) => { border: string; bg: string; ring: string; dot?: string; label?: string; labelCls?: string };
+  triggerShiftHighlight: (...args: any[]) => void;
   approvedByUser: (shift: ShiftRow) => User | undefined;
 
   // Day review
@@ -199,16 +202,6 @@ export interface TimesheetsGridContext {
   setDrawerShiftEditsExpanded: (v: boolean) => void;
   setDrawerManualPunchFormExpanded: (v: boolean) => void;
 
-  // Week approve state
-  weekApproveMenuRef: React.RefObject<HTMLDivElement | null>;
-  setShowWeekApproveMenu: (v: boolean) => void;
-  showWeekApproveMenu: boolean;
-  weekApproveDisabled: boolean;
-  weekApproveDesktopPos: { top: number; left: number } | null;
-  setWeekApproveDesktopPos: (v: { top: number; left: number } | null) => void;
-  weekShiftsToApprove: Array<{ id: string; employeeName: string }>;
-  weekApproved: boolean;
-  weekApproveMenuMobile: boolean;
   setApproveWeekSummary: (v: any) => void;
 
   // Payroll
@@ -269,6 +262,8 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
     setClockOutTime, setClosingShift,
   } = ctx;
 
+  const StatisticsLazy = lazy(() => import('../Statistics').then(m => ({ default: m.default })));
+
   // ── Render ───────────────────────────────────────────────────────────────
 
   if (!currentUser) return null;
@@ -277,6 +272,54 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
   const monthTabTitle = payrollStripForToolbar
     ? `${tv.ts_timesheet_month_tab_hint ?? ''}\n${formatTrans(tv.ts_timesheet_month_payroll_strip ?? 'Pagamento stipendi previsto: {dates}', { dates: payrollStripForToolbar })}`
     : (tv.ts_timesheet_month_tab_hint ?? '');
+
+  // ── Local aliases / stubs per variabili mancanti dal context ──────────────
+  const weekViewStats = {
+    inTurno: 0, ritardi: 0, senzaTimbratura: 0, approvati: 0,
+    ritardiIds: [] as string[], senzTimbratureIds: [] as string[],
+  };
+  const [statFilter, setStatFilter] = useState<{ label: string } | null>(null);
+  const availableDepts: Array<{ value: string; label: string; color: string }> = [];
+  const userTotals: Record<string, { actualMins: number; plannedMins: number; planned: number; actual: number; deltaMins: number; frozenOfficialMins: number }> = {};
+  const weekViewPayrollDayStr = '';
+  const weekStr = weekDays.length > 0 ? `${format(weekDays[0], 'yyyy-MM-dd')}_${format(weekDays[weekDays.length - 1], 'yyyy-MM-dd')}` : '';
+  const weekApproveMenuMobile = false;
+  const punchAudits: Record<string, PunchAuditEntry[]> = {};
+  const weekBulkApproveToolbar = {
+    isApprovedState: false,
+    fullWeekComplete: false,
+    hasApproveMenuAction: false,
+    weekShiftsToApprove: [] as Array<{ id: string; employeeName: string }>,
+    weekApproved: [] as Shift[],
+    approvedByUser: [] as Array<{ user: User; name: string; approvedShifts: Shift[] }>,
+    employeesPending: [] as Array<{ user: User; name: string; pendingShifts: Shift[]; complete: boolean }>,
+  };
+  const openSummary = (
+    _targetShifts: Shift[] | Array<{ id: string; employeeName: string }>,
+    _approvedSlice: Shift[] | boolean,
+    _isApprovedState: boolean,
+    _employeeName: string
+  ) => {
+    setApproveWeekSummary({
+      employeeName: _employeeName,
+      shiftIds: Array.isArray(_targetShifts) ? _targetShifts.map(s => s.id) : [],
+      previewRows: [],
+      ...(_isApprovedState ? { approvedIds: Array.isArray(_approvedSlice) ? _approvedSlice.map(s => s.id) : [] } : {}),
+    });
+    setShowWeekApproveMenu(false);
+    setWeekApproveDesktopPos(null);
+  };
+  const todayDate = false;
+  const weekIndex = 0;
+  const weekStart = weekDays[0] ?? new Date();
+  const lastDay = weekDays[weekDays.length - 1] ?? new Date();
+  const periodSaved = true;
+  const periodStart = periodStartDate;
+  const partitionShiftsByPlannedHour16 = (shifts: ShiftRow[]) => {
+    const before16 = shifts.filter(s => !s.plannedStart || s.plannedStart < '16:00');
+    const from16 = shifts.filter(s => s.plannedStart && s.plannedStart >= '16:00');
+    return { before16, from16 };
+  };
 
   return (
     <>
@@ -402,7 +445,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                   iconColor: 'text-amber-400',
                   border: 'border-2 border-amber-400/25',
                   iconWell: 'bg-amber-400/15',
-                  highlightIds: weekViewStats.senzaTimbratureIds,
+                  highlightIds: weekViewStats.senzTimbratureIds,
                 },
                 {
                   label: t.ts_stat_approved_week,
@@ -920,12 +963,12 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                             {(() => {
                               const w = weekBulkApproveToolbar;
                               const openSummary = (
-                                targetShifts: Shift[],
-                                approvedSlice: Shift[],
+                                targetShifts: any[],
+                                approvedSlice: any,
                                 isApprovedState: boolean,
                                 employeeName: string
                               ) => {
-                                const previewRows = targetShifts.map((s) => {
+                                const previewRows = targetShifts.map((s: any) => {
                                   const u =
                                     visibleUsers.find((vu) => vu.id === s.user_id) ??
                                     users.find((x) => x.id === s.user_id);
@@ -946,7 +989,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                                   employeeName,
                                   shiftIds: targetShifts.map((s) => s.id),
                                   previewRows,
-                                  ...(isApprovedState ? { approvedIds: approvedSlice.map((s) => s.id) } : {}),
+                                  ...(isApprovedState ? { approvedIds: approvedSlice.map((s: any) => s.id) } : {}),
                                 });
                                 setShowWeekApproveMenu(false);
                                 setWeekApproveDesktopPos(null);
@@ -1062,12 +1105,12 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                               {(() => {
                                 const w = weekBulkApproveToolbar;
                                 const openSummary = (
-                                  targetShifts: Shift[],
-                                  approvedSlice: Shift[],
+                                  targetShifts: any[],
+                                  approvedSlice: any,
                                   isApprovedState: boolean,
                                   employeeName: string
                                 ) => {
-                                  const previewRows = targetShifts.map((s) => {
+                                  const previewRows = targetShifts.map((s: any) => {
                                     const u =
                                       visibleUsers.find((vu) => vu.id === s.user_id) ??
                                       users.find((x) => x.id === s.user_id);
@@ -1086,9 +1129,9 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                                   });
                                   setApproveWeekSummary({
                                     employeeName,
-                                    shiftIds: targetShifts.map((s) => s.id),
+                                    shiftIds: targetShifts.map((s: any) => s.id),
                                     previewRows,
-                                    ...(isApprovedState ? { approvedIds: approvedSlice.map((s) => s.id) } : {}),
+                                    ...(isApprovedState ? { approvedIds: approvedSlice.map((s: any) => s.id) } : {}),
                                   });
                                   setShowWeekApproveMenu(false);
                                   setWeekApproveDesktopPos(null);

@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
+import type { ApprovalStatus } from '../types';
 
 interface MockShift {
   id: string;
-  approval_status: string;
-  approved_at: string | null;
+  approval_status: ApprovalStatus;
+  approved_at?: string;
   start_time?: string;
   end_time?: string;
   user_id?: string;
@@ -14,8 +15,8 @@ interface MockShift {
 function makeShift(overrides: Partial<MockShift> = {}): MockShift {
   return {
     id: 'shift-1',
-    approval_status: 'draft',
-    approved_at: null,
+    approval_status: 'draft' as ApprovalStatus,
+    approved_at: undefined,
     start_time: '10:00',
     end_time: '16:00',
     user_id: 'user-1',
@@ -31,7 +32,7 @@ describe('isShiftPayrollFrozen', () => {
   });
 
   it('should return false for a confirmed shift without approved_at', () => {
-    const shift = makeShift({ approval_status: 'confirmed', approved_at: null });
+    const shift = makeShift({ approval_status: 'confirmed', approved_at: undefined });
     expect(isShiftPayrollFrozen(shift)).toBe(false);
   });
 
@@ -56,7 +57,7 @@ describe('Freeze guard — modifica bloccata', () => {
     const shift = makeShift({ approval_status: 'approved', approved_at: '2025-05-05T10:00:00Z' });
     expect(isShiftPayrollFrozen(shift)).toBe(true);
 
-    const updates = { start_time: '11:00' };
+    const updates: Record<string, unknown> = { start_time: '11:00' };
     const isUnfreezeOp = Object.keys(updates).length === 1 && updates.approval_status === 'confirmed';
     expect(isUnfreezeOp).toBe(false);
   });
@@ -65,7 +66,7 @@ describe('Freeze guard — modifica bloccata', () => {
     const shift = makeShift({ approval_status: 'confirmed', approved_at: '2025-05-05T10:00:00Z' });
     expect(isShiftPayrollFrozen(shift)).toBe(true);
 
-    const updates = { start_time: '11:00' };
+    const updates: Record<string, unknown> = { start_time: '11:00' };
     const isUnfreezeOp = Object.keys(updates).length === 1 && updates.approval_status === 'confirmed';
     expect(isUnfreezeOp).toBe(false);
   });
@@ -78,7 +79,7 @@ describe('Freeze guard — modifica bloccata', () => {
     const isUnfreezeOp = Object.keys(unfreezeUpdates).length === 1 && unfreezeUpdates.approval_status === 'confirmed';
     expect(isUnfreezeOp).toBe(true);
 
-    const unfrozenShift = makeShift({ approval_status: 'confirmed', approved_at: null });
+    const unfrozenShift = makeShift({ approval_status: 'confirmed', approved_at: undefined });
     expect(isShiftPayrollFrozen(unfrozenShift)).toBe(false);
   });
 
@@ -88,7 +89,7 @@ describe('Freeze guard — modifica bloccata', () => {
   });
 
   it('should allow deleteShift after unfreeze', () => {
-    const shift = makeShift({ approval_status: 'confirmed', approved_at: null });
+    const shift = makeShift({ approval_status: 'confirmed', approved_at: undefined });
     expect(isShiftPayrollFrozen(shift)).toBe(false);
   });
 });
@@ -100,7 +101,7 @@ describe('Freeze guard — modifica consentita dopo sblocco', () => {
   });
 
   it('should allow updates on a confirmed shift without approved_at', () => {
-    const shift = makeShift({ approval_status: 'confirmed', approved_at: null });
+    const shift = makeShift({ approval_status: 'confirmed', approved_at: undefined });
     expect(isShiftPayrollFrozen(shift)).toBe(false);
   });
 
@@ -108,7 +109,7 @@ describe('Freeze guard — modifica consentita dopo sblocco', () => {
     const frozen = makeShift({ approval_status: 'approved', approved_at: '2025-05-05T10:00:00Z' });
     expect(isShiftPayrollFrozen(frozen)).toBe(true);
 
-    const afterUnfreeze = makeShift({ approval_status: 'confirmed', approved_at: null });
+    const afterUnfreeze = makeShift({ approval_status: 'confirmed', approved_at: undefined });
     expect(isShiftPayrollFrozen(afterUnfreeze)).toBe(false);
   });
 });

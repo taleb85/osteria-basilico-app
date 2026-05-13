@@ -45,7 +45,7 @@ type Props = {
    */
   onNavStateChange?: (state: HorizontalScrollNavState) => void;
   /** Espone il div scroll interno al genitore (per sincronizzare header mirror). */
-  scrollSyncRef?: React.RefObject<HTMLDivElement>;
+  scrollSyncRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 const overlayBtnClass =

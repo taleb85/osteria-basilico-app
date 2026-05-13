@@ -109,7 +109,7 @@ export async function listDocuments(prefix: string): Promise<StoredDocument[]> {
   if (error || !data) return [];
 
   return data
-    .filter((f) => f.metadata?.size > 0)
+    .filter((f) => (f.metadata?.size ?? 0) > 0)
     .map((f) => ({
       id: f.id ?? f.name,
       name: f.name.replace(/^\d+_/, ''),

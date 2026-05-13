@@ -8,7 +8,8 @@
 
 import { it, enUS, es, fr } from 'date-fns/locale';
 import type { Locale as DateFnsLocale } from 'date-fns/locale';
-import type { Language, AdminModuleKey } from '../types';
+import type { Language } from '../types';
+import type { AdminModuleKey } from '../utils/enabledFeatures';
 
 import baseItRaw from './it';
 import baseEnRaw from './en';

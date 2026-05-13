@@ -109,7 +109,7 @@ export function shiftPastPlannedEndWithoutClockIn(
   return !punchIn;
 }
 
-export type ResolvedClockSource = 'punch' | 'planned';
+export type ResolvedClockSource = 'punch' | 'planned' | 'frozen';
 
 /**
  * Orari usati per ore nette / confronti.

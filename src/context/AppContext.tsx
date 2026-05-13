@@ -140,12 +140,10 @@ import {
   type AppGlobalSettingsBundle,
 } from '../utils/globalSettingsCloud';
 import { withTimeout, TimeoutError } from '../utils/promiseTimeout';
-import {
-  authenticatePinUnlockCredential,
+import { authenticatePinUnlockCredential,
   hasPinUnlockCredential,
   registerPinUnlockCredential,
 } from '../utils/pinUnlockWebAuthn';
-import { getDefaultApprovalClockHHMM } from '../utils/shiftResolvedClockTimes';
 import { pinMatchesStored, findActiveUserWithSamePin } from '../utils/loginIdentifier';
 import { isAppCloudSyncEnabled } from '../utils/appCloudSync';
 import { loadDepartmentsFromSupabase, saveDepartmentsToSupabase } from '../utils/departmentsCloud';
@@ -243,7 +241,7 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     currentUser, setCurrentUser, users, setUsers,
     isSessionElevated, setIsSessionElevated,
     impersonatingAs, originalAdminUser, setImpersonating,
-    forceLogoutRequested, clearForceLogoutRequest,
+    forceLogoutRequested, setForceLogoutRequested, clearForceLogoutRequest,
     globalPinSessionId, setGlobalPinSessionId,
   } = useSession();
   const { isLoading: tenantIsLoading, tenantId, tenantSettings, tenant, loadTenantBySlug } = useTenant();
@@ -2576,7 +2574,7 @@ function AppProviderInner({ children }: { children: ReactNode }) {
       value={{
         isLoading,
         currentUser, setCurrentUser, users, shifts, holidays, punchRecords, availability, toggleAvailability,
-        addShift, updateShift, deleteShift, deleteShifts, copyShift, bulkCopyPreviousWeek,
+        addShift, updateShift, approveShift, deleteShift, deleteShifts, copyShift, bulkCopyPreviousWeek,
         publishWeekShifts, publishDayShifts, addHolidayRequest, updateHolidayStatus, deleteHolidayRequest, addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
         updateUser, createUser, deleteUser, reorderUsers, setUsersSortOrder, updateUserPreferences, effectiveLanguage, setLanguage, clearLanguage, showError, showSuccess, forceGlobalRefresh, hardResetTestData, seedDemoProfileForUser, silentRefreshData, hardReloadFromDatabase, isGlobalRefreshing, syncStage, dataSyncInProgress,
         postRefreshLocked, postUnlockReloadPending, unlockAfterRefresh, unlockAfterRefreshWithDevice, registerPinUnlockDevice, pinUnlockDeviceRegistered, cancelRefreshLock, pendingOrderIds, requestConfirmAndSaveOrder, pendingPublishWeekStart, requestConfirmAndPublishWeek, forceLogoutRequested, clearForceLogoutRequest, logout, globalPinSessionId, setGlobalPinSessionId,
@@ -2617,7 +2615,7 @@ function AppProviderInner({ children }: { children: ReactNode }) {
           <Toast
             key={`${toastType}:${toastMessage.slice(0, 80)}`}
             message={toastMessage}
-            type={toastType}
+            type={toastType || undefined}
             onClose={clearToast}
           />
         )}

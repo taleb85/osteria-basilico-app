@@ -137,6 +137,7 @@ export default function ImportStorico({ tenants, onClose }: { tenants: Tenant[];
   useEffect(() => {
     if (!selectedTenantId) { setTenantUsers([]); return; }
     (async () => {
+      if (!supabase) return;
       const { data, error } = await supabase
         .from('users')
         .select('id, first_name, last_name')
@@ -218,6 +219,7 @@ export default function ImportStorico({ tenants, onClose }: { tenants: Tenant[];
         unique.push(row);
       }
       // Check existing in DB
+      if (!supabase) return;
       const { data: existing } = await supabase
         .from('shifts')
         .select('user_id, date, start_time, end_time')
@@ -237,7 +239,7 @@ export default function ImportStorico({ tenants, onClose }: { tenants: Tenant[];
         setImporting(false);
         return;
       }
-      const { error } = await supabase.from('shifts').insert(final);
+      const { error } = await supabase!.from('shifts').insert(final);
       if (error) throw error;
       setImportResult({ ok: final.length, duplicateInFile, alreadyInDb, skipped: uniqueUnmatched });
     } catch (err) {

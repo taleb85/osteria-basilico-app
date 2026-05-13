@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from 'react';
 import type {
   User,
   Shift,
@@ -74,7 +75,7 @@ export interface AppContextType {
   globalPinSessionId: string | null;
   setGlobalPinSessionId: (id: string | null) => void;
   currentUser: User | null;
-  setCurrentUser: (user: User | null) => void;
+  setCurrentUser: Dispatch<SetStateAction<User | null>>;
   users: User[];
   shifts: Shift[];
   holidays: HolidayRequest[];
@@ -83,6 +84,7 @@ export interface AppContextType {
   toggleAvailability: (userId: string, date: string) => Promise<void>;
   addShift: (shift: Omit<Shift, 'id'>) => Promise<Shift | null>;
   updateShift: (id: string, shift: Partial<Shift>) => void;
+  approveShift: (shiftId: string, opts?: any) => Promise<void>;
   deleteShift: (id: string) => void;
   deleteShifts: (ids: string[]) => void;
   copyShift: (shift: Shift, newDate: string) => void;

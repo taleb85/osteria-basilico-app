@@ -45,7 +45,7 @@ function punchAuditTouches(
 ): boolean {
   if (!punchId) return false;
   return audits.some(
-    (a) => a.punch_record_id === punchId && fields.includes(a.field)
+    (a) => a.punch_record_id === punchId && a.field != null && fields.includes(a.field)
   );
 }
 

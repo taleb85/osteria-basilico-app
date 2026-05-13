@@ -111,7 +111,7 @@ export type DrawerReviewQueue = {
 export function shiftRowPayrollFrozen(s: ShiftRow): boolean {
   return isShiftPayrollFrozen({
     approval_status: s.status,
-    approved_at: s.approved_at ?? null,
+    approved_at: s.approved_at ?? undefined,
   });
 }
 
