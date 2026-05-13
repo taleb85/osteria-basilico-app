@@ -446,6 +446,7 @@ const baseIt = {
   install_welcome_name: 'Benvenuto, {name}!',
   install_welcome: 'Benvenuto su FLOW!',
   install_choose_device: 'Scegli il tuo dispositivo per installare l\'app.',
+  install_auto_ios: 'Tra poco scaricheremo il profilo di configurazione…',
   install_ios_btn: 'iPhone',
   install_ios_desc: 'Scarica il profilo di configurazione',
   install_android_btn: 'Android',

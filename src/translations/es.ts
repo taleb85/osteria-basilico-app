@@ -1577,6 +1577,7 @@ const baseEs: Record<string, string> = {
   install_welcome_name: '¡Bienvenido, {name}!',
   install_welcome: '¡Bienvenido a FLOW!',
   install_choose_device: 'Elige tu dispositivo para instalar la app.',
+  install_auto_ios: 'En breve descargaremos el perfil de configuración…',
   install_ios_btn: 'iPhone',
   install_ios_desc: 'Descargar el perfil de configuración',
   install_android_btn: 'Android',

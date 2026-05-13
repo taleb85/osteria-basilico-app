@@ -42,6 +42,17 @@ export default function InstallPage() {
     if (deviceHint === 'android') setView('android');
   }, [deviceHint, userId]);
 
+  // Auto‑install iOS: se arriva da un link di invito, scarica automaticamente il profilo
+  useEffect(() => {
+    if (!userId) return;
+    if (deviceHint !== 'ios') return;
+    const timer = setTimeout(() => {
+      handleDownloadiOS();
+    }, 1500);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, deviceHint]);
+
   const handleDownloadiOS = () => {
     setInstalling('downloading');
     const link = document.createElement('a');
@@ -78,7 +89,10 @@ export default function InstallPage() {
   );
 
   /* ─── Schermata di scelta (iOS / Android) ─── */
-  const renderChoose = () => (
+  const renderChoose = () => {
+    const isAutoInstalling = userId && deviceHint === 'ios' && installing === 'idle';
+
+    return (
     <>
       {/* Logo */}
       <motion.div
@@ -94,7 +108,7 @@ export default function InstallPage() {
         {firstName ? formatTrans(tr('install_welcome_name'), { name: firstName }) : tr('install_welcome')}
       </h1>
       <p className="text-sm text-white/50 text-center leading-relaxed mb-8">
-        {tr('install_choose_device')}
+        {isAutoInstalling ? tr('install_auto_ios') : tr('install_choose_device')}
       </p>
 
       {/* Stato download completato */}
@@ -168,6 +182,7 @@ export default function InstallPage() {
       </button>
     </>
   );
+  };
 
   /* ─── Schermata Android ─── */
   const renderAndroid = () => (
