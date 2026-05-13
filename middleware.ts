@@ -14,7 +14,6 @@ export default function middleware(request: Request) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<meta http-equiv="refresh" content="0;url=${mobileconfigUrl}">
 <title>FLOW — Installazione</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -23,22 +22,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .card{background:#fff;border-radius:20px;padding:40px 32px;max-width:380px;width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08)}
 .logo{width:80px;height:80px;border-radius:20px;margin:0 auto 20px;background:linear-gradient(135deg,#0066cc,#5856d6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;font-weight:700}
 h1{font-size:22px;font-weight:700;color:#1d1d1f;margin-bottom:8px}
-p{font-size:15px;color:#6e6e73;line-height:1.5;margin-bottom:28px}
-.btn{display:inline-block;background:#0066cc;color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:17px;font-weight:600;-webkit-tap-highlight-color:transparent;width:100%}
-.btn:active{background:#004999}
-.note{font-size:13px;color:#8e8e93;margin-top:20px}
-.spinner{margin:0 auto 20px;width:40px;height:40px;border:3px solid #e5e5ea;border-top-color:#0066cc;border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+p{font-size:15px;color:#6e6e73;line-height:1.5;margin-bottom:24px}
+.btn{display:inline-block;background:#0066cc;color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:17px;font-weight:600;-webkit-tap-highlight-color:transparent;width:100%;transition:opacity .15s}
+.btn:active{opacity:.7}
+.note{font-size:13px;color:#8e8e93;margin-top:20px;line-height:1.4}
 </style>
 </head>
 <body>
 <div class="card">
 <div class="logo">FL</div>
-<div class="spinner"></div>
 <h1>Installa FLOW sul tuo iPhone</h1>
-<p>Il profilo di configurazione verr&agrave; scaricato automaticamente. Se non succede nulla, tocca il pulsante qui sotto.</p>
+<p>Tocca il pulsante qui sotto per installare il profilo di configurazione.</p>
 <a class="btn" href="${mobileconfigUrl}">Scarica profilo di configurazione</a>
-<p class="note">Dopo il download, vai su <strong>Impostazioni &rarr; Profilo scaricato</strong> per installare.</p>
+<p class="note">Dopo il download, vai su <strong>Impostazioni &rarr; Profilo scaricato</strong> e tocca <strong>Installa</strong>.</p>
 </div>
 </body>
 </html>`;
