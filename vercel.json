@@ -39,6 +39,14 @@
       "headers": [
         { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
       ]
+    },
+    {
+      "source": "/Installa_FLOW.mobileconfig",
+      "headers": [
+        { "key": "Content-Type", "value": "application/x-apple.ashen-plist" },
+        { "key": "Content-Disposition", "value": "inline" },
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, s-maxage=0" }
+      ]
     }
   ]
 }
