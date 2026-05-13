@@ -98,6 +98,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const periodTriggerRef = useRef<HTMLButtonElement>(null);
   const periodPopoverRef = useRef<HTMLDivElement>(null);
 
+  // ── Department filter ──
+  const [deptFilter, setDeptFilter] = useState<string | null>(null);
+  const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
+  const deptDropdownRef = useRef<HTMLDivElement>(null);
+  const deptDropdownRefMobile = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!showPeriodPopover) return;
     const handler = (e: MouseEvent) => {
@@ -110,11 +116,38 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     return () => { clearTimeout(id); document.removeEventListener('click', handler); };
   }, [showPeriodPopover]);
 
+  useEffect(() => {
+    if (!deptDropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (!deptDropdownRef.current?.contains(e.target as Node) && !deptDropdownRefMobile.current?.contains(e.target as Node)) {
+        setDeptDropdownOpen(false);
+      }
+    };
+    const id = setTimeout(() => document.addEventListener('click', handler), 0);
+    return () => { clearTimeout(id); document.removeEventListener('click', handler); };
+  }, [deptDropdownOpen]);
+
   const togglePeriodPopover = useCallback(() => {
     setShowPeriodPopover(prev => {
       if (!prev && periodTriggerRef.current) {
         const rect = periodTriggerRef.current.getBoundingClientRect();
-        setPeriodPopoverStyle({ top: rect.bottom + 6, left: rect.left + rect.width / 2 });
+        const popoverWidth = Math.min(340, window.innerWidth - 32);
+        const popoverHeight = 300;
+        const gap = 6;
+
+        let top: number;
+        if (rect.bottom + gap + popoverHeight > window.innerHeight) {
+          top = Math.max(8, rect.top - gap - popoverHeight);
+        } else {
+          top = rect.bottom + gap;
+        }
+
+        const centerX = rect.left + rect.width / 2;
+        const minLeft = popoverWidth / 2 + 16;
+        const maxLeft = window.innerWidth - popoverWidth / 2 - 16;
+        const left = Math.min(maxLeft, Math.max(minLeft, centerX));
+
+        setPeriodPopoverStyle({ top, left });
       }
       return !prev;
     });
@@ -148,9 +181,6 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const [deductBreak, setDeductBreak] = useState(true);
   const [isAutoBreak, setIsAutoBreak] = useState(true);
   const editOutHourRef = useRef<HTMLInputElement>(null);
-
-  // ── Department filter ──
-  const [deptFilter, setDeptFilter] = useState<string | null>(null);
 
   // ── Selection / Bulk edit ──
   const [selectedShiftIds, setSelectedShiftIds] = useState<Set<string>>(new Set());
@@ -477,19 +507,61 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
             {format(weekStart, 'd MMM', { locale })}
             <span> — {format(weekEnd, 'd MMM yyyy', { locale })}</span>
           </span>
-        </div>
-
-        <div className="flex items-center justify-between sm:justify-start flex-wrap gap-1 md:gap-2 sm:ml-auto w-full sm:w-auto">
           {departments.length > 1 && (
-            <div className="flex items-center gap-0.5">
-              <Filter className="h-3 w-3 text-white/40 shrink-0 hidden md:block" />
-              <select value={deptFilter ?? ''} onChange={e => setDeptFilter(e.target.value || null)}
-                className="bg-white/10 border border-white/10 rounded-lg px-1.5 md:px-2 py-1 text-[10px] md:text-[11px] font-bold text-white/70 uppercase tracking-wider outline-none max-w-[80px] md:max-w-none">
-                <option value="">{t.department_filter_all ?? 'Tutti'}</option>
-                {departments.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
+            <div className="sm:hidden relative ml-auto" ref={deptDropdownRefMobile}>
+              <button type="button" onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
+                className="bg-white/10 hover:bg-white/15 rounded-lg pl-1.5 md:pl-2 pr-6 py-1 text-[10px] md:text-[11px] font-bold text-white/70 uppercase tracking-wider cursor-pointer transition-all max-w-[80px] md:max-w-none flex items-center whitespace-nowrap">
+                {deptFilter ?? (t.department_filter_all ?? 'Tutti')}
+              </button>
+              <ChevronDown className={`h-3 w-3 text-white/40 pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 transition-transform ${deptDropdownOpen ? 'rotate-180' : ''}`} />
+              {deptDropdownOpen && (
+                <div className="absolute right-0 top-full mt-1.5 min-w-[130px] z-50 rounded-2xl border border-white/10 bg-white/[0.04] shadow-2xl overflow-hidden"
+                  style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+                  <button type="button" onClick={() => { setDeptFilter(null); setDeptDropdownOpen(false); }}
+                    className="w-full px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 transition-colors">
+                    {t.department_filter_all ?? 'Tutti'}
+                  </button>
+                  {departments.map(d => (
+                    <button key={d} type="button" onClick={() => { setDeptFilter(d); setDeptDropdownOpen(false); }}
+                      className="w-full px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 transition-colors">
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
+        </div>
+
+        {departments.length > 1 && (
+          <div className="hidden sm:flex items-center gap-0.5 sm:ml-auto">
+            <Filter className="h-3 w-3 text-white/40 shrink-0 hidden md:block" />
+            <div className="relative" ref={deptDropdownRef}>
+              <button type="button" onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
+                className="bg-white/10 hover:bg-white/15 rounded-lg pl-1.5 md:pl-2 pr-6 py-1 text-[10px] md:text-[11px] font-bold text-white/70 uppercase tracking-wider cursor-pointer transition-all max-w-[80px] md:max-w-none flex items-center whitespace-nowrap">
+                {deptFilter ?? (t.department_filter_all ?? 'Tutti')}
+              </button>
+              <ChevronDown className={`h-3 w-3 text-white/40 pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 transition-transform ${deptDropdownOpen ? 'rotate-180' : ''}`} />
+              {deptDropdownOpen && (
+                <div className="absolute right-0 top-full mt-1.5 min-w-[130px] z-50 rounded-2xl border border-white/10 bg-white/[0.04] shadow-2xl overflow-hidden"
+                  style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+                  <button type="button" onClick={() => { setDeptFilter(null); setDeptDropdownOpen(false); }}
+                    className="w-full px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 transition-colors">
+                    {t.department_filter_all ?? 'Tutti'}
+                  </button>
+                  {departments.map(d => (
+                    <button key={d} type="button" onClick={() => { setDeptFilter(d); setDeptDropdownOpen(false); }}
+                      className="w-full px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 transition-colors">
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between sm:justify-start flex-nowrap gap-1 md:gap-2 sm:ml-auto w-full sm:w-auto overflow-x-auto">
           <div className="flex items-center gap-1 rounded-lg bg-white/5 p-0.5">
             <button type="button" onClick={() => setViewMode('week')}
               className={`rounded-md px-1.5 md:px-2.5 py-1 text-[9px] md:text-[10px] font-bold uppercase tracking-wider transition-all ${viewMode === 'week' ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'}`}>{t.view_week ?? 'Sett.'}</button>
@@ -497,7 +569,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               className={`rounded-md px-1.5 md:px-2.5 py-1 text-[9px] md:text-[10px] font-bold uppercase tracking-wider transition-all ${viewMode === 'period' ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'}`}>{t.view_period ?? 'Periodo'}</button>
           </div>
 
-          <div className="flex items-center flex-wrap gap-2">
+          <div className="flex items-center flex-nowrap gap-2">
             <button ref={periodTriggerRef} type="button" onClick={togglePeriodPopover}
               className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1.5 text-[10px] font-bold text-white/50 hover:text-white transition-colors uppercase tracking-wider">
               <CalendarDays className="h-3 w-3" />
@@ -570,7 +642,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       {/* ── Period Popover ── */}
       {showPeriodPopover && createPortal(
           <div ref={periodPopoverRef}
-            className="fixed z-[10050] mt-1 rounded-2xl border border-white/10 p-4 w-[340px]"
+            className="fixed z-[10050] mt-1 rounded-2xl border border-white/10 p-3 sm:p-4 w-[calc(100vw-32px)] max-w-[340px] max-h-[85vh] overflow-y-auto"
             style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', top: periodPopoverStyle.top, left: periodPopoverStyle.left, transform: 'translateX(-50%)' }}>
           <div className="flex items-center justify-between mb-3">
             <button type="button" onClick={() => setPeriodPopoverYear(y => y - 1)}
@@ -579,7 +651,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
             <button type="button" onClick={() => setPeriodPopoverYear(y => y + 1)}
               className="rounded-lg bg-white/10 px-2 py-1 text-white/60 hover:text-white transition-colors"><ChevronRight className="h-3.5 w-3.5" /></button>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-1 sm:gap-2">
             {Array.from({ length: 12 }, (_, i) => {
               const refDate = new Date(periodPopoverYear, i, 15);
               const cfg = periodConfigForMonth(refDate);
@@ -867,20 +939,20 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       {/* ── Detail Drawer ── */}
       {drawerOpen && selectedShift && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" onClick={() => setDrawerOpen(false)}>
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative w-full max-w-lg rounded-2xl border border-white/15 p-5 shadow-2xl max-h-[85vh] z-10 bg-white/5 flex flex-col" style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: `2px solid ${isFrozen(selectedShift) ? '#fbbf24' : selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}40`, boxShadow: `0 0 24px ${isFrozen(selectedShift) ? '#fbbf24' : selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}20` }} onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md supports-[backdrop-filter]:bg-black/50" />
+          <div className="relative w-full max-w-lg rounded-2xl border border-white/15 p-5 shadow-2xl max-h-[85vh] z-10 flex flex-col" style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: `2px solid ${isFrozen(selectedShift) ? '#fbbf24' : selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}40`, boxShadow: `0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08), 0 0 24px ${isFrozen(selectedShift) ? '#fbbf24' : selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}20` }} onClick={e => e.stopPropagation()}>
             <div className="shrink-0">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-sm font-bold text-white">{selectedUser?.first_name ?? ''} {selectedUser?.last_name ?? ''}</h3>
                 <p className="text-[11px] text-white font-semibold">{format(parseISO(selectedShift.date), 'EEEE d MMMM', { locale })} — {selectedShift.start_time?.slice(0, 5)}-{selectedShift.end_time?.slice(0, 5)}</p>
               </div>
-              <button type="button" onClick={() => setDrawerOpen(false)} className="rounded-lg bg-white/10 p-2 text-white/50 hover:text-white transition-colors"><X className="h-4 w-4" /></button>
+              <button type="button" onClick={() => setDrawerOpen(false)} className="rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all"><X className="h-4 w-4" /></button>
             </div>
             <div className="flex gap-1 rounded-lg bg-gradient-to-r from-indigo-500/15 to-purple-500/15 p-1 mb-4">
               {(['details', 'punches', 'breaks', 'history'] as ShiftDetailTab[]).map(tab => (
                 <button key={tab} type="button" onClick={() => setDetailTab(tab)}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${detailTab === tab ? 'bg-accent text-white' : 'text-white/50 hover:text-white'}`}>
+                  className={`flex-1 rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${detailTab === tab ? 'bg-accent text-white' : 'text-white/50 hover:text-white hover:bg-white/10'}`}>
                   {tab === 'details' ? (t.details ?? 'Dettagli') : tab === 'punches' ? (t.punches ?? 'Timbrature') : tab === 'breaks' ? (t.break_plural ?? 'Pause') : (t.history ?? 'Storico')}
                 </button>
               ))}
@@ -922,25 +994,25 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                 <div className="flex flex-wrap gap-2">
                   {canEdit && !isShiftPayrollFrozen(selectedShift) && selectedShift.approval_status === 'draft' && (
                     <button type="button" onClick={() => handleApproveShift(selectedShift)}
-                      className="flex items-center gap-1.5 rounded-lg bg-emerald-600/20 px-3 py-2 text-[11px] font-bold text-emerald-300 hover:bg-emerald-600/30 transition-colors">
+                      className="flex items-center gap-1.5 rounded-lg bg-emerald-600/20 px-3 py-2 text-[11px] font-bold text-emerald-300 hover:bg-emerald-600/30 transition-colors border border-transparent hover:border-emerald-600/30">
                       <Check className="h-3.5 w-3.5" />{t.approve ?? 'Approva'}
                     </button>
                   )}
                   {canEdit && !isShiftPayrollFrozen(selectedShift) && (
                     <button type="button" onClick={() => handleDeleteShift(selectedShift)}
-                      className="flex items-center gap-1.5 rounded-lg bg-rose-600/20 px-3 py-2 text-[11px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors">
+                      className="flex items-center gap-1.5 rounded-lg bg-rose-600/20 px-3 py-2 text-[11px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors border border-transparent hover:border-rose-600/30">
                       <Trash2 className="h-3.5 w-3.5" />{t.delete ?? 'Elimina'}
                     </button>
                   )}
                   {canEdit && !isShiftPayrollFrozen(selectedShift) && selectedShift.approval_status === 'confirmed' && (
                     <button type="button" onClick={() => handleFreezeShift(selectedShift)}
-                      className="flex items-center gap-1.5 rounded-lg bg-amber-600/20 px-3 py-2 text-[11px] font-bold text-amber-300 hover:bg-amber-600/30 transition-colors">
+                      className="flex items-center gap-1.5 rounded-lg bg-amber-600/20 px-3 py-2 text-[11px] font-bold text-amber-300 hover:bg-amber-600/30 transition-colors border border-transparent hover:border-amber-600/30">
                       <Lock className="h-3.5 w-3.5" />{t.wst_freeze_btn ?? 'Congela'}
                     </button>
                   )}
                   {canEdit && isShiftPayrollFrozen(selectedShift) && (
                     <button type="button" onClick={() => handleFreezeShift(selectedShift)}
-                      className="flex items-center gap-1.5 rounded-lg bg-accent/20 px-3 py-2 text-[11px] font-bold text-accent hover:bg-accent/30 transition-colors">
+                      className="flex items-center gap-1.5 rounded-lg bg-accent/20 px-3 py-2 text-[11px] font-bold text-accent hover:bg-accent/30 transition-colors border border-transparent hover:border-accent/30">
                       <Unlock className="h-3.5 w-3.5" />{t.wst_unfreeze_btn ?? 'Sblocca'}
                     </button>
                   )}

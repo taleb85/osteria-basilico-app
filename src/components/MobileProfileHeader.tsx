@@ -141,7 +141,6 @@ export default function MobileProfileHeader({
       {/* Destra: live dot + data | separatore | azioni (extra + campanella + logout) */}
       <div className="flex shrink-0 items-center gap-2.5">
         {/* Status: live dot + data */}
-        <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 5px #22d3ee', flexShrink: 0, display: 'inline-block' }} />
         <span
           className="hidden sm:inline text-[11px] font-medium whitespace-nowrap capitalize tabular-nums"
           style={{ color: 'rgba(255,255,255,0.60)', letterSpacing: '0.01em' }}

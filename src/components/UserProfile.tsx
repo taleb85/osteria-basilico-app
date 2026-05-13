@@ -43,7 +43,7 @@ export type ProfileFormSelfData = {
 /** Form "Il mio profilo": Email, Telefono, Reparto, Lingua. Con `readOnly` i campi sono disabilitati (es. anteprima). */
 const inputClassLight =
   'w-full px-3 py-2.5 rounded-xl bg-white/8 border border-white/18 text-white text-base focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none transition-colors placeholder:text-white/35';
-const labelClassLight = 'block text-xs font-medium text-white/65 mb-1.5';
+const labelClassLight = 'block text-xs font-medium text-white/65 mb-1.5 whitespace-nowrap';
 
 function roleSelectValue(role: UserType['role']): string {
   if (role === 'chef') return 'cook';
@@ -109,7 +109,7 @@ export function ProfileFormSelf({
     (appearance === 'light'
       ? ' opacity-60 cursor-not-allowed bg-white/5'
       : ' opacity-70 cursor-not-allowed');
-  const labelClass = appearance === 'light' ? labelClassLight : 'block text-xs font-medium text-white/80 mb-1.5';
+  const labelClass = appearance === 'light' ? labelClassLight : 'block text-xs font-medium text-white/80 mb-1.5 whitespace-nowrap';
   const iconMuted = appearance === 'light' ? 'text-white/55' : 'text-white/40';
 
   const canEditName = !readOnly && !nameLocked;

@@ -77,7 +77,6 @@ a.border-neutral-500 {
 /* ── Card surfaces ── */
 .surface-glass,
 .surface-glass-sm,
-.shift-card-ultra,
 .panel,
 .card-factorial,
 .modal-glass-panel,
@@ -323,7 +322,6 @@ body {
 /* ── Override diretto: blocca i background solidi di index.css ── */
 .surface-glass,
 .surface-glass-sm,
-.shift-card-ultra,
 .panel,
 .card-factorial,
 [class*="surface-"] {

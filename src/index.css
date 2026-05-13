@@ -1857,6 +1857,12 @@ thead th {
   backdrop-filter: blur(12px) !important;
   border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
 }
+/* Dropdown reparti: override per rimuovere bordi ereditati */
+[data-theme="dark"] .rounded-2xl button[class*="uppercase"][class*="tracking-wider"][class*="text-left"] {
+  border: none !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
 
 /* Pubblica settimana — hover */
 [data-theme="dark"] [class*="hover:bg-emerald"]:hover {

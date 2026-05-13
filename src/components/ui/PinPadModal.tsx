@@ -141,47 +141,51 @@ export function PinPadModal({
 
   const filledCount = pin.length;
 
-  const border = '1px solid rgba(255,255,255,0.12)';
-  const btnBase = { background: 'transparent', border } as React.CSSProperties;
+  const border = '1px solid rgba(255,255,255,0.18)';
+  const btnBase = {
+    background: 'transparent',
+    border,
+    transition: 'background 0.15s ease, border-color 0.15s ease',
+  } as React.CSSProperties;
 
   /* ── Contenuto condiviso mobile/desktop ─────────────────────────── */
   const content = (
     <>
       {/* Header */}
       <div className="flex flex-col items-center text-center pt-12 sm:pt-6 pb-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl mb-4" style={btnBase}>
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl mb-4" style={{ background: 'rgba(255,255,255,0.06)', border, boxShadow: '0 0 20px rgba(255,255,255,0.06)' }}>
           <Lock className="w-6 h-6 text-white" strokeWidth={2.5} />
         </div>
         <h2 className="text-white font-bold uppercase tracking-widest text-base mb-1">{title}</h2>
-        <p className="text-white/40 text-sm font-medium leading-tight px-4">{subtitle}</p>
+        <p className="text-white/65 text-sm font-semibold leading-tight px-4">{subtitle}</p>
       </div>
 
       {/* PIN display */}
       <div className="flex flex-col items-center gap-2 px-8 mt-4">
-        <div className="flex items-center gap-1.5 text-white/50 mb-1">
+        <div className="flex items-center gap-1.5 text-white/75 mb-1">
           <ShieldCheck className="w-4 h-4" strokeWidth={2.5} />
-          <span className="text-[11px] font-bold uppercase tracking-widest">{pinLabel}</span>
+          <span className="text-xs font-bold uppercase tracking-widest">{pinLabel}</span>
         </div>
         <div className="w-full h-14 rounded-2xl flex items-center justify-center relative"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.12)' }}>
+          style={{ background: 'rgba(255,255,255,0.06)', border: '1.5px solid rgba(255,255,255,0.18)' }}>
           <div className="flex items-center gap-6">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="relative flex items-center justify-center">
                 {filledCount === i && (
                   <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                    className="absolute -left-3 h-8 w-[2px] rounded-full bg-white/60" />
+                    className="absolute -left-3 h-8 w-[2px] rounded-full bg-white/70" />
                 )}
                 <motion.div
                   animate={filledCount > i ? { scale: [1, 1.3, 1] } : { scale: 1 }}
                   transition={{ duration: 0.18 }}
                   className="w-4 h-4 rounded-full transition-colors duration-200"
                   style={filledCount > i
-                    ? { background: 'rgba(255,255,255,0.90)', boxShadow: '0 0 8px 2px rgba(255,255,255,0.50)' }
-                    : { background: 'rgba(255,255,255,0.25)' }}
+                    ? { background: '#ffffff', boxShadow: '0 0 10px 3px rgba(255,255,255,0.60)' }
+                    : { background: 'rgba(255,255,255,0.35)' }}
                 />
                 {filledCount === 4 && i === 3 && (
                   <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                    className="absolute -right-3 h-8 w-[2px] rounded-full bg-white/60" />
+                    className="absolute -right-3 h-8 w-[2px] rounded-full bg-white/70" />
                 )}
               </div>
             ))}
@@ -195,7 +199,7 @@ export function PinPadModal({
         <div className="grid grid-cols-3 gap-3">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
             <button key={n} type="button" onClick={() => handleKey(n)}
-              className="h-14 rounded-2xl font-bold text-2xl text-white active:scale-95 transition-all"
+              className="h-14 rounded-2xl font-bold text-2xl text-white active:scale-95 transition-all hover:bg-white/10 hover:border-white/30"
               style={btnBase}>{n}</button>
           ))}
           {leftActionButton ? (
@@ -203,28 +207,28 @@ export function PinPadModal({
           ) : webAuthnOk ? (
             credRegistered ? (
               <button type="button" onClick={handleBiometric} disabled={bioLoading || isLoading}
-                className="h-14 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-white/70 active:scale-95 transition-all disabled:opacity-50"
+                className="h-14 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-white/80 active:scale-95 transition-all disabled:opacity-50 hover:bg-white/10 hover:border-white/30"
                 style={btnBase} title="Usa impronta digitale">
                 {bioLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Fingerprint className="w-6 h-6" />}
               </button>
             ) : (
               <button type="button" onClick={handleBioRegister} disabled={bioRegLoading || isLoading}
-                className="h-14 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-white/40 hover:text-white/70 active:scale-95 transition-all"
+                className="h-14 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-white/50 hover:text-white/80 active:scale-95 transition-all hover:bg-white/10 hover:border-white/30"
                 style={btnBase} title="Collega impronta digitale">
                 {bioRegLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Smartphone style={{ width: '1.25rem', height: '1.25rem' }} />}
                 <span className="text-[7px] font-black uppercase tracking-tighter leading-none">Collega</span>
               </button>
             )
           ) : (
-            <div className="h-14 rounded-2xl flex items-center justify-center opacity-30" style={btnBase}>
-              <Fingerprint className="w-6 h-6 text-white/40" />
+            <div className="h-14 rounded-2xl flex items-center justify-center opacity-40" style={btnBase}>
+              <Fingerprint className="w-6 h-6 text-white/50" />
             </div>
           )}
           <button type="button" onClick={() => handleKey(0)}
-            className="h-14 rounded-2xl font-bold text-2xl text-white active:scale-95 transition-all"
+            className="h-14 rounded-2xl font-bold text-2xl text-white active:scale-95 transition-all hover:bg-white/10 hover:border-white/30"
             style={btnBase}>0</button>
           <button type="button" onClick={() => handleKey('del')}
-            className="h-14 rounded-2xl flex items-center justify-center text-white/50 hover:text-white active:scale-95 transition-all"
+            className="h-14 rounded-2xl flex items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all hover:bg-white/10 hover:border-white/30"
             style={btnBase}>
             <Delete className="w-6 h-6" />
           </button>
@@ -234,10 +238,10 @@ export function PinPadModal({
       {/* Action buttons */}
       <div className="flex gap-3 px-8 pb-10 sm:pb-6 mt-4">
         <button type="button" onClick={onCancel}
-          className="flex-1 h-14 rounded-2xl font-bold text-sm text-white/60 hover:text-white active:scale-95 transition-all"
+          className="flex-1 h-14 rounded-2xl font-bold text-sm text-white/80 hover:text-white active:scale-95 transition-all hover:bg-white/10 hover:border-white/30"
           style={btnBase}>{cancelText}</button>
         <button type="button" disabled={pin.length !== 4 || isLoading} onClick={onConfirm}
-          className="flex-1 h-14 rounded-2xl text-white font-bold text-sm disabled:opacity-35 active:scale-95 transition-all flex items-center justify-center gap-2"
+          className="flex-1 h-14 rounded-2xl text-white font-bold text-sm disabled:opacity-35 active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-white/12 hover:border-white/30 disabled:hover:bg-transparent disabled:hover:border-inherit"
           style={btnBase}>
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : confirmText}
         </button>
@@ -251,7 +255,7 @@ export function PinPadModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.22 }}
-      className="fixed inset-0 z-[10060] flex flex-col items-center justify-center overflow-hidden bg-black/50 backdrop-blur-sm supports-[backdrop-filter]:bg-black/40"
+      className="fixed inset-0 z-[10060] flex flex-col items-center justify-center overflow-hidden bg-black/60 backdrop-blur-md supports-[backdrop-filter]:bg-black/50"
       style={{ }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
@@ -262,7 +266,7 @@ export function PinPadModal({
         exit={{ opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 360, damping: 30, mass: 0.9 }}
         className="flex flex-col w-full max-w-[340px] mx-4 rounded-3xl overflow-hidden"
-        style={{ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06)' }}
+        style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255,255,255,0.18)', boxShadow: '0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08), 0 0 40px rgba(255,255,255,0.04)' }}
         onClick={e => e.stopPropagation()}
       >
         {content}

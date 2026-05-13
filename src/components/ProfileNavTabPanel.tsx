@@ -421,7 +421,7 @@ export default function ProfileNavTabPanel({
               aria-haspopup={preferNativePhotoPicker ? undefined : 'menu'}
               aria-controls={preferNativePhotoPicker ? undefined : 'profile-photo-source-menu'}
               className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white shadow-md outline-none transition-colors hover:opacity-90 active:scale-[0.96] disabled:opacity-50 touch-manipulation focus-visible:ring-2 focus-visible:ring-white/50"
-              style={{ background: 'rgb(0, 82, 255)' }}
+              style={{ background: 'rgba(255,255,255,0.12)' }}
               title={changePhoto}
               aria-label={changePhoto}
             >
@@ -549,7 +549,7 @@ export default function ProfileNavTabPanel({
                             type="button"
                             onClick={() => setPendingLang(null)}
                             className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
-                            style={isAuto ? { background: 'rgb(0, 82, 255)', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
+                            style={isAuto ? { background: 'rgba(255,255,255,0.12)', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
                             title={`Auto → ${deviceLang.toUpperCase()}`}
                           >
                             Auto
@@ -562,7 +562,7 @@ export default function ProfileNavTabPanel({
                           type="button"
                           onClick={() => setPendingLang(l)}
                           className="relative flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
-                          style={pendingLang === l ? { background: 'rgb(0, 82, 255)', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
+                          style={pendingLang === l ? { background: 'rgba(255,255,255,0.12)', color: '#ffffff', outline: 'none' } : { color: 'rgba(255,255,255,0.55)', outline: 'none' }}
                         >
                           {l.toUpperCase()}
                         </button>
@@ -576,7 +576,7 @@ export default function ProfileNavTabPanel({
                       style={langSaved
                         ? { background: '#10b981', color: '#fff' }
                         : hasLangChanges
-                          ? { background: 'rgb(0, 82, 255)', color: '#fff' }
+                          ? { background: 'rgba(255,255,255,0.12)', color: '#fff' }
                           : { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.40)', border: '1px solid rgba(255,255,255,0.12)' }}
                     >
                       {langSaved ? '✓ Salvato' : langSaving ? 'Salvataggio…' : 'Salva'}
