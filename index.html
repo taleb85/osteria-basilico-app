@@ -11,7 +11,6 @@
     </script>
     <script>
       (function(){
-        /* Tema: flow-theme in localStorage (allineato a useTheme in React) */
         var th = 'dark';
         try {
           var s = localStorage.getItem('flow-theme');
@@ -22,78 +21,83 @@
         else document.documentElement.classList.remove('dark');
         try { localStorage.removeItem('userTheme'); localStorage.removeItem('theme'); } catch(e){}
 
-        /* Cache-bust: `__INJECTED_CACHE_VERSION__` sostituito da Vite (inject-version-meta). Se resta il placeholder,
-           non fare reload: oscillerebbe con /app-version.txt e la pagina “non carica”. */
-        var CURRENT_VERSION = '__INJECTED_CACHE_VERSION__';
-        try {
-          var savedVersion = localStorage.getItem('app_cache_version');
-          if (
-            CURRENT_VERSION !== '__INJECTED_CACHE_VERSION__' &&
-            savedVersion !== CURRENT_VERSION
-          ) {
-            localStorage.setItem('app_cache_version', CURRENT_VERSION);
-            /* Cancella cache SW + HTTP cache API */
-            Promise.all([
-              navigator.serviceWorker?.getRegistrations?.().then(function(r){
-                return Promise.all(r.map(function(s){ return s.unregister(); }));
-              }) || Promise.resolve(),
-              caches.keys().then(function(keys){
-                return Promise.all(keys.map(function(k){ return caches.delete(k); }));
-              })
-            ]).then(function(){
-              /* Hard-reload: forza il browser a ri-scaricare index.html e tutti i chunk */
-              location.reload();
-            });
-            return;
-          }
-        } catch(e){}
-
         if(location.search.includes('nocache=1')){
-          Promise.all([
-            navigator.serviceWorker?.getRegistrations?.().then(function(r){ return Promise.all(r.map(function(s){return s.unregister();})); })||Promise.resolve(),
-            caches.keys().then(function(keys){ return Promise.all(keys.map(function(k){return caches.delete(k);})); })
-          ]).then(function(){ location.replace(location.pathname+(location.hash||'')||'/'); });
+          var clr = function(){
+            var p = [];
+            if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+              p.push(navigator.serviceWorker.getRegistrations().then(function(r){ return Promise.all(r.map(function(s){return s.unregister();})); }));
+            }
+            if (window.caches && window.caches.keys) {
+              p.push(caches.keys().then(function(keys){ return Promise.all(keys.map(function(k){return caches.delete(k);})); }));
+            }
+            Promise.all(p).then(function(){ location.replace(location.pathname+(location.hash||'')||'/'); });
+          };
+          clr();
           return;
         }
-      })();
-    </script>
-    <script>
-      /* Se l'index in cache (PWA) è vecchio ma /app-version.txt sul server no: allinea cache e reload */
-      (function () {
-        if (!('fetch' in window)) return;
-        function run() {
-          var bust = 't=' + Date.now();
-          fetch('/app-version.txt?' + bust, { cache: 'no-store' })
-            .then(function (r) { if (!r.ok) return null; return r.text(); })
-            .then(function (net) {
-              if (!net) return;
-              var v = (net + '').trim();
-              /* No HTML/SPA-fallback: se risposta non sembra "x.y.z-…+build", ignora (es. errori/proxy) */
-              if (v.length > 120 || v.indexOf('<') >= 0 || v.indexOf('\n') >= 0) return;
-              var s = null;
-              try { s = localStorage.getItem('app_cache_version'); } catch (e) {}
-              if (v && v !== s) {
-                try { localStorage.setItem('app_cache_version', v); } catch (e) {}
-                Promise.all([
-                  (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
-                    ? navigator.serviceWorker.getRegistrations().then(function (regs) {
-                        return Promise.all(regs.map(function (r) { return r.unregister(); }));
-                      })
-                    : Promise.resolve(),
-                  (window.caches && window.caches.keys)
-                    ? window.caches.keys().then(function (keys) {
-                        return Promise.all(keys.map(function (k) { return window.caches.delete(k); }));
-                      })
-                    : Promise.resolve()
-                ]).then(function () { window.location.reload(); });
-              }
-            })
-            .catch(function () { /* rete o fallimento: ignora */ });
+
+        /* Cache-bust unificato: confronta la versione BUILD (iniettata da Vite) con localStorage.
+           Se l'app.html servito dal SW è vecchio, la versione BUILD è quella VECCHIA e il confronto
+           fallisce. Per questo facciamo SUBITO un fetch diretto a /app-version.txt (bypassando SW
+           con cache: 'no-store') per ottenere la versione REALE dal server. */
+        var BUILD_VERSION = '__INJECTED_CACHE_VERSION__';
+        var isBuildVersion = BUILD_VERSION !== '__INJECTED_CACHE_VERSION__';
+
+        function clearAllAndReload(newVer) {
+          try { localStorage.setItem('app_cache_version', newVer); } catch(e){}
+          var p = [];
+          if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+            p.push(navigator.serviceWorker.getRegistrations().then(function(r){ return Promise.all(r.map(function(s){ return s.unregister(); })); }));
+          }
+          if (window.caches && window.caches.keys) {
+            p.push(caches.keys().then(function(keys){ return Promise.all(keys.map(function(k){ return caches.delete(k); })); }));
+          }
+          Promise.all(p).then(function(){ location.reload(); });
         }
-        if (document.readyState === 'complete' || document.readyState === 'interactive') {
-          setTimeout(run, 0);
-        } else {
-          document.addEventListener('DOMContentLoaded', function () { setTimeout(run, 0); });
+
+        /* Se abbiamo una versione BUILD valida, confrontala subito con localStorage */
+        if (isBuildVersion) {
+          var saved;
+          try { saved = localStorage.getItem('app_cache_version'); } catch(e){}
+          if (saved !== BUILD_VERSION) {
+            clearAllAndReload(BUILD_VERSION);
+            return;
+          }
+        }
+
+        /* Fallback: fetch diretto a /app-version.txt con retry in caso di fallimento.
+           Questo è CRUCIALE su iOS PWA dove il fetch potrebbe fallire la prima volta. */
+        if ('fetch' in window) {
+          var attempts = 0;
+          var maxAttempts = 3;
+          var delay = 100;
+          function fetchVersion() {
+            var bust = 't=' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+            fetch('/app-version.txt?' + bust, { cache: 'no-store' })
+              .then(function (r) {
+                if (!r.ok) return null;
+                return r.text();
+              })
+              .then(function (net) {
+                if (!net) return;
+                var v = (net + '').trim();
+                if (v.length > 120 || v.indexOf('<') >= 0 || v.indexOf('\n') >= 0) return;
+                var s = null;
+                try { s = localStorage.getItem('app_cache_version'); } catch (e) {}
+                if (v && v !== s) {
+                  clearAllAndReload(v);
+                }
+              })
+              .catch(function () {
+                /* Retry con backoff esponenziale - iOS PWA spesso fallisce il primo fetch */
+                attempts++;
+                if (attempts < maxAttempts) {
+                  setTimeout(fetchVersion, delay);
+                  delay *= 2;
+                }
+              });
+          }
+          fetchVersion();
         }
       })();
     </script>
