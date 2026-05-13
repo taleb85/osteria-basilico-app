@@ -11,6 +11,7 @@ import { buildUserInviteSlug } from '../config/appPaths';
 import FlowLogoSvg from './FlowLogoSvg';
 import { useT } from '../hooks/useT';
 import { FLOW_INVITE_NAME_STORAGE_KEY } from '../constants/appSession';
+import { isIOS } from '../utils/pwaStandalone';
 
 function cleanSlug(s: string | null | undefined): string {
   return (s ?? '')
@@ -98,9 +99,16 @@ export default function InviteRedirect() {
           }
         }
 
-        // Reindirizza alla pagina di installazione con userId e firstName
-        const firstName = encodeURIComponent((matched.first_name ?? '').trim());
-        if (!cancelled) navigate(`/install?userId=${matched.id}&firstName=${firstName}`, { replace: true });
+        // iOS: reindirizza direttamente al profilo di configurazione
+        if (!cancelled) {
+          if (isIOS()) {
+            window.location.href = '/Installa_FLOW.mobileconfig';
+          } else {
+            // Altri dispositivi: pagina di installazione con nome e userId
+            const firstName = encodeURIComponent((matched.first_name ?? '').trim());
+            navigate(`/install?userId=${matched.id}&firstName=${firstName}`, { replace: true });
+          }
+        }
       } catch {
         if (!cancelled) setState({ kind: 'notfound' });
       }
