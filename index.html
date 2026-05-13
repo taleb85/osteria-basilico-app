@@ -41,7 +41,7 @@
            fallisce. Per questo facciamo SUBITO un fetch diretto a /app-version.txt (bypassando SW
            con cache: 'no-store') per ottenere la versione REALE dal server. */
         var BUILD_VERSION = '__INJECTED_CACHE_VERSION__';
-        var isBuildVersion = BUILD_VERSION !== '__INJECTED_CACHE_VERSION__';
+        var isBuildVersion = BUILD_VERSION !== ('__INJECTED' + '_CACHE_VERSION__');
 
         function clearAllAndReload(newVer) {
           try { localStorage.setItem('app_cache_version', newVer); } catch(e){}
