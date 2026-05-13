@@ -26,8 +26,8 @@ function getLocale(lang = 'it') {
 
 function getDarkCard() {
   return {
-    cls: 'rounded-2xl border border-white/10 overflow-hidden',
-    style: { background: 'rgba(255, 255, 255, 0.14)' } as React.CSSProperties,
+    cls: 'rounded-2xl border border-neutral-500 overflow-hidden',
+    style: { background: 'transparent' } as React.CSSProperties,
   };
 }
 
@@ -41,7 +41,7 @@ export default function MobileTimesheet({
     approved: {
       label: t.ts_status_approved ?? 'Approvato',
       icon: CheckCircle2,
-      pill: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
+      pill: 'bg-white/10 text-white/70 border-white/20',
     },
     confirmed: {
       label: t.ts_status_confirmed ?? 'Confermato',
@@ -111,8 +111,8 @@ export default function MobileTimesheet({
             {/* Header settimana */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#4361EE]/15 flex items-center justify-center shrink-0">
-                  <Calendar className="w-3.5 h-3.5 text-[#60a5fa]" />
+                <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                  <Calendar className="w-3.5 h-3.5 text-white/50" />
                 </div>
                 <div>
                   <p className="text-[11px] font-black uppercase tracking-widest text-white/50 leading-none mb-0.5">
@@ -124,7 +124,7 @@ export default function MobileTimesheet({
                 </div>
               </div>
               {totalMins > 0 && (
-                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-[#4361EE]/15 text-white/70 border border-[#4361EE]/25">
+                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-white/10 text-white/70 border border-white/20">
                   {totalLabel}
                 </span>
               )}
@@ -135,7 +135,7 @@ export default function MobileTimesheet({
               {days.map((day) => (
                 <div key={day.date} className="px-4 py-3 flex flex-col gap-2">
                   {/* Label giorno */}
-                  <p className="text-[11px] font-black uppercase tracking-widest text-[#60a5fa]">
+                  <p className="text-[11px] font-black uppercase tracking-widest text-white/70">
                     {safeFormatDate(day.date, 'EEEE d MMMM', { locale })}
                   </p>
 
@@ -159,7 +159,7 @@ export default function MobileTimesheet({
                           className={`rounded-xl px-3 py-2.5 border ${
                             isAbsent
                               ? 'border-red-500/10'
-                              : 'bg-white/8 border-white/10'
+                              : 'bg-white/8 border-neutral-500'
                           }`}
                           style={
                             typeof document !== 'undefined' && document.documentElement.classList.contains('dark')

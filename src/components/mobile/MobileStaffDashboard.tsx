@@ -15,11 +15,11 @@ import { calculateUserStats } from '../../utils/stats';
 import { hapticLight as lightHaptic, hapticHeavy as heavyHaptic } from '../../utils/haptics';
 import { useSmartPunchAction } from '../../hooks/useSmartPunchAction';
 
-const Timesheets = lazy(() => import('../Timesheets'));
 const HolidayRequests = lazy(() => import('../HolidayRequests'));
 const Statistics = lazy(() => import('../Statistics'));
 const SettingsPage = lazy(() => import('../SettingsPage'));
 const WeeklyShiftsTable = lazy(() => import('../WeeklyShiftsTable'));
+const ManagementMobileTimesheet = lazy(() => import('./ManagementMobileTimesheet'));
 
 
 export interface MobileStaffDashboardProps {
@@ -31,8 +31,6 @@ export interface MobileStaffDashboardProps {
   punchRecords: PunchRecord[];
   onTabChange?: (tab: AppNavTab) => void;
   greetingText: string;
-  /** Se true, mostra la barra icone fissa (di default la barra è nel genitore `StaffPersonalDashboard`). */
-  showMobileBottomNav?: boolean;
   activeTab: AppNavTab;
   /** Se passati dal genitore (es. stesso calcolo KPI della Home), sovrascrivono gli stat interni. */
   weeklyMinutes?: number;
@@ -51,7 +49,6 @@ export default function MobileStaffDashboard({
   punchRecords,
   onTabChange,
   greetingText,
-  showMobileBottomNav: _showMobileBottomNav = false,
   activeTab,
   weeklyMinutes: weeklyMinutesProp,
   monthlyMinutes: monthlyMinutesProp,
@@ -62,7 +59,7 @@ export default function MobileStaffDashboard({
   const t = getTranslations(language);
   const tv = t as Record<string, string>;
   const locale = getDateLocale(language);
-  const { updatePunchRecord, showError, showSuccess, featureFlags, breakRules } = useApp();
+  const { updatePunchRecord, showError, showSuccess, featureFlags, breakRules, users, shifts: allShifts } = useApp();
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(language);
   const [tick, setTick] = useState(0);
   const [closeModal, setCloseModal] = useState<{
@@ -220,7 +217,14 @@ export default function MobileStaffDashboard({
       case 'timesheet':
         return (
           <Suspense fallback={tabSpinner}>
-            <Timesheets />
+            <ManagementMobileTimesheet
+              variant="standalone"
+              shifts={allShifts}
+              punchRecords={punchRecords}
+              users={users}
+              currentUserId={user.id}
+              language={language}
+            />
           </Suspense>
         );
       case 'reports':
@@ -327,7 +331,7 @@ export default function MobileStaffDashboard({
                   type="button"
                   disabled={!/^\d{2}:\d{2}$/.test((clockOutInput || '').trim()) || closingLoading}
                   onClick={() => void handleConfirmClose()}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/15 py-2.5 text-sm font-bold text-white disabled:opacity-50"
                 >
                   {closingLoading ? t.saving : (
                     <>

@@ -33,7 +33,7 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
         return (
           <div 
             key={shift.id}
-            className={`rounded-3xl p-5 border flex flex-col gap-4 ${isAbsent ? 'opacity-60 border-red-500/20' : 'border-white/10'}`} style={isAbsent ? { background: 'rgba(239,68,68,0.08)' } : { background: 'rgba(255, 255, 255, 0.16)' }}
+            className={`rounded-3xl p-5 border flex flex-col gap-4 ${isAbsent ? 'opacity-60 border-red-500/20' : 'border-neutral-500'}`} style={isAbsent ? { background: 'rgba(239,68,68,0.08)' } : { background: 'transparent' }}
           >
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
@@ -41,7 +41,7 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
                   {safeFormatDate(shift.date, 'EEEE d MMMM', { locale })}
                 </p>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-accent" />
+                  <Clock className="w-5 h-5 text-white/50" />
                   <p className="text-2xl font-bold text-white tabular-nums">
                     {shift.start_time.slice(0, 5)} – {shift.end_time?.slice(0, 5) ?? '…'}
                   </p>

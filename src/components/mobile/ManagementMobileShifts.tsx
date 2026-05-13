@@ -90,7 +90,7 @@ function MyShiftsSection({
   language: string;
   t: Record<string, string>;
 }) {
-  const cardBg = { background: 'rgba(255, 255, 255, 0.14)' };
+  const cardBg = { background: 'transparent' };
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
   // Track which non-current weeks the user has manually expanded
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
@@ -154,7 +154,7 @@ function MyShiftsSection({
               key={wIdx}
               type="button"
               onClick={() => toggleWeek(wIdx)}
-              className="w-full flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3 text-left transition-all hover:border-white/20 active:brightness-95"
+              className="w-full flex items-center justify-between rounded-2xl border border-neutral-500 px-4 py-3 text-left transition-all hover:border-white/20 active:brightness-95"
               style={cardBg}
             >
               <div className="flex flex-col gap-0.5">
@@ -181,7 +181,7 @@ function MyShiftsSection({
         return (
           <div key={wIdx}>
             <div
-              className="rounded-2xl border border-white/10 overflow-hidden shadow-sm"
+              className="rounded-2xl border border-neutral-500 overflow-hidden shadow-sm"
               style={cardBg}
             >
               {/* Griglia 7 giorni */}
@@ -196,7 +196,7 @@ function MyShiftsSection({
                   const shiftCount = hasShift && !isAbsent ? dayShifts.length : 0;
                   const isSelected = selectedDayKey === key;
                   const blockCls = hasShift && !isAbsent
-                    ? 'bg-[#60a5fa]/[0.18] border border-[#60a5fa]/[0.30]'
+                    ? 'bg-white/[0.12] border border-white/20'
                     : isAbsent
                       ? 'bg-red-500/[0.08] border border-red-500/[0.18]'
                       : 'border border-white/8 bg-white/4';
@@ -208,16 +208,16 @@ function MyShiftsSection({
                         setSelectedDayKey((prev) => (prev === key ? null : key));
                       }}
                     >
-                      <span className={`text-[11px] font-bold ${isToday_ ? 'text-[#60a5fa]' : 'text-white/55'}`}>
+                      <span className={`text-[11px] font-bold ${isToday_ ? 'text-white' : 'text-white/55'}`}>
                         {dayLetters[i]}
                       </span>
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold ${
-                        isToday_ ? 'bg-[#60a5fa] text-white shadow-[0_0_12px_rgba(96,165,250,0.4)]' : 'text-white/55'
+                        isToday_ ? 'bg-white/20 text-white' : 'text-white/55'
                       }`}>
                         {format(day, 'd')}
                       </div>
                       <div className={`w-full rounded-lg flex flex-col items-center justify-center py-1.5 px-0.5 min-h-[38px] transition-all ${blockCls} ${
-                        isSelected ? 'ring-2 ring-[#60a5fa]/60 ring-offset-1' : ''
+                        isSelected ? 'ring-2 ring-white/40 ring-offset-1' : ''
                       }`}>
                         {shiftCount > 0 && (
                           <span className="text-[13px] font-black text-white leading-none drop-shadow-sm">
@@ -323,7 +323,7 @@ function TeamShiftsSection({
   t: Record<string, string>;
 }) {
   // Always dark theme
-  const cardBg = { background: 'rgba(255, 255, 255, 0.14)' };
+  const cardBg = { background: 'transparent' };
   const [openDays, setOpenDays] = useState<Record<string, boolean>>({});
 
   const userMap = useMemo(() => {
@@ -377,7 +377,7 @@ function TeamShiftsSection({
         const confirmed = dayShifts.filter(s => s.approval_status !== 'absent');
 
         return (
-          <div key={key} className="rounded-xl border border-white/10 overflow-hidden shadow-sm" style={cardBg}>
+          <div key={key} className="rounded-xl border border-neutral-500 overflow-hidden shadow-sm" style={cardBg}>
             {/* Header cassetto */}
             <button
               type="button"
@@ -386,11 +386,11 @@ function TeamShiftsSection({
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className={`text-[11px] font-black uppercase tracking-widest truncate ${
-                  isToday_ ? 'text-[#60a5fa]' : 'text-white/55'
+                  isToday_ ? 'text-white' : 'text-white/55'
                 }`}>
                   {format(day, 'EEE d MMM', { locale })}
                 </span>
-                {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-[#60a5fa] shrink-0 shadow-[0_0_4px_rgba(96,165,250,0.8)]" />}
+                {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-white/60 shrink-0" />}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-[11px] font-black tabular-nums text-white/55">
@@ -491,7 +491,7 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
       <div className="flex items-center gap-2 mb-5 px-4">
         {/* Toggle settimana / periodo */}
         <span
-          className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#60a5fa]/40 text-[#60a5fa] text-[11px] font-black uppercase tracking-widest shrink-0 cursor-pointer select-none"
+          className="h-9 inline-flex items-center px-3 rounded-2xl border border-white/30 text-white/70 text-[11px] font-black uppercase tracking-widest shrink-0 cursor-pointer select-none"
           onClick={() => { setNavMode(m => m === 'week' ? 'period' : 'week'); setNavOffset(0); }}
         >
           {navMode === 'week' ? (t.ts_period_week ?? 'Sett.') : (t.tab_period ?? 'Periodo')}
@@ -534,7 +534,7 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
               {t.my_shifts_label ?? 'I miei turni'}
             </span>
             {myShifts.length > 0 && (
-              <span className="text-[11px] font-black tabular-nums text-[#60a5fa]">
+              <span className="text-[11px] font-black tabular-nums text-white/70">
                 ({myShifts.length})
               </span>
             )}
@@ -554,7 +554,7 @@ export default function ManagementMobileShifts({ shifts, users, currentUserId, l
               Team
             </span>
             {teamShifts.length > 0 && (
-              <span className="text-[11px] font-black tabular-nums text-[#60a5fa]">
+              <span className="text-[11px] font-black tabular-nums text-white/70">
                 ({teamShifts.length})
               </span>
             )}

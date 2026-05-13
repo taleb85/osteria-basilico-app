@@ -499,14 +499,14 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="rounded-xl border border-neutral-500 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
+                  className="rounded-xl border border-white/30 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateStaff(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-500 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/30 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
                 >
                   <UserPlus className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   {t.admin_add_employee}
@@ -690,7 +690,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             <button
               type="button"
               onClick={toggleTeamSectionExpanded}
-              className="-ml-1 flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-transparent py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-white/8 active:bg-white/8/80"
+              className="-ml-1 flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/30 py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-white/8 active:bg-white/8/80"
               aria-expanded={teamSectionExpanded}
             >
               <ChevronDown
@@ -706,7 +706,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowCreateStaff(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-500 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/30 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
                 >
                   <UserPlus className="w-3.5 h-3.5" aria-hidden />
                   {t.admin_add_employee}
@@ -716,7 +716,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="rounded-xl border border-neutral-500 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
+                  className="rounded-xl border border-white/30 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>
@@ -1072,7 +1072,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             title={t.settings_role_permissions_title ?? 'Permessi per Ruolo'}
             subtitle={t.settings_role_permissions_subtitle ?? 'Configura le funzionalità accessibili per Manager, Capo e Staff'}
             defaultOpen={false}
-            accentBorder="rgba(245,158,11,0.5)"
+            accentBorder="rgba(255,255,255,0.35)"
           >
             <RoleFeatureTemplatesPanel variant="embedded" />
           </SettingsAccordionSection>

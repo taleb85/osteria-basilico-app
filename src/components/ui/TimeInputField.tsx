@@ -46,6 +46,7 @@ export function TimeInputField({
   disabled,
   id,
   hourInputRef,
+  minuteInputRef,
   'aria-label': ariaLabel,
   onKeyDown,
   onMinutesEnter,

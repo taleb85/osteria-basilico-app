@@ -89,7 +89,7 @@ function ShiftStatusBadge({ shift, t }: { shift: Shift; t: Record<string, string
     ? 'text-red-400 border-red-500/30 bg-red-500/15'
     : isDraft
       ? 'text-white/55 border-white/10 bg-white/8'
-      : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/15';
+      : 'text-white/70 border-white/20 bg-white/10';
   const label = isAbsent
     ? (t.status_absent ?? 'Assente')
     : isDraft
@@ -114,7 +114,7 @@ function MyTimesheetSection({
   t: Record<string, string>;
   plannedOnly?: boolean;
 }) {
-  const cardBg = { background: 'rgba(255, 255, 255, 0.14)' };
+  const cardBg = { background: 'transparent' };
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
   // Track which non-current weeks the user manually expanded
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
@@ -185,7 +185,7 @@ function MyTimesheetSection({
               key={wIdx}
               type="button"
               onClick={() => toggleWeek(wIdx)}
-              className="w-full flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3 text-left transition-all hover:border-white/20 active:brightness-95"
+              className="w-full flex items-center justify-between rounded-2xl border border-neutral-500 px-4 py-3 text-left transition-all hover:border-white/20 active:brightness-95"
               style={cardBg}
             >
               <div className="flex flex-col gap-0.5">
@@ -212,7 +212,7 @@ function MyTimesheetSection({
         return (
           <div key={wIdx}>
             <div
-              className="rounded-2xl border border-white/10 overflow-hidden shadow-sm"
+              className="rounded-2xl border border-neutral-500 overflow-hidden shadow-sm"
               style={cardBg}
             >
               {/* Griglia giorni — stile identico alla scheda turni */}
@@ -226,10 +226,10 @@ function MyTimesheetSection({
                   const isToday_ = isToday(day);
                   const isSelected = selectedDayKey === key;
                   const blockCls = hasShift && !isAbsent
-                    ? 'bg-[#60a5fa]/[0.18] border border-[#60a5fa]/[0.30]'
+                    ? 'bg-white/[0.12] border border-white/20'
                     : isAbsent
                       ? 'bg-red-500/[0.08] border border-red-500/[0.18]'
-                      : 'border border-white/10 bg-white/4';
+                      : 'border border-neutral-500 bg-white/4';
                   return (
                     <div
                       key={i}
@@ -246,16 +246,16 @@ function MyTimesheetSection({
                         }
                       }}
                     >
-                      <span className={`text-[11px] font-bold ${isToday_ ? 'text-[#60a5fa]' : 'text-white/55'}`}>
+                      <span className={`text-[11px] font-bold ${isToday_ ? 'text-white' : 'text-white/55'}`}>
                         {dayLetters[i]}
                       </span>
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold ${
-                        isToday_ ? 'bg-[#60a5fa] text-white shadow-[0_0_12px_rgba(96,165,250,0.4)]' : 'text-white/55'
+                        isToday_ ? 'bg-white/20 text-white' : 'text-white/55'
                       }`}>
                         {format(day, 'd')}
                       </div>
                       <div className={`w-full rounded-lg flex flex-col items-center justify-center py-1.5 px-0.5 min-h-[38px] transition-all ${blockCls} ${
-                        isSelected && !plannedOnly ? 'ring-2 ring-[#60a5fa]/60 ring-offset-1' : ''
+                        isSelected && !plannedOnly ? 'ring-2 ring-white/40 ring-offset-1' : ''
                       }`}>
                         {shiftCount > 0 && (
                           <span className="text-[13px] font-black text-white leading-none drop-shadow-sm">
@@ -315,9 +315,9 @@ function MyTimesheetSection({
                   const isToday_ = isToday(day);
                   return (
                     <div key={key}>
-                      <p className="text-[11px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-[#60a5fa]">
+                      <p className="text-[11px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-white/70">
                         {format(day, 'EEEE d MMMM', { locale })}
-                        {isToday_ && <span className="h-1 w-1 rounded-full bg-[#60a5fa] shadow-[0_0_4px_rgba(96,165,250,0.8)]" />}
+                        {isToday_ && <span className="h-1 w-1 rounded-full bg-white/60" />}
                       </p>
                       {dayShifts.map(shift => {
                         const isAbsent = shift.approval_status === 'absent';
@@ -326,7 +326,7 @@ function MyTimesheetSection({
                             className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border shadow-sm ${
                               isAbsent
                                 ? 'border-red-500/30 bg-red-500/15'
-                                : 'border-white/10'
+                                : 'border-neutral-500'
                             }`}
                             style={isAbsent ? undefined : cardBg}
                           >
@@ -376,7 +376,7 @@ function TeamTimesheetSection({
   plannedOnly?: boolean;
 }) {
   // Always dark theme
-  const cardBg = { background: 'rgba(255, 255, 255, 0.14)' };
+  const cardBg = { background: 'transparent' };
   const [openDays, setOpenDays] = useState<Record<string, boolean>>({});
 
   const userMap = useMemo(() => {
@@ -442,7 +442,7 @@ function TeamTimesheetSection({
         const confirmed = dayShifts.filter(s => s.approval_status !== 'absent');
 
         return (
-          <div key={key} className="rounded-xl border border-white/10 overflow-hidden shadow-sm" style={cardBg}>
+          <div key={key} className="rounded-xl border border-neutral-500 overflow-hidden shadow-sm" style={cardBg}>
             {/* Header cassetto */}
             <button
               type="button"
@@ -451,11 +451,11 @@ function TeamTimesheetSection({
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className={`text-[11px] font-black uppercase tracking-widest truncate ${
-                  isToday_ ? 'text-[#60a5fa]' : 'text-white/55'
+                  isToday_ ? 'text-white' : 'text-white/55'
                 }`}>
                   {format(day, 'EEE d MMM', { locale })}
                 </span>
-                {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-[#60a5fa] shrink-0 shadow-[0_0_4px_rgba(96,165,250,0.8)]" />}
+                {isToday_ && <span className="h-1.5 w-1.5 rounded-full bg-white/60 shrink-0" />}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-[11px] font-black tabular-nums text-white/55">
@@ -483,7 +483,7 @@ function TeamTimesheetSection({
                       className={`flex items-center justify-between rounded-lg px-2.5 py-2 border ${
                         isAbsent
                           ? 'border-red-500/30 bg-red-500/15'
-                          : 'border-white/10'
+                          : 'border-neutral-500'
                       }`}
                       style={isAbsent ? undefined : cardBg}
                     >
@@ -616,7 +616,7 @@ export default function ManagementMobileTimesheet({
                   onClick={() => setTsView(v)}
                   className={`h-8 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all ${
                     active
-                      ? 'bg-accent text-white shadow-sm'
+                      ? 'bg-white/15 text-white shadow-sm'
                       : 'bg-white/8 border border-white/20 text-white/60 hover:border-white/35 hover:text-white/90'
                   } active:text-white/90`}
                 >
@@ -656,7 +656,7 @@ export default function ManagementMobileTimesheet({
 
       {/* Barra navigazione periodo */}
       <div className="flex items-center gap-2 mb-5 px-4">
-        <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-[#60a5fa]/40 text-[#60a5fa] text-[11px] font-black uppercase tracking-widest shrink-0">
+        <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-white/30 text-white/70 text-[11px] font-black uppercase tracking-widest shrink-0">
           {t.tab_period ?? 'Periodo'}
         </span>
         <div className="flex items-center border border-white/40 rounded-2xl overflow-hidden flex-1" style={{ background: 'transparent' }}>
@@ -681,7 +681,7 @@ export default function ManagementMobileTimesheet({
         <section>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[11px] font-black uppercase tracking-widest text-white/55">{t.my_attendance_label ?? 'Le mie presenze'}</span>
-            {myShifts.length > 0 && <span className="text-[11px] font-black tabular-nums text-[#60a5fa]">({myShifts.length})</span>}
+            {myShifts.length > 0 && <span className="text-[11px] font-black tabular-nums text-white/70">({myShifts.length})</span>}
           </div>
           <MyTimesheetSection myShifts={myShifts} myPunches={myPunches} locale={locale} dayLetters={dayLetters} language={language} t={t} plannedOnly={plannedOnly} />
         </section>
@@ -690,7 +690,7 @@ export default function ManagementMobileTimesheet({
         <section>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[11px] font-black uppercase tracking-widest text-white/55">Team</span>
-            {teamShifts.length > 0 && <span className="text-[11px] font-black tabular-nums text-[#60a5fa]">({teamShifts.length})</span>}
+            {teamShifts.length > 0 && <span className="text-[11px] font-black tabular-nums text-white/70">({teamShifts.length})</span>}
           </div>
           <TeamTimesheetSection teamShifts={teamShifts} allPunches={teamPunches} users={users} locale={locale} language={language} t={t} plannedOnly={plannedOnly} />
         </section>

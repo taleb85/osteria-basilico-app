@@ -333,7 +333,7 @@ function ChatView({
       </div>
 
       {/* Input */}
-      <div className="px-3 py-3 border-t border-white/10 shrink-0" style={{ background: 'rgba(8,18,52,0.60)' }}>
+      <div className="px-3 py-3 border-t border-white/10 shrink-0" style={{ background: 'rgba(10,10,10,0.60)' }}>
         <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}

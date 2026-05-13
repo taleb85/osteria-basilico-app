@@ -71,7 +71,7 @@ export default function AdminLayout() {
   ], [t]);
 
   return (
-    <div className="relative min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased flex flex-col safe-area-pad overflow-x-clip page-depth-bg" style={{ background: bgTheme.appBg }}>
+    <div className="relative min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased flex flex-col safe-area-pad overflow-x-clip overflow-y-auto page-depth-bg" style={{ background: bgTheme.appBg }}>
       <DeepAuroraShell theme={bgTheme} />
       <header className="sticky top-0 z-40 shrink-0 pt-[max(6px,env(safe-area-inset-top,0px))] app-horizontal-pad pb-2">
         <div className={`${adminHeaderCardClass}`}>
@@ -111,7 +111,7 @@ export default function AdminLayout() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-6">
+      <main className="flex-1 pb-6">
         <div className="mx-auto w-full max-w-7xl">
           {activeTab === 'profili' && (
             <SettingsPage view="profili" />

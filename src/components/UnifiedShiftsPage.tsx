@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { LayoutGrid, Clock, BarChart3, Users } from 'lucide-react';
+import { LayoutGrid, Clock, Users } from 'lucide-react';
 import UnifiedShiftGrid, { type GridMode } from './UnifiedShiftGrid';
 import { useT } from '../hooks/useT';
 import { useApp } from '../context/AppContext';
@@ -17,7 +17,7 @@ export default function UnifiedShiftsPage() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full max-w-[1400px] mx-auto px-4 pb-6 pt-3 font-sans"
+      className="w-full mx-auto px-4 pb-6 pt-3 font-sans"
     >
       {/* Admin badge */}
       {isSessionElevated && (
@@ -30,7 +30,7 @@ export default function UnifiedShiftsPage() {
       )}
 
       {/* Quick summary — interattive: clicca per cambiare modalità */}
-      <div className="grid grid-cols-3 gap-2 mb-3">
+      <div className="grid grid-cols-2 gap-2 mb-3">
         <button type="button" onClick={() => setGridMode('planning')}
           className={`rounded-lg border p-2 text-left transition-all ${
             gridMode === 'planning'
@@ -59,29 +59,13 @@ export default function UnifiedShiftsPage() {
             {t.unified_realtime_desc ?? 'Timbrature e presenze'}
           </p>
         </button>
-        <button type="button" onClick={() => setGridMode('comparison')}
-          className={`rounded-lg border p-2 text-left transition-all ${
-            gridMode === 'comparison'
-              ? 'border-emerald-400/40 bg-emerald-500/10 backdrop-blur-sm'
-              : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08]'
-          }`}>
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <BarChart3 className="h-3 w-3 text-emerald-400" />
-            <span className="text-[9px] font-bold uppercase tracking-wider text-white/40">{t.unified_comparison ?? 'Confronto'}</span>
-          </div>
-          <p className="text-xs font-bold text-white/70">
-            {t.unified_comparison_desc ?? 'Delta pianificato vs reale'}
-          </p>
-        </button>
       </div>
 
       {/* Unified Grid */}
       <div className={`rounded-xl border bg-transparent p-3 transition-colors ${
         gridMode === 'planning'
           ? 'border-cyan-400/40'
-          : gridMode === 'realtime'
-            ? 'border-accent/40'
-            : 'border-emerald-400/40'
+          : 'border-accent/40'
       }`}>
         <UnifiedShiftGrid
           mode={gridMode}

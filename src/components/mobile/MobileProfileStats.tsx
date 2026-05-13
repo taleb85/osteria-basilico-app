@@ -45,7 +45,7 @@ export default function MobileProfileStats({
         <p className="text-center text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">
           {monthHoursLabel}
         </p>
-        <p className="mt-2 text-center text-4xl font-bold tabular-nums tracking-tight text-accent-dark">
+        <p className="mt-2 text-center text-4xl font-bold tabular-nums tracking-tight text-white">
           {hoursFormatted}
         </p>
         <p className="mt-1 text-center text-sm text-white/60">
@@ -62,7 +62,7 @@ export default function MobileProfileStats({
             ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', boxShadow: 'none' }
             : { background: 'rgba(255,255,255,0.95)', borderColor: 'rgba(241,245,249,0.80)' }}
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white/70">
             <FileText className="h-5 w-5" strokeWidth={2} />
           </span>
           <span className="text-[11px] font-bold uppercase tracking-wide text-white/80">
@@ -77,7 +77,7 @@ export default function MobileProfileStats({
             ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', boxShadow: 'none' }
             : { background: 'rgba(255,255,255,0.95)', borderColor: 'rgba(241,245,249,0.80)' }}
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white/70">
             <Wallet className="h-5 w-5" strokeWidth={2} />
           </span>
           <span className="text-[11px] font-bold uppercase tracking-wide text-white/80">

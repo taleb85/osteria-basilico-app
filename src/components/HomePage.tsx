@@ -79,7 +79,6 @@ interface HomePageProps {
   onNavigateToShifts?: () => void;
   onNavigateToReports?: () => void;
   onTabChange?: (tab: AppNavTab) => void;
-  /** Per evidenziare la scheda nella MobileBottomNav (solo home gestionale compatto). */
   activeTab?: AppNavTab;
 }
 
@@ -485,7 +484,6 @@ export default function HomePage({
             weekCapMinutes={40 * 60}
             onTabChange={onTabChange}
             greetingText={t.home_greeting.replace('{name}', currentUser.first_name ?? '')}
-            showMobileBottomNav={!isMgmtUser}
             activeTab={activeTabProp ?? 'home'}
           />
         </div>
@@ -819,7 +817,7 @@ export default function HomePage({
                 value: ritardiCount,
                 Icon: Clock,
                 iconColor: 'text-red-400',
-                border: 'border-red-400/25',
+                border: 'border-2 border-red-400/25',
                 iconWell: 'bg-red-500/15',
               },
               {
@@ -827,7 +825,7 @@ export default function HomePage({
                 value: senzaTimbraturaCount,
                 Icon: AlertCircle,
                 iconColor: 'text-amber-400',
-                border: 'border-amber-400/25',
+                border: 'border-2 border-amber-400/25',
                 iconWell: 'bg-amber-400/15',
               },
               {

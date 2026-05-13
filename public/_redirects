@@ -1,2 +1,0 @@
-# Redirect everything to Vercel
-https://flow-workinmotion.pages.dev/*    https://flow-workinmotion.vercel.app/:splat    301

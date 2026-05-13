@@ -88,7 +88,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
         return (
           <div key={wIdx} className="mb-4">
             {/* Card griglia settimanale — trasparente, solo bordo */}
-            <div className="rounded-2xl border border-white/10 overflow-hidden" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
+            <div className="rounded-2xl border border-neutral-500 overflow-hidden" style={{ background: 'transparent' }}>
               {/* Griglia giorni */}
               <div className="grid grid-cols-7 gap-1 px-2 pt-3 pb-2">
                 {weekDays.map((day, i) => {
@@ -102,16 +102,16 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                   const shiftCount = hasShift && !isAbsent ? dayShifts.length : 0;
 
                   const blockCls = hasShift && !isAbsent
-                    ? 'bg-[#60a5fa]/[0.18] border border-[#60a5fa]/[0.30]'
+                    ? 'bg-white/[0.12] border border-white/20'
                     : isAbsent
                       ? 'bg-red-500/[0.08] border border-red-500/[0.18]'
-                      : 'border border-white/10 bg-white/5';
+                      : 'border border-neutral-500 bg-white/5';
 
                   return (
                     <div key={i} className="flex flex-col items-center gap-1">
-                      <span className={`text-[11px] font-bold ${isToday_ ? 'text-[#60a5fa]' : 'text-white/50'}`}>{dayLetters[i]}</span>
+                      <span className={`text-[11px] font-bold ${isToday_ ? 'text-white' : 'text-white/50'}`}>{dayLetters[i]}</span>
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold ${
-                        isToday_ ? 'bg-[#60a5fa] text-white shadow-[0_0_12px_rgba(96,165,250,0.4)]' : 'text-white/60'
+                        isToday_ ? 'bg-white/20 text-white' : 'text-white/60'
                       }`}>
                         {format(day, 'd')}
                       </div>
@@ -151,10 +151,10 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                 if (!dayShifts.length) return null;
                 return (
                   <div key={key}>
-                    <p className="text-[11px] font-black uppercase tracking-widest mt-2 mb-1.5 text-[#60a5fa] flex items-center gap-2">
+                    <p className="text-[11px] font-black uppercase tracking-widest mt-2 mb-1.5 text-white/70 flex items-center gap-2">
                       {format(day, 'EEEE d MMMM', { locale })}
                       {isToday(day) && (
-                        <span className="h-1 w-1 rounded-full bg-[#60a5fa] shadow-[0_0_4px_rgba(96,165,250,0.8)]" />
+                        <span className="h-1 w-1 rounded-full bg-white/60" />
                       )}
                     </p>
                     {dayShifts.map(shift => {
@@ -164,7 +164,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                         ? 'text-red-400 border-red-500/30 bg-red-500/15'
                         : isDraft
                           ? 'text-white/50 border-neutral-500 bg-white/8'
-                          : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/15';
+                          : 'text-white/70 border-white/20 bg-white/10';
                       const badgeLabel = isAbsent
                         ? (t.status_absent ?? 'Assente')
                         : isDraft
@@ -176,9 +176,9 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                           className={`flex items-center justify-between rounded-xl px-3 py-2.5 mb-1 border ${
                             isAbsent
                               ? 'border-red-500/30 bg-red-500/10'
-                              : 'border-white/10'
+                              : 'border-neutral-500'
                           }`}
-                          style={isAbsent ? {} : { background: 'rgba(255, 255, 255, 0.16)' }}
+                          style={isAbsent ? {} : { background: 'transparent' }}
                         >
                           <div className="flex flex-col gap-0.5">
                             <p className={`font-black tabular-nums text-base leading-none ${isAbsent ? 'text-white/40 line-through' : 'text-white/90'}`}>

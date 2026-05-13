@@ -400,7 +400,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                   value: weekViewStats.senzaTimbratura,
                   Icon: AlertCircle,
                   iconColor: 'text-amber-400',
-                  border: 'border-amber-400/25',
+                  border: 'border-2 border-amber-400/25',
                   iconWell: 'bg-amber-400/15',
                   highlightIds: weekViewStats.senzaTimbratureIds,
                 },

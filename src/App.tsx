@@ -199,6 +199,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     return () => obs.disconnect();
   }, []);
 
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setHeaderScrolled(window.scrollY > 10);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   // ── Clear PWA badge on app open + visibility change ──────────────────────
   useEffect(() => {
     const clearBadge = () => {
@@ -656,15 +664,14 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       <header
         ref={appStickyHeaderRef}
         aria-label="Navigazione principale"
-        className={`fixed left-0 right-0 z-[10040] shrink-0 transition-[visibility,opacity,top] duration-150 ${
+        className={`fixed left-0 right-0 z-[10040] shrink-0 transition-[visibility,opacity,background,top] duration-150 ${
           overlayOpen ? 'invisible opacity-0 pointer-events-none' : ''
         } ${
           isGlobalRefreshing || postRefreshLocked || postUnlockReloadPending ? 'blur-md pointer-events-none' : ''
-        }`}
+        } ${headerScrolled ? 'bg-app-bg/92 backdrop-blur-[20px]' : ''}`}
         style={{
           top: impersonatingAs ? 40 : 0,
-          /* Vetro trasparente per tutto l'header (brand + top-tabbar) */
-          background: 'transparent',
+          background: headerScrolled ? undefined : 'transparent',
           borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -675,7 +682,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           compact={staffMobileCompactHeader}
           hideToolbarAvatar={false}
           rightExtra={
-            <div className="flex items-center gap-1.5">
+            <div className="hidden md:flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={handleHardRefresh}
@@ -1065,7 +1072,7 @@ function App() {
           : <div className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
               <div className="rounded-2xl border border-neutral-500 p-8 max-w-sm" style={{ background: 'rgba(255, 255, 255, 0.16)' }}>
                 <h1 className="text-2xl font-bold mb-2">SuperAdmin</h1>
-                <p className="text-white/50 text-sm">Se il Super Admin è su un host dedicato, apri l’indirizzo configurato in produzione (stesso build o sottodominio in Cloudflare)</p>
+                <p className="text-white/50 text-sm">Se il Super Admin è su un host dedicato, apri l’indirizzo configurato in produzione (stesso build)</p>
               </div>
             </div>
       } />

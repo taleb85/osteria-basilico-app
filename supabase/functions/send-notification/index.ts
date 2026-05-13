@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: 'FLOW <notifications@flow-workinmotion.pages.dev>', to, subject, html: html ?? text }),
+        body: JSON.stringify({ from: 'FLOW <notifications@flow-workinmotion.vercel.app>', to, subject, html: html ?? text }),
       });
       const data = await res.json();
       return new Response(JSON.stringify(data), { status: res.ok ? 200 : 500, headers: { 'Content-Type': 'application/json' } });
