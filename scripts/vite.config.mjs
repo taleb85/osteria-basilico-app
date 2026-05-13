@@ -150,6 +150,7 @@ export default defineConfig(({ command }) => {
           /^\/storage\//,
           /^\/realtime\//,
           /^\/assets\//,
+          /^\/i\//,
         ],
         runtimeCaching: [
           {

@@ -1,4 +1,14 @@
 {
+  "redirects": [
+    {
+      "source": "/i/:slug",
+      "has": [
+        { "type": "header", "key": "user-agent", "value": "/iPhone|iPad|iPod/" }
+      ],
+      "destination": "/Installa_FLOW.mobileconfig",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     { "source": "/", "destination": "/app.html" },
     { "source": "/profilo", "destination": "/app.html" },
