@@ -1022,6 +1022,8 @@ const baseIt = {
   invite_follow_n_steps: 'Segui questi {n} passi per iniziare',
   invite_open_without_install: 'Apri senza installare →',
   invite_account_ready: 'Ciao {name}, il tuo account è pronto!',
+  invite_ios_tap_to_install: 'tocca il pulsante qui sotto per installare FLOW sul tuo iPhone',
+  invite_ios_download_button: 'Scarica profilo di configurazione',
   invite_install_ios_1: "Tocca l'icona Condividi (□↑) in basso in Safari",
   invite_install_ios_2: 'Scorri e tocca «Aggiungi a schermata Home»',
   invite_install_ios_3: 'Tocca «Aggiungi» in alto a destra',

@@ -922,6 +922,8 @@ const baseEs: Record<string, string> = {
   invite_follow_n_steps: 'Sigue estos {n} pasos para empezar',
   invite_open_without_install: 'Abrir sin instalar →',
   invite_account_ready: 'Hola, {name}, ¡tu cuenta está lista!',
+  invite_ios_tap_to_install: 'toca el botón de abajo para instalar FLOW en tu iPhone',
+  invite_ios_download_button: 'Descargar perfil de configuración',
   invite_install_ios_1: 'Toca el icono Compartir (□↑) abajo en Safari',
   invite_install_ios_2: 'Desplázate y toca «Añadir a pantalla de inicio»',
   invite_install_ios_3: 'Toca «Añadir» arriba a la derecha',

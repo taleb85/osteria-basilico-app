@@ -1,11 +1,14 @@
 /**
  * Risolve /i/:slug → dipendente, salva il nome per il login,
  * reindirizza a /install?userId=xxx&firstName=Nome per mostrare le opzioni di installazione.
+ *
+ * iOS: dopo la risoluzione mostra un pulsante "Tocca per scaricare" perché
+ * iOS blocca i download automatici da JS (serve un gesto diretto dell'utente).
  */
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowDownToLine } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { buildUserInviteSlug } from '../config/appPaths';
 import FlowLogoSvg from './FlowLogoSvg';
@@ -99,10 +102,10 @@ export default function InviteRedirect() {
           }
         }
 
-        // iOS: reindirizza direttamente al profilo di configurazione
         if (!cancelled) {
           if (isIOS()) {
-            window.location.href = '/Installa_FLOW.mobileconfig';
+            // iOS: mostra pulsante "Tocca per scaricare" — serve gesto diretto utente
+            setState({ kind: 'ready', user: matched });
           } else {
             // Altri dispositivi: pagina di installazione con nome e userId
             const firstName = encodeURIComponent((matched.first_name ?? '').trim());
@@ -120,6 +123,10 @@ export default function InviteRedirect() {
     };
   }, [slug, navigate]);
 
+  const handleDownloadiOS = useCallback(() => {
+    window.location.href = '/Installa_FLOW.mobileconfig';
+  }, []);
+
   useEffect(() => {
     if (state.kind === 'notfound') {
       navigate('/install', { replace: true });
@@ -128,7 +135,8 @@ export default function InviteRedirect() {
 
   if (state.kind === 'notfound') return null;
 
-  // Schermata di caricamento
+  const isIOSDevice = isIOS();
+
   return (
     <main
       className="min-h-screen min-h-[100dvh] w-full flex flex-col items-center justify-center px-6 font-sans"
@@ -159,18 +167,42 @@ export default function InviteRedirect() {
             <h1 className="text-[1.25rem] font-bold text-white tracking-tight mb-1.5 text-center">
               {tr('invite_welcome_title')}
             </h1>
-            <p className="text-[0.8rem] text-white/45 text-center leading-relaxed">
-              {tr('invite_verifying')}
-            </p>
+            {state.kind === 'ready' && isIOSDevice ? (
+              <p className="text-[0.8rem] text-white/45 text-center leading-relaxed">
+                {state.user.first_name ?? ''}, {tr('invite_ios_tap_to_install')}
+              </p>
+            ) : (
+              <p className="text-[0.8rem] text-white/45 text-center leading-relaxed">
+                {tr('invite_verifying')}
+              </p>
+            )}
           </div>
           <div className="mx-5 h-px bg-white/[0.07]" />
           <div className="px-5 py-5">
-            <div className="flex items-center gap-3">
-              <div className="w-5 h-5 flex items-center justify-center">
-                <Loader2 className="w-4 h-4 text-[#6699FF] animate-spin" strokeWidth={2.5} />
+            {state.kind === 'ready' && isIOSDevice ? (
+              <motion.button
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                onClick={handleDownloadiOS}
+                className="w-full flex items-center justify-center gap-3 rounded-xl py-4 font-semibold text-[0.95rem] transition-all duration-200 active:scale-[0.97]"
+                style={{
+                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  color: '#fff',
+                  boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
+                }}
+              >
+                <ArrowDownToLine className="w-5 h-5" strokeWidth={2.5} />
+                {tr('invite_ios_download_button')}
+              </motion.button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <Loader2 className="w-4 h-4 text-[#6699FF] animate-spin" strokeWidth={2.5} />
+                </div>
+                <span className="text-[0.8rem] font-medium text-white/65">{tr('invite_verifying')}</span>
               </div>
-              <span className="text-[0.8rem] font-medium text-white/65">{tr('invite_verifying')}</span>
-            </div>
+            )}
           </div>
           <div className="pb-6" />
         </motion.div>
