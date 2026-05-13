@@ -55,8 +55,10 @@ window.addEventListener('pageshow', (e) => {
 
 const rootEl = document.getElementById('root');
 if (!rootEl) {
-  document.body.innerHTML =
-    '<p style="font-family:system-ui;padding:1rem">Manca l\'elemento #root in index.html.</p>';
+  const p = document.createElement('p');
+  p.style.cssText = 'font-family:system-ui;padding:1rem';
+  p.textContent = "Manca l'elemento #root in index.html.";
+  document.body.appendChild(p);
 } else {
   createRoot(rootEl).render(
     <StrictMode>
