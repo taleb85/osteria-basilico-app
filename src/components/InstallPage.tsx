@@ -4,7 +4,7 @@
  * iOS → scarica il profilo .mobileconfig + mostra passaggi PWA
  * Android → mostra passaggi PWA
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Loader2, Smartphone, Monitor, Apple, Download } from 'lucide-react';
@@ -34,6 +34,7 @@ export default function InstallPage() {
 
   const [view, setView] = useState<InstallView>('choose');
   const [installing, setInstalling] = useState<'idle' | 'downloading' | 'done'>('idle');
+  const downloadStarted = useRef(false);
 
   const deviceHint = useMemo(() => getDeviceHint(), []);
 
@@ -46,22 +47,36 @@ export default function InstallPage() {
   useEffect(() => {
     if (!userId) return;
     if (deviceHint !== 'ios') return;
+
     const timer = setTimeout(() => {
       handleDownloadiOS();
     }, 1500);
-    return () => clearTimeout(timer);
+
+    // Quando l'utente torna da Settings dopo aver installato il profilo,
+    // mostra lo stato "completato"
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && downloadStarted.current) {
+        setInstalling('done');
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, deviceHint]);
 
   const handleDownloadiOS = () => {
     setInstalling('downloading');
-    const link = document.createElement('a');
-    link.href = '/Installa_FLOW.mobileconfig';
-    link.download = 'Installa_FLOW.mobileconfig';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => setInstalling('done'), 1000);
+    downloadStarted.current = true;
+    // Su iOS Safari, la navigazione diretta al .mobileconfig mostra
+    // un banner "Scarica profilo" SENZA lasciare la pagina (iOS 16+).
+    // Questo funziona anche senza un gesto diretto dell'utente.
+    window.location.href = '/Installa_FLOW.mobileconfig';
+    // Mostra stato completato dopo che iOS ha gestito il download
+    setTimeout(() => setInstalling('done'), 3000);
   };
 
   const handleChooseAndroid = () => {
