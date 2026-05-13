@@ -126,7 +126,7 @@ function LoginRoute() {
 
   return (
     <>
-      <div className="relative min-h-screen min-h-[100dvh] w-full" style={{ background: bgTheme.appBg }}>
+      <div role="region" aria-label="Accesso" className="relative min-h-screen min-h-[100dvh] w-full" style={{ background: bgTheme.appBg }}>
         <DeepAuroraShell theme={bgTheme} />
         <AnimatePresence mode="wait">
           <LoginPage key="login" onLogin={handleLogin} onBack={handleBack} />
@@ -617,6 +617,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       <OnboardingTour onComplete={completeTour} includeManagerSteps={isManagement} />
     )}
     <div
+      role="region" aria-label="Applicazione"
       className="relative min-h-screen min-h-[100dvh] w-full text-white font-sans antialiased overflow-x-clip safe-area-pad pt-0 flex flex-col"
       style={{ background: bgTheme.appBg }}
     >
@@ -872,7 +873,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                   <p className="text-white/90 text-sm font-medium">{syncStage}</p>
                 ) : null}
               </div>
-            </div>
+          </div>
           </div>
         );
       })()}
@@ -1070,15 +1071,15 @@ function App() {
       {/* SuperAdminPanel — attivo solo sul dominio super-admin, protetto da PIN */}
       <Route path="/super-admin" element={
         isSuperAdminDomain
-          ? <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white/50 text-sm">Caricamento…</div>}>
+          ? <Suspense fallback={<main role="main" aria-label="Caricamento Super Admin" className="min-h-screen flex items-center justify-center text-white/50 text-sm">Caricamento…</main>}>
               <SuperAdminPanel />
             </Suspense>
-          : <div className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
+          : <main role="main" aria-label="Super Admin non disponibile" className="min-h-screen flex items-center justify-center text-white p-6 text-center" style={{ background: 'transparent' }}>
               <div className="rounded-2xl border border-neutral-500 p-8 max-w-sm" style={{ background: 'rgba(255, 255, 255, 0.16)' }}>
                 <h1 className="text-2xl font-bold mb-2">SuperAdmin</h1>
                 <p className="text-white/50 text-sm">Se il Super Admin è su un host dedicato, apri l’indirizzo configurato in produzione (stesso build)</p>
               </div>
-            </div>
+            </main>
       } />
       {isSuperAdminDomain && (
         <Route path="/" element={<Navigate to="/super-admin" replace />} />
