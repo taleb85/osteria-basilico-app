@@ -22,9 +22,15 @@ export function isAndroid(): boolean {
   return /Android/i.test(navigator.userAgent);
 }
 
-/** Rileva se è un Computer/Desktop (non touch, non mobile) — permetti sempre login e accesso */
+/** Rileva se è un Computer/Desktop (non touch, non mobile) */
 export function isDesktop(): boolean {
   if (typeof navigator === 'undefined') return false;
   if (isIOS() || isAndroid()) return false;
   return true;
+}
+
+/** Rileva se è Safari su desktop (Mac) — non supporta beforeinstallprompt */
+export function isSafariDesktop(): boolean {
+  if (!isDesktop()) return false;
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 }

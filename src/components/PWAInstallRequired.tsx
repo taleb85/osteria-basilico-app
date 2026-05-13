@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Download, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { isIOS, isAndroid, isDesktop } from '../utils/pwaStandalone';
+import { isIOS, isAndroid, isDesktop, isSafariDesktop } from '../utils/pwaStandalone';
 import { useApp } from '../context/appContextCore';
 import FlowWaveIcon from './ui/FlowWaveIcon';
 
@@ -114,6 +114,12 @@ const DESKTOP_STEPS = [
   { icon: '✓', title: 'FLOW è pronto', desc: 'Trovi l\'icona sul desktop o nel menu Start' },
 ];
 
+const SAFARI_DESKTOP_STEPS = [
+  { icon: '↑', title: 'Clicca «Condividi»', desc: 'Nella barra degli strumenti di Safari, in alto a destra' },
+  { icon: '+', title: 'Seleziona «Aggiungi al Dock»', desc: 'Oppure «Aggiungi alla schermata Home»' },
+  { icon: '✓', title: 'FLOW è pronto', desc: 'Trovi l\'icona nel Dock di macOS' },
+];
+
 export default function PWAInstallRequired() {
   const { effectiveLanguage } = useApp();
   void effectiveLanguage;
@@ -122,6 +128,7 @@ export default function PWAInstallRequired() {
   const ios = isIOS();
   const android = isAndroid();
   const desktop = isDesktop();
+  const safariDesktop = isSafariDesktop();
 
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
   const [installing, setInstalling] = useState(false);
@@ -301,6 +308,10 @@ export default function PWAInstallRequired() {
                 <Download className="w-4 h-4" />
                 {installing ? 'Installazione…' : 'Installa FLOW'}
               </motion.button>
+            ) : safariDesktop ? (
+              SAFARI_DESKTOP_STEPS.map((s, idx) => (
+                <StepRow key={idx} icon={s.icon} title={s.title} desc={s.desc} delay={0.2 + idx * 0.07} />
+              ))
             ) : (
               DESKTOP_STEPS.map((s, idx) => (
                 <StepRow key={idx} icon={s.icon} title={s.title} desc={s.desc} delay={0.2 + idx * 0.07} />
@@ -316,7 +327,7 @@ export default function PWAInstallRequired() {
           transition={{ delay: 0.55 }}
           className="mt-7 text-white/25 text-xs"
         >
-          {ios ? 'Safari su iPhone / iPad' : android ? 'Chrome / Firefox su Android' : 'Chrome / Edge / Brave su PC'}
+          {ios ? 'Safari su iPhone / iPad' : android ? 'Chrome / Firefox su Android' : safariDesktop ? 'Safari su Mac' : 'Chrome / Edge / Brave su PC'}
         </motion.p>
       </div>
     </div>
