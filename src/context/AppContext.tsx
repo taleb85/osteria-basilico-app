@@ -1053,32 +1053,44 @@ function AppProviderInner({ children }: { children: ReactNode }) {
   const deleteShift = useCallback(async (id: string) => {
     const op = currentUserRef.current;
     if (!op || !canEditTeamShifts(op)) {
-      showError(getTranslations(effectiveLanguage).app_access_denied);
-      return;
+      const msg = getTranslations(effectiveLanguage).app_access_denied;
+      showError(msg);
+      throw new Error(msg);
     }
     const existing = shifts.find(s => s.id === id);
-    if (existing && existing.approval_status === 'absent') {
-      showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
-      return;
-    }
-    if (existing && isShiftPayrollFrozen(existing)) {
-      showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
-      return;
-    }
     const isFullPrivilegeOp = op.role === 'admin' || op.role === 'manager' || op.role === 'assistant_manager';
+    if (existing && existing.approval_status === 'absent') {
+      const msg = getTranslations(effectiveLanguage).shift_delete_blocked_frozen;
+      showError(msg);
+      throw new Error(msg);
+    }
+    if (existing && isShiftPayrollFrozen(existing) && !isFullPrivilegeOp) {
+      const msg = getTranslations(effectiveLanguage).shift_delete_blocked_frozen;
+      showError(msg);
+      throw new Error(msg);
+    }
     if (existing && !isFullPrivilegeOp) {
       const st = String(existing.approval_status ?? '').trim().toLowerCase();
       if (st !== 'draft' && st !== '') {
-        showError(getTranslations(effectiveLanguage).shift_delete_blocked_published);
-        return;
+        const msg = getTranslations(effectiveLanguage).shift_delete_blocked_published;
+        showError(msg);
+        throw new Error(msg);
       }
     }
-    await database.shifts.delete(id);
-    setShifts(prev => prev.filter(s => s.id !== id));
-    markManagementDataTouched();
-    if (existing) {
-      const actor = currentUserRef.current?.first_name ?? 'Sistema';
-      logHistory('delete', actor, `Turno eliminato: ${existing.date} ${existing.start_time}–${existing.end_time}`);
+    try {
+      await database.shifts.delete(id);
+      setShifts(prev => prev.filter(s => s.id !== id));
+      setPunchRecords(prev => prev.filter(pr => pr.shift_id !== id));
+      markManagementDataTouched();
+      if (existing) {
+        const actor = currentUserRef.current?.first_name ?? 'Sistema';
+        logHistory('delete', actor, `Turno eliminato: ${existing.date} ${existing.start_time}–${existing.end_time}`);
+      }
+    } catch (err) {
+      console.error('[deleteShift]', id, err);
+      const msg = getTranslations(effectiveLanguage).shift_delete_bulk_error ?? getTranslations(effectiveLanguage).error_generic;
+      showError(msg);
+      throw err;
     }
   }, [shifts, showError, effectiveLanguage, markManagementDataTouched]);
 
@@ -1092,13 +1104,14 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     const blockedFrozen = ids.some((id) => {
       const s = shifts.find((x) => x.id === id);
       if (!s) return false;
-      return s.approval_status === 'absent' || isShiftPayrollFrozen(s);
+      if (s.approval_status === 'absent') return true;
+      return isShiftPayrollFrozen(s);
     });
-    if (blockedFrozen) {
+    const isFullPrivilegeOp = op.role === 'admin' || op.role === 'manager' || op.role === 'assistant_manager';
+    if (blockedFrozen && !isFullPrivilegeOp) {
       showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
       return;
     }
-    const isFullPrivilegeOp = op.role === 'admin' || op.role === 'manager' || op.role === 'assistant_manager';
     if (!isFullPrivilegeOp) {
       const blockedPublished = ids.some((id) => {
         const s = shifts.find((x) => x.id === id);

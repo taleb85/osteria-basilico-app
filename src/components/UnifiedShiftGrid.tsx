@@ -13,11 +13,12 @@ import {
 } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { getTranslations, getDateLocale } from '../utils/translations';
-import { formatMinutesToHoursAndMinutes, calculateShiftMinutesGross, getBreakLabels } from '../utils/timeCalculations';
+import { formatMinutesToHoursAndMinutes, calculateShiftMinutesGross, getBreakLabels, hasShiftConflictSameDay } from '../utils/timeCalculations';
 import { getBreakMinutesForShift, getNetShiftMinutes, DEFAULT_AUTO_BREAK_MINUTES, AUTO_BREAK_THRESHOLD_MINUTES } from '../utils/breakRules';
-import { shiftPastPlannedEndWithoutClockIn, punchTimeHHMM } from '../utils/shiftResolvedClockTimes';
+import { shiftPastPlannedEndWithoutClockIn, punchTimeHHMM, getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
 import { exportSchedulePDF } from '../utils/exportSchedulePDF';
 import { TimeInputField } from './ui/TimeInputField';
+import { ShiftSlotPresetsSection } from './shifts/ShiftSlotPresetsSection';
 import { database } from '../lib/database';
 import { useApp } from '../context/AppContext';
 import { isManagementRole, isPurelyManagementRole, canEditTeamShifts, canPublishScheduleDrafts, canApproveShiftActions, findFreezeVerifierByPin } from '../utils/permissions';
@@ -29,6 +30,11 @@ import {
   nextPeriodConfig, prevPeriodConfig, periodConfigForMonth,
   type PeriodConfig,
 } from '../utils/periodConfig';
+import {
+  getShiftSlotFromStartTime,
+  getShiftTypeFromStartTime,
+  loadShiftSlotPresets,
+} from '../utils/shiftSlotPresets';
 
 export type GridMode = 'planning' | 'realtime';
 type ViewMode = 'week' | 'period';
@@ -49,6 +55,111 @@ interface DayShiftGroup {
 
 function isFrozen(shift: Shift) {
   return (shift as any).approval_status === 'approved' || ((shift as any).approval_status === 'confirmed' && !!(shift as any).approved_at);
+}
+
+function splitDayGroupsBySlot(groups: DayShiftGroup[]) {
+  const lunchGroups = groups.filter(g => getShiftSlotFromStartTime(g.shift.start_time ?? '10:00') === 'lunch');
+  const eveningGroups = groups.filter(g => getShiftSlotFromStartTime(g.shift.start_time ?? '18:00') === 'evening');
+  return {
+    lunch: lunchGroups[0] ?? null,
+    evening: eveningGroups[0] ?? null,
+    extraLunchGroups: lunchGroups.slice(1),
+    extraEveningGroups: eveningGroups.slice(1),
+  };
+}
+
+function isExtraShiftInDay(shift: Shift, dayShifts: Shift[]): boolean {
+  const slot = getShiftSlotFromStartTime(shift.start_time ?? '10:00');
+  const sameSlot = dayShifts
+    .filter(s => getShiftSlotFromStartTime(s.start_time ?? '10:00') === slot)
+    .sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''));
+  return sameSlot.length > 1 && sameSlot[0]?.id !== shift.id;
+}
+
+function formatShiftTimeRangeCompact(start?: string | null, end?: string | null): string {
+  const fmt = (raw?: string | null) => {
+    const t = (raw || '').slice(0, 5);
+    if (!t) return '?';
+    const [h, m] = t.split(':');
+    return m === '00' ? h : t;
+  };
+  return `${fmt(start)}-${fmt(end)}`;
+}
+
+function formatShiftTimeRangeFull(start?: string | null, end?: string | null): string {
+  const s = (start || '').slice(0, 5) || '--';
+  const e = (end || '').slice(0, 5) || '--';
+  return `${s}-${e}`;
+}
+
+type ShiftCellDisplay = {
+  main: string;
+  title?: string;
+  breakSuffix?: string;
+  missingOut?: boolean;
+};
+
+function getShiftCellDisplay(
+  g: DayShiftGroup,
+  mode: GridMode,
+  punchRecords: PunchRecord[],
+  compact = false,
+): ShiftCellDisplay {
+  const planned = formatShiftTimeRangeFull(g.shift.start_time, g.shift.end_time);
+  if (g.isAbsent) return { main: 'Assente' };
+
+  if (mode === 'planning') {
+    return {
+      main: compact ? formatShiftTimeRangeCompact(g.shift.start_time, g.shift.end_time) : planned,
+      breakSuffix: g.breakMinutes > 0 ? `−${g.breakMinutes}m` : undefined,
+    };
+  }
+
+  const shift = g.shift;
+  const approvedStart = shift.approved_start_time?.slice(0, 5);
+  const approvedEnd = shift.approved_end_time?.slice(0, 5);
+  if (shift.approved_at && approvedStart && approvedEnd) {
+    return {
+      main: compact
+        ? formatShiftTimeRangeCompact(approvedStart, approvedEnd)
+        : formatShiftTimeRangeFull(approvedStart, approvedEnd),
+      title: `Pianificato: ${planned}`,
+      breakSuffix: g.actualBreakMinutes > 0 ? `−${g.actualBreakMinutes}m` : undefined,
+    };
+  }
+
+  const inT = g.punchIn ? punchTimeHHMM(g.punchIn.calculated_time || g.punchIn.timestamp) ?? null : null;
+  const outT = g.punchOut ? punchTimeHHMM(g.punchOut.calculated_time || g.punchOut.timestamp) ?? null : null;
+
+  if (inT && outT) {
+    const mainFull = `${inT}-${outT}`;
+    return {
+      main: compact ? formatShiftTimeRangeCompact(inT, outT) : mainFull,
+      title: mainFull !== planned ? `Pianificato: ${planned}` : undefined,
+      breakSuffix: g.actualBreakMinutes > 0 ? `−${g.actualBreakMinutes}m` : undefined,
+    };
+  }
+
+  if (inT) {
+    return {
+      main: `${inT}→`,
+      title: `Pianificato: ${planned}`,
+      missingOut: true,
+    };
+  }
+
+  if (g.isMissingPunch) {
+    return {
+      main: compact ? formatShiftTimeRangeCompact(shift.start_time, shift.end_time) : planned,
+      title: 'Timbratura mancante',
+    };
+  }
+
+  const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
+  return {
+    main: compact ? formatShiftTimeRangeCompact(start, end) : formatShiftTimeRangeFull(start, end),
+    breakSuffix: g.breakMinutes > 0 ? `−${g.breakMinutes}m` : undefined,
+  };
 }
 type ShiftDetailTab = 'details' | 'punches' | 'history' | 'breaks';
 const MONTHS_IT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
@@ -72,6 +183,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const canPublish = currentUser ? canPublishScheduleDrafts(currentUser) : false;
   const canApprove = currentUser ? canApproveShiftActions(currentUser) : false;
   const isMgmt = currentUser ? isManagementRole(currentUser.role) : false;
+  const canDeleteShift = useCallback((shift: Shift) => {
+    if (!canEdit) return false;
+    if (shift.approval_status === 'absent') return false;
+    if (isMgmt) return true;
+    return !isShiftPayrollFrozen(shift);
+  }, [canEdit, isMgmt]);
   const effectiveWorkRules = DEFAULT_WORK_RULES;
   const violationChromeEnabled = featureFlags?.violation_rules !== false;
 
@@ -165,6 +282,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerIsExtraShift, setDrawerIsExtraShift] = useState(false);
+  const [drawerDeleteConfirm, setDrawerDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    if (!drawerOpen) setDrawerDeleteConfirm(false);
+  }, [drawerOpen]);
   const [detailTab, setDetailTab] = useState<ShiftDetailTab>('details');
   const [editStartTime, setEditStartTime] = useState('');
   const [editEndTime, setEditEndTime] = useState('');
@@ -250,6 +373,18 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const weekPunchRecords = allPunchRecords.filter(pr => weekDateStrings.some(ds => pr.timestamp?.startsWith(ds)));
   const departments = [...new Set(users.filter(u => u.department).map(u => u.department as string))];
 
+  const dayCount = weekDays.length;
+  const isPeriodView = viewMode === 'period';
+  const employeeColWidth = 112;
+  const totalColWidth = 72;
+  const dayColMinWidth = isPeriodView ? 80 : 112;
+  const tableMinWidth = employeeColWidth + totalColWidth + dayCount * dayColMinWidth;
+  const dayColCalc = `calc((100% - ${employeeColWidth + totalColWidth}px) / ${dayCount})`;
+  const slotCellHeight = isPeriodView ? 56 : dayCount > 7 ? 56 : 72;
+  const slotRowHeight = Math.floor(slotCellHeight / 2);
+  const extraRowHeight = 16;
+  const compactGrid = isPeriodView || dayCount > 7;
+
   function getPunchForShift(shift: Shift) {
     const exact = weekPunchRecords.filter(pr => pr.shift_id === shift.id);
     if (exact.length > 0) {
@@ -292,12 +427,10 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
         breakMinutes: breakMins, actualBreakMinutes: actualBreakMins, netMinutes: plannedNet, violations,
       };
     }).sort((a, b) => {
-      const startA = a.shift.start_time?.slice(0, 5) ?? '00:00';
-      const startB = b.shift.start_time?.slice(0, 5) ?? '00:00';
-      const pre16A = startA < '16:00' ? 0 : 1;
-      const pre16B = startB < '16:00' ? 0 : 1;
-      if (pre16A !== pre16B) return pre16A - pre16B;
-      return startA.localeCompare(startB);
+      const slotA = getShiftSlotFromStartTime(a.shift.start_time ?? '00:00') === 'lunch' ? 0 : 1;
+      const slotB = getShiftSlotFromStartTime(b.shift.start_time ?? '00:00') === 'lunch' ? 0 : 1;
+      if (slotA !== slotB) return slotA - slotB;
+      return (a.shift.start_time?.slice(0, 5) ?? '00:00').localeCompare(b.shift.start_time?.slice(0, 5) ?? '00:00');
     });
   }
 
@@ -329,11 +462,21 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     } catch { showError(t.error_generic ?? 'Errore.'); }
   }, [weekStart, weekDays, visibleUsers, weekShifts, breakRules, effectiveLanguage, showSuccess, showError, t]);
 
-  const handleDeleteShift = useCallback(async (shift: Shift) => {
-    if (!confirm(t.confirm_delete_shift ?? 'Eliminare questo turno?')) return;
-    try { await deleteShift(shift.id); showSuccess(t.shift_deleted ?? 'Turno eliminato.'); setDrawerOpen(false); }
-    catch { showError(t.error_generic ?? 'Errore.'); }
-  }, [deleteShift, showSuccess, showError, t]);
+  const handleDeleteShift = useCallback(async (shift: Shift, opts?: { skipConfirm?: boolean }) => {
+    if (!canDeleteShift(shift)) {
+      showError(t.shift_delete_blocked_frozen ?? 'Turno non eliminabile.');
+      return;
+    }
+    if (!opts?.skipConfirm && !confirm(t.delete_shift_confirm ?? 'Eliminare questo turno?')) return;
+    try {
+      await deleteShift(shift.id);
+      showSuccess(t.shift_deleted ?? 'Turno eliminato.');
+      setDrawerDeleteConfirm(false);
+      setDrawerOpen(false);
+    } catch {
+      showError(t.shift_delete_bulk_error ?? t.error_generic ?? 'Errore eliminazione turno.');
+    }
+  }, [deleteShift, showSuccess, showError, t, canDeleteShift]);
 
   const handleSaveShiftEdit = useCallback(async () => {
     if (!selectedShift) return;
@@ -421,13 +564,42 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       await addShift({
         user_id: createModal.userId, date: createModal.date,
         start_time: createStart + ':00', end_time: createEnd + ':00',
-        type: 'lunch' as const, approval_status: 'draft' as const,
+        type: getShiftTypeFromStartTime(createStart),
+        approval_status: 'draft' as const,
         department: users.find(u => u.id === createModal.userId)?.department ?? undefined,
       });
       showSuccess(t.shift_created ?? 'Turno creato.'); setCreateModal(null);
     } catch { showError(t.error_generic ?? 'Errore.'); }
     finally { setSaving(false); }
   }, [createModal, createStart, createEnd, addShift, showSuccess, showError, t, users]);
+
+  const openCreateShiftModal = useCallback((userId: string, date: string, preferredSlot?: 'lunch' | 'evening') => {
+    const existing = weekShifts.filter((s) => s.user_id === userId && s.date === date);
+    if (existing.length >= 2) {
+      showError(t.max_two_shifts_same_day ?? 'Massimo 2 turni nello stesso giorno.');
+      return;
+    }
+    const defaultForSlot = (slot: 'lunch' | 'evening') =>
+      slot === 'lunch' ? { start: '10:00', end: '16:00' } : { start: '18:00', end: '23:00' };
+    if (existing.length === 1) {
+      const first = existing[0];
+      const oppositeSlot = getShiftSlotFromStartTime(first.start_time ?? '10:00') === 'lunch' ? 'evening' : 'lunch';
+      const slot = preferredSlot ?? oppositeSlot;
+      const presets = loadShiftSlotPresets(slot);
+      const pick = presets.find((p) =>
+        !hasShiftConflictSameDay(existing, { start_time: p.start, end_time: p.end })
+      ) ?? defaultForSlot(slot);
+      setCreateStart(pick.start);
+      setCreateEnd(pick.end);
+    } else {
+      const slot = preferredSlot ?? 'lunch';
+      const presets = loadShiftSlotPresets(slot);
+      const pick = presets[0] ?? defaultForSlot(slot);
+      setCreateStart(pick.start);
+      setCreateEnd(pick.end);
+    }
+    setCreateModal({ userId, date });
+  }, [weekShifts, showError, t]);
 
   const handleDeductBreakToggle = useCallback(async () => {
     if (!selectedShift) return;
@@ -503,10 +675,13 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     } catch { showError(t.error_generic ?? 'Errore.'); }
   }, [addShift, weekDateStrings, showSuccess, showError, t, closeActionsDrawer]);
 
-  const handleOpenDrawer = useCallback((shift: Shift) => {
+  const handleOpenDrawer = useCallback((shift: Shift, opts?: { isExtra?: boolean }) => {
     const u = users.find(us => us.id === shift.user_id) ?? null;
     const { in: punchIn, out: punchOut } = getPunchForShift(shift);
+    const dayShifts = weekShifts.filter(s => s.user_id === shift.user_id && s.date === shift.date);
     setSelectedShift(shift); setSelectedUser(u);
+    setDrawerIsExtraShift(opts?.isExtra ?? isExtraShiftInDay(shift, dayShifts));
+    setDrawerDeleteConfirm(false);
     setDetailTab('details');
     setEditStartTime(String(shift.start_time ?? '').slice(0, 5));
     setEditEndTime(String(shift.end_time ?? '').slice(0, 5));
@@ -515,10 +690,146 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     setDeductBreak(shift.deduct_break !== false);
     setIsAutoBreak(shift.is_auto_break !== false);
     setDrawerOpen(true);
-  }, [users, weekPunchRecords]);
+  }, [users, weekPunchRecords, weekShifts]);
+
+  const renderExtraShiftRows = (extraGroups: DayShiftGroup[], layout: 'desktop' | 'mobile') => {
+    if (extraGroups.length === 0) return null;
+    const stacked = layout === 'desktop';
+    return extraGroups.map((ex) => {
+      const label = formatShiftTimeRangeFull(ex.shift.start_time, ex.shift.end_time);
+      const title = `${t.extra_shift ?? 'Turno aggiuntivo'}: ${label}`;
+      const compactLabel = formatShiftTimeRangeCompact(ex.shift.start_time, ex.shift.end_time);
+      return (
+        <button
+          key={ex.shift.id}
+          type="button"
+          title={title}
+          aria-label={title}
+          onClick={() => handleOpenDrawer(ex.shift, { isExtra: true })}
+          onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); void handleDeleteShift(ex.shift); }}
+          className={
+            stacked
+              ? 'w-full flex shrink-0 items-center justify-center gap-0.5 rounded-md border-2 border-dashed border-accent bg-accent px-1 text-[10px] font-extrabold tabular-nums leading-none text-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] hover:brightness-110 transition-all'
+              : 'w-full rounded-lg border-2 border-dashed border-accent bg-accent/80 px-2 py-1.5 text-[11px] font-extrabold tabular-nums text-white hover:bg-accent transition-all'
+          }
+          style={stacked ? { height: extraRowHeight, minHeight: extraRowHeight } : undefined}
+        >
+          <Plus className={stacked ? 'h-2.5 w-2.5 shrink-0 stroke-[3]' : 'hidden'} aria-hidden />
+          <span className="truncate">{stacked ? compactLabel : label}</span>
+        </button>
+      );
+    });
+  };
+
+  const renderGroupButton = (g: DayShiftGroup, layout: 'desktop' | 'mobile', compact = false, extraGroups: DayShiftGroup[] = []) => {
+    const isDraft = g.shift.approval_status === 'draft';
+    const isApproved = g.shift.approval_status === 'approved';
+    const isConfirmed = g.shift.approval_status === 'confirmed';
+    const display = getShiftCellDisplay(g, mode, weekPunchRecords, compact || isPeriodView);
+    let borderColor = 'border-cyan-400/50';
+    let bgColor = 'bg-white/[0.06]';
+    let glow = '';
+    if (isDraft) { borderColor = 'border-blue-400/60'; bgColor = 'bg-white/[0.08]'; }
+    if (isApproved) { borderColor = 'border-emerald-400/60'; bgColor = 'bg-emerald-500/10'; }
+    if (g.isAbsent) { borderColor = 'border-rose-400/60'; bgColor = 'bg-rose-500/10'; }
+    if (g.isMissingPunch) { borderColor = 'border-amber-400/60'; bgColor = 'bg-amber-500/10'; }
+    if (g.violations?.length && g.violations.length > 0) glow = 'ring-1 ring-rose-400/40';
+
+    const timeOnly = (
+      <span className={`font-bold tabular-nums whitespace-nowrap ${layout === 'mobile' ? 'text-xs' : compact || isPeriodView ? 'text-[11px]' : 'text-xs'} ${g.isAbsent ? 'text-rose-400 line-through' : display.missingOut ? 'text-red-400' : 'text-white'}`}>
+        {display.main}
+      </span>
+    );
+    const breakBadge = display.breakSuffix ? (
+      <span className="shrink-0 text-[10px] font-bold tabular-nums text-amber-400 leading-none">
+        {display.breakSuffix}
+      </span>
+    ) : null;
+    const breakBesideIcons = layout === 'desktop' && !isPeriodView;
+    const timeLabel = breakBesideIcons ? timeOnly : (
+      <span className="inline-flex items-center gap-0.5 max-w-full">
+        {timeOnly}
+        {breakBadge}
+      </span>
+    );
+
+    if (layout === 'mobile') {
+      return (
+        <div className="flex flex-col gap-1">
+          <button type="button" onClick={() => handleOpenDrawer(g.shift)} title={display.title}
+            onContextMenu={(e) => { e.preventDefault(); void handleDeleteShift(g.shift); }}
+            className={`w-full text-left rounded-lg border-l-4 ${borderColor} ${bgColor} ${glow} px-2.5 py-2 hover:brightness-125 transition-all active:scale-[0.98]`}>
+            <div className="flex items-center justify-between gap-1">
+              {timeLabel}
+              <div className="flex items-center gap-1 shrink-0">
+                {isFrozen(g.shift) ? <Lock className="h-3 w-3 text-amber-400" /> : isApproved ? <Lock className="h-3 w-3 text-emerald-400" /> : null}
+                {isConfirmed && <Check className="h-3 w-3 text-cyan-300" />}
+                {g.isMissingPunch && <AlertTriangle className="h-3 w-3 text-amber-400" />}
+              </div>
+            </div>
+          </button>
+          {renderExtraShiftRows(extraGroups, 'mobile')}
+        </div>
+      );
+    }
+    const hasExtras = extraGroups.length > 0;
+    const mainRowHeight = hasExtras
+      ? Math.max(18, slotRowHeight - extraGroups.length * extraRowHeight - (extraGroups.length > 0 ? 2 : 0))
+      : slotRowHeight - (layout === 'desktop' && isPeriodView ? 2 : 4);
+
+    if (layout === 'desktop' && isPeriodView) {
+      let accent = 'border-cyan-400';
+      if (isDraft) accent = 'border-blue-400';
+      else if (isApproved) accent = 'border-emerald-400';
+      else if (g.isAbsent) accent = 'border-rose-400';
+      else if (g.isMissingPunch) accent = 'border-amber-400';
+      else if (display.missingOut) accent = 'border-red-400';
+      else if (mode === 'realtime' && g.punchIn) accent = 'border-emerald-400/80';
+      return (
+        <div className={`flex w-full min-w-0 flex-col ${hasExtras ? 'gap-0.5 justify-center' : ''}`} style={{ minHeight: slotRowHeight - 2 }}>
+          <button
+            type="button"
+            title={display.title ?? formatShiftTimeRangeFull(g.shift.start_time, g.shift.end_time)}
+            onClick={() => handleOpenDrawer(g.shift)}
+            onContextMenu={(e) => { e.preventDefault(); void handleDeleteShift(g.shift); }}
+            className={`w-full flex items-center justify-center rounded-md border-l-[3px] ${accent} bg-white/[0.07] hover:bg-white/[0.12] transition-colors ${g.isAbsent ? 'opacity-70' : ''} ${isDraft ? 'border-dashed' : ''}`}
+            style={{ height: mainRowHeight, minHeight: mainRowHeight }}
+          >
+            {timeLabel}
+          </button>
+          {renderExtraShiftRows(extraGroups, 'desktop')}
+        </div>
+      );
+    }
+    return (
+      <div className={`flex w-full min-w-0 flex-col ${hasExtras ? 'gap-0.5 justify-center' : ''}`}>
+        <button type="button" onClick={() => handleOpenDrawer(g.shift, { isExtra: false })} title={display.title}
+          onContextMenu={(e) => { e.preventDefault(); void handleDeleteShift(g.shift); }}
+          className={`relative w-full min-w-0 text-left rounded-lg border-2 ${borderColor} ${bgColor} ${glow} hover:brightness-125 transition-all ${isDraft ? 'border-dashed' : ''} px-0.5 py-0.5`}>
+          <input type="checkbox" checked={selectedShiftIds.has(g.shift.id)} onChange={() => setSelectedShiftIds(prev => { const n = new Set(prev); n.has(g.shift.id) ? n.delete(g.shift.id) : n.add(g.shift.id); return n; })}
+            className={`absolute left-0.5 top-0.5 z-10 w-3 h-3 rounded border-white/30 accent-accent transition-opacity ${selectedShiftIds.has(g.shift.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} onClick={e => e.stopPropagation()} />
+          <div
+            className="flex items-center justify-center w-full gap-1 pl-3 pr-1 whitespace-nowrap overflow-hidden"
+            style={{ minHeight: mainRowHeight, height: mainRowHeight }}
+          >
+            <span className={`${hasExtras ? 'text-[10px]' : 'text-xs'} font-bold tabular-nums ${g.isAbsent ? 'text-rose-400 line-through' : display.missingOut ? 'text-red-400' : 'text-white'}`}>
+              {display.main}
+            </span>
+            {breakBadge}
+          </div>
+          <div className="pointer-events-none absolute right-0.5 top-0.5 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+            {isFrozen(g.shift) ? <Lock className={`${compact ? 'h-2 w-2' : 'h-2.5 w-2.5'} text-amber-400`} /> : isApproved ? <Lock className={`${compact ? 'h-2 w-2' : 'h-2.5 w-2.5'} text-emerald-400`} /> : null}
+            {isConfirmed && <Check className={`${compact ? 'h-2 w-2' : 'h-2.5 w-2.5'} text-cyan-300`} />}
+            {g.isMissingPunch && <AlertTriangle className={`${compact ? 'h-2 w-2' : 'h-2.5 w-2.5'} text-amber-400`} />}
+          </div>
+        </button>
+        {renderExtraShiftRows(extraGroups, 'desktop')}
+      </div>
+    );
+  };
 
   return (
-    <div className="w-full font-sans">
+    <div className="w-full min-w-0 font-sans">
       {/* ── Toolbar ── */}
       <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 mb-3 w-full min-w-0">
         <div className="ui-toolbar-row-tight flex min-w-0 flex-1 flex-wrap items-center gap-1.5 sm:gap-2">
@@ -792,7 +1103,15 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               </button>
             </>
           )}
-          <button type="button" onClick={() => { selectedShiftIds.forEach(id => { const s = allShifts.find(x => x.id === id); if (s && !isFrozen(s)) { try { deleteShift(id); } catch {} }; }); setSelectedShiftIds(new Set()); }}
+          <button type="button" onClick={async () => {
+            for (const id of selectedShiftIds) {
+              const s = allShifts.find(x => x.id === id);
+              if (s && canDeleteShift(s)) {
+                try { await deleteShift(id); } catch { /* toast già mostrato */ }
+              }
+            }
+            setSelectedShiftIds(new Set());
+          }}
             className="rounded-lg bg-rose-600/20 px-2.5 py-1 text-[10px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors uppercase tracking-wider">
             <Trash2 className="h-3 w-3 inline-block mr-0.5" />{t.delete ?? 'Elimina'}
           </button>
@@ -851,52 +1170,31 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                           </div>
                         </div>
 
-                        <div className="flex-1 space-y-1.5">
-                          {groups.map((g, gIdx) => {
-                            const isDraft = g.shift.approval_status === 'draft';
-                            const isApproved = g.shift.approval_status === 'approved';
-                            const isConfirmed = g.shift.approval_status === 'confirmed';
-                            let borderColor = 'border-cyan-400/50';
-                            let bgColor = 'bg-white/[0.06]';
-                            let glow = '';
-                            if (isDraft) { borderColor = 'border-blue-400/60'; bgColor = 'bg-white/[0.08]'; }
-                            if (isApproved) { borderColor = 'border-emerald-400/60'; bgColor = 'bg-emerald-500/10'; }
-                            if (g.isAbsent) { borderColor = 'border-rose-400/60'; bgColor = 'bg-rose-500/10'; }
-                            if (g.isMissingPunch) { borderColor = 'border-amber-400/60'; bgColor = 'bg-amber-500/10'; }
-                            if (g.violations?.length && g.violations.length > 0) glow = 'ring-1 ring-rose-400/40';
+                        <div className="flex-1 flex flex-col gap-1">
+                          {(() => {
+                            const { lunch, evening, extraLunchGroups, extraEveningGroups } = splitDayGroupsBySlot(groups);
+                            const canAddSecond = canEdit && groups.length < 2;
                             return (
-                              <button key={gIdx} type="button" onClick={() => handleOpenDrawer(g.shift)}
-                                className={`w-full text-left rounded-lg border-l-4 ${borderColor} ${bgColor} ${glow} px-2.5 py-2 hover:brightness-125 transition-all active:scale-[0.98]`}>
-                                <div className="flex items-center justify-between">
-                                  <span className={`text-xs font-bold tabular-nums ${g.isAbsent ? 'text-rose-400 line-through' : 'text-white'}`}>
-                                    {g.shift.start_time?.slice(0, 5) || '--'}–{g.shift.end_time?.slice(0, 5) || '--'}
-                                  </span>
-                                  <div className="flex items-center gap-1">
-                                    {isFrozen(g.shift) ? <Lock className="h-3 w-3 text-amber-400" /> : isApproved ? <Lock className="h-3 w-3 text-emerald-400" /> : null}
-                                    {isConfirmed && <Check className="h-3 w-3 text-cyan-300" />}
-                                    {g.isMissingPunch && <AlertTriangle className="h-3 w-3 text-amber-400" />}
-                                  </div>
+                              <>
+                                <div className="min-h-[28px]">
+                                  {lunch ? renderGroupButton(lunch, 'mobile', false, extraLunchGroups) : canAddSecond ? (
+                                    <button type="button" onClick={() => openCreateShiftModal(user.id, dateStr, 'lunch')}
+                                      className="w-full rounded-lg border border-dashed border-white/15 py-1.5 text-[10px] font-bold text-white/40 transition-all hover:border-white/30 hover:text-white/70 active:scale-[0.98]">
+                                      <Plus className="mb-0.5 inline-block h-3 w-3" /> {t.add_shift ?? 'Aggiungi'}
+                                    </button>
+                                  ) : null}
                                 </div>
-                                {mode !== 'planning' && g.punchIn && (
-                                  <div className="flex items-center justify-between mt-1">
-                                    <span className="text-[11px] font-medium text-white/60 tabular-nums">
-                                      {punchTimeHHMM(g.punchIn.calculated_time || g.punchIn.timestamp)}{g.punchOut ? `–${punchTimeHHMM(g.punchOut.calculated_time || g.punchOut.timestamp)}` : ' →'}
-                                    </span>
-                                    {g.punchOut && g.actualBreakMinutes > 0 && (
-                                      <span className="text-[10px] font-bold tabular-nums text-amber-400">
-                                        −{g.actualBreakMinutes}m
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                                {g.breakMinutes > 0 && !g.punchIn && (
-                                  <div className="mt-0.5 text-[10px] font-medium text-white/40 tabular-nums">
-                                    {formatMinutesToHoursAndMinutes(g.netMinutes)} (−{g.breakMinutes}')
-                                  </div>
-                                )}
-                              </button>
+                                <div className="min-h-[28px]">
+                                  {evening ? renderGroupButton(evening, 'mobile', false, extraEveningGroups) : canAddSecond ? (
+                                    <button type="button" onClick={() => openCreateShiftModal(user.id, dateStr, 'evening')}
+                                      className="w-full rounded-lg border border-dashed border-white/15 py-1.5 text-[10px] font-bold text-white/40 transition-all hover:border-white/30 hover:text-white/70 active:scale-[0.98]">
+                                      <Plus className="mb-0.5 inline-block h-3 w-3" /> {t.add_second_shift ?? '2° turno'}
+                                    </button>
+                                  ) : null}
+                                </div>
+                              </>
                             );
-                          })}
+                          })()}
                         </div>
                       </div>
                     );
@@ -909,20 +1207,55 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       </div>
 
       {/* ── Desktop Grid ── */}
-      <div className="hidden md:block overflow-x-auto rounded-2xl border border-white/10" style={{ maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' }}>
-        <table className="w-full min-w-[720px] table-fixed border-collapse">
-          <thead className="sticky top-0 z-20">
+      {isPeriodView && (
+        <p className="hidden md:block mb-2 text-[10px] font-medium text-white/40">
+          {t.period_scroll_hint ?? 'Scorri orizzontalmente per vedere tutti i giorni del periodo.'}
+        </p>
+      )}
+      <div
+        className="hidden md:block w-full min-w-0 overflow-auto rounded-2xl border border-white/10"
+        style={{ maxHeight: 'calc(100dvh - 12rem)' }}
+      >
+        <table
+          className={`table-fixed border-collapse ${isPeriodView ? '' : 'w-full'}`}
+          style={{ minWidth: tableMinWidth, width: isPeriodView ? tableMinWidth : undefined }}
+        >
+          <colgroup>
+            <col style={{ width: employeeColWidth }} />
+            {weekDays.map((_, i) => (
+              <col key={i} style={{ width: isPeriodView ? dayColMinWidth : dayColCalc }} />
+            ))}
+            <col style={{ width: totalColWidth }} />
+          </colgroup>
+          <thead className="sticky top-0 z-20 bg-neutral-950/90 backdrop-blur-sm">
             <tr>
-              <th className="sticky left-0 z-30 bg-transparent text-left px-3 py-2.5 text-[11px] font-bold uppercase tracking-wider text-white/50 border-b border-white/10" style={{ width: 160, minWidth: 160 }}>
+              <th className="sticky left-0 z-30 bg-white/8 backdrop-blur-sm text-left px-2 py-2.5 text-[11px] font-bold uppercase tracking-wider text-white/50 border-b border-white/10">
                 {t.employee ?? 'Dipendente'}
               </th>
-              {weekDays.map((day, i) => (
-                <th key={i} className={`px-2 py-2.5 text-center border-b border-white/10 ${isToday(day) ? 'bg-accent/10' : 'bg-transparent'}`} style={{ width: 130, minWidth: 110 }}>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-white/40">{format(day, 'EEE', { locale })}</div>
-                  <div className={`text-sm font-black ${isToday(day) ? 'text-accent' : 'text-white/80'}`}>{format(day, 'd')}</div>
-                </th>
-              ))}
-              <th className="px-2 py-2.5 text-center border-b border-white/10 bg-transparent" style={{ width: 90, minWidth: 80 }}>
+              {weekDays.map((day, i) => {
+                const weekStripe = isPeriodView && Math.floor(i / 7) % 2 === 1;
+                const weekEnd = isPeriodView && day.getDay() === 0;
+                return (
+                  <th
+                    key={i}
+                    title={format(day, 'EEEE d MMMM', { locale })}
+                    className={`px-0.5 py-1.5 text-center border-b border-white/10 ${isToday(day) ? 'bg-accent/10' : weekStripe ? 'bg-white/[0.03]' : 'bg-transparent'} ${weekEnd ? 'border-r-2 border-r-white/20' : ''}`}
+                  >
+                    {isPeriodView ? (
+                      <>
+                        <div className="text-[9px] font-bold uppercase text-white/35 leading-none">{format(day, 'EEEEE', { locale })}</div>
+                        <div className={`text-sm font-black leading-tight ${isToday(day) ? 'text-accent' : 'text-white/85'}`}>{format(day, 'd')}</div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-white/40">{format(day, 'EEE', { locale })}</div>
+                        <div className={`text-sm font-black ${isToday(day) ? 'text-accent' : 'text-white/80'}`}>{format(day, 'd')}</div>
+                      </>
+                    )}
+                  </th>
+                );
+              })}
+              <th className="px-1 py-2.5 text-center border-b border-white/10 bg-transparent">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-white/40">{t.total_hours ?? 'Ore'}</div>
               </th>
             </tr>
@@ -933,90 +1266,78 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               const totalActual = getTotalActual(user.id);
               return (
                 <tr key={user.id} className={uIdx % 2 === 0 ? 'bg-white/[0.03]' : ''}>
-                  <td className="sticky left-0 z-10 bg-transparent px-3 py-2 border-b border-white/5" style={{ width: 160, minWidth: 160 }}>
-                    <div className="flex items-center gap-1.5">
+                  <td className={`sticky left-0 z-10 backdrop-blur-sm px-2 py-1.5 border-b border-white/5 ${uIdx % 2 === 0 ? 'bg-white/[0.06]' : 'bg-white/[0.03]'}`}>
+                    <div className="flex items-center gap-1 min-w-0">
                       <span className="text-xs font-bold text-white truncate">{user.first_name} {user.last_name?.[0] ?? ''}</span>
                     </div>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <span className="text-[10px] font-semibold text-white/40 tabular-nums">{formatMinutesToHoursAndMinutes(totalNet)}P</span>
-                      <span className="text-[10px] font-semibold text-white/40">/</span>
-                      <span className={`text-[10px] font-bold tabular-nums ${totalActual > totalNet ? 'text-accent' : 'text-emerald-400'}`}>{formatMinutesToHoursAndMinutes(totalActual)}E</span>
+                    <div className="flex items-center gap-0.5 mt-0.5 min-w-0">
+                      <span className="text-[10px] font-semibold text-white/40 tabular-nums truncate">{formatMinutesToHoursAndMinutes(totalNet)}P</span>
+                      <span className="text-[10px] font-semibold text-white/40 shrink-0">/</span>
+                      <span className={`text-[10px] font-bold tabular-nums truncate ${totalActual > totalNet ? 'text-accent' : 'text-emerald-400'}`}>{formatMinutesToHoursAndMinutes(totalActual)}E</span>
                     </div>
                   </td>
                   {weekDays.map((day, dIdx) => {
                     const dateStr = format(day, 'yyyy-MM-dd');
                     const groups = getDayGroup(user.id, dateStr);
+                    const weekStripe = isPeriodView && Math.floor(dIdx / 7) % 2 === 1;
+                    const weekEnd = isPeriodView && day.getDay() === 0;
                     return (
-                      <td key={dIdx} className={`px-1.5 py-1 border-b border-white/5 align-top group ${isToday(day) ? 'bg-accent/[0.04]' : ''}`}>
+                      <td key={dIdx} className={`px-0.5 py-0.5 border-b border-white/5 align-top group min-w-0 ${isToday(day) ? 'bg-accent/[0.04]' : weekStripe ? 'bg-white/[0.02]' : ''} ${weekEnd ? 'border-r-2 border-r-white/15' : ''}`}>
                         {groups.length === 0 ? (
-                          <div className="flex items-center justify-center h-full min-h-[48px]">
+                          <div className="flex items-center justify-center h-full" style={{ minHeight: slotCellHeight }}>
                             {canEdit ? (
-                              <button type="button" onClick={() => setCreateModal({ userId: user.id, date: dateStr })}
-                                className="rounded-lg border border-dashed border-white/20 px-3 py-2 text-[10px] font-bold text-white/30 hover:text-white/60 hover:border-white/40 transition-all opacity-0 group-hover:opacity-100">
-                                <Plus className="h-3 w-3 inline-block mr-1" />{t.add_shift ?? 'Aggiungi'}
+                              <button type="button" onClick={() => openCreateShiftModal(user.id, dateStr)}
+                                className={`rounded-lg border border-dashed border-white/20 flex items-center justify-center text-[10px] font-bold text-white/30 hover:text-white/60 hover:border-white/40 transition-all opacity-0 group-hover:opacity-100 ${isPeriodView ? 'w-7 h-7' : 'px-3 py-2'}`}>
+                                <Plus className="h-3 w-3 inline-block" />{!isPeriodView && <span className="ml-1">{t.add_shift ?? 'Aggiungi'}</span>}
                               </button>
                             ) : (
                               <span className="text-[10px] text-white/20 font-medium">&mdash;</span>
                             )}
                           </div>
                         ) : (
-                          <div className="flex flex-col gap-1">
-                            {groups.map((g, gIdx) => {
-                              const isDraft = g.shift.approval_status === 'draft';
-                              const isApproved = g.shift.approval_status === 'approved';
-                              const isConfirmed = g.shift.approval_status === 'confirmed';
-                              let borderColor = 'border-cyan-400/50';
-                              let bgColor = 'bg-white/[0.06]';
-                              let glow = '';
-                              if (isDraft) { borderColor = 'border-blue-400/60'; bgColor = 'bg-white/[0.08]'; }
-                              if (isApproved) { borderColor = 'border-emerald-400/60'; bgColor = 'bg-emerald-500/10'; }
-                              if (g.isAbsent) { borderColor = 'border-rose-400/60'; bgColor = 'bg-rose-500/10'; }
-                              if (g.isMissingPunch) { borderColor = 'border-amber-400/60'; bgColor = 'bg-amber-500/10'; }
-                              if (g.violations?.length && g.violations.length > 0) glow = 'ring-1 ring-rose-400/40';
-                              return (
-                                <button key={gIdx} type="button" onClick={() => handleOpenDrawer(g.shift)}
-                                  onContextMenu={(e) => { e.preventDefault(); handleDeleteShift(g.shift); }}
-                                  className={`w-full text-left rounded-lg border-2 ${borderColor} ${bgColor} ${glow} px-2 py-1.5 hover:brightness-125 transition-all ${isDraft ? 'border-dashed' : ''}`}>
-                                  <div className="flex items-center gap-1.5">
-                                    <input type="checkbox" checked={selectedShiftIds.has(g.shift.id)} onChange={() => setSelectedShiftIds(prev => { const n = new Set(prev); n.has(g.shift.id) ? n.delete(g.shift.id) : n.add(g.shift.id); return n; })}
-                                      className="w-3 h-3 rounded border-white/30 accent-accent shrink-0" onClick={e => e.stopPropagation()} />
-                                    <span className={`text-[11px] font-bold tabular-nums flex-1 ${g.isAbsent ? 'text-rose-400 line-through' : 'text-white'}`}>
-                                      {g.shift.start_time?.slice(0, 5) || '--'}-{g.shift.end_time?.slice(0, 5) || '--'}
-                                    </span>
-                                    <div className="flex items-center gap-0.5">
-                                      {isFrozen(g.shift) ? <Lock className="h-2.5 w-2.5 text-amber-400" /> : isApproved ? <Lock className="h-2.5 w-2.5 text-emerald-400" /> : null}
-                                      {isConfirmed && <Check className="h-2.5 w-2.5 text-cyan-300" />}
-                                      {g.isMissingPunch && <AlertTriangle className="h-2.5 w-2.5 text-amber-400" />}
-                                    </div>
-                                  </div>
-                                  {mode !== 'planning' && g.punchIn && (
-                                    <div className="flex items-center justify-between mt-0.5 ml-6">
-                                      <span className="text-[10px] font-medium text-white/50 tabular-nums">
-                                        {punchTimeHHMM(g.punchIn.calculated_time || g.punchIn.timestamp)}{g.punchOut ? `-${punchTimeHHMM(g.punchOut.calculated_time || g.punchOut.timestamp)}` : ' →'}
-                                      </span>
-                                      {g.punchOut && g.actualBreakMinutes > 0 && (
-                                        <span className="text-[9px] font-bold tabular-nums text-amber-400">
-                                          −{g.actualBreakMinutes}m
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
-                                  {g.breakMinutes > 0 && !g.punchIn && (
-                                    <div className="mt-0.5 text-[9px] font-medium text-white/40 tabular-nums ml-6">
-                                      {formatMinutesToHoursAndMinutes(g.netMinutes)} (−{g.breakMinutes}')
-                                    </div>
-                                  )}
+                          (() => {
+                            const { lunch, evening, extraLunchGroups, extraEveningGroups } = splitDayGroupsBySlot(groups);
+                            const canAddSecond = canEdit && groups.length < 2;
+                            const emptySlot = (slot: 'lunch' | 'evening', label: string) => (
+                              canAddSecond && !(slot === 'lunch' ? lunch : evening) ? (
+                                <button type="button" onClick={() => openCreateShiftModal(user.id, dateStr, slot)}
+                                  className={`w-full rounded-md border border-dashed border-white/15 flex items-center justify-center text-white/35 transition-all hover:border-white/30 hover:text-white/60 opacity-0 group-hover:opacity-100 ${isPeriodView ? '' : 'text-[10px] font-bold'}`}
+                                  style={{ height: isPeriodView ? slotRowHeight - 2 : slotRowHeight }}
+                                  title={label}
+                                >
+                                  <Plus className={`${isPeriodView ? 'h-3 w-3' : 'inline-block h-3 w-3 mr-0.5'}`} />
+                                  {!isPeriodView && label}
                                 </button>
-                              );
-                            })}
-                          </div>
+                              ) : (
+                                <div style={{ height: isPeriodView ? slotRowHeight - 2 : slotRowHeight }} />
+                              )
+                            );
+                            return (
+                              <div className={`flex flex-col ${isPeriodView ? 'gap-px' : ''}`} style={{ height: slotCellHeight }}>
+                                <div className="flex items-center" style={{ height: '50%', ...(isPeriodView ? {} : { borderBottom: '1px solid rgba(255,255,255,0.10)', paddingLeft: '1px', paddingRight: '1px' }) }}>
+                                  {lunch ? (
+                                    <div className="relative w-full min-w-0 overflow-visible">
+                                      {renderGroupButton(lunch, 'desktop', compactGrid, extraLunchGroups)}
+                                    </div>
+                                  ) : emptySlot('lunch', t.add_shift ?? 'Aggiungi')}
+                                </div>
+                                <div className={`flex items-center ${isPeriodView ? 'border-t border-white/[0.08]' : ''}`} style={{ height: '50%', ...(isPeriodView ? {} : { paddingLeft: '1px', paddingRight: '1px' }) }}>
+                                  {evening ? (
+                                    <div className="relative w-full min-w-0 overflow-visible">
+                                      {renderGroupButton(evening, 'desktop', compactGrid, extraEveningGroups)}
+                                    </div>
+                                  ) : emptySlot('evening', t.add_second_shift ?? '2° turno')}
+                                </div>
+                              </div>
+                            );
+                          })()
                         )}
                       </td>
                     );
                   })}
-                  <td className="px-2 py-1 border-b border-white/5 text-center align-middle">
-                    <div className="text-xs font-bold text-white tabular-nums">{formatMinutesToHoursAndMinutes(totalActual)}</div>
-                    <div className={`text-[10px] font-bold tabular-nums ${totalActual > totalNet ? 'text-accent' : 'text-emerald-400'}`}>
+                  <td className={`px-1 py-1 border-b border-white/5 text-center align-middle ${compactGrid ? 'text-[10px]' : ''}`}>
+                    <div className={`${compactGrid ? 'text-[10px]' : 'text-xs'} font-bold text-white tabular-nums`}>{formatMinutesToHoursAndMinutes(totalActual)}</div>
+                    <div className={`${compactGrid ? 'text-[9px]' : 'text-[10px]'} font-bold tabular-nums ${totalActual > totalNet ? 'text-accent' : 'text-emerald-400'}`}>
                       {totalActual > totalNet ? '+' : ''}{formatMinutesToHoursAndMinutes(Math.abs(totalActual - totalNet))}
                     </div>
                   </td>
@@ -1036,7 +1357,35 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-sm font-bold text-white">{selectedUser?.first_name ?? ''} {selectedUser?.last_name ?? ''}</h3>
-                <p className="text-[11px] text-white font-semibold">{format(parseISO(selectedShift.date), 'EEEE d MMMM', { locale })} — {selectedShift.start_time?.slice(0, 5)}-{selectedShift.end_time?.slice(0, 5)}</p>
+                {drawerIsExtraShift && (
+                  <span className="inline-block mt-0.5 rounded-md bg-accent/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-accent">
+                    {t.extra_shift ?? 'Turno aggiuntivo'}
+                  </span>
+                )}
+                <p className="text-[11px] text-white font-semibold mt-1">{format(parseISO(selectedShift.date), 'EEEE d MMMM', { locale })} — {selectedShift.start_time?.slice(0, 5)}-{selectedShift.end_time?.slice(0, 5)}</p>
+                {(() => {
+                  const dayShifts = weekShifts
+                    .filter(s => s.user_id === selectedShift.user_id && s.date === selectedShift.date)
+                    .sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''));
+                  if (dayShifts.length <= 1) return null;
+                  return (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {dayShifts.map(s => {
+                        const isActive = s.id === selectedShift.id;
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => handleOpenDrawer(s, { isExtra: isExtraShiftInDay(s, dayShifts) })}
+                            className={`rounded-md px-2 py-1 text-[10px] font-bold tabular-nums transition-all ${isActive ? 'bg-accent text-white' : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'}`}
+                          >
+                            {formatShiftTimeRangeFull(s.start_time, s.end_time)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
               <button type="button" onClick={() => setDrawerOpen(false)} className="rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all"><X className="h-4 w-4" /></button>
             </div>
@@ -1089,11 +1438,24 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                       <Check className="h-3.5 w-3.5" />{t.approve ?? 'Approva'}
                     </button>
                   )}
-                  {canEdit && !isShiftPayrollFrozen(selectedShift) && (
-                    <button type="button" onClick={() => handleDeleteShift(selectedShift)}
-                      className="flex items-center gap-1.5 rounded-lg bg-rose-600/20 px-3 py-2 text-[11px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors border border-transparent hover:border-rose-600/30">
-                      <Trash2 className="h-3.5 w-3.5" />{t.delete ?? 'Elimina'}
-                    </button>
+                  {canDeleteShift(selectedShift) && (
+                    drawerDeleteConfirm ? (
+                      <div className="flex w-full gap-2">
+                        <button type="button" onClick={() => setDrawerDeleteConfirm(false)}
+                          className="flex-1 rounded-lg bg-white/10 px-3 py-2 text-[11px] font-bold text-white/70 hover:bg-white/20 transition-colors">
+                          {t.cancel ?? 'Annulla'}
+                        </button>
+                        <button type="button" onClick={() => void handleDeleteShift(selectedShift, { skipConfirm: true })}
+                          className="flex-1 rounded-lg bg-rose-600 px-3 py-2 text-[11px] font-bold text-white hover:bg-rose-700 transition-colors">
+                          {t.wst_confirm_delete_btn ?? 'Conferma elimina'}
+                        </button>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => setDrawerDeleteConfirm(true)}
+                        className="flex items-center gap-1.5 rounded-lg bg-rose-600/20 px-3 py-2 text-[11px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors border border-transparent hover:border-rose-600/30">
+                        <Trash2 className="h-3.5 w-3.5" />{drawerIsExtraShift ? (t.delete_extra_shift ?? 'Elimina turno aggiuntivo') : (t.delete ?? 'Elimina')}
+                      </button>
+                    )
                   )}
                   {canEdit && !isShiftPayrollFrozen(selectedShift) && selectedShift.approval_status === 'confirmed' && (
                     <button type="button" onClick={() => handleFreezeShift(selectedShift)}
@@ -1244,6 +1606,14 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                 <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">{t.end_time ?? 'Fine'}</label>
                 <TimeInputField value={createEnd} onChange={setCreateEnd} size="md" className="w-full border-white/20 bg-white/10" />
               </div>
+              <ShiftSlotPresetsSection
+                startTime={createStart}
+                endTime={createEnd}
+                onApply={(start, end) => {
+                  setCreateStart(start);
+                  setCreateEnd(end);
+                }}
+              />
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={() => setCreateModal(null)}

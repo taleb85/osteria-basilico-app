@@ -33,6 +33,7 @@ import { translateRole } from '../utils/roles';
 import { getShiftViolations, DEFAULT_WORK_RULES } from '../utils/workRules';
 import { getBreakMinutesForShift, getNetShiftMinutes } from '../utils/breakRules';
 import { mergeShiftDeductExclusionsFromLocal } from '../utils/shiftDeductExclusionsLocal';
+import { loadShiftSlotPresets, saveShiftSlotPresets } from '../utils/shiftSlotPresets';
 import {
   isPurelyManagementRole,
   isManagementRole,
@@ -1668,30 +1669,8 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [slotPickerNewStart, setSlotPickerNewStart] = useState('');
   const [slotPickerNewEnd, setSlotPickerNewEnd] = useState('');
 
-  const DEFAULT_LUNCH_PRESETS = [
-    { start: '09:00', end: '14:00' },
-    { start: '10:00', end: '15:00' },
-    { start: '10:00', end: '16:00' },
-    { start: '11:00', end: '16:00' },
-    { start: '12:00', end: '16:00' },
-  ];
-  const DEFAULT_EVENING_PRESETS = [
-    { start: '16:00', end: '22:00' },
-    { start: '16:00', end: '23:00' },
-    { start: '18:00', end: '23:00' },
-    { start: '18:00', end: '00:00' },
-    { start: '19:00', end: '01:00' },
-  ];
-  const loadPresets = (slot: 'lunch' | 'evening') => {
-    try {
-      const raw = localStorage.getItem(`flow_slot_presets_${slot}`);
-      if (raw) return JSON.parse(raw) as { start: string; end: string }[];
-    } catch { /* ignore */ }
-    return slot === 'lunch' ? DEFAULT_LUNCH_PRESETS : DEFAULT_EVENING_PRESETS;
-  };
-  const savePresets = (slot: 'lunch' | 'evening', presets: { start: string; end: string }[]) => {
-    localStorage.setItem(`flow_slot_presets_${slot}`, JSON.stringify(presets));
-  };
+  const loadPresets = loadShiftSlotPresets;
+  const savePresets = saveShiftSlotPresets;
   const [lunchPresets, setLunchPresets] = useState<{ start: string; end: string }[]>(() => loadPresets('lunch'));
   const [eveningPresets, setEveningPresets] = useState<{ start: string; end: string }[]>(() => loadPresets('evening'));
   /** Popup turno usa `CenteredModalPortal` (lock lì). Resto: overlay fissi senza portal. */
@@ -6224,15 +6203,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
   const defaultHour = rawDefault ? parseInt(rawDefault.split(':')[0], 10) : 10;
   const isEveningDefault = defaultHour >= 16;
 
-  const loadModalPresets = (slot: 'lunch' | 'evening') => {
-    try {
-      const raw = localStorage.getItem(`flow_slot_presets_${slot}`);
-      if (raw) return JSON.parse(raw) as { start: string; end: string }[];
-    } catch { /* ignore */ }
-    return slot === 'lunch'
-      ? [{ start: '09:00', end: '14:00' }, { start: '10:00', end: '15:00' }, { start: '10:00', end: '16:00' }, { start: '11:00', end: '16:00' }, { start: '12:00', end: '16:00' }]
-      : [{ start: '16:00', end: '22:00' }, { start: '16:00', end: '23:00' }, { start: '18:00', end: '23:00' }, { start: '18:00', end: '00:00' }, { start: '19:00', end: '01:00' }];
-  };
+  const loadModalPresets = loadShiftSlotPresets;
   const [tempShifts, setTempShifts] = useState({
     start_time: isEveningDefault ? '18:00' : (rawDefault || '10:00'),
     end_time: isEveningDefault ? '23:00' : '16:00',

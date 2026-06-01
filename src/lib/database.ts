@@ -531,6 +531,17 @@ export const database = {
     },
 
     async delete(id: string) {
+      const { data: punches } = await supabase!
+        .from('punch_records')
+        .select('id')
+        .eq('shift_id', id);
+      if (punches && punches.length > 0) {
+        const { error: punchErr } = await supabase!
+          .from('punch_records')
+          .delete()
+          .in('id', (punches as { id: string }[]).map(r => r.id));
+        if (punchErr) throw punchErr;
+      }
       const { error } = await supabase!
         .from('shifts')
         .delete()
