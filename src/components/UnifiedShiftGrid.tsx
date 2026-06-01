@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom';
 import {
   CalendarDays, AlertTriangle, Check, Lock, Plus, Clock,
   ChevronLeft, ChevronRight, Copy, Send, Filter, FileDown,
-  Trash2, Save, X, ShieldAlert, ChevronDown, RotateCw, Unlock,
+  Trash2, Save, X, ShieldAlert, ChevronDown, Unlock, Menu,
 } from 'lucide-react';
+import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import type { Shift, PunchRecord, User } from '../types';
 import type { BreakRule } from '../utils/breakRules';
 import {
@@ -102,7 +103,6 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const [deptFilter, setDeptFilter] = useState<string | null>(null);
   const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
   const deptDropdownRef = useRef<HTMLDivElement>(null);
-  const deptDropdownRefMobile = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!showPeriodPopover) return;
@@ -119,7 +119,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   useEffect(() => {
     if (!deptDropdownOpen) return;
     const handler = (e: MouseEvent) => {
-      if (!deptDropdownRef.current?.contains(e.target as Node) && !deptDropdownRefMobile.current?.contains(e.target as Node)) {
+      if (!deptDropdownRef.current?.contains(e.target as Node)) {
         setDeptDropdownOpen(false);
       }
     };
@@ -191,7 +191,30 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const [templatesList, setTemplatesList] = useState<string[]>([]);
   const [saveTemplateName, setSaveTemplateName] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
-  const [showTemplateMenu, setShowTemplateMenu] = useState(false);
+  const [actionsDrawerOpen, setActionsDrawerOpen] = useState(false);
+  const [actionsDrawerSection, setActionsDrawerSection] = useState<'templates' | null>(null);
+  const actionsDrawerTriggerRef = useRef<HTMLDivElement>(null);
+  const actionsDrawerPanelRef = useRef<HTMLDivElement>(null);
+
+  const closeActionsDrawer = useCallback(() => {
+    setActionsDrawerOpen(false);
+    setActionsDrawerSection(null);
+  }, []);
+
+  useEffect(() => {
+    if (!actionsDrawerOpen) return;
+    const handler = (e: MouseEvent) => {
+      const tgt = e.target as Node;
+      if (
+        !actionsDrawerPanelRef.current?.contains(tgt) &&
+        !actionsDrawerTriggerRef.current?.contains(tgt)
+      ) {
+        closeActionsDrawer();
+      }
+    };
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [actionsDrawerOpen, closeActionsDrawer]);
 
   // ── Freeze / PinPad state ──
   const [panelPinModalOpen, setPanelPinModalOpen] = useState(false);
@@ -459,11 +482,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       await database.shiftTemplates.save(saveTemplateName.trim(), entries);
       const list = await database.shiftTemplates.listAll?.() ?? [];
       if (Array.isArray(list)) setTemplatesList(list);
-      setSaveTemplateName(''); setShowTemplateMenu(false);
+      setSaveTemplateName('');
+      closeActionsDrawer();
       showSuccess(t.template_saved ?? 'Template salvato.');
     } catch { showError(t.error_generic ?? 'Errore.'); }
     finally { setSavingTemplate(false); }
-  }, [saveTemplateName, weekStart, weekShifts, showSuccess, showError, t]);
+  }, [saveTemplateName, weekStart, weekShifts, showSuccess, showError, t, closeActionsDrawer]);
 
   const handleApplyTemplate = useCallback(async (name: string) => {
     if (!database.shiftTemplates?.load) return;
@@ -474,9 +498,10 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
           await addShift({ ...s, id: undefined, date: weekDateStrings[0] });
         }
         showSuccess(t.template_applied ?? 'Template applicato.');
+        closeActionsDrawer();
       }
     } catch { showError(t.error_generic ?? 'Errore.'); }
-  }, [addShift, weekDateStrings, showSuccess, showError, t]);
+  }, [addShift, weekDateStrings, showSuccess, showError, t, closeActionsDrawer]);
 
   const handleOpenDrawer = useCallback((shift: Shift) => {
     const u = users.find(us => us.id === shift.user_id) ?? null;
@@ -495,35 +520,42 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   return (
     <div className="w-full font-sans">
       {/* ── Toolbar ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 mb-3">
-        <div className="flex items-center justify-between sm:justify-start gap-1 w-full sm:w-auto">
-          <button type="button" onClick={prevWeek}
-            className="rounded-lg bg-white/10 px-1.5 py-1 text-white/60 hover:text-white transition-colors md:px-2"><ChevronLeft className="h-3.5 w-3.5" /></button>
-          <button type="button" onClick={goToday}
-            className="rounded-lg bg-white/10 px-2 py-1 text-white/60 hover:text-white transition-colors text-[11px] font-bold uppercase tracking-wider">{t.today_btn ?? 'Oggi'}</button>
-          <button type="button" onClick={nextWeek}
-            className="rounded-lg bg-white/10 px-1.5 py-1 text-white/60 hover:text-white transition-colors md:px-2"><ChevronRight className="h-3.5 w-3.5" /></button>
-          <span className="text-[11px] md:text-sm font-semibold text-white/50 tabular-nums ml-1 md:ml-0.5 whitespace-nowrap">
+      <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 mb-3 w-full min-w-0">
+        <div className="ui-toolbar-row-tight flex min-w-0 flex-1 flex-wrap items-center gap-1.5 sm:gap-2">
+          <div className="flex shrink-0 items-center gap-1">
+            <button type="button" onClick={prevWeek} aria-label="Settimana precedente"
+              className="rounded-lg bg-white/10 px-1.5 py-1 text-white/60 hover:text-white transition-colors md:px-2"><ChevronLeft className="h-3.5 w-3.5" /></button>
+            <button type="button" onClick={goToday}
+              className="rounded-lg bg-white/10 px-2 py-1 text-white/60 hover:text-white transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">{t.today_btn ?? 'Oggi'}</button>
+            <button type="button" onClick={nextWeek} aria-label="Settimana successiva"
+              className="rounded-lg bg-white/10 px-1.5 py-1 text-white/60 hover:text-white transition-colors md:px-2"><ChevronRight className="h-3.5 w-3.5" /></button>
+          </div>
+          <span
+            className="min-w-0 max-w-full truncate text-[11px] md:text-sm font-semibold text-white/50 tabular-nums"
+            title={`${format(weekStart, 'd MMM yyyy', { locale })} — ${format(weekEnd, 'd MMM yyyy', { locale })}`}
+          >
             {format(weekStart, 'd MMM', { locale })}
-            <span> — {format(weekEnd, 'd MMM yyyy', { locale })}</span>
+            <span className="hidden min-[420px]:inline"> — {format(weekEnd, 'd MMM', { locale })}</span>
+            <span className="hidden md:inline"> {format(weekEnd, 'yyyy', { locale })}</span>
           </span>
           {departments.length > 1 && (
-            <div className="sm:hidden relative ml-auto" ref={deptDropdownRefMobile}>
+            <div className="relative ml-auto sm:ml-0" ref={deptDropdownRef}>
               <button type="button" onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
-                className="bg-white/10 hover:bg-white/15 rounded-lg pl-1.5 md:pl-2 pr-6 py-1 text-[10px] md:text-[11px] font-bold text-white/70 uppercase tracking-wider cursor-pointer transition-all max-w-[80px] md:max-w-none flex items-center whitespace-nowrap">
-                {deptFilter ?? (t.department_filter_all ?? 'Tutti')}
+                className="relative flex max-w-[min(100%,7.5rem)] sm:max-w-none items-center gap-1 truncate rounded-lg bg-white/10 py-1.5 pl-2 pr-6 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-white/60 transition-colors hover:text-white sm:px-2.5 sm:pr-7">
+                <Filter className="h-3 w-3 shrink-0 text-white/40" aria-hidden />
+                <span className="truncate">{deptFilter ?? (t.department_filter_all ?? 'Tutti')}</span>
+                <ChevronDown className={`pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-white/40 transition-transform ${deptDropdownOpen ? 'rotate-180' : ''}`} aria-hidden />
               </button>
-              <ChevronDown className={`h-3 w-3 text-white/40 pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 transition-transform ${deptDropdownOpen ? 'rotate-180' : ''}`} />
               {deptDropdownOpen && (
-                <div className="absolute right-0 top-full mt-1.5 min-w-[130px] z-50 rounded-2xl border border-white/10 bg-white/[0.04] shadow-2xl overflow-hidden"
+                <div className="absolute right-0 top-full z-50 mt-1.5 min-w-[130px] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-2xl"
                   style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
                   <button type="button" onClick={() => { setDeptFilter(null); setDeptDropdownOpen(false); }}
-                    className="w-full px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 transition-colors">
+                    className="w-full px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/10">
                     {t.department_filter_all ?? 'Tutti'}
                   </button>
                   {departments.map(d => (
                     <button key={d} type="button" onClick={() => { setDeptFilter(d); setDeptDropdownOpen(false); }}
-                      className="w-full px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 transition-colors">
+                      className="w-full px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/10">
                       {d}
                     </button>
                   ))}
@@ -533,110 +565,169 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
           )}
         </div>
 
-        {departments.length > 1 && (
-          <div className="hidden sm:flex items-center gap-0.5 sm:ml-auto">
-            <Filter className="h-3 w-3 text-white/40 shrink-0 hidden md:block" />
-            <div className="relative" ref={deptDropdownRef}>
-              <button type="button" onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
-                className="bg-white/10 hover:bg-white/15 rounded-lg pl-1.5 md:pl-2 pr-6 py-1 text-[10px] md:text-[11px] font-bold text-white/70 uppercase tracking-wider cursor-pointer transition-all max-w-[80px] md:max-w-none flex items-center whitespace-nowrap">
-                {deptFilter ?? (t.department_filter_all ?? 'Tutti')}
-              </button>
-              <ChevronDown className={`h-3 w-3 text-white/40 pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 transition-transform ${deptDropdownOpen ? 'rotate-180' : ''}`} />
-              {deptDropdownOpen && (
-                <div className="absolute right-0 top-full mt-1.5 min-w-[130px] z-50 rounded-2xl border border-white/10 bg-white/[0.04] shadow-2xl overflow-hidden"
-                  style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-                  <button type="button" onClick={() => { setDeptFilter(null); setDeptDropdownOpen(false); }}
-                    className="w-full px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 transition-colors">
-                    {t.department_filter_all ?? 'Tutti'}
-                  </button>
-                  {departments.map(d => (
-                    <button key={d} type="button" onClick={() => { setDeptFilter(d); setDeptDropdownOpen(false); }}
-                      className="w-full px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 transition-colors">
-                      {d}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between sm:justify-start flex-nowrap gap-1 md:gap-2 sm:ml-auto w-full sm:w-auto overflow-x-auto">
-          <div className="flex items-center gap-1 rounded-lg bg-white/5 p-0.5">
+        <div className="ui-toolbar-row-tight flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2 lg:ml-auto lg:justify-end">
+          <div className="flex shrink-0 items-center gap-1 rounded-lg bg-white/5 p-0.5">
             <button type="button" onClick={() => setViewMode('week')}
-              className={`rounded-md px-1.5 md:px-2.5 py-1 text-[9px] md:text-[10px] font-bold uppercase tracking-wider transition-all ${viewMode === 'week' ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'}`}>{t.view_week ?? 'Sett.'}</button>
+              className={`rounded-md px-1.5 md:px-2.5 py-1 text-[9px] md:text-[10px] font-bold uppercase tracking-wider transition-all ${viewMode === 'week' ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'}`}>
+              <span className="sm:hidden">{t.view_week_short ?? 'Sett.'}</span>
+              <span className="hidden sm:inline">{t.view_week ?? 'Settimana'}</span>
+            </button>
             <button type="button" onClick={() => setViewMode('period')}
-              className={`rounded-md px-1.5 md:px-2.5 py-1 text-[9px] md:text-[10px] font-bold uppercase tracking-wider transition-all ${viewMode === 'period' ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'}`}>{t.view_period ?? 'Periodo'}</button>
+              className={`rounded-md px-1.5 md:px-2.5 py-1 text-[9px] md:text-[10px] font-bold uppercase tracking-wider transition-all ${viewMode === 'period' ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'}`}>
+              {t.view_period ?? 'Periodo'}
+            </button>
           </div>
 
-          <div className="flex items-center flex-nowrap gap-2">
-            <button ref={periodTriggerRef} type="button" onClick={togglePeriodPopover}
-              className="flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1.5 text-[10px] font-bold text-white/50 hover:text-white transition-colors uppercase tracking-wider">
-              <CalendarDays className="h-3 w-3" />
+          <button ref={periodTriggerRef} type="button" onClick={togglePeriodPopover}
+            className="flex max-w-[min(100%,11rem)] sm:max-w-none min-w-0 items-center gap-1 truncate rounded-lg bg-white/5 px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/50 transition-colors hover:text-white">
+            <CalendarDays className="h-3 w-3 shrink-0" />
+            <span className="truncate sm:hidden">
+              {format(periodStart, 'd/M', { locale })}–{format(periodEnd, 'd/M', { locale })}
+            </span>
+            <span className="hidden truncate sm:inline">
               {format(periodStart, 'd MMM', { locale })} — {format(periodEnd, 'd MMM', { locale })}
-              <ChevronDown className="h-3 w-3 ml-0.5" />
+            </span>
+            <ChevronDown className="ml-0.5 h-3 w-3 shrink-0" />
+          </button>
+
+          {isMgmt && (
+            <button
+              type="button"
+              onClick={() => void handlePublishWeek()}
+              aria-label={t.publish_week ?? 'Pubblica settimana'}
+              className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600/20 px-2 py-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-300 transition-colors hover:bg-emerald-600/30 sm:px-2.5"
+            >
+              <Send className="h-3 w-3 shrink-0" />
+              <span className="hidden min-[520px]:inline lg:hidden">Pubblica</span>
+              <span className="hidden lg:inline">{t.publish_week ?? 'Pubblica settimana'}</span>
             </button>
+          )}
 
-            {/* Undo */}
-            {false && (
-              <button type="button"
-                className="rounded-lg bg-white/10 px-2 py-1.5 text-white/40 text-[10px] font-bold uppercase tracking-wider">
-                <RotateCw className="h-3 w-3" />
-              </button>
-            )}
+          <button
+            type="button"
+            onClick={() => void handleExportPdf()}
+            aria-label="Esporta PDF"
+            className="flex shrink-0 items-center gap-1 rounded-lg bg-white/10 px-2 py-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-white/60 transition-colors hover:text-white sm:px-2.5"
+          >
+            <FileDown className="h-3 w-3 shrink-0" />
+            <span className="hidden min-[400px]:inline">PDF</span>
+          </button>
 
-            <div className="hidden md:flex items-center gap-2">
-              <span className="w-px h-5 bg-white/10" />
+          {(isMgmt || canEdit) && (
+          <>
+          <div className="relative shrink-0" ref={actionsDrawerTriggerRef}>
+            <button
+              type="button"
+              onClick={() => setActionsDrawerOpen((open) => !open)}
+              className={`flex shrink-0 items-center gap-1 rounded-lg bg-white/10 px-2 py-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-colors sm:px-2.5 ${
+                actionsDrawerOpen ? 'text-white' : 'text-white/60 hover:text-white'
+              }`}
+              aria-expanded={actionsDrawerOpen}
+              aria-haspopup="true"
+              aria-label={(t as Record<string, string>).wst_toolbar_hamburger_aria ?? 'Apri menu azioni'}
+              title={t.actions ?? 'Azioni'}
+            >
+              <Menu className="h-3 w-3 shrink-0" strokeWidth={2.25} aria-hidden />
+              <span className="hidden min-[400px]:inline">{t.actions ?? 'Azioni'}</span>
+            </button>
+          </div>
+
+          {actionsDrawerOpen && (
+            <CenteredModalPortal
+              open
+              onClose={closeActionsDrawer}
+              panelRef={actionsDrawerPanelRef}
+              backdropAriaLabel={t.cancel ?? 'Chiudi'}
+              ariaLabel={t.actions ?? 'Azioni'}
+              maxWidthClass="max-w-md"
+              maxHeightClass="max-h-[min(90dvh,720px)]"
+              panelClassName="py-1"
+            >
+              <div className="border-b border-white/10 px-4 py-2.5 text-sm font-semibold text-white">
+                {t.actions ?? 'Azioni'}
+              </div>
+
               {isMgmt && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeActionsDrawer();
+                    void handleCopyWeek();
+                  }}
+                  className="flex w-full items-center gap-2 border-b border-white/10 px-4 py-2.5 text-left text-sm text-white/85 transition-colors hover:bg-white/10"
+                >
+                  <Copy className="h-4 w-4 shrink-0 text-white/50" strokeWidth={2.25} />
+                  {t.copy_week ?? 'Copia settimana'}
+                </button>
+              )}
+
+              {canEdit && (
                 <>
-                  <button type="button" onClick={handleCopyWeek}
-                    className="flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-[11px] font-bold text-white/60 hover:text-white transition-colors uppercase tracking-wider">
-                    <Copy className="h-3 w-3" />{t.copy_week ?? 'Copia'}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setActionsDrawerSection((sec) => (sec === 'templates' ? null : 'templates'))
+                    }
+                    className="flex w-full items-center justify-between gap-2 border-b border-white/10 px-4 py-2.5 text-left transition-colors hover:bg-white/10"
+                  >
+                    <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-white">
+                      <Save className="h-4 w-4 shrink-0 text-white/50" strokeWidth={2.25} />
+                      {t.templates ?? 'Template'}
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 text-white/40 transition-transform ${
+                        actionsDrawerSection === 'templates' ? '-rotate-180' : ''
+                      }`}
+                      strokeWidth={2.25}
+                      aria-hidden
+                    />
                   </button>
-                  <button type="button" onClick={handlePublishWeek}
-                    className="flex items-center gap-1.5 rounded-lg bg-emerald-600/20 px-2.5 py-1.5 text-[11px] font-bold text-emerald-300 hover:bg-emerald-600/30 transition-colors uppercase tracking-wider">
-                    <Send className="h-3 w-3" />{t.publish_week ?? 'Pubblica'}
-                  </button>
+                  {actionsDrawerSection === 'templates' && (
+                    <div className="border-b border-white/10 px-4 py-3">
+                      <div className="mb-2 flex items-center gap-1">
+                        <input
+                          value={saveTemplateName}
+                          onChange={(e) => setSaveTemplateName(e.target.value)}
+                          placeholder={t.save_current_as ?? 'Salva come...'}
+                          className="flex-1 rounded-lg border border-white/10 bg-white/10 px-2 py-1.5 text-[11px] font-bold text-white outline-none placeholder:text-white/30"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void handleSaveTemplate()}
+                          disabled={savingTemplate || !saveTemplateName.trim()}
+                          className="rounded-lg bg-accent px-2.5 py-1.5 text-[10px] font-bold text-white disabled:opacity-40"
+                        >
+                          <Save className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      {templatesList.length > 0 ? (
+                        <ul className="max-h-40 space-y-0.5 overflow-y-auto">
+                          {templatesList.map((name) => (
+                            <li key={name}>
+                              <button
+                                type="button"
+                                onClick={() => void handleApplyTemplate(name)}
+                                className="w-full truncate rounded-lg px-2 py-1.5 text-left text-[11px] font-bold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                              >
+                                {name}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="py-2 text-center text-[10px] text-white/40">
+                          {t.no_templates ?? 'Nessun template'}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
-              <button type="button" onClick={handleExportPdf}
-                className="flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-[11px] font-bold text-white/60 hover:text-white transition-colors uppercase tracking-wider">
-                <FileDown className="h-3 w-3" />PDF
-              </button>
-
-              {/* Template button */}
-              {canEdit && (
-                <div className="relative">
-                  <button type="button" onClick={() => setShowTemplateMenu(o => !o)}
-                    className="flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-[11px] font-bold text-white/60 hover:text-white transition-colors uppercase tracking-wider">
-                    {t.templates ?? 'Template'} <ChevronDown className="h-3 w-3 ml-0.5" />
-                  </button>
-                {showTemplateMenu && (
-                  <div className="absolute right-0 top-full mt-1 z-50 rounded-xl border border-white/10 p-3 w-52 shadow-2xl" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-                    <div className="flex items-center gap-1 mb-2">
-                      <input value={saveTemplateName} onChange={e => setSaveTemplateName(e.target.value)} placeholder={t.save_current_as ?? 'Salva come...'}
-                        className="flex-1 bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-[11px] font-bold text-white outline-none placeholder:text-white/30" />
-                      <button type="button" onClick={handleSaveTemplate}
-                        className="rounded-lg bg-accent px-2 py-1 text-[10px] font-bold text-white">
-                        <Save className="h-3 w-3" />
-                      </button>
-                    </div>
-                    {templatesList.map(name => (
-                      <div key={name} className="flex items-center justify-between py-1 border-b border-white/10 last:border-0">
-                        <button type="button" onClick={() => handleApplyTemplate(name)}
-                          className="text-[11px] font-bold text-white/70 hover:text-white truncate flex-1 text-left">{name}</button>
-                      </div>
-                    ))}
-                    {templatesList.length === 0 && (
-                      <p className="text-[10px] text-white/40 text-center py-2">{t.no_templates ?? 'Nessun template'}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+            </CenteredModalPortal>
+          )}
+          </>
+          )}
         </div>
-      </div>
       </div>
 
       {/* ── Period Popover ── */}

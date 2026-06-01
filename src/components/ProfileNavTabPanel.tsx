@@ -589,12 +589,7 @@ export default function ProfileNavTabPanel({
 
           {/* Sfondo */}
           <div className="rounded-xl overflow-hidden border border-neutral-500">
-            <div className="px-4 py-3">
-              <span className={rowLabelCls}>{'Sfondo'}</span>
-              <div className="mt-1">
-                <BackgroundGallery userId={currentUser?.id} />
-              </div>
-            </div>
+            <BackgroundGallery userId={currentUser?.id} variant="profile-row" />
           </div>
 
           {/* Pannello Admin — visibile solo per ruoli autorizzati */}

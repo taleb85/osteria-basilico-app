@@ -1,15 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Palette } from 'lucide-react';
+import { X, Check, Palette, ChevronRight } from 'lucide-react';
 import { getBackgroundThemes, getStoredTheme, storeTheme, type BackgroundTheme } from '../utils/backgroundThemes';
 import { useT } from '../hooks/useT';
 
 export default function BackgroundGallery({
   onSelect,
   userId,
+  variant = 'button',
 }: {
   onSelect?: (theme: BackgroundTheme) => void;
   userId?: string;
+  /** `profile-row`: riga singola come accordion Lingua in Profilo */
+  variant?: 'button' | 'profile-row';
 }) {
   const [open, setOpen] = useState(false);
   const [activeId, setActiveId] = useState<string>(getStoredTheme(userId).id);
@@ -31,16 +34,27 @@ export default function BackgroundGallery({
 
   return (
     <>
-      {/* Pulsante per aprire la galleria */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label={t.bg_gallery_open ?? 'Sfondi'}
-        className="inline-flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/15 active:scale-[0.99]"
-      >
-        <Palette className="h-4 w-4" />
-        {t.bg_gallery_btn ?? 'Sfondo app'}
-      </button>
+      {variant === 'profile-row' ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={t.bg_gallery_open ?? 'Sfondi'}
+          className="w-full flex items-center justify-between px-4 py-3.5 transition-all active:scale-[0.98] hover:bg-white/10"
+        >
+          <span className="text-[13px] font-semibold text-white">{t.bg_gallery_btn ?? 'Sfondo'}</span>
+          <ChevronRight className="w-4 h-4 text-white/60" aria-hidden />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={t.bg_gallery_open ?? 'Sfondi'}
+          className="inline-flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/15 active:scale-[0.99]"
+        >
+          <Palette className="h-4 w-4" />
+          {t.bg_gallery_btn ?? 'Sfondo app'}
+        </button>
+      )}
 
       <AnimatePresence>
         {open && (
