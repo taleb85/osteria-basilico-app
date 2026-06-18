@@ -114,7 +114,7 @@ export default defineConfig(({ command }) => {
         display: 'standalone',
         background_color: '#0a0a0c',
         theme_color: '#0a0a0c',
-        orientation: 'any',
+        orientation: 'portrait',
         scope: '/',
         icons: [
           { src: '/icons/icon-48.png', sizes: '48x48', type: 'image/png' },

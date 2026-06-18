@@ -62,10 +62,10 @@ export default function UnifiedShiftsPage() {
       </div>
 
       {/* Unified Grid */}
-      <div className={`rounded-xl border bg-transparent p-3 transition-colors ${
+      <div className={`rounded-xl border bg-transparent p-3 transition-all ${
         gridMode === 'planning'
-          ? 'border-cyan-400/40'
-          : 'border-accent/40'
+          ? 'border-cyan-400/50 shadow-[0_0_12px_rgba(34,211,238,0.12)]'
+          : 'border-accent/30'
       }`}>
         <UnifiedShiftGrid
           mode={gridMode}

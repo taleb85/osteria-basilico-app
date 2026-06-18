@@ -79,6 +79,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const loginBtnRef = useRef<HTMLButtonElement>(null);
   /** Un solo tentativo di login biometrico silenzioso per apertura form (device già registrato). */
   const autoBiometricAttemptedRef = useRef(false);
+  /** Impedisce auto-login multipli simultanei */
+  const autoLoginInFlightRef = useRef(false);
   /** /profilo: lingua da browser/OS (navigator.languages), non ultimo profilo in localStorage */
   const [loginLang, setLoginLang] = useState<LangType>(() => getDeviceUiLanguage());
   const t = getTranslations(loginLang);
@@ -378,6 +380,32 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setIsSessionElevated,
     maybeRegisterDeviceAfterPinLogin,
   ]);
+
+  /** Auto‑focus sul campo PIN quando il nome è riconosciuto univocamente */
+  useEffect(() => {
+    if (!showForm || !resolvedUser || isLoading) return;
+    if (password.length > 0) return;
+    const id = requestAnimationFrame(() => {
+      pinInputRef.current?.focus();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [resolvedUser, showForm, isLoading, password.length]);
+
+  /** Auto‑login quando il PIN di 4 cifre corrisponde */
+  useEffect(() => {
+    if (!showForm || !resolvedUser || !pinMatches) return;
+    if (password.length !== 4) return;
+    if (isLoading || deviceLoading || linkDeviceLoading) return;
+    if (autoLoginInFlightRef.current) return;
+    autoLoginInFlightRef.current = true;
+    const id = setTimeout(() => {
+      handleLogin();
+    }, 200);
+    return () => {
+      clearTimeout(id);
+      autoLoginInFlightRef.current = false;
+    };
+  }, [password, resolvedUser, pinMatches, showForm, isLoading, deviceLoading, linkDeviceLoading, handleLogin]);
 
   const runBiometricLogin = useCallback(
     async (opts?: { silent?: boolean }): Promise<boolean> => {

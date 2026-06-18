@@ -2010,7 +2010,7 @@ html[data-theme="dark"] body {
 }
 
 /* Desktop: superfici vetro meno trasparenti (leggibilità su wave) */
-@media (min-width: 768px) {
+@media (min-width: 1000px) {
   .surface-glass,
   [class*='surface-glass'] {
     background: rgba(50, 90, 170, 0.45) !important;
@@ -2024,7 +2024,7 @@ html[data-theme="dark"] body {
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1000px) {
   [class*='kpi'],
   [class*='stat-card'] {
     background: rgba(255, 255, 255, 0.16);

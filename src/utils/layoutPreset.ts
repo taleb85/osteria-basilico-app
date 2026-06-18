@@ -1,17 +1,17 @@
 /** Compact vs comfortable: allineare a `LayoutPresetProvider` / `index.html`. */
-export const LAYOUT_BREAKPOINT_PX = 768;
+export const LAYOUT_BREAKPOINT_PX = 1000;
 
 /** Larghezza &lt; questo valore ⇒ `phone` (allineato a Tailwind `sm` = 640px e a `index.html`). */
 export const VIEWPORT_PHONE_MAX_PX = 640;
 
 /** Larghezza &lt; questo valore ⇒ `tablet` se già ≥ phone; altrimenti `desktop`. */
-export const VIEWPORT_TABLET_MAX_PX = 1024;
+export const VIEWPORT_TABLET_MAX_PX = 1000;
 
 export type ViewportClass = 'phone' | 'tablet' | 'desktop';
 
 export type LayoutEffective = 'compact' | 'comfortable';
 
-/** Sempre da larghezza finestra: &lt; 768px compatto, altrimenti comodo. */
+/** Sempre da larghezza finestra: &lt; 1000px compatto, altrimenti comodo. */
 export function computeEffectiveLayoutFromWidth(innerWidth: number): LayoutEffective {
   return innerWidth < LAYOUT_BREAKPOINT_PX ? 'compact' : 'comfortable';
 }

@@ -4,6 +4,13 @@ if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual';
 }
 
+// Blocca orientamento orizzontale su mobile (PWA + browser supportati)
+try {
+  if ('orientation' in screen && 'lock' in (screen as any).orientation) {
+    (screen as any).orientation.lock('portrait').catch(() => {});
+  }
+} catch { /* orientamento non supportato */ }
+
 // Applica no-motion subito se salvato — prima del primo render
 try {
   if (localStorage.getItem('flow-animations') === 'off') {

@@ -830,8 +830,19 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
 
   return (
     <div className="w-full min-w-0 font-sans">
+      {mode === 'planning' && (
+        <style>{`
+          [data-theme="dark"][data-toolbar-mode="planning"] button[class*="uppercase"][class*="tracking-wider"] {
+            border: 1.5px solid rgba(34, 211, 238, 0.65) !important;
+          }
+          [data-table-container] {
+            border-color: rgba(34, 211, 238, 0.45) !important;
+          }
+        `}</style>
+      )}
       {/* ── Toolbar ── */}
-      <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 mb-3 w-full min-w-0">
+      <div className="ui-toolbar-page-band ui-toolbar-page-band-presences !h-auto !max-h-none min-h-0 mb-3 w-full min-w-0"
+        data-toolbar-mode={mode}>
         <div className="ui-toolbar-row-tight flex min-w-0 flex-1 flex-wrap items-center gap-1.5 sm:gap-2">
           <div className="flex shrink-0 items-center gap-1">
             <button type="button" onClick={prevWeek} aria-label="Settimana precedente"
@@ -1215,6 +1226,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       <div
         className="hidden md:block w-full min-w-0 overflow-auto rounded-2xl border border-white/10"
         style={{ maxHeight: 'calc(100dvh - 12rem)' }}
+        data-table-container
       >
         <table
           className={`table-fixed border-collapse ${isPeriodView ? '' : 'w-full'}`}

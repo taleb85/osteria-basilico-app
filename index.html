@@ -123,8 +123,11 @@
       (function () {
         try {
           var w = typeof window.innerWidth === 'number' ? window.innerWidth : 800;
-          var eff = w < 768 ? 'compact' : 'comfortable';
-          var vc = w < 640 ? 'phone' : w < 1024 ? 'tablet' : 'desktop';
+          var h = typeof window.innerHeight === 'number' ? window.innerHeight : 600;
+          /* Usa sempre la dimensione minore (larghezza da verticale) anche in orizzontale */
+          var effW = Math.min(w, h);
+          var eff = effW < 1000 ? 'compact' : 'comfortable';
+          var vc = effW < 640 ? 'phone' : effW < 1000 ? 'tablet' : 'desktop';
           document.documentElement.setAttribute('data-layout-preset', 'auto');
           document.documentElement.setAttribute('data-layout-effective', eff);
           document.documentElement.setAttribute('data-viewport-class', vc);
