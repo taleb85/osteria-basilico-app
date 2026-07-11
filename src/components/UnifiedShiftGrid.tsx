@@ -179,7 +179,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   } = useApp();
   const locale = getDateLocale(effectiveLanguage) ?? it;
   const today = new Date();
-  const canEdit = currentUser ? canEditTeamShifts(currentUser) : false;
+  const canEdit = currentUser ? canEditTeamShifts(currentUser) && mode === 'planning' : false;
   const canPublish = currentUser ? canPublishScheduleDrafts(currentUser) : false;
   const canApprove = currentUser ? canApproveShiftActions(currentUser) : false;
   const isMgmt = currentUser ? isManagementRole(currentUser.role) : false;
@@ -309,6 +309,24 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const [selectedShiftIds, setSelectedShiftIds] = useState<Set<string>>(new Set());
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [bulkEditStatus, setBulkEditStatus] = useState<string>('');
+
+  // ── Drag & Drop ──
+  // Usiamo una ref per draggedShiftId per evitare stale closure nei drag handler
+  const draggedShiftIdRef = useRef<string | null>(null);
+  const [draggedShiftId, setDraggedShiftId] = useState<string | null>(null);
+  const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
+  const [dragCopyMode, setDragCopyMode] = useState(false);
+  // Conferma dopo il drop: chiede se spostare o copiare
+  const [dropConfirm, setDropConfirm] = useState<{
+    shiftId: string;
+    targetUserId: string;
+    targetDate: string;
+    targetLabel: string;
+    targetSlot: 'lunch' | 'evening';
+    targetTimeRange: string;
+    presets: { start: string; end: string }[];
+    selectedPresetIdx: number;
+  } | null>(null);
 
   // ── Template state ──
   const [templatesList, setTemplatesList] = useState<string[]>([]);
@@ -692,6 +710,90 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     setDrawerOpen(true);
   }, [users, weekPunchRecords, weekShifts]);
 
+  // ── Drag & Drop handlers ──
+  const handleDragStart = useCallback((e: React.DragEvent, shiftId: string) => {
+    e.dataTransfer.setData('text/plain', shiftId);
+    e.dataTransfer.effectAllowed = 'move';
+    draggedShiftIdRef.current = shiftId;
+    setDraggedShiftId(shiftId);
+  }, []);
+
+  const handleDropOnCell = useCallback(async (shiftId: string, targetUserId: string, targetDate: string, targetSlot?: 'lunch' | 'evening', presetStart?: string, presetEnd?: string) => {
+    draggedShiftIdRef.current = null;
+    setDraggedShiftId(null);
+    setDropTargetKey(null);
+    setDragCopyMode(false);
+    try {
+      const updates: Record<string, string> = { user_id: targetUserId, date: targetDate };
+      if (presetStart && presetEnd) {
+        updates.start_time = presetStart;
+        updates.end_time = presetEnd;
+      }
+      await updateShift(shiftId, updates);
+      showSuccess(t.shift_updated ?? 'Turno spostato.');
+    } catch { showError(t.error_generic ?? 'Errore.'); }
+  }, [updateShift, showSuccess, showError, t]);
+
+  const handleDropCopyOnCell = useCallback(async (shiftId: string, targetUserId: string, targetDate: string, targetSlot?: 'lunch' | 'evening', presetStart?: string, presetEnd?: string) => {
+    draggedShiftIdRef.current = null;
+    setDraggedShiftId(null);
+    setDropTargetKey(null);
+    setDragCopyMode(false);
+    try {
+      const original = allShifts.find(s => s.id === shiftId);
+      if (!original) return;
+      await addShift({
+        user_id: targetUserId, date: targetDate,
+        start_time: presetStart ?? original.start_time,
+        end_time: presetEnd ?? original.end_time,
+        type: original.type, approval_status: 'draft' as const,
+        deduct_break: original.deduct_break ?? true,
+        department: users.find(u => u.id === targetUserId)?.department ?? original.department,
+      });
+      showSuccess(t.shift_copied ?? 'Turno copiato.');
+    } catch { showError(t.error_generic ?? 'Errore.'); }
+  }, [allShifts, addShift, users, showSuccess, showError, t]);
+
+  const handleDragOver = useCallback((e: React.DragEvent, cellKey: string) => {
+    if (!draggedShiftIdRef.current) return;
+    e.preventDefault();
+    setDropTargetKey(cellKey);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setDropTargetKey(null);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, targetUserId: string, targetDate: string, targetSlot?: 'lunch' | 'evening') => {
+    e.preventDefault();
+    const shiftId = draggedShiftIdRef.current;
+    if (!shiftId) return;
+    draggedShiftIdRef.current = null;
+    setDraggedShiftId(null);
+    setDropTargetKey(null);
+    setDragCopyMode(false);
+    // Evita drop sulla stessa cella
+    const origShift = allShifts.find(s => s.id === shiftId);
+    if (origShift && origShift.user_id === targetUserId && origShift.date === targetDate) {
+      // Se stesso giorno/utente, controlla se è su slot diverso
+      const currentSlot = getShiftSlotFromStartTime(origShift.start_time ?? '10:00');
+      if (!targetSlot || currentSlot === targetSlot) return;
+    }
+    // Mostra conferma per spostare o copiare
+    const targetUser = users.find(u => u.id === targetUserId);
+    const slot = targetSlot ?? getShiftSlotFromStartTime(origShift?.start_time ?? '10:00');
+    const slotLabel = slot === 'lunch' ? 'pranzo' : 'sera';
+    const presets = loadShiftSlotPresets(slot);
+    const origStart = origShift?.start_time?.slice(0, 5);
+    const origEnd = origShift?.end_time?.slice(0, 5);
+    const selectedPresetIdx = presets.findIndex(p => p.start === origStart && p.end === origEnd);
+    const effectiveIdx = selectedPresetIdx >= 0 ? selectedPresetIdx : 0;
+    const pick = presets[effectiveIdx] ?? (slot === 'lunch' ? { start: '10:00', end: '16:00' } : { start: '18:00', end: '23:00' });
+    const targetTimeRange = `${pick.start}–${pick.end}`;
+    const targetLabel = targetUser ? `${targetUser.first_name} — ${targetDate} (${slotLabel})` : `${targetDate} (${slotLabel})`;
+    setDropConfirm({ shiftId, targetUserId, targetDate, targetLabel, targetSlot: slot, targetTimeRange, presets, selectedPresetIdx: effectiveIdx });
+  }, [handleDropOnCell, handleDropCopyOnCell, allShifts, users]);
+
   const renderExtraShiftRows = (extraGroups: DayShiftGroup[], layout: 'desktop' | 'mobile') => {
     if (extraGroups.length === 0) return null;
     const stacked = layout === 'desktop';
@@ -706,7 +808,10 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
           title={title}
           aria-label={title}
           onClick={() => handleOpenDrawer(ex.shift, { isExtra: true })}
-          onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); void handleDeleteShift(ex.shift); }}
+          onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          draggable={canEdit}
+          onDragStart={(e) => handleDragStart(e, ex.shift.id)}
+          onDragEnd={() => { draggedShiftIdRef.current = null; setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
           className={
             stacked
               ? 'w-full flex shrink-0 items-center justify-center gap-0.5 rounded-md border-2 border-dashed border-accent bg-accent px-1 text-[10px] font-extrabold tabular-nums leading-none text-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] hover:brightness-110 transition-all'
@@ -757,9 +862,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       return (
         <div className="flex flex-col gap-1">
           <button type="button" onClick={() => handleOpenDrawer(g.shift)} title={display.title}
-            onContextMenu={(e) => { e.preventDefault(); void handleDeleteShift(g.shift); }}
-            className={`w-full text-left rounded-lg border-l-4 ${borderColor} ${bgColor} ${glow} px-2.5 py-2 hover:brightness-125 transition-all active:scale-[0.98]`}>
-            <div className="flex items-center justify-between gap-1">
+            onContextMenu={(e) => { e.preventDefault(); }}
+            draggable={canEdit}
+            onDragStart={(e) => handleDragStart(e, g.shift.id)}
+            onDragEnd={() => { draggedShiftIdRef.current = null; setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
+              className={`w-full text-left rounded-lg border-l-4 ${borderColor} ${bgColor} ${glow} px-2.5 py-2 hover:brightness-125 transition-all active:scale-[0.98]`}>
+              <div className="flex items-center justify-between gap-1">
               {timeLabel}
               <div className="flex items-center gap-1 shrink-0">
                 {isFrozen(g.shift) ? <Lock className="h-3 w-3 text-amber-400" /> : isApproved ? <Lock className="h-3 w-3 text-emerald-400" /> : null}
@@ -791,7 +899,10 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
             type="button"
             title={display.title ?? formatShiftTimeRangeFull(g.shift.start_time, g.shift.end_time)}
             onClick={() => handleOpenDrawer(g.shift)}
-            onContextMenu={(e) => { e.preventDefault(); void handleDeleteShift(g.shift); }}
+            onContextMenu={(e) => { e.preventDefault(); }}
+            draggable={canEdit}
+            onDragStart={(e) => handleDragStart(e, g.shift.id)}
+            onDragEnd={() => { draggedShiftIdRef.current = null; setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
             className={`w-full flex items-center justify-center rounded-md border-l-[3px] ${accent} bg-white/[0.07] hover:bg-white/[0.12] transition-colors ${g.isAbsent ? 'opacity-70' : ''} ${isDraft ? 'border-dashed' : ''}`}
             style={{ height: mainRowHeight, minHeight: mainRowHeight }}
           >
@@ -804,7 +915,10 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     return (
       <div className={`flex w-full min-w-0 flex-col ${hasExtras ? 'gap-0.5 justify-center' : ''}`}>
         <button type="button" onClick={() => handleOpenDrawer(g.shift, { isExtra: false })} title={display.title}
-          onContextMenu={(e) => { e.preventDefault(); void handleDeleteShift(g.shift); }}
+          onContextMenu={(e) => { e.preventDefault(); }}
+          draggable={canEdit}
+          onDragStart={(e) => handleDragStart(e, g.shift.id)}
+          onDragEnd={() => { draggedShiftIdRef.current = null; setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
           className={`relative w-full min-w-0 text-left rounded-lg border-2 ${borderColor} ${bgColor} ${glow} hover:brightness-125 transition-all ${isDraft ? 'border-dashed' : ''} px-0.5 py-0.5`}>
           <input type="checkbox" checked={selectedShiftIds.has(g.shift.id)} onChange={() => setSelectedShiftIds(prev => { const n = new Set(prev); n.has(g.shift.id) ? n.delete(g.shift.id) : n.add(g.shift.id); return n; })}
             className={`absolute left-0.5 top-0.5 z-10 w-3 h-3 rounded border-white/30 accent-accent transition-opacity ${selectedShiftIds.has(g.shift.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} onClick={e => e.stopPropagation()} />
@@ -1160,7 +1274,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
 
               <div className="space-y-2">
                 {!userHasShifts ? (
-                  <div className="py-4 text-center border-2 border-dashed border-white/10 rounded-xl">
+                  <div
+                    className={`py-4 text-center border-2 border-dashed border-white/10 rounded-xl ${dropTargetKey === `${user.id}_empty` ? 'ring-2 ring-inset ring-amber-400/50' : ''}`}
+                    onDragOver={(e) => handleDragOver(e, `${user.id}_empty`)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => { const firstDay = weekDateStrings[0]; if (firstDay) handleDrop(e, user.id, firstDay); }}
+                  >
                     <p className="text-xs text-white/50 italic">{t.no_shifts_this_week ?? 'Nessun turno'}</p>
                   </div>
                 ) : (
@@ -1171,7 +1290,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
 
                     const todayDate = isToday(day);
                     return (
-                      <div key={dateStr} className={`flex items-start gap-3 p-2.5 rounded-xl ${todayDate ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-white/[0.04]'}`}>
+                      <div key={dateStr}
+                        className={`flex items-start gap-3 p-2.5 rounded-xl ${todayDate ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-white/[0.04]'} ${dropTargetKey === `${user.id}_${dateStr}` ? 'ring-2 ring-inset ring-amber-400/50' : ''}`}
+                        onDragOver={(e) => handleDragOver(e, `${user.id}_${dateStr}`)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, user.id, dateStr)}
+                      >
                         <div className="w-10 shrink-0 text-center pt-0.5">
                           <div className={`text-[10px] font-bold uppercase ${todayDate ? 'text-accent' : 'text-white/50'}`}>
                             {format(day, 'EEE', { locale })}
@@ -1294,9 +1418,17 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                     const weekStripe = isPeriodView && Math.floor(dIdx / 7) % 2 === 1;
                     const weekEnd = isPeriodView && day.getDay() === 0;
                     return (
-                      <td key={dIdx} className={`px-0.5 py-0.5 border-b border-white/5 align-top group min-w-0 ${isToday(day) ? 'bg-accent/[0.04]' : weekStripe ? 'bg-white/[0.02]' : ''} ${weekEnd ? 'border-r-2 border-r-white/15' : ''}`}>
+                      <td key={dIdx}
+                        className={`px-0.5 py-0.5 border-b border-white/5 align-top group min-w-0 ${isToday(day) ? 'bg-accent/[0.04]' : weekStripe ? 'bg-white/[0.02]' : ''} ${weekEnd ? 'border-r-2 border-r-white/15' : ''}`}
+                      >
                         {groups.length === 0 ? (
-                          <div className="flex items-center justify-center h-full" style={{ minHeight: slotCellHeight }}>
+                          <div
+                            className={`flex items-center justify-center h-full ${dropTargetKey === `${user.id}_${dateStr}_lunch` ? 'ring-2 ring-inset ring-amber-400/50 rounded' : ''}`}
+                            style={{ minHeight: slotCellHeight }}
+                            onDragOver={(e) => handleDragOver(e, `${user.id}_${dateStr}_lunch`)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(e) => handleDrop(e, user.id, dateStr, 'lunch')}
+                          >
                             {canEdit ? (
                               <button type="button" onClick={() => openCreateShiftModal(user.id, dateStr)}
                                 className={`rounded-lg border border-dashed border-white/20 flex items-center justify-center text-[10px] font-bold text-white/30 hover:text-white/60 hover:border-white/40 transition-all opacity-0 group-hover:opacity-100 ${isPeriodView ? 'w-7 h-7' : 'px-3 py-2'}`}>
@@ -1326,14 +1458,26 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                             );
                             return (
                               <div className={`flex flex-col ${isPeriodView ? 'gap-px' : ''}`} style={{ height: slotCellHeight }}>
-                                <div className="flex items-center" style={{ height: '50%', ...(isPeriodView ? {} : { borderBottom: '1px solid rgba(255,255,255,0.10)', paddingLeft: '1px', paddingRight: '1px' }) }}>
+                                <div
+                                  className={`flex items-center ${dropTargetKey === `${user.id}_${dateStr}_lunch` ? 'ring-2 ring-inset ring-amber-400/50 rounded' : ''}`}
+                                  style={{ height: '50%', ...(isPeriodView ? {} : { borderBottom: '1px solid rgba(255,255,255,0.10)', paddingLeft: '1px', paddingRight: '1px' }) }}
+                                  onDragOver={(e) => handleDragOver(e, `${user.id}_${dateStr}_lunch`)}
+                                  onDragLeave={handleDragLeave}
+                                  onDrop={(e) => handleDrop(e, user.id, dateStr, 'lunch')}
+                                >
                                   {lunch ? (
                                     <div className="relative w-full min-w-0 overflow-visible">
                                       {renderGroupButton(lunch, 'desktop', compactGrid, extraLunchGroups)}
                                     </div>
                                   ) : emptySlot('lunch', t.add_shift ?? 'Aggiungi')}
                                 </div>
-                                <div className={`flex items-center ${isPeriodView ? 'border-t border-white/[0.08]' : ''}`} style={{ height: '50%', ...(isPeriodView ? {} : { paddingLeft: '1px', paddingRight: '1px' }) }}>
+                                <div
+                                  className={`flex items-center ${isPeriodView ? 'border-t border-white/[0.08]' : ''} ${dropTargetKey === `${user.id}_${dateStr}_evening` ? 'ring-2 ring-inset ring-amber-400/50' : ''}`}
+                                  style={{ height: '50%', ...(isPeriodView ? {} : { paddingLeft: '1px', paddingRight: '1px' }) }}
+                                  onDragOver={(e) => handleDragOver(e, `${user.id}_${dateStr}_evening`)}
+                                  onDragLeave={handleDragLeave}
+                                  onDrop={(e) => handleDrop(e, user.id, dateStr, 'evening')}
+                                >
                                   {evening ? (
                                     <div className="relative w-full min-w-0 overflow-visible">
                                       {renderGroupButton(evening, 'desktop', compactGrid, extraEveningGroups)}
@@ -1435,7 +1579,11 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">{t.status ?? 'Stato'}</span>
                     <span className={`text-[11px] font-bold uppercase tracking-wider ${isFrozen(selectedShift) ? 'text-amber-400' : selectedShift.approval_status === 'approved' ? 'text-emerald-400' : selectedShift.approval_status === 'confirmed' ? 'text-cyan-300' : 'text-white/70'}`}>
-                      {isFrozen(selectedShift) ? (t.wst_frozen_badge ?? 'Congelato') : selectedShift.approval_status}
+                      {isFrozen(selectedShift) ? (t.wst_frozen_badge ?? 'Congelato') : 
+                        selectedShift.approval_status === 'confirmed' ? (t.status_confirmed ?? 'Confermato') :
+                        selectedShift.approval_status === 'approved' ? (t.status_approved ?? 'Approvato') :
+                        selectedShift.approval_status === 'draft' ? (t.status_draft ?? 'Bozza') :
+                        selectedShift.approval_status}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -1471,13 +1619,13 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                   )}
                   {canEdit && !isShiftPayrollFrozen(selectedShift) && selectedShift.approval_status === 'confirmed' && (
                     <button type="button" onClick={() => handleFreezeShift(selectedShift)}
-                      className="flex items-center gap-1.5 rounded-lg bg-amber-600/20 px-3 py-2 text-[11px] font-bold text-amber-300 hover:bg-amber-600/30 transition-colors border border-transparent hover:border-amber-600/30">
+                      className="ml-auto flex items-center gap-1.5 rounded-lg bg-amber-600/20 px-3 py-2 text-[11px] font-bold text-amber-300 hover:bg-amber-600/30 transition-colors border border-transparent hover:border-amber-600/30">
                       <Lock className="h-3.5 w-3.5" />{t.wst_freeze_btn ?? 'Congela'}
                     </button>
                   )}
                   {canEdit && isShiftPayrollFrozen(selectedShift) && (
                     <button type="button" onClick={() => handleFreezeShift(selectedShift)}
-                      className="flex items-center gap-1.5 rounded-lg bg-accent/20 px-3 py-2 text-[11px] font-bold text-accent hover:bg-accent/30 transition-colors border border-transparent hover:border-accent/30">
+                      className="ml-auto flex items-center gap-1.5 rounded-lg bg-accent/20 px-3 py-2 text-[11px] font-bold text-accent hover:bg-accent/30 transition-colors border border-transparent hover:border-accent/30">
                       <Unlock className="h-3.5 w-3.5" />{t.wst_unfreeze_btn ?? 'Sblocca'}
                     </button>
                   )}
@@ -1633,6 +1781,75 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               <button type="button" onClick={handleCreateShift} disabled={saving}
                 className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-[11px] font-bold text-white hover:bg-accent-hover disabled:opacity-40 transition-all uppercase tracking-wider">
                 <Plus className="h-3.5 w-3.5 inline-block mr-1.5" />{t.create ?? 'Crea'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Drop confirm modal ── */}
+      {dropConfirm && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center" onClick={() => setDropConfirm(null)}>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="relative w-full max-w-xs rounded-2xl border border-white/15 p-5 shadow-2xl z-10 bg-white/[0.04]" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }} onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-bold text-white mb-2">{t.drop_confirm_title ?? 'Turno trascinato'}</h3>
+            <p className="text-[12px] text-white/60 mb-3">
+              {t.drop_confirm_desc ?? 'Dove vuoi sistemarlo?'}
+              <br />
+              <span className="text-white/80 font-semibold">{dropConfirm.targetLabel}</span>
+            </p>
+
+            {/* Preset selezionabili */}
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {dropConfirm.presets.map((p, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() =>
+                    setDropConfirm(prev =>
+                      prev ? { ...prev, selectedPresetIdx: i, targetTimeRange: `${p.start}–${p.end}` } : prev
+                    )
+                  }
+                  className={`rounded-lg px-2.5 py-1.5 text-[11px] font-bold tabular-nums transition-all ${
+                    i === dropConfirm.selectedPresetIdx
+                      ? 'ring-2 ring-accent/70 bg-accent/15 text-accent shadow-md'
+                      : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'
+                  }`}
+                >
+                  {p.start}–{p.end}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const p = dropConfirm.presets[dropConfirm.selectedPresetIdx];
+                  void handleDropOnCell(dropConfirm.shiftId, dropConfirm.targetUserId, dropConfirm.targetDate, dropConfirm.targetSlot, p.start + ':00', p.end + ':00');
+                  setDropConfirm(null);
+                }}
+                className="flex-1 rounded-lg bg-amber-600/20 px-4 py-2.5 text-[11px] font-bold text-amber-300 hover:bg-amber-600/30 transition-colors uppercase tracking-wider"
+              >
+                {t.drop_move ?? 'Sposta'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const p = dropConfirm.presets[dropConfirm.selectedPresetIdx];
+                  void handleDropCopyOnCell(dropConfirm.shiftId, dropConfirm.targetUserId, dropConfirm.targetDate, dropConfirm.targetSlot, p.start + ':00', p.end + ':00');
+                  setDropConfirm(null);
+                }}
+                className="flex-1 rounded-lg bg-blue-600/20 px-4 py-2.5 text-[11px] font-bold text-blue-300 hover:bg-blue-600/30 transition-colors uppercase tracking-wider"
+              >
+                {t.drop_copy ?? 'Copia'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDropConfirm(null)}
+                className="rounded-lg bg-white/10 px-3 py-2.5 text-[11px] font-bold text-white/50 hover:text-white transition-colors"
+              >
+                <X className="h-4 w-4" />
               </button>
             </div>
           </div>

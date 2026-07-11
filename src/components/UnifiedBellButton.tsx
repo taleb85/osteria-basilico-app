@@ -112,10 +112,10 @@ export function UnifiedBellButton({
             ? `Errore caricamento notifiche`
             : `Campanella notifiche${unreadCount > 0 ? ` con ${unreadCount} nuovi messaggi` : ''}`
         }
-        className={`relative flex h-9 w-14 sm:h-10 sm:w-16 shrink-0 items-center justify-center rounded-lg transition-all duration-200 touch-manipulation ${
+        className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all duration-200 touch-manipulation liquid-glass text-accent ${
           isDisabled
             ? 'opacity-50 cursor-not-allowed'
-            : 'hover:bg-white/15 active:scale-95'
+            : 'hover:scale-105 active:scale-95'
         }`}
       >
         <svg
@@ -125,11 +125,7 @@ export function UnifiedBellButton({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
-            error
-              ? 'text-white/40'
-              : 'text-white/85'
-          }`}
+          className="h-3.5 w-3.5"
         >
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -137,7 +133,7 @@ export function UnifiedBellButton({
 
         {/* Badge numero notifiche non lette - Rosso acceso con numero bianco */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-black text-white" style={{ background: 'linear-gradient(135deg,#f87171,#dc2626)', boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.18), 0 2px 8px rgba(220,38,38,0.55)', border: '1.5px solid rgba(255,255,255,0.55)' }}>
+          <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-black text-white" style={{ background: 'linear-gradient(135deg,#f87171,#dc2626)', boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.18), 0 2px 8px rgba(220,38,38,0.55)', border: '1.5px solid rgba(255,255,255,0.55)' }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}

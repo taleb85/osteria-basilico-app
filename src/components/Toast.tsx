@@ -1,51 +1,62 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
+import { CheckCircle, AlertTriangle, Info, X } from 'lucide-react';
 interface ToastProps {
   message: string;
   type?: 'error' | 'success' | 'info';
   onClose: () => void;
-  /** ms visibili (default 3.5s) */
-  duration?: number;
 }
 
 
 /**
- * Banner globale in basso al centro: successo blu FLOW, errore rosso.
- * Posizione ~bottom-6 + safe area (sopra home indicator iOS).
+ * Banner globale sul lato destro dello schermo.
+ * Scompare automaticamente dopo 10 secondi.
  */
-export default function Toast({ message, type = 'error', onClose, duration = 6000 }: ToastProps) {
+export default function Toast({ message, type = 'error', onClose }: ToastProps) {
   useEffect(() => {
-    const t = setTimeout(onClose, duration);
+    const t = setTimeout(onClose, 10000);
     return () => clearTimeout(t);
-  }, [onClose, duration]);
+  }, [onClose]);
 
   const isSuccess = type === 'success';
   const isError = type === 'error';
 
-  const accentColor = isSuccess ? '#22c55e' : isError ? '#ef4444' : '#94a3b8';
+  const accentColor = isSuccess ? '#22c55e' : isError ? '#ef4444' : '#3b82f6';
+  const Icon = isSuccess ? CheckCircle : isError ? AlertTriangle : Info;
 
   const el = (
     <motion.div
       role="status"
       aria-live="polite"
-      initial={{ y: -16, opacity: 0, scale: 0.95 }}
-      animate={{ y: 0, opacity: 1, scale: 1 }}
-      exit={{ y: -10, opacity: 0, scale: 0.96 }}
-      transition={{ duration: 0.24, ease: [0.25, 0.1, 0.25, 1] }}
-      className="fixed left-1/2 z-[400] flex max-w-[min(88vw,26rem)] -translate-x-1/2 items-center gap-2.5 rounded-full px-4 py-2.5"
-      style={{
-        top: 'calc(env(safe-area-inset-top, 0px) + 16px)',
-        background: 'rgba(24,24,30,0.96)',
-        border: `1px solid ${accentColor}66`,
-        boxShadow: `0 8px 32px rgba(0,0,0,0.50), 0 0 0 1px rgba(255,255,255,0.06)`,
-      }}
+      initial={{ x: 40, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: 40, opacity: 0 }}
+      transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+      className="fixed right-4 z-[99999]"
+      style={{ top: 'calc(env(safe-area-inset-top, 0px) + 60px)' }}
     >
-      <span
-        className="shrink-0 h-2 w-2 rounded-full"
-        style={{ background: accentColor, boxShadow: `0 0 8px ${accentColor}cc` }}
-      />
-      <p className="min-w-0 flex-1 text-left text-[13px] font-semibold leading-snug text-white break-words">{message}</p>
+      <div
+        className="flex max-w-[min(80vw,18rem)] items-center gap-1.5 rounded-lg px-2.5 py-1.5 backdrop-blur-xl"
+        style={{
+          background: 'rgba(12,14,18,1)',
+          border: `1.5px solid ${accentColor}88`,
+          boxShadow: `0 24px 80px rgba(0,0,0,0.70), 0 0 0 1px rgba(255,255,255,0.08), 0 0 40px ${accentColor}33, 0 4px 16px rgba(0,0,0,0.40)`,
+        }}
+      >
+        <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: accentColor }} />
+        <p className="min-w-0 flex-1 text-left text-[12px] font-semibold leading-snug text-white/95 break-words">
+          {message}
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="shrink-0 rounded p-0.5 text-white/40 hover:bg-white/10 hover:text-white/80 transition-colors"
+          aria-label="Chiudi notifica"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      </div>
     </motion.div>
   );
 
