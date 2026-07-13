@@ -44,7 +44,17 @@ export function loadPeriodConfig(): PeriodConfig {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(startStr)) return { startDate: autoDefault.startDate, numWeeks };
     const testDate = parseISO(startStr);
     if (Number.isNaN(testDate.getTime())) return { startDate: autoDefault.startDate, numWeeks };
-    return { startDate: startStr, numWeeks };
+
+    // Se il periodo salvato non contiene la data odierna, resetta al periodo corrente
+    const savedConfig: PeriodConfig = { startDate: startStr, numWeeks };
+    const savedStart = getPeriodStartDate(savedConfig);
+    const savedEnd = getPeriodEndDate(savedConfig);
+    const today = startOfDay(new Date());
+    if (today < savedStart || today > savedEnd) {
+      return autoDefault;
+    }
+
+    return savedConfig;
   } catch {
     try {
       localStorage.removeItem(PERIOD_STORAGE_KEY);

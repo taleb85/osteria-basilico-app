@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 
 import {
   format, startOfWeek, endOfWeek, isSameWeek,
@@ -535,7 +535,33 @@ export default function ManagementMobileTimesheet({
   const dayLetters = getDayLetters(locale);
 
   const [navMode, _setNavMode] = useState<NavMode>('period');
-  const [navOffset, setNavOffset] = useState(0);
+  const [navOffset, setNavOffset] = useState(() => {
+    const saved = sessionStorage.getItem('osteria_staff_nav_offset');
+    return saved ? Number(saved) : 0;
+  });
+
+  // Persiste l'offset in sessionStorage per sincronizzazione con Statistics
+  useEffect(() => {
+    sessionStorage.setItem('osteria_staff_nav_offset', String(navOffset));
+  }, [navOffset]);
+
+  // Invia evento per sincronizzare in tempo reale con Statistics
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('osteria-staff-nav-offset', { detail: navOffset }));
+  }, [navOffset]);
+
+  // Ascolta cambiamenti di periodo da Statistics
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<number>).detail;
+      if (typeof detail === 'number') {
+        setNavOffset(detail);
+        sessionStorage.setItem('osteria_staff_nav_offset', String(detail));
+      }
+    };
+    window.addEventListener('osteria-staff-nav-offset', handler);
+    return () => window.removeEventListener('osteria-staff-nav-offset', handler);
+  }, []);
   const [tsView, setTsView] = useState<'presence' | 'stats'>('presence');
   const embedded = variant === 'embedded';
 
@@ -655,22 +681,23 @@ export default function ManagementMobileTimesheet({
           )}
 
       {/* Barra navigazione periodo */}
-      <div className="flex items-center gap-2 mb-5 px-4">
-        <span className="h-9 inline-flex items-center px-3 rounded-2xl border border-white/30 text-white/70 text-[11px] font-black uppercase tracking-widest shrink-0">
-          {t.tab_period ?? 'Periodo'}
-        </span>
-        <div className="flex items-center border border-white/40 rounded-2xl overflow-hidden flex-1" style={{ background: 'transparent' }}>
+      <div className="flex items-center gap-1.5 sm:gap-2 mb-5 px-4">
+        <button type="button" onClick={() => setNavOffset(0)}
+          className="h-8 sm:h-9 inline-flex items-center px-2 sm:px-3 rounded-2xl border border-white/30 text-white/70 text-[10px] sm:text-[11px] font-black uppercase tracking-widest shrink-0 active:bg-white/10 transition-colors">
+          {t.today}
+        </button>
+        <div className="flex items-center border border-white/40 rounded-2xl overflow-hidden flex-1 min-w-0" style={{ background: 'transparent' }}>
           <button type="button" onClick={() => setNavOffset(o => o - 1)}
-            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-r border-white/20 active:bg-white/80">
-            <ChevronLeft className="h-4 w-4" />
+            className="flex items-center justify-center h-8 sm:h-9 w-8 sm:w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-r border-white/20 active:bg-white/80">
+            <ChevronLeft className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
           </button>
-          <div className="flex-1 flex items-center justify-center gap-1.5 px-2 min-w-0" style={{ color: '#ffffff' }}>
-            <Clock className="h-3 w-3 shrink-0" />
-            <span className="text-[11px] font-bold tabular-nums truncate" title={rangeLabel}>{rangeLabel}</span>
+          <div className="flex-1 flex items-center justify-center gap-1 px-1.5 sm:px-2 min-w-0" style={{ color: '#ffffff' }}>
+            <Clock className="h-2.5 sm:h-3 w-2.5 sm:w-3 shrink-0" />
+            <span className="text-[10px] sm:text-[11px] font-bold tabular-nums truncate" title={rangeLabel}>{rangeLabel}</span>
           </div>
           <button type="button" onClick={() => setNavOffset(o => o + 1)}
-            className="flex items-center justify-center h-9 w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-l border-white/20 active:bg-white/80">
-            <ChevronRight className="h-4 w-4" />
+            className="flex items-center justify-center h-8 sm:h-9 w-8 sm:w-9 text-white hover:bg-white/15 transition-colors shrink-0 border-l border-white/20 active:bg-white/80">
+            <ChevronRight className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
           </button>
         </div>
       </div>

@@ -378,28 +378,28 @@ export default function HolidayRequests() {
       </AnimatePresence>
 
       {/* ── Layout ────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 md:items-stretch flex-1">
+      <div className={`grid grid-cols-1 ${isAdmin ? 'md:grid-cols-3' : 'md:grid-cols-1 justify-items-center'} gap-6 md:gap-8 md:items-stretch flex-1`}>
 
-        {/* Left: calendar */}
-        <div className="md:col-span-1 space-y-4 h-full">
+        {/* Left: calendar + requests affiancati su desktop */}
+        <div className={`${isAdmin ? 'md:col-span-1' : 'w-full max-w-xl'} flex flex-col md:flex-row md:gap-4 h-full`}>
           {uiW('ferie.calendar') && (
-          <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 h-full">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-xl" style={{ color: '#ffffff' }}>
+          <div className="group w-full rounded-xl border px-2 py-2 text-left border-neutral-500 flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-semibold text-base" style={{ color: '#ffffff' }}>
                 {format(now, 'MMMM yyyy', { locale: it })}
               </h3>
-              <div className="flex items-center gap-3 text-xs" style={{ color: '#ffffff' }}>
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />{t.pending}</span>
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-cyan-500 inline-block" />{t.status_approved}</span>
+              <div className="flex items-center gap-1.5 text-[10px]" style={{ color: '#ffffff' }}>
+                <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />{t.pending}</span>
+                <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-cyan-500 inline-block" />{t.status_approved}</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-0.5 mb-1">
+            <div className="grid grid-cols-7 gap-px mb-0.5">
               {weekDays.map((d, i) => (
                 <div key={i} className="text-center text-xs font-semibold uppercase" style={{ color: 'rgba(255, 255, 255, 0.5)' }}>{d}</div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-px">
               {emptyDays.map((_, i) => <div key={`e${i}`} />)}
               {daysInMonth.map((day) => {
                 const status = getDayStatus(day);
@@ -450,9 +450,9 @@ export default function HolidayRequests() {
 
           {/* My requests list (staff only) */}
           {!isAdmin && uiW('ferie.list') && (
-            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 overflow-hidden">
-              <div className="px-5 py-4 border-b border-neutral-500">
-                <h3 className="text-white font-semibold text-xl">{t.request_holiday}</h3>
+            <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 overflow-hidden flex-1">
+              <div className="px-5 py-4">
+                <h3 className="text-white font-semibold text-xl">{(t as Record<string, string>).my_holiday_requests ?? 'Le mie richieste'}</h3>
               </div>
               <div className="divide-y divide-neutral-500/20 max-h-80 overflow-y-auto">
                 {myHolidays.length === 0 ? (

@@ -33,11 +33,7 @@ import {
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
 import { getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
-import {
-  isManagementRole,
-  isPurelyManagementRole,
-  canViewAllTeamHours,
-} from '../utils/permissions';
+import { isManagementRole, isPurelyManagementRole, canViewAllTeamHours } from '../utils/permissions';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
 import { isFeatureEnabled } from '../utils/enabledFeatures';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -68,9 +64,14 @@ function parseShiftLocalDate(ymd: string): Date {
 type WeekKey = string; // "2026-W10"
 type StatsTab = 'current_week' | 'period';
 
-function getInitialPeriodRange(): { start: string; end: string } {
-  const { startDate, endDate } = getPeriodDateRange(loadPeriodConfig());
-  return { start: startDate, end: endDate };
+function getInitialDatesFromOffset(): { start: string; end: string } {
+  const saved = sessionStorage.getItem('osteria_staff_nav_offset');
+  const offset = saved ? Number(saved) : 0;
+  let cfg: PeriodConfig = loadPeriodConfig();
+  if (offset > 0) for (let i = 0; i < offset; i++) cfg = nextPeriodConfig(cfg);
+  else if (offset < 0) for (let i = 0; i > offset; i--) cfg = prevPeriodConfig(cfg);
+  const r = getPeriodDateRange(cfg);
+  return { start: r.startDate, end: r.endDate };
 }
 
 export default function Statistics() {
@@ -104,16 +105,41 @@ export default function Statistics() {
   const isAdmin = currentUser ? isManagementRole(currentUser.role) : false;
   const lockedDept = (!isAdmin && currentUser?.department) ? currentUser.department : null;
 
-  const initialPeriod = getInitialPeriodRange();
   const [statsTab, setStatsTab] = useState<StatsTab>('period');
   /**
    * Offset di navigazione contestuale:
    * - tab 'current_week': offset in settimane (0 = settimana corrente)
    * - tab 'period': offset in periodi (0 = periodo salvato)
    */
-  const [navOffset, setNavOffset] = useState(0);
-  const [dateStart, setDateStart] = useState<string>(initialPeriod.start);
-  const [dateEnd, setDateEnd]     = useState<string>(initialPeriod.end);
+  const [navOffset, setNavOffset] = useState(() => {
+    const saved = sessionStorage.getItem('osteria_staff_nav_offset');
+    return saved ? Number(saved) : 0;
+  });
+
+  // Persiste l'offset in sessionStorage per condividerlo con Presenze
+  useEffect(() => {
+    sessionStorage.setItem('osteria_staff_nav_offset', String(navOffset));
+  }, [navOffset]);
+
+  // Sincronizza l'offset con la navigazione dalla scheda Presenze (StaffPersonalDashboard)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<number>).detail;
+      if (typeof detail === 'number') {
+        setNavOffset(detail);
+        sessionStorage.setItem('osteria_staff_nav_offset', String(detail));
+      }
+    };
+    window.addEventListener('osteria-staff-nav-offset', handler);
+    return () => window.removeEventListener('osteria-staff-nav-offset', handler);
+  }, []);
+
+  // Quando l'offset cambia in Statistiche, aggiorna anche la scheda Presenze
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('osteria-staff-nav-offset', { detail: navOffset }));
+  }, [navOffset]);
+  const [dateStart, setDateStart] = useState<string>(() => getInitialDatesFromOffset().start);
+  const [dateEnd, setDateEnd]     = useState<string>(() => getInitialDatesFromOffset().end);
   const [deptFilter, setDeptFilter] = useState<string>(() => currentUser?.department ?? lockedDept ?? 'all');
   const [showDeptMenu, setShowDeptMenu] = useState(false);
 
@@ -465,9 +491,10 @@ export default function Statistics() {
                 <div className="ui-toolbar-row-tight min-w-0 flex-1 md:gap-2">
                   {/* ── MOBILE: stile semplificato (PERIODO pill + ← date →) ── */}
                   <div className="flex sm:hidden shrink-0 flex-nowrap items-center gap-2">
-                    <span className="h-9 inline-flex items-center px-3 rounded-2xl bg-white/20 text-white text-xs font-extrabold uppercase tracking-wider shrink-0 shadow-sm">
-                      {statsTab === 'current_week' ? (t.ts_period_week ?? 'Settimana') : (t.tab_period ?? 'Periodo')}
-                    </span>
+                    <button type="button" onClick={() => { setStatsTab('period'); setNavOffset(0); }}
+                      className="h-9 inline-flex items-center px-3 rounded-2xl bg-white/20 text-white text-xs font-extrabold uppercase tracking-wider shrink-0 shadow-sm active:bg-white/30 transition-colors">
+                      {t.today}
+                    </button>
                     <div className="flex items-center rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.15)' }}>
                       <button
                         type="button"
