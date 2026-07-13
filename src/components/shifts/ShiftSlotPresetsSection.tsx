@@ -21,6 +21,7 @@ export function ShiftSlotPresetsSection({ startTime, endTime, onApply }: Props) 
   const [revision, setRevision] = useState(0);
   const [newStart, setNewStart] = useState('');
   const [newEnd, setNewEnd] = useState('');
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
   const slot = getShiftSlotFromStartTime(startTime);
   const presets = useMemo(() => loadShiftSlotPresets(slot), [slot, revision]);
@@ -124,16 +125,19 @@ export function ShiftSlotPresetsSection({ startTime, endTime, onApply }: Props) 
       ) : (
         <div className="flex flex-wrap gap-1.5">
           {presets.map(({ start, end }, i) => {
-            const isActive = startTime.slice(0, 5) === start && endTime.slice(0, 5) === end;
+            const isActive = selectedIdx === i;
             return (
               <button
                 key={`${start}-${end}-${i}`}
                 type="button"
-                onClick={() => onApply(start, end)}
-                className={`rounded-lg px-2.5 py-1 text-[11px] font-bold tabular-nums transition-colors ${
+                onClick={() => {
+                  setSelectedIdx(i);
+                  onApply(start, end);
+                }}
+                className={`rounded-lg px-2.5 py-1 text-[11px] font-bold tabular-nums transition-all duration-200 border ${
                   isActive
-                    ? 'bg-accent text-white shadow-sm'
-                    : 'bg-white/15 text-white hover:bg-white/20'
+                    ? 'border-[3px] border-white bg-white/15 text-white shadow-[0_0_8px_#fff]'
+                    : 'border-transparent bg-white/15 text-white hover:bg-white/20'
                 }`}
               >
                 {start}–{end}

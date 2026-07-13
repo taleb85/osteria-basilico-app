@@ -729,6 +729,13 @@ export default function HomePage({
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
           className="flex flex-col gap-5">
 
+          {/* ── Saluto ────────────────────────────────────────────────── */}
+          <div className="px-1">
+            <h1 className="text-xl font-extrabold tracking-tight leading-tight text-white">
+              {t.home_greeting.replace('{name}', currentUser.first_name)}
+            </h1>
+          </div>
+
           {/* ── Profilo amministratore (solo Admin) ───────────────────── */}
           {uiW('home_mgmt.admin_banner') && isPurelyManagementRole(currentUser.role) && (
             <div className="group w-full rounded-xl border px-3 py-2.5 text-left border-neutral-500 flex items-center gap-3">
