@@ -46,17 +46,6 @@ function escapeICalText(text: string): string {
   return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
 }
 
-export function downloadICalFeed(events: CalendarEvent[], filename = 'flow-turni.ics'): void {
-  const content = generateICalFeed(events);
-  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 export function buildShiftsCalendarEvents(
   shifts: { id: string; date: string; start_time: string; end_time: string; department?: string; notes?: string }[],
   employeeName: string

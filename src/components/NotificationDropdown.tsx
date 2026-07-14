@@ -3,7 +3,7 @@ import { Bell, Mail, MessageCircle, X, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { it, enUS, es, fr, type Locale } from 'date-fns/locale';
 import { Message } from '../hooks/useMessages';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 
 const LOCALE_MAP: Record<string, Locale> = { it, en: enUS, es, fr };
@@ -27,7 +27,7 @@ export function NotificationDropdown({
   isOpen,
   onClose,
 }: NotificationDropdownProps) {
-  const { effectiveLanguage } = useApp();
+  const { effectiveLanguage } = useAppUser();
   const t = useT();
   const dateLocale = LOCALE_MAP[effectiveLanguage ?? 'it'] ?? it;
   const dropdownRef = useRef<HTMLDivElement>(null);

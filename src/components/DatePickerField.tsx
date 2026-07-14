@@ -12,7 +12,7 @@ import { format } from 'date-fns';
 import { DayPicker, type Matcher } from 'react-day-picker';
 import { Calendar, ChevronDown } from 'lucide-react';
 import { it } from 'date-fns/locale';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { getDateLocale } from '../utils/translations';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
@@ -60,7 +60,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
   },
   ref
 ) {
-  const { effectiveLanguage } = useApp();
+  const { effectiveLanguage } = useAppUser();
   const t = useT();
   const tv = t as Record<string, string>;
   const locale = getDateLocale(effectiveLanguage) ?? it;

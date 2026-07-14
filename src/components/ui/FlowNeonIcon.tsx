@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { motion, type Transition } from 'framer-motion';
 import FlowLogoSvg from '../FlowLogoSvg';
 
@@ -12,7 +13,7 @@ const C0 = '#0033CC';  // blu navy — top-left icona
 const C1 = '#0055FF';  // blu vivace — centro icona
 const C2 = '#00DDFF';  // cyan brillante — bottom-right icona
 
-export function FlowNeonIcon({
+export const FlowNeonIcon = memo(function FlowNeonIcon({
   size = 112,
   progress = 1,
   transition = { duration: 1.5, ease: 'easeOut' },
@@ -111,4 +112,4 @@ export function FlowNeonIcon({
       </div>
     </div>
   );
-}
+});

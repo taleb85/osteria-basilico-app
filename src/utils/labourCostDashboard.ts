@@ -144,6 +144,4 @@ export function computeLabourCostDashboard(cfg: CostConfig): LabourCostSummary {
   return summary;
 }
 
-export function formatCurrency(amount: number, currency = 'EUR'): string {
-  return new Intl.NumberFormat('it-IT', { style: 'currency', currency, maximumFractionDigits: 2 }).format(amount);
-}
+

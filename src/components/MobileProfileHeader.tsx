@@ -47,7 +47,7 @@ export default function MobileProfileHeader({
     currentUser,
     effectiveLanguage,
     isSessionElevated,
-  } = useApp();
+  } = useAppUser();
 
   // Animazioni on/off — persiste in localStorage
   const [animationsOn, _setAnimationsOn] = useState<boolean>(() => {

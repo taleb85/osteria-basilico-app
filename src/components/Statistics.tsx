@@ -19,7 +19,10 @@ import {
   eachDayOfInterval,
 } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppData } from '../context/appSliceContexts';
+import { useAppConfig } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { getDateLocale, formatTrans } from '../utils/translations';
 import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule';
@@ -75,25 +78,20 @@ function getInitialDatesFromOffset(): { start: string; end: string } {
 }
 
 export default function Statistics() {
-  const {
-    users,
-    shifts,
-    currentUser,
-    effectiveLanguage,
-    breakRules,
-    featureFlags,
-    punchRecords,
-    showSuccess,
-    showError,
-    departmentsRevision,
-  } = useApp();
+  const { users, currentUser, effectiveLanguage } = useAppUser();
+  const { shifts, punchRecords } = useAppData();
+  const { breakRules, featureFlags, departmentsRevision } = useAppConfig();
+  const { showSuccess, showError } = useAppOverlay();
   const t = useT();
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
     [featureFlags]
   );
   /** Vista gestione team: ruolo gestionale, `view_stats` e (admin o `can_view_total_hours`). */
-  const isManagementRoleUser = currentUser ? isManagementRole(currentUser.role) : false;
+  const isManagementRoleUser = useMemo(
+    () => currentUser ? isManagementRole(currentUser.role) : false,
+    [currentUser?.role]
+  );
   const showManagementStatsChrome =
     currentUser &&
     isManagementRoleUser &&
@@ -102,7 +100,10 @@ export default function Statistics() {
 
   /** Ruoli gestionali (admin/manager/assistant_manager/capo): filtro libero.
    *  Staff operativo: vincolato al reparto del proprio profilo. */
-  const isAdmin = currentUser ? isManagementRole(currentUser.role) : false;
+  const isAdmin = useMemo(
+    () => currentUser ? isManagementRole(currentUser.role) : false,
+    [currentUser?.role]
+  );
   const lockedDept = (!isAdmin && currentUser?.department) ? currentUser.department : null;
 
   const [statsTab, setStatsTab] = useState<StatsTab>('period');

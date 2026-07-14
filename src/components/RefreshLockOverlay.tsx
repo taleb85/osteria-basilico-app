@@ -1,15 +1,16 @@
 import { useMemo, useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Smartphone, Fingerprint, Loader2 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { formatTrans } from '../utils/translations';
 import { supportsPinUnlockWebAuthn, hasPlatformBiometricAuthenticator } from '../utils/pinUnlockWebAuthn';
 import { PinPadModal } from './ui/PinPadModal';
 
 export default function RefreshLockOverlay() {
+  const { currentUser } = useAppUser();
   const {
-    currentUser,
     unlockAfterRefresh,
     unlockAfterRefreshWithDevice,
     registerPinUnlockDevice,
@@ -18,7 +19,7 @@ export default function RefreshLockOverlay() {
     pendingOrderIds,
     pendingPublishWeekStart,
     showSuccess,
-  } = useApp();
+  } = useAppOverlay();
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

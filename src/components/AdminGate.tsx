@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { PATH_PROFILO } from '../config/appPaths';
 
 interface AdminGateProps {
@@ -9,7 +10,8 @@ interface AdminGateProps {
 
 /** Protegge il pannello Admin: ruolo `admin`, `manager`, `assistant_manager` o sessione elevata via PIN secondario. */
 export default function AdminGate({ children }: AdminGateProps) {
-  const { currentUser, showError, isSessionElevated } = useApp();
+  const { currentUser, isSessionElevated } = useAppUser();
+  const { showError } = useAppOverlay();
   const location = useLocation();
 
   const isAllowed = useMemo(() => {

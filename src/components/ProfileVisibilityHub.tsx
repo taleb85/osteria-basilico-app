@@ -14,7 +14,9 @@ import {
   ChevronDown,
   User as UserIconLucide,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppConfig } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import type { User } from '../types';
 import type { EnabledFeatures } from '../utils/enabledFeatures';
@@ -128,11 +130,16 @@ type Props = {
 };
 
 export default function ProfileVisibilityHub({ initialSelectedUserId, onClose }: Props = {}) {
-  const { users, currentUser, updateUser, deleteUser, featureFlags, showSuccess, effectiveLanguage, isSessionElevated } = useApp();
+  const { users, currentUser, updateUser, deleteUser, effectiveLanguage, isSessionElevated } = useAppUser();
+  const { featureFlags } = useAppConfig();
+  const { showSuccess } = useAppOverlay();
   const t = useT();
   const tv = t as Record<string, string>;
 
-  const canUseHub = currentUser && (isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role);
+  const canUseHub = useMemo(
+    () => !!currentUser && (isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role),
+    [currentUser, isSessionElevated]
+  );
 
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'staff' | 'management'>('all');

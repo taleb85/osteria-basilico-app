@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { ChevronUp, ChevronDown, Edit2, Trash2, UserX, UserCheck, Download, Upload, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppData } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { User } from '../types';
 import { canUserEdit, isAdminOnly, canViewSuspended } from '../utils/permissions';
@@ -12,7 +13,8 @@ import EditStaffModal from './EditStaffModal';
 import CreateStaffModal from './CreateStaffModal';
 
 export default function AdminPanel() {
-  const { users, shifts, punchRecords, holidays, currentUser, updateUser, deleteUser, reorderUsers } = useApp();
+  const { users, currentUser, updateUser, deleteUser, reorderUsers } = useAppUser();
+  const { shifts, punchRecords, holidays } = useAppData();
   const t = useT();
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showCreateStaff, setShowCreateStaff] = useState(false);

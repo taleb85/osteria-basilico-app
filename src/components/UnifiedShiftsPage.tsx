@@ -3,11 +3,11 @@ import { motion } from 'framer-motion';
 import { LayoutGrid, Clock, Users } from 'lucide-react';
 import UnifiedShiftGrid, { type GridMode } from './UnifiedShiftGrid';
 import { useT } from '../hooks/useT';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/AppContext';
 
 export default function UnifiedShiftsPage() {
   const t = useT();
-  const { currentUser, isSessionElevated } = useApp();
+  const { currentUser, isSessionElevated } = useAppUser();
   const [gridMode, setGridMode] = useState<GridMode>('planning');
 
   if (!currentUser) return null;

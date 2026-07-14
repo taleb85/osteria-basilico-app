@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useMessages } from '../hooks/useMessages';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/AppContext';
 import { NotificationModal } from './NotificationModal';
 
 interface UnifiedBellButtonProps {
@@ -19,7 +19,7 @@ export function UnifiedBellButton({
   onMessageClick,
 }: UnifiedBellButtonProps) {
   const { triggerHapticFeedback } = useMultisensorialFeedback();
-  const { currentUser } = useApp();
+  const { currentUser } = useAppUser();
   const isAdmin = currentUser?.role === 'admin';
   const { messages, unreadCount, markAsRead, markAllAsRead, loadMessages, error, sendMessage, deleteMessage } = useMessages(userId, isAdmin);
 

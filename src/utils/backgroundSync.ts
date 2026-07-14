@@ -29,30 +29,4 @@ export async function registerOsteriaBackgroundSync(): Promise<boolean> {
 /** Coda workbox / sync tag @see scripts/vite.config.mjs runtimeCaching + public/pwa-background-sync.js */
 export const PUNCH_SYNC_QUEUE = 'punch-queue';
 
-/**
- * Accoda un tentativo di sync dedicato alle timbrature (richieste `/api/punch` in coda Workbox lato client).
- * Su Safari iOS `SyncManager` spesso assente: solo salvataggio locale.
- */
-export async function queueOfflinePunch(punchData: Record<string, unknown>): Promise<void> {
-  if (!supportsBackgroundSync()) {
-    try {
-      localStorage.setItem(`offline-punch-${Date.now()}`, JSON.stringify(punchData));
-    } catch {
-      /* ignore */
-    }
-    console.warn('[backgroundSync] SyncManager non supportato, dati in locale');
-    return;
-  }
-  try {
-    const reg = await navigator.serviceWorker.ready;
-    try {
-      localStorage.setItem(`offline-punch-${Date.now()}`, JSON.stringify(punchData));
-    } catch {
-      /* ignore */
-    }
-    const sync = (reg as ServiceWorkerRegistration & { sync?: { register: (t: string) => Promise<void> } }).sync;
-    if (sync?.register) await sync.register(PUNCH_SYNC_QUEUE);
-  } catch (e) {
-    if (import.meta.env.DEV) console.warn('[backgroundSync] queueOfflinePunch', e);
-  }
-}
+

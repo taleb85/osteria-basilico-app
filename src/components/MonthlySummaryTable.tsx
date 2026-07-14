@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { startOfMonth, endOfMonth, eachWeekOfInterval, format, endOfWeek, eachDayOfInterval } from 'date-fns';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppData } from '../context/appSliceContexts';
+import { useAppConfig } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { formatMinutesToHoursAndMinutes, calculateShiftMinutesGross } from '../utils/timeCalculations';
 import { getNetShiftMinutes } from '../utils/breakRules';
@@ -16,7 +18,9 @@ import { getPayrollPaymentDateForCalendarMonth } from '../utils/payrollSchedule'
 import { safeFormatDate } from '../utils/safeDateFormat';
 
 export default function MonthlySummaryTable() {
-  const { users, shifts, currentUser, punchRecords, effectiveLanguage, breakRules, featureFlags } = useApp();
+  const { users, currentUser, effectiveLanguage } = useAppUser();
+  const { shifts, punchRecords } = useAppData();
+  const { breakRules, featureFlags } = useAppConfig();
   const breakComputeOpts = useMemo(
     () => ({ autoBreaksFeatureEnabled: featureFlags['auto_breaks'] !== false }),
     [featureFlags]

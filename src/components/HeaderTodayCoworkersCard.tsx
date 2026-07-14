@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { format, isValid } from 'date-fns';
 import { Users } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppData } from '../context/appSliceContexts';
+import { useAppConfig } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { formatTrans } from '../utils/translations';
 import { isUserVisibleOnTeamSchedule } from '../utils/permissions';
@@ -104,7 +106,9 @@ function shiftTimeCaption(shifts: Shift[], multiLabel: string): string {
  * Striscia sotto l’header: titolo e subito dopo l’elenco orizzontale colleghi in turno oggi.
  */
 export default function HeaderTodayCoworkersCard() {
-  const { currentUser, shifts, users, punchRecords, featureFlags } = useApp();
+  const { currentUser, users } = useAppUser();
+  const { shifts, punchRecords } = useAppData();
+  const { featureFlags } = useAppConfig();
   const t = useT();
   const tv = t as Record<string, string>;
 

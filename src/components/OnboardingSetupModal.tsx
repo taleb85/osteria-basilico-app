@@ -6,7 +6,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, Lock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
 import { useMultisensorialFeedback } from '../hooks/useMultisensorialFeedback';
 import FlowLogo from './FlowLogo';
 
@@ -27,7 +27,7 @@ interface OnboardingSetupModalProps {
 }
 
 export default function OnboardingSetupModal({ onComplete }: OnboardingSetupModalProps) {
-  const { currentUser, updateUser, effectiveLanguage } = useApp();
+  const { currentUser, updateUser, effectiveLanguage } = useAppUser();
   const { triggerHapticFeedback, playNotificationSound } = useMultisensorialFeedback();
 
   const [email, setEmail] = useState(currentUser?.email ?? '');

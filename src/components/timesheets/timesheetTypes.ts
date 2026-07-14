@@ -50,18 +50,6 @@ export interface ShiftRow {
 
 // ── Partition shifts by planned hour ────────────────────────────────────────
 
-/** Pranzo / mattina < 16:00 in alto; cena (inizio pianificato ≥ 16:00) in basso nella cella. */
-export function partitionShiftsByPlannedHour16(shifts: ShiftRow[]): { before16: ShiftRow[]; from16: ShiftRow[] } {
-  const before16: ShiftRow[] = [];
-  const from16: ShiftRow[] = [];
-  for (const s of shifts) {
-    const hour = parseInt((s.plannedStart || '00:00').split(':')[0], 10) || 0;
-    if (hour >= 16) from16.push(s);
-    else before16.push(s);
-  }
-  return { before16, from16 };
-}
-
 // ── Day Data ────────────────────────────────────────────────────────────────
 
 export interface DayData {
@@ -121,13 +109,5 @@ export function shiftEligibleForDayReview(s: ShiftRow): boolean {
   return s.status !== 'approved' && !shiftRowPayrollFrozen(s);
 }
 
-/** Turno pronto per approvazione massiva: assenza, già congelato in griglia, o timbratura con entrata e uscita (niente uscita mancante). */
-export function shiftRowCompleteForToolbarApprove(row: ShiftRow): boolean {
-  if (row.status === 'absent') return true;
-  if (row.displayFromFrozenApprovedTimes) return true;
-  if (shiftRowPayrollFrozen(row)) return true;
-  if (row.hasMissingOut) return false;
-  if (!row.punched) return false;
-  return !!(row.actualStart && row.actualEnd);
-}
+
 

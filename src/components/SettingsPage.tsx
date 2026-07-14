@@ -17,7 +17,7 @@ import {
 import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
 import DatePickerField from './DatePickerField';
 import BackgroundGallery from './BackgroundGallery';
-import { useApp } from '../context/AppContext';
+import { useApp, useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { useTenant } from '../context/TenantContext';
 import type { User, UserRole } from '../types';
@@ -156,36 +156,22 @@ function DepartmentColorPicker({
 }
 
 export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } = {}) {
+  const { users, currentUser, effectiveLanguage, isSessionElevated } = useAppUser();
+  const { shifts, punchRecords, holidays, updateUser, deleteUser } = useAppData();
   const {
-    users,
-    shifts,
-    punchRecords,
-    holidays,
-    currentUser,
-    updateUser,
-    deleteUser,
-    effectiveLanguage,
-    showSuccess,
-    showError,
-    featureFlags,
-    setFeatureFlag,
-    workRules,
-    setWorkRules,
-    breakRules,
-    setBreakRules,
-    geofenceEffectiveConfig,
+    featureFlags, setFeatureFlag,
+    workRules, setWorkRules,
+    breakRules, setBreakRules,
+    geofenceEffectiveConfig, presenceVerificationConfig,
+    departmentsRevision,
     saveGeofenceConfig,
-    presenceVerificationConfig,
     savePresenceVerificationConfig,
     pushSettingsToCloud,
     settingsCloudLastSyncedAt,
     settingsCloudPushBusy,
-    hardReloadFromDatabase,
-    dataSyncInProgress,
-    departmentsRevision,
     notifyDepartmentsChanged,
-    isSessionElevated,
-  } = useApp();
+    } = useAppConfig();
+    const { showSuccess, showError, hardReloadFromDatabase, dataSyncInProgress } = useAppOverlay();
   const { tenant } = useTenant();
   const t = useT();
 
@@ -2622,7 +2608,7 @@ function BreakRuleModal({
   onSave: (rule: BreakRule) => void;
   onClose: () => void;
 }) {
-  const { effectiveLanguage } = useApp();
+  const { effectiveLanguage } = useAppUser();
   const t = useT();
   const weekdayOptions = useMemo(() => {
     const labelByDay: Record<DayOfWeek, string> = {

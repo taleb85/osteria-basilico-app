@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Check, X, Palmtree, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppData } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
+import { useAppConfig } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { canApproveShiftActions } from '../utils/permissions';
 import { isUiWidgetVisible } from '../utils/uiScreenWidgets';
@@ -14,7 +17,10 @@ import { safeFormatDate } from '../utils/safeDateFormat';
 // STATUS_CONFIG is built inside the component to use translations
 
 export default function HolidayRequests() {
-  const { currentUser, holidays, users, addHolidayRequest, updateHolidayStatus, deleteHolidayRequest, showSuccess, silentRefreshData, featureFlags } = useApp();
+  const { currentUser, users } = useAppUser();
+  const { holidays, addHolidayRequest, updateHolidayStatus, deleteHolidayRequest } = useAppData();
+  const { showSuccess, silentRefreshData } = useAppOverlay();
+  const { featureFlags } = useAppConfig();
 
   /**
    * Aggiorna turni/ferie/timbrature da DB aprendo la scheda.

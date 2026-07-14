@@ -13,7 +13,7 @@ import DesignAuditPreview from './components/DesignAuditPreview';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AppProvider, useApp } from './context/AppContext';
+import { AppProvider, useApp, useAppUser, useAppData, useAppConfig, useAppOverlay } from './context/AppContext';
 import { ProfileLeaveGuardRefContext, type ProfileLeaveGuard } from './context/ProfileLeaveGuardContext';
 import { LayoutPresetProvider } from './context/LayoutPresetContext';
 import { applyUnauthenticatedDocumentTheme } from './utils/theme';
@@ -107,7 +107,7 @@ function safeInternalRedirectPath(state: unknown, fallback = '/app'): string {
 function LoginRoute() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser } = useApp();
+  const { currentUser } = useAppUser();
   const postAuthPath = useMemo(() => safeInternalRedirectPath(location.state), [location.state]);
   const [bgTheme, setBgTheme] = useState<BackgroundTheme>(getStoredTheme);
 
@@ -142,18 +142,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const {
     currentUser,
     effectiveLanguage,
-    isGlobalRefreshing,
-    syncStage,
-    postRefreshLocked,
-    postUnlockReloadPending,
-    silentRefreshData,
-    featureFlags,
-    roleTemplatesRevision,
-    hardReloadFromDatabase,
-    dataSyncInProgress,
     users,
-    shifts,
-    punchRecords,
     globalPinSessionId,
     setGlobalPinSessionId,
     isSessionElevated,
@@ -162,7 +151,24 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     setImpersonating,
     setCurrentUser: setCtxCurrentUser,
     setIsSessionElevated,
-  } = useApp();
+  } = useAppUser();
+  const {
+    shifts,
+    punchRecords,
+  } = useAppData();
+  const {
+    featureFlags,
+    roleTemplatesRevision,
+  } = useAppConfig();
+  const {
+    isGlobalRefreshing,
+    syncStage,
+    postRefreshLocked,
+    postUnlockReloadPending,
+    silentRefreshData,
+    hardReloadFromDatabase,
+    dataSyncInProgress,
+  } = useAppOverlay();
   const [bgTheme, setBgTheme] = useState<BackgroundTheme>(() => getStoredTheme(currentUser?.id));
 
   useEffect(() => {
@@ -172,7 +178,10 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   }, []);
 
   const t = useT();
-  const isManagement = currentUser ? isManagementRole(currentUser.role) : false;
+  const isManagement = useMemo(
+    () => currentUser ? isManagementRole(currentUser.role) : false,
+    [currentUser?.role]
+  );
   const isMobileViewport = useIsMobileViewport();
   const staffMobileCompactHeader = !isManagement && isMobileViewport;
 
@@ -818,15 +827,22 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
                 key={activeTab}
                 custom={tabNavDirection.current}
                 variants={{
-                  initial: (dir: number) => ({ opacity: 0, x: dir * 36 }),
+                  initial: (dir: number) => {
+                    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return { opacity: 0 };
+                    return { opacity: 0, x: dir * 36 };
+                  },
                   animate: { opacity: 1, x: 0 },
-                  exit: (dir: number) => ({ opacity: 0, x: dir * -24 }),
+                  exit: (dir: number) => {
+                    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return { opacity: 0 };
+                    return { opacity: 0, x: dir * -24 };
+                  },
                 }}
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={{ duration: 0.55, ease: [0.32, 0, 0.12, 1] }}
+                transition={{ duration: 0.3, ease: [0.32, 0, 0.12, 1] }}
                 className="w-full"
+                style={{ willChange: 'transform, opacity' }}
               >
                 <Suspense fallback={null}>
                   {renderManagementContent()}
@@ -894,7 +910,9 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 function ProtectedApp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, isLoading: appIsLoading, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, featureFlags, showError, setIsSessionElevated } = useApp();
+  const { currentUser, isLoading: appIsLoading, setCurrentUser, forceLogoutRequested, clearForceLogoutRequest, setIsSessionElevated } = useAppUser();
+  const { featureFlags } = useAppConfig();
+  const { showError } = useAppOverlay();
   const t = useT();
 
   useEffect(() => {

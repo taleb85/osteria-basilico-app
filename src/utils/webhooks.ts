@@ -40,15 +40,4 @@ export function buildTeamsMessage(payload: WebhookPayload): { title: string; tex
   };
 }
 
-export async function sendWebhook(url: string, body: unknown): Promise<boolean> {
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
+

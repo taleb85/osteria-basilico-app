@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppData } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { format } from 'date-fns';
 import { usePunchPresenceVerification } from '../hooks/usePunchPresenceVerification';
@@ -16,7 +18,9 @@ export default function PunchClockTerminal({ isOpen, onClose }: PunchClockTermin
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [isLoading, setIsLoading] = useState(false);
-  const { users, addPunchRecord, effectiveLanguage, showError } = useApp();
+  const { users, effectiveLanguage } = useAppUser();
+  const { addPunchRecord } = useAppData();
+  const { showError } = useAppOverlay();
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(effectiveLanguage);
   const t = useT();
 

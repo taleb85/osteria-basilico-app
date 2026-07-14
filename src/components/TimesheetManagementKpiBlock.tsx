@@ -3,7 +3,9 @@ import { format, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, TrendingUp } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppData } from '../context/appSliceContexts';
+import { useAppConfig } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import type { Language } from '../types';
 import { formatMinutesToHoursAndMinutes } from '../utils/timeCalculations';
@@ -31,7 +33,9 @@ type Props = {
  * Stessa logica che era in Ore; i pannelli espandibili sono opzionali (`stats.detail_panels`).
  */
 export default function TimesheetManagementKpiBlock({ visibleWeekDays, showDetailPanels }: Props) {
-  const { users, shifts, currentUser, effectiveLanguage, breakRules, featureFlags, punchRecords } = useApp();
+  const { users, currentUser, effectiveLanguage } = useAppUser();
+  const { shifts, punchRecords } = useAppData();
+  const { breakRules, featureFlags } = useAppConfig();
   const t = useT();
   const tv = t as Record<string, string>;
   const [activeWidget, _setActiveWidget] = useState<'approved' | 'pending' | null>(null);

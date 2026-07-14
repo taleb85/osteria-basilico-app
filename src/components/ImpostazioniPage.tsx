@@ -2,7 +2,7 @@
  * Scheda Impostazioni — attiva/disattiva le funzioni disponibili per i profili.
  * Solo Admin. Le modifiche sono immediate e salvate in DB o localStorage.
  */
-import { useState, useCallback, useEffect, memo } from 'react';
+import { useState, useCallback, useEffect, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid,
@@ -15,7 +15,9 @@ import {
   MapPin,
   Bell,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppConfig } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { getFeatureStrings, formatTrans } from '../utils/translations';
 import { isAdminOnly } from '../utils/permissions';
@@ -150,16 +152,9 @@ type ImpostazioniPageProps = {
 };
 
 export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPageProps) {
-  const {
-    currentUser,
-    featureFlags,
-    setFeatureFlag,
-    effectiveLanguage,
-    showSuccess,
-    showError,
-    logout,
-    isSessionElevated,
-  } = useApp();
+  const { currentUser, effectiveLanguage, logout, isSessionElevated } = useAppUser();
+  const { featureFlags, setFeatureFlag } = useAppConfig();
+  const { showSuccess, showError } = useAppOverlay();
   const t = useT();
   const [_howOpen, _setHowOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState<Record<string, boolean>>({});
@@ -249,7 +244,10 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
   }, [featureFlags, detailOpen, t, setFeatureFlag, showSuccess, toggleDetail]);
 
   if (!currentUser) return null;
-  const hasFullAccess = isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role;
+  const hasFullAccess = useMemo(
+    () => currentUser ? isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role : false,
+    [currentUser, isSessionElevated]
+  );
   if (!hasFullAccess) {
     return (
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">

@@ -7,7 +7,9 @@
  */
 import { useMemo, useCallback, useState, useRef } from 'react';
 import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone, Calendar, Smartphone } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppConfig } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { getTranslations, formatTrans } from '../utils/translations';
 import { buildShortInviteLink } from '../config/appPaths';
@@ -92,7 +94,8 @@ export function ProfileFormSelf({
   departmentLocked?: boolean;
   roleLocked?: boolean;
 }) {
-  const { effectiveLanguage, setLanguage, currentUser, departmentsRevision } = useApp();
+  const { effectiveLanguage, setLanguage, currentUser } = useAppUser();
+  const { departmentsRevision } = useAppConfig();
   void departmentsRevision;
   const t = useT();
 
@@ -338,7 +341,8 @@ export function ProfileFormSelf({
 
 /** Solo admin: limita la griglia Presenze dell’utente ai soli orari pianificati pubblicati/confermati. */
 export function AdminTimesheetGridPrivacyEditor({ user }: { user: UserType }) {
-  const { updateUser, showSuccess, showError } = useApp();
+  const { updateUser } = useAppUser();
+  const { showSuccess, showError } = useAppOverlay();
   const t = useT();
   const tv = t as Record<string, string>;
   const plannedOnly = getTimesheetGridPrivacyMode(user) === 'planned_only';
@@ -451,7 +455,9 @@ export function ProfileFormAdmin({
   /** Creazione dipendente da delegato: solo ruoli operativi sala/cucina/bar. */
   operationalRolesOnly?: boolean;
 }) {
-  const { effectiveLanguage, showSuccess, showError, departmentsRevision, users, isSessionElevated } = useApp();
+  const { effectiveLanguage, users, isSessionElevated } = useAppUser();
+  const { departmentsRevision } = useAppConfig();
+  const { showSuccess, showError } = useAppOverlay();
   void departmentsRevision;
   const t = useT();
   const tv = t as Record<string, string>;
@@ -480,9 +486,13 @@ export function ProfileFormAdmin({
     [user.id, formData.first_name, formData.last_name, users]
   );
 
-  const mobileconfigUrl = useMemo(
-    () => `${PUBLIC_APP_ORIGIN}/Installa_FLOW.mobileconfig`,
-    []
+  const installLink = useMemo(
+    () => {
+      const base = PUBLIC_APP_ORIGIN;
+      const name = encodeURIComponent(`${formData.first_name ?? ''}`.trim());
+      return `${base}/install?userId=${user.id}&firstName=${name}`;
+    },
+    [user.id, formData.first_name, PUBLIC_APP_ORIGIN]
   );
 
   const handleCopyAccessLink = useCallback(async () => {
@@ -494,34 +504,14 @@ export function ProfileFormAdmin({
     }
   }, [accessLink, showSuccess, showError, tv.admin_employee_access_link_copied, tv.copy_failed]);
 
-  const canShare = typeof navigator.share === 'function';
-
-  const handleShareMobileconfig = useCallback(async () => {
-    if (canShare) {
-      try {
-        const resp = await fetch(mobileconfigUrl);
-        const blob = await resp.blob();
-        const file = new File([blob], 'Installa_FLOW.mobileconfig', {
-          type: 'application/x-apple.ashen-plist',
-        });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file] });
-        } else {
-          await navigator.share({ url: mobileconfigUrl });
-        }
-        return;
-      } catch {
-        return;
-      }
+  const handleCopyInstallLink = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(installLink);
+      showSuccess?.(tv.admin_employee_install_link_copied ?? 'Link installazione copiato.');
+    } catch {
+      showError?.(tv.copy_failed ?? 'Copia non riuscita. Seleziona il link manualmente.');
     }
-    const a = document.createElement('a');
-    a.href = mobileconfigUrl;
-    a.download = 'Installa_FLOW.mobileconfig';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    showSuccess?.(tv.admin_employee_invite_download_started ?? 'Download avviato.');
-  }, [mobileconfigUrl, showSuccess, tv.admin_employee_invite_download_started, canShare]);
+  }, [installLink, showSuccess, showError, tv.admin_employee_install_link_copied, tv.copy_failed]);
 
   const roleSelectDisabled =
     readOnly || (isPurelyManagementRole(user.role) && !isAdminOnly(currentUser));
@@ -829,26 +819,20 @@ export function ProfileFormAdmin({
 
             <div className="border-t border-white/10" />
 
-            {/* Pulsante: condividi/scarica profilo iOS */}
+            {/* Pulsante: copia link installazione universale (iOS + Android) */}
             <button
               type="button"
-              onClick={handleShareMobileconfig}
+              onClick={handleCopyInstallLink}
               className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white font-sans transition-all hover:opacity-95 active:scale-[0.98]"
               style={{ background: '#5856d6' }}
             >
               <Smartphone className="w-5 h-5" aria-hidden />
-              <span>
-                {canShare
-                  ? (tv.admin_employee_invite_send_ios ?? 'Condividi profilo iOS')
-                  : (tv.admin_employee_invite_download_ios ?? 'Scarica profilo iOS')}
-              </span>
+              <span>{tv.admin_employee_install_link_btn ?? 'Copia link installazione'}</span>
             </button>
             <p className="text-[11px] text-white/70 font-sans pl-5">
-              {canShare
-                ? (tv.admin_employee_access_link_ios_hint ?? 'Per utenti iPhone: installa direttamente il profilo di configurazione FLOW.')
-                : (tv.admin_employee_access_link_ios_download_hint ?? 'Scarica il file .mobileconfig da inviare ai dipendenti iPhone.')}
+              {tv.admin_employee_install_link_hint ?? 'Il dipendente apre il link e segue le istruzioni per installare FLOW su iPhone, Android o desktop.'}
             </p>
-            <p className="text-[11px] text-white/45 font-mono break-all pl-5">{mobileconfigUrl}</p>
+            <p className="text-[11px] text-white/45 font-mono break-all pl-5">{installLink}</p>
           </div>
         )}
 

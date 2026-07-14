@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useMemo, useRef, type CSSProperties }
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { User as UserIcon, Lock, Loader2, Eye, EyeOff, Fingerprint } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppConfig } from '../context/appSliceContexts';
 import type { User as UserType, Language as LangType, Theme } from '../types';
 import { userRowToSessionUser } from '../utils/staffPermissionDefaults';
 import { getTranslations } from '../utils/translations';
@@ -35,7 +36,8 @@ interface LoginPageProps {
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
-  const { users, setCurrentUser, setLanguage, setIsSessionElevated, featureFlags } = useApp();
+  const { users, setCurrentUser, setLanguage, setIsSessionElevated } = useAppUser();
+  const { featureFlags } = useAppConfig();
   const _kioskEnabled = featureFlags['kiosk_active'] !== false;
   const { tenant, loadTenantBySlug, error: tenantBootstrapError } = useTenant();
   const [searchParams] = useSearchParams();

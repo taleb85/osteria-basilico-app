@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type React from 'react';
 import FlowLogoSvg from '../FlowLogoSvg';
 
@@ -14,7 +15,7 @@ interface FlowWaveIconProps {
   style?: React.CSSProperties;
 }
 
-export default function FlowWaveIcon({ size = 48, radius, className, style }: FlowWaveIconProps) {
+const FlowWaveIcon = memo(function FlowWaveIcon({ size = 48, radius, className, style }: FlowWaveIconProps) {
   const r = radius ?? Math.round(size * 0.27);
   return (
     <div
@@ -39,4 +40,6 @@ export default function FlowWaveIcon({ size = 48, radius, className, style }: Fl
       />
     </div>
   );
-}
+});
+
+export default FlowWaveIcon;

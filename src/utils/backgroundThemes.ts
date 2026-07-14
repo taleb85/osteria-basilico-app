@@ -162,10 +162,6 @@ export function getBackgroundThemes(): BackgroundTheme[] {
   return THEMES;
 }
 
-export function getDefaultTheme(): BackgroundTheme {
-  return THEMES[0];
-}
-
 export function getThemeById(id: string): BackgroundTheme {
   return THEMES.find(t => t.id === id) ?? THEMES[0];
 }

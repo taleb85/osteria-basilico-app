@@ -1,4 +1,4 @@
-import { useId, type CSSProperties } from 'react';
+import { memo, useId, type CSSProperties } from 'react';
 
 // ── Palette (da FlowLogoSvg in brand guide / Downloads) ────────────────────
 const FACE = {
@@ -206,7 +206,7 @@ function FullLogo195({
  * FlowLogoSvg — allineato a `FlowLogoSvg.tsx` (Downloads): traccia + fill, gloss sopra.
  * API: `variant` + `color` (compatibile col resto dell’app).
  */
-export default function FlowLogoSvg({
+const FlowLogoSvg = memo(function FlowLogoSvg({
   variant = 'full',
   color = 'orange',
   className = '',
@@ -298,4 +298,6 @@ export default function FlowLogoSvg({
       <FullLogo195 uid={uid} color={c} wordmark={wordmark} />
     </svg>
   );
-}
+});
+
+export default FlowLogoSvg;

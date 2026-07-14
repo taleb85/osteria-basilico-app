@@ -15,19 +15,6 @@ export function normalizedApprovalStatus(
   return (status ?? '').toString().trim().toLowerCase();
 }
 
-export function isShiftDraftLike(
-  shift: Pick<Shift, 'approval_status'>
-): boolean {
-  const s = normalizedApprovalStatus(shift.approval_status);
-  return s === 'draft' || s === '';
-}
-
-export function isShiftFrozenRecord(
-  _shift: Pick<Shift, 'approval_status' | 'approved_at'>
-): boolean {
-  return false;
-}
-
 export function isShiftAbsentRecord(
   shift: Pick<Shift, 'approval_status'>
 ): boolean {

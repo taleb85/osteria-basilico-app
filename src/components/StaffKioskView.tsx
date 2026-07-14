@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, CheckCircle, X } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppData } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { User, Shift } from '../types';
 import { format, isValid, parseISO } from 'date-fns';
@@ -12,7 +13,8 @@ interface StaffKioskViewProps {
 }
 
 export default function StaffKioskView({ user, onClose }: StaffKioskViewProps) {
-  const { shifts, punchRecords, addPunchRecord, showError } = useApp();
+  const { shifts, punchRecords, addPunchRecord } = useAppData();
+  const { showError } = useAppOverlay();
   const t = useT();
   const [showSuccess, setShowSuccess] = useState(false);
   const [punchedTime, setPunchedTime] = useState('');

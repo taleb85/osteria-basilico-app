@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } fro
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Download, X, Share, ChevronRight, ChevronLeft, LogOut, Shield, Calendar } from 'lucide-react';
 import { database } from '../lib/database';
-import { useApp } from '../context/AppContext';
+import { useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { User as UserType, Shift, HolidayRequest, PunchRecord, type Language } from '../types';
 import type { BreakRule, BreakMinutesComputeOptions } from '../utils/breakRules';
@@ -388,18 +388,10 @@ export default function StaffPersonalDashboard({
   activeTab,
   onTabChange,
 }: StaffPersonalDashboardProps) {
-  const {
-    setCurrentUser,
-    users,
-    effectiveLanguage,
-    setLanguage,
-    breakRules,
-    featureFlags,
-    roleTemplatesRevision,
-    seedDemoProfileForUser,
-    showSuccess,
-    showError,
-  } = useApp();
+  const { setCurrentUser, users, effectiveLanguage, setLanguage } = useAppUser();
+  const { breakRules, featureFlags, roleTemplatesRevision } = useAppConfig();
+  const { showSuccess, showError } = useAppOverlay();
+  const { seedDemoProfileForUser } = useAppData();
   const latestUser = users.find((u) => u.id === user.id) ?? user;
   // Usa latestUser (da users) per permessi: quando l'admin disabilita can_request_holidays,
   // currentUser non viene aggiornato (è un altro utente), ma users sì.

@@ -5,7 +5,10 @@ import { parseISO } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LogOut, Moon, X } from 'lucide-react';
 import type { User, Shift, PunchRecord, Language } from '../../types';
-import { useApp } from '../../context/AppContext';
+import { useAppUser } from '../../context/appSliceContexts';
+import { useAppData } from '../../context/appSliceContexts';
+import { useAppConfig } from '../../context/appSliceContexts';
+import { useAppOverlay } from '../../context/appSliceContexts';
 import { getTranslations, getDateLocale } from '../../utils/translations';
 import { usePunchPresenceVerification } from '../../hooks/usePunchPresenceVerification';
 import { TimeInputField } from '../ui/TimeInputField';
@@ -59,7 +62,10 @@ export default function MobileStaffDashboard({
   const t = getTranslations(language);
   const tv = t as Record<string, string>;
   const locale = getDateLocale(language);
-  const { updatePunchRecord, showError, showSuccess, featureFlags, breakRules, users, shifts: allShifts } = useApp();
+  const { updatePunchRecord } = useAppData();
+  const { showError, showSuccess } = useAppOverlay();
+  const { featureFlags, breakRules } = useAppConfig();
+  const { users, shifts: allShifts } = useAppUser();
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(language);
   const [tick, setTick] = useState(0);
   const [closeModal, setCloseModal] = useState<{

@@ -1,7 +1,7 @@
-import type { CSSProperties } from 'react';
+import { memo, type CSSProperties } from 'react';
 
 /** Icona app "OB" — quadrato verde accent (var(--brand)), lettere bianche più grandi */
-export default function AppIcon({ className = 'w-12 h-12' }: { className?: string }) {
+const AppIcon = memo(function AppIcon({ className = 'w-12 h-12' }: { className?: string }) {
   const containerStyle: CSSProperties = { containerType: 'size' };
   return (
     <div
@@ -14,4 +14,6 @@ export default function AppIcon({ className = 'w-12 h-12' }: { className?: strin
       </span>
     </div>
   );
-}
+});
+
+export default AppIcon;

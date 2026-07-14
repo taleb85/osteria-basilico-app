@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { ReactNode } from 'react';
 
 export type AdminRowProps = {
@@ -12,7 +13,7 @@ export type AdminRowProps = {
 /**
  * Riga permessi / impostazioni: altezza minima confortevole, nessuna altezza fissa da toolbar (evita sovrapposizioni testo).
  */
-export default function AdminRow({
+const AdminRow = memo(function AdminRow({
   label,
   description,
   action,
@@ -44,4 +45,6 @@ export default function AdminRow({
       {action != null ? <div className="flex shrink-0 items-center scale-90 origin-right">{action}</div> : null}
     </div>
   );
-}
+});
+
+export default AdminRow;

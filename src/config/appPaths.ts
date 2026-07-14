@@ -16,25 +16,6 @@ export type ProfiloInviteLinkOptions = {
 };
 
 /**
- * Link invito con token base64 JSON: `?t=<base64({"u":userId,"p":pin,"s":tenantSlug})>`.
- * Il PIN e il tenant non sono leggibili a occhio nudo nell'URL.
- * Backward-compatible: LoginPage legge ancora i vecchi `?u=&n=&p=` se `t` è assente.
- */
-export function buildProfiloAccessLink(
-  userId: string,
-  origin?: string,
-  options?: ProfiloInviteLinkOptions
-): string {
-  const base = origin ?? (typeof window !== 'undefined' ? window.location.origin : '');
-  const pinDigits = (options?.pin ?? '').replace(/\D/g, '').slice(0, 4);
-  const payload: Record<string, string> = { u: userId };
-  if (pinDigits.length === 4) payload.p = pinDigits;
-  if (options?.tenantSlug) payload.s = options.tenantSlug;
-  const token = btoa(JSON.stringify(payload));
-  return `${base}${PATH_PROFILO}?t=${token}`;
-}
-
-/**
  * Decodifica un token `t=` generato da buildProfiloAccessLink.
  * Supporta sia il formato nuovo JSON `{"u":...,"p":...,"s":...}`
  * sia il vecchio formato `userId|pin` per backward-compatibility.

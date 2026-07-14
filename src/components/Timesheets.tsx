@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useApp } from '../context/AppContext';
+import { useApp, useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { getTranslations, getDateLocale, formatTrans } from '../utils/translations';
 import {
@@ -485,30 +485,21 @@ function shiftRowCompleteForToolbarApprove(row: ShiftRow): boolean {
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function Timesheets() {
-  const {
-    users,
-    shifts,
-    punchRecords,
-    currentUser,
-    updateShift,
-    approveShift,
-    updatePunchRecord,
-    addPunchRecord,
-    deletePunchRecordsForShift,
-    effectiveLanguage,
-    showSuccess,
-    showError,
-    featureFlags,
-    breakRules,
-    globalPinSessionId,
-    departmentsRevision,
-    isSessionElevated,
-  } = useApp();
+  const { shifts, punchRecords, updateShift, approveShift, updatePunchRecord, addPunchRecord, deletePunchRecordsForShift } = useAppData();
+  const { currentUser, effectiveLanguage, isSessionElevated, globalPinSessionId, users } = useAppUser();
+  const { featureFlags, breakRules, departmentsRevision } = useAppConfig();
+  const { showSuccess, showError } = useAppOverlay();
   const t = useT();
   const locale = getDateLocale(effectiveLanguage) ?? it;
 
-  const canTeamTimesheetOps = currentUser ? canOperateTeamSchedule(currentUser) : false;
-  const canTimesheetApprove = currentUser ? canApproveShiftActions(currentUser) : false;
+  const canTeamTimesheetOps = useMemo(
+    () => currentUser ? canOperateTeamSchedule(currentUser) : false,
+    [currentUser]
+  );
+  const canTimesheetApprove = useMemo(
+    () => currentUser ? canApproveShiftActions(currentUser) : false,
+    [currentUser]
+  );
   const timesheetGridPrivacyMode = getTimesheetGridPrivacyMode(currentUser);
   const showFullTimesheetGrid = timesheetGridPrivacyMode === 'full';
   const plannedOnlyTimesheetGrid = timesheetGridPrivacyMode === 'planned_only';

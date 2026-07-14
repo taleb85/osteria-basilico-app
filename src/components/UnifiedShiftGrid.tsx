@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   CalendarDays, AlertTriangle, Check, Lock, Plus, Clock,
@@ -20,7 +20,7 @@ import { exportSchedulePDF } from '../utils/exportSchedulePDF';
 import { TimeInputField } from './ui/TimeInputField';
 import { ShiftSlotPresetsSection } from './shifts/ShiftSlotPresetsSection';
 import { database } from '../lib/database';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/AppContext';
 import { isManagementRole, isPurelyManagementRole, canEditTeamShifts, canPublishScheduleDrafts, canApproveShiftActions, findFreezeVerifierByPin } from '../utils/permissions';
 import { getShiftViolations, DEFAULT_WORK_RULES } from '../utils/workRules';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
@@ -165,7 +165,7 @@ type ShiftDetailTab = 'details' | 'punches' | 'history' | 'breaks';
 const MONTHS_IT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
 
 function useT() {
-  const { effectiveLanguage } = useApp();
+  const { effectiveLanguage } = useAppUser();
   return getTranslations(effectiveLanguage);
 }
 
@@ -176,13 +176,22 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     effectiveLanguage, showSuccess, showError, breakRules,
     deleteShift, approveShift, bulkCopyPreviousWeek, publishWeekShifts,
     addPunchRecord, updatePunchRecord, addShift, updateShift, featureFlags,
-  } = useApp();
+  } = useAppUser();
   const locale = getDateLocale(effectiveLanguage) ?? it;
   const today = new Date();
-  const canEdit = currentUser ? canEditTeamShifts(currentUser) && mode === 'planning' : false;
+  const canEdit = useMemo(
+    () => currentUser ? canEditTeamShifts(currentUser) && mode === 'planning' : false,
+    [currentUser, mode]
+  );
   const canPublish = currentUser ? canPublishScheduleDrafts(currentUser) : false;
-  const canApprove = currentUser ? canApproveShiftActions(currentUser) : false;
-  const isMgmt = currentUser ? isManagementRole(currentUser.role) : false;
+  const canApprove = useMemo(
+    () => currentUser ? canApproveShiftActions(currentUser) : false,
+    [currentUser]
+  );
+  const isMgmt = useMemo(
+    () => currentUser ? isManagementRole(currentUser.role) : false,
+    [currentUser?.role]
+  );
   const canDeleteShift = useCallback((shift: Shift) => {
     if (!canEdit) return false;
     if (shift.approval_status === 'absent') return false;

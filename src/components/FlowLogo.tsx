@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import FlowLogoSvg from './FlowLogoSvg';
 
 /**
@@ -12,7 +13,7 @@ interface FlowLogoProps {
   colorScheme?: 'blue' | 'white';
 }
 
-export default function FlowLogo({
+const FlowLogo = memo(function FlowLogo({
   size = 32,
   showText = true,
   showIcon = true,
@@ -71,11 +72,13 @@ export default function FlowLogo({
       )}
     </div>
   );
-}
+});
+
+export default FlowLogo;
 
 /**
  * FlowMarkOnly — solo l'icona (senza testo), per badge e favicon in-app.
  */
-export function FlowMarkOnly({ size = 24, className = '' }: { size?: number; className?: string }) {
+export const FlowMarkOnly = memo(function FlowMarkOnly({ size = 24, className = '' }: { size?: number; className?: string }) {
   return <FlowLogo size={size} showText={false} className={className} />;
-}
+});

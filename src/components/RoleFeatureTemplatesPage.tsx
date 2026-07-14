@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw, Save, Loader2, Users, Info } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppConfig } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { canEditRoleFeatureTemplates } from '../utils/permissions';
 import {
@@ -64,17 +66,9 @@ function initials(user: User): string {
  * nelle anteprime compatte, text-[8–10]px è voluto (mini-card).
  */
 export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
-  const {
-    currentUser,
-    saveRoleFeatureTemplates,
-    saveAdminModulesGlobal,
-    showSuccess,
-    showError,
-    adminModulesRevision,
-    users,
-    updateUser,
-    isSessionElevated,
-  } = useApp();
+  const { currentUser, users, updateUser, isSessionElevated } = useAppUser();
+  const { saveRoleFeatureTemplates, saveAdminModulesGlobal, adminModulesRevision } = useAppConfig();
+  const { showSuccess, showError } = useAppOverlay();
   const t = useT();
   const permRows = useMemo(() => buildSettingsPermissionRows(t as Record<string, string>), [t]);
 

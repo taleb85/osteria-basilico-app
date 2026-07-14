@@ -23,14 +23,6 @@ let config: MonitoringConfig = {
   enabled: ENV === 'production',
 };
 
-export function configureMonitoring(cfg: Partial<MonitoringConfig>): void {
-  config = { ...config, ...cfg };
-}
-
-export function isMonitoringEnabled(): boolean {
-  return config.enabled;
-}
-
 export function captureException(error: Error, context?: Record<string, unknown>): void {
   if (!config.enabled && ENV !== 'development') return;
   console.error('[monitoring]', error.message, context ?? '');
@@ -39,17 +31,4 @@ export function captureException(error: Error, context?: Record<string, unknown>
   }
 }
 
-export function captureMessage(msg: string, level: 'info' | 'warning' | 'error' = 'info'): void {
-  if (!config.enabled) return;
-  console.log(`[monitoring:${level}]`, msg);
-}
 
-export function setUser(id: string, email?: string): void {
-  if (!config.enabled) return;
-  console.log('[monitoring] user set:', id, email ?? '');
-}
-
-export function clearUser(): void {
-  if (!config.enabled) return;
-  console.log('[monitoring] user cleared');
-}

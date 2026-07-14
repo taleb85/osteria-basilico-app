@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Language } from '../types';
 import { getDeviceUiLanguage } from '../utils/uiLanguagePreference';
 
@@ -27,7 +28,7 @@ interface LanguageToggleGridProps {
 }
 
 /** Stessa griglia lingue della scheda Profilo staff — riutilizzabile nell'header gestionale. */
-export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, dense = false }: LanguageToggleGridProps) {
+const LanguageToggleGrid = memo(function LanguageToggleGrid({ effectiveLanguage, setLanguage, dense = false }: LanguageToggleGridProps) {
   const deviceLang = getDeviceUiLanguage();
 
   if (dense) {
@@ -91,4 +92,6 @@ export default function LanguageToggleGrid({ effectiveLanguage, setLanguage, den
       ))}
     </div>
   );
-}
+});
+
+export default LanguageToggleGrid;

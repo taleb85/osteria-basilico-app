@@ -2,24 +2,43 @@ import { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { LogOut, ChevronDown } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/AppContext';
 import { useTenant } from '../context/TenantContext';
-import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
-import { getDateLocale } from '../utils/translations';
 import { useT } from '../hooks/useT';
 import UserAvatarMenu from './UserAvatarMenu';
 import NotificationCenter from './NotificationCenter';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
+
+/** Componente ultra-leggero: si re-renderizza ogni minuto per mostrare l'ora
+ *  senza causare re-render del padre AppHeader. */
+function ClockDisplay() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const msToNext = 60_000 - (Date.now() % 60_000);
+    const t = window.setTimeout(() => {
+      setNow(new Date());
+      const i = window.setInterval(() => setNow(new Date()), 60_000);
+      return () => window.clearInterval(i);
+    }, msToNext);
+    const onVis = () => { if (document.visibilityState === 'visible') setNow(new Date()); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.clearTimeout(t);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, []);
+  return <>{format(now, 'HH:mm', { locale: it })}</>;
+}
 
 interface AppHeaderProps {
   onLogout?: () => void;
 }
 
 export default function AppHeader({ onLogout }: AppHeaderProps) {
-  const { currentUser, effectiveLanguage, setLanguage } = useApp();
+  const { currentUser, effectiveLanguage, setLanguage } = useAppUser();
   const { tenant } = useTenant();
   const tenantName = tenant?.name ?? 'FLOW';
-  const now = useWallAlignedMinuteClock();
+  const t = useT();
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
   const langModalRef = useRef<HTMLDivElement>(null);
@@ -36,8 +55,6 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
     return () => document.removeEventListener('pointerdown', handler);
   }, [langOpen]);
 
-  const t = useT();
-  const locale = getDateLocale(effectiveLanguage) ?? it;
   const langLabels: Record<string, string> = { it: 'IT', en: 'EN', es: 'ES', fr: 'FR' };
   const langFlags: Record<string, string> = { it: '🇮🇹', en: '🇬🇧', es: '🇪🇸', fr: '🇫🇷' };
 
@@ -128,7 +145,7 @@ export default function AppHeader({ onLogout }: AppHeaderProps) {
           )}
 
           <span className="hidden sm:block text-white/50 text-xs font-medium tabular-nums">
-            {format(now, 'HH:mm', { locale })}
+            <ClockDisplay />
           </span>
         </div>
       </div>

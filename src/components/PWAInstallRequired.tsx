@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Download, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { isIOS, isAndroid, isDesktop, isSafariDesktop } from '../utils/pwaStandalone';
-import { useApp } from '../context/appContextCore';
+import { useAppUser } from '../context/AppContext';
 import FlowWaveIcon from './ui/FlowWaveIcon';
 
 const BG = 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.18) 0%, transparent 60%)';
@@ -121,7 +121,7 @@ const SAFARI_DESKTOP_STEPS = [
 ];
 
 export default function PWAInstallRequired() {
-  const { effectiveLanguage } = useApp();
+  const { effectiveLanguage } = useAppUser();
   void effectiveLanguage;
 
   // All hooks unconditionally at the top — Rules of Hooks

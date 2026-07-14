@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Bell, BellOff, X, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppData } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import {
   generateNotifications,
@@ -17,7 +18,8 @@ import { CenteredModalPortal } from './ui/CenteredModalPortal';
  * - Supporta notifiche push/desktop se il browser lo consente.
  */
 export default function NotificationCenter({ denseTrigger = false }: { denseTrigger?: boolean } = {}) {
-  const { currentUser, shifts, holidays, users, effectiveLanguage } = useApp();
+  const { currentUser, users, effectiveLanguage } = useAppUser();
+  const { shifts, holidays } = useAppData();
   const [isOpen, setIsOpen] = useState(false);
   // Tick incrementato dopo markAllSeen per forzare re-lettura seenIds da localStorage
   const [seenTick, setSeenTick] = useState(0);

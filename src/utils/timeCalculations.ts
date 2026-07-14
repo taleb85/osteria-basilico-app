@@ -40,17 +40,6 @@ export function calculateShiftMinutesGross(startTime: string, endTime: string): 
   return Number.isFinite(totalMinutes) ? totalMinutes : 0;
 }
 
-/** Calcola i minuti netti: (Orario_Fine - Orario_Inizio) - minuti_pausa. */
-export function calculateShiftMinutes(
-  startTime: string,
-  endTime: string,
-  options?: ShiftMinutesOptions
-): number {
-  const gross = calculateShiftMinutesGross(startTime, endTime);
-  const breakMinutes = options?.breakMinutes ?? 0;
-  return Math.max(0, gross - breakMinutes);
-}
-
 /** Fasce pausa pasto: 11:30-12:00 (pranzo), 17:00-17:30 (cena). Restituisce quali fasce sono coperte dal turno. */
 export function getBreakLabels(startTime: string, endTime: string): ('lunch' | 'dinner')[] {
   if (!startTime || !endTime || startTime.trim() === '' || endTime.trim() === '') return [];

@@ -3,7 +3,8 @@ import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { X } from 'lucide-react';
 import { User as UserType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { formatTrans } from '../utils/translations';
 import { findActiveUserWithSamePin } from '../utils/loginIdentifier';
@@ -31,7 +32,8 @@ interface EditStaffModalProps {
 
 export default function EditStaffModal({ isOpen, onClose, user, readOnly = false }: EditStaffModalProps) {
   useBodyScrollLock(isOpen);
-  const { updateUser, currentUser, showError, users } = useApp();
+  const { updateUser, currentUser, users } = useAppUser();
+  const { showError } = useAppOverlay();
   const t = useT();
   const hourlyStr =
     user.hourly_rate_eur != null && Number.isFinite(user.hourly_rate_eur)

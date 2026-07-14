@@ -1,7 +1,9 @@
 import { useLayoutEffect, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { Home, Calendar, ClipboardList, ShieldCheck, Palmtree, User as UserIcon, Search, X, Fingerprint, Settings } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppConfig } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { formatTrans } from '../utils/translations';
 import { useT } from '../hooks/useT';
 import type { User } from '../types';
@@ -31,7 +33,9 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClassName }: BottomNavProps) {
   const navRef = useRef<HTMLElement>(null);
-  const { currentUser, users, setCurrentUser, setIsSessionElevated, isSessionElevated, featureFlags, setImpersonating, silentRefreshData } = useApp();
+  const { currentUser, users, setCurrentUser, setIsSessionElevated, isSessionElevated, setImpersonating } = useAppUser();
+  const { featureFlags } = useAppConfig();
+  const { silentRefreshData } = useAppOverlay();
   const { triggerHapticFeedback } = useMultisensorialFeedback();
   /** Contenuto che scorre sotto la nav fissa → vetro trasparente; altrimenti tinta piena FLOW blue. */
   const [_navOverContent, _setNavOverContent] = useState(false);
@@ -246,6 +250,11 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     (currentUser?.first_name?.trim() || currentUser?.email?.split('@')[0] || 'Utente').trim() || 'Utente';
   const profileInitialNav = (profileDisplayName.charAt(0) || '?').toUpperCase();
 
+  const isAdminSettings = useMemo(
+    () => isAdminOnly(currentUser) || isSessionElevated || !!currentUser?.elevated_role,
+    [currentUser, isSessionElevated]
+  );
+
   const defs: { id: AppNavTab; icon: typeof Home; label: string }[] = [
     { id: 'home', icon: Home, label: t.sidebar_dashboard },
     { id: 'turni', icon: Calendar, label: t.sidebar_shifts },
@@ -255,7 +264,7 @@ export default function BottomNav({ activeTab, onTabChange, visibleTabs, navClas
     { id: 'profile', icon: UserIcon, label: tv.bottom_nav_profile_short ?? t.sidebar_profile },
     {
       id: 'settings' as AppNavTab,
-      icon: (isAdminOnly(currentUser) || isSessionElevated || !!currentUser?.elevated_role) ? ShieldCheck : Settings,
+      icon: isAdminSettings ? ShieldCheck : Settings,
       label: t.sidebar_admin,
     },
   ];

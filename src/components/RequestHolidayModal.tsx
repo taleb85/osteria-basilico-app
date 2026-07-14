@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { X, Calendar, FileText, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppData } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { useIsMobileViewport } from '../hooks/useIsMobileViewport';
 import { hapticLight as lightHaptic } from '../utils/haptics';
@@ -34,7 +36,9 @@ const formatDiscursiveDate = (dateStr: string) => {
 };
 
 export default function RequestHolidayModal({ isOpen, onClose, userId }: RequestHolidayModalProps) {
-  const { addHolidayRequest, currentUser, showError } = useApp();
+  const { addHolidayRequest } = useAppData();
+  const { currentUser } = useAppUser();
+  const { showError } = useAppOverlay();
   const t = useT();
   const tr = t as Record<string, string>;
   const isMobile = useIsMobileViewport();

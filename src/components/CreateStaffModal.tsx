@@ -3,7 +3,8 @@ import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { X } from 'lucide-react';
 import { User as UserType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { formatTrans } from '../utils/translations';
 import { findActiveUserWithSamePin } from '../utils/loginIdentifier';
@@ -64,7 +65,8 @@ export default function CreateStaffModal({
   operationalRolesOnly = false,
 }: CreateStaffModalProps) {
   useBodyScrollLock(isOpen);
-  const { createUser, currentUser, showError, users } = useApp();
+  const { createUser, currentUser, users } = useAppUser();
+  const { showError } = useAppOverlay();
   const t = useT();
   const [formData, setFormData] = useState<ProfileFormAdminData>(emptyForm);
   const [isSaving, setIsSaving] = useState(false);

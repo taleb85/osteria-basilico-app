@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, LogOut } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { ProfileFormSelf, type ProfileFormSelfData } from './UserProfile';
 import { splitPhoneForForm, joinPhone, DEFAULT_PHONE_PREFIX } from '../utils/phonePrefix';
@@ -26,9 +26,12 @@ export default function UserAvatarMenu({
   onLogout,
   openRequestId,
 }: UserAvatarMenuProps) {
-  const { currentUser, updateUser } = useApp();
+  const { currentUser, updateUser } = useAppUser();
   const t = useT();
-  const _isManagement = currentUser ? isManagementRole(currentUser.role) : false;
+  const _isManagement = useMemo(
+    () => currentUser ? isManagementRole(currentUser.role) : false,
+    [currentUser?.role]
+  );
   const [isOpen, setIsOpen] = useState(false);
   useBodyScrollLock(isOpen);
   const [showPortal, setShowPortal] = useState(false);

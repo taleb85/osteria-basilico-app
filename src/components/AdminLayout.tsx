@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Settings } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { isAdminOnly } from '../utils/permissions';
 import { getStoredTheme, getThemeById } from '../utils/backgroundThemes';
@@ -23,7 +24,8 @@ interface TabDef {
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const { currentUser, silentRefreshData, isSessionElevated } = useApp();
+  const { currentUser, isSessionElevated } = useAppUser();
+  const { silentRefreshData } = useAppOverlay();
   const t = useT();
   const fullAdminNav = !!(currentUser && (isAdminOnly(currentUser) || isSessionElevated || currentUser.elevated_role));
   const [activeTab, setActiveTab] = useState<AdminTab>('profili');

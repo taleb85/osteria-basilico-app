@@ -2,12 +2,13 @@
  * Contenitore anteprima in miniatura (profilePreview/): testi `text-[8–10px]`
  * sono voluti per scala ridotta; round2: miniature preview — intentional.
  */
+import { memo } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from '../../types';
 import { isUiWidgetVisible } from '../../utils/uiScreenWidgets';
 import { previewWidgetLabel } from './previewWidgetLabel';
 
-export function WidgetChrome({
+export const WidgetChrome = memo(function WidgetChrome({
   widgetKey,
   previewUser,
   isSelectedAdmin,
@@ -57,4 +58,4 @@ export function WidgetChrome({
       </div>
     </div>
   );
-}
+});

@@ -1,5 +1,6 @@
 import { useCallback, useId, useRef, useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useAppConfig } from '../context/appSliceContexts';
+import { useAppUser } from '../context/appSliceContexts';
 import type { Language } from '../types';
 import { getTranslations } from '../utils/translations';
 import { resolveEffectiveVerificationToken } from '../utils/presenceVerificationPayload';
@@ -10,7 +11,8 @@ import PunchPresenceVerificationModal from '../components/PunchPresenceVerificat
  * Il manager che timbra per un altro dipendente è escluso (come per il geofence).
  */
 export function usePunchPresenceVerification(language: Language) {
-  const { presenceVerificationConfig, currentUser } = useApp();
+  const { presenceVerificationConfig } = useAppConfig();
+  const { currentUser } = useAppUser();
   const [modalOpen, setModalOpen] = useState(false);
   const resolverRef = useRef<((value: string) => void) | null>(null);
   const rejecterRef = useRef<(() => void) | null>(null);

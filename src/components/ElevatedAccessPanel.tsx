@@ -5,10 +5,10 @@
 
 import { useState, useMemo } from 'react';
 import { ShieldCheck } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
 import { translateRole } from '../utils/roles';
 export default function ElevatedAccessPanel() {
-  const { users, updateUser, effectiveLanguage } = useApp();
+  const { users, updateUser, effectiveLanguage } = useAppUser();
 
   const eligibleUsers = useMemo(
     () => users.filter((u) => u.status === 'active' && u.role !== 'admin'),

@@ -16,7 +16,9 @@ interface EditShiftModalProps {
 
 export default function EditShiftModal({ shift, onClose }: EditShiftModalProps) {
   useBodyScrollLock(true);
-  const { users, shifts, updateShift, deleteShift, copyShift, showError } = useApp();
+  const { users } = useAppUser();
+  const { shifts, updateShift, deleteShift, copyShift } = useAppData();
+  const { showError } = useAppOverlay();
   const t = useT();
   const [tempShifts, setTempShifts] = useState({
     start_time: (shift.start_time || '').trim().slice(0, 5),

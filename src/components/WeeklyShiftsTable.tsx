@@ -4,7 +4,7 @@ import { format, startOfWeek, endOfWeek, addDays, differenceInCalendarDays, pars
 import { database } from '../lib/database';
 import { it } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu, ClipboardCopy, ClipboardPaste, Calendar, RotateCcw, FileDown } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { useTenant } from '../context/TenantContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';
@@ -623,7 +623,11 @@ export default function WeeklyShiftsTable({ filterUserId, stickyDateBarInScrollP
   const [savingOrder, setSavingOrder] = useState(false);
   void setSavingOrder; // reserved for future drag-reorder save
   const isWideShiftViewport = useMinViewportMd();
-  const { users, shifts, holidays, availability, toggleAvailability, updateShift, updateUser, currentUser, punchRecords, addShift, deleteShifts, bulkCopyPreviousWeek, showError, showSuccess, silentRefreshData, requestConfirmAndSaveOrder, requestConfirmAndPublishWeek, postRefreshLocked, effectiveLanguage, workRules, breakRules, featureFlags, departmentsRevision, isSessionElevated } = useApp();
+  const { users, currentUser, effectiveLanguage, isSessionElevated } = useAppUser();
+  const { shifts, holidays, availability, punchRecords, addShift, updateShift, deleteShifts, bulkCopyPreviousWeek } = useAppData();
+  const { toggleAvailability, workRules, breakRules, featureFlags, departmentsRevision } = useAppConfig();
+  const { showError, showSuccess, silentRefreshData, requestConfirmAndSaveOrder, requestConfirmAndPublishWeek, postRefreshLocked } = useAppOverlay();
+  const { updateUser } = useAppUser();
   const { tenant } = useTenant();
   void departmentsRevision;
   // Ruoli gestionali: filtro libero. Staff operativo: vincolato al reparto del profilo.
@@ -6188,7 +6192,10 @@ interface CreateShiftModalProps {
 }
 
 function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError, onClose, isOpenShift = false }: CreateShiftModalProps) {
-  const { users, addShift, showSuccess, effectiveLanguage, breakRules, featureFlags } = useApp();
+  const { users, effectiveLanguage } = useAppUser();
+  const { addShift } = useAppData();
+  const { breakRules, featureFlags } = useAppConfig();
+  const { showSuccess } = useAppOverlay();
   const t = useT();
   const fId = useId();
   const wstF = {

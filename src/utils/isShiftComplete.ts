@@ -100,13 +100,4 @@ export function isShiftComplete(
   return hasPunchIn(shift, punchRecords) && hasPunchOut(shift, punchRecords);
 }
 
-/**
- * Verifica se un turno può essere eliminato/modificato.
- * Un turno NON può essere modificato se è già completato (ha entrata+uscita).
- */
-export function isShiftEditable(
-  shift: Pick<Shift, 'id' | 'user_id' | 'date' | 'start_time'>,
-  punchRecords: PunchRecordLike[]
-): boolean {
-  return !isShiftComplete(shift, punchRecords);
-}
+

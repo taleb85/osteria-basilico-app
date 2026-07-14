@@ -10,7 +10,9 @@ import {
   Smartphone,
   X,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
+import { useAppData } from '../context/appSliceContexts';
+import { useAppOverlay } from '../context/appSliceContexts';
 
 import { useWallAlignedMinuteClock } from '../hooks/useWallAlignedMinuteClock';
 import type { User as UserType, Shift, Language } from '../types';
@@ -133,7 +135,9 @@ function GiantBrandHeader({ now, locale, children }: { now: Date; locale: Return
 }
 
 export default function PunchInKiosk({ onGoToLogin }: PunchInKioskProps) {
-  const { users, shifts, punchRecords, addPunchRecord, showError } = useApp();
+  const { users } = useAppUser();
+  const { shifts, punchRecords, addPunchRecord } = useAppData();
+  const { showError } = useAppOverlay();
 
 
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(KIOSK_UI_LANGUAGE);

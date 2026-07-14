@@ -11,17 +11,6 @@ export function setDatabaseTenant(tenantId: string): void {
   _tenantId = tenantId;
 }
 
-/** Chiamato dopo il login per sincronizzare l'utente. */
-export function setDatabaseUser(_userId: string): void {
-  // RLS: dopo aver applicato la migration tenant_scoped_rls_via_session.sql,
-  // scommentare: supabase?.rpc('set_session_user', { p_user_id: _userId }).then().catch(() => {});
-}
-
-/** Resetta la sessione RLS (logout). */
-export function clearDatabaseSession(): void {
-  _tenantId = null;
-}
-
 /** Aggiunge il filtro tenant_id alla query se il tenant è stato impostato. */
 function withTenant<T extends { eq: (col: string, val: unknown) => T }>(query: T): T {
   return _tenantId ? query.eq('tenant_id', _tenantId) : query;

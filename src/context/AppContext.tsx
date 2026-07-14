@@ -154,6 +154,16 @@ import {
 } from '../utils/departments';
 import { AppContext } from './appContextCore';
 import type { AppContextType } from './appContextTypes';
+import {
+  UserSliceContext,
+  DataSliceContext,
+  ConfigSliceContext,
+  OverlaySliceContext,
+  type UserSlice,
+  type DataSlice,
+  type ConfigSlice,
+  type OverlaySlice,
+} from './appSliceContexts';
 
 /** Dopo aver caricato `departments.json`, ignora merge da pull per questo intervallo (stesso browser). */
 const DEPARTMENTS_OWN_PUSH_GRACE_MS = 20000;
@@ -2582,6 +2592,86 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     window.location.assign(PATH_PROFILO);
   }, []);
 
+  // ── Sub-context memoized values ───────────────────────────────────────────
+  const userSlice = useMemo<UserSlice>(() => ({
+    currentUser, setCurrentUser, users,
+    isSessionElevated, setIsSessionElevated,
+    impersonatingAs, originalAdminUser, setImpersonating,
+    globalPinSessionId, setGlobalPinSessionId,
+    forceLogoutRequested, clearForceLogoutRequest,
+    isLoading, effectiveLanguage, setLanguage,
+    updateUser, deleteUser, createUser, reorderUsers,
+    logout, clearLanguage,
+  }), [
+    currentUser, setCurrentUser, users,
+    isSessionElevated, setIsSessionElevated,
+    impersonatingAs, originalAdminUser, setImpersonating,
+    globalPinSessionId, setGlobalPinSessionId,
+    forceLogoutRequested, clearForceLogoutRequest,
+    isLoading, effectiveLanguage, setLanguage,
+    updateUser, deleteUser, createUser, reorderUsers,
+    logout, clearLanguage,
+  ]);
+
+  const dataSlice = useMemo<DataSlice>(() => ({
+    shifts, punchRecords, holidays, availability,
+    addShift, updateShift, deleteShift, deleteShifts, copyShift, bulkCopyPreviousWeek,
+    publishWeekShifts, publishDayShifts, approveShift,
+    addHolidayRequest, updateHolidayStatus, deleteHolidayRequest,
+    addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
+    seedDemoProfileForUser,
+  }), [
+    shifts, punchRecords, holidays, availability,
+    addShift, updateShift, deleteShift, deleteShifts, copyShift, bulkCopyPreviousWeek,
+    publishWeekShifts, publishDayShifts, approveShift,
+    addHolidayRequest, updateHolidayStatus, deleteHolidayRequest,
+    addPunchRecord, updatePunchRecord, deletePunchRecordsForShift,
+  ]);
+
+  const configSlice = useMemo<ConfigSlice>(() => ({
+    featureFlags, setFeatureFlag, workRules, setWorkRules,
+    breakRules, setBreakRules,
+    geofenceEffectiveConfig, presenceVerificationConfig,
+    roleTemplatesRevision, adminModulesRevision, departmentsRevision,
+    toggleAvailability,
+    saveRoleFeatureTemplates, saveAdminModulesGlobal,
+    saveGeofenceConfig, savePresenceVerificationConfig,
+    pushSettingsToCloud, settingsCloudLastSyncedAt, settingsCloudPushBusy,
+    notifyDepartmentsChanged,
+  }), [
+    featureFlags, setFeatureFlag, workRules, setWorkRules,
+    breakRules, setBreakRules,
+    geofenceEffectiveConfig, presenceVerificationConfig,
+    roleTemplatesRevision, adminModulesRevision, departmentsRevision,
+    toggleAvailability,
+    saveRoleFeatureTemplates, saveAdminModulesGlobal,
+    saveGeofenceConfig, savePresenceVerificationConfig,
+    pushSettingsToCloud, settingsCloudLastSyncedAt, settingsCloudPushBusy,
+    notifyDepartmentsChanged,
+  ]);
+
+  const overlaySlice = useMemo<OverlaySlice>(() => ({
+    isGlobalRefreshing, syncStage, dataSyncInProgress,
+    postRefreshLocked, postUnlockReloadPending,
+    showError, showSuccess,
+    silentRefreshData, hardReloadFromDatabase,
+    unlockAfterRefresh, unlockAfterRefreshWithDevice,
+    cancelRefreshLock,
+    registerPinUnlockDevice, pinUnlockDeviceRegistered,
+    pendingOrderIds, pendingPublishWeekStart,
+    requestConfirmAndSaveOrder, requestConfirmAndPublishWeek,
+  }), [
+    isGlobalRefreshing, syncStage, dataSyncInProgress,
+    postRefreshLocked, postUnlockReloadPending,
+    showError, showSuccess,
+    silentRefreshData, hardReloadFromDatabase,
+    unlockAfterRefresh, unlockAfterRefreshWithDevice,
+    cancelRefreshLock,
+    registerPinUnlockDevice, pinUnlockDeviceRegistered,
+    pendingOrderIds, pendingPublishWeekStart,
+    requestConfirmAndSaveOrder, requestConfirmAndPublishWeek,
+  ]);
+
   return (
     <AppContext.Provider
       value={{
@@ -2603,36 +2693,44 @@ function AppProviderInner({ children }: { children: ReactNode }) {
         impersonatingAs, originalAdminUser, setImpersonating,
       } satisfies AppContextType}
     >
-      {/* Splash durante boot: senza questo `#root` resta vuoto → “pagina bianca”. */}
-      {isLoading ? (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center font-sans"
-          style={{
-            background:
-              'radial-gradient(ellipse at 50% 30%, rgba(107,107,107,0.15) 0%, transparent 55%), #0a0a0c',
-          }}
-          aria-busy
-          aria-label="Caricamento"
-        >
-          <FlowWaveIcon size={120} radius={34} />
-        </div>
-      ) : (
-        <PwaGate>{children}</PwaGate>
-      )}
+      <UserSliceContext.Provider value={userSlice}>
+        <DataSliceContext.Provider value={dataSlice}>
+          <ConfigSliceContext.Provider value={configSlice}>
+            <OverlaySliceContext.Provider value={overlaySlice}>
+              {/* Splash durante boot: senza questo `#root` resta vuoto → “pagina bianca”. */}
+              {isLoading ? (
+                <div
+                  className="fixed inset-0 z-[200] flex items-center justify-center font-sans"
+                  style={{
+                    background:
+                      'radial-gradient(ellipse at 50% 30%, rgba(107,107,107,0.15) 0%, transparent 55%), #0a0a0c',
+                  }}
+                  aria-busy
+                  aria-label="Caricamento"
+                >
+                  <FlowWaveIcon size={120} radius={34} />
+                </div>
+              ) : (
+                <PwaGate>{children}</PwaGate>
+              )}
 
 
-      <DevMissingEnvBanner />
+              <DevMissingEnvBanner />
 
-      <AnimatePresence mode="sync">
-        {toastMessage && (
-          <Toast
-            key={`${toastType}:${toastMessage.slice(0, 80)}`}
-            message={toastMessage}
-            type={toastType || undefined}
-            onClose={clearToast}
-          />
-        )}
-      </AnimatePresence>
+              <AnimatePresence mode="sync">
+                {toastMessage && (
+                  <Toast
+                    key={`${toastType}:${toastMessage.slice(0, 80)}`}
+                    message={toastMessage}
+                    type={toastType || undefined}
+                    onClose={clearToast}
+                  />
+                )}
+              </AnimatePresence>
+            </OverlaySliceContext.Provider>
+          </ConfigSliceContext.Provider>
+        </DataSliceContext.Provider>
+      </UserSliceContext.Provider>
     </AppContext.Provider>
   );
 }
@@ -2641,4 +2739,19 @@ function AppProviderInner({ children }: { children: ReactNode }) {
 /* eslint-disable react-refresh/only-export-components */
 export { useApp } from './appContextCore';
 export type { AppContextType } from './appContextTypes';
+export {
+  useAppUser,
+  useAppData,
+  useAppShifts,
+  useAppPunchRecords,
+  useAppHolidays,
+  useAppConfig,
+  useAppOverlay,
+} from './appSliceContexts';
+export type {
+  UserSlice,
+  DataSlice,
+  ConfigSlice,
+  OverlaySlice,
+} from './appSliceContexts';
 /* eslint-enable react-refresh/only-export-components */

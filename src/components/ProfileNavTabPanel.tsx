@@ -47,7 +47,8 @@ export default function ProfileNavTabPanel({
   onLogout: () => void;
   onGoToSettings?: () => void;
 }) {
-  const { currentUser, effectiveLanguage, setLanguage, clearLanguage, updateUser, showError, isSessionElevated } = useApp();
+  const { currentUser, effectiveLanguage, setLanguage, clearLanguage, updateUser, isSessionElevated } = useAppUser();
+  const { showError } = useAppOverlay();
   const profileLeaveGuardRef = useProfileLeaveGuardRef();
   const navigate = useNavigate();
   const t = useT();
