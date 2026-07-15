@@ -13,7 +13,7 @@ const STEPS = [
   { label: 'Riavvio…',                  doneAt: null },
 ];
 
-const BG = 'radial-gradient(ellipse at 50% 30%, rgba(107,107,107,0.15) 0%, transparent 55%), #0a0a0c';
+const BG = 'radial-gradient(ellipse at 50% 30%, rgba(107,107,107,0.15) 0%, transparent 55%), rgba(10,10,12,0.92)';
 
 function redirectToApp() {
   try {
@@ -58,7 +58,7 @@ export default function SwUpdateOverlay() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
       className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6 font-sans text-center px-4"
-      style={{ background: BG }}
+      style={{ background: BG, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
       role="status"
       aria-live="polite"
       aria-busy="true"

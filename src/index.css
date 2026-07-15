@@ -32,6 +32,14 @@ button:active,
   transition: transform 0.08s ease;
 }
 
+@media (hover: hover) {
+  button:hover,
+  [role="button"]:hover {
+    transform: scale(1.02);
+    transition: transform 0.08s ease;
+  }
+}
+
 /* Header fisso — wrapper trasparente, il glass è sulla card interna */
 .flow-glass-header {
   background: transparent;
@@ -312,6 +320,11 @@ body {
   }
   button:not(:disabled):not([role='switch']):active {
     transform: scale(0.95);
+  }
+  @media (hover: hover) {
+    button:not(:disabled):not([role='switch']):hover {
+      transform: scale(1.02);
+    }
   }
   a[href]:active {
     transform: scale(0.95);

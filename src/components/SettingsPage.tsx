@@ -2660,7 +2660,7 @@ function BreakRuleModal({
   const chipClass = (active: boolean) =>
     `cursor-pointer px-2.5 py-1 text-xs font-semibold transition-colors ${
       active
-        ? 'rounded-full border border-accent bg-accent text-white'
+        ? 'rounded-full border border-emerald-500 bg-emerald-500/20 text-emerald-400'
         : 'rounded-xl border border-neutral-500 !rounded-full text-white/70 surface-ghost-interactive hover:border-accent hover:text-accent'
     }`;
 
@@ -2676,7 +2676,7 @@ function BreakRuleModal({
         transition={{ type: 'spring', damping: 28, stiffness: 380 }}
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
-        className="modal-glass-panel max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl font-sans"
+        className="modal-glass-panel w-full max-w-4xl rounded-2xl font-sans"
       >
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-app-bg/80 px-5 pt-5 pb-4 backdrop-blur-md">
@@ -2693,7 +2693,8 @@ function BreakRuleModal({
           </button>
         </div>
 
-        <div className="px-5 py-5 space-y-5">
+        <div className="px-5 py-5">
+          <div className="grid grid-cols-3 gap-6">
           {/* ── Generale ── */}
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-3">{t.settings_break_section_general}</p>
@@ -2704,10 +2705,10 @@ function BreakRuleModal({
                 <input
                   type="text"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => setTitle(e.target.value.toUpperCase())}
                   placeholder={t.settings_break_title_placeholder}
                   required
-                  className={inputClass}
+                  className={`${inputClass} uppercase`}
                 />
               </div>
 
@@ -2788,8 +2789,6 @@ function BreakRuleModal({
             </div>
           </div>
 
-          <div className="border-t border-white/10" />
-
           {/* ── Assegna a ── */}
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-3">{t.settings_break_assign_section}</p>
@@ -2833,8 +2832,6 @@ function BreakRuleModal({
             </div>
           </div>
 
-          <div className="border-t border-white/10" />
-
           {/* ── Applica a ── */}
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-3">{t.settings_break_apply_section}</p>
@@ -2875,6 +2872,7 @@ function BreakRuleModal({
                 </div>
               </div>
             </div>
+          </div>
           </div>
 
           {/* Footer buttons */}

@@ -157,8 +157,8 @@ export default function ProfilePhotoCropperModal({ imageSrc, labels, onClose, on
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[10060] flex flex-col bg-[#0a0a0a] text-white"
-      style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 0px))' }}
+      className="fixed inset-0 z-[10060] flex flex-col text-white"
+      style={{ background: 'rgba(10,10,10,0.85)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', paddingTop: 'max(8px, env(safe-area-inset-top, 0px))' }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="profile-crop-title"

@@ -65,8 +65,8 @@ export function NotificationDropdown({
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 top-full z-50 mt-2 w-80 max-h-96 rounded-lg border border-neutral-500 bg-app-bg/95 shadow-xl"
-      style={{ }}
+      className="absolute right-0 top-full z-50 mt-2 w-80 max-h-96 rounded-xl border border-white/10 shadow-xl"
+      style={{ background: 'rgba(10,10,10,0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 bg-white/5">

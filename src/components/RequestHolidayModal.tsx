@@ -238,7 +238,8 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+        className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4"
+        style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
         onClick={handleClose}
       >
         <motion.form
@@ -247,7 +248,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
           exit={{ scale: 0.95, opacity: 0, y: 12 }}
           onSubmit={handleSubmit}
           onClick={(e) => e.stopPropagation()}
-          className="modal-glass-panel w-full max-w-md rounded-3xl p-6 shadow-[0_8px_32px_-8px_rgba(0,26,128,0.12)]"
+          className="modal-glass-panel w-full max-w-md rounded-3xl p-6"
         >
           <div className="mb-5 flex items-center justify-between">
             <h3 className="text-base font-semibold text-white">{title}</h3>
