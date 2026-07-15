@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, ChevronRight, Trash2, Settings2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+import { useApp, useAppUser, useAppOverlay } from '../context/AppContext';
 import { useProfileLeaveGuardRef } from '../context/ProfileLeaveGuardContext';
 import { useT } from '../hooks/useT';
 import { getDeviceUiLanguage, readStoredUiLanguage } from '../utils/uiLanguagePreference';

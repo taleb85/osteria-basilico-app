@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Download, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { isIOS, isAndroid, isDesktop, isSafariDesktop } from '../utils/pwaStandalone';
-import { useAppUser } from '../context/AppContext';
+import { useAppUser } from '../context/appSliceContexts';
 import FlowWaveIcon from './ui/FlowWaveIcon';
 
 const BG = 'radial-gradient(ellipse at 50% 30%, rgba(255,149,0,0.18) 0%, transparent 60%)';

@@ -100,9 +100,9 @@ export function TimeInputField({
     setM(mi);
   }, [value]);
 
-  const flush = useCallback(() => {
-    const hd = digitsOnly(h, 2);
-    const md = digitsOnly(m, 2);
+  const flush = useCallback((overrideH?: string, overrideM?: string) => {
+    const hd = digitsOnly(overrideH ?? h, 2);
+    const md = digitsOnly(overrideM ?? m, 2);
     const { h: prevH, m: prevM } = splitIncoming(value);
 
     if (!hd && !md) {
@@ -222,7 +222,7 @@ export function TimeInputField({
             });
           }
         }}
-        onBlur={flush}
+        onBlur={() => flush(h, m)}
         onFocus={(e) => e.target.select()}
         onKeyDown={handleHourKeyDown}
         className={`${inner} pl-2 pr-0.5`}
@@ -246,11 +246,11 @@ export function TimeInputField({
           const prevLen = m.length;
           setM(next);
           if (next.length === 2 && prevLen < 2) {
-            flush();
+            flush(h, next);
             onMinutesEnter?.();
           }
         }}
-        onBlur={flush}
+        onBlur={() => flush(h, m)}
         onFocus={(e) => e.target.select()}
         onKeyDown={handleMinuteKeyDown}
         className={`${inner} pl-0.5 pr-2`}

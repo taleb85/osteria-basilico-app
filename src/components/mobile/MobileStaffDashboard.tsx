@@ -62,10 +62,10 @@ export default function MobileStaffDashboard({
   const t = getTranslations(language);
   const tv = t as Record<string, string>;
   const locale = getDateLocale(language);
-  const { updatePunchRecord } = useAppData();
+  const { users } = useAppUser();
+  const { updatePunchRecord, shifts: allShifts } = useAppData();
   const { showError, showSuccess } = useAppOverlay();
   const { featureFlags, breakRules } = useAppConfig();
-  const { users, shifts: allShifts } = useAppUser();
   const { requestProof, modal: presenceModal } = usePunchPresenceVerification(language);
   const [tick, setTick] = useState(0);
   const [closeModal, setCloseModal] = useState<{

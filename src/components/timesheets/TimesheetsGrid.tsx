@@ -1669,37 +1669,25 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
                           >
                       {/* Nome dipendente — click → revisione settimana (coda turni) */}
                       <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-white/10 z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: 'transparent', boxShadow: 'none' }}>
-                        {canTeamTimesheetOps ? (
-                          <div className="flex flex-col gap-1 justify-center">
-                            <button
-                              type="button"
-                              className="w-full max-w-full rounded-lg py-0.5 text-right transition-colors"
-                              aria-label={formatTrans(t.ts_employee_week_review_open_aria, { name: user.first_name })}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenEmployeeWeekReview(user);
-                              }}
-                            >
-                              <div className="font-semibold text-sm text-white md:text-xs">{user.first_name}</div>
-                              {user.department && (
-                                <div className="text-[11px] text-white/40 mt-0.5 md:text-[11px] uppercase">{user.department}</div>
-                              )}
-                            </button>
-                            <div className="text-[11px] font-bold text-accent/70 tabular-nums text-right">
-                              {formatMinutesToHoursAndMinutes(totals?.actualMins ?? totals?.plannedMins ?? 0)}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-right">
+                        <div className="flex flex-col gap-1 justify-center">
+                          <button
+                            type="button"
+                            className="w-full max-w-full rounded-lg py-0.5 text-right transition-colors hover:bg-white/[0.04]"
+                            aria-label={formatTrans(t.ts_employee_week_review_open_aria, { name: user.first_name })}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenEmployeeWeekReview(user);
+                            }}
+                          >
                             <div className="font-semibold text-sm text-white md:text-xs">{user.first_name}</div>
                             {user.department && (
                               <div className="text-[11px] text-white/40 mt-0.5 md:text-[11px] uppercase">{user.department}</div>
                             )}
-                            <div className="text-[11px] font-bold text-accent/70 tabular-nums">
-                              {formatMinutesToHoursAndMinutes(totals?.actualMins ?? totals?.plannedMins ?? 0)}
-                            </div>
+                          </button>
+                          <div className="text-[11px] font-bold text-accent/70 tabular-nums text-right">
+                            {formatMinutesToHoursAndMinutes(totals?.actualMins ?? totals?.plannedMins ?? 0)}
                           </div>
-                        )}
+                        </div>
                       </td>
 
                       {/* Celle giornaliere */}

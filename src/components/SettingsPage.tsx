@@ -16,7 +16,6 @@ import {
 } from '../utils/periodConfig';
 import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
 import DatePickerField from './DatePickerField';
-import BackgroundGallery from './BackgroundGallery';
 import { useApp, useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { useTenant } from '../context/TenantContext';
@@ -661,13 +660,6 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
             </motion.div>
           )}
         </AnimatePresence>
-
-        <section className="mb-6">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2">
-            {t.theme ?? 'Tema'}
-          </p>
-          <BackgroundGallery userId={currentUser?.id} />
-        </section>
 
         {/* ── SEZIONE: Gestione Profili ── */}
         <div style={view === 'regole' ? { display: 'none' } : undefined}>

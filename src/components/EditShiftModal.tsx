@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { X, Save, Copy, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useApp } from '../context/AppContext';
+import { useAppUser, useAppData, useAppOverlay } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { Shift } from '../types';
 import { format, addDays, parseISO } from 'date-fns';

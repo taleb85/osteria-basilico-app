@@ -20,7 +20,7 @@ import { exportSchedulePDF } from '../utils/exportSchedulePDF';
 import { TimeInputField } from './ui/TimeInputField';
 import { ShiftSlotPresetsSection } from './shifts/ShiftSlotPresetsSection';
 import { database } from '../lib/database';
-import { useAppUser } from '../context/AppContext';
+import { useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
 import { isManagementRole, isPurelyManagementRole, canEditTeamShifts, canPublishScheduleDrafts, canApproveShiftActions, findFreezeVerifierByPin } from '../utils/permissions';
 import { getShiftViolations, DEFAULT_WORK_RULES } from '../utils/workRules';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
@@ -171,17 +171,19 @@ function useT() {
 
 export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: { mode: GridMode; onModeChange: (m: GridMode) => void; filterUserId?: string }) {
   const t = useT();
+  const { currentUser, users, effectiveLanguage } = useAppUser();
   const {
-    currentUser, users, shifts: allShifts, punchRecords: allPunchRecords,
-    effectiveLanguage, showSuccess, showError, breakRules,
+    shifts: allShifts, punchRecords: allPunchRecords,
     deleteShift, approveShift, bulkCopyPreviousWeek, publishWeekShifts,
-    addPunchRecord, updatePunchRecord, addShift, updateShift, featureFlags,
-  } = useAppUser();
+    addPunchRecord, updatePunchRecord, addShift, updateShift,
+  } = useAppData();
+  const { breakRules, featureFlags } = useAppConfig();
+  const { showSuccess, showError } = useAppOverlay();
   const locale = getDateLocale(effectiveLanguage) ?? it;
   const today = new Date();
   const canEdit = useMemo(
-    () => currentUser ? canEditTeamShifts(currentUser) && mode === 'planning' : false,
-    [currentUser, mode]
+    () => currentUser ? canEditTeamShifts(currentUser) : false,
+    [currentUser]
   );
   const canPublish = currentUser ? canPublishScheduleDrafts(currentUser) : false;
   const canApprove = useMemo(
@@ -293,9 +295,11 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerIsExtraShift, setDrawerIsExtraShift] = useState(false);
   const [drawerDeleteConfirm, setDrawerDeleteConfirm] = useState(false);
+  const [reviewQueue, setReviewQueue] = useState<Shift[] | null>(null);
+  const [reviewIdx, setReviewIdx] = useState(0);
 
   useEffect(() => {
-    if (!drawerOpen) setDrawerDeleteConfirm(false);
+    if (!drawerOpen) { setDrawerDeleteConfirm(false); setReviewQueue(null); setReviewIdx(0); }
   }, [drawerOpen]);
   const [detailTab, setDetailTab] = useState<ShiftDetailTab>('details');
   const [editStartTime, setEditStartTime] = useState('');
@@ -1411,7 +1415,19 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               const totalActual = getTotalActual(user.id);
               return (
                 <tr key={user.id} className={uIdx % 2 === 0 ? 'bg-white/[0.03]' : ''}>
-                  <td className={`sticky left-0 z-10 backdrop-blur-sm px-2 py-1.5 border-b border-white/5 ${uIdx % 2 === 0 ? 'bg-white/[0.06]' : 'bg-white/[0.03]'}`}>
+                  <td className={`sticky left-0 z-10 backdrop-blur-sm px-2 py-1.5 border-b border-white/5 ${uIdx % 2 === 0 ? 'bg-white/[0.06]' : 'bg-white/[0.03]'} cursor-pointer transition-colors hover:bg-white/[0.08]`}
+                    onClick={() => {
+                      const shifts = weekShifts
+                        .filter(s => s.user_id === user.id && s.approval_status !== 'approved' && !isShiftPayrollFrozen(s))
+                        .sort((a, b) => a.date.localeCompare(b.date) || (a.start_time ?? '').localeCompare(b.start_time ?? ''));
+                      if (shifts.length === 0) {
+                        showError(t.no_shifts_to_review ?? 'Nessun turno da revisionare.');
+                        return;
+                      }
+                      setReviewQueue(shifts);
+                      setReviewIdx(0);
+                      handleOpenDrawer(shifts[0]);
+                    }}>
                     <div className="flex items-center gap-1 min-w-0">
                       <span className="text-xs font-bold text-white truncate">{user.first_name} {user.last_name?.[0] ?? ''}</span>
                     </div>
@@ -1517,7 +1533,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       {drawerOpen && selectedShift && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" onClick={() => setDrawerOpen(false)}>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-md supports-[backdrop-filter]:bg-black/50" />
-          <div className="relative w-full max-w-lg rounded-2xl border border-white/15 p-5 shadow-2xl max-h-[85vh] z-10 flex flex-col" style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: `2px solid ${isFrozen(selectedShift) ? '#fbbf24' : selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}40`, boxShadow: `0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08), 0 0 24px ${isFrozen(selectedShift) ? '#fbbf24' : selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}20` }} onClick={e => e.stopPropagation()}>
+          <div className="relative w-full max-w-2xl rounded-2xl border border-white/15 p-5 shadow-2xl max-h-[85vh] z-10 flex flex-col bg-neutral-900" style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: `2px solid ${isFrozen(selectedShift) ? '#fbbf24' : selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}40`, boxShadow: `0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08), 0 0 24px ${isFrozen(selectedShift) ? '#fbbf24' : selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}20` }} onClick={e => e.stopPropagation()}>
             <div className="shrink-0">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -1527,7 +1543,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                     {t.extra_shift ?? 'Turno aggiuntivo'}
                   </span>
                 )}
-                <p className="text-[11px] text-white font-semibold mt-1">{format(parseISO(selectedShift.date), 'EEEE d MMMM', { locale })} — {selectedShift.start_time?.slice(0, 5)}-{selectedShift.end_time?.slice(0, 5)}</p>
+                <p className="text-[11px] text-white font-semibold mt-1 uppercase">{format(parseISO(selectedShift.date), 'EEEE d MMMM', { locale })} — {selectedShift.start_time?.slice(0, 5)}-{selectedShift.end_time?.slice(0, 5)}</p>
                 {(() => {
                   const dayShifts = weekShifts
                     .filter(s => s.user_id === selectedShift.user_id && s.date === selectedShift.date)
@@ -1552,38 +1568,21 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                   );
                 })()}
               </div>
-              <button type="button" onClick={() => setDrawerOpen(false)} className="rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all"><X className="h-4 w-4" /></button>
-            </div>
-            <div className="flex gap-1 rounded-lg bg-gradient-to-r from-indigo-500/15 to-purple-500/15 p-1 mb-4">
-              {(['details', 'punches', 'breaks', 'history'] as ShiftDetailTab[]).map(tab => (
-                <button key={tab} type="button" onClick={() => setDetailTab(tab)}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${detailTab === tab ? 'bg-accent text-white' : 'text-white/50 hover:text-white hover:bg-white/10'}`}>
-                  {tab === 'details' ? (t.details ?? 'Dettagli') : tab === 'punches' ? (t.punches ?? 'Timbrature') : tab === 'breaks' ? (t.break_plural ?? 'Pause') : (t.history ?? 'Storico')}
-                </button>
-              ))}
-            </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto min-h-0">
-            {/* Details tab */}
-            {detailTab === 'details' && (
-              <div className="space-y-3">
-                {canEdit && !isFrozen(selectedShift) && (
-                  <div className="rounded-xl bg-gradient-to-br from-sky-500/10 to-blue-600/10 p-3 space-y-2">
-                    <div>
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">{t.start_time ?? 'Inizio'}</label>
-                      <TimeInputField value={editStartTime} onChange={setEditStartTime} size="md" className="w-full" />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">{t.end_time ?? 'Fine'}</label>
-                      <TimeInputField value={editEndTime} onChange={setEditEndTime} size="md" className="w-full" />
-                    </div>
-                    <button type="button" onClick={handleSaveShiftEdit} disabled={saving}
-                      className="w-full rounded-lg bg-accent px-3 py-2 text-[11px] font-bold text-white hover:bg-accent-hover disabled:opacity-40 transition-all">
-                      {saving ? (t.saving ?? 'Salvataggio...') : <><Save className="h-3.5 w-3.5 inline-block mr-1.5" />{t.save_changes ?? 'Salva modifiche'}</>}
-                    </button>
-                  </div>
+              <div className="flex items-center gap-2">
+                {reviewQueue && (
+                  <>
+                    <span className="text-[10px] font-bold text-white/50 tabular-nums">{reviewIdx + 1}/{reviewQueue.length}</span>
+                    <button type="button" disabled={reviewIdx <= 0} onClick={() => { const next = reviewIdx - 1; if (next >= 0) { setReviewIdx(next); handleOpenDrawer(reviewQueue[next]); } }} className="rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button>
+                    <button type="button" disabled={reviewIdx >= reviewQueue.length - 1} onClick={() => { const next = reviewIdx + 1; if (next < reviewQueue.length) { setReviewIdx(next); handleOpenDrawer(reviewQueue[next]); } }} className="rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
+                  </>
                 )}
+                <button type="button" onClick={() => setDrawerOpen(false)} className="rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all"><X className="h-4 w-4" /></button>
+              </div>
+            </div>
+            </div>
+            <div className="flex-1 grid grid-cols-2 gap-3 min-h-0">
+              {/* Left column: Time editing, Status (no dept), Breaks */}
+              <div className="space-y-3">
                 <div className="rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-600/10 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">{t.status ?? 'Stato'}</span>
@@ -1595,168 +1594,188 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                         selectedShift.approval_status}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">{t.department ?? 'Reparto'}</span>
-                    <span className="text-[11px] font-bold text-white uppercase">{selectedShift.department || selectedUser?.department || '—'}</span>
-                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {canEdit && !isShiftPayrollFrozen(selectedShift) && selectedShift.approval_status === 'draft' && (
-                    <button type="button" onClick={() => handleApproveShift(selectedShift)}
-                      className="flex items-center gap-1.5 rounded-lg bg-emerald-600/20 px-3 py-2 text-[11px] font-bold text-emerald-300 hover:bg-emerald-600/30 transition-colors border border-transparent hover:border-emerald-600/30">
-                      <Check className="h-3.5 w-3.5" />{t.approve ?? 'Approva'}
+                {canEdit && !isFrozen(selectedShift) && (
+                  <div className="rounded-xl bg-gradient-to-br from-sky-500/10 to-blue-600/10 p-3 space-y-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">{t.start_time ?? 'Inizio'}</label>
+                      <TimeInputField value={editStartTime} onChange={setEditStartTime} size="md" className="w-full" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">{t.end_time ?? 'Fine'}</label>
+                      <TimeInputField value={editEndTime} onChange={setEditEndTime} size="md" className="w-full" />
+                    </div>
+                    <button type="button" onClick={handleSaveShiftEdit} disabled={saving}
+                      className="w-full rounded-lg bg-accent px-4 py-2.5 text-[11px] font-bold text-white hover:bg-accent-hover disabled:opacity-40 transition-all uppercase tracking-wider">
+                      {saving ? (t.saving ?? 'Salvataggio...') : <><Save className="h-3.5 w-3.5 inline-block mr-1.5" />{t.save_changes ?? 'Salva modifiche'}</>}
                     </button>
-                  )}
-                  {canDeleteShift(selectedShift) && (
-                    drawerDeleteConfirm ? (
-                      <div className="flex w-full gap-2">
-                        <button type="button" onClick={() => setDrawerDeleteConfirm(false)}
-                          className="flex-1 rounded-lg bg-white/10 px-3 py-2 text-[11px] font-bold text-white/70 hover:bg-white/20 transition-colors">
-                          {t.cancel ?? 'Annulla'}
-                        </button>
-                        <button type="button" onClick={() => void handleDeleteShift(selectedShift, { skipConfirm: true })}
-                          className="flex-1 rounded-lg bg-rose-600 px-3 py-2 text-[11px] font-bold text-white hover:bg-rose-700 transition-colors">
-                          {t.wst_confirm_delete_btn ?? 'Conferma elimina'}
-                        </button>
+                  </div>
+                )}
+                {selectedShift && (() => {
+                  const grossMins = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
+                  const breakMins = getBreakMinutesForShift({ ...selectedShift, deduct_break: deductBreak }, grossMins, selectedUser ?? null, breakRules);
+                  const netMins = Math.max(0, grossMins - breakMins);
+                  const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
+                  return (
+                    <div className="space-y-3">
+                      <div className="rounded-xl bg-gradient-to-br from-violet-500/10 to-pink-600/10 p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">{t.gross_hours ?? 'Ore lorde'}</span>
+                          <span className="text-[11px] font-bold text-white tabular-nums">{formatMinutesToHoursAndMinutes(grossMins)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">{t.break_deduction ?? 'Detrazione pausa'}</span>
+                          <span className="text-[11px] font-bold text-amber-400 tabular-nums">-{breakMins}'</span>
+                        </div>
+                        <div className="border-t border-white/10 pt-2 flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-white/70 uppercase tracking-wider">{t.net_hours ?? 'Ore nette'}</span>
+                          <span className="text-sm font-black text-emerald-400 tabular-nums">{formatMinutesToHoursAndMinutes(netMins)}</span>
+                        </div>
                       </div>
-                    ) : (
-                      <button type="button" onClick={() => setDrawerDeleteConfirm(true)}
-                        className="flex items-center gap-1.5 rounded-lg bg-rose-600/20 px-3 py-2 text-[11px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors border border-transparent hover:border-rose-600/30">
-                        <Trash2 className="h-3.5 w-3.5" />{drawerIsExtraShift ? (t.delete_extra_shift ?? 'Elimina turno aggiuntivo') : (t.delete ?? 'Elimina')}
-                      </button>
-                    )
-                  )}
-                  {canEdit && !isShiftPayrollFrozen(selectedShift) && selectedShift.approval_status === 'confirmed' && (
-                    <button type="button" onClick={() => handleFreezeShift(selectedShift)}
-                      className="ml-auto flex items-center gap-1.5 rounded-lg bg-amber-600/20 px-3 py-2 text-[11px] font-bold text-amber-300 hover:bg-amber-600/30 transition-colors border border-transparent hover:border-amber-600/30">
-                      <Lock className="h-3.5 w-3.5" />{t.wst_freeze_btn ?? 'Congela'}
-                    </button>
-                  )}
-                  {canEdit && isShiftPayrollFrozen(selectedShift) && (
-                    <button type="button" onClick={() => handleFreezeShift(selectedShift)}
-                      className="ml-auto flex items-center gap-1.5 rounded-lg bg-accent/20 px-3 py-2 text-[11px] font-bold text-accent hover:bg-accent/30 transition-colors border border-transparent hover:border-accent/30">
-                      <Unlock className="h-3.5 w-3.5" />{t.wst_unfreeze_btn ?? 'Sblocca'}
-                    </button>
-                  )}
-                </div>
+                    </div>
+                  );
+                })()}
               </div>
-            )}
-
-            {/* Punches tab */}
-            {detailTab === 'punches' && selectedShift && (() => {
-              const { in: punchIn, out: punchOut } = getPunchForShift(selectedShift);
-              const hasIn = !!punchIn; const hasOut = !!punchOut;
-              const showEditFields = canEdit && !isFrozen(selectedShift);
-              return (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-600/10 px-3 py-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">{t.status ?? 'Stato'}:</span>
-                    {!hasIn && !hasOut ? (
-                      <span className="flex items-center gap-1 text-[11px] font-bold text-amber-400"><AlertTriangle className="h-3 w-3" />{t.not_clocked ?? 'Non timbrato'}</span>
-                    ) : hasIn && !hasOut ? (
-                      <span className="flex items-center gap-1 text-[11px] font-bold text-accent"><Clock className="h-3 w-3" />{t.clocked_in_only ?? 'Solo entrata'}</span>
-                    ) : (
-                      <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400"><Check className="h-3 w-3" />{t.clocked_complete ?? 'Timbratura completa'}</span>
-                    )}
-                  </div>
-                  <div className="rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-600/10 p-3 space-y-3">
-                    {showEditFields ? (
-                      <>
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">
-                            {t.punch_in ?? 'Entrata'}
-                            <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.start_time?.slice(0, 5)})</span>
-                          </label>
-                          <TimeInputField value={editIn} onChange={setEditIn} size="md" onMinutesEnter={() => { editOutHourRef.current?.focus(); editOutHourRef.current?.select(); }} className={`w-full ${editIn ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">
-                            {t.punch_out ?? 'Uscita'}
-                            <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.end_time?.slice(0, 5)})</span>
-                          </label>
-                          <TimeInputField value={editOut} onChange={setEditOut} size="md" hourInputRef={editOutHourRef} onMinutesEnter={handleSaveManualPunch} className={`w-full ${editOut ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
-                        </div>
-                        <button type="button" onClick={handleSaveManualPunch} disabled={saving || (!editIn && !editOut)}
-                          className="w-full rounded-lg bg-accent px-4 py-2.5 text-[11px] font-bold text-white hover:bg-accent-hover disabled:opacity-40 transition-all uppercase tracking-wider">
-                          {saving ? (t.saving ?? 'Salvataggio...') : <><Save className="h-3.5 w-3.5 inline-block mr-1.5" />{t.save_punches ?? 'Salva timbrature'}</>}
-                        </button>
-                      </>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{t.punch_in ?? 'Entrata'}</span>
-                          <span className="text-[11px] font-bold text-white tabular-nums">{editIn || '—'}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{t.punch_out ?? 'Uscita'}</span>
-                          <span className="text-[11px] font-bold text-white tabular-nums">{editOut || '—'}</span>
-                        </div>
-                        {isFrozen(selectedShift) && (
-                          <p className="text-[10px] text-amber-400/70 text-center pt-2">{t.wst_frozen_readonly_hint ?? 'Turno congelato — sola lettura'}</p>
+              {/* Right column: Punches */}
+              <div className="space-y-3">
+                {selectedShift && (() => {
+                  const { in: punchIn, out: punchOut } = getPunchForShift(selectedShift);
+                  const hasIn = !!punchIn; const hasOut = !!punchOut;
+                  const showEditFields = canEdit && !isFrozen(selectedShift);
+                  const grossMins = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
+                  const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
+                  return (
+                    <div className="space-y-3">
+                      <div className={`flex items-center gap-2 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-600/10 p-3 ${(!hasIn && !hasOut) ? 'ring-2 ring-amber-500/40 animate-pulse' : ''}`}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">{t.status ?? 'Stato'}:</span>
+                        {!hasIn && !hasOut ? (
+                          <span className="flex items-center gap-1 text-[11px] font-bold text-amber-400"><AlertTriangle className="h-3 w-3" />{t.not_clocked ?? 'Non timbrato'}</span>
+                        ) : hasIn && !hasOut ? (
+                          <span className="flex items-center gap-1 text-[11px] font-bold text-accent"><Clock className="h-3 w-3" />{t.clocked_in_only ?? 'Solo entrata'}</span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400"><Check className="h-3 w-3" />{t.clocked_complete ?? 'Timbratura completa'}</span>
                         )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Breaks tab */}
-            {detailTab === 'breaks' && selectedShift && (() => {
-              const grossMins = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
-              const breakMins = getBreakMinutesForShift({ ...selectedShift, deduct_break: deductBreak }, grossMins, selectedUser ?? null, breakRules);
-              const netMins = Math.max(0, grossMins - breakMins);
-              const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
-              return (
-                <div className="space-y-3">
-                  <div className="rounded-xl bg-gradient-to-br from-violet-500/10 to-pink-600/10 p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">{t.gross_hours ?? 'Ore lorde'}</span>
-                      <span className="text-[11px] font-bold text-white tabular-nums">{formatMinutesToHoursAndMinutes(grossMins)}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">{t.break_deduction ?? 'Detrazione pausa'}</span>
-                      <span className="text-[11px] font-bold text-amber-400 tabular-nums">-{breakMins}'</span>
-                    </div>
-                    <div className="border-t border-white/10 pt-2 flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-white/70 uppercase tracking-wider">{t.net_hours ?? 'Ore nette'}</span>
-                      <span className="text-sm font-black text-emerald-400 tabular-nums">{formatMinutesToHoursAndMinutes(netMins)}</span>
-                    </div>
-                  </div>
-                  {!isFrozen(selectedShift) && (
-                  <div className="rounded-xl bg-gradient-to-br from-violet-500/10 to-pink-600/10 p-3 space-y-2">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" checked={deductBreak} onChange={handleDeductBreakToggle}
-                        className="w-4 h-4 rounded border-white/30 bg-white/10 accent-accent" />
-                      <div>
-                        <span className="text-[11px] font-bold text-white">{t.deduct_break_label ?? 'Detrae pausa'}</span>
-                        <p className="text-[9px] text-white/40">{deductBreak ? (t.break_deducted_readout ?? 'La pausa viene detratta dalle ore nette.') : (t.break_not_deducted ?? 'Pausa non detratta.')}</p>
+                      <div className="rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-600/10 p-3 space-y-3">
+                        {showEditFields ? (
+                          <>
+                            <div>
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">
+                                {t.punch_in ?? 'Entrata'}
+                                <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.start_time?.slice(0, 5)})</span>
+                              </label>
+                              <TimeInputField value={editIn} onChange={setEditIn} size="md" onMinutesEnter={() => { editOutHourRef.current?.focus(); editOutHourRef.current?.select(); }} className={`w-full ${editIn ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">
+                                {t.punch_out ?? 'Uscita'}
+                                <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.end_time?.slice(0, 5)})</span>
+                              </label>
+                              <TimeInputField value={editOut} onChange={setEditOut} size="md" hourInputRef={editOutHourRef} onMinutesEnter={handleSaveManualPunch} className={`w-full ${editOut ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
+                            </div>
+                            <button type="button" onClick={handleSaveManualPunch} disabled={saving || (!editIn && !editOut)}
+                              className="w-full rounded-lg bg-accent px-4 py-2.5 text-[11px] font-bold text-white hover:bg-accent-hover disabled:opacity-40 transition-all uppercase tracking-wider">
+                              {saving ? (t.saving ?? 'Salvataggio...') : <><Save className="h-3.5 w-3.5 inline-block mr-1.5" />{t.save_punches ?? 'Salva timbrature'}</>}
+                            </button>
+                          </>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{t.punch_in ?? 'Entrata'}</span>
+                              <span className="text-[11px] font-bold text-white tabular-nums">{editIn || '—'}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{t.punch_out ?? 'Uscita'}</span>
+                              <span className="text-[11px] font-bold text-white tabular-nums">{editOut || '—'}</span>
+                            </div>
+                            {isFrozen(selectedShift) && (
+                              <p className="text-[10px] text-amber-400/70 text-center pt-2">{t.wst_frozen_readonly_hint ?? 'Turno congelato — sola lettura'}</p>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </label>
-                    {deductBreak && hasAutoBreak && (
-                      <label className="flex items-center gap-3 cursor-pointer ml-4 mt-1">
-                        <input type="checkbox" checked={isAutoBreak} onChange={handleAutoBreakToggle}
-                          className="w-4 h-4 rounded border-white/30 bg-white/10 accent-accent" />
-                        <div>
-                          <span className="text-[10px] font-bold text-amber-400 animate-pulse">{t.auto_break_label ?? 'Pausa automatica (≥6h)'}</span>
-                          <p className="text-[8px] text-white/40">{t.auto_break_hint ?? 'Turni di almeno 6 ore: -30 min per fascia pasto'}</p>
-                        </div>
-                      </label>
-                    )}
-                  </div>
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* History tab */}
-            {detailTab === 'history' && (
-              <div className="rounded-xl bg-gradient-to-br from-slate-600/20 to-slate-700/20 p-4 text-center">
-                <p className="text-xs text-white/40">{t.history_empty ?? 'Cronologia non disponibile per questo turno.'}</p>
+                      {!isFrozen(selectedShift) && (
+                      <div className="rounded-xl bg-gradient-to-br from-violet-500/10 to-pink-600/10 p-3 space-y-2">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input type="checkbox" checked={deductBreak} onChange={handleDeductBreakToggle}
+                            className="w-4 h-4 rounded border-white/30 bg-white/10 accent-accent" />
+                          <div>
+                            <span className="text-[11px] font-bold text-white">{t.deduct_break_label ?? 'Detrae pausa'}</span>
+                            <p className="text-[9px] text-white/40">{deductBreak ? (t.break_deducted_readout ?? 'La pausa viene detratta dalle ore nette.') : (t.break_not_deducted ?? 'Pausa non detratta.')}</p>
+                          </div>
+                        </label>
+                        {deductBreak && hasAutoBreak && (
+                          <label className="flex items-center gap-3 cursor-pointer ml-4 mt-1">
+                            <input type="checkbox" checked={isAutoBreak} onChange={handleAutoBreakToggle}
+                              className="w-4 h-4 rounded border-white/30 bg-white/10 accent-accent" />
+                            <div>
+                              <span className="text-[10px] font-bold text-amber-400 animate-pulse">{t.auto_break_label ?? 'Pausa automatica (≥6h)'}</span>
+                              <p className="text-[8px] text-white/40">{t.auto_break_hint ?? 'Turni di almeno 6 ore: -30 min per fascia pasto'}</p>
+                            </div>
+                          </label>
+                        )}
+                      </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
-            )}
-          </div>
-          </div>
+              {/* Bottom row: Action buttons */}
+              <div className="col-span-2 flex flex-wrap gap-2">
+                {reviewQueue && selectedShift && (() => {
+                  const { in: pIn, out: pOut } = getPunchForShift(selectedShift);
+                  const hasPunches = !!pIn || !!pOut;
+                  return (
+                    <button type="button" disabled={!hasPunches} onClick={async () => {
+                      try {
+                        await updateShift(selectedShift.id, { approval_status: 'confirmed' });
+                        showSuccess(t.shift_updated ?? 'Turno confermato.');
+                        const next = reviewIdx + 1;
+                        if (next < reviewQueue.length) { setReviewIdx(next); handleOpenDrawer(reviewQueue[next]); }
+                        else { setReviewQueue(null); setReviewIdx(0); setDrawerOpen(false); }
+                      } catch (e) {
+                        showError(t.error_generic ?? 'Errore.');
+                      }
+                    }}
+                      className={`ml-auto flex items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold transition-colors border border-transparent ${!hasPunches ? 'bg-white/5 text-white/30 cursor-not-allowed' : 'bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 hover:border-emerald-600/30'}`}>
+                      <Check className="h-3.5 w-3.5" />{t.wst_confirm_next ?? 'Conferma e prossimo'}
+                    </button>
+                  );
+                })()}
+                {canEdit && !isShiftPayrollFrozen(selectedShift) && selectedShift.approval_status === 'draft' && (
+                  <button type="button" onClick={() => handleApproveShift(selectedShift)}
+                    className="flex items-center gap-1.5 rounded-lg bg-emerald-600/20 px-3 py-2 text-[11px] font-bold text-emerald-300 hover:bg-emerald-600/30 transition-colors border border-transparent hover:border-emerald-600/30">
+                    <Check className="h-3.5 w-3.5" />{t.approve ?? 'Approva'}
+                  </button>
+                )}
+                {canDeleteShift(selectedShift) && (
+                  drawerDeleteConfirm ? (
+                    <div className="flex w-full gap-2">
+                      <button type="button" onClick={() => setDrawerDeleteConfirm(false)}
+                        className="flex-1 rounded-lg bg-white/10 px-3 py-2 text-[11px] font-bold text-white/70 hover:bg-white/20 transition-colors">
+                        {t.cancel ?? 'Annulla'}
+                      </button>
+                      <button type="button" onClick={() => void handleDeleteShift(selectedShift, { skipConfirm: true })}
+                        className="flex-1 rounded-lg bg-rose-600 px-3 py-2 text-[11px] font-bold text-white hover:bg-rose-700 transition-colors">
+                        {t.wst_confirm_delete_btn ?? 'Conferma elimina'}
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => setDrawerDeleteConfirm(true)}
+                      className="flex items-center gap-1.5 rounded-lg bg-rose-600/20 px-3 py-2 text-[11px] font-bold text-rose-300 hover:bg-rose-600/30 transition-colors border border-transparent hover:border-rose-600/30">
+                      <Trash2 className="h-3.5 w-3.5" />{drawerIsExtraShift ? (t.delete_extra_shift ?? 'Elimina turno aggiuntivo') : (t.delete ?? 'Elimina')}
+                    </button>
+                  )
+                )}
+                {canEdit && isShiftPayrollFrozen(selectedShift) && (
+                  <button type="button" onClick={() => handleFreezeShift(selectedShift)}
+                    className="ml-auto flex items-center gap-1.5 rounded-lg bg-accent/20 px-3 py-2 text-[11px] font-bold text-accent hover:bg-accent/30 transition-colors border border-transparent hover:border-accent/30">
+                    <Unlock className="h-3.5 w-3.5" />{t.wst_unfreeze_btn ?? 'Sblocca'}
+                  </button>
+                )}
+              </div>
+            </div>
+            </div>
         </div>
       )}
 

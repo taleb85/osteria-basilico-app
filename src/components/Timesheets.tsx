@@ -2438,7 +2438,7 @@ export default function Timesheets() {
       setDrawerReviewQueue({ ...q, completed: true });
       if (scope === 'employee_week' && canTimesheetApprove) {
         const uniqueIds = [...new Set(q.items.map((it) => it.shift.id))];
-        const toFreeze = uniqueIds.filter((id) => {
+        const toConfirm = uniqueIds.filter((id) => {
           const full = shifts.find((s) => s.id === id);
           if (!full) return false;
           if (full.approval_status === 'approved') return false;
@@ -2446,19 +2446,14 @@ export default function Timesheets() {
           if (isShiftPayrollFrozen(full)) return false;
           return true;
         });
-        if (toFreeze.length > 0) {
-          const idSet = new Set(toFreeze);
-          const previewRows = q.items
-            .filter((it) => idSet.has(it.shift.id))
-            .map((it) => ({
-              dateStr: it.dateStr,
-              planned: `${it.shift.plannedStart}–${it.shift.plannedEnd}`,
-            }));
-          setEmployeeWeekFreezeBatch({
-            shiftIds: toFreeze,
-            employeeName: q.items[0]?.employeeName ?? '—',
-            previewRows,
-          });
+        if (toConfirm.length > 0) {
+          const employeeName = q.items[0]?.employeeName ?? '—';
+          void (async () => {
+            await Promise.all(
+              toConfirm.map((id) => updateShift(id, { approval_status: 'confirmed' }))
+            );
+            showSuccess?.(t.ts_toast_employee_week_confirmed?.replace('{name}', employeeName) ?? `Turni di ${employeeName} confermati.`);
+          })();
         } else {
           showSuccess?.(t.ts_toast_employee_week_review_complete);
         }
@@ -3405,6 +3400,34 @@ export default function Timesheets() {
                       />
                     </button>
 
+                    {(() => {
+                      const visUserIds = new Set(visibleUsers.map(u => u.id));
+                      const confirmedShifts = shifts.filter(
+                        s => visUserIds.has(s.user_id) && s.date >= weekStr && s.date < weekEnd
+                          && s.approval_status === 'confirmed' && !isShiftPayrollFrozen(s)
+                      );
+                      if (confirmedShifts.length === 0) return null;
+                      const batchData = {
+                        shiftIds: confirmedShifts.map(s => s.id),
+                        employeeName: `Tutti (${confirmedShifts.length} turni)`,
+                        previewRows: [],
+                      };
+                      return (
+                        <button type="button" onClick={() => setPinGateModal({
+                          mode: 'batch_week_approve',
+                          shiftId: '',
+                          batchData,
+                        })}
+                          className="ui-toolbar-chip !inline-flex !h-9 !min-h-9 lg:!h-10 lg:!min-h-10 !px-2 lg:!px-2.5 !text-[11px] lg:!text-xs items-center gap-1.5 shrink-0 border border-amber-600 shadow-sm !text-amber-400 hover:!bg-amber-500/10"
+                        >
+                          <Lock className="w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0" />
+                          <span className="hidden min-[380px]:inline font-bold whitespace-nowrap">
+                            {t.ts_employee_week_freeze_batch_cta ?? 'Congela tutto'} ({confirmedShifts.length})
+                          </span>
+                        </button>
+                      );
+                    })()}
+
                     {typeof document !== 'undefined' &&
                       createPortal(
                         <AnimatePresence>
@@ -4132,31 +4155,22 @@ export default function Timesheets() {
                           >
                       {/* Nome dipendente — click → revisione settimana (coda turni) */}
                       <td className="sticky left-0 pl-4 pr-3 py-2 border-r border-r-white/10 z-10 md:py-1.5 md:pl-3 md:pr-2 align-middle" style={{ background: 'transparent', boxShadow: 'none' }}>
-                        {canTeamTimesheetOps ? (
-                          <div className="flex flex-col gap-1 justify-center">
-                            <button
-                              type="button"
-                              className="w-full max-w-full rounded-lg py-0.5 text-right transition-colors"
-                              aria-label={formatTrans(t.ts_employee_week_review_open_aria, { name: user.first_name })}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenEmployeeWeekReview(user);
-                              }}
-                            >
-                              <div className="font-semibold text-sm text-white md:text-xs">{user.first_name}</div>
-                              {user.department && (
-                                <div className="text-[11px] text-white/40 mt-0.5 md:text-[11px] uppercase">{user.department}</div>
-                              )}
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="text-right">
+                        <div className="flex flex-col gap-1 justify-center">
+                          <button
+                            type="button"
+                            className="w-full max-w-full rounded-lg py-0.5 text-right transition-colors hover:bg-white/[0.04]"
+                            aria-label={formatTrans(t.ts_employee_week_review_open_aria, { name: user.first_name })}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenEmployeeWeekReview(user);
+                            }}
+                          >
                             <div className="font-semibold text-sm text-white md:text-xs">{user.first_name}</div>
                             {user.department && (
                               <div className="text-[11px] text-white/40 mt-0.5 md:text-[11px] uppercase">{user.department}</div>
                             )}
-                          </div>
-                        )}
+                          </button>
+                        </div>
                       </td>
 
                       {/* Celle giornaliere */}
@@ -5107,3 +5121,4 @@ export default function Timesheets() {
     </>
   );
 }
+ 
