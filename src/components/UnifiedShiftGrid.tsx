@@ -54,8 +54,8 @@ interface DayShiftGroup {
 }
 
 function isFrozen(shift: Shift) {
-  return (shift as any).approval_status === 'approved' || ((shift as any).approval_status === 'confirmed' && !!(shift as any).approved_at);
-}
+    return (shift as any).approval_status === 'frozen';
+  }
 
 function splitDayGroupsBySlot(groups: DayShiftGroup[]) {
   const lunchGroups = groups.filter(g => getShiftSlotFromStartTime(g.shift.start_time ?? '10:00') === 'lunch');
@@ -174,7 +174,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const { currentUser, users, effectiveLanguage } = useAppUser();
   const {
     shifts: allShifts, punchRecords: allPunchRecords,
-    deleteShift, approveShift, bulkCopyPreviousWeek, publishWeekShifts,
+    deleteShift, bulkCopyPreviousWeek, publishWeekShifts,
     addPunchRecord, updatePunchRecord, addShift, updateShift,
   } = useAppData();
   const { breakRules, featureFlags } = useAppConfig();
@@ -230,7 +230,9 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   // ── Department filter ──
   const [deptFilter, setDeptFilter] = useState<string | null>(null);
   const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
-  const deptDropdownRef = useRef<HTMLDivElement>(null);
+  const [deptDropdownStyle, setDeptDropdownStyle] = useState<React.CSSProperties>({});
+  const deptTriggerRef = useRef<HTMLButtonElement>(null);
+  const deptPopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!showPeriodPopover) return;
@@ -247,7 +249,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   useEffect(() => {
     if (!deptDropdownOpen) return;
     const handler = (e: MouseEvent) => {
-      if (!deptDropdownRef.current?.contains(e.target as Node)) {
+      if (!deptPopoverRef.current?.contains(e.target as Node) && !deptTriggerRef.current?.contains(e.target as Node)) {
         setDeptDropdownOpen(false);
       }
     };
@@ -276,6 +278,33 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
         const left = Math.min(maxLeft, Math.max(minLeft, centerX));
 
         setPeriodPopoverStyle({ top, left });
+      }
+      return !prev;
+    });
+  }, []);
+
+  const toggleDeptDropdown = useCallback(() => {
+    setDeptDropdownOpen(prev => {
+      if (!prev && deptTriggerRef.current) {
+        const rect = deptTriggerRef.current.getBoundingClientRect();
+        const gap = 6;
+        const dropdownWidth = 180;
+        const estimatedHeight = 130;
+
+        let top: number;
+        if (rect.bottom + gap + estimatedHeight > window.innerHeight) {
+          top = Math.max(8, rect.top - gap - estimatedHeight);
+        } else {
+          top = rect.bottom + gap;
+        }
+
+        let left = rect.right - dropdownWidth;
+        if (left < 16) left = 16;
+        if (left + dropdownWidth > window.innerWidth - 16) {
+          left = window.innerWidth - dropdownWidth - 16;
+        }
+
+        setDeptDropdownStyle({ top, left });
       }
       return !prev;
     });
@@ -317,6 +346,20 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const [deductBreak, setDeductBreak] = useState(true);
   const [isAutoBreak, setIsAutoBreak] = useState(true);
   const editOutHourRef = useRef<HTMLInputElement>(null);
+
+  const initialValuesRef = useRef({ editStartTime: '', editEndTime: '', editIn: '', editOut: '', deductBreak: true, isAutoBreak: true });
+  const hasUnsavedChanges = useMemo(() => {
+    if (!drawerOpen) return false;
+    const iv = initialValuesRef.current;
+    return iv.editStartTime !== editStartTime || iv.editEndTime !== editEndTime
+        || iv.editIn !== editIn || iv.editOut !== editOut
+        || iv.deductBreak !== deductBreak || iv.isAutoBreak !== isAutoBreak;
+  }, [drawerOpen, editStartTime, editEndTime, editIn, editOut, deductBreak, isAutoBreak]);
+
+  const handleCloseDrawer = useCallback(() => {
+    if (hasUnsavedChanges && !confirm(t.unsaved_changes_confirm ?? 'Sono presenti modifiche non salvate. Chiudere ugualmente?')) return;
+    setDrawerOpen(false);
+  }, [hasUnsavedChanges, t]);
 
   // ── Selection / Bulk edit ──
   const [selectedShiftIds, setSelectedShiftIds] = useState<Set<string>>(new Set());
@@ -403,10 +446,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const weekShifts = allShifts.filter(s => weekDateStrings.includes(s.date) && (!filterUserId || s.user_id === filterUserId));
   const weekPunchRecords = allPunchRecords.filter(pr => weekDateStrings.some(ds => pr.timestamp?.startsWith(ds)));
   const departments = [...new Set(users.filter(u => u.department).map(u => u.department as string))];
+  const hasWeekDraftShifts = weekShifts.some(s => s.approval_status === 'draft');
+  const canFreezeWeek = !hasWeekDraftShifts && weekShifts.some(s => s.approval_status === 'approved') && weekShifts.every(s => s.approval_status !== 'draft' && s.approval_status !== 'confirmed');
 
   const dayCount = weekDays.length;
   const isPeriodView = viewMode === 'period';
-  const employeeColWidth = 112;
+  const employeeColWidth = 96;
   const totalColWidth = 72;
   const dayColMinWidth = isPeriodView ? 80 : 112;
   const tableMinWidth = employeeColWidth + totalColWidth + dayCount * dayColMinWidth;
@@ -479,6 +524,20 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     catch { showError(t.error_generic ?? 'Errore.'); }
   }, [publishWeekShifts, weekStart, showSuccess, showError, t]);
 
+  const handleFreezeWeek = useCallback(async () => {
+    if (!confirm(t.confirm_freeze_week ?? 'Congelare tutti i turni della settimana?')) return;
+    let count = 0;
+    const approvedShifts = weekShifts.filter(s => s.approval_status === 'approved');
+    for (const shift of approvedShifts) {
+      try {
+        await updateShift(shift.id, { approval_status: 'frozen' } as any);
+        count++;
+      } catch {}
+    }
+    if (count > 0) showSuccess((t.week_frozen ?? '{n} turni congelati.').replace('{n}', String(count)));
+    else showError(t.no_shifts_to_freeze ?? 'Nessun turno da congelare.');
+  }, [weekShifts, updateShift, showSuccess, showError, t]);
+
   const handleCopyWeek = useCallback(async () => {
     try {
       const n = await bulkCopyPreviousWeek(weekStart);
@@ -503,7 +562,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       await deleteShift(shift.id);
       showSuccess(t.shift_deleted ?? 'Turno eliminato.');
       setDrawerDeleteConfirm(false);
-      setDrawerOpen(false);
+      handleCloseDrawer();
     } catch {
       showError(t.shift_delete_bulk_error ?? t.error_generic ?? 'Errore eliminazione turno.');
     }
@@ -519,10 +578,39 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     finally { setSaving(false); }
   }, [selectedShift, editStartTime, editEndTime, updateShift, showSuccess, showError, t]);
 
-  const handleApproveShift = useCallback(async (shift: Shift) => {
-    try { await approveShift(shift.id, {}); showSuccess(t.shift_approved ?? 'Turno approvato.'); }
-    catch { showError(t.error_generic ?? 'Errore.'); }
-  }, [approveShift, showSuccess, showError, t]);
+  const handleConfirmPunches = useCallback(async () => {
+    if (!selectedShift) return;
+    if (!editIn || !editOut) {
+      showError(t.confirm_punches_required ?? 'Inserisci entrambe le timbrature prima di confermare.');
+      return;
+    }
+    setSaving(true);
+    try {
+      const shift = selectedShift;
+      const todayStr = today.toISOString().slice(0, 10);
+      const punchDate = shift.date <= todayStr ? shift.date : todayStr;
+      const existingIn = allPunchRecords.find(pr => pr.shift_id === shift.id && pr.type === 'in');
+      const existingOut = allPunchRecords.find(pr => pr.shift_id === shift.id && pr.type === 'out');
+      if (editIn) {
+        if (existingIn) {
+          await updatePunchRecord(existingIn.id, { timestamp: new Date(`${punchDate}T${editIn}:00`).toISOString() });
+        } else {
+          await addPunchRecord(shift.user_id, 'in', { shift_id: shift.id, timestamp: `${punchDate}T${editIn}:00`, source: 'manual' });
+        }
+      }
+      if (editOut) {
+        if (existingOut) {
+          await updatePunchRecord(existingOut.id, { timestamp: new Date(`${punchDate}T${editOut}:00`).toISOString() });
+        } else {
+          await addPunchRecord(shift.user_id, 'out', { shift_id: shift.id, timestamp: `${punchDate}T${editOut}:00`, source: 'manual' });
+        }
+      }
+      await updateShift(shift.id, { approval_status: 'approved' } as any);
+      setSelectedShift(prev => prev && prev.id === shift.id ? { ...prev, approval_status: 'approved' as const } : prev);
+      showSuccess(t.shift_approved ?? 'Turno approvato.');
+    } catch { showError(t.error_generic ?? 'Errore.'); }
+    finally { setSaving(false); }
+  }, [selectedShift, editIn, editOut, allPunchRecords, addPunchRecord, updatePunchRecord, updateShift, setSelectedShift, showSuccess, showError, t]);
 
   const handleFreezeShift = useCallback(async (shift: Shift) => {
     requestAnimationFrame(() => {
@@ -543,6 +631,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
         return;
       }
       await updateShift(panelPinTargetShiftId, { approval_status: 'confirmed' } as any);
+      setSelectedShift(prev => prev && prev.id === panelPinTargetShiftId ? { ...prev, approval_status: 'confirmed' as const } : prev);
       showSuccess(t.wst_unfreeze_success ?? 'Turno sbloccato.');
       setPanelPinModalOpen(false);
       setPanelPinTargetShiftId(null);
@@ -550,7 +639,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       setPanelPinError('');
     } catch { showError(t.error_generic ?? 'Errore.'); }
     finally { setSaving(false); }
-  }, [panelPinTargetShiftId, panelPin, users, updateShift, showSuccess, showError, t]);
+  }, [panelPinTargetShiftId, panelPin, users, updateShift, setSelectedShift, showSuccess, showError, t]);
 
   const handleSaveManualPunch = useCallback(async () => {
     if (!selectedShift) return;
@@ -583,10 +672,15 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
           });
         }
       }
+      // Auto-approve published shifts when both punches are saved
+      if (shift.approval_status === 'confirmed' && editIn && editOut) {
+        await updateShift(shift.id, { approval_status: 'approved' } as any);
+        setSelectedShift(prev => prev && prev.id === shift.id ? { ...prev, approval_status: 'approved' as const } : prev);
+      }
       showSuccess(t.punch_saved ?? 'Timbratura salvata.');
     } catch { showError(t.error_generic ?? 'Errore.'); }
     finally { setSaving(false); }
-  }, [selectedShift, editIn, editOut, allPunchRecords, addPunchRecord, updatePunchRecord, showSuccess, showError, t]);
+  }, [selectedShift, editIn, editOut, allPunchRecords, addPunchRecord, updatePunchRecord, updateShift, setSelectedShift, showSuccess, showError, t]);
 
   const handleCreateShift = useCallback(async () => {
     if (!createModal) return;
@@ -714,12 +808,16 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     setDrawerIsExtraShift(opts?.isExtra ?? isExtraShiftInDay(shift, dayShifts));
     setDrawerDeleteConfirm(false);
     setDetailTab('details');
-    setEditStartTime(String(shift.start_time ?? '').slice(0, 5));
-    setEditEndTime(String(shift.end_time ?? '').slice(0, 5));
-    setEditIn(punchIn ? punchTimeHHMM(punchIn.calculated_time || punchIn.timestamp) ?? '' : String(shift.start_time ?? '').slice(0, 5));
-    setEditOut(punchOut ? punchTimeHHMM(punchOut.calculated_time || punchOut.timestamp) ?? '' : String(shift.end_time ?? '').slice(0, 5));
-    setDeductBreak(shift.deduct_break !== false);
-    setIsAutoBreak(shift.is_auto_break !== false);
+    const sv = String(shift.start_time ?? '').slice(0, 5);
+    const ev = String(shift.end_time ?? '').slice(0, 5);
+    const iv = punchIn ? punchTimeHHMM(punchIn.calculated_time || punchIn.timestamp) ?? '' : sv;
+    const ov = punchOut ? punchTimeHHMM(punchOut.calculated_time || punchOut.timestamp) ?? '' : ev;
+    const db = shift.deduct_break !== false;
+    const ab = shift.is_auto_break !== false;
+    setEditStartTime(sv); setEditEndTime(ev);
+    setEditIn(iv); setEditOut(ov);
+    setDeductBreak(db); setIsAutoBreak(ab);
+    initialValuesRef.current = { editStartTime: sv, editEndTime: ev, editIn: iv, editOut: ov, deductBreak: db, isAutoBreak: ab };
     setDrawerOpen(true);
   }, [users, weekPunchRecords, weekShifts, featureFlags]);
 
@@ -883,9 +981,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               <div className="flex items-center justify-between gap-1">
               {timeLabel}
               <div className="flex items-center gap-1 shrink-0">
-                {isFrozen(g.shift) ? <Lock className="h-3 w-3 text-amber-400" /> : isApproved ? <Lock className="h-3 w-3 text-emerald-400" /> : null}
-                {isConfirmed && <Check className="h-3 w-3 text-cyan-300" />}
-                {g.isMissingPunch && <AlertTriangle className="h-3 w-3 text-amber-400" />}
+                {g.isMissingPunch ? <AlertTriangle className="h-3 w-3 text-white" /> : isApproved ? <Check className="h-3 w-3 text-white" /> : isFrozen(g.shift) ? <Lock className="h-3 w-3 text-white" /> : null}
               </div>
             </div>
           </button>
@@ -932,22 +1028,20 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
           draggable={canEdit}
           onDragStart={(e) => handleDragStart(e, g.shift.id)}
           onDragEnd={() => { draggedShiftIdRef.current = null; setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
-          className={`relative w-full min-w-0 text-left rounded-lg border-2 ${borderColor} ${bgColor} ${glow} hover:brightness-125 transition-all ${isDraft ? 'border-dashed' : ''} px-0.5 py-0.5`}>
+          className={`relative w-full min-w-0 text-left rounded-lg border ${borderColor} ${bgColor} ${glow} hover:brightness-125 transition-all ${isDraft ? 'border-dashed' : ''} px-0.5 py-0.5`}>
           <input type="checkbox" checked={selectedShiftIds.has(g.shift.id)} onChange={() => setSelectedShiftIds(prev => { const n = new Set(prev); n.has(g.shift.id) ? n.delete(g.shift.id) : n.add(g.shift.id); return n; })}
             className={`absolute left-0.5 top-0.5 z-10 w-3 h-3 rounded border-white/30 accent-accent transition-opacity ${selectedShiftIds.has(g.shift.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} onClick={e => e.stopPropagation()} />
           <div
-            className="flex items-center justify-center w-full gap-1 pl-3 pr-1 whitespace-nowrap overflow-hidden"
+            className="flex items-end justify-center w-full gap-1 px-2 whitespace-nowrap overflow-hidden"
             style={{ minHeight: mainRowHeight, height: mainRowHeight }}
           >
             <span className={`${hasExtras ? 'text-[10px]' : 'text-xs'} font-bold tabular-nums ${g.isAbsent ? 'text-rose-400 line-through' : display.missingOut ? 'text-red-400' : 'text-white'}`}>
               {display.main}
             </span>
-            {breakBadge}
           </div>
-          <div className="pointer-events-none absolute right-0.5 top-0.5 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-            {isFrozen(g.shift) ? <Lock className={`${compact ? 'h-2 w-2' : 'h-2.5 w-2.5'} text-amber-400`} /> : isApproved ? <Lock className={`${compact ? 'h-2 w-2' : 'h-2.5 w-2.5'} text-emerald-400`} /> : null}
-            {isConfirmed && <Check className={`${compact ? 'h-2 w-2' : 'h-2.5 w-2.5'} text-cyan-300`} />}
-            {g.isMissingPunch && <AlertTriangle className={`${compact ? 'h-2 w-2' : 'h-2.5 w-2.5'} text-amber-400`} />}
+          <div className="absolute left-1/2 -translate-x-1/2 top-1 flex items-center gap-0.5">
+            {breakBadge}
+            {g.isMissingPunch ? <AlertTriangle className={`${compact ? 'h-2 w-2' : 'h-2.5 w-2.5'} text-white`} /> : isApproved ? <Check className={`${compact ? 'h-2 w-2' : 'h-2.5 w-2.5'} text-white`} /> : isFrozen(g.shift) ? <Lock className={`${compact ? 'h-2 w-2' : 'h-2.5 w-2.5'} text-white`} /> : null}
           </div>
         </button>
         {renderExtraShiftRows(extraGroups, 'desktop')}
@@ -988,16 +1082,17 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
             <span className="hidden md:inline"> {format(weekEnd, 'yyyy', { locale })}</span>
           </span>
           {departments.length > 1 && (
-            <div className="relative ml-auto sm:ml-0" ref={deptDropdownRef}>
-              <button type="button" onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
+            <div className="relative ml-auto sm:ml-0">
+              <button ref={deptTriggerRef} type="button" onClick={toggleDeptDropdown}
                 className="relative flex max-w-[min(100%,7.5rem)] sm:max-w-none items-center gap-1 truncate rounded-lg bg-white/10 py-1.5 pl-2 pr-6 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-white/60 transition-colors hover:text-white sm:px-2.5 sm:pr-7">
                 <Filter className="h-3 w-3 shrink-0 text-white/40" aria-hidden />
                 <span className="truncate">{deptFilter ?? (t.department_filter_all ?? 'Tutti')}</span>
                 <ChevronDown className={`pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-white/40 transition-transform ${deptDropdownOpen ? 'rotate-180' : ''}`} aria-hidden />
               </button>
-              {deptDropdownOpen && (
-                <div className="absolute right-0 top-full z-[100] mt-1.5 min-w-[130px] overflow-hidden rounded-2xl border border-white/10"
-                  style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+              {deptDropdownOpen && createPortal(
+                <div ref={deptPopoverRef}
+                  className="fixed z-[10050] mt-0 min-w-[130px] overflow-hidden rounded-2xl border border-white/10 py-1"
+                  style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', top: deptDropdownStyle.top, left: deptDropdownStyle.left }}>
                   <button type="button" onClick={() => { setDeptFilter(null); setDeptDropdownOpen(false); }}
                     className="w-full px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/10">
                     {t.department_filter_all ?? 'Tutti'}
@@ -1008,7 +1103,8 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                       {d}
                     </button>
                   ))}
-                </div>
+                </div>,
+                document.body
               )}
             </div>
           )}
@@ -1039,7 +1135,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
             <ChevronDown className="ml-0.5 h-3 w-3 shrink-0" />
           </button>
 
-          {isMgmt && (
+          {isMgmt && hasWeekDraftShifts && (
             <button
               type="button"
               onClick={() => void handlePublishWeek()}
@@ -1049,6 +1145,18 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               <Send className="h-3 w-3 shrink-0" />
               <span className="hidden min-[520px]:inline lg:hidden">Pubblica</span>
               <span className="hidden lg:inline">{t.publish_week ?? 'Pubblica settimana'}</span>
+            </button>
+          )}
+          {isMgmt && canFreezeWeek && (
+            <button
+              type="button"
+              onClick={() => void handleFreezeWeek()}
+              aria-label={t.freeze_week ?? 'Congela settimana'}
+              className="flex shrink-0 items-center gap-1 rounded-lg bg-amber-600/20 px-2 py-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-300 transition-colors hover:bg-amber-600/30 sm:px-2.5"
+            >
+              <Lock className="h-3 w-3 shrink-0" />
+              <span className="hidden min-[520px]:inline lg:hidden">Congela</span>
+              <span className="hidden lg:inline">{t.freeze_week ?? 'Congela settimana'}</span>
             </button>
           )}
 
@@ -1228,7 +1336,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                 className="bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold text-white/70 uppercase outline-none">
                 <option value="">{t.status ?? 'Stato'}</option>
                 <option value="draft">Draft</option>
-                <option value="confirmed">Confermato</option>
+                <option value="confirmed">Pubblicato</option>
                 <option value="approved">Approvato</option>
               </select>
               <button type="button" onClick={handleBulkEdit}
@@ -1431,11 +1539,6 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                     <div className="flex items-center gap-1 min-w-0">
                       <span className="text-xs font-bold text-white truncate">{user.first_name} {user.last_name?.[0] ?? ''}</span>
                     </div>
-                    <div className="flex items-center gap-0.5 mt-0.5 min-w-0">
-                      <span className="text-[10px] font-semibold text-white/40 tabular-nums truncate">{formatMinutesToHoursAndMinutes(totalNet)}P</span>
-                      <span className="text-[10px] font-semibold text-white/40 shrink-0">/</span>
-                      <span className={`text-[10px] font-bold tabular-nums truncate ${totalActual > totalNet ? 'text-accent' : 'text-emerald-400'}`}>{formatMinutesToHoursAndMinutes(totalActual)}E</span>
-                    </div>
                   </td>
                   {weekDays.map((day, dIdx) => {
                     const dateStr = format(day, 'yyyy-MM-dd');
@@ -1484,8 +1587,8 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                             return (
                               <div className={`flex flex-col ${isPeriodView ? 'gap-px' : ''}`} style={{ height: slotCellHeight }}>
                                 <div
-                                  className={`flex items-center ${dropTargetKey === `${user.id}_${dateStr}_lunch` ? 'ring-2 ring-inset ring-amber-400/50 rounded' : ''}`}
-                                  style={{ height: '50%', ...(isPeriodView ? {} : { borderBottom: '1px solid rgba(255,255,255,0.10)', paddingLeft: '1px', paddingRight: '1px' }) }}
+                                  className={`flex items-center flex-1 ${dropTargetKey === `${user.id}_${dateStr}_lunch` ? 'ring-2 ring-inset ring-amber-400/50 rounded' : ''}`}
+                                  style={{ ...(isPeriodView ? {} : { borderBottom: '1px solid rgba(255,255,255,0.10)', paddingLeft: '1px', paddingRight: '1px' }) }}
                                   onDragOver={(e) => handleDragOver(e, `${user.id}_${dateStr}_lunch`)}
                                   onDragLeave={handleDragLeave}
                                   onDrop={(e) => handleDrop(e, user.id, dateStr, 'lunch')}
@@ -1497,8 +1600,8 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                                   ) : emptySlot('lunch', t.add_shift ?? 'Aggiungi')}
                                 </div>
                                 <div
-                                  className={`flex items-center ${isPeriodView ? 'border-t border-white/[0.08]' : ''} ${dropTargetKey === `${user.id}_${dateStr}_evening` ? 'ring-2 ring-inset ring-amber-400/50' : ''}`}
-                                  style={{ height: '50%', ...(isPeriodView ? {} : { paddingLeft: '1px', paddingRight: '1px' }) }}
+                                  className={`flex items-center flex-1 ${isPeriodView ? 'border-t border-white/[0.08]' : ''} ${dropTargetKey === `${user.id}_${dateStr}_evening` ? 'ring-2 ring-inset ring-amber-400/50' : ''}`}
+                                  style={{ ...(isPeriodView ? {} : { paddingLeft: '1px', paddingRight: '1px' }) }}
                                   onDragOver={(e) => handleDragOver(e, `${user.id}_${dateStr}_evening`)}
                                   onDragLeave={handleDragLeave}
                                   onDrop={(e) => handleDrop(e, user.id, dateStr, 'evening')}
@@ -1530,10 +1633,10 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       </div>
 
       {/* ── Detail Drawer ── */}
-      {drawerOpen && selectedShift && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" onClick={() => setDrawerOpen(false)}>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xl supports-[backdrop-filter]:bg-black/50" />
-          <div className="relative w-full max-w-2xl rounded-2xl border border-white/15 p-5 shadow-2xl max-h-[85vh] z-10 flex flex-col bg-neutral-900/80" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: `2px solid ${isFrozen(selectedShift) ? '#fbbf24' : selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}40`, boxShadow: `0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08), 0 0 24px ${isFrozen(selectedShift) ? '#fbbf24' : selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}20` }} onClick={e => e.stopPropagation()}>
+      {drawerOpen && selectedShift && createPortal(
+        <div className="fixed inset-0 z-[10050] flex items-center justify-center px-4" onClick={handleCloseDrawer}>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-xl supports-[backdrop-filter]:bg-black/30" />
+          <div className="relative w-full max-w-2xl rounded-2xl border border-white/15 p-5 shadow-2xl max-h-[85vh] z-10 flex flex-col bg-transparent" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: `2px solid ${isFrozen(selectedShift) || selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}40`, boxShadow: `0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08), 0 0 24px ${isFrozen(selectedShift) || selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}20` }} onClick={e => e.stopPropagation()}>
             <div className="shrink-0">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -1544,13 +1647,15 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                   </span>
                 )}
                 <p className="text-[11px] text-white font-semibold mt-1 uppercase">{format(parseISO(selectedShift.date), 'EEEE d MMMM', { locale })} — {selectedShift.start_time?.slice(0, 5)}-{selectedShift.end_time?.slice(0, 5)}</p>
+              </div>
+              <div className="flex items-center gap-2">
                 {(() => {
                   const dayShifts = weekShifts
                     .filter(s => s.user_id === selectedShift.user_id && s.date === selectedShift.date)
                     .sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''));
                   if (dayShifts.length <= 1) return null;
                   return (
-                    <div className="mt-2 flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1">
                       {dayShifts.map(s => {
                         const isActive = s.id === selectedShift.id;
                         return (
@@ -1565,8 +1670,6 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                     </div>
                   );
                 })()}
-              </div>
-              <div className="flex items-center gap-2">
                 {reviewQueue && (
                   <>
                     <span className="text-[10px] font-bold text-white/50 tabular-nums">{reviewIdx + 1}/{reviewQueue.length}</span>
@@ -1574,36 +1677,42 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                     <button type="button" disabled={reviewIdx >= reviewQueue.length - 1} onClick={() => { const next = reviewIdx + 1; if (next < reviewQueue.length) { setReviewIdx(next); handleOpenDrawer(reviewQueue[next]); } }} className="rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
                   </>
                 )}
-                <button type="button" onClick={() => setDrawerOpen(false)} className="rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all"><X className="h-4 w-4" /></button>
+                {canDeleteShift(selectedShift) && !drawerDeleteConfirm && (
+                  <button type="button" onClick={() => setDrawerDeleteConfirm(true)}
+                    className="rounded-lg bg-rose-600/20 p-2 text-rose-300 hover:bg-rose-600/30 transition-all" title={t.delete ?? 'Elimina'}>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+                <button type="button" onClick={handleCloseDrawer} className="ml-2 rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all"><X className="h-4 w-4" /></button>
               </div>
             </div>
             </div>
             <div className="flex-1 grid grid-cols-2 gap-3 min-h-0">
               {/* Left column: Time editing, Status (no dept), Breaks */}
               <div className="space-y-3">
-                <div className="rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-600/10 p-3 space-y-2">
+                <div className={`rounded-xl p-3 space-y-2 ${isFrozen(selectedShift) ? 'bg-gradient-to-br from-emerald-500/15 to-teal-600/10' : selectedShift.approval_status === 'approved' ? 'bg-gradient-to-br from-emerald-500/15 to-teal-600/10' : selectedShift.approval_status === 'confirmed' ? 'bg-gradient-to-br from-cyan-500/15 to-blue-600/10' : 'bg-gradient-to-br from-neutral-500/15 to-slate-600/10'}`}>
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">{t.status ?? 'Stato'}</span>
-                    <span className={`text-[11px] font-bold uppercase tracking-wider ${isFrozen(selectedShift) ? 'text-amber-400' : selectedShift.approval_status === 'approved' ? 'text-emerald-400' : selectedShift.approval_status === 'confirmed' ? 'text-cyan-300' : 'text-white/70'}`}>
-                      {isFrozen(selectedShift) ? (t.wst_frozen_badge ?? 'Congelato') : 
-                        selectedShift.approval_status === 'confirmed' ? (t.status_confirmed ?? 'Confermato') :
-                        selectedShift.approval_status === 'approved' ? (t.status_approved ?? 'Approvato') :
+                    <span className={`text-[11px] font-bold uppercase tracking-wider ${selectedShift.approval_status === 'approved' ? 'text-emerald-400' : selectedShift.approval_status === 'frozen' ? 'text-amber-400' : selectedShift.approval_status === 'confirmed' ? 'text-cyan-300' : 'text-white/70'}`}>
+                      {selectedShift.approval_status === 'approved' ? (t.status_approved ?? 'Approvato') : 
+                        selectedShift.approval_status === 'frozen' ? (t.wst_frozen_badge ?? 'Congelato') :
+                        selectedShift.approval_status === 'confirmed' ? (t.status_confirmed ?? 'Pubblicato') :
                         selectedShift.approval_status === 'draft' ? (t.status_draft ?? 'Bozza') :
                         selectedShift.approval_status}
                     </span>
                   </div>
                 </div>
-                {canEdit && !isFrozen(selectedShift) && (
+                {canEdit && (selectedShift.approval_status === 'draft' || selectedShift.approval_status === 'confirmed') && (
                   <div className="rounded-xl bg-gradient-to-br from-sky-500/10 to-blue-600/10 p-3 space-y-3">
                     <div>
                       <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">{t.start_time ?? 'Inizio'}</label>
-                      <TimeInputField value={editStartTime} onChange={setEditStartTime} size="md" className="w-full" />
+                      <TimeInputField value={editStartTime} onChange={setEditStartTime} size="md" className="w-full" disabled={selectedShift.approval_status === 'confirmed'} />
                     </div>
                     <div>
                       <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">{t.end_time ?? 'Fine'}</label>
-                      <TimeInputField value={editEndTime} onChange={setEditEndTime} size="md" className="w-full" />
+                      <TimeInputField value={editEndTime} onChange={setEditEndTime} size="md" className="w-full" disabled={selectedShift.approval_status === 'confirmed'} />
                     </div>
-                    <button type="button" onClick={handleSaveShiftEdit} disabled={saving}
+                    <button type="button" onClick={handleSaveShiftEdit} disabled={saving || selectedShift.approval_status === 'confirmed'}
                       className="w-full rounded-lg bg-accent px-4 py-2.5 text-[11px] font-bold text-white hover:bg-accent-hover disabled:opacity-40 transition-all uppercase tracking-wider hover:scale-[1.02] active:scale-95">
                       {saving ? (t.saving ?? 'Salvataggio...') : <><Save className="h-3.5 w-3.5 inline-block mr-1.5" />{t.save_changes ?? 'Salva modifiche'}</>}
                     </button>
@@ -1611,7 +1720,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                 )}
                 {selectedShift && (() => {
                   const grossMins = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
-                  const breakMins = getBreakMinutesForShift({ ...selectedShift, deduct_break: deductBreak }, grossMins, selectedUser ?? null, breakRules);
+                  const breakMins = getBreakMinutesForShift({ ...selectedShift, deduct_break: deductBreak }, grossMins, null, breakRules);
                   const netMins = Math.max(0, grossMins - breakMins);
                   const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
                   return (
@@ -1634,12 +1743,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                   );
                 })()}
               </div>
-              {/* Right column: Punches */}
+              {/* Right column: Punches — hidden for draft shifts */}
               <div className="space-y-3">
-                {selectedShift && (() => {
+                {selectedShift && selectedShift.approval_status !== 'draft' && (() => {
                   const { in: punchIn, out: punchOut } = getPunchForShift(selectedShift);
                   const hasIn = !!punchIn; const hasOut = !!punchOut;
-                  const showEditFields = canEdit && !isFrozen(selectedShift);
+                  const showEditFields = canEdit && selectedShift.approval_status === 'confirmed';
                   const grossMins = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
                   const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
                   return (
@@ -1660,20 +1769,18 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                             <div>
                               <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">
                                 {t.punch_in ?? 'Entrata'}
-                                <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.start_time?.slice(0, 5)})</span>
                               </label>
                               <TimeInputField value={editIn} onChange={setEditIn} size="md" onMinutesEnter={() => { editOutHourRef.current?.focus(); editOutHourRef.current?.select(); }} className={`w-full ${editIn ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
                             </div>
                             <div>
                               <label className="text-[10px] font-bold uppercase tracking-wider text-white/50 block mb-1">
                                 {t.punch_out ?? 'Uscita'}
-                                <span className="ml-2 text-[9px] text-white/30 font-normal normal-case">({t.planned ?? 'pianificato'}: {selectedShift.end_time?.slice(0, 5)})</span>
                               </label>
-                              <TimeInputField value={editOut} onChange={setEditOut} size="md" hourInputRef={editOutHourRef} onMinutesEnter={handleSaveManualPunch} className={`w-full ${editOut ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
+                              <TimeInputField value={editOut} onChange={setEditOut} size="md" hourInputRef={editOutHourRef} className={`w-full ${editOut ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/20 bg-white/10'}`} />
                             </div>
-                            <button type="button" onClick={handleSaveManualPunch} disabled={saving || (!editIn && !editOut)}
-                              className="w-full rounded-lg bg-accent px-4 py-2.5 text-[11px] font-bold text-white hover:bg-accent-hover disabled:opacity-40 transition-all uppercase tracking-wider hover:scale-[1.02] active:scale-95">
-                              {saving ? (t.saving ?? 'Salvataggio...') : <><Save className="h-3.5 w-3.5 inline-block mr-1.5" />{t.save_punches ?? 'Salva timbrature'}</>}
+                            <button type="button" onClick={() => void handleConfirmPunches()} disabled={saving || (!editIn && !editOut)}
+                              className="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-[11px] font-bold text-white hover:bg-emerald-700 transition-all uppercase tracking-wider hover:scale-[1.02] active:scale-95">
+                              <Check className="h-3.5 w-3.5 inline-block mr-1.5" />{t.confirm_punches ?? 'Conferma timbrature'}
                             </button>
                           </>
                         ) : (
@@ -1720,32 +1827,6 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               </div>
               {/* Bottom row: Action buttons */}
               <div className="col-span-2 flex flex-wrap gap-2">
-                {reviewQueue && selectedShift && (() => {
-                  const { in: pIn, out: pOut } = getPunchForShift(selectedShift);
-                  const hasPunches = !!pIn || !!pOut;
-                  return (
-                    <button type="button" disabled={!hasPunches} onClick={async () => {
-                      try {
-                        await updateShift(selectedShift.id, { approval_status: 'confirmed' });
-                        showSuccess(t.shift_updated ?? 'Turno confermato.');
-                        const next = reviewIdx + 1;
-                        if (next < reviewQueue.length) { setReviewIdx(next); handleOpenDrawer(reviewQueue[next]); }
-                        else { setReviewQueue(null); setReviewIdx(0); setDrawerOpen(false); }
-                      } catch (e) {
-                        showError(t.error_generic ?? 'Errore.');
-                      }
-                    }}
-                      className={`ml-auto flex items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold transition-all border border-transparent ${!hasPunches ? 'bg-white/5 text-white/30 cursor-not-allowed' : 'bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 hover:border-emerald-600/30 hover:scale-[1.02] active:scale-95'}`}>
-                      <Check className="h-3.5 w-3.5" />{t.wst_confirm_next ?? 'Conferma e prossimo'}
-                    </button>
-                  );
-                })()}
-                {!drawerDeleteConfirm && canEdit && !isShiftPayrollFrozen(selectedShift) && selectedShift.approval_status === 'draft' && (
-                  <button type="button" onClick={() => handleApproveShift(selectedShift)}
-                    className="flex items-center gap-1.5 rounded-lg bg-emerald-600/20 px-3 py-2 text-[11px] font-bold text-emerald-300 hover:bg-emerald-600/30 transition-all border border-transparent hover:border-emerald-600/30 hover:scale-[1.02] active:scale-95">
-                    <Check className="h-3.5 w-3.5" />{t.approve ?? 'Approva'}
-                  </button>
-                )}
                 {canDeleteShift(selectedShift) && (
                   drawerDeleteConfirm ? (
                     <div className="flex w-full gap-2">
@@ -1758,12 +1839,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                         {t.wst_confirm_delete_btn ?? 'Conferma elimina'}
                       </button>
                     </div>
-                  ) : (
-                    <button type="button" onClick={() => setDrawerDeleteConfirm(true)}
-                      className="flex items-center gap-1.5 rounded-lg bg-rose-600/20 px-3 py-2 text-[11px] font-bold text-rose-300 hover:bg-rose-600/30 transition-all border border-transparent hover:border-rose-600/30 hover:scale-[1.02] active:scale-95">
-                      <Trash2 className="h-3.5 w-3.5" />{drawerIsExtraShift ? (t.delete_extra_shift ?? 'Elimina turno aggiuntivo') : (t.delete ?? 'Elimina')}
-                    </button>
-                  )
+                  ) : null
                 )}
                 {canEdit && isShiftPayrollFrozen(selectedShift) && (
                   <button type="button" onClick={() => handleFreezeShift(selectedShift)}
@@ -1774,14 +1850,15 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               </div>
             </div>
             </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Create Shift Modal ── */}
-      {createModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={() => setCreateModal(null)}>
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative w-full max-w-sm rounded-2xl border border-white/15 p-5 shadow-2xl z-10 bg-white/[0.04]" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }} onClick={e => e.stopPropagation()}>
+      {createModal && createPortal(
+        <div className="fixed inset-0 z-[10050] flex items-center justify-center" onClick={() => setCreateModal(null)}>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-xl supports-[backdrop-filter]:bg-black/30" />
+          <div className="relative w-full max-w-sm rounded-2xl border border-white/15 p-5 shadow-2xl z-10 bg-transparent" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }} onClick={e => e.stopPropagation()}>
             <h3 className="text-sm font-bold text-white mb-4">{t.create_shift ?? 'Nuovo turno'}</h3>
             <div className="space-y-3 mb-4">
               <div>
@@ -1810,7 +1887,8 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Drop confirm modal ── */}

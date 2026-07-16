@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import {
   useCallback,
   useEffect,
@@ -15,7 +16,6 @@ import { it } from 'date-fns/locale';
 import { useAppUser } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { getDateLocale } from '../utils/translations';
-import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import 'react-day-picker/style.css';
 
 /** yyyy-MM-dd come data locale (mezzogiorno), senza shift UTC di parseISO. */
@@ -79,6 +79,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
   );
 
   const [open, setOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
 
   const selected = value ? parseLocalDateOnly(value) : undefined;
 
@@ -155,10 +156,10 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
   const toolbarH = compact && toolbarComfortable;
   const btnSizeClass = toolbarH
     ? 'h-9 min-h-9 max-h-9 gap-1.5 rounded-xl px-2.5 text-sm'
-    : 'h-[22px] min-h-[22px] max-h-[22px] gap-1 rounded-lg px-2 text-[13px]';
+    : 'h-10 min-h-10 max-h-10 gap-1.5 rounded-xl px-3 text-sm';
   const iconClass = toolbarH
     ? 'h-4 w-4 shrink-0 text-white/50'
-    : 'h-3 w-3 shrink-0 text-white/50';
+    : 'h-4 w-4 shrink-0 text-white/50';
 
   const panelInner = (
     <>
@@ -172,7 +173,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
           setOpen(false);
         }}
         locale={locale}
-        captionLayout="dropdown"
+        captionLayout="buttons"
         startMonth={startMonthNav}
         endMonth={endMonthNav}
         month={visibleMonth}
@@ -209,6 +210,17 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
     </>
   );
 
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (!popRef.current?.contains(e.target as Node) && !innerRef.current?.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const id = setTimeout(() => document.addEventListener('click', handler), 0);
+    return () => { clearTimeout(id); document.removeEventListener('click', handler); };
+  }, [open]);
+
   return (
     <>
       <button
@@ -219,28 +231,46 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
         aria-label={ariaLabel ?? chooseLabel}
         aria-expanded={open}
         aria-haspopup="dialog"
-        onClick={() => !disabled && setOpen((o) => !o)}
+        onClick={() => {
+          if (disabled) return;
+          if (!open && innerRef.current) {
+            const rect = innerRef.current.getBoundingClientRect();
+            const gap = 4;
+            const panelHeight = 380;
+            const panelWidth = Math.min(328, window.innerWidth - 32);
+
+            let top: number;
+            if (rect.bottom + gap + panelHeight > window.innerHeight) {
+              top = Math.max(8, rect.top - gap - panelHeight);
+            } else {
+              top = rect.bottom + gap;
+            }
+
+            let left = rect.left;
+            if (left + panelWidth > window.innerWidth - 16) {
+              left = window.innerWidth - panelWidth - 16;
+            }
+            if (left < 16) left = 16;
+
+            setMenuStyle({ top, left });
+          }
+          setOpen((o) => !o);
+        }}
         className={`inline-flex shrink-0 items-center text-left font-semibold leading-none tabular-nums text-white/90 transition-colors rounded-xl border border-neutral-500 surface-ghost-interactive hover:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-50 ${btnSizeClass} ${className} active:brightness-95`}
       >
         <Calendar className={iconClass} aria-hidden />
         <span className="min-w-0 truncate tabular-nums" title={label}>{label}</span>
         <ChevronDown className={`ml-0.5 ${iconClass}`} aria-hidden />
       </button>
-      {open && !disabled && (
-        <CenteredModalPortal
-          open
-          onClose={() => setOpen(false)}
-          panelRef={popRef}
-          backdropAriaLabel={tv.close ?? 'Chiudi'}
-          ariaLabel={chooseLabel}
-          panelWidthClass="w-max min-w-0"
-          maxWidthClass="max-w-[min(calc(100vw-2rem),20.5rem)]"
-          maxHeightClass="max-h-[min(88dvh,560px)]"
-          panelClassName="p-3 sm:p-3.5"
-          markDatePickerPortal
+      {open && !disabled && createPortal(
+        <div
+          ref={popRef}
+          className="fixed z-[10050] rounded-2xl border border-white/10 bg-neutral-800/70 p-3 sm:p-3.5 shadow-2xl"
+          style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', top: menuStyle.top, left: menuStyle.left }}
         >
           {panelInner}
-        </CenteredModalPortal>
+        </div>,
+        document.body
       )}
     </>
   );

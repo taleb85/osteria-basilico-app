@@ -284,7 +284,7 @@ function fmtAuditValue(v: string | null | undefined): string {
   }
   // Status label translations
   const statusMap: Record<string, string> = {
-    confirmed: 'Confermato', approved: 'Approvato', draft: 'Bozza',
+    confirmed: 'Pubblicato', approved: 'Approvato', draft: 'Bozza',
     absent: 'Assente', frozen: 'Congelato', published: 'Pubblicato',
   };
   if (statusMap[v.toLowerCase()]) return statusMap[v.toLowerCase()];
@@ -395,7 +395,7 @@ interface ShiftRow {
   deltaMins: number;
   /** In griglia l’effettivo deriva da orari congelati (approved_start/end), non da timbrature grezze. */
   displayFromFrozenApprovedTimes?: boolean;
-  status: 'approved' | 'confirmed' | 'draft' | 'absent';
+  status: 'approved' | 'confirmed' | 'draft' | 'absent' | 'frozen';
   punched: boolean;
   punchInId?: string;
   punchOutId?: string;

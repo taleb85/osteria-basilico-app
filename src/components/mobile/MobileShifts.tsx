@@ -169,7 +169,7 @@ export default function MobileShifts({ shifts, language }: MobileShiftsProps) {
                         ? (t.status_absent ?? 'Assente')
                         : isDraft
                           ? (t.status_draft ?? 'Bozza')
-                          : (t.shifts_confirmed ?? 'Confermato');
+                          : (t.shifts_confirmed ?? 'Pubblicato');
 
                       return (
                         <div key={shift.id}

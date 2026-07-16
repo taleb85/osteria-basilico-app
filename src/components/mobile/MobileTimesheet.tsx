@@ -44,7 +44,7 @@ export default function MobileTimesheet({
       pill: 'bg-white/10 text-white/70 border-white/20',
     },
     confirmed: {
-      label: t.ts_status_confirmed ?? 'Confermato',
+      label: t.ts_status_confirmed ?? 'Pubblicato',
       icon: AlertCircle,
       pill: 'bg-amber-500/10 text-amber-700 border-amber-500/20',
     },

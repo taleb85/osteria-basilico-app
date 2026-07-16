@@ -94,7 +94,7 @@ function ShiftStatusBadge({ shift, t }: { shift: Shift; t: Record<string, string
     ? (t.status_absent ?? 'Assente')
     : isDraft
       ? (t.status_draft ?? 'Bozza')
-      : (t.shifts_confirmed ?? 'Confermato');
+      : (t.shifts_confirmed ?? 'Pubblicato');
   return (
     <span className={`text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${cls}`}>
       {label}

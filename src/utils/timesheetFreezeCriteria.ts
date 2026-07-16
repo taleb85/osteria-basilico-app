@@ -7,6 +7,7 @@ import type { Shift } from '../types';
  */
 export function isShiftPayrollFrozen(shift: Pick<Shift, 'approval_status' | 'approved_at'>): boolean {
   return (
+    shift.approval_status === 'frozen' ||
     shift.approval_status === 'approved' ||
     (shift.approval_status === 'confirmed' && !!shift.approved_at)
   );

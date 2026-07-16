@@ -70,7 +70,7 @@ export type UserStatus = 'active' | 'suspended' | 'inactive';
 
 export type ShiftType = 'lunch' | 'dinner';
 
-export type ApprovalStatus = 'draft' | 'confirmed' | 'absent' | 'approved';
+export type ApprovalStatus = 'draft' | 'confirmed' | 'absent' | 'approved' | 'frozen';
 
 export type HolidayStatus = 'pending' | 'approved' | 'rejected';
 

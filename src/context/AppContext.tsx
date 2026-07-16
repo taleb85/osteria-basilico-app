@@ -909,9 +909,10 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     const existing = shifts.find((s) => s.id === id);
     if (!existing) return;
 
-    // Blocca modifica su turni congelati (salvo sblocco esplicito)
+    // Blocca modifica su turni congelati (salvo sblocco esplicito o congelamento esplicito)
     const isUnfreezeOp = Object.keys(updates).length === 1 && updates.approval_status === 'confirmed';
-    if (isShiftPayrollFrozen(existing) && !isUnfreezeOp) {
+    const isFreezeOp = Object.keys(updates).length === 1 && updates.approval_status === 'frozen';
+    if (isShiftPayrollFrozen(existing) && !isUnfreezeOp && !isFreezeOp) {
       showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
       return;
     }
@@ -966,7 +967,7 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     const isPublished = existing.approval_status === 'confirmed' || existing.approval_status === 'approved';
     const statusLabel: Record<string, string> = {
       draft: 'Bozza',
-      confirmed: 'Confermato',
+      confirmed: 'Pubblicato',
       approved: 'Approvato',
       absent: 'Non ha lavorato',
     };

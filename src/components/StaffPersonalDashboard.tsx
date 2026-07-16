@@ -54,7 +54,7 @@ function StaffDesktopShifts({ shifts, language = 'it' }: { shifts: Shift[]; lang
   const t = getTranslations(language);
   const _STATUS_CFG = {
     approved:  { label: t.ts_status_approved  ?? 'Approvato',  Icon: CheckCircle2, pill: 'shift-badge-approved' },
-    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle,  pill: 'shift-badge-confirmed' },
+    confirmed: { label: t.ts_status_confirmed ?? 'Pubblicato', Icon: AlertCircle,  pill: 'shift-badge-confirmed' },
     draft:     { label: t.status_draft        ?? 'Bozza',      Icon: AlertCircle,  pill: 'shift-badge-draft' },
     absent:    { label: t.status_absent       ?? 'Assente',    Icon: XCircle,      pill: 'shift-badge-absent' },
   } as const;
@@ -220,7 +220,7 @@ function StaffDesktopTimesheet({
 
   const _STATUS_CONFIG = {
     approved: { label: t.ts_status_approved ?? 'Approvato', Icon: CheckCircle2, pill: 'shift-badge-approved' },
-    confirmed: { label: t.ts_status_confirmed ?? 'Confermato', Icon: AlertCircle, pill: 'shift-badge-confirmed' },
+    confirmed: { label: t.ts_status_confirmed ?? 'Pubblicato', Icon: AlertCircle, pill: 'shift-badge-confirmed' },
     absent: { label: t.status_absent ?? 'Assente', Icon: XCircle, pill: 'shift-badge-absent' },
   } as const;
 

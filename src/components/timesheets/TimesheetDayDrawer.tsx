@@ -41,7 +41,7 @@ import type { Shift, User, PunchAuditEntry, PunchRecord } from '../../types';
 function getShiftCardStyle(s: ShiftRow) {
   if (s.status === 'approved') return { border: 'border-emerald-500/30', bg: 'bg-emerald-500/12', ring: 'ring-emerald-500/30', label: 'Approvato', labelCls: 'text-emerald-300' };
   if (s.status === 'absent') return { border: 'border-rose-500/30', bg: 'bg-rose-500/12', ring: 'ring-rose-500/30', label: 'Assente', labelCls: 'text-rose-300' };
-  if (s.status === 'confirmed') return { border: 'border-brand-electric/30', bg: 'bg-brand-electric/10', ring: 'ring-brand-electric/30', label: 'Confermato', labelCls: 'text-blue-300' };
+  if (s.status === 'confirmed') return { border: 'border-brand-electric/30', bg: 'bg-brand-electric/10', ring: 'ring-brand-electric/30', label: 'Pubblicato', labelCls: 'text-blue-300' };
   return { border: 'border-neutral-500', bg: 'bg-white/6', ring: 'ring-white/15', label: 'Bozza', labelCls: 'text-white/50' };
 }
 

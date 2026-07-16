@@ -61,7 +61,7 @@ export default function MobileShiftList({ shifts, language }: MobileShiftListPro
                   isAbsent ? 'bg-red-500' : isDraft ? 'bg-white' : 'bg-brand-500'
                 }`} />
                 <span className="text-[11px] font-bold text-white/60 uppercase tracking-wider">
-                  {isAbsent ? 'Assente' : isDraft ? 'Bozza' : 'Confermato'}
+                  {isAbsent ? 'Assente' : isDraft ? 'Bozza' : 'Pubblicato'}
                 </span>
               </div>
               

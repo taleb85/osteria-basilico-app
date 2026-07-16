@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Calendar, FileText, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppUser } from '../context/appSliceContexts';
@@ -7,6 +8,7 @@ import { useAppOverlay } from '../context/appSliceContexts';
 import { useT } from '../hooks/useT';
 import { useIsMobileViewport } from '../hooks/useIsMobileViewport';
 import { hapticLight as lightHaptic } from '../utils/haptics';
+import DatePickerField from './DatePickerField';
 
 interface RequestHolidayModalProps {
   isOpen: boolean;
@@ -96,8 +98,9 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
   };
 
   const inputCls =
-    'w-full px-3 py-2.5 text-base rounded-2xl border border-neutral-500 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-white placeholder:text-white/40 transition-all' as const;
-  const labelCls = 'block text-xs font-semibold text-white/70 uppercase tracking-wider mb-1';
+    'w-full px-3 py-2.5 text-base rounded-2xl border border-neutral-500 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-white placeholder:text-white/40 transition-all bg-white/10' as const;
+  const labelCls = 'block text-xs font-bold uppercase tracking-wider mb-1';
+  const labelStyle = { color: 'rgba(255,168,0,0.80)' } as React.CSSProperties;
 
   if (!isOpen) return null;
 
@@ -112,41 +115,23 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelCls}>
+          <label className={labelCls} style={labelStyle}>
             <Calendar className="inline h-3 w-3 mr-1" aria-hidden />
             {startLbl}
           </label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => {
-              setStartDate(e.target.value);
-              if (endDate && e.target.value > endDate) setEndDate(e.target.value);
-            }}
-            required
-            className={inputCls}
-            placeholder="GG/MM/AAAA"
-          />
+          <DatePickerField value={startDate} onChange={(v) => { setStartDate(v); if (endDate && v > endDate) setEndDate(v); }} className="w-full" />
         </div>
         <div>
-          <label className={labelCls}>
+          <label className={labelCls} style={labelStyle}>
             <Calendar className="inline h-3 w-3 mr-1" aria-hidden />
             {endLbl}
           </label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            required
-            min={startDate}
-            className={inputCls}
-            placeholder="GG/MM/AAAA"
-          />
+          <DatePickerField value={endDate} onChange={setEndDate} min={startDate} className="w-full" />
         </div>
       </div>
 
       <div>
-        <label className={labelCls}>
+        <label className={labelCls} style={labelStyle}>
           <FileText className="inline h-3 w-3 mr-1" aria-hidden />
           {reasonLbl}{' '}
           <span className="text-white/50 normal-case font-normal">{reasonOpt}</span>
@@ -162,13 +147,13 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
   );
 
   if (isMobile) {
-    return (
+    return createPortal(
       <AnimatePresence>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[1000] flex flex-col bg-slate-900/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[10050] flex flex-col bg-slate-900/50 backdrop-blur-sm"
           role="presentation"
         >
           <motion.form
@@ -177,7 +162,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
             exit={{ opacity: 0, y: 16 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
             onSubmit={handleSubmit}
-            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden" style={{ background: 'rgba(8,18,52,0.88)' }}
+            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden bg-transparent backdrop-blur-xl" style={{ WebkitBackdropFilter: 'blur(8px)' }}
           >
             <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-3 pt-[max(12px,env(safe-area-inset-top,0px))]">
               <h3 className="text-lg font-bold text-white">{title}</h3>
@@ -198,7 +183,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
               {fields}
             </div>
 
-            <div className="shrink-0 border-t border-white/10 px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom,0px))]" style={{ background: 'rgba(8,18,52,0.70)' }}>
+            <div className="shrink-0 border-t border-white/10 px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom,0px))] bg-transparent">
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -213,7 +198,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
                 <button
                   type="submit"
                   disabled={isSubmitting || !startDate || !endDate}
-                  className="flex min-h-[56px] items-center justify-center gap-2 rounded-3xl bg-accent text-base font-bold uppercase tracking-wide text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.99]"
+                  className="flex min-h-[56px] items-center justify-center gap-2 rounded-3xl bg-gradient-to-r from-accent to-amber-500 text-base font-bold uppercase tracking-wide text-white shadow-lg shadow-accent/20 transition-all hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <span className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -228,18 +213,18 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
             </div>
           </motion.form>
         </motion.div>
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
     );
   }
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4"
-        style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+        className="fixed inset-0 z-[10050] flex items-center justify-center bg-black/40 backdrop-blur-md supports-[backdrop-filter]:bg-black/30 p-4"
         onClick={handleClose}
       >
         <motion.form
@@ -248,7 +233,8 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
           exit={{ scale: 0.95, opacity: 0, y: 12 }}
           onSubmit={handleSubmit}
           onClick={(e) => e.stopPropagation()}
-          className="modal-glass-panel w-full max-w-md rounded-3xl p-6"
+          className="w-full max-w-md rounded-2xl border border-white/15 p-6 shadow-2xl bg-transparent"
+          style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
         >
           <div className="mb-5 flex items-center justify-between">
             <h3 className="text-base font-semibold text-white">{title}</h3>
@@ -258,7 +244,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
                 lightHaptic();
                 handleClose();
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-white/70 transition-colors hover:bg-slate-200 active:bg-slate-200/80"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white/70 transition-colors hover:bg-white/20 active:bg-white/80"
             >
               <X className="h-4 w-4" />
             </button>
@@ -269,7 +255,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
           <button
             type="submit"
             disabled={isSubmitting || !startDate || !endDate}
-            className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-accent text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50 active:bg-accent-hover/80"
+            className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-accent to-amber-500 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-accent/20 transition-all hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? (
               <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -282,6 +268,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
           </button>
         </motion.form>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

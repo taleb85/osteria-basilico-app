@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar, Check, X, Palmtree, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppUser } from '../context/appSliceContexts';
@@ -12,6 +13,7 @@ import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, 
 import { it } from 'date-fns/locale';
 import type { HolidayRequest } from '../types';
 import { safeFormatDate } from '../utils/safeDateFormat';
+import DatePickerField from './DatePickerField';
 
 // ─── Status helpers ────────────────────────────────────────────────────────────
 // STATUS_CONFIG is built inside the component to use translations
@@ -194,14 +196,13 @@ export default function HolidayRequests() {
 
   // ── Shared input style ────────────────────────────────────────────────────
   const inputCls =
-    'w-full rounded-lg px-3 py-2 text-base outline-none transition-all';
+    'w-full rounded-lg px-3 py-2 text-base outline-none transition-all bg-white/10 focus:bg-white/[0.15] focus:border-accent/50 focus:ring-2 focus:ring-accent/20';
   const inputStyle = {
-    background: 'rgba(255, 255, 255, 0.16)',
     border: '1px solid rgba(255,255,255,0.20)',
     color: '#ffffff',
   } as React.CSSProperties;
-  const labelCls = 'block text-xs font-semibold uppercase tracking-wider mb-1';
-  const labelStyle = { color: 'rgba(255,255,255,0.60)' } as React.CSSProperties;
+  const labelCls = 'block text-xs font-bold uppercase tracking-wider mb-1';
+  const labelStyle = { color: 'rgba(255,168,0,0.80)' } as React.CSSProperties;
 
   return (
     <div className="font-sans mx-auto flex h-[calc(100dvh-140px)] w-full max-w-7xl flex-col pb-content pt-2">
@@ -237,13 +238,13 @@ export default function HolidayRequests() {
       )}
 
       {/* ── New request modal ─────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {showForm && (
+      {showForm && createPortal(
+        <AnimatePresence>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[10050] flex items-center justify-center bg-black/40 backdrop-blur-md supports-[backdrop-filter]:bg-black/30 p-4"
             onClick={() => setShowForm(false)}
           >
             <motion.form
@@ -252,7 +253,8 @@ export default function HolidayRequests() {
               exit={{ scale: 0.95, opacity: 0, y: 12 }}
               onSubmit={handleSubmit}
               onClick={(e) => e.stopPropagation()}
-              className="modal-glass-panel w-full max-w-md rounded-2xl p-6"
+              className="w-full max-w-md rounded-2xl border border-white/15 p-6 shadow-2xl bg-transparent"
+              style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
             >
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-white font-semibold text-base">{t.new_request}</h3>
@@ -271,11 +273,11 @@ export default function HolidayRequests() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className={labelCls} style={labelStyle}>{t.holiday_start_date ?? 'Data inizio'}</label>
-                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required className={inputCls} style={inputStyle} placeholder="GG/MM/AAAA" />
+                    <DatePickerField value={startDate} onChange={setStartDate} className="w-full" />
                   </div>
                   <div>
                     <label className={labelCls} style={labelStyle}>{t.holiday_end_date ?? 'Data fine'}</label>
-                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required min={startDate} className={inputCls} style={inputStyle} placeholder="GG/MM/AAAA" />
+                    <DatePickerField value={endDate} onChange={setEndDate} min={startDate} className="w-full" />
                   </div>
                 </div>
 
@@ -290,24 +292,25 @@ export default function HolidayRequests() {
                   />
                 </div>
 
-                <button type="submit" className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-accent text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent-hover active:bg-accent-hover/80">
+                <button type="submit" className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-accent to-amber-500 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-accent/20 transition-all hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.02] active:scale-95">
                   <Check className="w-3.5 h-3.5" strokeWidth={3} />
                   {t.request_holiday}
                 </button>
               </div>
             </motion.form>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* ── Approve/reject modal (admin click on pending day) ─────────────── */}
-      <AnimatePresence>
-        {selectedH && selectedH.status === 'pending' && isAdmin && (
+      {selectedH && selectedH.status === 'pending' && isAdmin && createPortal(
+        <AnimatePresence>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[10050] flex items-center justify-center bg-black/40 backdrop-blur-md supports-[backdrop-filter]:bg-black/30 p-4"
             onClick={() => setSelectedH(null)}
           >
             <motion.div
@@ -315,7 +318,8 @@ export default function HolidayRequests() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 12 }}
               onClick={(e) => e.stopPropagation()}
-              className="modal-glass-panel w-full max-w-sm rounded-2xl p-6"
+              className="w-full max-w-sm rounded-2xl border border-white/15 p-6 shadow-2xl bg-transparent"
+              style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-white font-semibold">{t.pending}</h3>
@@ -380,8 +384,9 @@ export default function HolidayRequests() {
               })()}
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* ── Layout ────────────────────────────────────────────────────────── */}
       <div className={`grid grid-cols-1 ${isAdmin ? 'md:grid-cols-3' : 'md:grid-cols-1 justify-items-center'} gap-6 md:gap-8 md:items-stretch flex-1`}>

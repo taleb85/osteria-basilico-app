@@ -33,7 +33,7 @@ export interface ShiftRow {
   deltaMins: number;
   /** In griglia l’effettivo deriva da orari congelati (approved_start/end), non da timbrature grezze. */
   displayFromFrozenApprovedTimes?: boolean;
-  status: 'approved' | 'confirmed' | 'draft' | 'absent';
+  status: 'approved' | 'confirmed' | 'draft' | 'absent' | 'frozen';
   punched: boolean;
   punchInId?: string;
   punchOutId?: string;

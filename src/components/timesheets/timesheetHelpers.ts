@@ -48,7 +48,7 @@ export function fmtAuditValue(v: string | null | undefined): string {
   }
   // Status label translations
   const statusMap: Record<string, string> = {
-    confirmed: 'Confermato', approved: 'Approvato', draft: 'Bozza',
+    confirmed: 'Pubblicato', approved: 'Approvato', draft: 'Bozza',
     absent: 'Assente', frozen: 'Congelato', published: 'Pubblicato',
   };
   if (statusMap[v.toLowerCase()]) return statusMap[v.toLowerCase()];

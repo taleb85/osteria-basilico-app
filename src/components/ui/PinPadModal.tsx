@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Lock, ShieldCheck, Delete, Fingerprint, Loader2, Smartphone } from 'lucide-react';
 import React, { ReactNode, useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { useT } from '../../hooks/useT';
 import {
@@ -249,7 +250,7 @@ export function PinPadModal({
     </>
   );
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -271,6 +272,7 @@ export function PinPadModal({
       >
         {content}
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }
