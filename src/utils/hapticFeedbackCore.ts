@@ -63,64 +63,19 @@ export function unlockAudioContext(): void {
  * Click audio breve — oscillatore con portamento rapido verso il basso.
  * Produce un "tick" netto e discreto percepibile sull'iPhone.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function audioClick(
-  startFreq = 440,
-  endFreq = 220,
-  durationMs = 22,
-  amplitude = 0.18,
+  _startFreq = 440,
+  _endFreq = 220,
+  _durationMs = 22,
+  _amplitude = 0.18,
 ): void {
-  const ctx = getCtx();
-  if (!ctx) return;
-
-  const run = () => {
-    try {
-      const dur = durationMs / 1000;
-      const now = ctx.currentTime;
-
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(startFreq, now);
-      osc.frequency.exponentialRampToValueAtTime(endFreq, now + dur);
-
-      gain.gain.setValueAtTime(amplitude, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + dur + 0.01);
-    } catch { /* ignore */ }
-  };
-
-  if (ctx.state === 'running') {
-    run();
-  } else if (ctx.state === 'suspended') {
-    ctx.resume().then(run).catch(() => {});
-  }
+  /* audio disabilitato */
 }
 
 export { hapticLight as lightHaptic, hapticHeavy as heavyHaptic } from './haptics';
 
-/** Vibrate + ascending double-beep: usato per clock-in riuscito. */
-export function punchInSound(): void {
-  try {
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try { navigator.vibrate([8, 40, 12]); } catch { /* ignore */ }
-    }
-    audioClick(440, 660, 90, 0.16);
-    setTimeout(() => audioClick(550, 880, 80, 0.13), 110);
-  } catch { /* not supported */ }
-}
-
-/** Vibrate + descending double-beep: usato per clock-out riuscito. */
-export function punchOutSound(): void {
-  try {
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try { navigator.vibrate([12, 40, 8]); } catch { /* ignore */ }
-    }
-    audioClick(660, 330, 90, 0.16);
-    setTimeout(() => audioClick(440, 220, 80, 0.13), 110);
-  } catch { /* not supported */ }
-}
+/** Audio disabilitato. */
+export function punchInSound(): void { /* disabilitato */ }
+/** Audio disabilitato. */
+export function punchOutSound(): void { /* disabilitato */ }

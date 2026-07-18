@@ -1122,7 +1122,7 @@ const baseEn: Record<string, string> = {
   shift_saved: 'Shift saved.',
   shift_deleted: 'Shift deleted.',
   shift_delete_blocked_frozen:
-    'This shift is frozen (validated): it cannot be deleted. Use “Did not work” if the employee was absent.',
+    'This shift is frozen (validated): it cannot be deleted.',
   shift_delete_blocked_published:
     'Published or approval-pending shifts cannot be deleted. Only drafts can be removed here.',
   shift_week_only_frozen: 'Only frozen shifts in this period: they cannot be deleted here.',

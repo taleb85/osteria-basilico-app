@@ -708,7 +708,7 @@ export function RoleFeatureTemplatesPanel({ variant = 'page' }: Props) {
               key={u.id}
               type="button"
               onClick={() => setMobileSelectedUserId(u.id)}
-              className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl border transition-all ${isSelected ? 'border-accent/40 bg-accent/8' : 'border-neutral-500 bg-white/8'}`}
+              className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl border-2 transition-all ${isSelected ? 'border-accent bg-white/20' : 'border border-neutral-500 bg-white/8'}`}
             >
               <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-[11px] font-bold" style={{ backgroundColor: color }}>
                 {initials(u)}

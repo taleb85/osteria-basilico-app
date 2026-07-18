@@ -221,9 +221,7 @@ export function PinPadModal({
               </button>
             )
           ) : (
-            <div className="h-14 rounded-2xl flex items-center justify-center opacity-40" style={btnBase}>
-              <Fingerprint className="w-6 h-6 text-white/50" />
-            </div>
+            <div className="h-14 rounded-2xl" style={btnBase} />
           )}
           <button type="button" onClick={() => handleKey(0)}
             className="h-14 rounded-2xl font-bold text-2xl text-white active:scale-95 transition-all hover:bg-white/10 hover:border-white/30"

@@ -534,7 +534,7 @@ const baseFr: Record<string, string> = {
   shift_saved: 'Shift enregistré.',
   shift_deleted: 'Shift supprimé.',
   shift_delete_blocked_frozen:
-    'Ce shift est gelé (validé) : il ne peut pas être supprimé. Utilisez « N’a pas travaillé » si l’employé était absent.',
+    'Ce shift est gelé (validé) : il ne peut pas être supprimé.',
   shift_delete_blocked_published:
     'Les shifts publiés ou en attente d’approbation ne peuvent pas être supprimés. Seuls les brouillons peuvent être retirés ici.',
   shift_week_only_frozen: 'Seulement des shifts gelés sur la période : suppression impossible ici.',

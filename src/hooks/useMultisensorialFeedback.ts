@@ -48,37 +48,12 @@ export function useMultisensorialFeedback() {
   }, [hapticIntensity]);
 
   /**
-   * Riproduci suono di notifica via Web Audio API.
+   * Suono notifica disabilitato.
    */
-  const playNotificationSound = useCallback(async () => {
-    if (!isSoundEnabled) return;
-
-    try {
-      const w = window as Window & { webkitAudioContext?: typeof AudioContext };
-      const AudioCtx = window.AudioContext || w.webkitAudioContext;
-      const audioContext = new AudioCtx();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      gainNode.gain.setValueAtTime(soundVolume / 100, audioContext.currentTime);
-      oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
-      oscillator.type = 'sine';
-
-      const duration = 0.15;
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-      gainNode.gain.linearRampToValueAtTime(soundVolume / 100, audioContext.currentTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration - 0.02);
-      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration);
-
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + duration);
-    } catch (err) {
-      console.warn('[Audio] Sound not available:', err);
-    }
-  }, [isSoundEnabled, soundVolume]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const playNotificationSound = useCallback(async (_isSoundEnabled?: boolean, _soundVolume?: number) => {
+    /* suono disabilitato */
+  }, []);
 
   /**
    * Callback combinato: vibrazione + suono.

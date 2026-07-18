@@ -679,12 +679,12 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 {t.settings_team_section_title}
               </h2>
             </button>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-2 shrink-0">
               {canEdit && (
                 <button
                   type="button"
                   onClick={() => setShowCreateStaff(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/30 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
+                  className="w-full sm:w-auto inline-flex items-center gap-1.5 rounded-xl border border-white/30 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 active:bg-white/5/80"
                 >
                   <UserPlus className="w-3.5 h-3.5" aria-hidden />
                   {t.admin_add_employee}
@@ -694,7 +694,7 @@ export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } =
                 <button
                   type="button"
                   onClick={() => setShowSuspended(!showSuspended)}
-                  className="rounded-xl border border-white/30 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
+                  className="w-full sm:w-auto rounded-xl border border-white/30 px-2 py-1 text-xs uppercase tracking-wider text-white/70 transition-colors hover:bg-white/5 hover:text-white active:text-white"
                 >
                   {showSuspended ? t.hide_suspended : t.show_suspended}
                 </button>

@@ -1,9 +1,11 @@
 {
+  "buildCommand": "vite build --config scripts/vite.config.mjs",
+  "installCommand": "npm install",
   "redirects": [],
   "rewrites": [
     { "source": "/", "destination": "/app.html" },
     { "source": "/profilo", "destination": "/app.html" },
-    { "source": "/(.*)", "destination": "/app.html" }
+    { "source": "/((?!Installa_FLOW\\.mobileconfig$).*)", "destination": "/app.html" }
   ],
   "headers": [
     {
@@ -44,7 +46,7 @@
     {
       "source": "/Installa_FLOW.mobileconfig",
       "headers": [
-        { "key": "Content-Type", "value": "application/x-apple.ashen-plist" },
+        { "key": "Content-Type", "value": "application/x-apple-aspen-config" },
         { "key": "Content-Disposition", "value": "inline" },
         { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, s-maxage=0" }
       ]

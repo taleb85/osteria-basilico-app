@@ -29,46 +29,9 @@ const getAudioContext = (): AudioContext | null => {
   }
 }
 
-const iosHaptic = (style: HapticStyle) => {
-  const ctx = getAudioContext()
-  if (!ctx) return
-
-  const run = () => {
-    try {
-      const config: Record<HapticStyle, { freq: number; duration: number; gain: number }> = {
-        light:   { freq: 1000, duration: 0.02, gain: 0.1 },
-        click:   { freq: 1000, duration: 0.02, gain: 0.1 },
-        medium:  { freq: 800,  duration: 0.04, gain: 0.15 },
-        heavy:   { freq: 600,  duration: 0.06, gain: 0.2 },
-        success: { freq: 1200, duration: 0.05, gain: 0.12 },
-        error:   { freq: 400,  duration: 0.08, gain: 0.2 },
-        warning: { freq: 700,  duration: 0.05, gain: 0.15 },
-      }
-
-      const { freq, duration, gain } = config[style]
-      const now = ctx.currentTime
-
-      const oscillator = ctx.createOscillator()
-      const gainNode = ctx.createGain()
-
-      oscillator.connect(gainNode)
-      gainNode.connect(ctx.destination)
-
-      gainNode.gain.setValueAtTime(gain, now)
-      gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration)
-      oscillator.frequency.setValueAtTime(freq, now)
-      oscillator.type = 'sine'
-
-      oscillator.start(now)
-      oscillator.stop(now + duration + 0.01)
-    } catch { /* ignore */ }
-  }
-
-  if (ctx.state === 'running') {
-    run()
-  } else if (ctx.state === 'suspended') {
-    ctx.resume().then(run).catch(() => {})
-  }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const iosHaptic = (_style: HapticStyle) => {
+  /* vibrazione audio disabilitata */
 }
 
 const androidHaptic = (style: HapticStyle) => {

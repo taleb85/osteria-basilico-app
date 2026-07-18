@@ -1225,7 +1225,7 @@ const baseIt = {
   shift_saved: 'Turno salvato.',
   shift_deleted: 'Turno eliminato.',
   shift_delete_blocked_frozen:
-    'Questo turno è congelato (validato): non può essere eliminato. Usa «Non ha lavorato» se il dipendente non si è presentato.',
+    'Questo turno è congelato (validato): non può essere eliminato.',
   shift_delete_blocked_published:
     'I turni pubblicati o già in approvazione non possono essere eliminati. Solo le bozze possono essere rimosse da qui.',
   shift_week_only_frozen: 'Nel periodo ci sono solo turni congelati: non possono essere eliminati da qui.',

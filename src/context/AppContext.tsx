@@ -23,6 +23,15 @@ import { supabase } from '../lib/supabase';
 import { hasShiftConflictSameDay, computeEffectivePunchIn, calculateShiftMinutesGross } from '../utils/timeCalculations';
 import { isShiftPayrollFrozen } from '../utils/timesheetFreezeCriteria';
 import { AnimatePresence } from 'framer-motion';
+
+// Set di ID turni congelati per cui il PIN è già stato verificato e l'eliminazione è autorizzata.
+const _approvedFrozenDeleteIds = new Set<string>();
+/** Chiamata dal componente dopo verifica PIN per autorizzare l'eliminazione di un turno congelato. */
+export function authorizeFrozenDelete(shiftId: string) { _approvedFrozenDeleteIds.add(shiftId); }
+function consumeFrozenDeleteAuth(shiftId: string): boolean {
+  if (_approvedFrozenDeleteIds.has(shiftId)) { _approvedFrozenDeleteIds.delete(shiftId); return true; }
+  return false;
+}
 import Toast from '../components/Toast';
 import FlowWaveIcon from '../components/ui/FlowWaveIcon';
 import { DevMissingEnvBanner } from '../components/DevMissingEnvBanner';
@@ -1070,12 +1079,20 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     }
     const existing = shifts.find(s => s.id === id);
     const isFullPrivilegeOp = op.role === 'admin' || op.role === 'manager' || op.role === 'assistant_manager';
+    // Turno contrassegnato assente: bloccato per tutti
     if (existing && existing.approval_status === 'absent') {
       const msg = getTranslations(effectiveLanguage).shift_delete_blocked_frozen;
       showError(msg);
       throw new Error(msg);
     }
-    if (existing && isShiftPayrollFrozen(existing) && !isFullPrivilegeOp) {
+    // Turno congelato (stato 'frozen'): richiede PIN verificato — anche per management
+    if (existing && existing.approval_status === 'frozen') {
+      if (!consumeFrozenDeleteAuth(id)) {
+        const msg = getTranslations(effectiveLanguage).shift_delete_blocked_frozen;
+        showError(msg);
+        throw new Error(msg);
+      }
+    } else if (existing && isShiftPayrollFrozen(existing) && !isFullPrivilegeOp) {
       const msg = getTranslations(effectiveLanguage).shift_delete_blocked_frozen;
       showError(msg);
       throw new Error(msg);
@@ -1111,6 +1128,21 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     if (!op || !canEditTeamShifts(op)) {
       showError(getTranslations(effectiveLanguage).app_access_denied);
       return;
+    }
+    const hasStrictFrozen = ids.some((id) => {
+      const s = shifts.find((x) => x.id === id);
+      return s?.approval_status === 'frozen';
+    });
+    // Turni con stato 'frozen': richiedono PIN autorizzato individualmente
+    if (hasStrictFrozen) {
+      const allAuthorized = ids.every((id) => {
+        const s = shifts.find((x) => x.id === id);
+        return s?.approval_status !== 'frozen' || consumeFrozenDeleteAuth(id);
+      });
+      if (!allAuthorized) {
+        showError(getTranslations(effectiveLanguage).shift_delete_blocked_frozen);
+        return;
+      }
     }
     const blockedFrozen = ids.some((id) => {
       const s = shifts.find((x) => x.id === id);

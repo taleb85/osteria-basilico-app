@@ -6,7 +6,7 @@
  * Persistenza: updateUser -> database.users.update (tabella `users`), campo `department` incluso.
  */
 import { useMemo, useCallback, useState, useRef } from 'react';
-import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone, Calendar, Smartphone } from 'lucide-react';
+import { User, Mail, Lock, Shield, CheckCircle, AlertTriangle, Euro, Link2, Copy, Phone, Calendar } from 'lucide-react';
 import { useAppUser } from '../context/appSliceContexts';
 import { useAppConfig } from '../context/appSliceContexts';
 import { useAppOverlay } from '../context/appSliceContexts';
@@ -486,15 +486,6 @@ export function ProfileFormAdmin({
     [user.id, formData.first_name, formData.last_name, users]
   );
 
-  const installLink = useMemo(
-    () => {
-      const base = PUBLIC_APP_ORIGIN;
-      const name = encodeURIComponent(`${formData.first_name ?? ''}`.trim());
-      return `${base}/install?userId=${user.id}&firstName=${name}`;
-    },
-    [user.id, formData.first_name, PUBLIC_APP_ORIGIN]
-  );
-
   const handleCopyAccessLink = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(accessLink);
@@ -503,15 +494,6 @@ export function ProfileFormAdmin({
       showError?.(tv.copy_failed ?? 'Copia non riuscita. Seleziona il link manualmente.');
     }
   }, [accessLink, showSuccess, showError, tv.admin_employee_access_link_copied, tv.copy_failed]);
-
-  const handleCopyInstallLink = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(installLink);
-      showSuccess?.(tv.admin_employee_install_link_copied ?? 'Link installazione copiato.');
-    } catch {
-      showError?.(tv.copy_failed ?? 'Copia non riuscita. Seleziona il link manualmente.');
-    }
-  }, [installLink, showSuccess, showError, tv.admin_employee_install_link_copied, tv.copy_failed]);
 
   const roleSelectDisabled =
     readOnly || (isPurelyManagementRole(user.role) && !isAdminOnly(currentUser));
@@ -816,23 +798,6 @@ export function ProfileFormAdmin({
               </p>
             )}
             <p className="text-[11px] text-white/45 font-mono break-all pl-5">{accessLink}</p>
-
-            <div className="border-t border-white/10" />
-
-            {/* Pulsante: copia link installazione universale (iOS + Android) */}
-            <button
-              type="button"
-              onClick={handleCopyInstallLink}
-              className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white font-sans transition-all hover:opacity-95 active:scale-[0.98]"
-              style={{ background: '#5856d6' }}
-            >
-              <Smartphone className="w-5 h-5" aria-hidden />
-              <span>{tv.admin_employee_install_link_btn ?? 'Copia link installazione'}</span>
-            </button>
-            <p className="text-[11px] text-white/70 font-sans pl-5">
-              {tv.admin_employee_install_link_hint ?? 'Il dipendente apre il link e segue le istruzioni per installare FLOW su iPhone, Android o desktop.'}
-            </p>
-            <p className="text-[11px] text-white/45 font-mono break-all pl-5">{installLink}</p>
           </div>
         )}
 

@@ -99,8 +99,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
 
   const inputCls =
     'w-full px-3 py-2.5 text-base rounded-2xl border border-neutral-500 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-white placeholder:text-white/40 transition-all bg-white/10' as const;
-  const labelCls = 'block text-xs font-bold uppercase tracking-wider mb-1';
-  const labelStyle = { color: 'rgba(255,168,0,0.80)' } as React.CSSProperties;
+  const labelClsFull = 'block text-xs font-bold uppercase tracking-wider mb-1 text-accent/80';
 
   if (!isOpen) return null;
 
@@ -115,14 +114,14 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelCls} style={labelStyle}>
+          <label className={labelClsFull}>
             <Calendar className="inline h-3 w-3 mr-1" aria-hidden />
             {startLbl}
           </label>
           <DatePickerField value={startDate} onChange={(v) => { setStartDate(v); if (endDate && v > endDate) setEndDate(v); }} className="w-full" />
         </div>
         <div>
-          <label className={labelCls} style={labelStyle}>
+          <label className={labelClsFull}>
             <Calendar className="inline h-3 w-3 mr-1" aria-hidden />
             {endLbl}
           </label>
@@ -131,7 +130,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
       </div>
 
       <div>
-        <label className={labelCls} style={labelStyle}>
+        <label className={labelClsFull}>
           <FileText className="inline h-3 w-3 mr-1" aria-hidden />
           {reasonLbl}{' '}
           <span className="text-white/50 normal-case font-normal">{reasonOpt}</span>
@@ -198,7 +197,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
                 <button
                   type="submit"
                   disabled={isSubmitting || !startDate || !endDate}
-                  className="flex min-h-[56px] items-center justify-center gap-2 rounded-3xl bg-gradient-to-r from-accent to-amber-500 text-base font-bold uppercase tracking-wide text-white shadow-lg shadow-accent/20 transition-all hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex min-h-[56px] items-center justify-center gap-2 rounded-3xl bg-accent text-base font-bold uppercase tracking-wide text-white shadow-lg shadow-accent/20 transition-all hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <span className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -255,7 +254,7 @@ export default function RequestHolidayModal({ isOpen, onClose, userId }: Request
           <button
             type="submit"
             disabled={isSubmitting || !startDate || !endDate}
-            className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-accent to-amber-500 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-accent/20 transition-all hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-accent text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-accent/20 transition-all hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? (
               <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

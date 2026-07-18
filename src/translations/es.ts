@@ -1122,7 +1122,7 @@ const baseEs: Record<string, string> = {
   shift_saved: 'Turno guardado.',
   shift_deleted: 'Turno eliminado.',
   shift_delete_blocked_frozen:
-    'Este turno está congelado (validado): no se puede eliminar. Usa «No trabajó» si el empleado no se presentó.',
+    'Este turno está congelado (validado): no se puede eliminar.',
   shift_delete_blocked_published:
     'No se pueden eliminar turnos publicados o pendientes de aprobación. Solo se pueden quitar las borradores.',
   shift_week_only_frozen: 'Solo hay turnos congelados en el periodo: no se pueden eliminar aquí.',

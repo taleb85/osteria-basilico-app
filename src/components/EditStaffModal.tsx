@@ -148,7 +148,7 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="modal-glass-panel w-full max-w-md overflow-hidden rounded-xl"
         >
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-500 px-5 py-4" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
+          <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4" style={{ background: 'rgba(255, 255, 255, 0.14)' }}>
             <div>
               <h2 className="text-base font-bold tracking-wide text-white font-sans">
                 {readOnly
@@ -170,7 +170,7 @@ export default function EditStaffModal({ isOpen, onClose, user, readOnly = false
             </button>
           </div>
 
-          <div className="px-5 py-4 overflow-y-auto overflow-x-hidden max-h-[70vh]">
+          <div className="px-5 py-4 overflow-y-auto overflow-x-hidden max-h-[70vh] border-t border-neutral-500">
             <ProfileFormAdmin
               user={user}
               currentUser={currentUser}
