@@ -173,6 +173,7 @@ export default function TimesheetDayDrawer({ ctx, updateShift }: TimesheetDayDra
           dinner: t.ts_deduct_break_dinner,
         })
       : undefined;
+
   const hasAdminBreakRules = !!(userForBreakReadout && getActiveBreakRules(breakRules).length > 0);
   const hasManualNonAutoBreak = !!(fullShift && fullShift.break_minutes != null && fullShift.break_minutes > 0 && fullShift.is_auto_break !== true);
   const hasPerMealAutoBreak = !!(deductBreakLineItemsAll?.some((it) => it.ruleId?.startsWith('__flow_meal_')) ?? false);

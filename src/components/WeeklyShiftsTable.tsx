@@ -18,6 +18,7 @@ import {
   formatMinutesToHoursAndMinutes,
   hasShiftConflictSameDay,
   normalizeTimeInputToHHmm as toHHmm,
+  getBreakLabels,
 } from '../utils/timeCalculations';
 import {
   getPunchPairForShift,
@@ -6242,10 +6243,10 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
   );
 
   /** Durata netta in badge + indicazione detrazione pausa (regole / default 30′ se ≥6h). */
-  const { netMins, breakMins } = useMemo(() => {
+  const { grossMins, netMins, breakMins } = useMemo(() => {
     const s = toHHmm(tempShifts.start_time);
     const e = isOpenEndShift ? (toHHmm(tempShifts.end_time) || '23:00') : toHHmm(tempShifts.end_time);
-    if (!s || !e) return { netMins: 0, breakMins: 0 };
+    if (!s || !e) return { grossMins: 0, netMins: 0, breakMins: 0 };
     const syn = {
       deduct_break: deductBreak,
       date: selectedDate,
@@ -6256,7 +6257,7 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
     const gross = calculateShiftMinutesGross(s, e);
     const bm = getBreakMinutesForShift(syn, gross, user ?? undefined, breakRules, breakOptsModal);
     const net = getNetShiftMinutes(syn, s, e, user ?? undefined, breakRules, breakOptsModal);
-    return { netMins: net, breakMins: bm };
+    return { grossMins: gross, netMins: net, breakMins: bm };
   }, [
     tempShifts.start_time,
     tempShifts.end_time,
@@ -6291,6 +6292,12 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
     const status: ApprovalStatus = notifyEmployee ? 'confirmed' : 'draft';
 
     setSaving(true);
+    const gross = calculateShiftMinutesGross(startNorm, effectiveEnd);
+    let breakMins = 0;
+    if (deductBreak && gross >= 360) {
+      const labels = getBreakLabels(startNorm, effectiveEnd);
+      breakMins = labels.length > 0 ? labels.length * 30 : 30;
+    }
     const payload: Parameters<typeof addShift>[0] = {
       user_id: userId,
       date: selectedDate,
@@ -6300,6 +6307,8 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
       approval_status: status,
       notes: buildNotes(publicNote),
       deduct_break: deductBreak,
+      break_minutes: breakMins,
+      is_auto_break: breakMins > 0,
     };
     await addShift(payload);
     setSaving(false);
@@ -6379,14 +6388,17 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
               <div
                 className="flex flex-col items-end gap-0.5 rounded-xl bg-white/15 px-2.5 py-1 text-white"
                 title={
-                  breakMins > 0 && deductBreak
-                    ? `−${breakMins} min ${t.ts_break_deduction}`
+                  deductBreak && breakMins > 0
+                    ? `${formatMinutesToHoursAndMinutes(grossMins)} lordi → −${breakMins}′ pausa → ${formatMinutesToHoursAndMinutes(netMins)} netti`
                     : !deductBreak
                       ? t.wst_create_shift_no_deduct_badge
-                      : undefined
+                      : `${formatMinutesToHoursAndMinutes(grossMins)} lordi → 0′ pausa → ${formatMinutesToHoursAndMinutes(netMins)} netti`
                 }
               >
                 <div className="flex items-center gap-1 text-xs font-bold">
+                  <span className="tabular-nums text-white/50 text-[10px]">
+                    {grossMins > 0 ? `${formatMinutesToHoursAndMinutes(grossMins)} → ` : ''}
+                  </span>
                   <span className="tabular-nums">
                     {netMins > 0 || (toHHmm(tempShifts.start_time) && toHHmm(tempShifts.end_time))
                       ? `${t.wst_create_shift_hours_net} ${formatMinutesToHoursAndMinutes(netMins)}`
@@ -6394,14 +6406,18 @@ function CreateShiftModal({ userId, date, defaultTime, existingShifts, showError
                   </span>
                 </div>
                 {deductBreak && breakMins > 0 ? (
-                  <span className="text-[11px] font-bold leading-none tabular-nums" style={{ color: 'rgba(255,255,255,0.80)' }}>
+                  <span className="text-[11px] font-bold leading-none tabular-nums text-amber-400">
                     −{breakMins}′ {t.ts_break_deduction}
                   </span>
                 ) : !deductBreak ? (
                   <span className="text-[11px] font-bold text-amber-300 leading-none max-w-[7rem] text-right">
                     {t.wst_create_shift_no_deduct_badge}
                   </span>
-                ) : null}
+                ) : (
+                  <span className="text-[11px] font-bold leading-none tabular-nums text-white/50">
+                    0′ {t.ts_break_deduction}
+                  </span>
+                )}
               </div>
               <button
                 type="button"

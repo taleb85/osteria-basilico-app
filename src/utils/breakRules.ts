@@ -99,6 +99,16 @@ export async function saveBreakRulesToSupabase(rules: BreakRule[]): Promise<void
   }
 }
 
+/** Salva break rules in localStorage (fallback se Supabase Storage non disponibile). */
+export function saveBreakRulesToLocalStorage(rules: BreakRule[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rules));
+    clearBreakRulesStorageSkip();
+  } catch {
+    /* localStorage non disponibile */
+  }
+}
+
 function toMinutes(hhmm: string): number {
   const parts = String(hhmm).split(':');
   return parseInt(parts[0] ?? '0', 10) * 60 + parseInt(parts[1] ?? '0', 10);
@@ -269,9 +279,8 @@ export function getBreakMinutesForShift(
   const deductBreak = shift.deduct_break !== false;
   if (!deductBreak) return 0;
 
-  const locked = getPayrollLockedBreakMinutes(shift);
-  if (locked !== null) return locked;
-
+  /* Regole admin attive: prioritarie — calcolate prima di break_minutes bloccati
+     (che potrebbero essere 0 per turni non ancora processati dalle regole). */
   const activeRules = getActiveBreakRules(rules);
   if (user && activeRules.length > 0) {
     const w = options?.breakRuleWindow;
@@ -279,16 +288,24 @@ export function getBreakMinutesForShift(
     const en = (w?.end ?? String(shift.end_time ?? '')).slice(0, 5);
     const d = shift.date ?? '';
     if (!st || !en || !d) return 0;
-    const lines = getPlannedBreakDeductionLines(
+    let lines = getPlannedBreakDeductionLines(
       { start_time: st, end_time: en, date: d },
       user,
       activeRules
     );
+    /* Se nessuna regola ha matchato il ruolo/reparto dell'utente, riprova senza filtri. */
+    if (lines.length === 0) {
+      lines = getPlannedBreakDeductionLines(
+        { start_time: st, end_time: en, date: d },
+        { role: '' },
+        activeRules.map((r) => ({ ...r, departments: [], roles: [] }))
+      );
+    }
     const ex = new Set(shift.deduct_excluded_rule_ids ?? []);
     const fromRules = lines
       .filter((l) => !l.ruleId || !ex.has(l.ruleId))
       .reduce((sum, l) => sum + l.minutes, 0);
-    return Math.max(0, fromRules);
+    if (fromRules > 0) return Math.max(0, fromRules);
   }
 
   /* Pausa manuale sul turno: rispetta `break_minutes` solo se non è la pausa automatica persistita. */
@@ -297,14 +314,12 @@ export function getBreakMinutesForShift(
   }
   const startStr = (options?.breakRuleWindow?.start ?? String(shift.start_time ?? '')).slice(0, 5);
   const endStr   = (options?.breakRuleWindow?.end   ?? String(shift.end_time   ?? '')).slice(0, 5);
-  // Turni che attraversano la mezzanotte: niente fasce pasto né fallback generico
-  if (startStr && endStr && toMinutes(endStr) <= toMinutes(startStr)) {
+  // Turni che attraversano la mezzanotte (escluso 00:00 = fine giornata): niente fasce pasto né fallback generico
+  const endMinutes = endStr === '00:00' ? 1440 : toMinutes(endStr);
+  if (startStr && endStr && endMinutes <= toMinutes(startStr)) {
     return 0;
   }
   if (grossMinutes < AUTO_BREAK_THRESHOLD_MINUTES) {
-    return 0;
-  }
-  if (shift.is_auto_break === false) {
     return 0;
   }
   const mealKeys = getBreakLabels(startStr, endStr);
@@ -316,7 +331,8 @@ export function getBreakMinutesForShift(
   if (options?.autoBreaksFeatureEnabled === false) {
     return 0;
   }
-  return DEFAULT_AUTO_BREAK_MINUTES;
+  /* Nessuna fascia pasto coperta → nessuna detrazione automatica. */
+  return 0;
 }
 
 /** Calcola i minuti netti di un turno: (End - Start) - break. */
@@ -366,11 +382,7 @@ export function getBreakDeductionDisplayItems(
   i18n: { fromShift: string; auto: string; lunch: string; dinner: string }
 ): BreakDeductionLine[] {
   if (shift.deduct_break === false) return [];
-  const locked = getPayrollLockedBreakMinutes(shift);
-  if (locked !== null) {
-    if (locked <= 0) return [];
-    return [{ title: i18n.fromShift, minutes: locked }];
-  }
+  /* Regole admin attive: prioritarie — stesse priorità di getBreakMinutesForShift. */
   const active = getActiveBreakRules(rules);
   if (user && active.length > 0) {
     const w = options?.breakRuleWindow;
@@ -378,21 +390,32 @@ export function getBreakDeductionDisplayItems(
     const en = (w?.end ?? shift.end_time ?? '').slice(0, 5);
     const d = shift.date ?? '';
     if (!st || !en || !d) return [];
-    const adminLines = getPlannedBreakDeductionLines(
+    let adminLines = getPlannedBreakDeductionLines(
       { start_time: st, end_time: en, date: d },
       user,
       active
     );
+    /* Fallback: se nessuna regola ha matchato ruolo/reparto, prova senza filtri. */
+    if (adminLines.length === 0) {
+      adminLines = getPlannedBreakDeductionLines(
+        { start_time: st, end_time: en, date: d },
+        { role: '' },
+        active.map((r) => ({ ...r, departments: [], roles: [] }))
+      );
+    }
     const ex = new Set(shift.deduct_excluded_rule_ids ?? []);
-    return adminLines.filter((l) => !l.ruleId || !ex.has(l.ruleId));
+    const filtered = adminLines.filter((l) => !l.ruleId || !ex.has(l.ruleId));
+    if (filtered.length > 0) return filtered;
+    /* Se le regole admin danno 0 righe, ricadi al calcolo automatico fasce pasto. */
   }
   const startStr = (options?.breakRuleWindow?.start ?? shift.start_time ?? '').slice(0, 5);
   const endStr = (options?.breakRuleWindow?.end ?? shift.end_time ?? '').slice(0, 5);
+  const endMinutesCheck = endStr === '00:00' ? 1440 : toMinutes(endStr);
   /** Pranzo/cena (fasce) con interruttori separati — allineate a getBreakMinutesForShift (anche con `autoBreaksFeatureEnabled: false` per fasce). */
   if (
     startStr &&
     endStr &&
-    toMinutes(endStr) > toMinutes(startStr) &&
+    endMinutesCheck > toMinutes(startStr) &&
     grossMinutes >= AUTO_BREAK_THRESHOLD_MINUTES &&
     shift.is_auto_break !== false &&
     !(shift.break_minutes != null && shift.break_minutes > 0 && shift.is_auto_break !== true)
@@ -415,7 +438,7 @@ export function getBreakDeductionDisplayItems(
     (options?.autoBreaksFeatureEnabled !== false) &&
     startStr &&
     endStr &&
-    toMinutes(endStr) > toMinutes(startStr) &&
+    endMinutesCheck > toMinutes(startStr) &&
     grossMinutes >= AUTO_BREAK_THRESHOLD_MINUTES
   ) {
     if (shift.is_auto_break === false) {

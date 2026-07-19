@@ -293,6 +293,8 @@ export function departmentMatchesBreakRuleDepartments(
   ruleDepts: string[]
 ): boolean {
   if (!ruleDepts.length) return true;
+  /* Utente senza reparto: matcha sempre (admin/manager senza reparto non devono essere esclusi). */
+  if (!userDept) return true;
   const keys = getDeptPermissionMatchKeys(userDept);
   return keys.some((k) => ruleDepts.includes(k));
 }

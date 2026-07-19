@@ -93,6 +93,7 @@ import {
   type BreakRule,
   getBreakRules,
   saveBreakRulesToSupabase,
+  saveBreakRulesToLocalStorage,
   loadBreakRulesFromSupabase,
   getBreakMinutesForShift,
   getActiveBreakRules,
@@ -2246,17 +2247,16 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     await saveWorkRulesToSupabase(rules).catch(() => {});
     const rev = await bumpClientSyncRevisionOnSupabase();
     if (rev != null) writeAckClientSyncRevision(rev);
-    await silentRefreshData({ pullRemoteConfig: true });
-  }, [silentRefreshData, markManagementDataTouched]);
+  }, [markManagementDataTouched]);
 
   const setBreakRules = useCallback(async (rules: BreakRule[]) => {
     setBreakRulesState(rules);
     markManagementDataTouched();
+    saveBreakRulesToLocalStorage(rules);
     await saveBreakRulesToSupabase(rules).catch(() => {});
     const rev = await bumpClientSyncRevisionOnSupabase();
     if (rev != null) writeAckClientSyncRevision(rev);
-    await silentRefreshData({ pullRemoteConfig: true });
-  }, [silentRefreshData, markManagementDataTouched]);
+  }, [markManagementDataTouched]);
 
   const pushSettingsToCloud = useCallback(async () => {
     if (!isAppCloudSyncEnabled()) {

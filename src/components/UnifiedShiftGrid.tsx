@@ -106,12 +106,14 @@ function getShiftCellDisplay(
   compact = false,
 ): ShiftCellDisplay {
   const planned = formatShiftTimeRangeFull(g.shift.start_time, g.shift.end_time);
-  if (g.isAbsent) return { main: 'Assente' };
+  const breakSuffix = g.breakMinutes > 0 ? `−${g.breakMinutes}m` : undefined;
+  const actualBreakSuffix = g.actualBreakMinutes > 0 ? `−${g.actualBreakMinutes}m` : undefined;
+  if (g.isAbsent) return { main: 'Assente', breakSuffix };
 
   if (mode === 'planning') {
     return {
       main: compact ? formatShiftTimeRangeCompact(g.shift.start_time, g.shift.end_time) : planned,
-      breakSuffix: g.breakMinutes > 0 ? `−${g.breakMinutes}m` : undefined,
+      breakSuffix,
     };
   }
 
@@ -124,7 +126,7 @@ function getShiftCellDisplay(
         ? formatShiftTimeRangeCompact(approvedStart, approvedEnd)
         : formatShiftTimeRangeFull(approvedStart, approvedEnd),
       title: `Pianificato: ${planned}`,
-      breakSuffix: g.actualBreakMinutes > 0 ? `−${g.actualBreakMinutes}m` : undefined,
+      breakSuffix: actualBreakSuffix,
     };
   }
 
@@ -136,7 +138,7 @@ function getShiftCellDisplay(
     return {
       main: compact ? formatShiftTimeRangeCompact(inT, outT) : mainFull,
       title: mainFull !== planned ? `Pianificato: ${planned}` : undefined,
-      breakSuffix: g.actualBreakMinutes > 0 ? `−${g.actualBreakMinutes}m` : undefined,
+      breakSuffix: actualBreakSuffix,
     };
   }
 
@@ -145,6 +147,7 @@ function getShiftCellDisplay(
       main: `${inT}→`,
       title: `Pianificato: ${planned}`,
       missingOut: true,
+      breakSuffix,
     };
   }
 
@@ -152,13 +155,14 @@ function getShiftCellDisplay(
     return {
       main: compact ? formatShiftTimeRangeCompact(shift.start_time, shift.end_time) : planned,
       title: 'Timbratura mancante',
+      breakSuffix,
     };
   }
 
   const { start, end } = getResolvedStartEndForHours(shift, punchRecords);
   return {
     main: compact ? formatShiftTimeRangeCompact(start, end) : formatShiftTimeRangeFull(start, end),
-    breakSuffix: g.breakMinutes > 0 ? `−${g.breakMinutes}m` : undefined,
+    breakSuffix,
   };
 }
 type ShiftDetailTab = 'details' | 'punches' | 'history' | 'breaks';
@@ -481,7 +485,12 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       const { in: punchIn, out: punchOut } = getPunchForShift(shift);
       const plannedMins = calculateShiftMinutesGross(shift.start_time ?? '', shift.end_time ?? '');
       const actualMins = punchIn && punchOut
-        ? Math.abs(new Date(punchOut.calculated_time || punchOut.timestamp).getTime() - new Date(punchIn.calculated_time || punchIn.timestamp).getTime()) / 60000 : 0;
+        ? (() => {
+            const startMs = new Date(punchIn.calculated_time || punchIn.timestamp).getTime();
+            let endMs = new Date(punchOut.calculated_time || punchOut.timestamp).getTime();
+            if (endMs <= startMs) endMs += 24 * 60 * 60 * 1000;
+            return (endMs - startMs) / 60000;
+          })() : 0;
       const breakMins = getBreakMinutesForShift(shift, plannedMins, null, breakRules);
       const actualBreakMins = (() => {
         const gross = Math.round(actualMins);
@@ -493,7 +502,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
         const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
         if (toMin(en) <= toMin(st)) return 0;
         const mealKeys = getBreakLabels(st, en);
-        return mealKeys.length > 0 ? mealKeys.length * DEFAULT_AUTO_BREAK_MINUTES : DEFAULT_AUTO_BREAK_MINUTES;
+        return mealKeys.length > 0 ? mealKeys.length * DEFAULT_AUTO_BREAK_MINUTES : 0;
       })();
       const actualNet = Math.max(0, Math.round(actualMins) - actualBreakMins);
       const plannedNet = Math.max(0, plannedMins - breakMins);
@@ -1778,8 +1787,20 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                   </div>
                 )}
                 {selectedShift && (() => {
-                  const grossMins = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
-                  const breakMins = getBreakMinutesForShift({ ...selectedShift, deduct_break: deductBreak }, grossMins, null, breakRules);
+                  const { in: punchIn, out: punchOut } = getPunchForShift(selectedShift);
+                  const hasActual = !!(punchIn?.calculated_time || punchIn?.timestamp) && !!(punchOut?.calculated_time || punchOut?.timestamp);
+                  const actualStart = hasActual ? (punchIn!.calculated_time || punchIn!.timestamp) : null;
+                  const actualEnd = hasActual ? (punchOut!.calculated_time || punchOut!.timestamp) : null;
+                  const grossMins = actualStart && actualEnd
+                    ? (() => {
+                        const startMs = new Date(actualStart).getTime();
+                        let endMs = new Date(actualEnd).getTime();
+                        if (endMs <= startMs) endMs += 24 * 60 * 60 * 1000;
+                        return (endMs - startMs) / 60000;
+                      })()
+                    : calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
+                  const shiftUser = users.find((u) => u.id === selectedShift.user_id);
+                  const breakMins = getBreakMinutesForShift({ ...selectedShift, deduct_break: deductBreak }, grossMins, shiftUser ?? null, breakRules);
                   const netMins = Math.max(0, grossMins - breakMins);
                   const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
                   return (

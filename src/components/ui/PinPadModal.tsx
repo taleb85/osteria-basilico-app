@@ -205,7 +205,7 @@ export function PinPadModal({
           ))}
           {leftActionButton ? (
             <div className="h-14 rounded-2xl flex items-center justify-center" style={btnBase}>{leftActionButton}</div>
-          ) : webAuthnOk ? (
+          ) : !!userId && supportsPinUnlockWebAuthn() ? (
             credRegistered ? (
               <button type="button" onClick={handleBiometric} disabled={bioLoading || isLoading}
                 className="h-14 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-white/80 active:scale-95 transition-all disabled:opacity-50 hover:bg-white/10 hover:border-white/30"

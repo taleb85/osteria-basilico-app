@@ -28,6 +28,21 @@ export default defineConfig(({ command }) => {
       name: 'app-version-dev',
       apply: 'serve',
       configureServer(server) {
+        const swCleanupHtml = `<!DOCTYPE html><html><body><script>
+(async function(){
+  try {
+    if(navigator.serviceWorker){
+      var regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(function(r){return r.unregister();}));
+    }
+    if(window.caches){
+      var keys = await caches.keys();
+      await Promise.all(keys.map(function(k){return caches.delete(k);}));
+    }
+  }catch(e){}
+  window.location.href = '/?nocache=1';
+})();
+<\/script><p>Pulizia cache e Service Worker in corso...</p></body></html>`;
         const body = cacheVersionLabel;
         server.middlewares.use((req, res, next) => {
           const p = (req.url || '').split('?')[0];
@@ -36,6 +51,13 @@ export default defineConfig(({ command }) => {
             res.setHeader('Content-Type', 'text/plain; charset=utf-8');
             res.setHeader('Cache-Control', 'no-store, max-age=0');
             res.end(body);
+            return;
+          }
+          if (p === '/svuota-cache') {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-store, max-age=0');
+            res.end(swCleanupHtml);
             return;
           }
           next();
@@ -167,10 +189,10 @@ export default defineConfig(({ command }) => {
           },
           {
             urlPattern: /\.(js|css)$/,
-            handler: 'StaleWhileRevalidate',
+            handler: 'CacheFirst',
             options: {
               cacheName: 'app-chunks',
-              expiration: { maxEntries: 60, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 },
             },
           },
           {
