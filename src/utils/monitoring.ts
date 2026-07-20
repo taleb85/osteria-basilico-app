@@ -18,7 +18,7 @@ interface MonitoringConfig {
   enabled: boolean;
 }
 
-let config: MonitoringConfig = {
+const config: MonitoringConfig = {
   environment: ENV,
   enabled: ENV === 'production',
 };
@@ -30,5 +30,4 @@ export function captureException(error: Error, context?: Record<string, unknown>
     console.warn('[monitoring] SENTRY NON INTEGRATO — installa @sentry/react e configura VITE_SENTRY_DSN');
   }
 }
-
 

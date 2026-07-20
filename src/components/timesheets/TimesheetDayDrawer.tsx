@@ -1,25 +1,16 @@
 import { useRef } from 'react';
-import {
-  Check, AlertTriangle, X, LogOut, UserX, Save, ChevronLeft,
-} from 'lucide-react';
-import { format, addDays, parseISO, isValid, type Locale } from 'date-fns';
-import {
-  calculateShiftMinutesGross,
-  normalizeTimeInputToHHmm,
-} from '../../utils/timeCalculations';
+import { X, LogOut, UserX, Save } from 'lucide-react';
+import { type Locale } from 'date-fns';
+import { calculateShiftMinutesGross } from '../../utils/timeCalculations';
 import {
   getActiveBreakRules,
-  getNetShiftMinutes,
   getBreakDeductionDisplayItems,
   DEFAULT_AUTO_BREAK_MINUTES,
   AUTO_BREAK_THRESHOLD_MINUTES,
   type BreakMinutesComputeOptions,
   type BreakRule,
 } from '../../utils/breakRules';
-import { isFeatureEnabled } from '../../utils/enabledFeatures';
-import { isUiWidgetVisible } from '../../utils/uiScreenWidgets';
-import { getShiftHistory, type HistoryEntry } from '../../utils/scheduleHistory';
-import { safeFormatDate } from '../../utils/safeDateFormat';
+
 import { calculateDrawerPermissions } from '../../utils/drawerPermissions';
 import { TimeInputField } from '../ui/TimeInputField';
 import { CenteredModalPortal } from '../ui/CenteredModalPortal';
@@ -35,7 +26,7 @@ import {
   punchSourceLabel,
 } from './timesheetHelpers';
 import type { ShiftRow, DrawerData, DrawerReviewQueue, ClosingShiftState } from './timesheetTypes';
-import type { Shift, User, PunchAuditEntry, PunchRecord } from '../../types';
+import type { Shift, User } from '../../types';
 
 // ── Helper ──────────────────────────────────────────────────────────────────
 function getShiftCardStyle(s: ShiftRow) {
@@ -120,20 +111,20 @@ export default function TimesheetDayDrawer({ ctx, updateShift }: TimesheetDayDra
     manualPunchIn, manualPunchOut, manualPunchSaving,
     drawerManualPunchFormExpanded, showCloseConfirm, reviewQueueSaving,
     markAbsentSaving, deductBreakSaving, drawerShiftEditsExpanded,
-    clockOutTime, closingLoading, approvingShiftId,
+    clockOutTime: _clockOutTime, closingLoading: _closingLoading, approvingShiftId: _approvingShiftId,
     todayStr, timesheetShiftDetailPanelRef,
     setManualPunchIn, setManualPunchOut,
     setDrawerManualPunchFormExpanded, setShowCloseConfirm,
     setDrawerShiftEditsExpanded, setClockOutTime, setClosingShift,
     setMarkAbsentSaving, pushTsUndo,
     closeTimesheetShiftDrawer, handleDrawerSaveTimbratures,
-    handleDrawerReviewNavigate,
+    handleDrawerReviewNavigate: _handleDrawerReviewNavigate,
     handleSaveAndFreeze, handleSavePunchIn,
     handleDrawerDeductBreakChange, handleDrawerAutoBreakChange,
     handleDrawerDeductRuleExclusionChange, advanceDrawerReviewAfterStep,
     handleDrawerMarkAbsent, handleDrawerFreeze, handleDrawerUnfreeze,
     shifts, users, breakRules, breakComputeOpts,
-    currentUser, canTimesheetApprove, canTeamTimesheetOps,
+    currentUser: _currentUser, canTimesheetApprove, canTeamTimesheetOps,
     effectiveLanguage, globalPinSessionId, featureFlags,
     showSuccess, showError, t, locale, tv,
   } = ctx;

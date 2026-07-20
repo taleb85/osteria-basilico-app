@@ -14,7 +14,7 @@ type Props = {
   onApply: (start: string, end: string) => void;
 };
 
-export function ShiftSlotPresetsSection({ startTime, endTime, onApply }: Props) {
+export function ShiftSlotPresetsSection({ startTime, endTime: _endTime, onApply }: Props) {
   const t = useT();
   const tv = t as Record<string, string>;
   const [editMode, setEditMode] = useState(false);

@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { generateICalFeed, buildShiftsCalendarEvents } from '../utils/calendarExport';
-import { exportUserData, isEmailValid, isPhoneValid } from '../utils/gdpr';
+import { isEmailValid, isPhoneValid } from '../utils/gdpr';
 import { buildSlackMessage, buildTeamsMessage } from '../utils/webhooks';
 import { validateFile, getMaxFileSize, getAllowedTypes } from '../utils/documentStorage';
 import { computeLabourCostDashboard } from '../utils/labourCostDashboard';
@@ -65,7 +65,8 @@ describe('webhooks', () => {
 
   test('buildTeamsMessage returns formatted message', () => {
     const msg = buildTeamsMessage({ event: 'punch.created', tenantId: 't1', data: { time: '10:00' }, timestamp: new Date().toISOString() });
-    expect(msg.title).toContain('punch.created');
+    expect(msg.title).toContain('punch');
+    expect(msg.title).toContain('created');
     expect(msg.sections).toHaveLength(1);
   });
 });

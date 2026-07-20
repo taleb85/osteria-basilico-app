@@ -201,26 +201,6 @@ export function flowMealExclusionId(meal: 'lunch' | 'dinner'): string {
 /** Soglia turno per pausa automatica: 6 ore in minuti. */
 export const AUTO_BREAK_THRESHOLD_MINUTES = 6 * 60;
 
-/**
- * Orari effettivi del drawer non devono ricalcolare pranzo+cena sopra l’importo contabile:
- * stesso criterio usato in `approveShift` / congelamento.
- */
-function getPayrollLockedBreakMinutes(shift: {
-  is_auto_break?: boolean;
-  break_minutes?: number | null;
-}): number | null {
-  // approved rimosso
-  if (shift.is_auto_break === false) {
-    if (shift.break_minutes != null && shift.break_minutes > 0) return shift.break_minutes;
-    return null;
-  }
-  // `is_auto_break` true o assente: minuti sigillati in contabilità (inclusi record senza `is_auto_break`)
-  if (shift.break_minutes != null && shift.break_minutes >= 0) {
-    return Math.max(0, shift.break_minutes);
-  }
-  return null;
-}
-
 /** Solo regole con `enabled !== false` (default = attiva). */
 export function getActiveBreakRules(rules: BreakRule[] | null | undefined): BreakRule[] {
   if (!rules?.length) return [];

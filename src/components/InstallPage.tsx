@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Loader2, Monitor, Apple, Check, ArrowDownToLine } from 'lucide-react';
+import { Loader2, Check, ArrowDownToLine } from 'lucide-react';
 import { useT } from '../hooks/useT';
 import { formatTrans } from '../utils/translations';
 import { PATH_PROFILO } from '../config/appPaths';

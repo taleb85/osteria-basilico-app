@@ -20,7 +20,7 @@ import { getResolvedStartEndForHours, shiftPastPlannedEndWithoutClockIn } from '
 import type { AppNavTab } from '../utils/enabledModules';
 import MobileStaffDashboard from './mobile/MobileStaffDashboard';
 import HomeStaffView from './HomeStaffView';
-import HomeManagerView from './HomeManagerView';
+import HomeManagerView, { type EnrichedShift } from './HomeManagerView';
 
 // ── Board helpers ────────────────────────────────────────────────────────────
 const BOARD_KEY = 'manager_board_note';
@@ -324,7 +324,7 @@ export default function HomePage({
   const attendancePercent = todayAllShifts.length > 0 ? Math.round((todayShiftsWithPunch.length / todayAllShifts.length) * 100) : 100;
   const hoursPercent = Math.min(100, Math.round((weeklyMinutes / (40 * 60)) * 100));
 
-  const getCardStyle = (e: typeof todayShiftsEnriched[0]) => {
+  const getCardStyle = (e: EnrichedShift) => {
     const startMins = timeToMins(e.scheduledStart);
     const endMins = timeToMins((e.scheduledEnd || '00:00').slice(0, 5));
     const inTodayKpiWindow = nowMins >= startMins - 30 && nowMins <= endMins;
@@ -380,6 +380,7 @@ export default function HomePage({
         now={now}
         todayStr={todayStr}
         myShifts={myShifts}
+        punchRecords={punchRecords}
         myApprovedHolidays={myApprovedHolidays}
         upcomingShifts={upcomingShifts}
         todayShiftsMine={todayShiftsMine}

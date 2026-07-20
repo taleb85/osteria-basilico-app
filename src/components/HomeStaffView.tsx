@@ -6,7 +6,7 @@ import { safeFormatDate } from '../utils/safeDateFormat';
 import { getDateLocale } from '../utils/translations';
 import MobileStaffDashboard from './mobile/MobileStaffDashboard';
 import TeamBoard from './TeamBoard';
-import type { User, Shift, HolidayRequest, Language } from '../types';
+import type { User, Shift, HolidayRequest, Language, PunchRecord } from '../types';
 import type { AppNavTab } from '../utils/enabledModules';
 
 interface HomeStaffViewProps {
@@ -16,6 +16,7 @@ interface HomeStaffViewProps {
   now: Date;
   todayStr: string;
   myShifts: Shift[];
+  punchRecords: PunchRecord[];
   myApprovedHolidays: HolidayRequest[];
   upcomingShifts: Shift[];
   todayShiftsMine: Shift[];
@@ -74,12 +75,13 @@ export default memo(function HomeStaffView({
   onSaveBoard,
   onCancelEditBoard,
   onClearBoard,
-  onNavigateToHolidays,
+  onNavigateToHolidays: _onNavigateToHolidays,
   onNavigateToShifts,
   onTabChange,
   activeTab,
   uiW,
-  _punchTimeHHMM,
+  punchRecords,
+  punchTimeHHMM: _punchTimeHHMM,
   timeToMins,
 }: HomeStaffViewProps) {
   const shiftsListRef = useRef<HTMLDivElement>(null);
@@ -95,6 +97,7 @@ export default memo(function HomeStaffView({
           todayStr={todayStr}
           now={now}
           myShifts={myShifts}
+          punchRecords={punchRecords}
           weeklyMinutes={weeklyMinutes}
           monthlyMinutes={monthlyMinutes}
           monthDaysWorked={monthDaysWorked}

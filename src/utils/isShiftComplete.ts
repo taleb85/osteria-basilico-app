@@ -8,7 +8,7 @@
  * La presenza di punch_records determina lo stato di completamento.
  */
 
-import type { Shift, PunchRecord } from '../types';
+import type { Shift } from '../types';
 
 export interface PunchRecordLike {
   id?: string;
@@ -99,5 +99,4 @@ export function isShiftComplete(
 ): boolean {
   return hasPunchIn(shift, punchRecords) && hasPunchOut(shift, punchRecords);
 }
-
 

@@ -14,7 +14,7 @@ import { HomeManagementShiftCard } from './HomeManagementShiftCard';
 import TeamBoard from './TeamBoard';
 import type { User, Shift, HolidayRequest } from '../types';
 
-interface EnrichedShift {
+export interface EnrichedShift {
   shift: Shift;
   user?: User;
   isDinner: boolean;
@@ -109,7 +109,7 @@ export default memo(function HomeManagerView({
   currentUser,
   t,
   now: _now,
-  todayStr,
+  todayStr: _todayStr,
   todayShiftsEnriched,
   criticalShifts,
   dinnerNeedsClose,
@@ -150,9 +150,9 @@ export default memo(function HomeManagerView({
   onNavigateToReports,
   onNavigateToHolidays,
   uiW,
-  _punchTimeHHMM,
+  punchTimeHHMM: _punchTimeHHMM,
   timeToMins,
-  _getPunchForShift,
+  getPunchForShift: _getPunchForShift,
   getCardStyle,
 }: HomeManagerViewProps) {
   const locale = it;

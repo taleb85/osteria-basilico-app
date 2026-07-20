@@ -16,7 +16,7 @@ import {
 } from '../utils/periodConfig';
 import { saveTimesheetPeriodToSupabase } from '../utils/timesheetPeriodSupabase';
 import DatePickerField from './DatePickerField';
-import { useApp, useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
+import { useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { useTenant } from '../context/TenantContext';
 import type { User, UserRole } from '../types';
@@ -155,8 +155,8 @@ function DepartmentColorPicker({
 }
 
 export default function SettingsPage({ view }: { view?: 'profili' | 'regole' } = {}) {
-  const { users, currentUser, effectiveLanguage, isSessionElevated } = useAppUser();
-  const { shifts, punchRecords, holidays, updateUser, deleteUser } = useAppData();
+  const { users, currentUser, effectiveLanguage, isSessionElevated, updateUser, deleteUser } = useAppUser();
+  const { shifts, punchRecords, holidays } = useAppData();
   const {
     featureFlags, setFeatureFlag,
     workRules, setWorkRules,

@@ -466,7 +466,7 @@ export function ProfileFormAdmin({
   const employeeLang = (['it', 'en', 'es', 'fr'] as const).includes(rawLang as 'it' | 'en' | 'es' | 'fr')
     ? (rawLang as import('../types').Language)
     : effectiveLanguage;
-  const te = getTranslations(employeeLang) as Record<string, string>;
+  const _te = getTranslations(employeeLang) as Record<string, string>;
   const layoutRole = variant === 'create' ? formData.role : user.role;
   const isSuspended =
     variant === 'edit' && (user.status === 'suspended' || user.status === 'inactive');

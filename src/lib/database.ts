@@ -398,6 +398,7 @@ export const database = {
     },
 
     async insert(shift: Omit<Shift, 'id'>) {
+      if (!supabase) return null;
       const payload = withTenantPayload(pickShiftInsertPayload(shift));
       const { data, error } = await supabase!
         .from('shifts')
@@ -618,6 +619,7 @@ export const database = {
     },
 
     async insert(record: Omit<PunchRecord, 'id'>) {
+      if (!supabase) return null;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let payload: Record<string, any> = withTenantPayload({ ...record });
       // Mai inviare `timestamp` dal client se non è inserimento manuale: il trigger DB usa clock_timestamp().

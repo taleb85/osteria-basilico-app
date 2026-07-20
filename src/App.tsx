@@ -13,7 +13,7 @@ import DesignAuditPreview from './components/DesignAuditPreview';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AppProvider, useApp, useAppUser, useAppData, useAppConfig, useAppOverlay } from './context/AppContext';
+import { AppProvider, useAppUser, useAppData, useAppConfig, useAppOverlay } from './context/AppContext';
 import { ProfileLeaveGuardRefContext, type ProfileLeaveGuard } from './context/ProfileLeaveGuardContext';
 import { LayoutPresetProvider } from './context/LayoutPresetContext';
 import { applyUnauthenticatedDocumentTheme } from './utils/theme';
@@ -45,7 +45,6 @@ import {
 } from './utils/mainAppViewRestore';
 import { useIsMobileViewport } from './hooks/useIsMobileViewport';
 import { isAdminOnly, isManagementRole, findFreezeVerifierById } from './utils/permissions';
-import { getTimesheetGridPrivacyMode } from './utils/timesheetGridPrivacy';
 import AdminGate from './components/AdminGate';
 import { PwaGate } from './components/PwaGate';
 
@@ -57,13 +56,9 @@ const PermissionRequestModal = lazy(() => import('./components/PermissionRequest
 const shouldShowPermissionModal = () =>
   import('./components/permissionModalEligibility').then((m) => m.shouldShowPermissionModal()).catch(() => false);
 
-const WeeklyShiftsTable = lazy(() => import('./components/WeeklyShiftsTable'));
 const HolidayRequests = lazy(() => import('./components/HolidayRequests'));
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
-const Timesheets = lazy(() => import('./components/Timesheets'));
 const UnifiedShiftsPage = lazy(() => import('./components/UnifiedShiftsPage'));
-const ManagementMobileShifts = lazy(() => import('./components/mobile/ManagementMobileShifts'));
-const ManagementMobileTimesheet = lazy(() => import('./components/mobile/ManagementMobileTimesheet'));
 
 // ─── Maintenance Page ─────────────────────────────────────────────────────────
 function MaintenancePage() {
@@ -151,8 +146,8 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
     setIsSessionElevated,
   } = useAppUser();
   const {
-    shifts,
-    punchRecords,
+    shifts: _shifts,
+    punchRecords: _punchRecords,
   } = useAppData();
   const {
     featureFlags,

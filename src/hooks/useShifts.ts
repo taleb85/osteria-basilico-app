@@ -23,7 +23,7 @@ export interface UseShiftsReturn {
 }
 
 import type { User } from '../types';
-import { format, addDays, startOfWeek, endOfWeek, parseISO } from 'date-fns';
+import { format, addDays } from 'date-fns';
 
 export function useShifts(): UseShiftsReturn {
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -117,7 +117,7 @@ export function useShifts(): UseShiftsReturn {
     }
   }, []);
 
-  const publishWeekShifts = useCallback((weekStart: Date) => {
+  const publishWeekShifts = useCallback((_weekStart: Date) => {
     // Placeholder — logica da implementare con PIN confirmation
     console.warn('[useShifts] publishWeekShifts not fully implemented');
   }, []);

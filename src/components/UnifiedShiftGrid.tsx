@@ -3,18 +3,18 @@ import { createPortal } from 'react-dom';
 import {
   CalendarDays, AlertTriangle, Check, Lock, Plus, Clock,
   ChevronLeft, ChevronRight, Copy, Send, Filter, FileDown,
-  Trash2, Save, X, ShieldAlert, ChevronDown, Unlock, Menu,
+  Trash2, Save, X, ChevronDown, Unlock, Menu,
 } from 'lucide-react';
 import { CenteredModalPortal } from './ui/CenteredModalPortal';
 import type { Shift, PunchRecord, User } from '../types';
-import type { BreakRule } from '../utils/breakRules';
+// import type { BreakRule } from '../utils/breakRules';
 import {
   format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isToday, parseISO,
 } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { getTranslations, getDateLocale } from '../utils/translations';
 import { formatMinutesToHoursAndMinutes, calculateShiftMinutesGross, getBreakLabels, hasShiftConflictSameDay } from '../utils/timeCalculations';
-import { getBreakMinutesForShift, getNetShiftMinutes, DEFAULT_AUTO_BREAK_MINUTES, AUTO_BREAK_THRESHOLD_MINUTES } from '../utils/breakRules';
+import { getBreakMinutesForShift, DEFAULT_AUTO_BREAK_MINUTES, AUTO_BREAK_THRESHOLD_MINUTES } from '../utils/breakRules';
 import { shiftPastPlannedEndWithoutClockIn, punchTimeHHMM, getResolvedStartEndForHours } from '../utils/shiftResolvedClockTimes';
 import { exportSchedulePDF } from '../utils/exportSchedulePDF';
 import { TimeInputField } from './ui/TimeInputField';
@@ -173,9 +173,9 @@ function useT() {
   return getTranslations(effectiveLanguage);
 }
 
-export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: { mode: GridMode; onModeChange: (m: GridMode) => void; filterUserId?: string }) {
+export default function UnifiedShiftGrid({ mode, onModeChange: _onModeChange, filterUserId }: { mode: GridMode; onModeChange: (m: GridMode) => void; filterUserId?: string }) {
   const t = useT();
-  const { currentUser, users, effectiveLanguage, isSessionElevated, setIsSessionElevated, globalPinSessionId } = useAppUser();
+  const { currentUser, users, effectiveLanguage, isSessionElevated, setIsSessionElevated: _setIsSessionElevated, globalPinSessionId } = useAppUser();
   const sessionActive = isSessionElevated || !!globalPinSessionId;
   const {
     shifts: allShifts, punchRecords: allPunchRecords,
@@ -190,8 +190,8 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     () => currentUser ? canEditTeamShifts(currentUser) : false,
     [currentUser]
   );
-  const canPublish = currentUser ? canPublishScheduleDrafts(currentUser) : false;
-  const canApprove = useMemo(
+  const _canPublish = currentUser ? canPublishScheduleDrafts(currentUser) : false;
+  const _canApprove = useMemo(
     () => currentUser ? canApproveShiftActions(currentUser) : false,
     [currentUser]
   );
@@ -334,7 +334,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   useEffect(() => {
     if (!drawerOpen) { setDrawerDeleteConfirm(false); setReviewQueue(null); setReviewIdx(0); }
   }, [drawerOpen]);
-  const [detailTab, setDetailTab] = useState<ShiftDetailTab>('details');
+  const [_detailTab, setDetailTab] = useState<ShiftDetailTab>('details');
   const [editStartTime, setEditStartTime] = useState('');
   const [editEndTime, setEditEndTime] = useState('');
 
@@ -373,9 +373,9 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   // ── Drag & Drop ──
   // Usiamo una ref per draggedShiftId per evitare stale closure nei drag handler
   const draggedShiftIdRef = useRef<string | null>(null);
-  const [draggedShiftId, setDraggedShiftId] = useState<string | null>(null);
+  const [_draggedShiftId, setDraggedShiftId] = useState<string | null>(null);
   const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
-  const [dragCopyMode, setDragCopyMode] = useState(false);
+  const [_dragCopyMode, setDragCopyMode] = useState(false);
   // Conferma dopo il drop: chiede se spostare o copiare
   const [dropConfirm, setDropConfirm] = useState<{
     shiftId: string;
@@ -431,7 +431,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
           if (Array.isArray(list)) setTemplatesList(list);
         }).catch(() => {});
       }
-    } catch {}
+    } catch { /* database not available */ }
   }, []);
 
   const prevWeek = () => setWeekStart(d => addDays(d, -7));
@@ -542,7 +542,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       try {
         await updateShift(shift.id, { approval_status: 'frozen' } as any);
         count++;
-      } catch {}
+      } catch { /* skip error for individual shift */ }
     }
     if (count > 0) showSuccess((t.week_frozen ?? '{n} turni congelati.').replace('{n}', String(count)));
     else showError(t.no_shifts_to_freeze ?? 'Nessun turno da congelare.');
@@ -704,7 +704,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     finally { setSaving(false); }
   }, [panelPinTargetShiftId, panelPin, panelPinMode, users, updateShift, deleteShift, setSelectedShift, showSuccess, showError, t]);
 
-  const handleSaveManualPunch = useCallback(async () => {
+  const _handleSaveManualPunch = useCallback(async () => {
     if (!selectedShift) return;
     setSaving(true);
     try {
@@ -801,7 +801,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
     const next = !isAutoBreak;
     setIsAutoBreak(next);
     try {
-      const gross = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
+      const _gross = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
       if (next) await updateShift(selectedShift.id, { is_auto_break: true, break_minutes: 30 });
       else await updateShift(selectedShift.id, { is_auto_break: false, break_minutes: 0 });
     } catch { showError(t.error_generic ?? 'Errore.'); }
@@ -1003,7 +1003,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
   const renderGroupButton = (g: DayShiftGroup, layout: 'desktop' | 'mobile', compact = false, extraGroups: DayShiftGroup[] = []) => {
     const isDraft = g.shift.approval_status === 'draft';
     const isApproved = g.shift.approval_status === 'approved';
-    const isConfirmed = g.shift.approval_status === 'confirmed';
+    const _isConfirmed = g.shift.approval_status === 'confirmed';
     const display = getShiftCellDisplay(g, mode, weekPunchRecords, compact || isPeriodView);
     let borderColor = 'border-cyan-400/50';
     let bgColor = 'bg-white/[0.06]';
@@ -1036,7 +1036,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
 
     const handleShiftClick = (e: React.MouseEvent) => {
       if (e.shiftKey) {
-        setSelectedShiftIds(prev => { const n = new Set(prev); n.has(g.shift.id) ? n.delete(g.shift.id) : n.add(g.shift.id); return n; });
+        setSelectedShiftIds(prev => { const n = new Set(prev); if (n.has(g.shift.id)) n.delete(g.shift.id); else n.add(g.shift.id); return n; });
       } else {
         handleOpenDrawer(g.shift);
       }
@@ -1102,7 +1102,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
           onDragStart={(e) => handleDragStart(e, g.shift.id)}
           onDragEnd={() => { draggedShiftIdRef.current = null; setDraggedShiftId(null); setDropTargetKey(null); setDragCopyMode(false); }}
           className={`relative w-full min-w-0 text-left rounded-lg border ${borderColor} ${bgColor} ${glow} hover:brightness-125 transition-all ${isDraft ? 'border-dashed' : ''} px-0.5 py-0.5`}>
-          <input type="checkbox" checked={selectedShiftIds.has(g.shift.id)} onChange={() => setSelectedShiftIds(prev => { const n = new Set(prev); n.has(g.shift.id) ? n.delete(g.shift.id) : n.add(g.shift.id); return n; })}
+          <input type="checkbox" checked={selectedShiftIds.has(g.shift.id)} onChange={() => setSelectedShiftIds(prev => { const n = new Set(prev); if (n.has(g.shift.id)) n.delete(g.shift.id); else n.add(g.shift.id); return n; })}
             className={`absolute left-0.5 top-0.5 z-10 w-3 h-3 rounded border-white/30 accent-accent transition-opacity ${selectedShiftIds.has(g.shift.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} onClick={e => e.stopPropagation()} />
           <div
             className="flex items-end justify-center w-full gap-1 px-2 whitespace-nowrap overflow-hidden"
@@ -1817,7 +1817,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                   const breakMins = getBreakMinutesForShift({ ...selectedShift, deduct_break: deductBreak }, grossMins, shiftUser ?? null, breakRules,
                     editIn && editOut ? { breakRuleWindow: { start: editIn, end: editOut } } : undefined);
                   const netMins = Math.max(0, grossMins - breakMins);
-                  const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
+                  const _hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
                   return (
                     <div className="space-y-3">
                       <div className="rounded-xl bg-gradient-to-br from-violet-500/10 to-pink-600/10 p-3 space-y-2">
@@ -1843,9 +1843,9 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                 {selectedShift && selectedShift.approval_status !== 'draft' && (() => {
                   const { in: punchIn, out: punchOut } = getPunchForShift(selectedShift);
                   const hasIn = !!punchIn; const hasOut = !!punchOut;
-                  const showEditFields = canEdit && selectedShift.approval_status !== 'draft' && !isFrozen(selectedShift);
+                  const showEditFields = canEdit && !isFrozen(selectedShift);
                   const grossMins = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
-                  const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
+                  const _hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
                   return (
                     <div className="space-y-3">
                       <div className={`flex items-center gap-2 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-600/10 p-3 ${(!hasIn && !hasOut) ? 'ring-2 ring-amber-500/40 animate-pulse' : ''}`}>
@@ -1896,7 +1896,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                       </div>
                       {!isFrozen(selectedShift) && (
                       <div className="rounded-xl bg-gradient-to-br from-violet-500/10 to-pink-600/10 p-3 space-y-2">
-                        <label className="flex items-center gap-3 cursor-pointer">
+                        <label className="flex items-center gap-3 cursor-pointer" aria-label={t.deduct_break_label ?? 'Detrae pausa'}>
                             <input type="checkbox" checked={deductBreak} onChange={handleDeductBreakToggle}
                               className="w-4 h-4 rounded border-white/30 bg-white/10 accent-accent" />
                             <div>
@@ -1904,8 +1904,8 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                               <p className="text-[9px] text-white/40">{deductBreak ? (t.break_deducted_readout ?? 'La pausa viene detratta dalle ore nette.') : (t.break_not_deducted ?? 'Pausa non detratta.')}</p>
                             </div>
                           </label>
-                          {deductBreak && hasAutoBreak && (
-                            <label className="flex items-center gap-3 cursor-pointer ml-4 mt-1">
+                          {deductBreak && _hasAutoBreak && (
+                            <label className="flex items-center gap-3 cursor-pointer ml-4 mt-1" aria-label={t.auto_break_label ?? 'Pausa automatica (≥6h)'}>
                               <input type="checkbox" checked={isAutoBreak} onChange={handleAutoBreakToggle}
                                 className="w-4 h-4 rounded border-white/30 bg-white/10 accent-accent" />
                               <div>

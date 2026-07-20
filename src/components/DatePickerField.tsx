@@ -62,7 +62,6 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
 ) {
   const { effectiveLanguage } = useAppUser();
   const t = useT();
-  const tv = t as Record<string, string>;
   const locale = getDateLocale(effectiveLanguage) ?? it;
   const clearLabel = (t as { date_picker_clear?: string }).date_picker_clear ?? 'Cancella';
   const chooseLabel = (t as { date_picker_choose?: string }).date_picker_choose ?? 'Scegli data';
@@ -173,7 +172,7 @@ const DatePickerField = forwardRef<HTMLButtonElement, DatePickerFieldProps>(func
           setOpen(false);
         }}
         locale={locale}
-        captionLayout="buttons"
+        captionLayout="dropdown"
         startMonth={startMonthNav}
         endMonth={endMonthNav}
         month={visibleMonth}

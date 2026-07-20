@@ -1,69 +1,35 @@
-import { useMemo, useRef, useCallback, useState, useEffect, Suspense, lazy, type CSSProperties } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ChevronRight, ChevronLeft, Check, AlertTriangle, X,
+  ChevronRight, ChevronLeft, Check, X,
   Clock, History, ShieldAlert, LogOut, Lock, Unlock,
   Users, UserCheck, AlertCircle, ArrowRight, Calendar, Moon,
-  ChevronDown, UserX, Trash2, Filter, Save, RotateCcw,
+  ChevronDown, Filter, RotateCcw,
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { format, addDays, parseISO, isToday, eachDayOfInterval, startOfWeek, endOfWeek, isValid, type Locale } from 'date-fns';
-import { getTranslations, getDateLocale, formatTrans } from '../../utils/translations';
+import { format, parseISO, isToday, type Locale } from 'date-fns';
+import { formatTrans } from '../../utils/translations';
+import { formatMinutesToHoursAndMinutes } from '../../utils/timeCalculations';
 import {
-  calculateShiftMinutesGross,
-  formatMinutesToHoursAndMinutes,
-  normalizeTimeInputToHHmm,
-} from '../../utils/timeCalculations';
-import {
-  getActiveBreakRules,
-  getNetShiftMinutes,
-  getBreakDeductionDisplayItems,
-  DEFAULT_AUTO_BREAK_MINUTES,
-  AUTO_BREAK_THRESHOLD_MINUTES,
   type BreakMinutesComputeOptions,
   type BreakRule,
 } from '../../utils/breakRules';
-import {
-  isManagementRole,
-  isUserVisibleOnTeamSchedule,
-  canOperateTeamSchedule,
-  canApproveShiftActions,
-} from '../../utils/permissions';
 import { isFeatureEnabled } from '../../utils/enabledFeatures';
-import { isUiWidgetVisible } from '../../utils/uiScreenWidgets';
 import { getShiftHistory } from '../../utils/scheduleHistory';
-import { safeFormatDate } from '../../utils/safeDateFormat';
-import { database } from '../../lib/database';
-import { TimeInputField } from '../ui/TimeInputField';
 import {
-  loadPeriodConfig,
-  savePeriodConfig as persistPeriodConfig,
   getPeriodStartDate,
   getPeriodEndDate,
-  PERIOD_STORAGE_KEY,
-  dispatchPeriodConfigUpdated,
-  weekIndexForDateInPeriod,
-  getPeriodDateRange,
-  nextPeriodConfig,
-  prevPeriodConfig,
-  currentPeriodConfig,
   periodConfigForMonth,
   type PeriodConfig,
 } from '../../utils/periodConfig';
-import { saveTimesheetPeriodToSupabase } from '../../utils/timesheetPeriodSupabase';
-import type { PunchAuditEntry, PunchRecord, PunchRecordSource, Shift, User } from '../../types';
-import { getResolvedStartEndForHours, shiftPastPlannedEndWithoutClockIn } from '../../utils/shiftResolvedClockTimes';
+import type { PunchAuditEntry, PunchRecord, Shift, User } from '../../types';
+
 import { CenteredModalPortal } from '../ui/CenteredModalPortal';
 import { HorizontalScrollArea, type HorizontalScrollWeekNav } from '../HorizontalScrollArea';
 import TimesheetManagementKpiBlock from '../TimesheetManagementKpiBlock';
-import { getPayrollPaymentDateForCalendarMonth } from '../../utils/payrollSchedule';
-import { isShiftPayrollFrozen } from '../../utils/timesheetFreezeCriteria';
-import { getDeptColor, getDepartments, deptMatchesFilterKey } from '../../utils/departments';
-import { getTimesheetGridPrivacyMode } from '../../utils/timesheetGridPrivacy';
-import { runAutoApprove } from '../../utils/autoApprovePunches';
-import { calculateDrawerPermissions } from '../../utils/drawerPermissions';
-import { mergeShiftDeductExclusionsFromLocal } from '../../utils/shiftDeductExclusionsLocal';
-import { fmtHM, fmtBreakDeductionShort, fmtAuditValue, humanizeFieldName, punchSourceLabel } from './timesheetHelpers';
+import { getDeptColor } from '../../utils/departments';
+
+import { fmtHM, fmtBreakDeductionShort } from './timesheetHelpers';
 import type { ShiftRow, DrawerData, DrawerReviewQueue, ClosingShiftState, DayData } from './timesheetTypes';
 import { shiftEligibleForDayReview } from './timesheetTypes';
 
@@ -225,37 +191,37 @@ export interface TimesheetsGridProps {
 
 export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
   const {
-    currentUser, shifts, users, punchRecords, breakRules, breakComputeOpts,
-    canTimesheetApprove, canTeamTimesheetOps, effectiveLanguage, locale,
-    featureFlags, t,
+    currentUser, shifts, users, punchRecords: _punchRecords, breakRules: _breakRules, breakComputeOpts: _breakComputeOpts,
+    canTimesheetApprove, canTeamTimesheetOps, effectiveLanguage: _effectiveLanguage, locale,
+    featureFlags: _featureFlags, t,
     tsView, setTsView, showStatsSubTab, viewMode, setViewMode,
-    dates, weekDays, todayStr, isShowingTodayWeek,
-    kpiItems, periodConfig, periodEndDate, periodStartDate, periodNumWeeks,
+    dates: _dates, weekDays, todayStr, isShowingTodayWeek,
+    kpiItems: _kpiItems, periodConfig: _periodConfig, periodEndDate, periodStartDate, periodNumWeeks,
     periodNavOffset, setPeriodNavOffset,
     periodPopoverRef, periodTriggerRef, showPeriodPopover, setShowPeriodPopover,
     periodPopoverYear, setPeriodPopoverYear, periodPopoverPos, setPeriodPopoverPos,
     pdfDeptMenuRef, showPdfDeptMenu, setShowPdfDeptMenu, pdfDeptFilter, setPdfDeptFilter,
     weekApproveMenuRef, weekApproveBtnRef, weekApprovePortalRef,
-    showWeekApproveMenu, setShowWeekApproveMenu, weekApproveDisabled,
+    showWeekApproveMenu, setShowWeekApproveMenu, weekApproveDisabled: _weekApproveDisabled,
     weekApproveDesktopPos, setWeekApproveDesktopPos,
     timesheetHeaderScrollRef, timesheetBodyScrollRef, timesheetMirrorHeaderRef,
     timesheetTheadRef, timesheetHeaderSticky, timesheetMainGridWeekNav,
-    visibleUsers, uiW, showPlannedTimesInCell, showFullTimesheetGrid,
-    plannedOnlyTimesheetGrid, gridCols,
+    visibleUsers, uiW, showPlannedTimesInCell: _showPlannedTimesInCell, showFullTimesheetGrid,
+    plannedOnlyTimesheetGrid, gridCols: _gridCols,
     timesheetGridNameColPx, timesheetGridDayColPx, timesheetGridTotalColPx,
     timesheetGridMinWidthPx, timesheetData,
-    totalPlannedMins, totalActualMins, totalFrozenOfficialMins,
+    totalPlannedMins: _totalPlannedMins, totalActualMins: _totalActualMins, totalFrozenOfficialMins: _totalFrozenOfficialMins,
     goToToday, handleOpenDayReview, handleOpenEmployeeWeekReview,
-    handleStatCardClick, onClick, openDrawer,
+    handleStatCardClick, onClick: _onClick, openDrawer,
     applyAndSavePeriod, applyPeriodFromStorage,
     isMobile, isAdminTs, isDayInConfiguredPeriod,
-    getShiftCardStyle, triggerShiftHighlight, approvedByUser,
-    canReview, dayClickBlocked, shiftClickBlocked,
-    highlightIds, highlightedShiftIds,
+    getShiftCardStyle, triggerShiftHighlight, approvedByUser: _approvedByUser,
+    canReview: _canReview, dayClickBlocked: _dayClickBlocked, shiftClickBlocked: _shiftClickBlocked,
+    highlightIds: _highlightIds, highlightedShiftIds,
     autoApprovedCount, autoApproveBannerDismissed, setAutoApproveBannerDismissed,
-    showSuccess, showError,
-    setDrawerData, setDrawerReviewQueue, setDrawerSessionId, setDrawerOpenSource,
-    setDrawerJustOpened, setDrawerShiftEditsExpanded, setDrawerManualPunchFormExpanded,
+    showSuccess: _showSuccess, showError: _showError,
+    setDrawerData: _setDrawerData, setDrawerReviewQueue: _setDrawerReviewQueue, setDrawerSessionId: _setDrawerSessionId, setDrawerOpenSource: _setDrawerOpenSource,
+    setDrawerJustOpened: _setDrawerJustOpened, setDrawerShiftEditsExpanded: _setDrawerShiftEditsExpanded, setDrawerManualPunchFormExpanded: _setDrawerManualPunchFormExpanded,
     setApproveWeekSummary, payrollStripForToolbar,
     tsUndoStack, setTsUndoStack, undoApprovalBusy,
     dinnerShiftsNeedingClose,
@@ -265,6 +231,8 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
   const StatisticsLazy = lazy(() => import('../Statistics').then(m => ({ default: m.default })));
 
   // ── Render ───────────────────────────────────────────────────────────────
+
+  const [statFilter, _setStatFilter] = useState<{ label: string } | null>(null);
 
   if (!currentUser) return null;
 
@@ -278,7 +246,6 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
     inTurno: 0, ritardi: 0, senzaTimbratura: 0, approvati: 0,
     ritardiIds: [] as string[], senzTimbratureIds: [] as string[],
   };
-  const [statFilter, setStatFilter] = useState<{ label: string } | null>(null);
   const availableDepts: Array<{ value: string; label: string; color: string }> = [];
   const userTotals: Record<string, { actualMins: number; plannedMins: number; planned: number; actual: number; deltaMins: number; frozenOfficialMins: number }> = {};
   const weekViewPayrollDayStr = '';
@@ -294,7 +261,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
     approvedByUser: [] as Array<{ user: User; name: string; approvedShifts: Shift[] }>,
     employeesPending: [] as Array<{ user: User; name: string; pendingShifts: Shift[]; complete: boolean }>,
   };
-  const openSummary = (
+  const _openSummary = (
     _targetShifts: Shift[] | Array<{ id: string; employeeName: string }>,
     _approvedSlice: Shift[] | boolean,
     _isApprovedState: boolean,
@@ -309,7 +276,7 @@ export default function TimesheetsGrid({ ctx }: TimesheetsGridProps) {
     setShowWeekApproveMenu(false);
     setWeekApproveDesktopPos(null);
   };
-  const todayDate = false;
+  const _todayDate = false;
   const weekIndex = 0;
   const weekStart = weekDays[0] ?? new Date();
   const lastDay = weekDays[weekDays.length - 1] ?? new Date();

@@ -1,6 +1,5 @@
 import { format, isValid } from 'date-fns';
 import type { Shift } from '../types';
-import { isShiftComplete } from './isShiftComplete';
 
 export type PunchRecordLike = {
   id?: string;

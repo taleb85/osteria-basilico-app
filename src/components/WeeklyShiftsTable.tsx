@@ -4,7 +4,7 @@ import { format, startOfWeek, endOfWeek, addDays, differenceInCalendarDays, pars
 import { database } from '../lib/database';
 import { it } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, ChevronUp, Plus, X, Check, Cloud, Loader2, MessageSquare, Pencil, Clock, Trash2, ChevronDown, Copy, Download, Info, EyeOff, Eye, History, Filter, UserCheck, UserX, FileEdit, Lock, Menu, ClipboardCopy, ClipboardPaste, Calendar, RotateCcw, FileDown } from 'lucide-react';
-import { useApp, useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
+import { useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { useTenant } from '../context/TenantContext';
 import { useMinViewportMd } from '../hooks/useMinViewportMd';

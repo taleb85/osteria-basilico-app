@@ -50,7 +50,6 @@ export function useMultisensorialFeedback() {
   /**
    * Suono notifica disabilitato.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const playNotificationSound = useCallback(async (_isSoundEnabled?: boolean, _soundVolume?: number) => {
     /* suono disabilitato */
   }, []);

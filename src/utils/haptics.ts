@@ -13,23 +13,6 @@ const isIOS = () =>
 
 const isAndroid = () => /Android/.test(navigator.userAgent)
 
-let audioCtx: AudioContext | null = null
-
-const getAudioContext = (): AudioContext | null => {
-  try {
-    if (!audioCtx || audioCtx.state === 'closed') {
-      const w = window as Window & { webkitAudioContext?: typeof AudioContext }
-      const AudioCtx = window.AudioContext || w.webkitAudioContext
-      if (!AudioCtx) return null
-      audioCtx = new AudioCtx()
-    }
-    return audioCtx
-  } catch {
-    return null
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const iosHaptic = (_style: HapticStyle) => {
   /* vibrazione audio disabilitata */
 }

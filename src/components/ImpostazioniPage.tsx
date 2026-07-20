@@ -243,11 +243,11 @@ export default function ImpostazioniPage({ onOpenProfilesTab }: ImpostazioniPage
     );
   }, [featureFlags, detailOpen, t, setFeatureFlag, showSuccess, toggleDetail]);
 
-  if (!currentUser) return null;
   const hasFullAccess = useMemo(
     () => currentUser ? isAdminOnly(currentUser) || isSessionElevated || !!currentUser.elevated_role : false,
     [currentUser, isSessionElevated]
   );
+  if (!currentUser) return null;
   if (!hasFullAccess) {
     return (
       <div className="pb-content pt-6 w-full app-horizontal-pad font-sans">

@@ -100,7 +100,6 @@ import {
 } from '../utils/breakRules';
 import {
   mergeShiftsDeductExclusionsFromLocal,
-  mergeShiftDeductExclusionsFromLocal,
   setLocalDeductExcludedRuleIds,
   clearLocalDeductExcludedRuleIds,
 } from '../utils/shiftDeductExclusionsLocal';
@@ -1065,7 +1064,7 @@ function AppProviderInner({ children }: { children: ReactNode }) {
   // approveShiftSoft rimosso (semplificazione - approvazione automatica via timbrature)
 
   // approveShift rimosso (semplificazione - approvazione automatica via timbrature)
-  const approveShift = async (shiftId: string, opts?: any) => {
+  const approveShift = async (shiftId: string, _opts?: any) => {
     // Non serve più - i turni sono completati in base alla presenza di punch_records
     console.log('approveShift chiamato ma ignorato (semplificazione)', shiftId);
   };

@@ -5,16 +5,16 @@
  *
  * ISOLATO: non usa AppContext né TenantContext. Ha il proprio PIN gate.
  */
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Pencil, Check, X, Building2, Palette, Globe,
   ToggleLeft, ToggleRight, Copy, Settings, ChevronDown,
-  MapPin, Clock, Languages, Layers, ExternalLink, Users,
-  UserPlus, Trash2, ChevronRight, Eye, EyeOff, ShieldCheck, Delete, LogOut,
+  ExternalLink,
+  Trash2, ChevronRight, ShieldCheck, Delete, LogOut,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { Tenant, TenantSettings, UserRole, UserStatus } from '../types';
+import type { Tenant, TenantSettings } from '../types';
 // import { HEADER_FONTS } from '../context/TenantContext'; // unused
 import { seedTenantFromTemplate } from '../utils/seedTenantFromTemplate';
 import { PUBLIC_APP_ORIGIN } from '../config/publicAppUrl';

@@ -389,7 +389,7 @@ export default function ImportStorico({ tenants, onClose }: { tenants: Tenant[];
         return;
       }
 
-      const approvedAt = new Date().toISOString();
+      const _approvedAt = new Date().toISOString();
       const importNote = `import:${fileName}`;
       const basePayload = toInsert.map((r) => ({
         tenant_id: selectedTenantId,

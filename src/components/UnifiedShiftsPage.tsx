@@ -5,7 +5,7 @@ import { useT } from '../hooks/useT';
 import { useAppUser } from '../context/AppContext';
 
 export default function UnifiedShiftsPage() {
-  const t = useT();
+  const _t = useT();
   const { currentUser, isSessionElevated } = useAppUser();
 
   if (!currentUser) return null;

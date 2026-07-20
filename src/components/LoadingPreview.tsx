@@ -40,7 +40,7 @@ function stageToColors(_stage: string): [string, string, string] {
 
 /* ── Anello SVG ── */
 function RingIcon({
-  stage, gradientId, size = 80, iconClass = 'w-20 h-20 rounded-2xl',
+  stage, gradientId, size = 80, iconClass: _iconClass = 'w-20 h-20 rounded-2xl',
 }: {
   stage: string; gradientId: string; size?: number; iconClass?: string;
 }) {

@@ -33,6 +33,11 @@ export default tseslint.config(
         },
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
+      // Regole rimosse dal plugin typescript-eslint 8+: disattivate per evitare "rule not found"
+      '@typescript-eslint/ban-types': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
     },
   },
   {

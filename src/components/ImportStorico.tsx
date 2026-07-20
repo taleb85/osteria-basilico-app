@@ -166,7 +166,7 @@ export default function ImportStorico({ tenants, onClose }: { tenants: Tenant[];
     URL.revokeObjectURL(url);
   };
 
-  const parseTime = (raw: string): string | null => {
+  const _parseTime = (raw: string): string | null => {
     const m = raw.match(/^(\d{1,2})[:.](\d{2})$/);
     if (!m) return null;
     return `${String(parseInt(m[1], 10)).padStart(2, '0')}:${m[2]}`;

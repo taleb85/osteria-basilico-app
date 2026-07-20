@@ -1,7 +1,6 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import type { User, UserRole, UserStatus, Department } from '../types';
 import { database } from '../lib/database';
-import { APP_SESSION_STORAGE_KEY } from '../constants/appSession';
 
 export interface UseUsersReturn {
   users: User[];

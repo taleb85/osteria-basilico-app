@@ -1,10 +1,10 @@
-import { useRef } from 'react';
+import {} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { LogOut, X, Lock } from 'lucide-react';
 import {
   findFreezeVerifierByPin,
-  findFreezeVerifierById,
+  findFreezeVerifierById as _findFreezeVerifierById,
 } from '../../utils/permissions';
 import { PinPadModal } from '../ui/PinPadModal';
 import { fmtHM } from './timesheetHelpers';

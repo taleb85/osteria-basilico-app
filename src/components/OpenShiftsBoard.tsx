@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, UserPlus, AlertCircle, Check } from 'lucide-react';
+import { Calendar, Clock, UserPlus, AlertCircle } from 'lucide-react';
 import { getOpenShifts, claimOpenShift, releaseOpenShift, type OpenShift } from '../utils/openShifts';
 import { format, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';

@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Upload, FileText, Trash2, Download, File, AlertCircle } from 'lucide-react';
+import { Upload, FileText, Trash2, Download, AlertCircle } from 'lucide-react';
 import {
   uploadDocument,
   deleteDocument,
   listDocuments,
   getDocumentUrl,
   getCategoryLabel,
-  getAllowedTypes,
+  getAllowedTypes as _getAllowedTypes,
   getMaxFileSize,
   validateFile,
   type StoredDocument,

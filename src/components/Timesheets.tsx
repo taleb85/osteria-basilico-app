@@ -13,14 +13,14 @@ import {
 } from 'date-fns';
 import { it } from 'date-fns/locale';
 import {
-  ChevronRight, ChevronLeft, Check, AlertTriangle, X,
+  ChevronRight, ChevronLeft, Check, X,
   Clock, History, ShieldAlert, LogOut, Lock, Unlock,
   Users, UserCheck, AlertCircle, ArrowRight, Calendar, Moon,
-  ChevronDown, UserX, Trash2, Filter, Save, RotateCcw,
+  ChevronDown, Filter, RotateCcw,
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useApp, useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
+import { useAppUser, useAppData, useAppConfig, useAppOverlay } from '../context/AppContext';
 import { useT } from '../hooks/useT';
 import { getTranslations, getDateLocale, formatTrans } from '../utils/translations';
 import {
@@ -29,12 +29,9 @@ import {
   normalizeTimeInputToHHmm,
 } from '../utils/timeCalculations';
 import {
-  getActiveBreakRules,
   getBreakMinutesForShift,
   getNetShiftMinutes,
-  getBreakDeductionDisplayItems,
   DEFAULT_AUTO_BREAK_MINUTES,
-  AUTO_BREAK_THRESHOLD_MINUTES,
   type BreakMinutesComputeOptions,
   type BreakRule,
 } from '../utils/breakRules';
@@ -82,12 +79,7 @@ import { getTimesheetGridPrivacyMode } from '../utils/timesheetGridPrivacy';
 import { PinPadModal } from './ui/PinPadModal';
 import { runAutoApprove } from '../utils/autoApprovePunches';
 import { useDrawerUnlock } from '../hooks/useDrawerUnlock';
-import { calculateDrawerPermissions } from '../utils/drawerPermissions';
-import { TimesheetDrawerHeader } from './timesheets/TimesheetDrawerHeader';
 import TimesheetDayDrawer from './timesheets/TimesheetDayDrawer';
-import TimesheetApprovals from './timesheets/TimesheetApprovals';
-import { ShiftHoursCards } from './timesheets/ShiftHoursCards';
-import { ShiftHistoryCard } from './timesheets/ShiftHistoryCard';
 import { mergeShiftDeductExclusionsFromLocal } from '../utils/shiftDeductExclusionsLocal';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -265,7 +257,7 @@ function fmtBreakDeductionShort(mins: number): string {
 }
 
 /** Formatta un valore audit: se è un ISO timestamp lo converte in dd/MM HH:mm, altrimenti lo restituisce as-is */
-function fmtAuditValue(v: string | null | undefined): string {
+function _fmtAuditValue(v: string | null | undefined): string {
   if (!v) return '—';
   // Plain ISO timestamp
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v)) {
@@ -303,7 +295,7 @@ const FIELD_LABEL_MAP: Record<string, string> = {
   PUNCH_OUT_TIME: 'Ora uscita', NOTE: 'Note', DEPARTMENT: 'Reparto',
   ROLE: 'Ruolo', BREAK_MINUTES: 'Pausa (min)',
 };
-function humanizeFieldName(field: string | undefined): string {
+function _humanizeFieldName(field: string | undefined): string {
   if (field == null || field === '') return '—';
   const up = field.toUpperCase();
   return FIELD_LABEL_MAP[up] ?? field.replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase());
@@ -317,7 +309,7 @@ function punchTimeHHMM(ts: string | null | undefined): string | null {
   } catch { return null; }
 }
 
-function punchSourceLabel(
+function _punchSourceLabel(
   source: PunchRecordSource | null | undefined,
   t: ReturnType<typeof getTranslations>
 ): string {
@@ -937,7 +929,7 @@ export default function Timesheets() {
   const manualPunchOutHourRef = useRef<HTMLInputElement | null>(null);
 
   /** Click/tap sulla card orario → stesso effetto di un click diretto sul campo ore (un solo gesto). */
-  const focusManualPunchHourFromSummary = useCallback((which: 'in' | 'out') => {
+  const _focusManualPunchHourFromSummary = useCallback((which: 'in' | 'out') => {
     const pick = () => (which === 'in' ? manualPunchInHourRef.current : manualPunchOutHourRef.current);
     const apply = () => {
       const el = pick();
@@ -2204,7 +2196,7 @@ export default function Timesheets() {
   };
 
   /** Salva solo l'ORA USCITA senza toccare l'entrata. */
-  const handleSavePunchOut = async (): Promise<boolean> => {
+  const _handleSavePunchOut = async (): Promise<boolean> => {
     if (!drawerData) return false;
     const shiftRow = drawerData.shift;
     if (!shiftRow.punchInId) return false;
@@ -2514,7 +2506,7 @@ export default function Timesheets() {
     }
   };
 
-  const handleDrawerReviewSaveAndNext = async () => {
+  const _handleDrawerReviewSaveAndNext = async () => {
     if (!drawerReviewQueue || !drawerData) return;
     const s = drawerData.shift;
     if (drawerReviewQueue.reviewScope === 'employee_week' && s.status === 'absent') {
@@ -4667,8 +4659,8 @@ export default function Timesheets() {
             clockOutTime: '',
             closingLoading: false,
             approvingShiftId: null,
-            setClockOutTime: (v: string) => {},
-            setClosingShift: (v: any) => {},
+            setClockOutTime: (_v: string) => {},
+            setClosingShift: (_v: any) => {},
             handleSaveAndFreeze: async () => {
               if (!drawerData) return;
               const ok = await handleDrawerSaveTimbratures({ silentToast: true });
