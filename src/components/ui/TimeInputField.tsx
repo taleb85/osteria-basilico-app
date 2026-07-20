@@ -223,7 +223,8 @@ export function TimeInputField({
           }
         }}
         onBlur={() => flush(h, m)}
-        onFocus={(e) => e.target.select()}
+        onFocus={(e) => e.currentTarget.select()}
+        onClick={(e) => e.currentTarget.select()}
         onKeyDown={handleHourKeyDown}
         className={`${inner} pl-2 pr-0.5`}
         style={{ background: 'transparent' }}
@@ -251,7 +252,8 @@ export function TimeInputField({
           }
         }}
         onBlur={() => flush(h, m)}
-        onFocus={(e) => e.target.select()}
+        onFocus={(e) => e.currentTarget.select()}
+        onClick={(e) => e.currentTarget.select()}
         onKeyDown={handleMinuteKeyDown}
         className={`${inner} pl-0.5 pr-2`}
         style={{ background: 'transparent' }}

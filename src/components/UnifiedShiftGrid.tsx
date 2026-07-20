@@ -629,9 +629,17 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       await updateShift(shift.id, { approval_status: 'approved' } as any);
       setSelectedShift(prev => prev && prev.id === shift.id ? { ...prev, approval_status: 'approved' as const } : prev);
       showSuccess(t.shift_approved ?? 'Turno approvato.');
+      // Advance to next shift in review queue if available
+      if (reviewQueue && reviewIdx < reviewQueue.length - 1) {
+        const nextIdx = reviewIdx + 1;
+        setReviewIdx(nextIdx);
+        requestAnimationFrame(() => {
+          handleOpenDrawer(reviewQueue[nextIdx]);
+        });
+      }
     } catch { showError(t.error_generic ?? 'Errore.'); }
     finally { setSaving(false); }
-  }, [selectedShift, editIn, editOut, allPunchRecords, addPunchRecord, updatePunchRecord, updateShift, setSelectedShift, showSuccess, showError, t]);
+  }, [selectedShift, editIn, editOut, allPunchRecords, addPunchRecord, updatePunchRecord, updateShift, setSelectedShift, showSuccess, showError, t, reviewQueue, reviewIdx]);
 
   const handleFreezeShift = useCallback(async (shift: Shift) => {
     if (sessionActive) {
@@ -1132,11 +1140,11 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
         <div className="ui-toolbar-row-tight flex min-w-0 flex-1 flex-wrap items-center gap-1.5 sm:gap-2">
           <div className="flex shrink-0 items-center gap-1">
             <button type="button" onClick={prevWeek} aria-label="Settimana precedente"
-              className="rounded-lg bg-white/10 px-1.5 py-1.5 sm:py-1 text-white/60 hover:text-white transition-colors md:px-2"><ChevronLeft className="h-4 w-4 sm:h-3.5 sm:w-3.5" /></button>
+              className="rounded-lg bg-white/10 px-2 py-2 text-white/60 hover:text-white transition-colors md:px-3"><ChevronLeft className="h-5 w-5 sm:h-4 sm:w-4" /></button>
             <button type="button" onClick={goToday}
-              className="rounded-lg bg-white/10 px-2 py-1.5 sm:py-1 text-white/60 hover:text-white transition-colors text-[11px] sm:text-[11px] font-bold uppercase tracking-wider">{t.today_btn ?? 'Oggi'}</button>
+              className="rounded-lg bg-white/10 px-2.5 py-2 sm:py-1.5 text-white/60 hover:text-white transition-colors text-xs sm:text-xs font-bold uppercase tracking-wider">{t.today_btn ?? 'Oggi'}</button>
             <button type="button" onClick={nextWeek} aria-label="Settimana successiva"
-              className="rounded-lg bg-white/10 px-1.5 py-1.5 sm:py-1 text-white/60 hover:text-white transition-colors md:px-2"><ChevronRight className="h-4 w-4 sm:h-3.5 sm:w-3.5" /></button>
+              className="rounded-lg bg-white/10 px-2 py-2 text-white/60 hover:text-white transition-colors md:px-3"><ChevronRight className="h-5 w-5 sm:h-4 sm:w-4" /></button>
           </div>
           <span
             className="flex-1 sm:flex-none min-w-0 max-w-full truncate text-sm sm:text-[11px] md:text-sm font-semibold text-white/50 tabular-nums"
@@ -1704,7 +1712,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
       {drawerOpen && selectedShift && createPortal(
         <div className="fixed inset-0 z-[10050] flex items-center justify-center px-4" onClick={handleCloseDrawer}>
           <div className="fixed inset-0 bg-black/40 backdrop-blur-xl supports-[backdrop-filter]:bg-black/30" />
-          <div className="relative w-full max-w-2xl rounded-2xl border border-white/15 p-5 shadow-2xl max-h-[85vh] z-10 flex flex-col bg-transparent" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: `2px solid ${isFrozen(selectedShift) || selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}40`, boxShadow: `0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08), 0 0 24px ${isFrozen(selectedShift) || selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}20` }} onClick={e => e.stopPropagation()}>
+          <div className="relative w-full max-w-3xl rounded-2xl border border-white/15 p-5 shadow-2xl max-h-[85vh] z-10 flex flex-col bg-transparent" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: `2px solid ${isFrozen(selectedShift) || selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}40`, boxShadow: `0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08), 0 0 24px ${isFrozen(selectedShift) || selectedShift.approval_status === 'approved' ? '#34d399' : selectedShift.approval_status === 'confirmed' ? '#67e8f9' : 'rgba(255,255,255,0.2)'}20` }} onClick={e => e.stopPropagation()}>
             <div className="shrink-0">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -1741,14 +1749,20 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                 {reviewQueue && (
                   <>
                     <span className="text-[10px] font-bold text-white/50 tabular-nums">{reviewIdx + 1}/{reviewQueue.length}</span>
-                    <button type="button" disabled={reviewIdx <= 0} onClick={() => { const next = reviewIdx - 1; if (next >= 0) { setReviewIdx(next); handleOpenDrawer(reviewQueue[next]); } }} className="rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button>
-                    <button type="button" disabled={reviewIdx >= reviewQueue.length - 1} onClick={() => { const next = reviewIdx + 1; if (next < reviewQueue.length) { setReviewIdx(next); handleOpenDrawer(reviewQueue[next]); } }} className="rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
+                    <button type="button" disabled={reviewIdx <= 0} onClick={() => { const next = reviewIdx - 1; if (next >= 0) { setReviewIdx(next); handleOpenDrawer(reviewQueue[next]); } }} className="rounded-lg bg-white/10 px-4 py-1 text-white/50 hover:text-white hover:bg-white/20 transition-all disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button>
+                    <button type="button" disabled={reviewIdx >= reviewQueue.length - 1} onClick={() => { const next = reviewIdx + 1; if (next < reviewQueue.length) { setReviewIdx(next); handleOpenDrawer(reviewQueue[next]); } }} className="rounded-lg bg-white/10 px-4 py-1 text-white/50 hover:text-white hover:bg-white/20 transition-all disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
                   </>
                 )}
                 {canDeleteShift(selectedShift) && !drawerDeleteConfirm && (
                   <button type="button" onClick={() => setDrawerDeleteConfirm(true)}
                     className="rounded-lg bg-rose-600/20 p-2 text-rose-300 hover:bg-rose-600/30 transition-all" title={t.delete ?? 'Elimina'}>
                     <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+                {canEdit && !isFrozen(selectedShift) && selectedShift.approval_status !== 'draft' && (
+                  <button type="button" onClick={() => handleFreezeShift(selectedShift)}
+                    className="rounded-lg bg-emerald-600/20 p-2 text-emerald-300 hover:bg-emerald-600/30 transition-all" title={t.ts_drawer_freeze_btn ?? 'Congela'}>
+                    <Unlock className="h-4 w-4" />
                   </button>
                 )}
                 <button type="button" onClick={handleCloseDrawer} className="ml-2 rounded-lg bg-white/10 p-2 text-white/50 hover:text-white hover:bg-white/20 transition-all"><X className="h-4 w-4" /></button>
@@ -1800,7 +1814,8 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                       })()
                     : calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
                   const shiftUser = users.find((u) => u.id === selectedShift.user_id);
-                  const breakMins = getBreakMinutesForShift({ ...selectedShift, deduct_break: deductBreak }, grossMins, shiftUser ?? null, breakRules);
+                  const breakMins = getBreakMinutesForShift({ ...selectedShift, deduct_break: deductBreak }, grossMins, shiftUser ?? null, breakRules,
+                    editIn && editOut ? { breakRuleWindow: { start: editIn, end: editOut } } : undefined);
                   const netMins = Math.max(0, grossMins - breakMins);
                   const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
                   return (
@@ -1828,7 +1843,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                 {selectedShift && selectedShift.approval_status !== 'draft' && (() => {
                   const { in: punchIn, out: punchOut } = getPunchForShift(selectedShift);
                   const hasIn = !!punchIn; const hasOut = !!punchOut;
-                  const showEditFields = canEdit && selectedShift.approval_status === 'confirmed';
+                  const showEditFields = canEdit && selectedShift.approval_status !== 'draft' && !isFrozen(selectedShift);
                   const grossMins = calculateShiftMinutesGross(selectedShift.start_time ?? '', selectedShift.end_time ?? '');
                   const hasAutoBreak = grossMins >= AUTO_BREAK_THRESHOLD_MINUTES && isAutoBreak;
                   return (
@@ -1924,13 +1939,7 @@ export default function UnifiedShiftGrid({ mode, onModeChange, filterUserId }: {
                 {canEdit && isFrozen(selectedShift) && (
                   <button type="button" onClick={() => handleUnfreezeShift(selectedShift)}
                     className="ml-auto flex items-center gap-1.5 rounded-lg bg-accent/20 px-3 py-2 text-[11px] font-bold text-accent hover:bg-accent/30 transition-all border border-transparent hover:border-accent/30 hover:scale-[1.02] active:scale-95">
-                    <Unlock className="h-3.5 w-3.5" />{t.wst_unfreeze_btn ?? 'Sblocca'}
-                  </button>
-                )}
-                {canEdit && !isFrozen(selectedShift) && selectedShift.approval_status !== 'draft' && (
-                  <button type="button" onClick={() => handleFreezeShift(selectedShift)}
-                    className="ml-auto flex items-center gap-1.5 rounded-lg bg-[#0B3573] px-3 py-2 text-[11px] font-bold text-white hover:opacity-90 transition-all hover:scale-[1.02] active:scale-95">
-                    <Lock className="h-3.5 w-3.5" />{t.ts_drawer_freeze_btn ?? 'Congela'}
+                    <Lock className="h-3.5 w-3.5" />{t.wst_unfreeze_btn ?? 'Sblocca'}
                   </button>
                 )}
               </div>
